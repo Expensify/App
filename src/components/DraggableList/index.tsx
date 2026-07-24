@@ -1,17 +1,24 @@
+import ScrollView from '@components/ScrollView';
+
+import useListKeyboardNav from '@hooks/useListKeyboardNav';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {cancelDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
+
+import CONST from '@src/CONST';
+
 import type {DragEndEvent} from '@dnd-kit/core';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import React, {useEffect, useId, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
-import ScrollView from '@components/ScrollView';
-import useListKeyboardNav from '@hooks/useListKeyboardNav';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {cancelDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
-import CONST from '@src/CONST';
-import SortableItem from './SortableItem';
+
 import type DraggableListProps from './types';
+
+import SortableItem from './SortableItem';
 
 const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
 

@@ -1,27 +1,34 @@
-import {format} from 'date-fns';
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DatePicker from '@components/DatePicker';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {format} from 'date-fns';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type TransactionStartDateStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE>;
 
@@ -38,7 +45,7 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const [errorText, setErrorText] = useState('');
     const [localStartDate, setLocalStartDate] = useState<string>();
     const dateOptionSelected = localDateOption ?? cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
-    const startDate = localStartDate ?? cardToAssign?.startDate ?? assignCard?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const startDate = localStartDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -129,12 +136,13 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                                 addBottomSafeAreaPadding
                                 footerContent={
                                     <Button
-                                        success
-                                        large
-                                        pressOnEnter
-                                        text={translate(isEditing ? 'common.save' : 'common.next')}
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                        size={CONST.BUTTON_SIZE.LARGE}
                                         onPress={submit}
-                                    />
+                                    >
+                                        <Button.KeyboardShortcut />
+                                        <Button.Text>{translate(isEditing ? 'common.save' : 'common.next')}</Button.Text>
+                                    </Button>
                                 }
                                 listFooterContent={
                                     dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
@@ -152,7 +160,6 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                                                     setLocalStartDate(value);
                                                 }}
                                                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                                maxDate={new Date()}
                                                 errorText={errorText}
                                             />
                                         </View>

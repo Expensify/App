@@ -1,7 +1,9 @@
-import React from 'react';
-import WebView from 'react-native-webview';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import WebView from 'react-native-webview';
+
 import type EmbeddedDemoProps from './types';
 
 function EmbeddedDemo({url, webViewProps}: EmbeddedDemoProps) {

@@ -1,19 +1,24 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {findPolicyExpenseChatByPolicyID} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import ROUTES from '@src/ROUTES';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceUserRestrictedActionProps = {
     policyID: string;

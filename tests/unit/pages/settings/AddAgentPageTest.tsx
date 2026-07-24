@@ -1,19 +1,33 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
+
+import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
-import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pendingAgentAvatarStore';
+
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-jest.mock('@userActions/Agent', () => ({
-    createAgent: jest.fn(() => ({optimisticAccountID: -123456, avatarURI: undefined})),
-}));
+import React from 'react';
 
 const mockTranslate = jest.fn().mockImplementation((key: string, param?: string) => (param !== undefined ? `${key}(${param})` : key));
+const mockCreateAgent = jest.fn<{optimisticAccountID: number; avatarURI: string | undefined}, unknown[]>(() => ({optimisticAccountID: -123456, avatarURI: undefined}));
+const mockSetNewAgentAvatarPreset = jest.fn<void, unknown[]>();
+const mockClearNewAgentAvatarDraft = jest.fn<void, unknown[]>();
+let mockAvatarDraft: {customExpensifyAvatarID?: string; uploadedAvatar?: {uri: string; name: string; type: string}} | undefined;
+let mockAvatarDraftStatus: 'loading' | 'loaded' = 'loaded';
+
+jest.mock('@userActions/Agent', () => ({
+    createAgent: (...args: unknown[]) => mockCreateAgent(...args),
+    setNewAgentAvatarPreset: (...args: unknown[]) => mockSetNewAgentAvatarPreset(...args),
+    clearNewAgentAvatarDraft: (...args: unknown[]) => mockClearNewAgentAvatarDraft(...args),
+}));
 
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: mockTranslate})));
 
@@ -38,12 +52,25 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({Pencil: 1})),
 }));
 
-jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}]));
+jest.mock('@hooks/useOnyx', () => {
+    const onyxKeys = jest.requireActual<{default: typeof ONYXKEYS}>('@src/ONYXKEYS').default;
+    return {
+        __esModule: true,
+        default: jest.fn((key: string) => {
+            if (key === onyxKeys.AGENT_NEW_AVATAR_DRAFT) {
+                return [mockAvatarDraft, {status: mockAvatarDraftStatus}] as const;
+            }
+            return [undefined, {status: 'loaded'}] as const;
+        }),
+    };
+});
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
 }));
+
+const mockAddListener = jest.fn<() => void, [string, (...args: unknown[]) => void]>(() => jest.fn());
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -53,9 +80,22 @@ jest.mock('@react-navigation/native', () => {
         ...actual,
         useIsFocused: () => true,
         useRoute: jest.fn(() => ({name: '', key: '', params: {}})),
-        useFocusEffect: jest.fn(),
+        useNavigation: () => ({addListener: mockAddListener}),
     };
 });
+
+/** Renders the page and returns the `beforeRemove` handler registered via `useBeforeRemove`. */
+function captureBeforeRemoveHandler(routeParams: AddAgentRouteProp['params'] = {}): (() => void) | undefined {
+    let beforeRemoveHandler: (() => void) | undefined;
+    mockAddListener.mockImplementation((event, handler) => {
+        if (event === 'beforeRemove') {
+            beforeRemoveHandler = handler as () => void;
+        }
+        return jest.fn();
+    });
+    renderAddAgentPage(routeParams);
+    return beforeRemoveHandler;
+}
 
 jest.mock('@components/ScreenWrapper', () => {
     function MockScreenWrapper({children}: {children: React.ReactNode}) {
@@ -98,19 +138,10 @@ jest.mock('@components/AvatarButtonWithIcon', () => {
     return MockAvatarButtonWithIcon;
 });
 
-jest.mock('@pages/settings/Agents/pendingAgentAvatarStore', () => ({
-    setInitialPresetID: jest.fn(),
-    setNavigationToken: jest.fn(),
-    setReturnRoute: jest.fn(),
-    getPendingAvatar: jest.fn(() => null),
-    clearPendingAvatar: jest.fn(),
-}));
-
-const mockSetInitialPresetID = jest.mocked(setInitialPresetID);
-const mockSetNavigationToken = jest.mocked(setNavigationToken);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockGoBack = jest.mocked(Navigation.goBack);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
+const mockUseOnyx = jest.mocked(useOnyx);
 
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
@@ -118,20 +149,26 @@ function makeRoute(params: AddAgentRouteProp['params'] = {}): AddAgentRouteProp 
     return {name: '', key: '', params} as unknown as AddAgentRouteProp;
 }
 
+function renderAddAgentPage(routeParams: AddAgentRouteProp['params'] = {}) {
+    return render(
+        <AddAgentPage
+            route={makeRoute(routeParams)}
+            navigation={undefined as never}
+        />,
+    );
+}
+
 describe('AddAgentPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockAvatarDraft = undefined;
+        mockAvatarDraftStatus = 'loaded';
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0});
         mockAvatarOnPress = undefined;
     });
 
     it('renders page title', () => {
-        const {toJSON} = render(
-            <AddAgentPage
-                route={makeRoute()}
-                navigation={undefined as never}
-            />,
-        );
+        const {toJSON} = renderAddAgentPage();
 
         expect(JSON.stringify(toJSON())).toContain('addAgentPage.title');
     });
@@ -139,12 +176,7 @@ describe('AddAgentPage', () => {
     it('translates default agent name using current user displayName', () => {
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0, displayName: 'Nicolas'});
 
-        render(
-            <AddAgentPage
-                route={makeRoute()}
-                navigation={undefined as never}
-            />,
-        );
+        renderAddAgentPage();
 
         expect(mockTranslate).toHaveBeenCalledWith('addAgentPage.defaultAgentName', 'Nicolas');
     });
@@ -152,12 +184,7 @@ describe('AddAgentPage', () => {
     it('sets default agent name as InputWrapper defaultValue when displayName exists', () => {
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0, displayName: 'Nicolas'});
 
-        const {toJSON} = render(
-            <AddAgentPage
-                route={makeRoute()}
-                navigation={undefined as never}
-            />,
-        );
+        const {toJSON} = renderAddAgentPage();
 
         expect(JSON.stringify(toJSON())).toContain('firstName::addAgentPage.defaultAgentName(Nicolas)');
     });
@@ -165,97 +192,124 @@ describe('AddAgentPage', () => {
     it('sets no default agent name when displayName is absent', () => {
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0});
 
-        const {toJSON} = render(
-            <AddAgentPage
-                route={makeRoute()}
-                navigation={undefined as never}
-            />,
-        );
+        const {toJSON} = renderAddAgentPage();
 
         expect(JSON.stringify(toJSON())).toContain('firstName::');
         expect(mockTranslate).not.toHaveBeenCalledWith('addAgentPage.defaultAgentName', expect.anything());
     });
 
     it('always sets default prompt regardless of displayName', () => {
-        render(
-            <AddAgentPage
-                route={makeRoute()}
-                navigation={undefined as never}
-            />,
-        );
+        renderAddAgentPage();
 
         expect(mockTranslate).toHaveBeenCalledWith('addAgentPage.defaultPrompt');
     });
 
     it('sets default prompt as InputWrapper defaultValue', () => {
-        const {toJSON} = render(
-            <AddAgentPage
-                route={makeRoute()}
-                navigation={undefined as never}
-            />,
-        );
+        const {toJSON} = renderAddAgentPage();
 
         expect(JSON.stringify(toJSON())).toContain('prompt::addAgentPage.defaultPrompt');
     });
 
-    it('navigates to add avatar route when avatar button is pressed', () => {
-        render(
-            <AddAgentPage
-                route={makeRoute()}
-                navigation={undefined as never}
-            />,
-        );
+    it('seeds a random default avatar into the draft on mount when it is empty', () => {
+        renderAddAgentPage();
 
+        expect(mockUseOnyx).toHaveBeenCalledWith(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
+        expect(mockSetNewAgentAvatarPreset).toHaveBeenCalledTimes(1);
+        expect(AGENT_AVATARS.isAvatarID(mockSetNewAgentAvatarPreset.mock.calls.at(0)?.at(0))).toBe(true);
+    });
+
+    it('navigates to the avatar picker without an extra write when the avatar is pressed', () => {
+        renderAddAgentPage();
+
+        // Ignore the on-mount seed; pressing the avatar must only navigate.
+        mockSetNewAgentAvatarPreset.mockClear();
         mockAvatarOnPress?.();
 
+        expect(mockSetNewAgentAvatarPreset).not.toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
     });
 
-    it('sets navigation token and initial preset ID when avatar button is pressed', () => {
-        render(
-            <AddAgentPage
-                route={makeRoute()}
-                navigation={undefined as never}
-            />,
-        );
+    it('does not seed a default while the draft is still loading (avoids clobbering a saved avatar on refresh)', () => {
+        mockAvatarDraftStatus = 'loading';
 
-        mockAvatarOnPress?.();
+        renderAddAgentPage();
 
-        expect(mockSetNavigationToken).toHaveBeenCalledTimes(1);
-        expect(mockSetInitialPresetID).toHaveBeenCalledTimes(1);
+        expect(mockSetNewAgentAvatarPreset).not.toHaveBeenCalled();
+    });
+
+    it('does not seed a default when a draft already exists (e.g. after a refresh)', () => {
+        mockAvatarDraft = {customExpensifyAvatarID: 'bot-avatar--blue'};
+
+        renderAddAgentPage();
+
+        expect(mockSetNewAgentAvatarPreset).not.toHaveBeenCalled();
+    });
+
+    it('resets the avatar draft when the flow is closed without saving', () => {
+        mockAvatarDraft = {customExpensifyAvatarID: 'bot-avatar--blue'};
+
+        const beforeRemoveHandler = captureBeforeRemoveHandler();
+        beforeRemoveHandler?.();
+
+        expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reset the avatar draft on close after submitting', () => {
+        mockAvatarDraft = {customExpensifyAvatarID: 'bot-avatar--blue'};
+
+        const beforeRemoveHandler = captureBeforeRemoveHandler();
+        mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
+        // The submit path already cleared the draft once; the close handler must not clear it again.
+        mockClearNewAgentAvatarDraft.mockClear();
+        beforeRemoveHandler?.();
+
+        expect(mockClearNewAgentAvatarDraft).not.toHaveBeenCalled();
     });
 
     describe('submit branching', () => {
         beforeEach(() => {
             mockFormOnSubmit = undefined;
+            mockAvatarDraft = {customExpensifyAvatarID: 'bot-avatar--blue'};
         });
 
         it('goes back when policyID is absent in route params', () => {
-            render(
-                <AddAgentPage
-                    route={makeRoute({})}
-                    navigation={undefined as never}
-                />,
-            );
+            renderAddAgentPage({});
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
+            expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
             expect(mockGoBack).toHaveBeenCalledTimes(1);
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
         it('goes back when policyID is present without navigating to a workflow editor', () => {
-            render(
-                <AddAgentPage
-                    route={makeRoute({policyID: 'POL_42'})}
-                    navigation={undefined as never}
-                />,
-            );
+            renderAddAgentPage({policyID: 'POL_42'});
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
+            expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
             expect(mockGoBack).toHaveBeenCalledTimes(1);
             expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('creates the agent with the persisted preset when no photo was uploaded', () => {
+            renderAddAgentPage({});
+
+            mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
+
+            expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', 'bot-avatar--blue', undefined, undefined, undefined);
+        });
+
+        it('creates the agent with the reconstructed uploaded file when a photo was uploaded', () => {
+            mockAvatarDraft = {uploadedAvatar: {uri: 'file://photo.jpg', name: 'photo.jpg', type: 'image/jpeg'}};
+
+            renderAddAgentPage({});
+            mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
+
+            const [, , presetArg, fileArg, uriArg] = mockCreateAgent.mock.calls.at(0) ?? [];
+            expect(presetArg).toBeUndefined();
+            expect(fileArg).toBeDefined();
+            expect(uriArg).toBe('file://photo.jpg');
         });
     });
 });

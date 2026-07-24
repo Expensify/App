@@ -1,23 +1,30 @@
-import sortBy from 'lodash/sortBy';
-import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
 import {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import sortBy from 'lodash/sortBy';
+import React from 'react';
+import {View} from 'react-native';
+
 import AddReactionBubble from './AddReactionBubble';
 import ReportActionReactionBubble from './ReportActionReactionBubble';
 
@@ -83,8 +90,10 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
         if (isAnonymousUser()) {
             hideContextMenu(false);
 
-            InteractionManager.runAfterInteractions(() => {
-                signOutAndRedirectToSignIn();
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    signOutAndRedirectToSignIn();
+                },
             });
             return;
         }

@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useOptionRowChrome from '@components/LHNOptionsList/OptionRowLHN/useOptionRowChrome';
+
 import CONST from '@src/CONST';
 
 const FOCUSED_COLOR = '#focused';

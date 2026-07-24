@@ -1,5 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Attachment} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type CacheAttachmentProps = {
     /** Attachment ID based on the data-attachment-id attribute */

@@ -1,8 +1,11 @@
-import React from 'react';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelReportID from '@hooks/useSidePanelReportID';
 import useSidePanelState from '@hooks/useSidePanelState';
+
 import type {ExtraContentProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import React from 'react';
+
 import SidePanelModal from './SidePanelModal';
 import SidePanelReport from './SidePanelReport';
 import useSyncSidePanelWithHistory from './useSyncSidePanelWithHistory';

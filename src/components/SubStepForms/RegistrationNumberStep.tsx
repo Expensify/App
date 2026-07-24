@@ -1,5 +1,3 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
@@ -8,16 +6,22 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
+
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getFieldRequiredErrors, isValidRegistrationNumber} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 
 type RegistrationNumberStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
     /** The ID of the form */
@@ -39,15 +43,13 @@ type RegistrationNumberStepProps<TFormID extends keyof OnyxFormValuesMapping> = 
     shouldDelayAutoFocus?: boolean;
 };
 
-function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
-    formID,
-    onSubmit,
-    inputID,
-    defaultValue,
-    isEditing,
-    country,
-    shouldDelayAutoFocus = false,
-}: RegistrationNumberStepProps<TFormID>) {
+type RegistrationNumberStepPropsWidened = Omit<RegistrationNumberStepProps<keyof OnyxFormValuesMapping>, never>;
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function RegistrationNumberStepImpl({formID, onSubmit, inputID, defaultValue, isEditing, country, shouldDelayAutoFocus = false}: RegistrationNumberStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -60,11 +62,12 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
     }, [country]);
 
     const validate = useCallback(
-        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
+        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
             const errors = getFieldRequiredErrors(values, [inputID], translate);
 
-            if (values[inputID] && !isValidRegistrationNumber(values[inputID] as string, country)) {
-                errors[inputID] = translate('businessInfoStep.error.registrationNumber');
+            const registrationNumber = (values as Record<string, unknown>)[inputID as string] as string;
+            if (registrationNumber && !isValidRegistrationNumber(registrationNumber, country)) {
+                (errors as Record<string, string>)[inputID as string] = translate('businessInfoStep.error.registrationNumber');
             }
 
             return errors;
@@ -112,6 +115,10 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
             </View>
         </FormProvider>
     );
+}
+
+function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>(props: RegistrationNumberStepProps<TFormID>) {
+    return <RegistrationNumberStepImpl {...(props as unknown as RegistrationNumberStepPropsWidened)} />;
 }
 
 export default RegistrationNumberStep;

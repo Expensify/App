@@ -2,7 +2,7 @@
 
 ## Fonts
 
-All fonts used by web and native apps are located inside `assets/fonts/` folder. The native app will use fonts with `.otf` or `.ttf` formats, where the web app will use fonts with `.otf`, `.ttf`, `.woff` or `.woff2` formats.
+All fonts used by web and native apps are located inside `assets/fonts/` folder. The native app will use fonts with `.otf` or `.ttf` formats, where the web app will use fonts with `.otf`, `.ttf` or `.woff2` formats.
 
 ### Adding / Removing fonts
 
@@ -77,7 +77,7 @@ To add or remove a font used in the web app:
           font-family: <new_font_family>;
           font-weight: 500;
           font-style: normal;
-          src: url('/fonts/<font-family-file>.woff2') format('woff2'),  url('/fonts/<font-family-file>.woff') format('woff');
+          src: url('/fonts/<font-family-file>.woff2') format('woff2');
       }
       /* Add the other variants too. */
       ```
@@ -100,7 +100,7 @@ To add or remove a font used in the storybook web app:
           font-family: <new_font_family>;
           font-weight: 500;
           font-style: normal;
-          src: url('../assets/fonts/web/<font-family-file>.woff2') format('woff2'),  url('../assets/fonts/web/<font-family-file>.woff') format('woff');
+          src: url('../assets/fonts/web/<font-family-file>.woff2') format('woff2');
       }
       /* Add the other variants too. */
       ```
@@ -121,7 +121,7 @@ To add or remove a font used in the Expensify Help web app:
         font-family: <new_font_family>;
         font-weight: 500;
         font-style: normal;
-        src: url('/assets/fonts/<font-family-file>.woff2') format('woff2'), url('/assets/fonts/<font-family-file>.woff') format('woff');
+        src: url('/assets/fonts/<font-family-file>.woff2') format('woff2');
       }
       /* Add the other variants too. */
       ```

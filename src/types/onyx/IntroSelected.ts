@@ -1,4 +1,5 @@
 import type {OnboardingInvite} from '@src/CONST';
+
 import type {OnboardingPurpose} from './index';
 
 /** The tasks of IntroSelected model */

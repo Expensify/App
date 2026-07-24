@@ -1,4 +1,3 @@
-import type {ParamListBase, PartialState, RouterConfigOptions} from '@react-navigation/native';
 import Log from '@libs/Log';
 import type {
     DismissModalActionType,
@@ -7,8 +6,12 @@ import type {
     RootStackNavigatorAction,
 } from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {ParamListBase, PartialState, RouterConfigOptions} from '@react-navigation/native';
+
 import type {CustomHistoryEntry} from './types';
 
 type RootHistoryState = PlatformStackNavigationState<ParamListBase>;
@@ -25,6 +28,36 @@ function isRemoveFullscreenUnderRHPAction(action: RootStackNavigatorAction): act
 
 function isDismissModalAction(action: RootStackNavigatorAction): action is DismissModalActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
+}
+
+/** A per-instance Modal back-guard sentinel (`CUSTOM_HISTORY_ENTRY_MODAL:<modalId>`). */
+function isModalHistorySentinel(entry: CustomHistoryEntry | undefined): boolean {
+    return typeof entry === 'string' && entry.startsWith(`${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:`);
+}
+
+/**
+ * Captures the trailing run of string sentinels (side-panel + per-modal back-guards) so they can be
+ * re-appended after `enhanceStateWithHistory` rebuilds `history` from `routes`. This keeps those
+ * overlays' browser entries alive through benign history rebuilds (e.g. RESET / resize).
+ */
+function getTrailingStringSentinels(history: unknown[] | undefined): string[] {
+    const typed = asCustomHistory(history);
+    if (!typed?.length) {
+        return [];
+    }
+    let cutoff = typed.length;
+    while (cutoff > 0 && typeof typed.at(cutoff - 1) === 'string') {
+        cutoff -= 1;
+    }
+    return typed.slice(cutoff).filter((entry): entry is string => typeof entry === 'string');
+}
+
+/** Removes only the topmost modal back-guard sentinel (used to consume one guard on forward navigation). */
+function stripTrailingModalSentinels(history: CustomHistoryEntry[]): CustomHistoryEntry[] {
+    if (isModalHistorySentinel(history.at(-1))) {
+        return history.slice(0, -1);
+    }
+    return history;
 }
 
 function isRightModalNavigatorRouteName(name: string | undefined): boolean {
@@ -160,10 +193,14 @@ function applyRevealPaddingOffset(state: RootHistoryState, rehydrated: RootHisto
 export type {PendingReveal, RootHistoryState};
 export {
     applyRevealPaddingOffset,
+    asCustomHistory,
     getFrozenHistoryStateForRemoveFullscreenUnderRHP,
     getFrozenHistoryStateForReplaceFullscreenUnderRHP,
     getRevealDismissState,
+    getTrailingStringSentinels,
     isDismissModalAction,
+    isModalHistorySentinel,
     isRemoveFullscreenUnderRHPAction,
     isReplaceFullscreenUnderRHPAction,
+    stripTrailingModalSentinels,
 };

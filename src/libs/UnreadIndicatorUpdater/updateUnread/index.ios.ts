@@ -1,4 +1,5 @@
 import Airship from '@ua/react-native-airship';
+
 import type UpdateUnread from './types';
 
 /**

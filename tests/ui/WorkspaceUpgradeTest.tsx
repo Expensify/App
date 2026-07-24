@@ -1,21 +1,30 @@
-import {NavigationContainer} from '@react-navigation/native';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import WorkspaceUpgradePage from '@pages/workspace/upgrade/WorkspaceUpgradePage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -160,6 +169,91 @@ describe('WorkspaceUpgrade', () => {
 
         unmount();
         await waitForBatchedUpdates();
+    });
+
+    it('should render the Collect plan title and Team pricing when upgradePlanType is team', async () => {
+        const policy: Policy = LHNTestUtils.getFakePolicy();
+
+        // Given that a policy is initialized in Onyx
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // When the upgrade page is opened with upgradePlanType set to the Collect (Team) plan
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, upgradePlanType: CONST.POLICY.TYPE.TEAM});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Collect title is shown
+        expect(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.commonFeatures.collect.title'))).toBeTruthy();
+
+        // And the Team (Collect) annual price is shown
+        const teamPrice = convertToShortDisplayString(
+            CONST.SUBSCRIPTION_PRICES[CONST.PAYMENT_CARD_CURRENCY.USD][CONST.POLICY.TYPE.TEAM][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            CONST.PAYMENT_CARD_CURRENCY.USD,
+        );
+        expect(await screen.findByText(teamPrice, {exact: false})).toBeTruthy();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should render the Control plan title and Corporate pricing when upgradePlanType is corporate', async () => {
+        const policy: Policy = LHNTestUtils.getFakePolicy();
+
+        // Given that a policy is initialized in Onyx
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // When the upgrade page is opened with upgradePlanType set to the Control (Corporate) plan
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, upgradePlanType: CONST.POLICY.TYPE.CORPORATE});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Control title is shown
+        expect(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.commonFeatures.title'))).toBeTruthy();
+
+        // And the Corporate (Control) annual price is shown
+        const corporatePrice = convertToShortDisplayString(
+            CONST.SUBSCRIPTION_PRICES[CONST.PAYMENT_CARD_CURRENCY.USD][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            CONST.PAYMENT_CARD_CURRENCY.USD,
+        );
+        expect(await screen.findByText(corporatePrice, {exact: false})).toBeTruthy();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should return to the backTo route after upgrading company cards instead of opening a new add-card flow', async () => {
+        // Given an already-upgraded (Corporate) policy so the confirmation screen is shown
+        const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.CORPORATE};
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // And the company cards upgrade page is opened with the Select cards page as backTo
+        const backTo = ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id);
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {
+            policyID: policy.id,
+            featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias,
+            backTo,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user acknowledges the upgrade by tapping "Got it, thanks"
+        fireEvent.press(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.completed.gotIt')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it goes back to the provided backTo route and does not push a new add-card flow
+        expect(goBackSpy).toHaveBeenCalledWith(backTo);
+        expect(navigateSpy).not.toHaveBeenCalled();
+
+        goBackSpy.mockRestore();
+        navigateSpy.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
     });
 
     it("should show the upgrade corporate plan price is in the user's local currency", async () => {

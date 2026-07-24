@@ -6,7 +6,7 @@
   1. **Screen resize / item shrink**: When items shrink, `tallestItemHeight` was updated prematurely, causing the next cycle to skip re-normalization. Fixed by resetting tallest item tracking when `targetMinHeight === 0` so the next repaint re-detects the tallest item.
   2. **Tallest item removed**: When the tallest item is deleted from the list, all remaining items kept the old `minHeight` forever because no item could pass the `height > minHeight` check. Fixed by detecting when `tallestItem` is no longer in `this.layouts` and resetting tracking with a repaint.
   3. **New smaller item added**: When the tallest item is already tracked, newly added items never got `minHeight` applied because there was no code path to normalize them. Fixed by applying `minHeight`/`height` to any unnormalized items when a tallest item is already tracked.
-- Upstream PR/issue: TBD
+- Upstream PR/issue: https://github.com/Shopify/flash-list/pull/2096
 - E/App issue: https://github.com/Expensify/App/issues/33725
 - PR introducing patch: https://github.com/Expensify/App/pull/81566
 
@@ -33,7 +33,7 @@
 ### [@shopify+flash-list+2.3.0+004+fix-inverted-first-item-offset.patch](@shopify+flash-list+2.3.0+004+fix-inverted-first-item-offset.patch)
 
 - Reason: Fixes inverted lists rendering only a few items with white space on scroll. FlashList's `RecyclerView` measures `firstItemOffset` by calling `measureFirstChildLayout` relative to the outer container. When `inverted` is true, the outer container has `scaleY: -1`, which flips the coordinate system — causing the measured y-offset to equal the container height instead of 0. This makes all scroll offsets negative after adjustment (`adjustedOffset = scrollOffset - firstItemOffset`), so the viewport thinks it's in negative space where no items exist. Only items caught by the draw-distance buffer render. The fix forces `firstItemOffset` to 0 for inverted lists, since the transform already handles visual inversion.
-- Upstream PR/issue: TBD
+- Upstream PR/issue: https://github.com/Shopify/flash-list/pull/2300
 - E/App issue: https://github.com/Expensify/App/issues/33725
 - PR introducing patch: https://github.com/Expensify/App/pull/85114
 
@@ -57,7 +57,7 @@
 - Files changed: Both `src/recyclerview/RecyclerView.tsx` and `dist/recyclerview/RecyclerView.js`.
 - Upstream PR/issue: TBD
 - E/App issue: https://github.com/Expensify/App/issues/33725
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/88923
 
 ### [@shopify+flash-list+2.3.0+008+increase-timeout.patch](@shopify+flash-list+2.3.0+008+increase-timeout.patch)
 
@@ -138,6 +138,20 @@
 
   When detected, `boundedSize` settles on the **smaller** of the two values, which already accounts for the scrollbar so items never overflow the client width.
 - Files changed: `dist/recyclerview/layout-managers/LinearLayoutManager.js` only.
-- Upstream PR/issue: TBD
+- Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334
 - E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/92520
+
+### [@shopify+flash-list+2.3.0+013+improve-scroll-key-handling.patch](@shopify+flash-list+2.3.0+013+improve-scroll-key-handling.patch)
+
+- Reason: Adds `viewPosition` support to `initialScrollIndexParams` (0 = start, 0.5 = center, 1 = end — same semantics as `scrollToIndex`'s `viewPosition`). Six changes:
+  1. **`applyInitialScrollIndex`** in `useRecyclerViewController.js`: the corrective scroll for `initialScrollIndex` now shifts the target offset by `(containerSize - itemSize) * viewPosition` (clamped to ≥ 0, and skipped while the container is unmeasured), mirroring `scrollToIndex`'s math.
+  2. **`applyInitialScrollAdjustment`** in `RecyclerViewManager.js`: the initial render window is anchored with the same `viewPosition` adjustment, so the very first painted frame already renders the items around the centered position — without this, the first frame renders items from the target's raw offset (target at the viewport edge) and visibly jumps once the first corrective scroll lands.
+  3. **Bottom crop** in `applyInitialScrollIndex` (`useRecyclerViewController.js`): for inverted vertical lists positioned via `viewPosition`, when the bottom-most visible item is flush against the bottom edge and another item exists underneath it, the offset is nudged up so the current bottom item is cropped by a few pixels — signaling there is more content below.
+  4. **`recomputeLayouts` range** in `applyInitialScrollAdjustment` (`RecyclerViewManager.js`): the recompute that precedes reading the target offset is widened from `recomputeLayouts(0, initialScrollIndex)` to `recomputeLayouts(0, this.getDataLength() - 1)`, so every item gets a measured/re-estimated layout before the positioning.
+  5. **Deferred re-scroll reads the latest offset** in `applyInitialScrollIndex` (`useRecyclerViewController.js`): the `setTimeout(0)` re-scroll used to close over the `offset` from its own commit. When a later commit recomputed a newer offset before that timeout fired, the stale timeout snapped the list back to the outdated offset — a visible jump. The offset is now stored in `latestInitialScrollOffsetRef` and read at fire-time, so any pending re-scroll targets the current offset instead of a stale one.
+  6. **Progressive render covers the drawDistance buffer** in `renderProgressively` (`RecyclerViewManager.js`): with an explicit `initialScrollIndex`, the drawDistance buffer used to mount right after first paint; its measurements re-estimated every still-unmeasured item before the target, which could collapse the content height below the applied scroll offset and make the native ScrollView clamp. Now the progressive-render phase also waits for the buffer around the viewport to be measured, so the layout converges before anything is painted. Only applies when `initialScrollIndex` is set; other lists keep stock behavior.
+- Files changed: `dist/FlashListProps.d.ts`, `dist/recyclerview/hooks/useRecyclerViewController.js`, `dist/recyclerview/RecyclerViewManager.js`.
+- Upstream PR/issue: https://github.com/Shopify/flash-list/pull/2318 (for point 4)
+- E/App issue: https://github.com/Expensify/App/issues/92152
+- PR introducing patch: https://github.com/Expensify/App/pull/93403

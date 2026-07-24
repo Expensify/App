@@ -1,19 +1,24 @@
-import {emailSelector} from '@selectors/Session';
-import React from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {emailSelector} from '@selectors/Session';
+import React from 'react';
 
 type InvoiceSenderFieldProps = {
     /** The selected participants */
@@ -38,11 +43,9 @@ type InvoiceSenderFieldProps = {
 const senderWorkspaceSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => (policy ? {id: policy.id, name: policy.name, avatarURL: policy.avatarURL} : undefined);
 
 const createCanUpdateSenderWorkspaceSelector =
-    (selectedParticipants: Participant[], currentUserLogin: string | undefined, isFromGlobalCreate: boolean) =>
-    (policies: OnyxCollection<OnyxTypes.Policy>): boolean => {
-        const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
-        return canSendInvoice(policies ?? null, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
-    };
+    (isInvoiceRoomParticipant: boolean, currentUserLogin: string | undefined, isFromGlobalCreate: boolean) =>
+    (policies: OnyxCollection<OnyxTypes.Policy>): boolean =>
+        isFromGlobalCreate && !isInvoiceRoomParticipant && canSendInvoice(policies ?? null, currentUserLogin);
 
 function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouType, reportID, transaction}: InvoiceSenderFieldProps) {
     const styles = useThemeStyles();
@@ -55,12 +58,12 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouTy
 
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
+    const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
+
     // canSendInvoice needs the full policy collection to check all admin workspaces
-    const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCanUpdateSenderWorkspaceSelector(selectedParticipants, currentUserLogin, isFromGlobalCreate)}, [
-        selectedParticipants,
-        currentUserLogin,
-        isFromGlobalCreate,
-    ]);
+    const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: createCanUpdateSenderWorkspaceSelector(isInvoiceRoomParticipant, currentUserLogin, isFromGlobalCreate),
+    });
 
     return (
         <MenuItem

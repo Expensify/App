@@ -1,22 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import Badge from '@components/Badge';
+import AgentRulesList from '@components/AgentRules/AgentRulesList';
+import useAgentRulesSectionHeader from '@components/AgentRules/useAgentRulesSectionHeader';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
-import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getVisibleAgentRules} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearPolicyAgentRuleErrors} from '@userActions/Policy/Rules';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
 
 type AgentRulesSectionProps = {
     policyID: string;
@@ -27,76 +26,34 @@ type AgentRulesSectionProps = {
 function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const agentRules = policy?.rules?.agentRules;
-    const hasRules = !isEmptyObject(agentRules);
 
-    const sortedRules = Object.entries(agentRules ?? {})
-        .filter(([, rule]) => !!rule)
-        .map(([ruleID, rule]) => ({...rule, ruleID}))
-        .sort((a, b) => {
-            if (a.created && b.created) {
-                return a.created < b.created ? 1 : -1;
-            }
-            return 0;
-        });
-
-    // Exclude pending-delete rules when online because OfflineWithFeedback hides them visually.
-    // When offline, keep them so OfflineWithFeedback can show strikethrough styling.
-    const visibleRules = sortedRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-
-    const renderTitle = () => (
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.agentRules.title')}</Text>
-            <Badge
-                text={translate('common.beta')}
-                isCondensed
-                success
-            />
-        </View>
-    );
+    const visibleRules = getVisibleAgentRules(policy?.rules?.agentRules, isOffline);
+    const hasRules = visibleRules.length > 0;
+    const {renderTitle, renderSubtitle} = useAgentRulesSectionHeader({
+        policyID,
+        subtitle: translate('workspace.rules.agentRules.subtitle'),
+        isBadgeCondensed: true,
+    });
 
     return (
         <Section
             isCentralPane
             renderTitle={renderTitle}
-            subtitle={translate('workspace.rules.agentRules.subtitle')}
-            subtitleMuted
+            renderSubtitle={renderSubtitle}
             childrenStyles={[styles.gap3]}
         >
             {hasRules && (
-                <View style={[styles.mt3, styles.gap2]}>
-                    {visibleRules.map((rule) => {
-                        return (
-                            <View key={rule.ruleID}>
-                                <OfflineWithFeedback
-                                    pendingAction={rule.pendingAction}
-                                    errors={rule.errors}
-                                    onClose={() => clearPolicyAgentRuleErrors(policyID, rule.ruleID, rule)}
-                                >
-                                    <MenuItemWithTopDescription
-                                        title={(rule.title ?? rule.prompt).replaceAll(/\s+/g, ' ').trim()}
-                                        numberOfLinesTitle={1}
-                                        wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
-                                        shouldShowRightIcon
-                                        onPress={() => {
-                                            if (!canWriteRules) {
-                                                showReadOnlyModal();
-                                                return;
-                                            }
-                                            Navigation.navigate(ROUTES.RULES_AGENT_EDIT.getRoute(policyID, rule.ruleID));
-                                        }}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_ITEM}
-                                        disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                                    />
-                                </OfflineWithFeedback>
-                            </View>
-                        );
-                    })}
-                </View>
+                <AgentRulesList
+                    policyID={policyID}
+                    rules={visibleRules}
+                    canWriteRules={canWriteRules}
+                    showReadOnlyModal={showReadOnlyModal}
+                    listContainerStyle={[styles.mt3, styles.gap2]}
+                    menuItemWrapperStyle={styles.pv2}
+                />
             )}
             <MenuItem
                 title={translate('workspace.rules.agentRules.addRule')}

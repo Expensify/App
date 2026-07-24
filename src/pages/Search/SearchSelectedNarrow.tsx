@@ -1,6 +1,7 @@
-import React from 'react';
 import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
 import type {SearchQueryJSON} from '@components/Search/types';
+
+import React from 'react';
 
 type SearchSelectedNarrowProps = {
     queryJSON: SearchQueryJSON;

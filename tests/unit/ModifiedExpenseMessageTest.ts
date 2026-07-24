@@ -1,17 +1,21 @@
-import Onyx from 'react-native-onyx';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-imports -- this is required to allow mocking
 import * as ReportNameUtils from '@libs/ReportNameUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -893,6 +897,35 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the date change also changes the distance rate', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldMerchant: '56.36 mi @ $0.70 / mi',
+                    merchant: '56.36 mi @ $0.99 / mi',
+                    oldAmount: 3945,
+                    amount: 5580,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    currency: CONST.CURRENCY.USD,
+                    oldCreated: '2025-06-19',
+                    created: '2026-06-19',
+                },
+            };
+
+            it('then the message reports both the rate change and the date change', () => {
+                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)\nchanged the date to 2026-06-19 (previously 2025-06-19)`;
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when moving an expense', () => {
             it('returns the movedFromOrToReportMessage message when provided', () => {
                 const reportAction = {
@@ -1165,7 +1198,7 @@ describe('ModifiedExpenseMessage', () => {
                 environmentURL = await getEnvironmentURL();
             });
 
-            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true} as Policy;
+            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE} as Policy;
 
             beforeEach(() => {
                 // Default: current user has policy rule access (admin + rules enabled), so link points to workspace rules
@@ -2158,8 +2191,11 @@ describe('ModifiedExpenseMessage', () => {
         });
 
         describe('vendor changes', () => {
-            // QBO policy with two named vendors used by the resolver. The third case below
-            // omits a vendor from the list to exercise the externalID fallback path.
+            // QBO policy with two named vendors used by the resolver. No `config` block — the resolver
+            // must look up vendors regardless of the workspace's current export mode so historical
+            // chat entries keep rendering the vendor name after an admin switches export modes away
+            // from CC/DC. The fourth case below omits a vendor from the list to exercise the
+            // externalID fallback path.
             const policyWithVendors: Policy = {
                 id: 'p-1',
                 name: 'My Workspace',
@@ -2266,6 +2302,87 @@ describe('ModifiedExpenseMessage', () => {
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
                     expect(result).toEqual('set the vendor to "v-deleted"');
+                });
+            });
+
+            describe('Xero supplier changes (R4)', () => {
+                // Xero policy with two named supplier contacts. The resolver reads
+                // `connections.xero.data.contacts` (keyed Record), and the label switches to
+                // "supplier" instead of "vendor" because the policy is on Xero.
+                const policyWithXeroSuppliers = createMock<Policy>({
+                    id: 'p-1',
+                    name: 'My Workspace',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    owner: 'test@example.com',
+                    outputCurrency: CONST.CURRENCY.USD,
+                    isPolicyExpenseChatEnabled: true,
+                    connections: {
+                        xero: {
+                            config: {isConfigured: true},
+                            data: {
+                                contacts: {
+                                    xcAcme: {id: 'xcAcme', name: 'Acme Xero', email: 'acme@example.com'},
+                                    xcOffice: {id: 'xcOffice', name: 'Office Supplies Xero', email: 'office@example.com'},
+                                },
+                            },
+                        },
+                    },
+                });
+
+                it('renders "set the supplier to X" for a Xero workspace when the supplier is set for the first time', () => {
+                    const reportAction = {
+                        ...createRandomReportAction(1),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        originalMessage: {
+                            vendor: {externalID: 'xcAcme', isManuallySet: true},
+                        },
+                    };
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithXeroSuppliers,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the supplier to "Acme Xero"');
+                });
+
+                it('renders "changed the supplier to Y (previously X)" when the supplier is changed on a Xero workspace', () => {
+                    const reportAction = {
+                        ...createRandomReportAction(1),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        originalMessage: {
+                            oldVendor: {externalID: 'xcAcme', isManuallySet: false},
+                            vendor: {externalID: 'xcOffice', isManuallySet: true},
+                        },
+                    };
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithXeroSuppliers,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('changed the supplier to "Office Supplies Xero" (previously "Acme Xero")');
+                });
+
+                it('falls back to rendering the externalID for a Xero supplier no longer in the contacts list', () => {
+                    const reportAction = {
+                        ...createRandomReportAction(1),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        originalMessage: {
+                            vendor: {externalID: 'xcDeleted', isManuallySet: false},
+                        },
+                    };
+                    const result = getForReportAction({
+                        translate: translateLocal,
+                        reportAction,
+                        policy: policyWithXeroSuppliers,
+                        policyTags: undefined,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                    });
+                    expect(result).toEqual('set the supplier to "xcDeleted"');
                 });
             });
         });

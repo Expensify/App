@@ -1,19 +1,25 @@
-import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useContext, useEffect, useRef} from 'react';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+
 import type {PaymentCardParams} from '@libs/API/parameters';
 import Navigation from '@libs/Navigation/Navigation';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import {addPaymentCard as addPaymentCardAction, clearPaymentCardFormErrorAndSubmit, continueSetup} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {accountIDSelector} from '@selectors/Session';
+import React, {useCallback, useContext, useEffect, useRef} from 'react';
 
 function DebitCardPage() {
     // Temporarily disabled

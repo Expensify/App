@@ -1,12 +1,18 @@
-import React, {useEffect, useRef} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileChrome} from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
+
 import CONST from '@src/CONST';
-import BaseTextInput from './BaseTextInput';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+
 import type {BaseTextInputProps} from './BaseTextInput/types';
+
+import BaseTextInput from './BaseTextInput';
 import * as styleConst from './styleConst';
 
 let isRestoringKeyboardFocus = false;

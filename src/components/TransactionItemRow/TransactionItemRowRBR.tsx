@@ -1,9 +1,7 @@
-import React from 'react';
-import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -12,18 +10,25 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getIOUActionForTransactionID, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {isSettled} from '@libs/ReportUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, TransactionViolation} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
+import type {ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TransactionItemRowRBRInnerProps = {
     /** Transaction item */
@@ -83,7 +88,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
         isMarkAsCash: isMarkAsCash || undefined,
         canEdit,
     });
-    const hasHTMLTags = HTML_TAG_PATTERN.test(RBRMessages);
+    const hasHTMLTags = CONST.HTML_TAG_REGEX.test(RBRMessages);
 
     return (
         RBRMessages.length > 0 && (

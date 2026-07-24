@@ -1,16 +1,22 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
-import SelectableListItem from './SelectableListItem';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import type {ListItem, UserSelectionListItemProps} from './types';
+
+import SelectableListItem from './SelectableListItem';
 
 /**
  * A compact single-line row with avatar, display name, and handle side by side. Used for
@@ -34,7 +40,7 @@ function UserSelectionListItem<TItem extends ListItem>({
 }: UserSelectionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const userHandle = useMemo(() => {
         const login = item.login ?? '';
@@ -52,8 +58,9 @@ function UserSelectionListItem<TItem extends ListItem>({
         return getDisplayNameForParticipant({
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
             formatPhoneNumber,
+            translate,
         });
-    }, [formatPhoneNumber, item.accountID]);
+    }, [formatPhoneNumber, item.accountID, translate]);
 
     return (
         <SelectableListItem

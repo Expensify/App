@@ -1,16 +1,21 @@
+import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
+import useCarouselContextEvents from '@components/Attachments/AttachmentCarousel/useCarouselContextEvents';
+import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedRef, SetStateAction} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
+
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import Animated, {useAnimatedProps, useSharedValue} from 'react-native-reanimated';
-import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
-import useCarouselContextEvents from '@components/Attachments/AttachmentCarousel/useCarouselContextEvents';
-import type {Attachment, AttachmentSource} from '@components/Attachments/types';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from './AttachmentCarouselPagerContext';
+
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from './types';
+
+import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
 
 const AnimatedPagerView = Animated.createAnimatedComponent(PagerView);

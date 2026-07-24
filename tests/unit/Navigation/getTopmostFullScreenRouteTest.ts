@@ -1,10 +1,12 @@
 import getTopmostFullScreenRoute from '@libs/Navigation/helpers/getTopmostFullScreenRoute';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 
 const mockGetRootState = jest.fn();
 
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigationRef: {
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    __esModule: true,
+    default: {
         getRootState: () => mockGetRootState() as unknown,
     },
 }));
@@ -29,6 +31,18 @@ describe('getTopmostFullScreenRoute', () => {
     it('returns undefined when the TAB_NAVIGATOR has no nested state yet', () => {
         mockGetRootState.mockReturnValue({
             routes: [{name: NAVIGATORS.TAB_NAVIGATOR}],
+        });
+        expect(getTopmostFullScreenRoute()).toBeUndefined();
+    });
+
+    it('does not use tab screen params as focused state', () => {
+        mockGetRootState.mockReturnValue({
+            routes: [
+                {
+                    name: NAVIGATORS.TAB_NAVIGATOR,
+                    params: {screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                },
+            ],
         });
         expect(getTopmostFullScreenRoute()).toBeUndefined();
     });

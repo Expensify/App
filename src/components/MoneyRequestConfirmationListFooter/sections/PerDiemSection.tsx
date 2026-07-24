@@ -1,17 +1,18 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import PerDiemFields from '@components/MoneyRequestConfirmationList/sections/PerDiemFields';
 import {perDiemSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
 import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
+
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type PerDiemSectionProps = {
-    /** Whether the active transaction is a per-diem request (gate for rendering this section) */
-    isPerDiemRequest: boolean;
+import type {OnyxEntry} from 'react-native-onyx';
 
+import React from 'react';
+
+type PerDiemSectionProps = {
     /** Active policy (used to resolve the per-diem custom unit) */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -22,15 +23,13 @@ type PerDiemSectionProps = {
     formError: string;
 };
 
-type PerDiemSectionContentProps = Omit<PerDiemSectionProps, 'isPerDiemRequest'>;
-
 /**
- * Two-level guard: the outer component checks the prop-level gate (`isPerDiemRequest` + action)
+ * Two-level guard: the outer component checks the context-level gate (`isPerDiemRequest` + action)
  * without subscribing to anything. The inner component is the only place that subscribes to the
  * transaction slice, so non-per-diem flows avoid the extra Onyx subscriptions.
  */
-function PerDiemSection({isPerDiemRequest, policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
-    const {action} = useConfirmationFields();
+function PerDiemSection({policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
+    const {action, isPerDiemRequest} = useConfirmationFields();
     if (!isPerDiemRequest || action === CONST.IOU.ACTION.SUBMIT) {
         return null;
     }
@@ -43,7 +42,7 @@ function PerDiemSection({isPerDiemRequest, policy, shouldDisplayFieldError, form
     );
 }
 
-function PerDiemSectionContent({policy, shouldDisplayFieldError, formError}: PerDiemSectionContentProps) {
+function PerDiemSectionContent({policy, shouldDisplayFieldError, formError}: PerDiemSectionProps) {
     const {action, iouType, transactionID, reportID, isReadOnly, didConfirm} = useConfirmationFields();
     const transaction = useTransactionSelector(transactionID, perDiemSliceSelector);
 

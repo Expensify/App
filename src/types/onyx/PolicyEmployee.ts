@@ -1,4 +1,5 @@
 import type CONST from '@src/CONST';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Workspace member custom field key types */

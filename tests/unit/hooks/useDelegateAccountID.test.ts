@@ -1,7 +1,10 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 const ACCOUNT_ID_ALICE = 1;
 const ACCOUNT_ID_BOB = 2;

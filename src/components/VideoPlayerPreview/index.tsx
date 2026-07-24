@@ -1,24 +1,32 @@
-import {useNavigation} from '@react-navigation/native';
-import type {SourceLoadEventPayload} from 'expo-video';
-import React, {useEffect, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {View} from 'react-native';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
+
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+
 import getPlatform from '@libs/getPlatform';
+
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {SourceLoadEventPayload} from 'expo-video';
+import type {GestureResponderEvent} from 'react-native';
+
+import {useNavigation} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoPlayerPreviewProps = {
@@ -67,6 +75,10 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
     const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
+    const {isOffline} = useNetwork();
+
+    // While offline, render BaseVideoPlayer instead of the thumbnail so the existing player-level offline state is shown consistently.
+    const shouldRenderVideoPlayer = !isDeleted && (isOffline || (!isSmallScreenWidth && !isThumbnail));
 
     useEffect(() => {
         if (!videoUrl || getPlatform() !== CONST.PLATFORM.WEB) {
@@ -127,7 +139,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
-            {isSmallScreenWidth || isThumbnail || isDeleted ? (
+            {!shouldRenderVideoPlayer ? (
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
                     onPress={handleOnPress}

@@ -1,6 +1,8 @@
-import {RESULTS} from 'react-native-permissions';
-import type {PermissionStatus} from 'react-native-permissions';
 import CONST from '@src/CONST';
+
+import type {PermissionStatus} from 'react-native-permissions';
+
+import {RESULTS} from 'react-native-permissions';
 
 function requestLocationPermission(): Promise<PermissionStatus> {
     return new Promise((resolve) => {

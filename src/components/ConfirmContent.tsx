@@ -1,21 +1,28 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
 import {PressableWithoutFeedback} from './Pressable';
+import ScrollView from './ScrollView';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
@@ -109,6 +116,12 @@ type ConfirmContentProps = {
 
     /** Whether to show a loading indicator next to the title */
     isTitleLoading?: boolean;
+
+    /** Whether the prompt should be scrollable when it is taller than the screen (e.g. a long list of items) */
+    shouldEnablePromptScroll?: boolean;
+
+    /** Force the confirm button to use the success style even when no cancel button is shown */
+    shouldUseSuccessStyleForConfirm?: boolean;
 };
 
 function ConfirmContent({
@@ -142,14 +155,19 @@ function ConfirmContent({
     isVisible,
     isConfirmLoading,
     isTitleLoading = false,
+    shouldEnablePromptScroll = false,
+    shouldUseSuccessStyleForConfirm = false,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
 
     const isCentered = shouldCenterContent;
+
+    const promptContent = typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt;
 
     return (
         <>
@@ -166,7 +184,7 @@ function ConfirmContent({
                 </View>
             )}
 
-            <View style={[styles.m5, contentStyles]}>
+            <View style={[styles.m5, contentStyles, bottomSafeAreaPaddingStyle]}>
                 {shouldShowDismissIcon && (
                     <View style={styles.alignItemsEnd}>
                         <Tooltip text={translate('common.close')}>
@@ -208,7 +226,7 @@ function ConfirmContent({
                             />
                         )}
                     </View>
-                    {typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt}
+                    {shouldEnablePromptScroll ? <ScrollView style={styles.confirmModalPromptScrollable}>{promptContent}</ScrollView> : promptContent}
                 </View>
 
                 {shouldStackButtons ? (
@@ -222,7 +240,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={shouldShowCancelButton && !danger ? success : false}
+                            success={shouldUseSuccessStyleForConfirm || (shouldShowCancelButton && !danger) ? success : false}
                             danger={danger}
                             style={shouldReverseStackedButtons ? styles.mt3 : styles.mt4}
                             onPress={onConfirm}
@@ -253,7 +271,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={shouldShowCancelButton && !danger ? success : false}
+                            success={shouldUseSuccessStyleForConfirm || (shouldShowCancelButton && !danger) ? success : false}
                             danger={danger}
                             style={[styles.flex1]}
                             onPress={onConfirm}

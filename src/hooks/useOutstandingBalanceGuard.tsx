@@ -1,8 +1,12 @@
-import React, {useCallback, useMemo, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useCallback, useMemo, useState} from 'react';
+
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -12,11 +16,12 @@ import useOnyx from './useOnyx';
  * a modal is shown directing them to subscription settings to settle the balance.
  *
  * @param ownedPaidPoliciesCount - The number of paid policies the current user owns
+ * @param onModalDismissed - called when the modal is dismissed (either by settling the balance or cancelling)
  * @returns shouldBlockDeletion - function that checks and shows the modal if needed (returns true if blocked)
  * @returns wouldBlockDeletion - pre-computed boolean for popover/menu configuration
  * @returns outstandingBalanceModal - React element to render in the page
  */
-function useOutstandingBalanceGuard(ownedPaidPoliciesCount: number) {
+function useOutstandingBalanceGuard(ownedPaidPoliciesCount: number, onModalDismissed?: () => void) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const {translate} = useLocalize();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -39,14 +44,18 @@ function useOutstandingBalanceGuard(ownedPaidPoliciesCount: number) {
                 onConfirm={() => {
                     setIsModalOpen(false);
                     Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route);
+                    onModalDismissed?.();
                 }}
-                onCancel={() => setIsModalOpen(false)}
+                onCancel={() => {
+                    setIsModalOpen(false);
+                    onModalDismissed?.();
+                }}
                 prompt={translate('workspace.common.outstandingBalanceWarning')}
                 confirmText={translate('workspace.common.settleBalance')}
                 cancelText={translate('common.cancel')}
             />
         ),
-        [isModalOpen, translate],
+        [isModalOpen, translate, onModalDismissed],
     );
 
     return {shouldBlockDeletion, wouldBlockDeletion, outstandingBalanceModal};

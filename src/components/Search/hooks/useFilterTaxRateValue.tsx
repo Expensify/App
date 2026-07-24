@@ -1,8 +1,11 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
+
 import {getAllTaxRates} from '@libs/PolicyUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 function taxRatesPoliciesSelector(value: string[]) {
     return (policies: OnyxCollection<Policy>) => {

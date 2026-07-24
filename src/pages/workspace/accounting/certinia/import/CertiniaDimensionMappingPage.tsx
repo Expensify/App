@@ -1,22 +1,27 @@
-import React from 'react';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearFinancialForceErrorField} from '@libs/actions/connections/FinancialForce';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {CertiniaDimensionParam, CertiniaMappingValue} from '@pages/workspace/accounting/certinia/utils';
 import {dimensionParamToNumber, isCertiniaDimensionParam, updateFinancialForceDimensionMapping} from '@pages/workspace/accounting/certinia/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type CertiniaDimensionMappingPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DIMENSION_MAPPING>;
 
@@ -86,6 +91,7 @@ function CertiniaDimensionMappingPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="CertiniaDimensionMappingPage"
             data={inputSectionData}
+            shouldBeBlocked={!!config?.hasPSA}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
             onSelectRow={(selection: SelectorType) => updateMapping(selection as MappingListItem)}
             initiallyFocusedOptionKey={inputSectionData.find((option) => option.isSelected)?.keyForList}

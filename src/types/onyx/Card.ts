@@ -1,6 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
+
+import type {ValueOf} from 'type-fest';
+
 import type {CardFeedWithNumber} from './CardFeeds';
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback, PendingAction} from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
@@ -369,6 +371,9 @@ type IssueNewCardData = {
 
         /** The maximum amount for the spend rule, if applicable (in cents) */
         maxAmount?: string;
+
+        /** The currencies to limit the rule to */
+        currencies?: string[];
     };
 };
 

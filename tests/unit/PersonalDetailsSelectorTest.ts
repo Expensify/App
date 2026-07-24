@@ -1,13 +1,22 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
+import CONST from '@src/CONST';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+
 import {
+    createDisplayDetailsByAccountIDsSelector,
     multiPersonalDetailsSelector,
+    personalDetailByLoginSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsListSelector,
     personalDetailsLoginSelector,
+    personalDetailsLoginsSelector,
     personalDetailsSelector,
 } from '@selectors/PersonalDetails';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import CONST from '@src/CONST';
-import type {PersonalDetailsList} from '@src/types/onyx';
+
+import {translateLocal} from '../utils/TestHelper';
 
 describe('PersonalDetailsSelector', () => {
     const accountID = 123;
@@ -38,8 +47,8 @@ describe('PersonalDetailsSelector', () => {
 
     describe('personalDetailsDisplayNameSelector', () => {
         it('should return the display name for the given accountID', () => {
-            const result = personalDetailsDisplayNameSelector(accountID)(personalDetailsList);
-            expect(result).toEqual(getDisplayNameOrDefault(personalDetails));
+            const result = personalDetailsDisplayNameSelector(accountID, translateLocal)(personalDetailsList);
+            expect(result).toEqual(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate: translateLocal}));
         });
 
         it('should return concierge display name for concierge accountID', () => {
@@ -52,7 +61,7 @@ describe('PersonalDetailsSelector', () => {
                 [CONST.ACCOUNT_ID.CONCIERGE]: conciergeDetails,
             } as unknown as PersonalDetailsList;
 
-            const result = personalDetailsDisplayNameSelector(CONST.ACCOUNT_ID.CONCIERGE)(list);
+            const result = personalDetailsDisplayNameSelector(CONST.ACCOUNT_ID.CONCIERGE, translateLocal)(list);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -65,18 +74,26 @@ describe('PersonalDetailsSelector', () => {
                 [accountID]: personalDetailsWithLoginOnly,
             } as unknown as PersonalDetailsList;
 
-            const result = personalDetailsDisplayNameSelector(accountID)(list);
+            const result = personalDetailsDisplayNameSelector(accountID, translateLocal)(list);
             expect(result).toBe('fallback@user.com');
         });
 
         it('should return default display name if the accountID is not in the list', () => {
-            const result = personalDetailsDisplayNameSelector(999)(personalDetailsList);
-            expect(result).toEqual(getDisplayNameOrDefault(undefined));
+            const result = personalDetailsDisplayNameSelector(999, translateLocal)(personalDetailsList);
+            expect(result).toEqual(temporaryGetDisplayNameOrDefault({translate: translateLocal}));
         });
 
         it('should return default display name if the personalDetailsList is undefined', () => {
-            const result = personalDetailsDisplayNameSelector(accountID)(undefined);
-            expect(result).toEqual(getDisplayNameOrDefault(undefined));
+            const result = personalDetailsDisplayNameSelector(accountID, translateLocal)(undefined);
+            expect(result).toEqual(temporaryGetDisplayNameOrDefault({translate: translateLocal}));
+        });
+
+        it('should resolve the hidden fallback through the provided translate function', () => {
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+
+            const result = personalDetailsDisplayNameSelector(999, translateWithHiddenMarker)(personalDetailsList);
+
+            expect(result).toBe('HiddenMarker');
         });
     });
 
@@ -97,6 +114,74 @@ describe('PersonalDetailsSelector', () => {
         });
     });
 
+    describe('personalDetailsLoginsSelector', () => {
+        const secondAccountID = 456;
+        const secondPersonalDetails = {
+            accountID: secondAccountID,
+            displayName: 'Second User',
+            login: 'second@user.com',
+        };
+        const multiPersonalDetailsList: PersonalDetailsList = {
+            [accountID]: personalDetails,
+            [secondAccountID]: secondPersonalDetails,
+        };
+
+        it('should return the logins for the given accountIDs', () => {
+            const result = personalDetailsLoginsSelector([accountID, secondAccountID])(multiPersonalDetailsList);
+            expect(result).toEqual([personalDetails.login, secondPersonalDetails.login]);
+        });
+
+        it('should filter out accountIDs that do not exist in the list', () => {
+            const result = personalDetailsLoginsSelector([accountID, 999])(multiPersonalDetailsList);
+            expect(result).toEqual([personalDetails.login]);
+        });
+
+        it('should return an empty array if accountIDs is empty', () => {
+            const result = personalDetailsLoginsSelector([])(multiPersonalDetailsList);
+            expect(result).toEqual([]);
+        });
+
+        it('should return an empty array if none of the accountIDs exist in the list', () => {
+            const result = personalDetailsLoginsSelector([888, 999])(multiPersonalDetailsList);
+            expect(result).toEqual([]);
+        });
+    });
+
+    describe('personalDetailByLoginSelector', () => {
+        it('should return the personal details for the given login', () => {
+            const result = personalDetailByLoginSelector('test@user.com')(personalDetailsList);
+            expect(result).toEqual(personalDetails);
+        });
+
+        it('should match the login case-insensitively', () => {
+            const result = personalDetailByLoginSelector('TEST@USER.COM')(personalDetailsList);
+            expect(result).toEqual(personalDetails);
+        });
+
+        it('should return undefined if the login is not in the list', () => {
+            const result = personalDetailByLoginSelector('missing@user.com')(personalDetailsList);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined if the login is undefined', () => {
+            const result = personalDetailByLoginSelector(undefined)(personalDetailsList);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined if the personalDetailsList is undefined', () => {
+            const result = personalDetailByLoginSelector('test@user.com')(undefined);
+            expect(result).toBeUndefined();
+        });
+
+        it('should skip null entries in the list', () => {
+            const listWithNull: PersonalDetailsList = {
+                [accountID]: null,
+            };
+            const result = personalDetailByLoginSelector('test@user.com')(listWithNull);
+            expect(result).toBeUndefined();
+        });
+    });
+
     describe('multiPersonalDetailsSelector', () => {
         it('should return the personal details for the given accountIDs', () => {
             const result = multiPersonalDetailsSelector([accountID])(personalDetailsList);
@@ -110,6 +195,11 @@ describe('PersonalDetailsSelector', () => {
 
         it('should return an empty array if accountIDs is empty', () => {
             const result = multiPersonalDetailsSelector([])(personalDetailsList);
+            expect(result).toEqual([]);
+        });
+
+        it('should return an empty array if accountIDs is undefined', () => {
+            const result = multiPersonalDetailsSelector(undefined)(personalDetailsList);
             expect(result).toEqual([]);
         });
 
@@ -137,6 +227,51 @@ describe('PersonalDetailsSelector', () => {
 
         it('should return an empty object if the personalDetailsList is undefined', () => {
             const result = personalDetailsListSelector([accountID])(undefined);
+            expect(result).toEqual({});
+        });
+    });
+
+    describe('createDisplayDetailsByAccountIDsSelector', () => {
+        const fullDetails = {
+            accountID,
+            displayName: 'Test User',
+            login: 'test@user.com',
+            avatar: 'https://example.com/avatar.png',
+            pronouns: 'they/them',
+            timezone: {selected: 'UTC'},
+        } as unknown as PersonalDetails;
+        const listWithAvatar = {[accountID]: fullDetails} as unknown as PersonalDetailsList;
+
+        it('should return only the display detail fields for present account IDs', () => {
+            const result = createDisplayDetailsByAccountIDsSelector([accountID])(listWithAvatar);
+            expect(result).toEqual({
+                [accountID]: {
+                    accountID,
+                    displayName: 'Test User',
+                    login: 'test@user.com',
+                    avatar: 'https://example.com/avatar.png',
+                },
+            });
+        });
+
+        it('should not include extra fields beyond accountID, displayName, login, avatar', () => {
+            const result = createDisplayDetailsByAccountIDsSelector([accountID])(listWithAvatar);
+            const keys = Object.keys(result[accountID] ?? {});
+            expect(keys.sort()).toEqual(['accountID', 'avatar', 'displayName', 'login']);
+        });
+
+        it('should skip account IDs that are not in the list', () => {
+            const result = createDisplayDetailsByAccountIDsSelector([accountID, 999])(listWithAvatar);
+            expect(Object.keys(result)).toEqual([String(accountID)]);
+        });
+
+        it('should return an empty object for an empty account IDs array', () => {
+            const result = createDisplayDetailsByAccountIDsSelector([])(listWithAvatar);
+            expect(result).toEqual({});
+        });
+
+        it('should return an empty object when personalDetailsList is undefined', () => {
+            const result = createDisplayDetailsByAccountIDsSelector([accountID])(undefined);
             expect(result).toEqual({});
         });
     });

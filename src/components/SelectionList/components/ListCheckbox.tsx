@@ -1,8 +1,12 @@
-import React from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+
 import CONST from '@src/CONST';
-import ListSelectionButton from './ListSelectionButton';
+
+import React from 'react';
+
 import type {ListSelectionButtonProps} from './ListSelectionButton';
+
+import ListSelectionButton from './ListSelectionButton';
 
 /**
  * A square checkbox indicator for use in selection list rows.

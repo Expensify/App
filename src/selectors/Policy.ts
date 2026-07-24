@@ -1,21 +1,130 @@
-import escapeRegExp from 'lodash/escapeRegExp';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy} from '@libs/PolicyUtils';
+// eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
+import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import escapeRegExp from 'lodash/escapeRegExp';
 
 type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE
     | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT
     | typeof CONST.POLICY.CONNECTIONS.NAME.QBD
-    | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA
+    | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET;
 
 const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
+
+type OwnedPaidPoliciesCounts = {
+    /** Number of paid policies owned by the user */
+    total: number;
+
+    /** Number of owned paid policies that are not pending deletion */
+    active: number;
+};
+
+/**
+ * Creates a selector returning only the counts of owned paid policies, so subscribers don't re-render
+ * when anything else on the policy collection changes.
+ */
+const createOwnedPaidPoliciesCountsSelector =
+    (currentUserAccountID: number | undefined) =>
+    (policies: OnyxCollection<Policy>): OwnedPaidPoliciesCounts => {
+        const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
+        return {
+            total: ownedPaidPolicies.length,
+            active: ownedPaidPolicies.filter((policy) => !isPendingDeletePolicy(policy)).length,
+        };
+    };
+
+/**
+ * Creates a selector returning only the IDs of policies eligible as copy-settings targets, so
+ * subscribers don't re-render when anything else on the policy collection changes. Targets are
+ * limited to paid group workspaces (Collect/Control) the user administers - copy-settings carries
+ * paid features, and Collect targets are upgraded to Control in-flow, so Submit/Personal workspaces
+ * are never valid targets.
+ */
+const createCopySettingsEligibleTargetsSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): string[] =>
+        Object.values(policies ?? {})
+            .filter((policy): policy is Policy => !!policy && isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserLogin) && !isPendingDeletePolicy(policy))
+            .map((policy) => policy.id);
+
+type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'ownerAccountID' | 'avatarURL' | 'pendingAction' | 'errors'> & {
+    /** Whether the policy is optimistically pending deletion */
+    isPendingDelete: boolean;
+
+    /** Whether the current user has a pending request to join the policy */
+    isJoinRequestPending: boolean;
+
+    /** Projection of policyDetailsForNonMembers for join-request-pending policies */
+    nonMemberDetails?: Pick<PolicyDetailsForNonMembers, 'name' | 'type' | 'ownerAccountID' | 'ownerEmail' | 'avatar'> & {
+        policyID: string;
+
+        /** Default avatar URL for the owner, derived here so the page doesn't re-hash the email on every render */
+        ownerDefaultAvatar?: string;
+    };
+};
+
+/**
+ * Creates a selector returning a light, flat projection of the policies shown on the workspaces list,
+ * so the page doesn't re-render when deep, frequently mutated policy fields change (isLoading* flags,
+ * employeeList, customUnits, connections, etc.).
+ */
+const createWorkspaceListPoliciesSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): WorkspaceListPolicy[] => {
+        const result: WorkspaceListPolicy[] = [];
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin)) {
+                continue;
+            }
+
+            const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
+            let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
+            if (isJoinRequestPending) {
+                const nonMemberEntry = Object.entries(policy.policyDetailsForNonMembers ?? {}).at(0);
+                if (nonMemberEntry) {
+                    const [nonMemberPolicyID, details] = nonMemberEntry;
+                    nonMemberDetails = {
+                        policyID: nonMemberPolicyID,
+                        name: details.name,
+                        type: details.type,
+                        ownerAccountID: details.ownerAccountID,
+                        ownerEmail: details.ownerEmail,
+                        ownerDefaultAvatar:
+                            details.ownerAccountID && details.ownerEmail ? getDefaultAvatarURL({accountID: details.ownerAccountID, accountEmail: details.ownerEmail}) : undefined,
+                        avatar: details.avatar,
+                    };
+                }
+            }
+
+            result.push({
+                id: policy.id,
+                name: policy.name,
+                type: policy.type,
+                role: policy.role,
+                ownerAccountID: policy.ownerAccountID,
+                avatarURL: policy.avatarURL,
+                pendingAction: policy.pendingAction,
+                errors: policy.errors,
+                isPendingDelete: isPendingDeletePolicy(policy),
+                isJoinRequestPending,
+                nonMemberDetails,
+            });
+        }
+        return result;
+    };
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
 
@@ -70,23 +179,6 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
         units: policy.units,
     };
 
-const hasMultipleOutputCurrenciesSelector = (policies: OnyxCollection<Policy>) => {
-    const currencies = new Set<string>();
-
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy || !isPaidGroupPolicy(policy)) {
-            continue;
-        }
-
-        currencies.add(policy.outputCurrency);
-        if (currencies.size > 1) {
-            return true;
-        }
-    }
-
-    return false;
-};
-
 type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
 const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
@@ -136,6 +228,34 @@ const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): O
     return result;
 };
 
+type FilteredPoliciesInfo = {
+    /** Number of policies that should be shown to the user (short-circuited at 2) */
+    filteredPoliciesCount: number;
+
+    /** ID of the first policy that should be shown to the user */
+    firstPolicyID: string | undefined;
+};
+
+const createFilteredPoliciesInfoSelector =
+    (email: string | undefined) =>
+    (policies: OnyxCollection<Policy>): FilteredPoliciesInfo => {
+        let filteredPoliciesCount = 0;
+        let firstPolicyID: string | undefined;
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || !shouldShowPolicy(policy, false, email)) {
+                continue;
+            }
+            if (filteredPoliciesCount === 0) {
+                firstPolicyID = policy.id;
+            }
+            filteredPoliciesCount++;
+            if (filteredPoliciesCount > 1) {
+                break;
+            }
+        }
+        return {filteredPoliciesCount, firstPolicyID};
+    };
+
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
@@ -156,11 +276,15 @@ const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Polic
 const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.QBD));
 
+const adminPoliciesConnectedToRilletSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET));
+
 const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (policies: OnyxCollection<Policy>) => Policy[]> = {
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: adminPoliciesConnectedToQBDSelector,
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: adminPoliciesConnectedToCertiniaSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: adminPoliciesConnectedToRilletSelector,
 };
 
 function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
@@ -177,8 +301,6 @@ function getReusablePoliciesConnectedTo(policies: OnyxCollection<Policy>, connec
 
 const reusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
     getReusablePoliciesConnectedTo(policies, connectionName, currentPolicyID);
-
-const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToQBDSelector(policies).length;
 
 const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
     Object.values(policies ?? {}).some((policy) => isAdminPolicyConnectedTo(policy, connectionName) && isReusablePolicyConnection(policy, connectionName, currentPolicyID));
@@ -248,16 +370,18 @@ export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
+    createOwnedPaidPoliciesCountsSelector,
+    createCopySettingsEligibleTargetsSelector,
+    createFilteredPoliciesInfoSelector,
+    createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
-    hasMultipleOutputCurrenciesSelector,
     iouRequestPolicyCollectionSelector,
     policyMapper,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
-    hasPoliciesConnectedToQBDSelector,
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,

@@ -1,6 +1,4 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,23 +8,31 @@ import SelectionList from '@components/SelectionList';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import {clearUnshareBankAccountErrors, unshareBankAccount} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT>;
 
@@ -118,16 +124,20 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     };
 
     const itemRightSideComponent = (item: ListItem) => {
+        const promptUnshare = () => setUnshareUser({login: item?.login, text: item?.text});
+        const isUnshareButtonLoading = isLoading && unsharedBankAccountData?.email === item?.login;
+
         return (
             <Button
-                isLoading={isLoading && unsharedBankAccountData?.email === item?.login}
-                small
+                isLoading={isUnshareButtonLoading}
+                size={CONST.BUTTON_SIZE.SMALL}
                 isDisabled={isLoading}
-                danger
-                text={translate('common.unshare')}
-                onPress={() => setUnshareUser({login: item?.login, text: item?.text})}
-                pressOnEnter
-            />
+                variant={CONST.BUTTON_VARIANT.DANGER}
+                onPress={promptUnshare}
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.unshare')}</Button.Text>
+            </Button>
         );
     };
 

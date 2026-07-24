@@ -1,18 +1,22 @@
-import React, {useCallback, useEffect} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import getActionBadgeText from '@components/utils/getActionBadgeText';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, TextStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 
 type FloatingPillButtonProps = {
     /** Whether the button uses the success style */
@@ -50,7 +54,7 @@ function FloatingPillButton({success, danger, onPress, icon, iconFill, label, te
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Icon
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                     src={icon}
                     fill={iconFill}
                 />

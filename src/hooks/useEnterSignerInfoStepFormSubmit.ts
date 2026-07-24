@@ -1,8 +1,11 @@
 import type {FormOnyxKeys} from '@components/Form/types';
+
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useStepFormSubmit from './useStepFormSubmit';
+
 import type {SubStepProps} from './useSubStep/types';
+
+import useStepFormSubmit from './useStepFormSubmit';
 
 type UseEnterSignerInfoStepFormSubmit = Pick<SubStepProps, 'onNext'> & {
     formId?: OnyxFormKey;

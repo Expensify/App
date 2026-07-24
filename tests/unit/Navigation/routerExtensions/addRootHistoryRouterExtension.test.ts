@@ -1,13 +1,18 @@
-import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import type {RootStackNavigatorAction} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import addRootHistoryRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension';
 import type {CustomHistoryEntry} from '@libs/Navigation/AppNavigator/routerExtensions/types';
-import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationState, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
-type TestState = StackNavigationState<ParamListBase> & {history?: CustomHistoryEntry[]};
+import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions} from '@react-navigation/native';
+
+import createMock from '../../../utils/createMock';
+
+type TestState = PlatformStackNavigationState<ParamListBase>;
 
 const SIDE_PANEL = CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL;
 const REVEAL_PADDING = CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_REVEAL_PADDING;
@@ -23,8 +28,8 @@ function nextTestKey(prefix: string): string {
     return `${prefix}-${testKeyCounter}`;
 }
 
-function makeRoute(name: string, key?: string, params?: Record<string, unknown>): NavigationRoute<ParamListBase, string> {
-    return {key: key ?? nextTestKey(name), name, params} as NavigationRoute<ParamListBase, string>;
+function makeRoute(name: string, key?: string, params?: NavigationRoute<ParamListBase, string>['params']): NavigationRoute<ParamListBase, string> {
+    return createMock<NavigationRoute<ParamListBase, string>>({key: key ?? nextTestKey(name), name, params});
 }
 
 function makeState(routes: Array<NavigationRoute<ParamListBase, string>>, overrides?: Partial<TestState>): TestState {
@@ -38,6 +43,10 @@ function makeState(routes: Array<NavigationRoute<ParamListBase, string>>, overri
         preloadedRoutes: [],
         ...overrides,
     };
+}
+
+function isCustomHistoryEntry(entry: unknown): entry is CustomHistoryEntry {
+    return typeof entry === 'string' || (typeof entry === 'object' && entry !== null && 'key' in entry && 'name' in entry);
 }
 
 const CONFIG_OPTIONS: RouterConfigOptions = {
@@ -61,9 +70,9 @@ function createMockRouterFactory(actionHandler?: (state: TestState, action: Root
                     key: r.key ?? `${r.name}-rehydrated`,
                     name: r.name,
                     params: r.params,
-                })) as Array<NavigationRoute<ParamListBase, string>>;
+                }));
                 return makeState(routes, {
-                    history: partialState.history as CustomHistoryEntry[] | undefined,
+                    history: partialState.history?.filter(isCustomHistoryEntry),
                 });
             },
 
@@ -81,8 +90,7 @@ function createMockRouterFactory(actionHandler?: (state: TestState, action: Root
                 }
 
                 if (action.type === 'NAVIGATE') {
-                    const payload = action.payload as {name: string; params?: Record<string, unknown>};
-                    const newRoute = makeRoute(payload.name, nextTestKey(payload.name), payload.params);
+                    const newRoute = makeRoute(action.payload.name, nextTestKey(action.payload.name), action.payload.params);
                     return makeState([...state.routes, newRoute]);
                 }
 
@@ -100,15 +108,22 @@ function createMockRouterFactory(actionHandler?: (state: TestState, action: Root
     return mockRouterFactory;
 }
 
-function asRouteEntry(entry: CustomHistoryEntry): NavigationRoute<ParamListBase, string> {
-    return entry as NavigationRoute<ParamListBase, string>;
+function expectRouteEntry(entry: unknown): asserts entry is NavigationRoute<ParamListBase, string> {
+    expect(entry).toBeDefined();
+    expect(typeof entry).not.toBe('string');
 }
 
-// Typed action factories. The extension only inspects `action.type` (and snapshots the top
-// route's key on REPLACE), so the payload shape is a no-op for these tests; we use the
-// minimum-shape `Route` placeholder ({name: '/'}) to satisfy the production action contract
-// without forcing test code to fabricate full route objects.
-const PLACEHOLDER_ROUTE = '/' as Route;
+function expectTestState(state: unknown): asserts state is TestState {
+    expect(state).not.toBeNull();
+}
+
+function getTestStateForAction(router: Router<TestState, RootStackNavigatorAction>, state: TestState, action: RootStackNavigatorAction): TestState {
+    const newState = router.getStateForAction(state, action, CONFIG_OPTIONS);
+    expectTestState(newState);
+    return newState;
+}
+
+const PLACEHOLDER_ROUTE: Route = ROUTES.HOME;
 const makeReplaceAction = (): RootStackNavigatorAction => ({type: REPLACE_FULLSCREEN_UNDER_RHP, payload: {route: PLACEHOLDER_ROUTE}});
 const makeRemoveAction = (): RootStackNavigatorAction => ({type: REMOVE_FULLSCREEN_UNDER_RHP, payload: {expectedRouteName: 'X'}});
 const makeDismissAction = (): RootStackNavigatorAction => ({type: DISMISS_MODAL});
@@ -140,14 +155,15 @@ describe('addRootHistoryRouterExtension', () => {
 
     it('getInitialState attaches a history array mirroring routes', () => {
         const factory = createMockRouterFactory();
-        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
         const state = enhancedRouter.getInitialState(CONFIG_OPTIONS);
 
         expect(state.history).toBeDefined();
         expect(state.history).toHaveLength(state.routes.length);
         for (const [i, route] of state.routes.entries()) {
-            const entry = asRouteEntry(state.history?.at(i) as CustomHistoryEntry);
+            const entry = state.history?.at(i);
+            expectRouteEntry(entry);
             expect(entry.key).toBe(route.key);
             expect(entry.name).toBe(route.name);
         }
@@ -155,9 +171,9 @@ describe('addRootHistoryRouterExtension', () => {
 
     it('getRehydratedState attaches history from routes', () => {
         const factory = createMockRouterFactory();
-        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
-        const partialState = {
+        const partialState: PartialState<TestState> = {
             routes: [
                 {name: 'ScreenA', key: 'a-1', params: {foo: 1}},
                 {name: 'ScreenB', key: 'b-1'},
@@ -165,25 +181,29 @@ describe('addRootHistoryRouterExtension', () => {
             stale: true as const,
         };
 
-        const state = enhancedRouter.getRehydratedState(partialState as PartialState<TestState>, CONFIG_OPTIONS);
+        const state = enhancedRouter.getRehydratedState(partialState, CONFIG_OPTIONS);
 
         expect(state.history).toBeDefined();
         expect(state.history).toHaveLength(2);
-        expect(asRouteEntry(state.history?.at(0) as CustomHistoryEntry).key).toBe('a-1');
-        expect(asRouteEntry(state.history?.at(1) as CustomHistoryEntry).key).toBe('b-1');
+        const firstEntry = state.history?.at(0);
+        expectRouteEntry(firstEntry);
+        expect(firstEntry.key).toBe('a-1');
+        const secondEntry = state.history?.at(1);
+        expectRouteEntry(secondEntry);
+        expect(secondEntry.key).toBe('b-1');
     });
 
     it('getRehydratedState preserves CUSTOM_HISTORY_ENTRY_SIDE_PANEL when present as last entry in partial state history', () => {
         const factory = createMockRouterFactory();
-        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
-        const partialState = {
+        const partialState: PartialState<TestState> = {
             routes: [{name: 'ScreenA', key: 'a-1'}],
             stale: true as const,
             history: [{key: 'a-1', name: 'ScreenA'}, SIDE_PANEL],
         };
 
-        const state = enhancedRouter.getRehydratedState(partialState as PartialState<TestState>, CONFIG_OPTIONS);
+        const state = enhancedRouter.getRehydratedState(partialState, CONFIG_OPTIONS);
 
         expect(state.history).toBeDefined();
         expect(state.history?.at(-1)).toBe(SIDE_PANEL);
@@ -193,22 +213,22 @@ describe('addRootHistoryRouterExtension', () => {
 
     it('getRehydratedState does NOT add SIDE_PANEL when it is absent from partial state', () => {
         const factory = createMockRouterFactory();
-        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
-        const partialState = {
+        const partialState: PartialState<TestState> = {
             routes: [{name: 'ScreenA', key: 'a-1'}],
             stale: true as const,
             history: [{key: 'a-1', name: 'ScreenA'}],
         };
 
-        const state = enhancedRouter.getRehydratedState(partialState as PartialState<TestState>, CONFIG_OPTIONS);
+        const state = enhancedRouter.getRehydratedState(partialState, CONFIG_OPTIONS);
 
         expect(state.history?.every((e) => e !== SIDE_PANEL)).toBe(true);
     });
 
     it('getStateForAction re-attaches history after a generic NAVIGATE action (history rebuilt via getRehydratedState)', () => {
         const factory = createMockRouterFactory();
-        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
         const initialState = enhancedRouter.getInitialState(CONFIG_OPTIONS);
 
@@ -223,7 +243,8 @@ describe('addRootHistoryRouterExtension', () => {
         expect(newState?.history).toBeDefined();
         expect(newState?.history).toHaveLength(newState?.routes.length ?? -1);
         for (const [i, r] of (newState?.routes ?? []).entries()) {
-            const entry = asRouteEntry(newState?.history?.at(i) as CustomHistoryEntry);
+            const entry = newState?.history?.at(i);
+            expectRouteEntry(entry);
             expect(entry.key).toBe(r.key);
         }
     });
@@ -239,13 +260,13 @@ describe('addRootHistoryRouterExtension', () => {
             return makeState([replacedRoute, ...state.routes.slice(1)]);
         });
 
-        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
-        const initialHistory = [
+        const initialHistory = createMock<CustomHistoryEntry[]>([
             {key: 'a-1', name: 'ScreenA'},
             {key: 'b-1', name: 'ScreenB'},
             {key: 'c-1', name: 'ScreenC'},
-        ] as CustomHistoryEntry[];
+        ]);
 
         const state = makeState([routeA, routeB, routeC], {history: initialHistory});
 
@@ -259,7 +280,7 @@ describe('addRootHistoryRouterExtension', () => {
 
     it('getStateForAction returns null when the base router returns null', () => {
         const factory = createMockRouterFactory(() => null);
-        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
         const initialState = enhancedRouter.getInitialState(CONFIG_OPTIONS);
 
@@ -293,8 +314,7 @@ describe('addRootHistoryRouterExtension', () => {
                     return withRoutes(state, state.routes.slice(0, -1));
                 }
                 if (action.type === 'NAVIGATE') {
-                    const payload = action.payload as {name: string; params?: Record<string, unknown>};
-                    const newRoute = makeRoute(payload.name, nextTestKey(payload.name), payload.params);
+                    const newRoute = makeRoute(action.payload.name, nextTestKey(action.payload.name), action.payload.params);
                     return withRoutes(state, [...state.routes, newRoute]);
                 }
                 return state;
@@ -308,21 +328,22 @@ describe('addRootHistoryRouterExtension', () => {
             const tabB = makeRoute('TabB', 'tab-b-1');
             const rhp = makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, 'rhp-1');
 
-            const enhancedRouter = addRootHistoryRouterExtension(makeRevealRouter(tabB))({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(makeRevealRouter(tabB))(createMock<PlatformStackRouterOptions>({}));
 
             const stateWithRHP = makeState([tabA, rhp], {
-                history: [
+                history: createMock<CustomHistoryEntry[]>([
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
-                ] as CustomHistoryEntry[],
+                ]),
             });
 
             const afterReplace = enhancedRouter.getStateForAction(stateWithRHP, makeReplaceAction(), CONFIG_OPTIONS);
             expect(afterReplace).not.toBeNull();
             expect(afterReplace?.history?.length).toBe(3);
 
-            const afterDismiss = enhancedRouter.getStateForAction(afterReplace as TestState, makeDismissAction(), CONFIG_OPTIONS);
+            expectTestState(afterReplace);
+            const afterDismiss = enhancedRouter.getStateForAction(afterReplace, makeDismissAction(), CONFIG_OPTIONS);
             expect(afterDismiss).not.toBeNull();
             // Routes shrunk by 1 (modal popped)…
             expect(afterDismiss?.routes.length).toBe(1);
@@ -331,7 +352,9 @@ describe('addRootHistoryRouterExtension', () => {
             // The phantom entries are now sentinel padding at the front, NOT stale route mirrors.
             expect(countLeadingPadding(afterDismiss?.history)).toBe(2);
             // Trailing entries reflect the new (post-dismiss) routes.
-            expect(asRouteEntry(afterDismiss?.history?.at(-1) as CustomHistoryEntry).key).toBe('tab-b-1');
+            const lastHistoryEntry = afterDismiss?.history?.at(-1);
+            expectRouteEntry(lastHistoryEntry);
+            expect(lastHistoryEntry.key).toBe('tab-b-1');
         });
 
         it('maintains the reveal-induced length offset across subsequent inner navigations', () => {
@@ -339,25 +362,25 @@ describe('addRootHistoryRouterExtension', () => {
             const tabB = makeRoute('TabB', 'tab-b-1');
             const rhp = makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, 'rhp-1');
 
-            const enhancedRouter = addRootHistoryRouterExtension(makeRevealRouter(tabB))({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(makeRevealRouter(tabB))(createMock<PlatformStackRouterOptions>({}));
 
             const stateWithRHP = makeState([tabA, rhp], {
-                history: [
+                history: createMock<CustomHistoryEntry[]>([
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
-                ] as CustomHistoryEntry[],
+                ]),
             });
 
-            const afterReplace = enhancedRouter.getStateForAction(stateWithRHP, makeReplaceAction(), CONFIG_OPTIONS) as TestState;
-            const afterDismiss = enhancedRouter.getStateForAction(afterReplace, makeDismissAction(), CONFIG_OPTIONS) as TestState;
+            const afterReplace = getTestStateForAction(enhancedRouter, stateWithRHP, makeReplaceAction());
+            const afterDismiss = getTestStateForAction(enhancedRouter, afterReplace, makeDismissAction());
 
             // Sanity: offset of 2.
             expect(countLeadingPadding(afterDismiss.history)).toBe(2);
             expect(afterDismiss.history?.length).toBe(3);
 
             // Inner NAVIGATE - routes grow by 1; offset must persist.
-            const afterNavigate = enhancedRouter.getStateForAction(afterDismiss, makeNavigateAction('TabC'), CONFIG_OPTIONS) as TestState;
+            const afterNavigate = getTestStateForAction(enhancedRouter, afterDismiss, makeNavigateAction('TabC'));
             expect(afterNavigate.routes.length).toBe(2);
             expect(afterNavigate.history?.length).toBe(4);
             expect(countLeadingPadding(afterNavigate.history)).toBe(2);
@@ -373,16 +396,16 @@ describe('addRootHistoryRouterExtension', () => {
                 }
                 return state;
             });
-            const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
             const stateWithRHP = makeState([tabA, rhp], {
-                history: [
+                history: createMock<CustomHistoryEntry[]>([
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
-                ] as CustomHistoryEntry[],
+                ]),
             });
 
-            const afterDismiss = enhancedRouter.getStateForAction(stateWithRHP, makeDismissAction(), CONFIG_OPTIONS) as TestState;
+            const afterDismiss = getTestStateForAction(enhancedRouter, stateWithRHP, makeDismissAction());
 
             expect(afterDismiss.routes.length).toBe(1);
             expect(afterDismiss.history?.length).toBe(1);
@@ -408,24 +431,24 @@ describe('addRootHistoryRouterExtension', () => {
                 }
                 return state;
             });
-            const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
             const stateWithRHP = makeState([tabA, rhp], {
-                history: [
+                history: createMock<CustomHistoryEntry[]>([
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
-                ] as CustomHistoryEntry[],
+                ]),
             });
 
-            const afterReplace = enhancedRouter.getStateForAction(stateWithRHP, makeReplaceAction(), CONFIG_OPTIONS) as TestState;
-            const afterRemove = enhancedRouter.getStateForAction(afterReplace, makeRemoveAction(), CONFIG_OPTIONS) as TestState;
+            const afterReplace = getTestStateForAction(enhancedRouter, stateWithRHP, makeReplaceAction());
+            const afterRemove = getTestStateForAction(enhancedRouter, afterReplace, makeRemoveAction());
 
             // REMOVE freezes too (same intermediate-frame rationale as REPLACE).
             expect(afterRemove.history?.length).toBe(2);
             expect(countLeadingPadding(afterRemove.history)).toBe(0);
 
             // Now dismiss the modal normally - must NOT engage the freeze logic.
-            const afterDismiss = enhancedRouter.getStateForAction(afterRemove, makeDismissAction(), CONFIG_OPTIONS) as TestState;
+            const afterDismiss = getTestStateForAction(enhancedRouter, afterRemove, makeDismissAction());
             expect(afterDismiss.routes.length).toBe(1);
             expect(afterDismiss.history?.length).toBe(1);
             expect(countLeadingPadding(afterDismiss.history)).toBe(0);
@@ -450,35 +473,39 @@ describe('addRootHistoryRouterExtension', () => {
                 }
                 return state;
             });
-            const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
             // First reveal: starting state has 3 history entries.
             const initialState = makeState([tabA, rhp1], {
-                history: [
+                history: createMock<CustomHistoryEntry[]>([
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
-                ] as CustomHistoryEntry[],
+                ]),
             });
 
-            const afterFirstReplace = enhancedRouter.getStateForAction(initialState, makeReplaceAction(), CONFIG_OPTIONS) as TestState;
-            const afterFirstDismiss = enhancedRouter.getStateForAction(afterFirstReplace, makeDismissAction(), CONFIG_OPTIONS) as TestState;
+            const afterFirstReplace = getTestStateForAction(enhancedRouter, initialState, makeReplaceAction());
+            const afterFirstDismiss = getTestStateForAction(enhancedRouter, afterFirstReplace, makeDismissAction());
             expect(afterFirstDismiss.history?.length).toBe(3);
             expect(countLeadingPadding(afterFirstDismiss.history)).toBe(2);
 
             // User opens a second RHP: routes grow by 1, history grows by 1 (offset preserved).
-            const stateWithRhp2 = makeState([tabB, rhp2], {history: [...(afterFirstDismiss.history ?? []), {key: 'rhp-2', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR} as CustomHistoryEntry]});
+            const stateWithRhp2 = makeState([tabB, rhp2], {
+                history: [...(afterFirstDismiss.history ?? []), createMock<CustomHistoryEntry>({key: 'rhp-2', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR})],
+            });
             // Second reveal: replace TabB → TabC, then dismiss rhp2.
             replaceTarget = tabC;
-            const afterSecondReplace = enhancedRouter.getStateForAction(stateWithRhp2, makeReplaceAction(), CONFIG_OPTIONS) as TestState;
-            const afterSecondDismiss = enhancedRouter.getStateForAction(afterSecondReplace, makeDismissAction(), CONFIG_OPTIONS) as TestState;
+            const afterSecondReplace = getTestStateForAction(enhancedRouter, stateWithRhp2, makeReplaceAction());
+            const afterSecondDismiss = getTestStateForAction(enhancedRouter, afterSecondReplace, makeDismissAction());
 
             // Pre-second-dismiss history length was 4 (2 padding + tabB + rhp2). Post-dismiss
             // routes length is 1 (tabC). Offset must be 4 - 1 = 3.
             expect(afterSecondDismiss.routes.length).toBe(1);
             expect(afterSecondDismiss.history?.length).toBe(4);
             expect(countLeadingPadding(afterSecondDismiss.history)).toBe(3);
-            expect(asRouteEntry(afterSecondDismiss.history?.at(-1) as CustomHistoryEntry).key).toBe('tab-c-1');
+            const lastHistoryEntry = afterSecondDismiss.history?.at(-1);
+            expectRouteEntry(lastHistoryEntry);
+            expect(lastHistoryEntry.key).toBe('tab-c-1');
         });
 
         it('does NOT commit a reveal when an unrelated modal is dismissed between REPLACE and the matching DISMISS', () => {
@@ -498,35 +525,34 @@ describe('addRootHistoryRouterExtension', () => {
                     return makeState(state.routes.slice(0, -1));
                 }
                 if (action.type === 'NAVIGATE') {
-                    const payload = action.payload as {name: string; params?: Record<string, unknown>};
-                    const newRoute = payload.name === 'OTHER_MODAL' ? otherModal : makeRoute(payload.name, nextTestKey(payload.name), payload.params);
+                    const newRoute = action.payload.name === 'OTHER_MODAL' ? otherModal : makeRoute(action.payload.name, nextTestKey(action.payload.name), action.payload.params);
                     return makeState([...state.routes, newRoute]);
                 }
                 return state;
             });
-            const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
             const stateWithRHP = makeState([tabA, rhp], {
-                history: [
+                history: createMock<CustomHistoryEntry[]>([
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'rhp-real', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
-                ] as CustomHistoryEntry[],
+                ]),
             });
 
-            const afterReplace = enhancedRouter.getStateForAction(stateWithRHP, makeReplaceAction(), CONFIG_OPTIONS) as TestState;
+            const afterReplace = getTestStateForAction(enhancedRouter, stateWithRHP, makeReplaceAction());
             // Open an *unrelated* modal on top of the in-flight reveal.
-            const stateAfterOpeningOtherModal = enhancedRouter.getStateForAction(afterReplace, makeNavigateAction('OTHER_MODAL'), CONFIG_OPTIONS) as TestState;
+            const stateAfterOpeningOtherModal = getTestStateForAction(enhancedRouter, afterReplace, makeNavigateAction('OTHER_MODAL'));
             expect(stateAfterOpeningOtherModal.routes.length).toBe(3);
             expect(stateAfterOpeningOtherModal.routes.at(-1)?.key).toBe('rhp-other');
 
             // Dismiss the OTHER modal - must NOT commit the in-flight reveal (key mismatch),
             // i.e. no offset is set, history shrinks naturally.
-            const afterDismissOther = enhancedRouter.getStateForAction(stateAfterOpeningOtherModal, makeDismissAction(), CONFIG_OPTIONS) as TestState;
+            const afterDismissOther = getTestStateForAction(enhancedRouter, stateAfterOpeningOtherModal, makeDismissAction());
             expect(afterDismissOther.routes.length).toBe(2);
             expect(countLeadingPadding(afterDismissOther.history)).toBe(0);
 
             // Now dismiss the *real* RHP - that's the protocol's second frame; commit the reveal.
-            const afterDismissReal = enhancedRouter.getStateForAction(afterDismissOther, makeDismissAction(), CONFIG_OPTIONS) as TestState;
+            const afterDismissReal = getTestStateForAction(enhancedRouter, afterDismissOther, makeDismissAction());
             expect(afterDismissReal.routes.length).toBe(1);
             expect(countLeadingPadding(afterDismissReal.history)).toBeGreaterThan(0);
         });
@@ -547,37 +573,36 @@ describe('addRootHistoryRouterExtension', () => {
                     return makeState(state.routes.slice(0, -1));
                 }
                 if (action.type === 'NAVIGATE') {
-                    const payload = action.payload as {name: string};
-                    if (payload.name === '__POP_RHP__') {
+                    if (action.payload.name === '__POP_RHP__') {
                         // Simulate a non-DISMISS_MODAL action that removes the snapshotted RHP.
                         return makeState(state.routes.filter((r) => r.key !== 'rhp-1'));
                     }
-                    if (payload.name === '__OPEN_OTHER_RHP__') {
+                    if (action.payload.name === '__OPEN_OTHER_RHP__') {
                         return makeState([...state.routes, otherRhp]);
                     }
                     return state;
                 }
                 return state;
             });
-            const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
             const stateWithRHP = makeState([tabA, rhp], {
-                history: [
+                history: createMock<CustomHistoryEntry[]>([
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
-                ] as CustomHistoryEntry[],
+                ]),
             });
 
             // REPLACE snapshots rhp-1.
-            const afterReplace = enhancedRouter.getStateForAction(stateWithRHP, makeReplaceAction(), CONFIG_OPTIONS) as TestState;
+            const afterReplace = getTestStateForAction(enhancedRouter, stateWithRHP, makeReplaceAction());
             // Some external action removes rhp-1 without going through DISMISS_MODAL.
-            const afterPop = enhancedRouter.getStateForAction(afterReplace, makeNavigateAction('__POP_RHP__'), CONFIG_OPTIONS) as TestState;
+            const afterPop = getTestStateForAction(enhancedRouter, afterReplace, makeNavigateAction('__POP_RHP__'));
             expect(afterPop.routes.find((r) => r.key === 'rhp-1')).toBeUndefined();
 
             // Open a different RHP.
-            const afterSecondRhpOpen = enhancedRouter.getStateForAction(afterPop, makeNavigateAction('__OPEN_OTHER_RHP__'), CONFIG_OPTIONS) as TestState;
+            const afterSecondRhpOpen = getTestStateForAction(enhancedRouter, afterPop, makeNavigateAction('__OPEN_OTHER_RHP__'));
             // Dismiss it. Snapshot was cleared by the sanity reset, so this must NOT freeze.
-            const afterSecondRhpDismiss = enhancedRouter.getStateForAction(afterSecondRhpOpen, makeDismissAction(), CONFIG_OPTIONS) as TestState;
+            const afterSecondRhpDismiss = getTestStateForAction(enhancedRouter, afterSecondRhpOpen, makeDismissAction());
             expect(countLeadingPadding(afterSecondRhpDismiss.history)).toBe(0);
         });
 
@@ -589,18 +614,18 @@ describe('addRootHistoryRouterExtension', () => {
             const tabB = makeRoute('TabB', 'tab-b-1');
             const rhp = makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, 'rhp-1');
 
-            const enhancedRouter = addRootHistoryRouterExtension(makeRevealRouter(tabB))({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(makeRevealRouter(tabB))(createMock<PlatformStackRouterOptions>({}));
 
             // History exactly mirrors routes (no real depth beyond the modal).
             const stateWithRHP = makeState([tabA, rhp], {
-                history: [
+                history: createMock<CustomHistoryEntry[]>([
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
-                ] as CustomHistoryEntry[],
+                ]),
             });
 
-            const afterReplace = enhancedRouter.getStateForAction(stateWithRHP, makeReplaceAction(), CONFIG_OPTIONS) as TestState;
-            const afterDismiss = enhancedRouter.getStateForAction(afterReplace, makeDismissAction(), CONFIG_OPTIONS) as TestState;
+            const afterReplace = getTestStateForAction(enhancedRouter, stateWithRHP, makeReplaceAction());
+            const afterDismiss = getTestStateForAction(enhancedRouter, afterReplace, makeDismissAction());
 
             // pre-dismiss state.history.length = 2; post-dismiss rehydrated.history.length = 1.
             // lengthDelta = 1 → freeze with offset 1 (one sentinel padding entry).
@@ -619,15 +644,20 @@ describe('addRootHistoryRouterExtension', () => {
             const tabB = makeRoute('TabB', 'tab-b-1');
             const rhp = makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, 'rhp-1');
 
-            const enhancedRouter = addRootHistoryRouterExtension(makeRevealRouter(tabB))({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(makeRevealRouter(tabB))(createMock<PlatformStackRouterOptions>({}));
 
             // Pre-reveal: 2 prior entries + RHP + SIDE_PANEL → length 4.
             const stateWithRHP = makeState([tabA, rhp], {
-                history: [{key: 'tab-a-1', name: 'TabA'}, {key: 'tab-a-1', name: 'TabA'}, {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}, SIDE_PANEL] as CustomHistoryEntry[],
+                history: createMock<CustomHistoryEntry[]>([
+                    {key: 'tab-a-1', name: 'TabA'},
+                    {key: 'tab-a-1', name: 'TabA'},
+                    {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
+                    SIDE_PANEL,
+                ]),
             });
 
-            const afterReplace = enhancedRouter.getStateForAction(stateWithRHP, makeReplaceAction(), CONFIG_OPTIONS) as TestState;
-            const afterDismiss = enhancedRouter.getStateForAction(afterReplace, makeDismissAction(), CONFIG_OPTIONS) as TestState;
+            const afterReplace = getTestStateForAction(enhancedRouter, stateWithRHP, makeReplaceAction());
+            const afterDismiss = getTestStateForAction(enhancedRouter, afterReplace, makeDismissAction());
 
             // Post-dismiss: routes=[TabB], rehydrated.history=[TabB-mirror, SIDE_PANEL] (length 2).
             // lengthDelta = 4 - 2 = 2 sentinel padding entries. Final shape:
@@ -646,27 +676,27 @@ describe('addRootHistoryRouterExtension', () => {
             const tabB = makeRoute('TabB', 'tab-b-1');
             const rhp = makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, 'rhp-1');
 
-            const enhancedRouter = addRootHistoryRouterExtension(makeRevealRouter(tabB))({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(makeRevealRouter(tabB))(createMock<PlatformStackRouterOptions>({}));
 
             const stateWithRHP = makeState([tabA, rhp], {
-                history: [
+                history: createMock<CustomHistoryEntry[]>([
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'tab-a-1', name: 'TabA'},
                     {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
-                ] as CustomHistoryEntry[],
+                ]),
             });
 
-            const afterReplace = enhancedRouter.getStateForAction(stateWithRHP, makeReplaceAction(), CONFIG_OPTIONS) as TestState;
+            const afterReplace = getTestStateForAction(enhancedRouter, stateWithRHP, makeReplaceAction());
 
             // Simulate an out-of-band history mutation: append an extra route entry without
             // changing routes. Pre-DISMISS state.history.length is now 4 instead of the
             // captured 3.
             const tamperedState: TestState = {
                 ...afterReplace,
-                history: [...(afterReplace.history ?? []), {key: 'rogue-1', name: 'Rogue'} as unknown as CustomHistoryEntry],
+                history: [...(afterReplace.history ?? []), createMock<CustomHistoryEntry>({key: 'rogue-1', name: 'Rogue'})],
             };
 
-            const afterDismiss = enhancedRouter.getStateForAction(tamperedState, makeDismissAction(), CONFIG_OPTIONS) as TestState;
+            const afterDismiss = getTestStateForAction(enhancedRouter, tamperedState, makeDismissAction());
 
             // Freeze is rejected (history depth mismatch); routes shrink naturally,
             // history is rebuilt from routes (no padding sentinels).
@@ -680,15 +710,15 @@ describe('addRootHistoryRouterExtension', () => {
             // resulting state's history is rebuilt from routes by enhanceStateWithHistory and
             // the offset dies naturally - this is the documented contract.
             const factory = createMockRouterFactory();
-            const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
-            const partialState = {
+            const partialState: PartialState<TestState> = {
                 routes: [{name: 'ScreenA', key: 'a-1'}],
                 stale: true as const,
                 // partial state arrives WITHOUT padding sentinels (i.e., a fresh resetRoot).
             };
 
-            const rehydrated = enhancedRouter.getRehydratedState(partialState as PartialState<TestState>, CONFIG_OPTIONS);
+            const rehydrated = enhancedRouter.getRehydratedState(partialState, CONFIG_OPTIONS);
 
             // No padding survived rehydration - the history mirrors the routes only.
             expect(countLeadingPadding(rehydrated.history)).toBe(0);
@@ -701,20 +731,98 @@ describe('addRootHistoryRouterExtension', () => {
             // enhanceStateWithHistory rebuilds history from routes and drops that offset at
             // the rehydration boundary.
             const factory = createMockRouterFactory();
-            const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+            const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
-            const partialState = {
+            const partialState: PartialState<TestState> = {
                 routes: [{name: 'ScreenA', key: 'a-1'}],
                 stale: true as const,
-                history: [REVEAL_PADDING, REVEAL_PADDING, {key: 'a-1', name: 'ScreenA'}] as CustomHistoryEntry[],
+                history: createMock<CustomHistoryEntry[]>([REVEAL_PADDING, REVEAL_PADDING, {key: 'a-1', name: 'ScreenA'}]),
             };
 
-            const rehydrated = enhancedRouter.getRehydratedState(partialState as PartialState<TestState>, CONFIG_OPTIONS);
+            const rehydrated = enhancedRouter.getRehydratedState(partialState, CONFIG_OPTIONS);
 
             // enhanceStateWithHistory rebuilds history from routes by default, so leading
             // padding is dropped at the rehydration boundary - this is the conservative
             // outcome (offset dies on resetRoot, browser history not over-padded).
             expect(countLeadingPadding(rehydrated.history)).toBe(0);
+        });
+    });
+
+    describe('modal back-guard sentinel (#90776)', () => {
+        const MODAL = CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL;
+        const modalTag = (modalId: string): CustomHistoryEntry => `${MODAL}:${modalId}`;
+
+        // Mirrors production RN StackRouter: spreads `state` so the custom `history` field is carried
+        // forward through a forward navigation (the reason the sentinel would otherwise be re-appended).
+        function makeForwardNavRouter() {
+            return createMockRouterFactory((state, action) => {
+                if (action.type === 'NAVIGATE') {
+                    const newRoute = makeRoute(action.payload.name, nextTestKey(action.payload.name));
+                    const routes = [...state.routes, newRoute];
+                    return {...state, routes, routeNames: routes.map((r) => r.name), index: routes.length - 1};
+                }
+                return state;
+            });
+        }
+
+        it('preserves a trailing modal sentinel through getRehydratedState (RESET/resize parity)', () => {
+            const factory = createMockRouterFactory();
+            const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
+
+            const partialState: PartialState<TestState> = {
+                routes: [{name: 'ScreenA', key: 'a-1'}],
+                stale: true as const,
+                history: [{key: 'a-1', name: 'ScreenA'}, modalTag('m1')],
+            };
+
+            const state = enhancedRouter.getRehydratedState(partialState, CONFIG_OPTIONS);
+
+            expect(state.history?.at(-1)).toBe(modalTag('m1'));
+            const routeEntries = state.history?.filter((e): e is NavigationRoute<ParamListBase, string> => typeof e !== 'string') ?? [];
+            expect(routeEntries).toHaveLength(1);
+        });
+
+        it('preserves multiple trailing modal sentinels (nested modals) through getRehydratedState', () => {
+            const factory = createMockRouterFactory();
+            const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
+
+            const partialState: PartialState<TestState> = {
+                routes: [{name: 'ScreenA', key: 'a-1'}],
+                stale: true as const,
+                history: [{key: 'a-1', name: 'ScreenA'}, modalTag('m1'), modalTag('m2')],
+            };
+
+            const state = enhancedRouter.getRehydratedState(partialState, CONFIG_OPTIONS);
+
+            expect(state.history?.slice(-2)).toEqual([modalTag('m1'), modalTag('m2')]);
+        });
+
+        it('consumes the trailing modal sentinel on forward navigation so historyDelta === 0 (replaceState)', () => {
+            const enhancedRouter = addRootHistoryRouterExtension(makeForwardNavRouter())(createMock<PlatformStackRouterOptions>({}));
+
+            const routeA = makeRoute('ScreenA', 'a-1');
+            const state = makeState([routeA], {history: createMock<CustomHistoryEntry[]>([{key: 'a-1', name: 'ScreenA'}, modalTag('m1')])});
+
+            const newState = enhancedRouter.getStateForAction(state, makeNavigateAction('ScreenB'), CONFIG_OPTIONS);
+
+            // Route was really pushed (in-app back unaffected)...
+            expect(newState?.routes).toHaveLength(2);
+            // ...but the guard sentinel is gone and history length is unchanged → useLinking does a replace.
+            expect(newState?.history?.some((entry) => typeof entry === 'string' && entry.startsWith(`${MODAL}:`))).toBe(false);
+            expect(newState?.history).toHaveLength(state.history?.length ?? -1);
+        });
+
+        it('does NOT consume the sentinel on a non-forward action (e.g. side panel toggle)', () => {
+            // A passthrough router that keeps history intact for non-NAVIGATE actions.
+            const factory = createMockRouterFactory((state) => state);
+            const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
+
+            const routeA = makeRoute('ScreenA', 'a-1');
+            const state = makeState([routeA], {history: createMock<CustomHistoryEntry[]>([{key: 'a-1', name: 'ScreenA'}, modalTag('m1')])});
+
+            const newState = enhancedRouter.getStateForAction(state, makeDismissAction(), CONFIG_OPTIONS);
+
+            expect(newState?.history?.at(-1)).toBe(modalTag('m1'));
         });
     });
 });

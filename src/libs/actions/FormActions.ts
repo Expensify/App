@@ -1,7 +1,9 @@
-import type {NullishDeep, OnyxValue} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {NullishDeep, OnyxValue} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
     Onyx.merge(formID, {isLoading});

@@ -1,11 +1,14 @@
-import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 type WorkspaceInvoiceBalanceSectionProps = {
     /** The policy ID currently being configured */

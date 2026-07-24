@@ -1,7 +1,9 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 type ParticipantWithPolicyID = {
@@ -30,7 +32,7 @@ function getPoliciesSelector(participants: ParticipantWithPolicyID[]): (allPolic
  * @returns Record mapping policyID to Policy
  */
 function useParticipantsPolicies(participants: ParticipantWithPolicyID[]): Record<string, Policy> {
-    const [participantsPolicies = getEmptyObject<Record<string, Policy>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: getPoliciesSelector(participants)}, [participants]);
+    const [participantsPolicies = getEmptyObject<Record<string, Policy>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: getPoliciesSelector(participants)});
 
     return participantsPolicies;
 }

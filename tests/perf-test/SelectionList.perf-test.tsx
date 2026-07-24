@@ -1,15 +1,20 @@
-import {fireEvent} from '@testing-library/react-native';
 import type {RenderResult} from '@testing-library/react-native';
-import React, {useState} from 'react';
-import type {ComponentType} from 'react';
-import type ReactNative from 'react-native';
-import {measureRenders} from 'reassure';
+import {fireEvent} from '@testing-library/react-native';
+
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {KeyboardStateContextValue} from '@components/withKeyboardState';
+
 import variables from '@styles/variables';
+
+import type * as NativeNavigation from '@react-navigation/native';
+import type {ComponentType} from 'react';
+import type ReactNative from 'react-native';
+
+import React, {useState} from 'react';
+import {measureRenders} from 'reassure';
 
 type SelectionListWrapperProps = {
     /** Whether this is a multi-select list */
@@ -60,11 +65,17 @@ jest.mock('@react-navigation/stack', () => ({
     useCardAnimation: () => {},
 }));
 
-jest.mock('@react-navigation/native', () => ({
-    useFocusEffect: () => {},
-    useIsFocused: () => true,
-    createNavigationContainerRef: jest.fn(),
-}));
+jest.mock('@react-navigation/native', () => {
+    // Spread the actual module so context objects like NavigationContainerRefContext and NavigationContext
+    // remain defined. useResponsiveLayout (native) reads them via useContext, which crashes if they are undefined.
+    const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useFocusEffect: () => {},
+        useIsFocused: () => true,
+        createNavigationContainerRef: jest.fn(),
+    };
+});
 
 jest.mock('../../src/hooks/useKeyboardState', () => ({
     __esModule: true,

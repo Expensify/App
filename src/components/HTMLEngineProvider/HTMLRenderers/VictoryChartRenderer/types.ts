@@ -3,6 +3,7 @@ import type {ComponentProps} from 'react';
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type {CartesianChart} from 'victory-native';
+
 import type {CHART_TYPE, COLOR_KEY, LABEL_KEY, VALUE_KEY, X_KEY, Y_KEY_PREFIX} from './constants';
 
 type VictoryChartRendererProps = CustomRendererProps<TBlock>;
@@ -70,6 +71,15 @@ type PolarChartData = {
 };
 
 type TextAnchor = 'start' | 'middle' | 'end';
+
+/** A pie-chart slice label's fully resolved, absolute position — shared by `VictoryChartPieLabel` and `VictoryChartPieLabelIndicator` so both always agree. */
+type ResolvedPieLabel = {
+    x: number;
+    y: number;
+    textAnchor: TextAnchor;
+    /** The angle actually used for this slice's layout. */
+    midAngle: number;
+};
 
 type LabelItem = {
     /** Position on the X-axis */
@@ -162,6 +172,8 @@ type ProcessNodeResult = {
     domain: CartesianChartProps['domain'];
     domainPadding: CartesianChartProps['domainPadding'];
     padding: CartesianChartProps['padding'];
+    // Pixel width the left y-axis actually needs for its widest label, used to shrink `padding.left` when it's larger than the content requires.
+    leftAxisLabelPadding: number | undefined;
     isHorizontal: boolean | undefined;
     categories: string[] | undefined;
     labelItems: LabelItem[];
@@ -187,6 +199,7 @@ export type {
     CartesianChartData,
     CartesianChartProps,
     TextAnchor,
+    ResolvedPieLabel,
     LabelItem,
     LegendItemEntry,
     LegendItem,

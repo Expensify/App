@@ -7,6 +7,6 @@ type ImagePickerResponse = {
     width?: number;
 };
 
-type FileObject = Partial<File | ImagePickerResponse> & {getAsFile?: () => File | null};
+type FileObject = Partial<File | ImagePickerResponse> & {getAsFile?: () => File | null; lastModified?: number; receiptTraceId?: string};
 
 export type {FileObject, ImagePickerResponse};

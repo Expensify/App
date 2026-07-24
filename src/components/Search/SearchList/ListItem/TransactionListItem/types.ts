@@ -1,9 +1,11 @@
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
+
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import type {CardList, PolicyCategories, ReportAction, TransactionViolation} from '@src/types/onyx';
+
+import type {CardList, PolicyCategories, PolicyTagLists, ReportAction, TransactionViolation} from '@src/types/onyx';
 
 type TransactionListItemSharedProps<TItem extends ListItem> = {
     item: TItem;
@@ -23,9 +25,11 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     isLastItem?: boolean;
     transactionViolations: TransactionViolation[];
     handleActionButtonPress: (event?: ModifiedMouseEvent) => void;
+    shouldDisableActionPointerEvents?: boolean;
     transactionPreviewData: TransactionPreviewData;
     exportedReportActions: ReportAction[];
     policyCategories?: PolicyCategories;
+    policyTagLists?: PolicyTagLists;
     nonPersonalAndWorkspaceCards?: CardList;
     isAttendeesEnabledForMovingPolicy?: boolean;
 };

@@ -1,7 +1,10 @@
+import type {OptionRowLHNProps} from '@components/LHNOptionsList/types';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import React from 'react';
 import {View} from 'react-native';
-import type {OptionRowLHNProps} from '@components/LHNOptionsList/types';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import OptionRow from './OptionRow';
 import useOptionRowChrome from './useOptionRowChrome';
 

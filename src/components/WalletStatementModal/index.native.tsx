@@ -1,15 +1,21 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview';
+import type {ValueOf} from 'type-fest';
+
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
-import type {ValueOf} from 'type-fest';
-import ActivityIndicator from '@components/ActivityIndicator';
-import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {WalletStatementProps} from './types';
+
 import handleWalletStatementNavigation from './walletNavigationUtils';
 
 type WebViewMessageType = ValueOf<typeof CONST.WALLET.WEB_MESSAGE_TYPE>;

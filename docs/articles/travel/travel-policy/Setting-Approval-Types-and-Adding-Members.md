@@ -43,7 +43,8 @@ Note: Only Travel Admins can create or manage travel policies in Expensify Trave
 - **Approver Type**:
   - **Manager Approval**: Uses the manager from the member's Expensify workflow.
   - **Designated Approver**: Sends bookings to a pre-defined approver.
-- **Default Approvers**: Add up to three backups to handle approval volume, especially when using Hard Approval or Pre-Booking Approval.
+  - **Designated Approver** and selecting **Add employee's manager to cc**: An approval email will be sent to the workspace approver and also specific pre-defined approvers. Add up to three backups to handle approval volume, especially when using Hard Approval or Pre-Booking Approval.
+- **Default Approvers**: If a member doesn't have an approver in the workspace, this individual will get the approval email. If you select a Manager Approval, you must also set a Default Approver.
 
 ## How Pre-Booking Approval works
 

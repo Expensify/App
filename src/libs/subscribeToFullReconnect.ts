@@ -1,35 +1,44 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {reconnectApp} from './actions/App';
+
+import Onyx from 'react-native-onyx';
+
+import {triggerFullReconnect} from './actions/App';
+import {shouldTriggerFullReconnect} from './FullReconnectUtils';
 import Log from './Log';
 
-let lastFullReconnectTime = '';
-// We do not depend on updates on the UI to determine the last full reconnect time,
-// so we can use `connectWithoutView` here.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
-    callback: (value) => {
-        lastFullReconnectTime = value ?? '';
-        doFullReconnectIfNecessary();
-    },
-});
+// This watches the two Onyx values that decide a full reconnect (see FullReconnectUtils) and fires
+// one when the app is stale. Neither value is shown in the UI, so we read them with
+// connectWithoutView. Do not copy this into a component: use useOnyx there so the UI updates.
 
-let reconnectAppIfFullReconnectBefore = '';
-// We do not depend on updates on the UI to determine if we should reconnect the app,
-// so we can use `connectWithoutView` here.
+let serverReconnectCutoff = '';
+let lastFullReconnectTime = '';
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
-    callback: (value) => {
-        reconnectAppIfFullReconnectBefore = value ?? '';
-        doFullReconnectIfNecessary();
+    callback: (serverReconnectCutoffOnyxValue) => {
+        serverReconnectCutoff = serverReconnectCutoffOnyxValue ?? '';
+        if (!serverReconnectCutoff) {
+            return;
+        }
+        // We need to chain this Onyx connect otherwise we will have an edge case
+        // where the `serverReconnectCutoff` connection promise would resolve first
+        // and calls `doFullReconnectIfNecessary` while the `lastFullReconnectTime` is still unread (stale empty value)
+        // causing an unnecessary full-reconnect.
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
+            callback: (lastFullReconnectTimeOnyxValue) => {
+                Onyx.disconnect(connection);
+                lastFullReconnectTime = lastFullReconnectTimeOnyxValue ?? '';
+                doFullReconnectIfNecessary();
+            },
+        });
     },
 });
 
 function doFullReconnectIfNecessary() {
-    if (lastFullReconnectTime >= reconnectAppIfFullReconnectBefore) {
+    if (!shouldTriggerFullReconnect(lastFullReconnectTime, serverReconnectCutoff)) {
         return;
     }
 
-    Log.info('Full reconnect triggered', false, {lastFullReconnectTime, reconnectAppIfFullReconnectBefore});
-    reconnectApp();
+    Log.info('Full reconnect triggered', false, {lastFullReconnectTime, serverReconnectCutoff});
+    triggerFullReconnect(serverReconnectCutoff);
 }

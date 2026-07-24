@@ -1,4 +1,5 @@
-import dedent from '@libs/StringUtils/dedent';
+import {Str} from 'expensify-common';
+
 import Glossary from './Glossary';
 
 const spanishGlossary = new Glossary([
@@ -77,7 +78,7 @@ const spanishGlossary = new Glossary([
     {sourceTerm: 'Per diem', targetTerm: 'Per diem', usage: 'Keep Latin term as product convention'},
 ]);
 
-export default dedent(`
+export default Str.dedent(`
     When translating to Spanish, follow these rules:
 
     - Prefer clear, natural Spanish for the product locale; keep branded names (Expensify, Concierge, QuickBooks Online, New Expensify, Expensify Classic) as in the source unless the glossary says otherwise.

@@ -1,4 +1,5 @@
 import {createContext, useContext} from 'react';
+
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from './types';
 
 const AttachmentCarouselPagerStateContext = createContext<AttachmentCarouselPagerStateContextType | null>(null);

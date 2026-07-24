@@ -1,15 +1,21 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getRequiredKYBDocuments} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
+import type USDPageProps from './types';
+
 import BankInfo from './BankInfo/BankInfo';
 import BeneficialOwnersStep from './BeneficialOwnerInfo/BeneficialOwnersStep';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
@@ -19,7 +25,6 @@ import Country from './Country';
 import KYBDocuments from './KYBDocuments';
 import RequestorStep from './Requestor/RequestorStep';
 import VerifyIdentity from './Requestor/VerifyIdentity/VerifyIdentity';
-import type USDPageProps from './types';
 
 const PAGE_NAMES = CONST.BANK_ACCOUNT.PAGE_NAMES;
 const BANK_INFO_SUB_PAGES = CONST.BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES;

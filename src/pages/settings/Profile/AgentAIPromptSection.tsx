@@ -1,26 +1,32 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {RefObject} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
-import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearAgentPromptUpdateError, openProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
 import getPlatform from '@libs/getPlatform';
 import {containsHtmlTag} from '@libs/ValidationUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
 
 const MAX_VISIBLE_PROMPT_LINES = 15;
 const SAVED_CONFIRMATION_DURATION_MS = 2000;
@@ -56,6 +62,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [draftPrompt, setDraftPrompt] = useState('');
     const [showEmptyError, setShowEmptyError] = useState(false);
+    const [showHtmlError, setShowHtmlError] = useState(false);
     const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
     const [isUserInitiatedSave, setIsUserInitiatedSave] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
@@ -70,7 +77,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     let errorText = '';
     if (showEmptyError) {
         errorText = translate('profilePage.aiPromptSection.promptCannotBeEmpty');
-    } else if (hasHtmlTag) {
+    } else if (showHtmlError && hasHtmlTag) {
         errorText = translate('common.error.invalidCharacter');
     }
     const storedPrompt = Str.htmlDecode(agentPrompt?.prompt ?? '');
@@ -166,6 +173,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
             return;
         }
         if (containsHtmlTag(trimmed)) {
+            setShowHtmlError(true);
             inputRef.current?.focus();
             return;
         }
@@ -185,6 +193,9 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         setDraftPrompt(text);
         if (showEmptyError && text.trim()) {
             setShowEmptyError(false);
+        }
+        if (showHtmlError && !containsHtmlTag(text)) {
+            setShowHtmlError(false);
         }
     };
 
@@ -227,7 +238,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                 icon={showSavedConfirmation ? icons.Checkmark : undefined}
                 onPress={handleSave}
                 isLoading={isSaving && isUserInitiatedSave}
-                isDisabled={hasHtmlTag || (isSaving && isUserInitiatedSave)}
+                isDisabled={isSaving && isUserInitiatedSave}
                 style={[styles.alignSelfStart]}
                 testID="save-prompt-button"
             />

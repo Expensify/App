@@ -1,6 +1,7 @@
 import intlPolyfill from '@libs/IntlPolyfill';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
+
 import CONST from '@src/CONST';
 import type Locale from '@src/types/onyx/Locale';
 

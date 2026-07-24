@@ -1,18 +1,24 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {WebViewNavigation} from 'react-native-webview';
-import {WebView} from 'react-native-webview';
-import type {WebViewOpenWindowEvent} from 'react-native-webview/lib/WebViewTypes';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getShortLivedAuthTokenURL} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import type {WebViewNavigation} from 'react-native-webview';
+import type {WebViewOpenWindowEvent} from 'react-native-webview/lib/WebViewTypes';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {WebView} from 'react-native-webview';
+
 import type ConnectToHRFlowProps from './types';
 
 function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {

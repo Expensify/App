@@ -1,16 +1,21 @@
-import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
-import {emailSelector} from '@selectors/Session';
-import {useEffect} from 'react';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
+
+import {completeHybridAppOnboarding} from '@userActions/Welcome';
 import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
+
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import {emailSelector} from '@selectors/Session';
+import {useEffect} from 'react';
+
 import useOnyx from './useOnyx';
 
 /**
@@ -25,6 +30,8 @@ function useOnboardingFlowRouter() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
+    // A user arriving via a Submit-via-PDF secure access link should land directly on the shared report, not onboarding.
+    const isVisitingSecureLink = !!currentUrl?.includes('secureKey=');
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
     });
@@ -54,6 +61,11 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
+                // Skip onboarding when arriving via a Submit-via-PDF secure access link so the user lands directly on the shared report.
+                if (isVisitingSecureLink) {
+                    return;
+                }
+
                 if (isLoadingApp !== false || isOnboardingLoading) {
                     return;
                 }
@@ -72,9 +84,10 @@ function useOnboardingFlowRouter() {
                         return;
                     }
 
-                    // When user is transitioning from OldDot to NewDot, we usually show the explanation modal
+                    // Make sure hybrid app onboarding is completed and will not start startOnboardingFlow for users that switched from OldDot.
                     if (isHybridAppOnboardingCompleted === false) {
-                        Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
+                        completeHybridAppOnboarding();
+                        return;
                     }
                 }
 
@@ -89,8 +102,7 @@ function useOnboardingFlowRouter() {
                 // We use startOnboardingFlow (which calls resetRoot) instead of Navigation.navigate because
                 // navigate goes through the router where OnboardingGuard would block the navigation.
                 // waitForProtectedRoutes ensures navigation is ready, which is critical during fresh login.
-                // Skip when HybridApp explanation modal is active (OldDot-transitioning users).
-                if (isOnboardingCompleted === false && !(CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false)) {
+                if (isOnboardingCompleted === false) {
                     Navigation.waitForProtectedRoutes().then(() => {
                         startOnboardingFlow({
                             onboardingValuesParam: onboardingValues ?? undefined,
@@ -132,10 +144,12 @@ function useOnboardingFlowRouter() {
         hasNonPersonalPolicy,
         wasInvitedToNewDot,
         isOnboardingCompleted,
+        isVisitingSecureLink,
     ]);
 
     return {
-        isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues),
+        // Treat the flow as completed for secure-link visitors so the onboarding modal is not mounted over the report.
+        isOnboardingCompleted: isVisitingSecureLink ? true : hasCompletedGuidedSetupFlowSelector(onboardingValues),
         isHybridAppOnboardingCompleted,
         isOnboardingLoading: !!onboardingValues?.isLoading,
     };

@@ -1,8 +1,11 @@
-import React from 'react';
 import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 const SERVER_FAILURE_REASONS = new Set<string>([
     ...Object.values(CONST.MULTIFACTOR_AUTHENTICATION.REASON.SERVER_ERRORS),

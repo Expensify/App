@@ -1,6 +1,7 @@
-import {Linking} from 'react-native';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+
+import {Linking} from 'react-native';
 
 export default function updateApp(isProduction: boolean) {
     if (isProduction) {

@@ -59,9 +59,15 @@ Yes, a Workspace Admin can book on behalf of team members and retain full visibi
 
 No. Any workspace can use Expensify Travel, regardless of whether the Expensify Card is enabled.
 
+## Why am I asked for a legal entity tax ID when enabling Expensify Travel?
+
+If your workspace bills in a currency other than USD and hasn’t enabled Expensify Travel yet, you’ll see a **Tax ID** page asking for your **Legal entity tax ID** before you accept the travel terms and conditions. Expensify uses this to set up travel billing in your local currency.
+
+Enter your legal entity tax ID and click **Continue** to proceed to the terms and conditions. This page is skipped for USD workspaces and for workspaces that have already enabled Expensify Travel.
+
 ## Why can’t I turn off Travel?
 
-If **Travel Invoicing** is enabled for your workspace, the **Travel** toggle in **More features** is locked, because Travel Invoicing requires Travel to stay on. When you press the locked toggle, a message appears asking you to turn off Travel Invoicing first.
+If **Consolidated Travel Billing** is enabled for your workspace, the **Travel** toggle in **More features** is locked, because Consolidated Travel Billing requires Travel to stay on. When you press the locked toggle, a message appears asking you to turn off Consolidated Travel Billing first.
 
 To turn off Travel:
 
@@ -69,7 +75,7 @@ To turn off Travel:
 2. Click your workspace name to access the settings for that workspace.
 3. In the left menu, click **More Features**.
 4. Press the locked **Travel** toggle, then click **Go to Travel settings**.
-5. In the **Travel Invoicing** section, switch the toggle off.
+5. In the **Consolidated Travel Billing** section, switch the toggle off.
 6. Return to **More features** and toggle off **Travel**.
 
-Learn more about [Travel Invoicing](/articles/travel/travel-invoicing/Enable-Travel-Invoicing-in-a-Workspace).
+Learn more about [Consolidated Travel Billing](/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace).

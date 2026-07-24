@@ -1,17 +1,25 @@
-import React from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import variables from '@styles/variables';
+
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type VendorConfigKey = 'nonReimbursableBillDefaultVendor' | 'nonReimbursableCreditCardDefaultVendor';
 
@@ -50,8 +58,15 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             isSelected: vendor.id === currentVendor,
         })) ?? [];
 
+    // Only the CC/DC export path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only allow clearing on that configKey.
+    const canClearByReSelecting = configKey === CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR;
+
     const selectVendor = (row: CardListItem) => {
-        if (row.value !== currentVendor) {
+        if (row.value === currentVendor) {
+            if (canClearByReSelecting) {
+                updateVendor(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE, currentVendor);
+            }
+        } else {
             updateVendor(policyID, row.value, currentVendor);
         }
         Navigation.goBack();
