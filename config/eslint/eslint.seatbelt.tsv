@@ -1520,6 +1520,7 @@
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectsPage.tsx"	"no-restricted-syntax"	2
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectsPage.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportMappingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/workspace/accounting/rillet/export/RilletExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/qbd/QuickBooksDesktopSetupFlowSyncPage.tsx"	"rulesdir/no-default-id-values"	2
 "../../src/pages/workspace/accounting/qbd/QuickBooksDesktopSetupPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/accounting/qbd/advanced/QuickbooksDesktopAccountingMethodPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
