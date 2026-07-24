@@ -18,7 +18,6 @@ function makeBase(overrides: Partial<Params> = {}): Params {
         iouType: CONST.IOU.TYPE.SUBMIT,
         policy: undefined,
         transactionID: 'txn1',
-        reportID: 'report1',
         routeError: undefined,
         formError: '',
         isDelegateAccessRestricted: false,
