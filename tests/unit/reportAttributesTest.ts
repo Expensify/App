@@ -445,10 +445,11 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(deliveryResult?.reports.r2?.reportName).toBe('Test Report');
     });
 
-    it('seeds missing conciergeReportID/isTrackIntentUser baselines even when the pass has no other updates', () => {
+    it('recomputes and advances a missing baseline on a lone CONCIERGE_REPORT_ID delivery', () => {
         // Old-format persisted value: reports/policySignatures exist, but conciergeReportID/isTrackIntentUser
-        // were never stored (written before these fields existed). A lone CONCIERGE_REPORT_ID delivery is the
-        // only thing that changes in this pass, so the seed must not depend on some other update riding along.
+        // were never stored (written before these fields existed). The first delivery of one of these keys is
+        // the only chance to reconcile names that may have been computed with a different value, so a missing
+        // baseline counts as a change and forces a full recompute instead of being silently absorbed.
         const existingValue: ReportAttributesDerivedValue = {
             reports: {
                 r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
@@ -466,10 +467,38 @@ describe('reportAttributes compute — policy change code flow', () => {
             sourceValues: {[ONYXKEYS.CONCIERGE_REPORT_ID]: 'conciergeNew' as never},
         });
 
-        // The baseline is seeded from this pass alone, without forcing a full recompute.
+        // The delivery pass recomputes every report and advances the baseline.
         expect(result?.conciergeReportID).toBe('conciergeNew');
         expect(result?.isTrackIntentUser).toBe(false);
-        expect(result?.reports.r1?.reportName).toBe('Old Name 1');
+        expect(result?.reports.r1?.reportName).toBe('Test Report');
+        expect(result?.reports.r2?.reportName).toBe('Test Report');
+    });
+
+    it('seeds a missing conciergeReportID/isTrackIntentUser baseline without recomputing on a pass that did not deliver the key', () => {
+        // Old-format persisted value on a pass whose only update is an unrelated report: the attributes and the
+        // delivered value both come from the same disk-hydrated state, so the missing baseline is seeded and
+        // only this pass's own report recomputes — the concierge-dependent names are left untouched.
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Old Name 2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+            policySignatures: {
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: signatureOf(policy1),
+                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: signatureOf(policy2),
+            },
+        };
+
+        const result = config.compute(buildArgs(policies, undefined, null, 'conciergeNew'), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1}},
+        });
+
+        // Seeded from this non-delivery pass alone, and only r1 (this pass's update) recomputes.
+        expect(result?.conciergeReportID).toBe('conciergeNew');
+        expect(result?.isTrackIntentUser).toBe(false);
+        expect(result?.reports.r1?.reportName).toBe('Test Report');
         expect(result?.reports.r2?.reportName).toBe('Old Name 2');
     });
 

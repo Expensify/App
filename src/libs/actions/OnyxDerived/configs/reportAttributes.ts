@@ -317,18 +317,21 @@ export default createOnyxDerivedValueConfig({
 
         const nextIsTrackIntentUser = isTrackIntentUserSelector(introSelected);
         // conciergeReportID and introSelected are re-delivered on every OpenApp/reconnect merge, so a full
-        // recompute fires only when the value differs from the stored baseline; a missing baseline (value
-        // written by an older app version) is seeded instead. '' (not null) marks "no concierge report" —
-        // Onyx.set strips nested nulls on persist, so a null baseline would read back as missing after a restart.
+        // recompute fires only when the delivered value differs from the stored baseline. A missing baseline
+        // (value written by an older app version) counts as a change on the delivery pass — that pass is the
+        // one chance to reconcile names the persisted value may have been computed with a different value, so
+        // it recomputes rather than being silently absorbed; on non-delivery passes the missing baseline is
+        // seeded instead. '' (not null) marks "no concierge report" — Onyx.set strips nested nulls on persist,
+        // so a null baseline would read back as missing after a restart.
         // eslint-disable-next-line rulesdir/no-default-id-values -- '' is a persistable baseline sentinel, never used as a lookup ID
         const nextConciergeReportID = conciergeReportID ?? '';
         // eslint-disable-next-line rulesdir/no-default-id-values -- same sentinel for values persisted before this field existed
         const storedConciergeReportID = currentValue && 'conciergeReportID' in currentValue ? (currentValue.conciergeReportID ?? '') : undefined;
         const storedIsTrackIntentUser = currentValue && 'isTrackIntentUser' in currentValue ? currentValue.isTrackIntentUser : undefined;
-        const hasConciergeReportIDChanged =
-            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) && storedConciergeReportID !== undefined && storedConciergeReportID !== nextConciergeReportID;
-        const hasIsTrackIntentUserChanged =
-            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues) && storedIsTrackIntentUser !== undefined && storedIsTrackIntentUser !== nextIsTrackIntentUser;
+        const conciergeReportIDTriggered = hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues);
+        const introSelectedTriggered = hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues);
+        const hasConciergeReportIDChanged = conciergeReportIDTriggered && storedConciergeReportID !== nextConciergeReportID;
+        const hasIsTrackIntentUserChanged = introSelectedTriggered && storedIsTrackIntentUser !== nextIsTrackIntentUser;
 
         // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
         // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
@@ -402,15 +405,18 @@ export default createOnyxDerivedValueConfig({
 
         // Baseline writes that ride early returns. An existing conciergeReportID/isTrackIntentUser baseline
         // advances only in the final return of a full recompute — advancing it here would absorb a change and
-        // suppress the recompute its next delivery should trigger. A missing baseline can always be seeded.
+        // suppress the recompute its next delivery should trigger. A missing baseline is seeded only on a pass
+        // that did not deliver the key: the persisted attributes and the delivered value then both come from
+        // the same disk-hydrated state, so the names already reflect it. On the delivery pass a missing
+        // baseline is treated as a change above and recomputed in the final return, not seeded here.
         const metaPatch: Partial<ReportAttributesDerivedValue> = {};
         if (canPersistSignaturesWithoutRecompute && nextPolicySignatures !== storedPolicySignatures) {
             metaPatch.policySignatures = nextPolicySignatures;
         }
-        if (storedConciergeReportID === undefined) {
+        if (storedConciergeReportID === undefined && !conciergeReportIDTriggered) {
             metaPatch.conciergeReportID = nextConciergeReportID;
         }
-        if (storedIsTrackIntentUser === undefined) {
+        if (storedIsTrackIntentUser === undefined && !introSelectedTriggered) {
             metaPatch.isTrackIntentUser = nextIsTrackIntentUser;
         }
         const withMetaPatch = (value: ReportAttributesDerivedValue): ReportAttributesDerivedValue => (Object.keys(metaPatch).length > 0 ? {...value, ...metaPatch} : value);
