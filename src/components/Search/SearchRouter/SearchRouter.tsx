@@ -53,7 +53,7 @@ import type Report from '@src/types/onyx/Report';
 import type {TextInputProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -87,7 +87,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const personalDetails = usePersonalDetails();
     const sortedActions = useSortedActions();
@@ -440,7 +440,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {
-                        navigateToAndOpenReport(item.login ? [item.login] : [], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
+                        navigateToAndOpenReport(
+                            item.login ? [item.login] : [],
+                            personalDetails,
+                            currentUserAccountID,
+                            introSelected,
+                            guidedSetupAndTourStatus?.isSelfTourViewed,
+                            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                            betas,
+                            false,
+                        );
                     }
                 });
                 onRouterClose();
@@ -455,7 +464,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             textInputValue,
             currentUserAccountID,
             introSelected,
-            isSelfTourViewed,
+            guidedSetupAndTourStatus?.isSelfTourViewed,
+            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             betas,
             contextualPoliciesMap,
             contextualReportsMap,

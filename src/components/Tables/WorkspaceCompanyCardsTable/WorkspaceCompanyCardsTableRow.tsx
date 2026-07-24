@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
@@ -108,7 +108,7 @@ function WorkspaceCompanyCardTableRow({
     const canAssignCard = !isAssigned && canWriteCompanyCards && !isAssigningCardDisabled;
     const canPressRow = canOpenCardDetails || canAssignCard;
 
-    const handleRowPress = () => {
+    const assignCardOrOpenDetails = () => {
         if (!assignedCard) {
             if (!canAssignCard) {
                 return;
@@ -136,7 +136,7 @@ function WorkspaceCompanyCardTableRow({
             disabled={isCardDeleted || !canPressRow}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
             offlineWithFeedback={{errors, pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
-            onPress={handleRowPress}
+            onPress={assignCardOrOpenDetails}
         >
             {({hovered}) => (
                 <>
@@ -207,12 +207,13 @@ function WorkspaceCompanyCardTableRow({
                     >
                         {!isAssigned && canWriteCompanyCards && (
                             <Button
-                                small
-                                success
-                                text={translate('workspace.companyCards.assign')}
-                                onPress={handleRowPress}
+                                size={CONST.BUTTON_SIZE.SMALL}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                onPress={assignCardOrOpenDetails}
                                 isDisabled={isAssigningCardDisabled}
-                            />
+                            >
+                                <Button.Text>{translate('workspace.companyCards.assign')}</Button.Text>
+                            </Button>
                         )}
 
                         {canPressRow && (

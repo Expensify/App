@@ -2355,6 +2355,7 @@ function navigateToAndOpenReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     shouldDismissModal = true,
     shouldRevalidateExistingChat = false,
@@ -2381,6 +2382,7 @@ function navigateToAndOpenReport(
             personalDetails,
             newReportObject: fallbackChat,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             betas,
         });
 
@@ -4044,7 +4046,19 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal, false, linkToOptions);
+            navigateToAndOpenReport(
+                [CONST.EMAIL.CONCIERGE],
+                personalDetails,
+                currentUserAccountID,
+                introSelected,
+                isSelfTourViewed,
+                // TODO: Pass the correct hasCompletedGuidedSetupFlow from Onyx data in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+                undefined,
+                betas,
+                shouldDismissModal,
+                false,
+                linkToOptions,
+            );
         });
     } else if (shouldDismissModal) {
         const reportParams = {reportID: conciergeReportID, reportActionID};
@@ -4316,8 +4330,9 @@ function createNewReport(
     isTrackIntentUser: boolean | undefined,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
-    reportName?: string,
+    options: {managedCardTransactionID?: string; reportName?: string} = {},
 ) {
+    const {managedCardTransactionID, reportName} = options;
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
@@ -4348,6 +4363,7 @@ function createNewReport(
             reportActionID,
             reportPreviewReportActionID,
             ownerEmail: ownerPersonalDetails.login,
+            ...(managedCardTransactionID ? {managedCardTransactionID} : {}),
             ...(shouldDismissEmptyReportsConfirmation ? {shouldDismissEmptyReportsConfirmation} : {}),
             ...(reportName ? {reportName} : {}),
         },
