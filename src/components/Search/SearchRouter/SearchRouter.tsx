@@ -32,7 +32,7 @@ import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {isHiddenForCurrentUser} from '@libs/ReportUtils';
+import {isHiddenForCurrentUser, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -218,9 +218,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     contextualReportNVP,
                     contextualReportPolicy,
                     sortedActions,
-                    undefined,
+                    reportAttributes,
                     {
-                        showPersonalDetails: true,
+                        showPersonalDetails: isOneOnOneChat(contextualReport),
                     },
                     undefined,
                     undefined,
@@ -291,6 +291,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             sortedActions,
             contextualReportNVP,
             contextualReportPolicy,
+            reportAttributes,
             isTrackIntentUser,
         ],
     );
