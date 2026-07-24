@@ -169,7 +169,7 @@ function MenuItemRoot({
                         onSecondaryInteraction={onSecondaryInteraction}
                         wrapperStyle={wrapperStyle}
                         activeOpacity={!interactive ? 1 : variables.pressDimValue}
-                        opacityAnimationDuration={0}
+                        opacityAnimationDuration={variables.noDimAnimationDuration}
                         testID={testID}
                         style={({pressed}) =>
                             [
