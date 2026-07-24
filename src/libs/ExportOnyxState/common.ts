@@ -26,6 +26,7 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
     ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
     ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
+    ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING,
     ONYXKEYS.ONFIDO_TOKEN,
     ONYXKEYS.ONFIDO_APPLICANT_ID,
     // maskFragileData won't catch this one, since the secret sits in a field named "token"

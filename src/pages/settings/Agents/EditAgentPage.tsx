@@ -37,7 +37,11 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'Users']);
-    const accountID = route.params.accountID;
+    const routeAccountID = route.params.accountID;
+    const [resolvedAccountID] = useOnyx(ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {
+        selector: (mapping: Record<string, number> | null | undefined) => mapping?.[routeAccountID] ?? routeAccountID,
+    });
+    const accountID = resolvedAccountID ?? routeAccountID;
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);

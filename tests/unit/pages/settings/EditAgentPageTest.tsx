@@ -146,12 +146,17 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
 const mockUseOnyx = jest.mocked(useOnyx);
 
 const TEST_ACCOUNT_ID = 12345;
+const TEST_REAL_ACCOUNT_ID = 67890;
 
 type EditAgentPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['route'];
 type EditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['navigation'];
 
 const mockRoute = {params: {accountID: TEST_ACCOUNT_ID}} as EditAgentPageRoute;
 const mockNavigation = {} as EditAgentPageNavigation;
+const getSelectedAccountID = (options: Parameters<typeof useOnyx>[1], mapping: Record<string, number> | undefined, fallbackAccountID: number) => {
+    options?.selector?.(mapping);
+    return mapping?.[fallbackAccountID] ?? fallbackAccountID;
+};
 
 describe('EditAgentPage', () => {
     beforeEach(() => {
@@ -276,5 +281,59 @@ describe('EditAgentPage', () => {
         );
 
         expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
+    });
+
+    it('renders the route agent data when no optimistic accountID mapping exists', () => {
+        mockUseOnyx.mockImplementation((key, options) => {
+            if (key === ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING && options?.selector) {
+                return [getSelectedAccountID(options, undefined, TEST_ACCOUNT_ID), {status: 'loaded'}];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`) {
+                return [{prompt: 'Route prompt'}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
+                return [{displayName: 'Route Agent', login: 'agent_12345@expensify.ai'}, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+
+        const {toJSON} = render(
+            <EditAgentPage
+                route={mockRoute}
+                navigation={mockNavigation}
+            />,
+        );
+
+        const serialized = JSON.stringify(toJSON());
+        expect(serialized).toContain('Route Agent');
+        expect(serialized).toContain('Route prompt');
+        expect(serialized).not.toContain('notFound.notHere');
+    });
+
+    it('renders the real agent data when the backend maps the optimistic route accountID', () => {
+        mockUseOnyx.mockImplementation((key, options) => {
+            if (key === ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING && options?.selector) {
+                return [getSelectedAccountID(options, {[TEST_ACCOUNT_ID]: TEST_REAL_ACCOUNT_ID}, TEST_ACCOUNT_ID), {status: 'loaded'}];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_REAL_ACCOUNT_ID}`) {
+                return [{prompt: 'Real prompt'}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
+                return [{displayName: 'Real Agent', login: 'agent_67890@expensify.ai'}, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+
+        const {toJSON} = render(
+            <EditAgentPage
+                route={mockRoute}
+                navigation={mockNavigation}
+            />,
+        );
+
+        const serialized = JSON.stringify(toJSON());
+        expect(serialized).toContain('Real Agent');
+        expect(serialized).toContain('Real prompt');
+        expect(serialized).not.toContain('notFound.notHere');
     });
 });
