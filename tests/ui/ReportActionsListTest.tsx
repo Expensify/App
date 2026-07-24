@@ -285,7 +285,11 @@ describe('ReportActionsList (body)', () => {
         mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
         mockUseOnyx.mockImplementation((key: string) => {
-            if (key === ONYXKEYS.IS_LOADING_APP) {
+            // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
+            // which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
+            // directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
+            // in the fixture for any component still reading it directly.
+            if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                 return [false, {status: 'loaded'}];
             }
             if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
@@ -367,7 +371,7 @@ describe('ReportActionsList (body)', () => {
             });
 
             mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [true, {status: 'loaded'}];
                 }
                 if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
@@ -408,7 +412,7 @@ describe('ReportActionsList (body)', () => {
             });
 
             mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [false, {status: 'loaded'}];
                 }
                 if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
@@ -443,7 +447,7 @@ describe('ReportActionsList (body)', () => {
             });
 
             mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [true, {status: 'loaded'}];
                 }
                 if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
@@ -475,7 +479,7 @@ describe('ReportActionsList (body)', () => {
             });
 
             mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [false, {status: 'loaded'}];
                 }
                 if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
@@ -507,7 +511,7 @@ describe('ReportActionsList (body)', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
 
             mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [true, {status: 'loaded'}];
                 }
                 if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
@@ -592,7 +596,7 @@ describe('ReportActionsList (body)', () => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
                     return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [false, {status: 'loaded'}];
                 }
                 if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
@@ -753,7 +757,7 @@ describe('ReportActionsList (body)', () => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
                     return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [false, {status: 'loaded'}];
                 }
                 if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {

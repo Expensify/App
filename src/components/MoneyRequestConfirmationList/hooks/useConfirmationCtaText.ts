@@ -45,14 +45,17 @@ type UseConfirmationCtaTextParams = {
 
     /** Whether the transaction is a per-diem request */
     isPerDiemRequest: boolean;
+
+    /** Whether the new manual expense flow beta is enabled */
+    isNewManualExpenseFlowEnabled: boolean;
 };
 
 /**
  * Computes the primary confirm button label for the Money Request confirmation flow.
  *
- * Picks between create / split / invoice / next variants based on the IOU type,
- * bulk-expense count, and amount, returning a single-entry DropdownOption array shaped
- * for the ButtonWithDropdownMenu consumer.
+ * Picks between create / create-with-amount / split / invoice / next variants based on
+ * the IOU type, manual-expense-flow beta, bulk-expense count, and amount, returning a
+ * single-entry DropdownOption array shaped for the ButtonWithDropdownMenu consumer.
  */
 function useConfirmationCtaText({
     expensesNumber,
@@ -67,6 +70,7 @@ function useConfirmationCtaText({
     receiptPath,
     isDistanceRequestWithPendingRoute,
     isPerDiemRequest,
+    isNewManualExpenseFlowEnabled,
 }: UseConfirmationCtaTextParams): Array<DropdownOption<string>> {
     const {translate} = useLocalize();
 
@@ -81,14 +85,27 @@ function useConfirmationCtaText({
         }
     } else if (isTypeTrackExpense) {
         text = translate('iou.createExpense');
+        if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
+            text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
+        }
     } else if (isTypeSplit && iouAmount === 0) {
         text = translate('iou.splitExpense');
     } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
         text = translate('iou.createExpense');
+        if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
+            text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
+        }
     } else if (isTypeSplit) {
-        text = translate('iou.splitExpense');
-    } else {
+        text = translate('iou.splitAmount', formattedAmount);
+        if (isNewManualExpenseFlowEnabled) {
+            text = translate('iou.splitExpense');
+        }
+    } else if (iouAmount === 0) {
         text = translate('iou.createExpense');
+    } else if (isNewManualExpenseFlowEnabled) {
+        text = translate('iou.createExpense');
+    } else {
+        text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
     }
     return [
         {

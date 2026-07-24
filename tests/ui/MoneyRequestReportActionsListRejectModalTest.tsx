@@ -66,7 +66,16 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return () => <View testID="MockMoneyRequestReportTransactionList" />;
+    return ({listFooterComponent}: {listFooterComponent?: React.ReactElement}) => <View testID="MockMoneyRequestReportTransactionList">{listFooterComponent}</View>;
+});
+
+jest.mock('@pages/home/report/ConciergeThinkingMessage', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return {
+        __esModule: true,
+        default: () => <View testID="ConciergeThinkingMessage" />,
+    };
 });
 
 jest.mock('@components/HoldOrRejectEducationalModal', () => {
@@ -229,6 +238,24 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
+    });
+
+    it('renders Concierge thinking indicator in the money request report table path', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('ConciergeThinkingMessage')).toBeTruthy();
     });
 
     it('should show reject educational modal when reject option is selected and explanation has NOT been dismissed', async () => {
