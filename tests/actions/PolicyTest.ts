@@ -1,3 +1,4 @@
+import type {TaskForParameters} from '@libs/actions/Report';
 import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -8,7 +9,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
@@ -38,7 +38,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import {getOptionalNumberProperty, readProperty, requireRecord, requireRecordArrayProperty, requireStringProperty} from '../utils/typeGuards';
+import {getOptionalNumberProperty, parseJSONArray, parseJSONRecord, readProperty, requireRecord, requireRecordArrayProperty, requireStringProperty} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
@@ -55,7 +55,7 @@ const TEST_PHONE_NUMBER = '1234567890';
 const TEST_NON_PUBLIC_DOMAIN_EMAIL = 'esh@example.com';
 const TEST_SMS_DOMAIN_EMAIL = 'esh@expensify.sms';
 
-type GuidedSetupItem = {task?: string; completedTaskReportActionID?: string};
+type GuidedSetupTask = Extract<TaskForParameters, {type: 'task'}>;
 
 function requireCallArgument(call: unknown, index: number): unknown {
     if (!Array.isArray(call) || !(index in call)) {
@@ -64,43 +64,20 @@ function requireCallArgument(call: unknown, index: number): unknown {
     return call.at(index);
 }
 
-function parseJSONRecord(value: unknown): Record<string, unknown> {
-    if (typeof value !== 'string') {
-        throw new Error('Expected JSON payload to be a string');
-    }
-    const parsed: unknown = JSON.parse(value);
-    if (!isRecord(parsed)) {
-        throw new Error('Expected JSON object');
-    }
-    return parsed;
-}
-
-function isGuidedSetupItem(value: unknown): value is GuidedSetupItem {
+function isGuidedSetupTask(value: unknown): value is GuidedSetupTask {
     return (
         isRecord(value) &&
-        (value.task === undefined || typeof value.task === 'string') &&
-        (value.completedTaskReportActionID === undefined || typeof value.completedTaskReportActionID === 'string')
+        value.type === 'task' &&
+        typeof value.task === 'string' &&
+        typeof value.taskReportID === 'string' &&
+        typeof value.parentReportID === 'string' &&
+        typeof value.parentReportActionID === 'string' &&
+        (value.assigneeChatReportID === undefined || typeof value.assigneeChatReportID === 'string') &&
+        typeof value.createdTaskReportActionID === 'string' &&
+        (value.completedTaskReportActionID === undefined || typeof value.completedTaskReportActionID === 'string') &&
+        typeof value.title === 'string' &&
+        typeof value.description === 'string'
     );
-}
-
-function parseGuidedSetupData(value: unknown): GuidedSetupItem[] {
-    if (typeof value !== 'string') {
-        throw new Error('Expected guidedSetupData to be a string');
-    }
-    const parsed: unknown = JSON.parse(value);
-    if (!Array.isArray(parsed) || !parsed.every(isGuidedSetupItem)) {
-        throw new Error('Expected guidedSetupData to contain onboarding task objects');
-    }
-    return parsed;
-}
-
-function anyStringMatcher(): unknown {
-    return expect.any(String);
-}
-
-function mockTranslate<TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>): string;
-function mockTranslate(key: TranslationPaths): string {
-    return key;
 }
 
 jest.mock('@libs/GoogleTagManager');
@@ -1529,8 +1506,8 @@ describe('actions/Policy', () => {
             expect(params.guidedSetupData).toBeDefined();
 
             // Parse the guidedSetupData and find the VIEW_TOUR task
-            const guidedSetupData = parseGuidedSetupData(params.guidedSetupData);
-            const viewTourTask = guidedSetupData.find((item) => item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+            const guidedSetupData = parseJSONArray(params.guidedSetupData, 'guidedSetupData');
+            const viewTourTask = guidedSetupData.find((item): item is GuidedSetupTask => isGuidedSetupTask(item) && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
             // VIEW_TOUR task should have completedTaskReportActionID set when isSelfTourViewed is true
             expect(viewTourTask).toBeDefined();
@@ -1578,8 +1555,8 @@ describe('actions/Policy', () => {
             expect(params.guidedSetupData).toBeDefined();
 
             // Parse the guidedSetupData and find the VIEW_TOUR task
-            const guidedSetupData = parseGuidedSetupData(params.guidedSetupData);
-            const viewTourTask = guidedSetupData.find((item) => item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+            const guidedSetupData = parseJSONArray(params.guidedSetupData, 'guidedSetupData');
+            const viewTourTask = guidedSetupData.find((item): item is GuidedSetupTask => isGuidedSetupTask(item) && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
             // VIEW_TOUR task should NOT have completedTaskReportActionID set when isSelfTourViewed is false
             expect(viewTourTask).toBeDefined();
@@ -2660,16 +2637,11 @@ describe('actions/Policy', () => {
                 ]),
             );
 
-            expect(writeOptions?.optimisticData).toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ownWorkspaceChat.reportID}`,
-                        value: expect.objectContaining({
-                            private_isArchived: anyStringMatcher(),
-                        }),
-                    }),
-                ]),
+            const archivedWorkspaceChatUpdate = requireRecordArrayProperty(writeOptions, 'optimisticData').find(
+                (update) => requireStringProperty(update, 'key') === `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ownWorkspaceChat.reportID}`,
             );
+            expect(archivedWorkspaceChatUpdate).toBeDefined();
+            expect(typeof readProperty(readProperty(archivedWorkspaceChatUpdate, 'value'), 'private_isArchived')).toBe('string');
 
             expect(writeOptions?.successData).toEqual(
                 expect.arrayContaining(
@@ -7368,7 +7340,7 @@ describe('actions/Policy', () => {
                 iouReportOwnerEmail,
                 currentUserLocalCurrency: CONST.CURRENCY.USD,
                 lastWorkspaceNumber: undefined,
-                localeTranslate: mockTranslate,
+                localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
             });
@@ -7408,7 +7380,7 @@ describe('actions/Policy', () => {
                 iouReportOwnerEmail: 'owner@example.com',
                 currentUserLocalCurrency: CONST.CURRENCY.USD,
                 lastWorkspaceNumber: undefined,
-                localeTranslate: mockTranslate,
+                localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
             });
@@ -7465,7 +7437,7 @@ describe('actions/Policy', () => {
                 iouReportOwnerEmail,
                 currentUserLocalCurrency: CONST.CURRENCY.USD,
                 lastWorkspaceNumber: undefined,
-                localeTranslate: mockTranslate,
+                localeTranslate: TestHelper.translateLocal,
                 reportActionsList,
                 doesEmployeePersonalDetailExist: true,
             });
@@ -7518,7 +7490,7 @@ describe('actions/Policy', () => {
                 iouReportOwnerEmail,
                 currentUserLocalCurrency: CONST.CURRENCY.USD,
                 lastWorkspaceNumber: undefined,
-                localeTranslate: mockTranslate,
+                localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
             });
@@ -7587,7 +7559,7 @@ describe('actions/Policy', () => {
                 iouReportOwnerEmail,
                 currentUserLocalCurrency: CONST.CURRENCY.USD,
                 lastWorkspaceNumber: undefined,
-                localeTranslate: mockTranslate,
+                localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
             });

@@ -37,6 +37,26 @@ function getOptionalNumberProperty(value: unknown, key: string): number | undefi
     return property;
 }
 
+function parseJSONValue(value: unknown, label: string): unknown {
+    if (typeof value !== 'string') {
+        throw new Error(`Expected ${label} to be a string`);
+    }
+    const parsed: unknown = JSON.parse(value);
+    return parsed;
+}
+
+function parseJSONRecord(value: unknown, label = 'JSON payload'): UnknownRecord {
+    return requireRecord(parseJSONValue(value, label), label);
+}
+
+function parseJSONArray(value: unknown, label = 'JSON payload'): unknown[] {
+    const parsed = parseJSONValue(value, label);
+    if (!Array.isArray(parsed)) {
+        throw new Error(`Expected ${label} to be an array`);
+    }
+    return parsed;
+}
+
 function requireRecordArrayProperty(value: unknown, key: string): UnknownRecord[] {
     const property = readProperty(value, key);
     if (!Array.isArray(property) || !property.every(isRecord)) {
@@ -45,4 +65,4 @@ function requireRecordArrayProperty(value: unknown, key: string): UnknownRecord[
     return property;
 }
 
-export {getOptionalNumberProperty, hasDefinedProperty, isObject, readProperty, requireRecord, requireRecordArrayProperty, requireStringProperty};
+export {getOptionalNumberProperty, hasDefinedProperty, isObject, parseJSONArray, parseJSONRecord, readProperty, requireRecord, requireRecordArrayProperty, requireStringProperty};
