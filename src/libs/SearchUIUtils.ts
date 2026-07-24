@@ -4825,16 +4825,16 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    return (
-        (searchResults?.data != null || searchResults?.errors != null) &&
-        searchResults.search.type === queryJSON?.type &&
-        searchResults.search.hash ===
-            getQueryHashes({
-                ...queryJSON,
-                sortBy: searchResults.search.sortBy,
-                sortOrder: searchResults.search.sortOrder,
-            }).primaryHash
-    );
+    const queryJSONHash =
+        queryJSON && searchResults?.search
+            ? getQueryHashes({
+                  ...queryJSON,
+                  sortBy: searchResults.search.sortBy,
+                  sortOrder: searchResults.search.sortOrder,
+              }).primaryHash
+            : queryJSON?.hash;
+
+    return (searchResults?.data != null || searchResults?.errors != null) && searchResults.search?.type === queryJSON?.type && searchResults.search?.hash === queryJSONHash;
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
