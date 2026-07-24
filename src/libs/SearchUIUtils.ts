@@ -6066,21 +6066,25 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
             }
 
-            // Show both TAX_RATE and TAX_AMOUNT when the transaction has a meaningful tax signal.
-            // Use truthy checks so default/no-tax values (0, null, '', undefined) don't trigger
-            // false positives — buildOptimisticTransaction seeds taxAmount: 0 on every new draft,
-            // which would otherwise flash tax columns on for offline-pending transactions.
-            // When the user explicitly selected the tax columns (customResult) and the workspace
-            // has taxes enabled, keep them regardless of per-transaction values — older expenses
-            // created before taxes were turned on still have null taxCode/taxAmount/taxValue.
-            const hasTaxInfo = (!!customResult && isPolicyTaxEnabled) || !!transaction.taxCode || !!transaction.taxAmount || !!transaction.taxValue;
-            if (hasTaxInfo) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
-                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
+            // Only show tax columns when the user explicitly chooses to display them.
+            if (customResult) {
+                // Show both TAX_RATE and TAX_AMOUNT when the transaction has a meaningful tax signal.
+                // Use truthy checks so default/no-tax values (0, null, '', undefined) don't trigger
+                // false positives — buildOptimisticTransaction seeds taxAmount: 0 on every new draft,
+                // which would otherwise flash tax columns on for offline-pending transactions.
+                // When the user explicitly selected the tax columns (customResult) and the workspace
+                // has taxes enabled, keep them regardless of per-transaction values — older expenses
+                // created before taxes were turned on still have null taxCode/taxAmount/taxValue.
+                const hasTaxInfo = isPolicyTaxEnabled || !!transaction.taxCode || !!transaction.taxAmount || !!transaction.taxValue;
+                if (hasTaxInfo) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
+                    columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
+                }
+                if (isPolicyTaxEnabled || !!transaction.taxCode) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.TAX_CODE] = true;
+                }
             }
-            if ((!!customResult && isPolicyTaxEnabled) || !!transaction.taxCode) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_CODE] = true;
-            }
+
             if (hasDisplayableMCC(transaction.mcc)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.MCC] = true;
             }
