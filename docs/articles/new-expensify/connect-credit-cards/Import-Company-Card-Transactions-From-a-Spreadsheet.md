@@ -30,7 +30,7 @@ Only **Workspace Admins** can import transactions for company cards.
 5. Choose **Import transactions from file**.
 6. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
 7. Enter a name for the card feed.
-8. Set your field mappings (e.g., Card Number, Date, Amount, Merchant).
+8. Set your field mappings (e.g., **Card number** or **Card name**, Date, Amount, Merchant). You must map either a **Card number** or a **Card name** so transactions can be matched to a card.
 9. Assign cards to users based on the transactions in the file.
 10. Click **Import**.
 
@@ -85,11 +85,15 @@ You can upload CSV, TXT, XLS, and XLSX files when importing company card transac
 ## What columns are required to import company card transactions?
 
 Your file should include the following required columns:
-- Card Number (or last 4 digits of the card number)
+- **Card number** (or last 4 digits of the card number) or **Card name** — you must map at least one of these so transactions can be matched to a card
 - Date
 - Amount
 - Merchant
 - Currency (optional but recommended)
+
+## How does Card name matching work when importing company card transactions?
+
+If your file doesn't include a card number, you can map a **Card name** column instead. Expensify matches each transaction to the card with the same name that you assigned in the feed. Rows with a card name that doesn't match an assigned card aren't imported. You can map both a **Card number** and a **Card name**, but at least one is required.
 
 ## What happens if I map the same spreadsheet column twice?
 
