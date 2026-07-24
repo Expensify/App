@@ -1,10 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+
 import type {PrivateSubscription} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import FixedFooter from './FixedFooter';
 import Text from './Text';

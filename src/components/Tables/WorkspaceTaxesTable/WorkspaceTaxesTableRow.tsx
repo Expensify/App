@@ -1,17 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
 import type {TableData} from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceTaxTableRowData = TableData & {
     name: string;
@@ -46,7 +50,6 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
 
     const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const enabledStatusLabel = item.enabled ? translate('common.enabled') : translate('common.disabled');
-
     const accessibilityLabel = [item.name, item.alternateText, enabledStatusLabel].filter(Boolean).join(', ');
 
     return (
@@ -55,7 +58,6 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
             rowIndex={rowIndex}
             disabled={isDeleting}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'workspaceTaxesTableRow'}}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ROW}
             onPress={item.action}
             offlineWithFeedback={{

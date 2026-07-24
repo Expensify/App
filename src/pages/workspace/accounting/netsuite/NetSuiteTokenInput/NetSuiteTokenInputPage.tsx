@@ -1,18 +1,24 @@
-import React from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+
 import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import NetSuiteTokenInputForm from './subPages/NetSuiteTokenInputForm';
 import NetSuiteTokenSetupContent from './subPages/NetSuiteTokenSetupContent';
 

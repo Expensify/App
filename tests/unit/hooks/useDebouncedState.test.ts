@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useDebouncedState from '@hooks/useDebouncedState';
+
 import CONST from '@src/CONST';
 
 describe('useDebouncedState', () => {

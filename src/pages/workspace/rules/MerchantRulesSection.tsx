@@ -1,5 +1,3 @@
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -7,6 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -14,17 +13,24 @@ import usePolicy from '@hooks/usePolicy';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import {clearPolicyCodingRuleErrors} from '@userActions/Policy/Rules';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type MerchantRulesSectionProps = {
     policyID: string;

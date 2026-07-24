@@ -1,7 +1,9 @@
+import {getCommentLength} from '@libs/ReportUtils';
+
+import CONST from '@src/CONST';
+
 import lodashDebounce from 'lodash/debounce';
 import {useState} from 'react';
-import {getCommentLength} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 
 type UseDebouncedCommentValidationProps = {
     /** The report ID */

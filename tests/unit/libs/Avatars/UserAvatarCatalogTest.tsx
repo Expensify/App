@@ -1,7 +1,10 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import Icon from '@components/Icon';
+
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
+
+import React from 'react';
 
 const SAMPLE_DEFAULT_ID = 'default-avatar_1';
 const SAMPLE_SEASON_ID = 'car-blue100';

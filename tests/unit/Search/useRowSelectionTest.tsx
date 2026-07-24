@@ -1,9 +1,12 @@
 import {renderHook} from '@testing-library/react-native';
-import React from 'react';
+
 import {SearchSelectionActionsContext, SearchSelectionContext} from '@components/Search/SearchContext';
 import {useRowSelection, useSelectionCounts} from '@components/Search/SearchSelectionProvider';
 import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedTransactions} from '@components/Search/types';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 const baseSelectionContext = {
     currentSelectedTransactionReportID: undefined,

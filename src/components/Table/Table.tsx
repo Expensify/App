@@ -1,21 +1,58 @@
-import type {FlashListRef} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef} from 'react';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+
 import CONST from '@src/CONST';
+
+import type {FlashListRef} from '@shopify/flash-list';
+
+import React, {useImperativeHandle, useRef} from 'react';
+
+import type {TableContextValue} from './TableContext';
+import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
+
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
-import type {TableContextValue} from './TableContext';
-import type {TableData, TableHandle, TableMethods, TableProps} from './types';
+
+/**
+ * Builds the Proxy exposed through the Table's ref, forwarding to `tableMethods` first and
+ * falling back to FlashList's own methods (e.g. `scrollToIndex`).
+ *
+ * This is a standalone top-level function (rather than being inlined in the `useImperativeHandle`
+ * callback) because OXC's React Compiler currently fails to compile a component when a generic type
+ * cast referencing the component's own type parameters (e.g. `as TableHandle<DataType, ColumnKey, FilterKey>`)
+ * appears inside a nested closure. That bailout is silent (no build warning) and disables automatic
+ * memoization for the entire file, which is what previously caused an infinite FlashList re-render.
+ */
+function createTableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(
+    tableMethods: TableMethods<ColumnKey, FilterKey>,
+    listRef: React.RefObject<FlashListRef<DataType> | null>,
+    getProcessedData: () => Array<TableRow<DataType>>,
+): TableHandle<DataType, ColumnKey, FilterKey> {
+    return new Proxy(tableMethods, {
+        get: (target, property) => {
+            if (property in target) {
+                return target[property as keyof typeof target];
+            }
+
+            if (property === 'getProcessedData') {
+                return getProcessedData;
+            }
+
+            return listRef.current?.[property as keyof FlashListRef<DataType>];
+        },
+    }) as TableHandle<DataType, ColumnKey, FilterKey>;
+}
 
 /**
  * A composable table component that provides filtering, search, and sorting functionality.
@@ -32,8 +69,7 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  * - `<Table>` - The parent component that manages state and provides context
  * - `<Table.Header>` - Renders sortable column headers
  * - `<Table.Body>` - Renders the data rows using FlashList
- * - `<Table.SearchBar>` - Renders a search input that filters data
- * - `<Table.FilterButtons>` - Renders dropdown filter buttons
+ * - `<Table.FilterBar>` - Renders a search input that filters data
  *
  * ## Middleware Architecture
  *
@@ -87,7 +123,7 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  *     return a[columnKey].localeCompare(b[columnKey]) * multiplier;
  *   }}
  * >
- *   <Table.SearchBar />
+ *   <Table.FilterBar />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
@@ -97,7 +133,7 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  * ```tsx
  * const filterConfig: FilterConfig = {
  *   status: {
- *     filterType: 'single-select',
+ *     filterType: 'singleSelect',
  *     options: [
  *       { label: 'All', value: 'all' },
  *       { label: 'Active', value: 'active' },
@@ -118,7 +154,6 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  *     return filterValues.includes(item.status);
  *   }}
  * >
- *   <Table.FilterButtons />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
@@ -153,7 +188,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     narrowLayoutSortColumn,
     children,
     selectionEnabled,
+    shouldEnableSelectionInNarrowPaneModal,
     onRowSelectionChange,
+    onSearchStringChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
@@ -190,7 +227,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         methods: selectionMethods,
         mobileSelectionModalRowKey,
         middleware: selectionMiddleware,
-    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange});
+    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange, shouldEnableSelectionInNarrowPaneModal});
     const selectionData = selectionMiddleware(sortedData);
 
     const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
@@ -210,21 +247,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
      */
-    useImperativeHandle(ref, () => {
-        return new Proxy(tableMethods, {
-            get: (target, property) => {
-                if (property in target) {
-                    return target[property as keyof typeof target];
-                }
-
-                if (property === 'getProcessedData') {
-                    return () => processedData;
-                }
-
-                return listRef.current?.[property as keyof FlashListRef<DataType>];
-            },
-        }) as TableHandle<DataType, ColumnKey, FilterKey>;
-    });
+    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData));
 
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
@@ -256,7 +279,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isEmptyResult,
         shouldUseNarrowTableLayout,
         selectionEnabled,
+        shouldEnableSelectionInNarrowPaneModal,
         isMobileSelectionEnabled,
+        onSearchStringChange,
     };
 
     return (

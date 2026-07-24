@@ -1,14 +1,18 @@
-import {CommonActions, StackActions} from '@react-navigation/native';
-import {useEffect} from 'react';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+
 import useOnyx from '@hooks/useOnyx';
+
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {NavigationRoute} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {CommonActions, StackActions} from '@react-navigation/native';
+import {useEffect} from 'react';
 
 /**
  * Pops the active WorkspaceSplitNavigator or DomainSplitNavigator when Escape is pressed inside WorkspaceNavigator.

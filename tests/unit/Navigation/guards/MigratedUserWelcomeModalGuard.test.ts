@@ -1,13 +1,17 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
 import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged, resetDismissedProductTrainingState, resetSessionFlag} from '@libs/Navigation/guards/MigratedUserWelcomeModalGuard';
 import type {GuardContext} from '@libs/Navigation/guards/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 const migratedUserWelcomeRoute = createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, ROUTES.HOME);

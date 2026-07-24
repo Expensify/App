@@ -1,8 +1,10 @@
-import type {NavigationState} from '@react-navigation/native';
 import {getTabStateWithFocusedTarget, markFocusedTabRouteForRemount} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState} from '@react-navigation/native';
 
 function makeTabState(routes: Array<{name: string; state?: Record<string, unknown>}>, index: number): NavigationState {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test helper builds minimal mock state

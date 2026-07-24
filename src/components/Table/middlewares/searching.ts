@@ -1,4 +1,5 @@
 import {useState} from 'react';
+
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**

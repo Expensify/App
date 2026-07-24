@@ -1,4 +1,5 @@
 import type {StyleProp, ViewStyle} from 'react-native';
+
 import {View} from 'react-native';
 
 type OptionRowRendererComponentProps = {

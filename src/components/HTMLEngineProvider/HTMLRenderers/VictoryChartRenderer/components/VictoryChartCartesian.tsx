@@ -1,5 +1,3 @@
-import React from 'react';
-import {CartesianChart} from 'victory-native';
 import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
@@ -7,9 +5,15 @@ import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/Vi
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+
 import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import useTheme from '@hooks/useTheme';
+
 import ThemeContext from '@styles/theme/context/ThemeContext';
+
+import React from 'react';
+import {CartesianChart} from 'victory-native';
+
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
@@ -74,7 +78,7 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
                 );
 
                 if (headless) {
-                    return overlayContent;
+                    return <ThemeContext.Provider value={theme}>{overlayContent}</ThemeContext.Provider>;
                 }
 
                 // React context does not propagate across the Skia renderOutside boundary.

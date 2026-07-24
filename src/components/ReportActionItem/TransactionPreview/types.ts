@@ -1,7 +1,8 @@
+import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 // string type union is here for percentage values
 type TransactionPreviewStyleType = {
@@ -83,6 +84,9 @@ type TransactionPreviewContentProps = {
 
     /** Represents the report linked to the transaction */
     report: OnyxEntry<Report>;
+
+    /** The policy the report linked to the transaction belongs to */
+    policy: OnyxEntry<Policy>;
 
     /** Flag to determine if a transaction involves a bill split among multiple parties. */
     isBillSplit: boolean;

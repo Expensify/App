@@ -1,19 +1,20 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {FormRef} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+
 import {updateNetSuiteCustomSegments} from '@userActions/connections/NetSuiteCommands';
 import {clearDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,13 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import {getCustomSegmentInitialSubstep, getSubstepValues} from './customUtils';
 import ChooseSegmentTypeStep from './subPages/ChooseSegmentTypeStep';
 import ConfirmCustomSegmentStep from './subPages/ConfirmCustomSegmentList';

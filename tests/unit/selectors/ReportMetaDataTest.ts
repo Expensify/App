@@ -1,6 +1,8 @@
-import {hasOnceLoadedReportActionsSelector, isActionLoadingSelector, pendingChatMembersSelector} from '@selectors/ReportMetaData';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasOnceLoadedReportActionsSelector, isActionLoadingSelector, pendingChatMembersSelector} from '@selectors/ReportMetaData';
 
 describe('isActionLoadingSelector', () => {
     it('returns true when isActionLoading is true', () => {

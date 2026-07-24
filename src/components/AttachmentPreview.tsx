@@ -1,14 +1,20 @@
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {cleanFileName, getFileName} from '@libs/fileDownload/FileUtils';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import type {SourceLoadEventPayload, VideoThumbnail} from 'expo-video';
+
 import {Str} from 'expensify-common';
 import {useEvent} from 'expo';
-import type {SourceLoadEventPayload, VideoThumbnail} from 'expo-video';
 import {useVideoPlayer} from 'expo-video';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanFileName, getFileName} from '@libs/fileDownload/FileUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import {checkIsFileImage} from './Attachments/AttachmentView';
 import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmentView';
 import Icon from './Icon';

@@ -1,20 +1,25 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import AddressForm from '@components/AddressForm';
 import type {FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+
 import {setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type AddressStepProps = SubStepProps & {
     /** Whether to persist field values as draft on keystroke */

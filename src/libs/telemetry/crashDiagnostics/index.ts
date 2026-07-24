@@ -1,3 +1,11 @@
+import Navigation from '@libs/Navigation/Navigation';
+import getMemoryInfo from '@libs/telemetry/getMemoryInfo';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 /**
  * Browser crash diagnostics (web only).
  *
@@ -12,12 +20,7 @@
  */
 import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
-import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
-import getMemoryInfo from '@libs/telemetry/getMemoryInfo';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 
 const STORAGE_KEY_PREFIX = 'crashDiagnostics_session_';
 const SAMPLE_INTERVAL_MS = 15 * 1000;
@@ -42,6 +45,13 @@ const LIVENESS_GRACE_MS = 10 * 1000;
 const LIVENESS_FRESHNESS_MS = 2 * 60 * 1000;
 
 const LIVENESS_CHANNEL_NAME = 'crashDiagnosticsLiveness';
+
+// Number of most-recent samples inspected to decide whether the session was in the foreground near the end.
+const RECENT_SAMPLE_WINDOW = 4;
+
+// Peak-heap-usage cutoffs (as a percentage of the hard limit) used to bucket heap pressure for Sentry tagging.
+const HEAP_PRESSURE_HIGH_PCT = 80;
+const HEAP_PRESSURE_MID_PCT = 50;
 
 /** A point-in-time snapshot of memory/DOM/route state, captured on every heartbeat to reconstruct what was growing before a crash. */
 type HeapSample = {
@@ -81,8 +91,21 @@ type SessionRecord = {
     /** Epoch ms of the most recent heartbeat or exit-state write; staleness of this is the primary crash signal. */
     lastHeartbeat: number;
 
-    /** True while the page is in a state where missing heartbeats are expected (pagehide/freeze) */
+    /** True while missing heartbeats are expected: a real/clean exit (pagehide/freeze) or a backgrounded (hidden) tab. */
     cleanExit: boolean;
+
+    /** Highest `usedJSHeapSizeMB` seen this session; survives ring-buffer eviction. Null on non-Chromium browsers. */
+    peakUsedJSHeapSizeMB: number | null;
+
+    /** Highest DOM-node count seen this session; survives ring-buffer eviction. */
+    peakDomNodes: number;
+
+    /**
+     * Most recent known page visibility, updated immediately on `visibilitychange` (not only on the 15s
+     * heartbeat). Used to tell a foreground crash from a backgrounded tab without lagging a full heartbeat
+     * behind the real state. Optional for back-compat with records written before this field existed.
+     */
+    lastVisibility?: DocumentVisibilityState;
 
     /** Ring buffer of recent samples, capped at `MAX_SAMPLES` (oldest dropped first). */
     samples: HeapSample[];
@@ -111,8 +134,20 @@ function markCleanExit() {
     markExitState(true);
 }
 
-function markActive() {
-    markExitState(false);
+/**
+ * Sync the exit state to current page visibility. While the tab is `hidden`, throttled or absent heartbeats are
+ * expected: Chrome throttles/suspends background-tab timers, laptop sleep stops them with no `freeze` event, and
+ * `freeze` never fires at all in Safari/Firefox — so a hidden tab is marked clean and will not be misreported as
+ * a crash. A renderer crash the user actually experiences happens while the tab is `visible`.
+ */
+function syncExitStateWithVisibility() {
+    if (typeof document === 'undefined' || !sessionRecord) {
+        return;
+    }
+    // Record visibility the instant it changes so a tab foregrounded just before a crash is not mistaken for a
+    // background tab by the next reap (the last heartbeat sample can be up to SAMPLE_INTERVAL_MS stale).
+    sessionRecord.lastVisibility = document.visibilityState;
+    markExitState(document.visibilityState === 'hidden');
 }
 
 function isStorageAvailable(): boolean {
@@ -243,8 +278,17 @@ function heartbeat() {
             if (sessionRecord.samples.length > MAX_SAMPLES) {
                 sessionRecord.samples.splice(0, sessionRecord.samples.length - MAX_SAMPLES);
             }
+            if (sample.usedJSHeapSizeMB !== null && sample.usedJSHeapSizeMB > (sessionRecord.peakUsedJSHeapSizeMB ?? 0)) {
+                sessionRecord.peakUsedJSHeapSizeMB = sample.usedJSHeapSizeMB;
+            }
+            if (sample.domNodes > sessionRecord.peakDomNodes) {
+                sessionRecord.peakDomNodes = sample.domNodes;
+            }
             sessionRecord.lastHeartbeat = Date.now();
-            sessionRecord.cleanExit = false;
+            // While hidden, missing/throttled heartbeats are expected, so keep the session marked clean; only a
+            // tab that goes silent while visible is a crash candidate.
+            sessionRecord.cleanExit = sample.visibility === 'hidden';
+            sessionRecord.lastVisibility = sample.visibility;
             persistSessionRecord();
             announceLiveness();
             reapDeadSessions();
@@ -254,24 +298,74 @@ function heartbeat() {
         });
 }
 
+/**
+ * Buckets peak heap usage as a fraction of the hard limit, for indexed Sentry tagging. Returns `unknown` on
+ * non-Chromium browsers (no `performance.memory`) so those events stay visible rather than being filtered out.
+ * Reported from the session peak, not the last sample, because an OOM spike can occur between heartbeats.
+ */
+function getHeapPressureBucket(record: SessionRecord): string {
+    const limitMB = record.samples.at(-1)?.jsHeapSizeLimitMB ?? null;
+    if (record.peakUsedJSHeapSizeMB == null || limitMB == null || limitMB <= 0) {
+        return 'unknown';
+    }
+    const pct = (record.peakUsedJSHeapSizeMB / limitMB) * 100;
+    if (pct >= HEAP_PRESSURE_HIGH_PCT) {
+        return 'high';
+    }
+    if (pct >= HEAP_PRESSURE_MID_PCT) {
+        return 'mid';
+    }
+    return 'low';
+}
+
+/** Buckets session duration (minutes) for indexed Sentry tagging. */
+function getSessionDurationBucket(minutes: number): string {
+    if (minutes <= 5) {
+        return '0-5';
+    }
+    if (minutes <= 30) {
+        return '6-30';
+    }
+    if (minutes <= 120) {
+        return '31-120';
+    }
+    if (minutes <= 480) {
+        return '121-480';
+    }
+    return '480+';
+}
+
 function reportAbnormalExit(record: SessionRecord) {
     const lastSample = record.samples.at(-1);
+    const durationMinutes = Math.round((record.lastHeartbeat - record.startedAt) / MS_PER_MINUTE);
+    // A real renderer crash happens in the foreground; treat any visible sample in the recent window as
+    // "was in use" so background-only sessions can be filtered out in Sentry. Also honor the live
+    // `lastVisibility`, which can be `visible` while every sample is still `hidden` when the tab was
+    // foregrounded and then crashed before the next heartbeat could record a visible sample.
+    const wasForeground = record.lastVisibility === 'visible' || record.samples.slice(-RECENT_SAMPLE_WINDOW).some((sample) => sample.visibility === 'visible');
     Sentry.captureEvent({
         message: 'Crash diagnostics: previous browser session ended abnormally (possible tab crash)',
         level: 'warning',
         tags: {
             crashDiagnostics: 'abnormal_exit',
             lastRoute: lastSample?.route ?? 'unknown',
+            lastVisibility: record.lastVisibility ?? lastSample?.visibility ?? 'unknown',
+            wasForeground: String(wasForeground),
+            heapPressure: getHeapPressureBucket(record),
+            sessionDurationBucket: getSessionDurationBucket(durationMinutes),
+            browserEngine: lastSample?.jsHeapSizeLimitMB ? 'chromium' : 'other',
         },
         extra: {
             sessionID: record.id,
             sessionStartedAt: new Date(record.startedAt).toISOString(),
             lastHeartbeatAt: new Date(record.lastHeartbeat).toISOString(),
-            sessionDurationMinutes: Math.round((record.lastHeartbeat - record.startedAt) / MS_PER_MINUTE),
+            sessionDurationMinutes: durationMinutes,
             lastUsedJSHeapSizeMB: lastSample?.usedJSHeapSizeMB,
             lastTotalJSHeapSizeMB: lastSample?.totalJSHeapSizeMB,
             jsHeapSizeLimitMB: lastSample?.jsHeapSizeLimitMB,
             lastDOMNodes: lastSample?.domNodes,
+            peakUsedJSHeapSizeMB: record.peakUsedJSHeapSizeMB ?? null,
+            peakDOMNodes: record.peakDomNodes ?? null,
             samples: record.samples,
         },
     });
@@ -295,13 +389,22 @@ function reapDeadSessions() {
             continue;
         }
         const record = readSessionRecord(storageKey);
-        if (!record || record.cleanExit) {
+        if (!record) {
             window.localStorage.removeItem(storageKey);
+            continue;
+        }
+        const isStale = Date.now() - record.lastHeartbeat > STALE_HEARTBEAT_MS;
+        // A clean session (cleanly exited, or a currently-hidden background tab) is only safe to drop once it
+        // has also gone stale. Removing a fresh clean record would delete a live, backgrounded tab's diagnostics.
+        if (record.cleanExit) {
+            if (isStale) {
+                window.localStorage.removeItem(storageKey);
+            }
             continue;
         }
         // Heartbeat is stale, but that alone cannot tell a crash apart from a suspended-but-alive tab.
         // Confirm the session is really gone before reporting it as a crash.
-        if (Date.now() - record.lastHeartbeat > STALE_HEARTBEAT_MS) {
+        if (isStale) {
             confirmDeadThenReport(storageKey, record.id);
         }
     }
@@ -334,6 +437,16 @@ function confirmDeadThenReport(storageKey: string, sessionID: string) {
         if (isSessionRecentlyAlive(sessionID) || Date.now() - record.lastHeartbeat <= STALE_HEARTBEAT_MS) {
             return;
         }
+        // Defense in depth: a session that was hidden when last seen is a backgrounded/suspended tab, not a
+        // foreground crash. heartbeat() already keeps such sessions marked clean, but guard here too in case an
+        // older record (written before visibility-aware exit state) slipped through. Prefer the immediately
+        // updated `lastVisibility` over the last sample, which can lag the real state by up to one heartbeat: a
+        // tab foregrounded and then crashed within that window has a stale `hidden` sample but was visible.
+        const lastKnownVisibility = record.lastVisibility ?? record.samples.at(-1)?.visibility;
+        if (lastKnownVisibility === 'hidden') {
+            window.localStorage.removeItem(storageKey);
+            return;
+        }
         reportAbnormalExit(record);
         window.localStorage.removeItem(storageKey);
     }, LIVENESS_GRACE_MS);
@@ -364,6 +477,9 @@ function initializeCrashDiagnostics() {
         startedAt: Date.now(),
         lastHeartbeat: Date.now(),
         cleanExit: false,
+        peakUsedJSHeapSizeMB: null,
+        peakDomNodes: 0,
+        lastVisibility: typeof document !== 'undefined' ? document.visibilityState : undefined,
         samples: [],
     };
 
@@ -377,20 +493,21 @@ function initializeCrashDiagnostics() {
 
     reportsConnection = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.REPORT,
-        waitForCollectionCallback: true,
         callback: (value: OnyxCollection<Report>) => {
             reportsCount = value ? Object.keys(value).length : 0;
         },
     });
 
     // pagehide fires on navigation away, refresh, and tab close — all clean exits. It does NOT fire on a
-    // renderer crash, which is exactly the signal we rely on. pageshow restores the session after a
-    // back/forward-cache restore. freeze/resume cover background tabs whose timers are fully suspended,
-    // so a frozen tab isn't misreported as crashed.
+    // renderer crash, which is exactly the signal we rely on. pageshow/resume restore the session after a
+    // back/forward-cache restore or freeze. visibilitychange is the broad, cross-browser signal that the tab
+    // was backgrounded: freeze only fires for the subset of background tabs Chrome actually suspends (and never
+    // in Safari/Firefox), so relying on it alone misreported hidden-but-not-frozen tabs as crashes.
     window.addEventListener('pagehide', markCleanExit);
-    window.addEventListener('pageshow', markActive);
+    window.addEventListener('pageshow', syncExitStateWithVisibility);
     document.addEventListener('freeze', markCleanExit);
-    document.addEventListener('resume', markActive);
+    document.addEventListener('resume', syncExitStateWithVisibility);
+    document.addEventListener('visibilitychange', syncExitStateWithVisibility);
 
     // Report any previous session that ended abnormally now that our own record and liveness channel exist
     reapDeadSessions();
@@ -420,9 +537,10 @@ function cleanupCrashDiagnostics() {
     }
     if (typeof window !== 'undefined') {
         window.removeEventListener('pagehide', markCleanExit);
-        window.removeEventListener('pageshow', markActive);
+        window.removeEventListener('pageshow', syncExitStateWithVisibility);
         document.removeEventListener('freeze', markCleanExit);
-        document.removeEventListener('resume', markActive);
+        document.removeEventListener('resume', syncExitStateWithVisibility);
+        document.removeEventListener('visibilitychange', syncExitStateWithVisibility);
     }
     markCleanExit();
     sessionRecord = undefined;

@@ -1,17 +1,16 @@
-import {format, getMonth, getYear} from 'date-fns';
-import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WalletStatementModal from '@components/WalletStatementModal';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemePreference from '@hooks/useThemePreference';
+
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -19,12 +18,20 @@ import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import addTrailingForwardSlash, {buildSecureDownloadURL} from '@libs/UrlUtils';
+
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
+
 import {getBaseTheme} from '@styles/theme/utils';
+
 import {generateStatementPDF} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import {format, getMonth, getYear} from 'date-fns';
+import {Str} from 'expensify-common';
+import React, {useEffect, useState} from 'react';
 
 type WalletStatementPageProps = PlatformStackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
 

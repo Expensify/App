@@ -1,9 +1,11 @@
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList, Locale} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import Log from './Log';
 import {format, formatToParts} from './NumberFormatUtils';
 

@@ -1,6 +1,8 @@
-import type {LinkingOptions} from '@react-navigation/native';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
+
+import type {LinkingOptions} from '@react-navigation/native';
 
 const prefixes: LinkingOptions<RootNavigatorParamList>['prefixes'] = [
     'app://-/',

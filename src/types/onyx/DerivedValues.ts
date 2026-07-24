@@ -1,6 +1,8 @@
+import type CONST from '@src/CONST';
+
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
 import type {CardFeedWithDomainID} from './CardFeeds';
@@ -230,51 +232,6 @@ type CardFeedErrorsDerivedValue = CardFeedErrors;
 type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
 
 /**
- * Metadata for todo search results.
- */
-type TodoMetadata = {
-    /** Total number of transactions across all reports */
-    count: number;
-    /** Sum of all report totals (in cents) */
-    total: number;
-    /** Currency of the first report, used as reference currency */
-    currency: string | undefined;
-};
-
-/**
- * The derived value for todos.
- */
-type TodosDerivedValue = {
-    /** Reports that need to be submitted */
-    reportsToSubmit: Report[];
-    /** Reports that need to be approved */
-    reportsToApprove: Report[];
-    /** Reports that need to be paid */
-    reportsToPay: Report[];
-    /** Reports that need to be exported */
-    reportsToExport: Report[];
-    /** Transactions grouped by report ID */
-    transactionsByReportID: Record<string, Transaction[]>;
-};
-
-/**
- * The derived value for flagged expenses.
- *
- * Aggregates transactions on the current user's `OPEN`/`OPEN` expense reports that have
- * at least one transaction-level violation (excluding `showInReview === false` entries and
- * `REPORT_VIOLATIONS.FIELD_REQUIRED` entries that may slip into the collection).
- */
-type FlaggedExpensesDerivedValue = {
-    /** Ordered list of flagged transactions with their parent report IDs */
-    flaggedExpenses: Array<{
-        /** ID of the flagged transaction */
-        transactionID: string;
-        /** ID of the parent expense report */
-        reportID: string;
-    }>;
-};
-
-/**
  * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
  */
 type SortedReportActionsDerivedValue = {
@@ -291,6 +248,14 @@ type SortedReportActionsDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
+/**
+ * The derived value mapping each user's login (lowercased) to their accountID.
+ *
+ * Replaces the imperative `emailToPersonalDetailsCache` login lookup that was built via `Onyx.connect`
+ * in `PersonalDetailsUtils` (see issue #66391). Keys are lowercased since logins/emails are case-insensitive.
+ */
+type LoginToAccountIDMapDerivedValue = Record<string, number>;
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -302,9 +267,7 @@ export type {
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
-    TodosDerivedValue,
-    TodoMetadata,
-    FlaggedExpensesDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

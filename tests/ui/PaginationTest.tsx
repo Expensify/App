@@ -1,17 +1,22 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import * as NativeNavigation from '@react-navigation/native';
 import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
-import {addSeconds, format, subMinutes} from 'date-fns';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {setSidebarLoaded} from '@libs/actions/App';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
+
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import * as NativeNavigation from '@react-navigation/native';
+import {addSeconds, format, subMinutes} from 'date-fns';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
+
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -226,7 +231,7 @@ async function signInAndGetApp(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 
     // Start listening for pusher events after navigation settles.
-    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, () => {}, undefined);
     await waitForBatchedUpdates();
 
     await Promise.all([

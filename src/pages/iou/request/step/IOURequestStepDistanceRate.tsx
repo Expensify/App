@@ -1,11 +1,8 @@
-import {policyTypeSelector} from '@selectors/Policy';
-import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -13,9 +10,11 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {
     getIOURequestPolicyID,
     setLastSelectedDistanceRate,
@@ -32,13 +31,24 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Navigation from '@libs/Navigation/Navigation';
 import {getGroupPaidPolicies, isGroupPolicyByType, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getCurrency, getDistanceInMeters, getDistanceRateTaxUpdates, getRateID, isDistanceRequest as isDistanceRequestTransactionUtils, isExpenseUnreported} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyTypeSelector} from '@selectors/Policy';
+import lodashIsEmpty from 'lodash/isEmpty';
+import React, {useState} from 'react';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceRateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE> & {
@@ -62,9 +72,14 @@ function IOURequestStepDistanceRate({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const personalPolicy = usePersonalPolicy();
+    const [currentTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
 
@@ -119,6 +134,10 @@ function IOURequestStepDistanceRate({
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
+    };
+
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
     };
 
     const options = sortedRates.map((rate) => {
@@ -189,8 +208,8 @@ function IOURequestStepDistanceRate({
         if (currentRateID !== customUnitRateID || (isMovingTransactionFromTrackExpense && transactionUnit !== selectedRateUnit)) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {customUnitRateID}, policy);
-                navigateBack();
+                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {customUnitRateID}, policy, personalPolicy?.outputCurrency);
+                saveAndNavigateBack();
                 return;
             }
 
@@ -201,6 +220,7 @@ function IOURequestStepDistanceRate({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportOwnerLogin,
                     parentReportNextStep,
                     rateID: customUnitRateID,
                     policy,
@@ -214,6 +234,10 @@ function IOURequestStepDistanceRate({
                     updatedTaxValue: taxValue,
                     delegateAccountID,
                     isOffline,
+                    currentTransactionViolations,
+                    reportPolicyTags,
+                    isTrackIntentUser,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
             } else {
                 setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));
@@ -222,7 +246,7 @@ function IOURequestStepDistanceRate({
 
         setPendingRateID(undefined);
         setFormError('');
-        navigateBack();
+        saveAndNavigateBack();
     }
 
     return (

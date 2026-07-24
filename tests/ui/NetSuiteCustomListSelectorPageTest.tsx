@@ -1,15 +1,21 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
+
 import SelectionList from '@components/SelectionList';
+
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
+
 import NetSuiteCustomListSelectorPage from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListSelectorPage';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import React from 'react';
 
 const mockUseState = React.useState;
 

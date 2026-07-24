@@ -1,37 +1,61 @@
-import React, {useRef} from 'react';
-import type {TextInputKeyPressEvent} from 'react-native';
-import {View} from 'react-native';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {BotAvatarBlue} from '@components/Icon/DefaultBotAvatars';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
-import TextInput from '@components/TextInput';
+import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
+import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
+import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+
 import useConfirmModal from '@hooks/useConfirmModal';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
+import Tab from '@libs/actions/Tab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
-import {addPolicyAgentRule} from '@userActions/Policy/Rules';
+
+import {addPolicyAgentRule, getAgentRuleSuggestions} from '@userActions/Policy/Rules';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentRuleForm';
+import type SuggestedAgentRule from '@src/types/onyx/SuggestedAgentRule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {AddAgentRuleFormID} from './AddAgentRuleWriteTab';
+
+import AddAgentRuleSuggestionsTab from './AddAgentRuleSuggestionsTab';
+import AddAgentRuleWriteTab from './AddAgentRuleWriteTab';
+
 type AddAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_NEW>;
-type AddAgentRuleFormID = typeof ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM;
+type AgentRuleTab = ValueOf<typeof CONST.TAB.AGENT_RULE>;
+
+const AGENT_RULE_TAB_VALUES = new Set<string>(Object.values(CONST.TAB.AGENT_RULE));
+
+function isAgentRuleTab(key: string): key is AgentRuleTab {
+    return AGENT_RULE_TAB_VALUES.has(key);
+}
 
 function AddAgentRulePage({
     route: {
@@ -40,38 +64,98 @@ function AddAgentRulePage({
 }: AddAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const shouldUseScrollableLayout = useIsInLandscapeMode();
+    const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policy = usePolicy(policyID);
-    const formRef = useRef<FormRef>(null);
     const linkPressedRef = useRef(false);
     const {showConfirmModal, closeModal} = useConfirmModal();
+    const [activeTab, setActiveTab] = useState<AgentRuleTab>(CONST.TAB.AGENT_RULE.SUGGESTIONS);
+    const [activeTabPolicyID, setActiveTabPolicyID] = useState(policyID);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT);
+    const tabIcons = useMemoizedLazyExpensifyIcons(['Feed', 'Pencil']);
 
-    const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
-        if (!('key' in e)) {
+    const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
+
+    // Reset the active tab to Suggestions when the workspace changes.
+    if (activeTabPolicyID !== policyID) {
+        setActiveTabPolicyID(policyID);
+        setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
+    }
+
+    // Clear the draft on unmount only.
+    useEffect(() => {
+        return () => clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
+    }, []);
+
+    useEffect(() => {
+        if (isOffline) {
             return;
         }
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-            formRef.current?.submit();
+        getAgentRuleSuggestions(policyID);
+    }, [policyID, isOffline]);
+
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => hasDraftPrompt,
+        onConfirm: () => clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM),
+    });
+
+    const tabs: TabSelectorBaseItem[] = [
+        {
+            key: CONST.TAB.AGENT_RULE.SUGGESTIONS,
+            title: translate('workspace.rules.agentRules.suggestionsTab'),
+            icon: tabIcons.Feed,
+        },
+        {
+            key: CONST.TAB.AGENT_RULE.WRITE,
+            title: translate('workspace.rules.agentRules.writeTab'),
+            icon: tabIcons.Pencil,
+        },
+    ];
+
+    const selectSuggestion = (suggestion: SuggestedAgentRule) => {
+        if (!suggestion.prompt?.trim()) {
+            return;
         }
+        setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[INPUT_IDS.PROMPT]: suggestion.prompt});
+        setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
     };
 
-    const validate = (values: FormOnyxValues<AddAgentRuleFormID>): FormInputErrors<AddAgentRuleFormID> => {
-        const errors: FormInputErrors<AddAgentRuleFormID> = {};
-        if (!values[INPUT_IDS.PROMPT].trim()) {
-            errors[INPUT_IDS.PROMPT] = translate('common.error.fieldRequired');
+    const selectTab = (key: string) => {
+        if (!isAgentRuleTab(key)) {
+            return;
         }
-        return errors;
+        setActiveTab(key);
+    };
+
+    const handleBackButtonPress = () => {
+        if (activeTab === CONST.TAB.AGENT_RULE.WRITE) {
+            setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
+            return;
+        }
+        Navigation.goBack();
+    };
+
+    const navigateBackToAgentsTab = () => {
+        if (isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
+            return;
+        }
+
+        Navigation.goBack();
     };
 
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
         // When the workspace has no agent rules yet, the backend creates the "RuleBot" agent and adds it as
         // an admin. Surface a one-time modal explaining this side effect before navigating back.
         const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
+        suppressDiscardPrompt();
         addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
+        clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
         if (!isFirstRule) {
-            Navigation.goBack();
+            navigateBackToAgentsTab();
             return;
         }
         linkPressedRef.current = false;
@@ -79,6 +163,11 @@ function AddAgentRulePage({
             linkPressedRef.current = true;
             closeModal();
         };
+
+        if (isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+        }
+
         Navigation.dismissModal({
             afterTransition: () => {
                 showConfirmModal({
@@ -92,7 +181,7 @@ function AddAgentRulePage({
                             />
                         </View>
                     ),
-                    confirmText: translate('common.buttonConfirm'),
+                    confirmText: isRulesRevampEnabled ? translate('workspace.rules.agentRules.gotIt') : translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
                     shouldUseSuccessStyleForConfirm: true,
                     iconSource: BotAvatarBlue,
@@ -100,7 +189,11 @@ function AddAgentRulePage({
                     shouldCenterIcon: true,
                     iconWidth: variables.iconSizeUltraLarge,
                     iconHeight: variables.iconSizeUltraLarge,
-                    iconAdditionalStyles: {borderRadius: variables.iconSizeUltraLarge / 2, overflow: 'hidden', marginTop: 12},
+                    iconAdditionalStyles: {
+                        borderRadius: variables.iconSizeUltraLarge / 2,
+                        overflow: 'hidden',
+                        marginTop: 12,
+                    },
                 }).then(() => {
                     if (!linkPressedRef.current) {
                         return;
@@ -122,44 +215,32 @@ function AddAgentRulePage({
                 testID="AddAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
-                shouldEnableMaxHeight={shouldUseScrollableLayout}
+                shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.rules.agentRules.addRuleTitle')} />
-                <FormProvider
-                    ref={formRef}
-                    formID={ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM}
-                    validate={validate}
-                    onSubmit={saveRule}
-                    submitButtonText={translate('common.save')}
-                    style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={shouldUseScrollableLayout}
-                    submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
-                    enabledWhenOffline
-                    shouldHideFixErrorsAlert
-                    shouldValidateOnChange
-                    shouldValidateOnBlur
-                    keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
-                >
-                    <View style={styles.flex1}>
-                        <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
-                            <InputWrapper
-                                InputComponent={TextInput}
-                                inputID={INPUT_IDS.PROMPT}
-                                label={translate('workspace.rules.agentRules.describeRuleTitle')}
-                                accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
-                                role={CONST.ROLE.PRESENTATION}
-                                onKeyPress={handleKeyPress}
-                                multiline
-                                shouldLabelStayOnSingleLine
-                                containerStyles={[styles.flex1]}
-                                touchableInputWrapperStyle={[styles.flex1]}
-                                textInputContainerStyles={[styles.flex1]}
-                                inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                            />
-                        </View>
-                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
+                <HeaderWithBackButton
+                    title={isRulesRevampEnabled ? translate('workspace.rules.agentRules.newRuleTitle') : translate('workspace.rules.agentRules.addRuleTitle')}
+                    shouldDisplayHelpButton
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                <View style={[styles.flexShrink0, styles.w100]}>
+                    <TabSelectorContextProvider activeTabKey={activeTab}>
+                        <TabSelectorBase
+                            tabs={tabs}
+                            activeTabKey={activeTab}
+                            onTabPress={selectTab}
+                            equalWidth
+                        />
+                    </TabSelectorContextProvider>
+                </View>
+                <View style={styles.flex1}>
+                    <View style={[styles.flex1, activeTab !== CONST.TAB.AGENT_RULE.SUGGESTIONS && styles.dNone]}>
+                        <AddAgentRuleSuggestionsTab
+                            key={policyID}
+                            onSelectSuggestion={selectSuggestion}
+                        />
                     </View>
-                </FormProvider>
+                    {activeTab === CONST.TAB.AGENT_RULE.WRITE && <AddAgentRuleWriteTab onSave={saveRule} />}
+                </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

@@ -1,18 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
 import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getUserDetailTooltipText} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import ProfileAvatar from './ProfileAvatar';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {MultipleAvatarsProps} from './types';
+
+import ProfileAvatar from './ProfileAvatar';
 
 type HorizontalStackingOptions = Partial<{
     shouldDisplayAvatarsInRows: boolean;
@@ -48,7 +55,7 @@ function HorizontalAvatars({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const overlapSize = oneAvatarSize.width / overlapDivider;
@@ -64,7 +71,7 @@ function HorizontalAvatars({
         avatarRows = [icons.slice(0, rowSize), icons.slice(rowSize)];
     }
 
-    const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : [''];
+    const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : [''];
 
     return avatarRows.map((avatars, rowIndex) => (
         <View

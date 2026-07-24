@@ -1,17 +1,22 @@
-import type * as CoreNavigation from '@react-navigation/core';
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+
+import type * as CoreNavigation from '@react-navigation/core';
+
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -62,6 +67,15 @@ jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList'
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return () => <View testID="MockMoneyRequestReportTransactionList" />;
+});
+
+jest.mock('@pages/home/report/ConciergeThinkingMessage', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return {
+        __esModule: true,
+        default: () => <View testID="ConciergeThinkingMessage" />,
+    };
 });
 
 jest.mock('@components/HoldOrRejectEducationalModal', () => {
@@ -224,6 +238,24 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
+    });
+
+    it('renders Concierge thinking indicator in the money request report table path', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('ConciergeThinkingMessage')).toBeTruthy();
     });
 
     it('should show reject educational modal when reject option is selected and explanation has NOT been dismissed', async () => {

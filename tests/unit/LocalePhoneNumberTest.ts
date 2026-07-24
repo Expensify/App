@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+
 import * as LocalePhoneNumber from '../../src/libs/LocalePhoneNumber';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

@@ -1,13 +1,18 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -19,6 +24,13 @@ jest.mock('@hooks/useLocalize', () =>
         toLocaleDigit: jest.fn((digit: string) => digit),
     })),
 );
+
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    __esModule: true,
+    default: () => ({
+        didScreenTransitionEnd: true,
+    }),
+}));
 
 jest.mock('@react-navigation/native', () => ({
     ...((): typeof NativeNavigation => jest.requireActual('@react-navigation/native'))(),
@@ -84,7 +96,7 @@ const seedReportAndTransactions = async (transactions: OnyxTypes.Transaction[], 
     await waitForBatchedUpdatesWithAct();
 };
 
-const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Policy | undefined = undefined) =>
+const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Policy | undefined = undefined, isCombinedReport = false) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <MoneyReportView
@@ -92,6 +104,7 @@ const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Polic
                 policy={policy}
                 shouldHideThreadDividerLine={false}
                 shouldShowAnimatedBackground={false}
+                isCombinedReport={isCombinedReport}
             />
         </ComposeProviders>,
     );
@@ -245,17 +258,123 @@ describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
             buildTransaction('t1', 5000, false),
             {...buildTransaction('t2', 3000, false), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} as OnyxTypes.Transaction,
         ];
-        await seedReportAndTransactions(transactions, {nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
+        await seedReportAndTransactions(transactions, {total: -5000, unheldTotal: -5000, nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
         });
 
-        renderMoneyReportView(buildExpenseReport({nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}));
+        renderMoneyReportView(buildExpenseReport({total: -5000, unheldTotal: -5000, nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}));
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(screen.getByText('cardTransactions.outOfPocket')).toBeOnTheScreen();
             expect(screen.getByText('cardTransactions.companySpend')).toBeOnTheScreen();
+        });
+    });
+});
+
+describe('MoneyReportView report fields visibility', () => {
+    const customFieldKey = `expensify_${'field_test'}` as const;
+
+    const buildTitleField = (): OnyxTypes.PolicyReportField => ({
+        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+        name: 'title',
+        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+        target: 'expense',
+        orderWeight: 1,
+        deletable: false,
+        defaultValue: '{report:type} {report:startdate}',
+        value: 'Expense Report',
+        values: [],
+        keys: [],
+        externalIDs: [],
+        disabledOptions: [],
+        isTax: false,
+    });
+
+    const buildCustomTextField = (): OnyxTypes.PolicyReportField => ({
+        fieldID: 'field_test',
+        name: 'Test',
+        type: CONST.REPORT_FIELD_TYPES.TEXT,
+        target: 'expense',
+        orderWeight: 2,
+        deletable: true,
+        defaultValue: '',
+        value: '1',
+        values: [],
+        keys: [],
+        externalIDs: [],
+        disabledOptions: [],
+        isTax: false,
+    });
+
+    const buildReportFieldsPolicy = (fieldList: Record<string, OnyxTypes.PolicyReportField>): OnyxTypes.Policy =>
+        ({
+            ...LHNTestUtils.getFakePolicy(policyID, 'Policy'),
+            // A non-admin submitter: report fields become read-only (not editable) after approval.
+            role: CONST.POLICY.ROLE.USER,
+            type: CONST.POLICY.TYPE.TEAM,
+            outputCurrency: CONST.CURRENCY.USD,
+            areReportFieldsEnabled: true,
+            fieldList,
+        }) as OnyxTypes.Policy;
+
+    const seedReportFieldsPolicy = async (policy: OnyxTypes.Policy, report: OnyxTypes.Report) => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+        });
+        await waitForBatchedUpdatesWithAct();
+    };
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+    });
+
+    it('keeps a custom report field visible for a non-admin submitter after the report is approved (single-expense combined view)', async () => {
+        const fieldList = {
+            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField(),
+            [customFieldKey]: buildCustomTextField(),
+        };
+        const policy = buildReportFieldsPolicy(fieldList);
+        const approvedReport = buildExpenseReport({
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            fieldList,
+        });
+        await seedReportFieldsPolicy(policy, approvedReport);
+
+        renderMoneyReportView(approvedReport, policy, true);
+        await waitForBatchedUpdatesWithAct();
+
+        // The custom field (rendered read-only after approval) must still show for the submitter.
+        await waitFor(() => {
+            expect(screen.getByText('Test')).toBeOnTheScreen();
+        });
+    });
+
+    it('hides the report-fields section in the combined view when only the title field is configured', async () => {
+        const fieldList = {[CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField()};
+        const policy = buildReportFieldsPolicy(fieldList);
+        const approvedReport = buildExpenseReport({
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            fieldList,
+        });
+        await seedReportFieldsPolicy(policy, approvedReport);
+
+        renderMoneyReportView(approvedReport, policy, true);
+        await waitForBatchedUpdatesWithAct();
+
+        // The title field is shown in the report header for a combined report, so the redundant section stays hidden.
+        await waitFor(() => {
+            expect(screen.queryByText('title')).not.toBeOnTheScreen();
         });
     });
 });

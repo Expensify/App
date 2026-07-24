@@ -1,11 +1,16 @@
-import React, {useState} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import type {AnimatedStyle} from 'react-native-reanimated';
 import OpacityView from '@components/OpacityView';
+
 import type {Color} from '@styles/theme/types';
 import variables from '@styles/variables';
-import GenericPressable from './GenericPressable';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
+
+import React, {useState} from 'react';
+
 import type PressableProps from './GenericPressable/types';
+
+import GenericPressable from './GenericPressable';
 import usePressResponderProps from './PressResponder/usePressResponderProps';
 import useResponderRef from './PressResponder/useResponderRef';
 

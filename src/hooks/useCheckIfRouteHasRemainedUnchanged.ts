@@ -1,7 +1,10 @@
+import Navigation, {navigationRef} from '@navigation/Navigation';
+
+import SCREENS from '@src/SCREENS';
+
 import {useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect, useRef} from 'react';
-import Navigation, {navigationRef} from '@navigation/Navigation';
-import SCREENS from '@src/SCREENS';
+
 import useResponsiveLayout from './useResponsiveLayout';
 
 /**

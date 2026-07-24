@@ -1,8 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +5,7 @@ import {useMouseActions} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
@@ -24,16 +20,26 @@ import {
     validateAmount,
 } from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
+
 import CONST from '@src/CONST';
+
+import type {ForwardedRef} from 'react';
+import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
+
 import BigNumberPad from './BigNumberPad';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import ScrollView from './ScrollView';
 import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
-import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithSymbol';
-import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
 type NumberWithSymbolFormProps = {
     /** Value to display, should already be formatted */
@@ -463,8 +469,24 @@ function NumberWithSymbolForm({
      */
     const handleFlipPress = useCallback(() => {
         // Toggle the minus sign prefix in the value
-        const newValue = currentNumber.startsWith('-') ? currentNumber.slice(1) : `-${currentNumber}`;
+        const isRemovingSign = currentNumber.startsWith('-');
+        const newValue = isRemovingSign ? currentNumber.slice(1) : `-${currentNumber}`;
+        // Guard the manual selection update the same way setNewNumber/setFormattedNumber do: on native the
+        // controlled TextInput can emit onSelectionChange with the stale selection while the value update is
+        // applied, which would write the old cursor position back and undo the shift below. numberRef lets
+        // handleSelectionChange read the updated value length when computing maxSelection.
+        willSelectionBeUpdatedManually.current = true;
+        numberRef.current = newValue;
         setCurrentNumber(newValue);
+        // Shift the cursor by the length of the toggled sign so it stays in the same logical position
+        // relative to the digits (e.g. on an empty field {0,0} -> {1,1}, placing the cursor after the "-").
+        // Without this the cursor stays before the "-", so typing produces an invalid string like "5-" that
+        // validateAmount rejects, making the entered number disappear.
+        const offset = isRemovingSign ? -1 : 1;
+        setSelection((prevSelection) => ({
+            start: Math.max(prevSelection.start + offset, 0),
+            end: Math.max(prevSelection.end + offset, 0),
+        }));
         onInputChange?.(newValue);
     }, [currentNumber, onInputChange]);
 

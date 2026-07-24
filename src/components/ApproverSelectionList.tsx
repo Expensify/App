@@ -1,25 +1,31 @@
-import React, {useCallback, useMemo} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback, useMemo} from 'react';
+
+import type {ListItem} from './SelectionList/types';
+
 import BlockingView from './BlockingViews/BlockingView';
 import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
 import InviteMemberListItem from './SelectionList/ListItem/InviteMemberListItem';
-import type {ListItem} from './SelectionList/types';
 
 type ApproverSelectionListPageProps = {
     testID: string;
@@ -42,6 +48,7 @@ type ApproverSelectionListPageProps = {
     shouldEnableHeaderMaxHeight?: boolean;
     onSearchChange?: (searchTerm: string) => void;
     shouldUpdateFocusedIndex?: boolean;
+    shouldRequirePolicyAdmin?: boolean;
 };
 
 type SelectionListApprover = ListItem & {
@@ -69,6 +76,7 @@ function ApproverSelectionList({
     shouldEnableHeaderMaxHeight,
     onSearchChange,
     shouldUpdateFocusedIndex = true,
+    shouldRequirePolicyAdmin = true,
 }: ApproverSelectionListPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -89,7 +97,8 @@ function ApproverSelectionList({
 
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
 
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) || (shouldRequirePolicyAdmin && !isPolicyAdmin(policy)) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
 
     const data = useMemo(() => {
         const filteredApprovers =

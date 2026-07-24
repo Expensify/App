@@ -1,7 +1,10 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import CopilotPage from '@pages/settings/Copilot/CopilotPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 const SESSION_EMAIL = 'me@example.com';
 const AGENT_SESSION_EMAIL = 'agent_42@expensify.ai';

@@ -1,6 +1,12 @@
 require('dotenv').config();
+/**
+ * Expo SDK 56 replaces global fetch with expo/fetch unless this is set at transform time.
+ * metro.config.js sets it for the Metro process; babel needs it here so release bundles inline the value.
+ */
+process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '1';
 
 const BaseReactCompilerConfig = require('./config/babel/reactCompilerConfig');
+const {expoInlineEnvVars} = require('babel-preset-expo/build/plugins/inline-env-vars');
 
 const ReactCompilerConfig = {
     ...BaseReactCompilerConfig,
@@ -21,45 +27,7 @@ function traceTransformer() {
     };
 }
 
-/**
- * Setting targets to node 20 to reduce JS bundle size
- * It is also recommended by babel:
- * https://babeljs.io/docs/options#no-targets
- */
-const defaultPresetsForWebpack = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
-const defaultPluginsForWebpack = [
-    ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
-    // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
-    ['react-native-web'],
-
-    '@babel/transform-runtime',
-    '@babel/plugin-proposal-class-properties',
-    ['@babel/plugin-transform-object-rest-spread', {useBuiltIns: true, loose: true}],
-
-    // We use `@babel/plugin-transform-class-properties` for transforming ReactNative libraries and do not use it for our own
-    // source code transformation as we do not use class property assignment.
-    '@babel/plugin-transform-class-properties',
-    '@babel/plugin-proposal-export-namespace-from',
-    // Keep it last
-    'react-native-worklets/plugin',
-    '@babel/plugin-transform-export-namespace-from',
-];
-
-defaultPluginsForWebpack.push([
-    '@fullstory/babel-plugin-annotate-react',
-    {
-        native: true,
-    },
-]);
-
-if (process.env.DEBUG_BABEL_TRACE) {
-    defaultPluginsForWebpack.push(traceTransformer);
-}
-
-const webpack = {
-    presets: defaultPresetsForWebpack,
-    plugins: defaultPluginsForWebpack,
-};
+const isTestEnv = process.env.BABEL_ENV === 'test' || process.env.NODE_ENV === 'test';
 
 const metro = {
     presets: [require('@react-native/babel-preset')],
@@ -69,6 +37,9 @@ const metro = {
         // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
         // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
         '@babel/plugin-transform-flow-strip-types',
+
+        // Inline EXPO_PUBLIC_* env vars into release bundles (e.g. EXPO_PUBLIC_USE_RN_FETCH to keep RN fetch).
+        expoInlineEnvVars,
 
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
@@ -124,7 +95,27 @@ const metro = {
         ],
         '@babel/plugin-transform-export-namespace-from',
         // The worklets babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
-        'react-native-worklets/plugin',
+        [
+            'react-native-worklets/plugin',
+            {
+                bundleMode: !isTestEnv,
+                // In Bundle Mode, an import that a worklet captures in its closure becomes a "remote function"
+                // and throws when called synchronously on a Worklet Runtime. The `react-native-live-markdown`
+                // ExpensiMark parser runs on the LiveMarkdownRuntime and directly imports `ExpensiMark`,
+                // `unescapeText` (from `expensify-common/utils`) and `decode` (from `html-entities`) into its
+                // worklets, so those imports must be forwarded to avoid the "Tried to synchronously call a
+                // Remote Function" crash. Their transitive dependencies (expensify-common's `Str`, `punycode`,
+                // `awesome-phonenumber`, html-entities' internals, ...) do NOT need forwarding: metro bundles
+                // the whole `require()` graph onto the Worklet Runtime, so they resolve locally there.
+                // `relativePaths` only needs to cover live-markdown's own `./rangeUtils` (expensify-common and
+                // html-entities resolve to CommonJS, where `relativePaths` forwarding never fires).
+                // See https://docs.swmansion.com/react-native-worklets/docs/bundleMode/importForwarding
+                importForwarding: {
+                    moduleNames: ['expensify-common', 'expensify-common/utils', 'html-entities'],
+                    relativePaths: ['@expensify/react-native-live-markdown'],
+                },
+            },
+        ],
     ],
     env: {
         production: {
@@ -172,13 +163,12 @@ module.exports = (api) => {
     }
 
     // For `react-native` (iOS/Android) caller will be "metro"
-    // For `webpack` (Web) caller will be "@babel-loader"
     // For jest, it will be babel-jest
-    // For `storybook` there won't be any config at all so we must give default argument of an empty object
+    // The web build and Storybook (Rsbuild) don't call into this file at all
     const runningIn = api.caller((args = {}) => args.name);
     if (!process.env.KNIP) {
         console.debug('  - running in: ', runningIn);
     }
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
+    return ['metro', 'babel-jest'].includes(runningIn) ? metro : {};
 };

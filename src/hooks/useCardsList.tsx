@@ -1,7 +1,10 @@
-import type {ResultMetadata} from 'react-native-onyx';
 import {filterInactiveCards, splitCardFeedWithDomainID} from '@libs/CardUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
+
+import type {ResultMetadata} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 /* Custom hook that retrieves a list of company cards for the given selected feed. */

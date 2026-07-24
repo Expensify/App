@@ -1,14 +1,18 @@
-import React from 'react';
-import type {ViewProps} from 'react-native';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {ViewProps} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type MessageEditCancelButtonProps = ViewProps & {
     /** Handle clicking on cancel button */

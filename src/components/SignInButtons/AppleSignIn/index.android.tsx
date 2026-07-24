@@ -1,13 +1,20 @@
-import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
-import type {AndroidConfig} from '@invertase/react-native-apple-authentication';
-import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
+
 import useOnyx from '@hooks/useOnyx';
+
 import Log from '@libs/Log';
+
 import {beginAppleSignIn} from '@userActions/Session';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {AndroidConfig} from '@invertase/react-native-apple-authentication';
+
+import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
+import React from 'react';
+
 import type {AppleSignInProps} from '.';
 
 /**

@@ -1,6 +1,9 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
@@ -11,12 +14,20 @@ import useOnyx from './useOnyx';
 function useChatWithAgent() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const chatWithAgent = (accountID: number) => {
-        navigateToAndOpenReportWithAccountIDs([accountID], currentUserPersonalDetails.accountID, introSelected, isSelfTourViewed, betas, personalDetails);
+        navigateToAndOpenReportWithAccountIDs(
+            [accountID],
+            currentUserPersonalDetails.accountID,
+            introSelected,
+            guidedSetupAndTourStatus?.isSelfTourViewed,
+            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            betas,
+            personalDetails,
+        );
     };
 
     return chatWithAgent;

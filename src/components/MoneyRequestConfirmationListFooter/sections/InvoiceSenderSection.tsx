@@ -1,10 +1,12 @@
-import React from 'react';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import InvoiceSenderField from '@components/MoneyRequestConfirmationList/sections/InvoiceSenderField';
 import {invoiceSenderSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
 import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
+
 import CONST from '@src/CONST';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import React from 'react';
 
 type InvoiceSenderSectionProps = {
     /** Selected participants (used to derive the sender workspace) */

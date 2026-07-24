@@ -1,6 +1,7 @@
 import type {Country} from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -62,7 +63,7 @@ const INPUT_IDS = {
         SIGNER_COUNTRY: 'signer_nationality',
         SIGNER_COPY_OF_ID: 'signerCopyOfID',
         SIGNER_ADDRESS_PROOF: 'signerAddressProof',
-        SIGNER_CODICE_FISCALE: 'signerCodiceFiscale',
+        SIGNER_CODICE_FISCALE: 'signerCodiceFiscaleTaxID',
         PROOF_OF_DIRECTORS: 'proofOfDirectors',
         DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
         SECOND_SIGNER_EMAIL: 'secondSignerEmail',

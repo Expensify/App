@@ -1,7 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -9,11 +7,19 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {enableExpensifyCard} from '@libs/actions/Policy/Policy';
 import {navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCompanyCardExpensifyCardPromotionBannerProps = {
     policy: OnyxEntry<Policy>;

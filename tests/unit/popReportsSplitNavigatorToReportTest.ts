@@ -1,8 +1,10 @@
-import {StackActions} from '@react-navigation/native';
 import popReportsSplitNavigatorToReport from '@libs/Navigation/helpers/popReportsSplitNavigatorToReport';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import {StackActions} from '@react-navigation/native';
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,

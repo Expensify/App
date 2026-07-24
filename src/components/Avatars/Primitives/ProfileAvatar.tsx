@@ -1,12 +1,18 @@
-import React from 'react';
-import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import Avatar from '@components/Avatar';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
+
 import useLocalize from '@hooks/useLocalize';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
+
+import React from 'react';
 
 type ProfileAvatarProps = Parameters<typeof Avatar>[0] & {
     /** Whether clicking the avatar navigates to the profile/workspace page */

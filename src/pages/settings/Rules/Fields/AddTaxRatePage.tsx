@@ -1,14 +1,18 @@
-import React from 'react';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {updateDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAllTaxRatesNamesAndValues} from '@libs/PolicyUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type AddTaxRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_TAX>;
 

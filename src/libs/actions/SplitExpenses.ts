@@ -1,17 +1,21 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {calculateAmount} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getTransactionDetails, isOpenReport, isSelfDM} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, resolveSplitItemReportID, resolveSplitMileageRate, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
 
 // We read the whole transactions collection here only because `initSplitExpense` runs in the action
@@ -24,7 +28,6 @@ import {initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, resolveSplit
 let allTransactions: OnyxCollection<Transaction>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
     callback: (value) => (allTransactions = value),
 });
 
@@ -38,7 +41,6 @@ Onyx.connectWithoutView({
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
 });
 
@@ -53,6 +55,7 @@ function initSplitExpense(
     selfDMReportID: string | undefined,
     // When set, the caller's workspace is billing-restricted: redirect to RESTRICTED_ACTION instead of opening the split flow
     restrictedActionPolicyID: string | undefined,
+    personalPolicyOutputCurrency: string | undefined,
     {navigateToEditSplitExpense = false, isProduction = false}: {navigateToEditSplitExpense?: boolean; isProduction?: boolean} = {},
 ): void {
     if (!transaction) {
@@ -148,7 +151,7 @@ function initSplitExpense(
     if (isDistanceRequest(transaction)) {
         // Use the caller-resolved `effectivePolicy` (from `useSplitEffectivePolicy`) for the mileage rate so
         // distance calculations stay in sync with the split edit screens; raw `policy` drives only the billing guard.
-        const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport});
+        const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport, personalPolicyOutputCurrency});
         const {rate, unit, currency} = mileageRate;
 
         if (rate && rate > 0 && transaction?.comment?.customUnit) {

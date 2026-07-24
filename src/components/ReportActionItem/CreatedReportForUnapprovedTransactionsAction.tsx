@@ -1,13 +1,18 @@
-import React from 'react';
 import RenderHTML from '@components/RenderHTML';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getCreatedReportForUnapprovedTransactionsMessage, getOriginalMessage, isOriginalReportDeleted} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import React from 'react';
 
 type CreatedReportForUnapprovedTransactionsActionProps = {
     /** The report action when a report was created for unapproved transactions  */

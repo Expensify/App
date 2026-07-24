@@ -13,10 +13,13 @@
  *   - Third failure                          → reject to error boundary (loop prevention).
  */
 import {renderHook} from '@testing-library/react-native';
-import type {ComponentType} from 'react';
+
 import usePageRefresh from '@hooks/usePageRefresh';
+
 import CONST from '@src/CONST';
 import lazyRetry from '@src/utils/lazyRetry';
+
+import type {ComponentType} from 'react';
 
 type ComponentImport<T> = () => Promise<{default: T}>;
 

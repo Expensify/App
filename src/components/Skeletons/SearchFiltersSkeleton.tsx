@@ -1,11 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
 import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const DEFAULT_CONTAINER_WIDTH = 84;
 const DEFAULT_PILL_WIDTH = 60;

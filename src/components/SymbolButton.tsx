@@ -1,11 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
@@ -39,7 +43,7 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
             >
                 <Icon
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                     src={icons.DownArrow}
                     fill={theme.icon}
                 />

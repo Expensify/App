@@ -1,7 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {NetSuiteCustomFieldForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 function getCustomListInitialSubstep(values: NetSuiteCustomFieldForm) {
     if (!values[INPUT_IDS.LIST_NAME]) {

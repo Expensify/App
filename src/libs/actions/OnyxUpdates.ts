@@ -1,15 +1,19 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {Merge} from 'type-fest';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {Merge} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import {queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
@@ -157,17 +161,46 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
 
         return Promise.resolve(response);
     }
-    if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
-        Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
-    }
+    const previousLastUpdateIDAppliedToClient = lastUpdateIDAppliedToClient;
+    const shouldAdvanceLastUpdateID = !!lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient);
+
+    // Advance the watermark only after the updates are successfully applied. If we advanced first and applying
+    // then failed (e.g. a storage write error), the updates would be silently lost and the client would go stale.
+    // Keeping the watermark where it is lets the next reconnect refetch and reapply the missed updates.
+    const advanceLastUpdateIDAfterApply = <T>(promise: Promise<T>): Promise<T> =>
+        promise
+            .then((result) => {
+                // Deferred updates apply concurrently (Promise.all) and can settle out of order, so re-check the
+                // live watermark and only ever move it forward. Otherwise a slower, older update could overwrite a
+                // newer one, moving the watermark backwards and making gap detection refetch already-applied updates.
+                // The in-memory value is updated synchronously so concurrent settles in the same batch stay monotonic.
+                if (shouldAdvanceLastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
+                    lastUpdateIDAppliedToClient = Number(lastUpdateID);
+                    Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
+                }
+                return result;
+            })
+            .catch((error) => {
+                if (shouldAdvanceLastUpdateID) {
+                    Log.alert('[OnyxUpdateManagerError] Applying the updates failed, not advancing lastUpdateID so the client can recover on the next reconnect', {
+                        type,
+                        command: request?.command,
+                        lastUpdateID,
+                        previousLastUpdateIDAppliedToClient,
+                        error: error instanceof Error ? error.message : String(error),
+                    });
+                }
+                throw error;
+            });
+
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        return applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
+        return advanceLastUpdateIDAfterApply(applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
-        return applyPusherOnyxUpdates(updates, Number(lastUpdateID));
+        return advanceLastUpdateIDAfterApply(applyPusherOnyxUpdates(updates, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
-        return applyAirshipOnyxUpdates(updates, Number(lastUpdateID));
+        return advanceLastUpdateIDAfterApply(applyAirshipOnyxUpdates(updates, Number(lastUpdateID)));
     }
 }
 

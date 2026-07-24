@@ -1,9 +1,12 @@
-import {FP, FPAttributeFormat} from 'group-ib-fp';
 import {getApiRoot} from '@libs/ApiUtils';
 import {getOldDotEnvironmentURL} from '@libs/Environment/Environment';
 import getEnvironment from '@libs/Environment/getEnvironment';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
+
+import {FP, FPAttributeFormat} from 'group-ib-fp';
+
 import enableCapabilities from './enableCapabilities/index';
 
 // The GroupIB SDK requires us to set both iOS and Android customer IDs when initializing the SDK, instead of just one that the App is running on.

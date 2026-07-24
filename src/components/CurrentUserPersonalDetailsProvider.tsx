@@ -1,10 +1,14 @@
-import React, {createContext, useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {createContext, useCallback} from 'react';
+
 import {useSession} from './OnyxListItemProvider';
 
 const defaultCurrentUserPersonalDetails: CurrentUserPersonalDetails = {

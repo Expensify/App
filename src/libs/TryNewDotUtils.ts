@@ -1,7 +1,9 @@
-import {differenceInDays} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {TryNewDot} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {differenceInDays} from 'date-fns';
 
 const NEW_DOT_MIN_DAYS_BEFORE_HIDING_CLASSIC_REDIRECT = 30;
 
@@ -31,7 +33,11 @@ function isOldAppRedirectBlocked(tryNewDot: OnyxEntry<TryNewDot>, shouldRespectM
     return tryNewDot?.classicRedirect?.isLockedToNewDot === true || hasBeenInNewDot30Days(tryNewDot) || (shouldRespectMobileLock && isLockedToNewApp(tryNewDot));
 }
 
-function shouldHideOldAppRedirect(tryNewDot: OnyxEntry<TryNewDot>, isLoadingTryNewDot: boolean, shouldRespectMobileLock: boolean): boolean {
+function shouldHideOldAppRedirect(tryNewDot: OnyxEntry<TryNewDot>, isLoadingTryNewDot: boolean, shouldRespectMobileLock: boolean, isDevelopment = false): boolean {
+    if (isDevelopment) {
+        return false;
+    }
+
     return (shouldRespectMobileLock && isLoadingTryNewDot) || isOldAppRedirectBlocked(tryNewDot, shouldRespectMobileLock);
 }
 

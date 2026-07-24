@@ -1,6 +1,3 @@
-import {format, parseISO} from 'date-fns';
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import StatusBadge from '@components/StatusBadge';
 import Switch from '@components/Switch';
@@ -8,17 +5,24 @@ import Table from '@components/Table';
 import type {TableData} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
+
+import {format, parseISO} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
 
 type DistanceRateTableItemData = TableData & {
     rateID: string;
@@ -58,7 +62,10 @@ function getRateStatusColors(status: string, theme: ReturnType<typeof useTheme>,
             return theme.reportStatusBadge.outstanding;
         case CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE:
         default:
-            return {backgroundColor: isSelected ? theme.buttonHoveredBG : theme.badgeDefaultBG, textColor: theme.text};
+            return {
+                backgroundColor: isSelected ? theme.buttonHoveredBG : theme.badgeDefaultBG,
+                textColor: theme.text,
+            };
     }
 }
 
@@ -70,7 +77,6 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
     const {processedData} = useTableContext<DistanceRateTableItemData>();
 
     const {rate, formattedRate, pendingAction, errors} = item;
-    const isDeleting = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isSelected = processedData.at(rowIndex)?.selected ?? false;
 
     const status = getRateStatus(rate);
@@ -79,18 +85,12 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
 
     const accessibilityLabel = [rate.name, statusLabels[status], formattedRate, dateLabelText].filter(Boolean).join(', ');
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceDistanceRatesTableItem',
-        isDeleting,
-    };
-
     return (
         <Table.Row
             interactive
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={reasonAttributes}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ROW}
             offlineWithFeedback={{
                 errors,
@@ -105,6 +105,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     {shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 text={rate.name ?? ''}
                                 style={[styles.optionDisplayName, styles.pre]}
                             />
@@ -115,6 +116,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                                     textColor={statusColors.textColor}
                                 />
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     text={[formattedRate, dateLabelText].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `)}
                                     numberOfLines={1}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
@@ -136,6 +138,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={rate.name ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -146,6 +149,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={formattedRate}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -156,6 +160,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     {!shouldUseNarrowTableLayout && shouldShowDateColumns && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={formatDate(rate.startDate)}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -166,6 +171,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                     {!shouldUseNarrowTableLayout && shouldShowDateColumns && (
                         <View style={[styles.flex1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
                                 text={formatDate(rate.endDate)}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}

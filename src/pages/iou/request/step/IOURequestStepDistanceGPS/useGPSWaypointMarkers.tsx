@@ -1,10 +1,14 @@
-import type {ReactNode} from 'react';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
+
 import useMapMarkers from '@hooks/useMapMarkers';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import useOnyx from '@hooks/useOnyx';
+
 import {getGPSWaypoints, isTripStopped as isTripStoppedUtil} from '@libs/GPSDraftDetailsUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ReactNode} from 'react';
 
 function useGPSWaypointMarkers(): WayPoint[] {
     const getMapMarkerIconComponent = useMapMarkers();

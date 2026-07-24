@@ -1,8 +1,10 @@
-import type {ReactElement, ReactNode} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {BaseSelectionListProps} from '@components/SelectionList/types';
+
 import type CONST from '@src/CONST';
+
+import type {ReactElement, ReactNode} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */

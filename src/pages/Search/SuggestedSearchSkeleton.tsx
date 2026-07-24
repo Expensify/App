@@ -1,12 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const SUGGESTED_SEARCH_SKELETON_TEST_ID = 'SuggestedSearchSkeleton';
 const NAV_ITEM_HEIGHT = variables.sectionMenuItemHeightCompact;

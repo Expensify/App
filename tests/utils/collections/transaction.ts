@@ -1,7 +1,8 @@
-import {rand, randAmount, randBoolean, randNumber, randPastDate, randWord} from '@ngneat/falso';
-import {format} from 'date-fns';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+
+import {rand, randAmount, randBoolean, randNumber, randPastDate, randWord} from '@ngneat/falso';
+import {format} from 'date-fns';
 
 export default function createRandomTransaction(index: number): Transaction {
     return {

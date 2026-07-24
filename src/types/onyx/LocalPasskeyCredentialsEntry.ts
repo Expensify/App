@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 /** Represents the transport method for a passkey credential */
 type PasskeyTransport = ValueOf<typeof CONST.PASSKEY_TRANSPORT>;

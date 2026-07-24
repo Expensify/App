@@ -1,7 +1,10 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import type useOdometerReceiptStitcherType from '@hooks/useOdometerReceiptStitcher';
 import type {UseOdometerReceiptStitcherArgs} from '@hooks/useOdometerReceiptStitcher';
+
 import type * as DeriveOdometerReceiptModule from '@libs/OdometerReceipt/deriveOdometerReceipt';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -57,7 +60,7 @@ jest.mock('@libs/Log', () => ({
 
 // OdometerImageUtils is used inline by the hook. Stub it to break the transitive import chain
 // (FileUtils → saveLastRoute → API → ...). The hook only needs getOdometerImageUri.
-jest.mock('@libs/OdometerImageUtils', () => ({
+jest.mock('@libs/OdometerUtils', () => ({
     __esModule: true,
     getOdometerImageUri: (image: unknown) => {
         if (typeof image === 'string') {

@@ -1,17 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceRoomRowData = TableData & {
     /** The room reportID */
@@ -51,7 +55,6 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
             interactive
             rowIndex={rowIndex}
             accessibilityLabel={item.name}
-            skeletonReasonAttributes={{context: 'WorkspaceRoomsTableRow'}}
             onPress={item.action}
         >
             {({hovered}) => (

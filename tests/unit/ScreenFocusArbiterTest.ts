@@ -1,12 +1,11 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
-/* eslint-disable import/extensions */
+
 const {tryClaim, resetCycle, Priorities, CYCLE_TIMEOUT_MS} = require<{
     tryClaim: (priority: number) => boolean;
     resetCycle: () => void;
     Priorities: {INITIAL: number; AUTO: number; RETURN: number};
     CYCLE_TIMEOUT_MS: number;
 }>('../../src/libs/ScreenFocusArbiter.ts');
-/* eslint-enable import/extensions */
 
 beforeEach(() => {
     resetCycle();

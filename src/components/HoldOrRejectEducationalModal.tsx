@@ -1,13 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
 import Text from './Text';
@@ -69,7 +73,6 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
             shouldCloseOnConfirm={false}
             onClose={onClose}
             onConfirm={onConfirm}
-            shouldGoBack={false}
             shouldUseScrollView
         >
             <>

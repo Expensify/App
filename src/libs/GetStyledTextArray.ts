@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+
 import StringUtils from './StringUtils';
 
 type StyledText = {

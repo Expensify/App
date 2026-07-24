@@ -1,8 +1,10 @@
-import React from 'react';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 type ShareButtonProps = {
     onPress: () => void;

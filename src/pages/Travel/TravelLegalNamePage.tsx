@@ -1,17 +1,22 @@
-import React, {useEffect} from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {updateLegalName} from '@libs/actions/PersonalDetails';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+
 import BaseLegalNamePage, {validateLegalName} from '@pages/settings/Profile/PersonalDetails/BaseLegalNamePage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+
+import React, {useEffect} from 'react';
 
 function TravelLegalNamePage() {
     const {translate} = useLocalize();

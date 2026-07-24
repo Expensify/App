@@ -1,8 +1,14 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import useSyncModalWithHistory from '@components/Modal/useSyncModalWithHistory';
+
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import {close} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import React, {useContext, useRef, useState} from 'react';
+
 import {closeSearch, openSearch} from './toggleSearch';
 
 // Module-level pending query used to seed the SearchRouter input on open.
@@ -27,12 +33,12 @@ type SearchRouterStateContextType = {
 
 type SearchRouterActionsContextType = {
     openSearchRouter: (query?: string, isFromSearchPage?: boolean) => void;
-    closeSearchRouter: () => void;
+    /**
+     * Closes the Search Router. On native, `afterTransition` runs after the modal transition. On web, callers that
+     * need this behavior must use the SearchRouterModal wrapper, which runs the callback from `onModalHide`.
+     */
+    closeSearchRouter: (afterTransition?: () => void) => void;
     toggleSearch: () => void;
-};
-
-type HistoryState = {
-    isSearchModalOpen?: boolean;
 };
 
 const defaultSearchRouterActionsContext: SearchRouterActionsContextType = {
@@ -45,39 +51,25 @@ const SearchRouterStateContext = React.createContext<SearchRouterStateContextTyp
 
 const SearchRouterActionsContext = React.createContext<SearchRouterActionsContextType>(defaultSearchRouterActionsContext);
 
-const isBrowserWithHistory = typeof window !== 'undefined' && typeof window.history !== 'undefined';
-const canListenPopState = typeof window !== 'undefined' && typeof window.addEventListener === 'function';
-
 function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
-    useEffect(() => {
-        if (!canListenPopState) {
-            return;
-        }
 
-        /**
-         * Handle browser back/forward navigation
-         * When user clicks back/forward, we check the history state:
-         * - If state has isSearchModalOpen=true, we show the modal
-         * - If state has isSearchModalOpen=false or no state, we hide the modal
-         * This creates a proper browser history integration where modal state
-         * is part of the navigation history
-         */
-        const handlePopState = (event: PopStateEvent) => {
-            const state = event.state as HistoryState | null;
-            if (state?.isSearchModalOpen) {
-                setIsSearchRouterDisplayed(true);
-                searchRouterDisplayedRef.current = true;
-            } else {
-                setIsSearchRouterDisplayed(false);
-                searchRouterDisplayedRef.current = false;
-            }
-        };
-
-        window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-    }, []);
+    // Registers a browser-history entry when the SearchRouter is open, so browser Back closes it
+    // and browser Forward (after Back) reopens it. Uses the same sentinel mechanism as other modals
+    // rather than direct window.history calls, avoiding misalignment with other sentinel-tracked overlays.
+    useSyncModalWithHistory({
+        isVisible: isSearchRouterDisplayed,
+        shouldHandleNavigationBack: true,
+        onClose: () => {
+            closeSearch(setIsSearchRouterDisplayed);
+            searchRouterDisplayedRef.current = false;
+        },
+        onOpen: () => {
+            openSearch(setIsSearchRouterDisplayed);
+            searchRouterDisplayedRef.current = true;
+        },
+    });
 
     const startListRenderSpan = () => {
         startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER, {
@@ -90,9 +82,6 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     const openSearchRouter = (query?: string, isFromSearchPageSearchButton?: boolean) => {
         pendingRouterQuery = query ?? '';
         pendingIsFromSearchPageSearchButton = isFromSearchPageSearchButton ?? false;
-        if (isBrowserWithHistory) {
-            window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
-        }
         startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT, {
             name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT,
             op: 'ui.modal.wait',
@@ -110,19 +99,13 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         );
     };
 
-    const closeSearchRouter = () => {
+    const closeSearchRouter = (afterTransition?: () => void) => {
         cancelSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
-        closeSearch(setIsSearchRouterDisplayed);
+        closeSearch(setIsSearchRouterDisplayed, afterTransition);
         searchRouterDisplayedRef.current = false;
-        if (isBrowserWithHistory) {
-            const state = window.history.state as HistoryState | null;
-            if (state?.isSearchModalOpen) {
-                window.history.replaceState({isSearchModalOpen: false} satisfies HistoryState, '');
-            }
-        }
     };
 
     const startSearchRouterOpenSpan = () => {

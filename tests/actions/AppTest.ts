@@ -1,15 +1,22 @@
 import {waitFor} from '@testing-library/react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import DateUtils from '@libs/DateUtils';
-import '@libs/Navigation/AppNavigator/AuthScreens';
 import Navigation from '@libs/Navigation/Navigation';
+
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import '@libs/Navigation/AppNavigator/AuthScreens';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type Request from '../../src/types/onyx/Request';
+
 import * as App from '../../src/libs/actions/App';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
-import type Request from '../../src/types/onyx/Request';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -37,7 +44,6 @@ describe('actions/App', () => {
     test('lastFullReconnectTime - openApp', async () => {
         // When Open App runs
         App.openApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated
@@ -48,7 +54,6 @@ describe('actions/App', () => {
         // When a full ReconnectApp runs
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         App.reconnectApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated
@@ -59,7 +64,6 @@ describe('actions/App', () => {
         // When an incremental ReconnectApp runs
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         App.reconnectApp(123);
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should NOT be updated
@@ -71,7 +75,6 @@ describe('actions/App', () => {
 
         // When OpenApp runs
         App.openApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated
@@ -92,7 +95,6 @@ describe('actions/App', () => {
 
         // When OpenApp runs
         App.openApp();
-        App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
 
         // The lastFullReconnectTime should be updated

@@ -1,9 +1,13 @@
-import React from 'react';
 import type {ListItem} from '@components/SelectionList/types';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type {BaseListItemHeaderProps} from './BaseListItemHeader';
-import BaseListItemHeader from './BaseListItemHeader';
 import type {TransactionMonthGroupListItemType} from './types';
+
+import BaseListItemHeader from './BaseListItemHeader';
 
 type MonthListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The month group currently being looked at */

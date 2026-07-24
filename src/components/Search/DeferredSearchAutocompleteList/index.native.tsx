@@ -1,11 +1,16 @@
-import React, {useRef, useState, useTransition} from 'react';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {SearchAutocompleteListProps} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
+
 import useIsFocusedUntilTransitionEnd from '@hooks/useIsFocusedUntilTransitionEnd';
+import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
+
 import {endSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import React, {useRef, useState} from 'react';
 
 /**
  * This component acts as a wrapper for a SearchAutocompleteList, waiting for the navigation to be ready and deferring it,
@@ -16,27 +21,34 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
     // On native it stays mounted behind when a chat is opened from it.
     // Unmount the heavy list once this screen loses focus (kept mounted through the closing transition so it doesn't blank mid-navigation).
     const isFocusedUntilTransitionEnd = useIsFocusedUntilTransitionEnd();
-    const [shouldRender, setShouldRender] = useState(false);
-    const [, startTransition] = useTransition();
+    const [hasLayout, setHasLayout] = useState(false);
     const hasEndedPageVisibleSpan = useRef(false);
 
-    // Run the transition after the skeleton is mounted; end the "page visible" span once
-    const renderComponent = () => {
+    const markLayoutComplete = () => {
         if (!hasEndedPageVisibleSpan.current) {
             hasEndedPageVisibleSpan.current = true;
             endSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
         }
-        startTransition(() => setShouldRender(true));
+        setHasLayout(true);
     };
+
+    // Wait for the slide-in animation to finish before rendering the list. With startTransition, a competing update
+    // interrupted and discarded the (expensive) first mount render before it could commit, forcing React to redo
+    // that same render a second time. useRunAfterTransitions fires a plain, synchronous update instead, so the first render always completes in a single pass.
+    const shouldRender = useRunAfterTransitions(hasLayout);
 
     if (!shouldRender || !isFocusedUntilTransitionEnd) {
         return (
             <OptionsListSkeletonView
                 fixedNumItems={4}
                 shouldStyleAsTable
-                onLayout={renderComponent}
+                onLayout={markLayoutComplete}
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={{context: 'DeferredSearchAutocompleteList'} satisfies SkeletonSpanReasonAttributes}
+                reasonAttributes={
+                    {
+                        context: 'DeferredSearchAutocompleteList',
+                    } satisfies SkeletonSpanReasonAttributes
+                }
             />
         );
     }

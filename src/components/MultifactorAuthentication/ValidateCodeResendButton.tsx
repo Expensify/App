@@ -1,15 +1,18 @@
-import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
-import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
 import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type MultifactorAuthenticationValidateCodeResendButtonHandle = {
     resetCountdown: () => void;

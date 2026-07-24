@@ -1,19 +1,26 @@
-import React from 'react';
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getUserDetailTooltipText} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
-import ProfileAvatar from './ProfileAvatar';
+
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {MultipleAvatarsProps} from './types';
+
+import ProfileAvatar from './ProfileAvatar';
 
 type AvatarStyles = {
     singleAvatarStyle: ViewStyle & ImageStyle;
@@ -51,12 +58,12 @@ function DiagonalAvatars({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const primaryIcon = icons.at(0);
     const secondaryIcon = icons.at(1);
 
-    const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : [''];
+    const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : [''];
     const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 

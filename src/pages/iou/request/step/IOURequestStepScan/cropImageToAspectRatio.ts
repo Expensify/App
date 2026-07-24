@@ -1,11 +1,14 @@
-import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
-import ImageSize from 'react-native-image-size';
-import type {Orientation} from 'react-native-vision-camera';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
 import {JPEG_QUALITY} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {Orientation} from 'react-native-vision-camera';
+
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
+import ImageSize from 'react-native-image-size';
 
 type ImageObject = {
     /** File object of the image */

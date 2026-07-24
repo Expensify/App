@@ -1,6 +1,8 @@
 import React from 'react';
-import BaseKYCWall from './BaseKYCWall';
+
 import type {KYCWallProps} from './types';
+
+import BaseKYCWall from './BaseKYCWall';
 
 function KYCWall({ref, ...props}: KYCWallProps) {
     return (

@@ -1,11 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
-import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import {
@@ -19,6 +20,7 @@ import {
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
 import {isValidInputLength} from '@libs/ValidationUtils';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -26,6 +28,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type ValidationResult = {errorKey: TranslationPaths; shouldSetDidConfirmSplit?: boolean} | {errorKey: null};
 
@@ -102,6 +106,9 @@ type UseConfirmationValidationParams = {
     /** Whether the transaction is a per-diem request */
     isPerDiemRequest: boolean;
 
+    /** Whether a tracked expense is being moved into a workspace (submit/categorize/share from the self-DM) */
+    isMovingTransactionFromTrackExpense: boolean;
+
     /** Whether the transaction is a time-tracking request */
     isTimeRequest: boolean;
 
@@ -110,6 +117,12 @@ type UseConfirmationValidationParams = {
 
     /** Whether the new manual expense flow is enabled */
     isNewManualExpenseFlowEnabled: boolean;
+
+    /** Whether the confirmation fields are read-only (date is not inline-editable) */
+    isReadOnly: boolean;
+
+    /** Whether the date field is shown for this flow (mirrors the footer's date visibility) */
+    shouldShowDate: boolean;
 };
 
 /**
@@ -151,9 +164,12 @@ function useConfirmationValidation({
     isDistanceRequest,
     isDistanceRequestWithPendingRoute,
     isPerDiemRequest,
+    isMovingTransactionFromTrackExpense,
     isTimeRequest,
     routeError,
     isNewManualExpenseFlowEnabled,
+    isReadOnly,
+    shouldShowDate,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
@@ -189,8 +205,11 @@ function useConfirmationValidation({
         ) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        // The date is an inline required field in the new manual flow; block confirmation when the user cleared it.
-        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && isCreatedMissing(transaction)) {
+        // The date is an inline, clearable required field in the new manual flow for every type that shows it
+        // (manual, distance, time, invoice, ...). Block confirmation when the user cleared it. Gating on the same
+        // `shouldShowDate && !isReadOnly` condition that renders the inline picker keeps validation and UI in sync,
+        // and skips read-only/scan flows where the date is populated server-side.
+        if (isNewManualExpenseFlowEnabled && shouldShowDate && !isReadOnly && isCreatedMissing(transaction)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';
@@ -216,7 +235,9 @@ function useConfirmationValidation({
 
         const isCategoryBeingCreated = policyCategories?.[iouCategory]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-        if (iouCategory && policyCategories && !policyCategories[iouCategory]?.enabled && !isCategoryBeingCreated) {
+        // The 'Uncategorized'/'none' sentinel means no category, so treat it as missing (not out of policy) here, mirroring
+        // isCategoryMissing/ViolationsUtils. Otherwise it wrongly blocks confirmation when the policy lacks that literal category.
+        if (iouCategory && !isCategoryMissing(iouCategory) && policyCategories && !policyCategories[iouCategory]?.enabled && !isCategoryBeingCreated) {
             return {errorKey: 'violations.categoryOutOfPolicy'};
         }
 
@@ -262,6 +283,13 @@ function useConfirmationValidation({
 
         if (isPerDiemRequest && (transaction?.comment?.customUnit?.subRates ?? []).length === 0) {
             return {errorKey: 'iou.error.invalidSubrateLength'};
+        }
+
+        // Per diem is a Control-plan feature, so block moving a tracked per diem expense into a workspace that can't
+        // process it (e.g. a Submit workspace created via "Submit to my employer"). Without this guard the submission
+        // falls through to a request the backend can't resolve, leaving the destination report stuck loading.
+        if (isPerDiemRequest && isMovingTransactionFromTrackExpense && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
+            return {errorKey: 'iou.moveExpensesError'};
         }
 
         if (iouType !== CONST.IOU.TYPE.PAY) {

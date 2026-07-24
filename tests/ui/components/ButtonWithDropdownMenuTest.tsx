@@ -1,8 +1,12 @@
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 describe('ButtonWithDropdownMenu (single option)', () => {
     const mockOnSelected = jest.fn();

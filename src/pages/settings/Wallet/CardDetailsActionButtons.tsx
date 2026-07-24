@@ -1,10 +1,14 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import type {ButtonProps} from '@components/Button';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type CardDetailsActionButtonsProps = {
     children: React.ReactNode;

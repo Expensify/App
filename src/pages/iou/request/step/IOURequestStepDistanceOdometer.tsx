@@ -1,18 +1,14 @@
-import {useIsFocused} from '@react-navigation/native';
-import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -31,36 +27,51 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {clearOdometerDraft, saveOdometerDraft, setMoneyRequestOdometerReading} from '@libs/actions/OdometerTransactionUtils';
+import {clearOdometerDraft, getOdometerHasUnsavedChanges, removeMoneyRequestOdometerImage, saveOdometerDraft, setMoneyRequestOdometerReading} from '@libs/actions/OdometerTransactionUtils';
 import {restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {getOdometerImageIdentity} from '@libs/OdometerUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import lodashIsEmpty from 'lodash/isEmpty';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import useOdometerImageHandlers from './IOURequestStepDistance/hooks/useOdometerImageHandlers';
 import useOdometerNavigation from './IOURequestStepDistance/hooks/useOdometerNavigation';
 import useOdometerReadingsState from './IOURequestStepDistance/hooks/useOdometerReadingsState';
 import useOdometerTransactionBackup from './IOURequestStepDistance/hooks/useOdometerTransactionBackup';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
@@ -68,6 +79,11 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
+
+/** `BaseTextInputRef` also covers masked-input refs (`HTMLFormElement`), which don't have `isFocused`. */
+function isFocusableTextInputRef(ref: BaseTextInputRef): ref is AnimatedTextInputRef {
+    return 'isFocused' in ref;
+}
 
 function IOURequestStepDistanceOdometer({
     report,
@@ -94,6 +110,9 @@ function IOURequestStepDistanceOdometer({
     const didSaveEditingConfirmationRef = useRef(false);
     const shouldBypassDiscardConfirmationRef = useRef(false);
     const backupHandledManually = useRef(false);
+    // Blob-failure recovery sets this so useOdometerTransactionBackup skips unmount restore. Separate from
+    // backupHandledManually so discard-changes prompts still work after reload
+    const recoveryHandledBackupRef = useRef(false);
     const userHasUnsavedTypingRef = useRef(false);
 
     const isArchived = useReportIsArchived(report?.reportID);
@@ -104,6 +123,8 @@ function IOURequestStepDistanceOdometer({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const policy = usePolicy(report?.policyID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
@@ -157,10 +178,11 @@ function IOURequestStepDistanceOdometer({
         if (shouldResetLocalState) {
             resetOdometerLocalStateRef.current();
         }
-        backupHandledManually.current = true;
+        recoveryHandledBackupRef.current = true;
     });
 
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {
         startReading,
@@ -178,7 +200,7 @@ function IOURequestStepDistanceOdometer({
         initialEndImageRef,
         resetOdometerLocalState,
         hasInitializedRefs,
-    } = useOdometerReadingsState({currentTransaction, isEditing, selectedTab, isLoadingSelectedTab, hasVerifiedBlobs, odometerDraft});
+    } = useOdometerReadingsState({currentTransaction, isEditing, selectedTab, isLoadingSelectedTab, hasVerifiedBlobs, odometerDraft, userHasUnsavedTypingRef});
 
     useEffect(() => {
         resetOdometerLocalStateRef.current = resetOdometerLocalState;
@@ -195,6 +217,7 @@ function IOURequestStepDistanceOdometer({
         transactionID,
         didSaveEditingConfirmationRef,
         backupHandledManuallyRef: backupHandledManually,
+        recoveryHandledBackupRef,
     });
 
     const navigateToNextStep = useOdometerNavigation({
@@ -268,11 +291,7 @@ function IOURequestStepDistanceOdometer({
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
-    // Per-keystroke validation: enforce format constraints and cap the max value.
-    // The max-value check allows edits that *reduce* the value (e.g. backspacing
-    // a legacy over-max reading) but rejects keystrokes that would increase
-    // beyond ODOMETER_MAX_VALUE.  Submit-time validation in handleNext is the
-    // final safety net.
+    // Per-keystroke validation: enforce format constraints and cap the max value
     const isOdometerInputValid = (text: string, previousText: string): boolean => {
         if (!text) {
             return true;
@@ -288,7 +307,7 @@ function IOURequestStepDistanceOdometer({
         const value = parseFloat(stripped);
 
         // Allow edits that reduce the value (e.g. backspacing a legacy over-max reading),
-        // but reject keystrokes that would increase beyond the max.
+        // but reject keystrokes that would increase beyond the max
         if (!Number.isNaN(value) && value > CONST.IOU.ODOMETER_MAX_VALUE) {
             const previousValue = parseFloat(DistanceRequestUtils.normalizeOdometerText(previousText, fromLocaleDigit));
             if (Number.isNaN(previousValue) || value >= previousValue) {
@@ -297,6 +316,7 @@ function IOURequestStepDistanceOdometer({
         }
         return true;
     };
+    const readingsMatchBaseline = (nextStart: string, nextEnd: string) => nextStart === initialStartReadingRef.current && nextEnd === initialEndReadingRef.current;
 
     const handleStartReadingChange = (text: string) => {
         if (!isOdometerInputValid(text, startReading)) {
@@ -305,7 +325,7 @@ function IOURequestStepDistanceOdometer({
         const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
         setStartReading(textForDisplay);
         startReadingRef.current = textForDisplay;
-        userHasUnsavedTypingRef.current = true;
+        userHasUnsavedTypingRef.current = !readingsMatchBaseline(textForDisplay, endReadingRef.current);
         if (formError) {
             setFormError('');
         }
@@ -318,7 +338,7 @@ function IOURequestStepDistanceOdometer({
         const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
         setEndReading(textForDisplay);
         endReadingRef.current = textForDisplay;
-        userHasUnsavedTypingRef.current = true;
+        userHasUnsavedTypingRef.current = !readingsMatchBaseline(startReadingRef.current, textForDisplay);
         if (formError) {
             setFormError('');
         }
@@ -369,6 +389,7 @@ function IOURequestStepDistanceOdometer({
                         odometerEnd: end,
                     },
                     policy,
+                    personalPolicy?.outputCurrency,
                 );
                 Navigation.goBack();
                 return;
@@ -386,6 +407,7 @@ function IOURequestStepDistanceOdometer({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportOwnerLogin,
                     distance: calculatedDistance,
                     odometerStart: start,
                     odometerEnd: end,
@@ -401,6 +423,9 @@ function IOURequestStepDistanceOdometer({
                     parentReportNextStep,
                     recentWaypoints,
                     delegateAccountID,
+                    reportPolicyTags,
+                    isTrackIntentUser,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
             }
             Navigation.goBack();
@@ -424,7 +449,7 @@ function IOURequestStepDistanceOdometer({
         }
 
         if (shouldSkipConfirmation) {
-            // Skip-confirmation submit navigates away and should never be blocked by discard modal.
+            // Skip-confirmation submit navigates away and should never be blocked by discard modal
             shouldBypassDiscardConfirmationRef.current = true;
         }
 
@@ -483,6 +508,59 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage();
     };
 
+    const getHasUnsavedChanges = () =>
+        getOdometerHasUnsavedChanges({
+            isGuardActive:
+                hasInitializedRefs.current &&
+                isFocused &&
+                !isEditing &&
+                !shouldBypassDiscardConfirmationRef.current &&
+                !didSaveEditingConfirmationRef.current &&
+                !backupHandledManually.current,
+            isUserTyping: userHasUnsavedTypingRef.current,
+            odometerDraft,
+            currentComment: currentTransaction?.comment,
+            transactionStartImageUri: getOdometerImageIdentity(transaction?.comment?.odometerStartImage),
+            transactionEndImageUri: getOdometerImageIdentity(transaction?.comment?.odometerEndImage),
+            baselineStartImageUri: getOdometerImageIdentity(initialStartImageRef.current),
+            baselineEndImageUri: getOdometerImageIdentity(initialEndImageRef.current),
+            hasReadingChanges: startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current,
+        });
+
+    const handleTabSwitchDiscard = () => {
+        setMoneyRequestOdometerReading(transactionID, null, null, isTransactionDraft);
+        removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, isTransactionDraft, true);
+        removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, isTransactionDraft, true);
+        // Clear typing guard so draft re-hydration can resync readings into the inputs on return.
+        userHasUnsavedTypingRef.current = false;
+        resetOdometerLocalState();
+        setFormError('');
+    };
+
+    // The inputs are `editable={!isDiscardModalVisible}`, so a bare focus() call here would still be a no-op:
+    // this fires before React commits the `isDiscardModalVisible: false` update, and on Android, before the
+    // native window even regains focus. focusComposerWithDelay waits on both (see its Android-specific gates)
+    // before focusing, so no extra effect/state is needed to defer past the commit.
+    const restoreLastInputFocus = () => {
+        const input = lastFocusedInputRef.current;
+        if (input && isFocusableTextInputRef(input)) {
+            focusComposerWithDelay(input)(true);
+        }
+    };
+
+    useDiscardChangesConfirmation({
+        getHasUnsavedChanges,
+        onCancel: restoreLastInputFocus,
+        onConfirm: isEditingConfirmation
+            ? async () => {
+                  await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
+                  backupHandledManually.current = true;
+              }
+            : undefined,
+        onTabSwitchDiscard: handleTabSwitchDiscard,
+        onVisibilityChange: setIsDiscardModalVisible,
+    });
+
     const handleSaveForLater = useCallback(async () => {
         shouldBypassDiscardConfirmationRef.current = true;
 
@@ -515,38 +593,6 @@ function IOURequestStepDistanceOdometer({
         }
         Navigation.closeRHPFlow();
     }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate, setFormError]);
-
-    useDiscardChangesConfirmation({
-        onCancel: () => {
-            InteractionManager.runAfterInteractions(() => {
-                lastFocusedInputRef.current?.focus();
-            });
-        },
-        getHasUnsavedChanges: () => {
-            if (
-                !isFocused ||
-                isEditing ||
-                shouldBypassDiscardConfirmationRef.current ||
-                didSaveEditingConfirmationRef.current ||
-                !hasInitializedRefs.current ||
-                backupHandledManually.current
-            ) {
-                return false;
-            }
-            const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
-            const hasImageChanges =
-                getOdometerImageUri(transaction?.comment?.odometerStartImage) !== getOdometerImageUri(initialStartImageRef.current) ||
-                getOdometerImageUri(transaction?.comment?.odometerEndImage) !== getOdometerImageUri(initialEndImageRef.current);
-            return hasReadingChanges || hasImageChanges;
-        },
-        onConfirm: isEditingConfirmation
-            ? async () => {
-                  await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
-                  backupHandledManually.current = true;
-              }
-            : undefined,
-        onVisibilityChange: setIsDiscardModalVisible,
-    });
 
     return (
         <StepScreenWrapper

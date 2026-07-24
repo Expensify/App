@@ -1,15 +1,19 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import LongTermsForm from '@pages/EnablePayments/shared/TermsForms/LongTermsForm';
 import ShortTermsForm from '@pages/EnablePayments/shared/TermsForms/ShortTermsForm';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function FeesStep({onNext}: SubPageProps) {
     const styles = useThemeStyles();

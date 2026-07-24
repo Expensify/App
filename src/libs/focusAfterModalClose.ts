@@ -1,4 +1,5 @@
 import type {TextInput} from 'react-native';
+
 import ComposerFocusManager from './ComposerFocusManager';
 import isWindowReadyToFocus from './isWindowReadyToFocus';
 

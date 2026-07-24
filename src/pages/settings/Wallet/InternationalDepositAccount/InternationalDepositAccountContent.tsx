@@ -1,13 +1,12 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubPage from '@hooks/useSubPage';
+
 import {clearCorpayBankAccountFields} from '@libs/actions/BankAccounts';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
@@ -16,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,6 +25,14 @@ import type SCREENS from '@src/SCREENS';
 import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+
+import type CustomSubPageProps from './types';
+
 import AccountHolderInformation from './subPages/AccountHolderInformation';
 import AccountType from './subPages/AccountType';
 import BankAccountDetails from './subPages/BankAccountDetails';
@@ -32,7 +40,6 @@ import BankInformation from './subPages/BankInformation';
 import Confirmation from './subPages/Confirmation';
 import CountrySelection from './subPages/CountrySelection';
 import Success from './subPages/Success';
-import type CustomSubPageProps from './types';
 import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
 
 type InternationalDepositAccountContentProps = {

@@ -1,11 +1,14 @@
-import React, {memo} from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import React, {memo} from 'react';
+import {View} from 'react-native';
 
 function ExitSurveyOffline() {
     const {translate} = useLocalize();

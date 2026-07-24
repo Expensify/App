@@ -1,8 +1,11 @@
-import React from 'react';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import DiagonalAvatars from './Primitives/DiagonalAvatars';
 import SingleAvatar from './Primitives/SingleAvatar';
 import SubscriptAvatar from './Primitives/SubscriptAvatar';
