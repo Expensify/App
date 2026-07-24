@@ -119,11 +119,9 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             createAgent(firstName, prompt, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
         }
 
-        // Done with the creation flow — drop the stashed template and the avatar draft so a later blank flow starts fresh.
         clearNewAgentTemplate();
         clearNewAgentAvatarDraft();
 
-        // Created the agent — close the whole creation flow (this page + the template picker) and reveal the agents list.
         Navigation.dismissModal();
     };
 
@@ -199,9 +197,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
 function AddAgentPage({route}: AddAgentPageProps) {
     const [template, templateMetadata] = useOnyx(ONYXKEYS.NEW_AGENT_TEMPLATE);
 
-    // Wait for the stashed template to resolve before mounting the form: the inputs' `defaultValue` and the
-    // avatar's initial state are captured once at mount, so they must see a template that persisted across a refresh.
-    // Same-session navigation hits the Onyx cache and skips this, so there's no flash in the common path.
     if (isLoadingOnyxValue(templateMetadata)) {
         return (
             <FullScreenLoadingIndicator

@@ -92,16 +92,14 @@ function NewAgentPage({route}: NewAgentPageProps) {
     }, [isOffline]);
 
     const handleBuildCustomAgent = () => {
-        // Start from scratch — drop any previously stashed template, and wait for the clear to land before
-        // opening the builder so it can't read a stale template and wrongly pre-fill.
+        // Start from scratch — drop any previously stashed template
         clearNewAgentTemplate().then(() => {
             Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute(policyID ? {policyID} : undefined));
         });
     };
 
     const handleAddTemplate = (template: SuggestedAgent, avatarID: AgentAvatarID) => {
-        // Stash the template in Onyx (persists across refresh), then wait for the write to land before opening
-        // the builder so it reads the seed on its first render instead of racing the async Onyx write.
+        // Stash the template in Onyx (persists across refresh)
         setNewAgentTemplate({name: template.name, prompt: template.prompt, avatarID}).then(() => {
             Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute(policyID ? {policyID} : undefined));
         });
