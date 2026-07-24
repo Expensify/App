@@ -1,10 +1,14 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import AppStateMonitor from '@libs/AppStateMonitor';
 import Log from '@libs/Log';
 import {flush} from '@libs/Network/SequentialQueue';
 import {getIsOffline, onReachabilityConfirmed as onNetworkReachabilityConfirmed, refresh as refreshNetworkState, subscribe as subscribeNetworkState} from '@libs/NetworkState';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {reconnectApp} from './App';
 
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;

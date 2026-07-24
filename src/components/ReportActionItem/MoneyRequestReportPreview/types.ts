@@ -1,9 +1,12 @@
+import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 type TransactionPreviewCarouselStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
@@ -62,6 +65,8 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
     transactions: Transaction[];
+    /** Full set of the report's transactions, including optimistically-deleted rows (matches `getReportTransactions`) */
+    allReportTransactions: Transaction[];
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;

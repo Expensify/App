@@ -1,6 +1,9 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useShareSavedSearch from '@hooks/useShareSavedSearch';
+
 import Clipboard from '@libs/Clipboard';
+
 import ROUTES from '@src/ROUTES';
 
 jest.mock('@libs/Clipboard', () => ({

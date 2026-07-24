@@ -1,13 +1,12 @@
 import {useEffect, useRef} from 'react';
+
 import CONST from './CONST';
-import useNetwork from './hooks/useNetwork';
+import useIsLoadingAppRecovery from './hooks/useIsLoadingAppRecovery';
 import useOnyx from './hooks/useOnyx';
-import {openApp} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import Log from './libs/Log';
 import ONYXKEYS from './ONYXKEYS';
 import {accountIDSelector, emailSelector} from './selectors/Session';
-import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 /**
  * Component that does not render anything but isolates delegate-access–related Onyx subscriptions
@@ -17,16 +16,16 @@ import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
  */
 function DelegateAccessHandler() {
     const hasLoggedDelegateMismatchRef = useRef(false);
-    const hasHandledMissingIsLoadingAppRef = useRef(false);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [sessionAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const {isOffline} = useNetwork();
+
+    useIsLoadingAppRecovery();
 
     // Disconnect delegate when the delegate is no longer in the delegates list
     useEffect(() => {
@@ -57,19 +56,6 @@ function DelegateAccessHandler() {
             hasPrimaryLogin: !!account?.primaryLogin,
         });
     }, [account?.delegatedAccess?.delegate, account?.delegatedAccess?.delegators, account?.primaryLogin, hasLoadedApp, isLoadingApp, sessionAccountID, sessionEmail]);
-
-    // Recovery: if isLoadingApp is missing after the app is ready, re-open the app
-    useEffect(() => {
-        if (hasHandledMissingIsLoadingAppRef.current || !hasLoadedApp || isLoadingApp !== undefined || isOffline || isLoadingOnyxValue(isLoadingAppMetadata)) {
-            return;
-        }
-        hasHandledMissingIsLoadingAppRef.current = true;
-        Log.info('[Onyx] isLoadingApp missing after app is ready', false, {
-            sessionAccountID,
-            hasLoadedApp: !!hasLoadedApp,
-        });
-        openApp();
-    }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID, isLoadingAppMetadata]);
 
     return null;
 }

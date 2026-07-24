@@ -1,4 +1,5 @@
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
 
 /**

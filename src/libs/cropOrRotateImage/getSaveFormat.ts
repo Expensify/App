@@ -1,5 +1,6 @@
-import {SaveFormat} from 'expo-image-manipulator';
 import CONST from '@src/CONST';
+
+import {SaveFormat} from 'expo-image-manipulator';
 
 function getSaveFormat(type: string): SaveFormat {
     switch (type) {

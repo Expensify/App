@@ -1,10 +1,13 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ControlSelection from '@libs/ControlSelection';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 
 type BigNumberPadProps = {

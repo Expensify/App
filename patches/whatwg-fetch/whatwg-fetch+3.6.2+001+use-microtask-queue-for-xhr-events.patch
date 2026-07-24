@@ -1,0 +1,80 @@
+diff --git a/node_modules/whatwg-fetch/dist/fetch.umd.js b/node_modules/whatwg-fetch/dist/fetch.umd.js
+index 8c3269e..b3bad8f 100644
+--- a/node_modules/whatwg-fetch/dist/fetch.umd.js
++++ b/node_modules/whatwg-fetch/dist/fetch.umd.js
+@@ -525,27 +525,27 @@
+         };
+         options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL');
+         var body = 'response' in xhr ? xhr.response : xhr.responseText;
+-        setTimeout(function() {
++        queueMicrotask(function() {
+           resolve(new Response(body, options));
+-        }, 0);
++        });
+       };
+ 
+       xhr.onerror = function() {
+-        setTimeout(function() {
++        queueMicrotask(function() {
+           reject(new TypeError('Network request failed'));
+-        }, 0);
++        });
+       };
+ 
+       xhr.ontimeout = function() {
+-        setTimeout(function() {
++        queueMicrotask(function() {
+           reject(new TypeError('Network request failed'));
+-        }, 0);
++        });
+       };
+ 
+       xhr.onabort = function() {
+-        setTimeout(function() {
++        queueMicrotask(function() {
+           reject(new exports.DOMException('Aborted', 'AbortError'));
+-        }, 0);
++        });
+       };
+ 
+       function fixUrl(url) {
+diff --git a/node_modules/whatwg-fetch/fetch.js b/node_modules/whatwg-fetch/fetch.js
+index 5050a24..f70dbe6 100644
+--- a/node_modules/whatwg-fetch/fetch.js
++++ b/node_modules/whatwg-fetch/fetch.js
+@@ -519,27 +519,27 @@ export function fetch(input, init) {
+       }
+       options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL')
+       var body = 'response' in xhr ? xhr.response : xhr.responseText
+-      setTimeout(function() {
++      queueMicrotask(function() {
+         resolve(new Response(body, options))
+-      }, 0)
++      })
+     }
+ 
+     xhr.onerror = function() {
+-      setTimeout(function() {
++      queueMicrotask(function() {
+         reject(new TypeError('Network request failed'))
+-      }, 0)
++      })
+     }
+ 
+     xhr.ontimeout = function() {
+-      setTimeout(function() {
++      queueMicrotask(function() {
+         reject(new TypeError('Network request failed'))
+-      }, 0)
++      })
+     }
+ 
+     xhr.onabort = function() {
+-      setTimeout(function() {
++      queueMicrotask(function() {
+         reject(new DOMException('Aborted', 'AbortError'))
+-      }, 0)
++      })
+     }
+ 
+     function fixUrl(url) {

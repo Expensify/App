@@ -1,7 +1,10 @@
-import type {OnyxKey} from 'react-native-onyx';
 import HttpUtils from '@libs/HttpUtils';
+
 import type Request from '@src/types/onyx/Request';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import enhanceParameters from './enhanceParameters';
 import {getDuplicateRequestCount} from './LoadTestState';
 

@@ -1,20 +1,29 @@
+import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
 import {
     areAllTargetsAccountingCompatible,
     areAllTargetsCompatibleForAccountingPart,
     arePoliciesAccountingCompatible,
     FEATURE_ROWS,
     getAccountingConnectionIdentity,
+    getCollectTargetsToUpgrade,
     getConnectionCompanyID,
+    getControlOnlySelectedParts,
     getReceiptPartnersCopySettingsDescription,
     getTimeTrackingCopySettingsDescription,
+    hasCurrencyConflictWithAnyTarget,
     isCopyPolicySettingsPartEnabledOnSource,
+    isCurrencyBlockedByTargetBA,
     isTargetCompatibleForAccountingPart,
+    needsCurrencyForWorkflows,
+    shouldShowCopyPolicySettingsUpgradeStep,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
 
@@ -26,6 +35,13 @@ function makePolicyWithConnection(connectionName: ConnectionName, connectionPayl
             [connectionName]: connectionPayload,
         },
     } as Policy;
+}
+
+function makePolicyWithCurrency(id: number, outputCurrency: string, hasBankAccount: boolean): Policy {
+    const policy = createRandomPolicy(id, CONST.POLICY.TYPE.CORPORATE);
+    policy.outputCurrency = outputCurrency;
+    policy.achAccount = hasBankAccount ? {bankAccountID: 123, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''} : undefined;
+    return policy;
 }
 
 describe('CopyPolicySettingsUtils', () => {
@@ -144,6 +160,8 @@ describe('CopyPolicySettingsUtils', () => {
     describe('isCopyPolicySettingsPartEnabledOnSource', () => {
         const baseContext: CopyPolicySettingsSourceFeatureContext = {
             policy: createRandomPolicy(0),
+            hasOverviewContent: true,
+            shouldShowCurrency: false,
             memberCount: 2,
             categoriesCount: 1,
             totalTags: 1,
@@ -159,8 +177,14 @@ describe('CopyPolicySettingsUtils', () => {
             isCollectPolicy: false,
         };
 
-        it('always shows overview', () => {
+        it('shows overview only when it has content', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('overview', {...baseContext, hasOverviewContent: false})).toBe(false);
             expect(isCopyPolicySettingsPartEnabledOnSource('overview', baseContext)).toBe(true);
+        });
+
+        it('shows currency only when it has a target conflict', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('currency', baseContext)).toBe(false);
+            expect(isCopyPolicySettingsPartEnabledOnSource('currency', {...baseContext, shouldShowCurrency: true})).toBe(true);
         });
 
         it('shows members only when there is more than one member', () => {
@@ -316,10 +340,77 @@ describe('CopyPolicySettingsUtils', () => {
         });
     });
 
+    describe('hasCurrencyConflictWithAnyTarget', () => {
+        it('returns true when any target has a different currency', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, false);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.EUR, false);
+            expect(hasCurrencyConflictWithAnyTarget(source, [target])).toBe(true);
+        });
+
+        it('returns true when source and target both have bank accounts with different currencies', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, true);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.EUR, true);
+            expect(hasCurrencyConflictWithAnyTarget(source, [target])).toBe(true);
+        });
+
+        it('returns false when all targets share the source currency', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, false);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.USD, true);
+            expect(hasCurrencyConflictWithAnyTarget(source, [target])).toBe(false);
+        });
+    });
+
+    describe('isCurrencyBlockedByTargetBA', () => {
+        it('returns true when a target has a BA with a different currency (Case 4)', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, false);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.EUR, true);
+            expect(isCurrencyBlockedByTargetBA(source, [target])).toBe(true);
+        });
+
+        it('returns true when source and target both have bank accounts with different currencies', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, true);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.EUR, true);
+            expect(isCurrencyBlockedByTargetBA(source, [target])).toBe(true);
+        });
+
+        it('returns false when a mismatched target has no bank account', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, false);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.EUR, false);
+            expect(isCurrencyBlockedByTargetBA(source, [target])).toBe(false);
+        });
+
+        it('returns false when currencies match even if target has a BA', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, true);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.USD, true);
+            expect(isCurrencyBlockedByTargetBA(source, [target])).toBe(false);
+        });
+    });
+
+    describe('needsCurrencyForWorkflows', () => {
+        it('returns true when source has BA and target has no BA with different currency (Case 6)', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, true);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.EUR, false);
+            expect(needsCurrencyForWorkflows(source, [target])).toBe(true);
+        });
+
+        it('returns false when source has no bank account', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, false);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.EUR, false);
+            expect(needsCurrencyForWorkflows(source, [target])).toBe(false);
+        });
+
+        it('returns false when target also has a bank account (Case 4)', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, true);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.EUR, true);
+            expect(needsCurrencyForWorkflows(source, [target])).toBe(false);
+        });
+    });
+
     describe('FEATURE_ROWS', () => {
         it('has all copy-settings parts mapped to their respective translation keys', () => {
             const parts = FEATURE_ROWS.map((row) => row.part);
             expect(parts).toContain('overview');
+            expect(parts).toContain('currency');
             expect(parts).toContain('members');
             expect(parts).toContain('reports');
             expect(parts).toContain('accounting');
@@ -335,6 +426,59 @@ describe('CopyPolicySettingsUtils', () => {
             expect(parts).toContain('travel');
             expect(parts).toContain('timeTracking');
             expect(parts).toContain('receiptPartners');
+        });
+    });
+
+    describe('copy-settings upgrade eligibility', () => {
+        const collectTarget = (id: number) => createRandomPolicy(id, CONST.POLICY.TYPE.TEAM);
+        const controlTarget = (id: number) => createRandomPolicy(id, CONST.POLICY.TYPE.CORPORATE);
+
+        describe('getControlOnlySelectedParts', () => {
+            it('returns the selected parts a Collect target cannot access', () => {
+                const result = getControlOnlySelectedParts([collectTarget(1)], ['rules', 'perDiem', 'categories'] as Part[]);
+                expect(result).toEqual(expect.arrayContaining(['rules', 'perDiem']));
+                expect(result).not.toContain('categories');
+            });
+
+            it('returns nothing when no selected part is Control-only', () => {
+                expect(getControlOnlySelectedParts([collectTarget(1)], ['categories', 'tags'] as Part[])).toEqual([]);
+            });
+
+            it('returns nothing when there are no Collect targets', () => {
+                expect(getControlOnlySelectedParts([controlTarget(1)], ['rules'] as Part[])).toEqual([]);
+            });
+        });
+
+        describe('getCollectTargetsToUpgrade', () => {
+            it('returns every Collect target when a Control-only part is selected', () => {
+                const collectA = collectTarget(1);
+                const collectB = collectTarget(2);
+                const result = getCollectTargetsToUpgrade([collectA, collectB, controlTarget(3)], ['rules'] as Part[]);
+                expect(result).toHaveLength(2);
+                expect(result.map((policy) => policy.id)).toEqual(expect.arrayContaining([collectA.id, collectB.id]));
+            });
+
+            it('returns nothing when no Control-only part is selected', () => {
+                expect(getCollectTargetsToUpgrade([collectTarget(1)], ['categories'] as Part[])).toEqual([]);
+            });
+
+            it('ignores unresolved targets', () => {
+                expect(getCollectTargetsToUpgrade([undefined, controlTarget(1)], ['rules'] as Part[])).toEqual([]);
+            });
+        });
+
+        describe('shouldShowCopyPolicySettingsUpgradeStep', () => {
+            it('is true when a Control-only part targets a Collect workspace', () => {
+                expect(shouldShowCopyPolicySettingsUpgradeStep([collectTarget(1)], ['rules'] as Part[])).toBe(true);
+            });
+
+            it('is false when every target is already Control', () => {
+                expect(shouldShowCopyPolicySettingsUpgradeStep([controlTarget(1)], ['rules'] as Part[])).toBe(false);
+            });
+
+            it('is false when no Control-only part is selected', () => {
+                expect(shouldShowCopyPolicySettingsUpgradeStep([collectTarget(1)], ['categories'] as Part[])).toBe(false);
+            });
         });
     });
 });

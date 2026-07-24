@@ -1,9 +1,13 @@
-import Mapbox from '@rnmapbox/maps';
 import ImageSVG from '@components/ImageSVG';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import getMapMarkerSize from '@hooks/useMapMarkers/getMapMarkerSize';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
+
 import CONST from '@src/CONST';
+
+import Mapbox from '@rnmapbox/maps';
+
 import type {WayPoint} from './MapViewTypes';
 
 const WAYPOINT_ICON_NAMES: Record<MapMarkerType, string> = {

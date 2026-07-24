@@ -1,5 +1,6 @@
-import React, {useContext, useMemo} from 'react';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import React, {useContext, useMemo} from 'react';
 
 const defaultSearchContext = {
     isOnSearch: false,

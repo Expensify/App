@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+
 import Glossary from './Glossary';
 
 const simplifiedChineseGlossary = new Glossary([

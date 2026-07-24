@@ -1,12 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
-import type {OnyxKey, ResultMetadata, UseOnyxResult} from 'react-native-onyx';
+
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+
+import type {OnyxKey, ResultMetadata, UseOnyxResult} from 'react-native-onyx';
 
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,

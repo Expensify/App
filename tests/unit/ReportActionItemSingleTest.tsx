@@ -1,14 +1,20 @@
 import {act, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import Text from '@components/Text';
+
 import {setHasRadio} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {StyleSheet} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';

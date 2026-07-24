@@ -1,18 +1,23 @@
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import {isTripStopped as isTripStoppedUtil} from '@src/libs/GPSDraftDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {View} from 'react-native';
 
 function DiscardGPSTripButton() {
     const styles = useThemeStyles();

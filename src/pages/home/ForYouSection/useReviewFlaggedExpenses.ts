@@ -1,19 +1,23 @@
-import {useIsFocused} from '@react-navigation/native';
-import noop from 'lodash/noop';
-import {useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
 import type TransactionViolations from '@src/types/onyx/TransactionViolation';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import noop from 'lodash/noop';
+import {useState} from 'react';
 
 type ReviewFlaggedExpenses = {
     /** Number of flagged expenses awaiting review, used to decide whether to render the review row */
@@ -110,7 +114,9 @@ function getFlaggedExpenses(
         }
 
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const visibleViolations = getVisibleTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy);
+        // The report is one of the current user's OPEN expense reports (see isCurrentUserOpenExpenseReport),
+        // so the report owner is the current user and the owner login is currentUserEmail.
+        const visibleViolations = getVisibleTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, currentUserEmail, policy);
         if (!hasReviewableViolation(visibleViolations)) {
             continue;
         }

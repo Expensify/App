@@ -1,10 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import MockedOnyx from 'react-native-onyx';
 import {reconnectApp} from '@libs/actions/App';
 import * as Reconnect from '@libs/actions/Reconnect';
 import {AUTHENTICATION_COMMAND} from '@libs/API/types';
 import {reset as resetFailureTracker} from '@libs/FailureTracker';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -19,7 +18,13 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import {getIsOffline, setHasRadio} from '@src/libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as OnyxSession} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import MockedOnyx from 'react-native-onyx';
+
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

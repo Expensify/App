@@ -1,10 +1,13 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {useCallback, useRef} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {useCallback, useRef} from 'react';
 
 type Trigger = ValueOf<typeof CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER>;
 

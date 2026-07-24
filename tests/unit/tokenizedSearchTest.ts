@@ -1,5 +1,7 @@
 import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionList';
+
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 describe('tokenizedSearch', () => {

@@ -1,18 +1,26 @@
-import React, {useMemo} from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
+
 import AddressPage from '@pages/AddressPage';
+
 import {updateAddress} from '@userActions/Policy/Policy';
+
 import type ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import React, {useMemo} from 'react';
+
 import type {WithPolicyProps} from './withPolicy';
+
 import withPolicy from './withPolicy';
 
 type WorkspaceOverviewAddressPagePolicyProps = WithPolicyProps;

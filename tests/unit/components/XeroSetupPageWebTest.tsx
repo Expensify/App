@@ -1,14 +1,17 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type XeroSetupPageType from '@pages/workspace/accounting/xero/XeroSetupPage';
+
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type RunAfterTransitionsArg = {callback: () => void};
 
 // Jest (jest-expo) resolves the `.native` variant by default, so we require the web entry point
 // explicitly (with its `.tsx` extension) to exercise the web implementation.
-// eslint-disable-next-line import/extensions
 const xeroSetupPageModule: unknown = require('@pages/workspace/accounting/xero/XeroSetupPage/index.tsx');
 
 // The `require` above yields `any`, and narrowing it to the module shape needs a type assertion that

@@ -1,15 +1,20 @@
-import {Str} from 'expensify-common';
-import type {ForwardedRef} from 'react';
-import React from 'react';
-import type {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
+
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React from 'react';
 
 type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText'> & {
     /** Currently selected type */

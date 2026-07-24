@@ -1,25 +1,29 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {formatMaskedCardName} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardAssignmentData} from '@src/types/onyx/Card';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCompanyCardTableRowData = TableData &
     CardAssignmentData & {
@@ -147,11 +151,13 @@ function WorkspaceCompanyCardTableRow({
 
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 text={memberColumnTitle}
                                 style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter]}
                             />
                             {!!memberCardSubtitle && (
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     text={memberCardSubtitle}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
@@ -161,23 +167,23 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
+                            <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
+                                text={formattedCardDetails}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {formattedCardDetails}
-                            </Text>
+                            />
                         </View>
                     )}
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
+                            <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
+                                text={customCardName ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {customCardName}
-                            </Text>
+                            />
                         </View>
                     )}
 

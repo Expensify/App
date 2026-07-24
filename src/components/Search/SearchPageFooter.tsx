@@ -1,6 +1,5 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -8,6 +7,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type SearchPageFooterProps = {
     count: number | undefined;
@@ -43,10 +45,12 @@ function SearchPageFooter({count, total, currency}: SearchPageFooterProps) {
                 <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
                 <Text style={valueTextStyle}>{count}</Text>
             </View>
-            <View style={[styles.flexRow, styles.gap1]}>
-                <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
-                <Text style={valueTextStyle}>{convertToDisplayString(total, currency)}</Text>
-            </View>
+            {typeof total === 'number' && (
+                <View style={[styles.flexRow, styles.gap1]}>
+                    <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
+                    <Text style={valueTextStyle}>{convertToDisplayString(total, currency)}</Text>
+                </View>
+            )}
         </View>
     );
 }

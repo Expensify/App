@@ -1,5 +1,6 @@
-import type {SkTypeface} from '@shopify/react-native-skia';
 import loadChartTypefacesFromAssets from '@components/Charts/utils/loadChartTypefacesFromAssets';
+
+import type {SkTypeface} from '@shopify/react-native-skia';
 
 function makeMockTypeface(asset: string): SkTypeface {
     // Skia typefaces are native objects; tests only need a unique stand-in per asset.

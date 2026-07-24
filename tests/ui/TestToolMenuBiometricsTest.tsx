@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import TestToolMenu from '@components/TestToolMenu';
+
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 
@@ -73,6 +77,11 @@ jest.mock('@libs/actions/MultifactorAuthentication', () => ({
 jest.mock('@libs/ApiUtils', () => ({
     isUsingStagingApi: () => false,
     getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
+}));
+
+let mockIsAgentAccount = false;
+jest.mock('@libs/SessionUtils', () => ({
+    useIsAgentAccount: () => mockIsAgentAccount,
 }));
 
 const mockExecuteScenario = jest.fn().mockResolvedValue(undefined);
@@ -188,6 +197,7 @@ function setBiometricStatus(overrides: Partial<typeof mockBiometricStatus>) {
 describe('TestToolMenu biometrics', () => {
     afterEach(() => {
         jest.clearAllMocks();
+        mockIsAgentAccount = false;
     });
 
     it('renders biometrics title with "Never registered" status', () => {
@@ -297,5 +307,15 @@ describe('TestToolMenu biometrics', () => {
 
         expect(mockDismissModal).not.toHaveBeenCalled();
         expect(mockExecuteScenario).toHaveBeenCalledWith(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
+    });
+
+    it('hides the biometrics test row for agent accounts', () => {
+        mockIsAgentAccount = true;
+        setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
+
+        render(<TestToolMenu />);
+
+        expect(screen.queryByText(/troubleshootBiometricsStatus/)).toBeNull();
+        expect(screen.queryByText('multifactorAuthentication.biometricsTest.test')).toBeNull();
     });
 });

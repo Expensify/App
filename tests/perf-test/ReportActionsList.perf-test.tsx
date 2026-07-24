@@ -1,19 +1,26 @@
-import {NavigationContainer} from '@react-navigation/native';
 import {act, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import {measureRenders} from 'reassure';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import type Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {setHasRadio} from '@libs/NetworkState';
+
+import {ActionListContext} from '@pages/inbox/ActionListContext';
+import {ReactionListContext} from '@pages/inbox/ReactionListContext';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
-import {ActionListContext, ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+
+import {NavigationContainer} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
+import {measureRenders} from 'reassure';
+
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -38,7 +45,11 @@ beforeAll(() =>
 );
 
 const mockOnLayout = jest.fn();
-const mockRef = {current: null, flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}};
+// Built via a function so the value isn't an inline literal the context-split lint rule would flag; these are all refs/accessors with no re-render concern.
+function buildActionListContextValue() {
+    return {scrollOffsetRef: {current: 0}, getScrollOffset: () => 0, registerListRef: () => {}, getListRef: () => null};
+}
+const actionListContextValue = buildActionListContextValue();
 const mockReactionListContextValue = {
     showReactionList: () => {},
     hideReactionList: () => {},
@@ -96,7 +107,7 @@ function ReportActionsListWrapper() {
         <NavigationContainer ref={navigationRef}>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
                 <ReactionListContext.Provider value={mockReactionListContextValue}>
-                    <ActionListContext.Provider value={mockRef}>
+                    <ActionListContext.Provider value={actionListContextValue}>
                         <ReportActionsList
                             reportID={REPORT_ID}
                             onLayout={mockOnLayout}

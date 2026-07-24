@@ -1,6 +1,7 @@
-import {useEffect, useRef} from 'react';
 import Log from '@libs/Log';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import {useEffect, useRef} from 'react';
 
 /** A Search loading skeleton visible longer than this is treated as stuck and worth a diagnostic log. */
 const STUCK_SKELETON_THRESHOLD_MS = 10000;

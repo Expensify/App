@@ -1,15 +1,20 @@
-import React from 'react';
 import CommonConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+
 import {clearPersonalBankAccountErrors} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+
+import React from 'react';
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
@@ -56,6 +61,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
         const bankConnection = isManual
             ? [
                   {
+                      id: 'routing-number',
                       description: translate('bankAccount.routingNumber'),
                       title: bankAccountPersonalDetails?.routingNumber,
                       shouldShowRightIcon: true,
@@ -64,6 +70,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                       },
                   },
                   {
+                      id: 'account-number',
                       description: translate('bankAccount.accountNumber'),
                       title: bankAccountPersonalDetails?.accountNumber,
                       shouldShowRightIcon: true,
@@ -74,6 +81,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
               ]
             : [
                   {
+                      id: 'plaid-bank-account',
                       description: translate('common.bankAccount'),
                       title: selectedPlaidAccount?.addressName ?? '',
                       shouldShowRightIcon: true,
@@ -86,6 +94,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
         return [
             ...bankConnection,
             {
+                id: 'legal-name',
                 description: translate('personalInfoStep.legalName'),
                 title: `${personalDetails[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${personalDetails[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
                 shouldShowRightIcon: true,
@@ -94,6 +103,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                 },
             },
             {
+                id: 'address',
                 description: translate('personalInfoStep.address'),
                 title: `${personalDetails?.addressStreet}, ${personalDetails?.addressCity}, ${personalDetails?.addressState} ${personalDetails?.addressZip}`,
                 shouldShowRightIcon: true,
@@ -102,6 +112,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                 },
             },
             {
+                id: 'phone-number',
                 description: translate('common.phoneNumber'),
                 title: personalDetails[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER],
                 shouldShowRightIcon: true,

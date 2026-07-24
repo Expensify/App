@@ -1,8 +1,3 @@
-/* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PaymentMethodType} from '@components/KYCWall/types';
@@ -11,6 +6,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+
 import {exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
@@ -44,7 +40,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
-import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
     getAllPolicyExpenseChatReportActions,
@@ -65,9 +61,12 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
+    getDeleteConfirmationPrompt,
+    getDeleteExpenseTitle,
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation,
     hasOnlyPendingCardTransactions,
@@ -75,28 +74,41 @@ import {
     isDeletedTransaction,
     isDistanceRequest,
     isManagedCardTransaction,
+    isPending,
     isPerDiemRequest,
     isScanning,
     showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
-import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+/* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
+import useDelegateAccountID from './useDelegateAccountID';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useEnvironment from './useEnvironment';
@@ -108,6 +120,7 @@ import useOnyx from './useOnyx';
 import {getParticipantsInvoiceReport} from './useParticipantsInvoiceReport';
 import usePaymentContext from './usePaymentContext';
 import usePermissions from './usePermissions';
+import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSelfDMReport from './useSelfDMReport';
@@ -338,7 +351,7 @@ function getChatReportForBulkPay(
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -351,6 +364,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
+    const delegateAccountID = useDelegateAccountID();
     const {introSelected, betas, isSelfTourViewed, activePolicyID, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} =
         usePaymentContext();
     const allTransactions = useAllTransactions();
@@ -545,7 +559,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         onlyShowPayElsewhere,
     });
 
-    const {status, hash} = queryJSON ?? {};
+    const {hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const firstTransactionID = selectedTransactionsKeys.at(0);
     const firstTransaction =
@@ -556,6 +570,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const firstTransactionReport = firstTransactionFetchedReport ?? (isFirstTransactionUnreported ? selfDMReport : undefined);
     const [firstTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${firstTransactionReport?.policyID}`);
     const splitEffectivePolicy = useSplitEffectivePolicy(firstTransactionReport, undefined, firstTransaction);
+    const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(firstTransactionPolicy);
 
     // Use the split-aware delete hook for bulk transaction deletion so split children trigger
@@ -708,20 +723,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            if (status === null || status === undefined) {
-                return;
-            }
-
             const exportName = translate(isBasicExport ? 'export.basicExport' : 'export.currentView');
 
             if (areAllMatchingItemsSelected) {
-                if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
+                if (selectedTransactionsKeys.length === 0 || !hash) {
                     return;
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
                 const exportParameters = getCSVExportParameters(isBasicExport, queryJSON);
                 const exportID = queueExportSearchItemsToCSV({
-                    query: status,
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
                     transactionIDList: selectedTransactionsKeys,
@@ -740,7 +750,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const exportParameters = getCSVExportParameters(isBasicExport, queryJSONToExport);
             await exportSearchItemsToCSV(
                 {
-                    query: status,
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList: isGroupExport ? [] : reportIDList,
                     transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
@@ -761,7 +770,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         },
         [
             isOffline,
-            status,
             areAllMatchingItemsSelected,
             queryJSON,
             selectedReports,
@@ -838,10 +846,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                ownerLogin: getLoginByAccountID(expenseReport.ownerAccountID, personalDetails),
                 delegateEmail,
                 full: true,
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
+                isTrackIntentUser,
             });
 
             if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {
@@ -879,6 +889,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         betas,
         delegateEmail,
         currentSearchKey,
+        isTrackIntentUser,
+        personalDetails,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -903,97 +915,103 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const isDeletingOnlyExpenses = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && expenseCount > 0;
     const deleteCount = isDeletingOnlyExpenses ? expenseCount : uniqueReportCount;
-    const deleteModalTitle = isDeletingOnlyExpenses ? translate('iou.deleteExpense', {count: expenseCount}) : translate('iou.deleteReport', {count: deleteCount});
-    const deleteModalPrompt = isDeletingOnlyExpenses ? translate('iou.deleteConfirmation', {count: expenseCount}) : translate('iou.deleteReportConfirmation', {count: deleteCount});
+    const hasSomePendingExpenses =
+        expenseCount > 1 &&
+        selectedTransactionsKeys.some((id) => {
+            const tx = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+            return isPending(tx);
+        });
+    const deleteModalTitle = isDeletingOnlyExpenses
+        ? getDeleteExpenseTitle(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount)
+        : translate('iou.deleteReport', {count: deleteCount});
+    const deleteModalPrompt = isDeletingOnlyExpenses
+        ? getDeleteConfirmationPrompt(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount, hasSomePendingExpenses)
+        : translate('iou.deleteReportConfirmation', {count: deleteCount});
 
     const handleDeleteSelectedTransactions = useCallback(async () => {
         if (!hash) {
             return;
         }
 
-        TransitionTracker.runAfterTransitions({
-            callback: async () => {
-                const result = await showConfirmModal({
-                    title: deleteModalTitle,
-                    prompt: deleteModalPrompt,
-                    confirmText: translate('common.delete'),
-                    cancelText: translate('common.cancel'),
-                    danger: true,
-                });
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
-                if (isExpenseReportType) {
-                    for (const reportID of selectedReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                        deleteAppReport({
-                            report,
-                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
-                            parentReportAction: report?.parentReportActionID
-                                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
-                                : undefined,
-                            selfDMReport,
-                            currentUserEmailParam: email ?? '',
-                            currentUserAccountIDParam: accountID,
-                            reportTransactions: validTransactions,
-                            allTransactionViolations,
-                            bankAccountList,
-                            hash,
-                        });
-                    }
-                } else {
-                    const transactionsViolations = allTransactionViolations
-                        ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
-                        : {};
-                    // Partition selection into whole-report deletions and individual transactions.
-                    // The selection key equals the reportID for whole-report rows.
-                    const wholeReportIDs: string[] = [];
-                    const transactionIDsToDelete: string[] = [];
-                    for (const key of Object.keys(selectedTransactions)) {
-                        const selectedItem = selectedTransactions[key];
-                        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-                            wholeReportIDs.push(selectedItem.reportID);
-                        }
-                    }
-                    for (const key of Object.keys(selectedTransactions)) {
-                        const selectedItem = selectedTransactions[key];
-                        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-                            continue;
-                        }
-                        if (!selectedItem.reportID || !wholeReportIDs.includes(selectedItem.reportID)) {
-                            transactionIDsToDelete.push(key);
-                        }
-                    }
-
-                    // Route individual transactions through the split-aware hook so that deleting a
-                    // split child triggers updateSplitTransactions (e.g. reverse-split) instead of a
-                    // bare deleteMoneyRequest.
-                    if (transactionIDsToDelete.length > 0) {
-                        deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash);
-                    }
-
-                    // Whole-report deletions keep their existing path.
-                    for (const reportID of wholeReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                        deleteAppReport({
-                            report,
-                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
-                            parentReportAction: report?.parentReportActionID
-                                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
-                                : undefined,
-                            selfDMReport,
-                            currentUserEmailParam: email ?? '',
-                            currentUserAccountIDParam: accountID,
-                            reportTransactions: validTransactions,
-                            allTransactionViolations: transactionsViolations,
-                            bankAccountList,
-                        });
-                    }
-                }
-                clearSelectedTransactions();
-            },
+        const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
+            title: deleteModalTitle,
+            prompt: deleteModalPrompt,
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
         });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
+        if (isExpenseReportType) {
+            for (const reportID of selectedReportIDs) {
+                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                deleteAppReport({
+                    report,
+                    reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                    parentReportAction: report?.parentReportActionID
+                        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
+                        : undefined,
+                    selfDMReport,
+                    currentUserEmailParam: email ?? '',
+                    currentUserAccountIDParam: accountID,
+                    reportTransactions: validTransactions,
+                    allTransactionViolations,
+                    bankAccountList,
+                    hash,
+                });
+            }
+        } else {
+            const transactionsViolations = allTransactionViolations
+                ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
+                : {};
+            // Partition selection into whole-report deletions and individual transactions.
+            // The selection key equals the reportID for whole-report rows.
+            const wholeReportIDs: string[] = [];
+            const transactionIDsToDelete: string[] = [];
+            for (const key of Object.keys(selectedTransactions)) {
+                const selectedItem = selectedTransactions[key];
+                if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+                    wholeReportIDs.push(selectedItem.reportID);
+                }
+            }
+            for (const key of Object.keys(selectedTransactions)) {
+                const selectedItem = selectedTransactions[key];
+                if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+                    continue;
+                }
+                if (!selectedItem.reportID || !wholeReportIDs.includes(selectedItem.reportID)) {
+                    transactionIDsToDelete.push(key);
+                }
+            }
+
+            // Route individual transactions through the split-aware hook so that deleting a
+            // split child triggers updateSplitTransactions (e.g. reverse-split) instead of a
+            // bare deleteMoneyRequest.
+            if (transactionIDsToDelete.length > 0) {
+                deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash);
+            }
+
+            // Whole-report deletions keep their existing path.
+            for (const reportID of wholeReportIDs) {
+                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                deleteAppReport({
+                    report,
+                    reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                    parentReportAction: report?.parentReportActionID
+                        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
+                        : undefined,
+                    selfDMReport,
+                    currentUserEmailParam: email ?? '',
+                    currentUserAccountIDParam: accountID,
+                    reportTransactions: validTransactions,
+                    allTransactionViolations: transactionsViolations,
+                    bankAccountList,
+                });
+            }
+        }
+        clearSelectedTransactions();
     }, [
         hash,
         showConfirmModal,
@@ -1096,18 +1114,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
                         return;
                     }
+                    const reportPreviewAction = itemReport?.parentReportActionID
+                        ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemReport?.chatReportID}`]?.[itemReport?.parentReportActionID]
+                        : undefined;
                     const invite = moveIOUReportToPolicyAndInviteSubmitter(
                         itemReport,
                         adminPolicy,
-                        formatPhoneNumber,
                         policyExpenseChatReportActions,
+                        reportPreviewAction,
                         accountID,
                         getLoginByAccountID(itemReport?.ownerAccountID, personalDetails),
                         doesPersonalDetailExistSelector(itemReport?.ownerAccountID)(personalDetails),
                         reportTransactions,
                     );
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
+                        moveIOUReportToPolicy(itemReport, adminPolicy, reportPreviewAction, false, reportTransactions);
                     }
                 }
             }
@@ -1208,6 +1229,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         additionalOnyxData,
                         shouldPlaySuccessSound: false,
                         chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${payChatReportID}`],
+                        delegateAccountID,
+                        isTrackIntentUser,
                     });
                     paidReportCount += 1;
                     continue;
@@ -1235,6 +1258,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     additionalOnyxData,
                     shouldPlaySuccessSound: false,
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
+                    delegateAccountID,
+                    isTrackIntentUser,
                 });
                 paidReportCount += 1;
             }
@@ -1262,7 +1287,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             lastPaymentMethods,
             allTransactions,
             policyIDsWithVBBA,
-            formatPhoneNumber,
             clearSelectedTransactions,
             accountID,
             email,
@@ -1278,6 +1302,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             allReportNameValuePairs,
             currentSearchKey,
             searchResults?.data,
+            delegateAccountID,
+            isTrackIntentUser,
         ],
     );
 
@@ -1433,7 +1459,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions]);
 
     const headerButtonsOptions = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
+        if (selectedTransactionsKeys.length === 0 || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
@@ -1450,8 +1476,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
+            const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
+
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
+            // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside
+            // the other default templates. Grouped exports don't have a separate basic export (it's surfaced as "Current view" below), so it's excluded there.
+            const {customTemplates, defaultTemplates} = getExportTemplates(
+                integrationsExportTemplates ?? [],
+                csvExportLayouts ?? {},
+                translate,
+                localeCompare,
+                policy,
+                includeReportLevelExport,
+                !isGroupedSearch,
+            );
 
             const exportOptions: PopoverMenuItem[] = [];
 
@@ -1473,7 +1511,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return false;
                 }
 
-                const reportExportOptions = getSecondaryExportReportActions(accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserLogin ?? '', snapshotReport, bankAccountList, reportPolicy);
+                const reportExportOptions = getReportAccountingExportActions(accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserLogin ?? '', snapshotReport, bankAccountList, reportPolicy);
 
                 return reportExportOptions.includes(exportOption);
             };
@@ -1565,47 +1603,67 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
             }
 
-            const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
-
+            // "Current view" is pinned directly under the accounting actions.
+            // For grouped exports there's no separate basic export - the backend expects isBasicExport to be true, so handleBasicExport
+            // powers the current view here (see https://github.com/Expensify/Expensify/issues/652978).
             exportOptions.push({
-                // Group by exports dont have a basicExport, at the same time the backend expects isBasicExport to be true for grouped exports, so we just rename the option here
-                // Fixing here https://github.com/Expensify/Expensify/issues/652978
-                text: translate(isGroupedSearch ? 'export.currentView' : 'export.basicExport'),
+                text: translate('export.currentView'),
                 icon: expensifyIcons.Table,
                 onSelected: () => {
-                    handleBasicExport();
+                    if (isGroupedSearch) {
+                        handleBasicExport();
+                        return;
+                    }
+                    handleExportCurrentView();
                 },
                 shouldCloseModalOnSelect: true,
                 shouldCallAfterModalHide: true,
+                // Divider between the accounting actions group and the current view group (suppressed when this is the first item)
+                addSeparatorBefore: true,
             });
 
-            if (!isGroupedSearch) {
-                exportOptions.push({
-                    text: translate('export.currentView'),
-                    icon: expensifyIcons.Table,
-                    onSelected: () => {
-                        handleExportCurrentView();
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                });
-            }
-
             if (!allSelectedAreDeleted && !includesGroupExport) {
-                for (const template of exportTemplates) {
-                    const isStandardTemplate =
-                        template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT;
-                    exportOptions.push({
+                // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
+                const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): PopoverMenuItem => {
+                    // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
+                    const isBasicExport = template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV;
+                    return {
                         text: template.name,
-                        icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
+                        icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                         description: template.description,
                         onSelected: () => {
+                            if (isBasicExport) {
+                                handleBasicExport();
+                                return;
+                            }
                             beginExportWithTemplate(template.templateName, template.type, template.policyID, template.name);
                         },
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
-                    });
+                        addSeparatorBefore,
+                    };
+                };
+
+                // Add each group's templates separately so the icon and the group-boundary divider come from the group itself, not from an index into a combined list.
+                for (const [index, template] of customTemplates.entries()) {
+                    exportOptions.push(buildExportOption(template, false, index === 0));
                 }
+                for (const [index, template] of defaultTemplates.entries()) {
+                    exportOptions.push(buildExportOption(template, true, index === 0));
+                }
+            } else if (!isGroupedSearch) {
+                // The templates aren't available for this selection, but the basic export (a plain CSV download) still is
+                exportOptions.push({
+                    text: translate('export.basicExport'),
+                    icon: expensifyIcons.Table,
+                    onSelected: () => {
+                        handleBasicExport();
+                    },
+                    shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
+                    // Divider between the current view group and the default templates group
+                    addSeparatorBefore: true,
+                });
             }
 
             return exportOptions;
@@ -1980,6 +2038,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             currentUserLogin ?? '',
                             accountID,
                             transactionViolations,
+                            isTrackIntentUser,
                         );
                     }
                     clearSelectedTransactions();
@@ -2058,7 +2117,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, firstTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
+                    initSplitExpense(firstTransaction, firstTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {
+                        isProduction,
+                    });
                 },
             });
         }
@@ -2136,7 +2197,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return options;
     }, [
         selectedTransactionsKeys,
-        status,
         hash,
         selectedTransactions,
         queryJSON?.type,
@@ -2200,6 +2260,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         personalDetails,
         selfDMReportID,
         splitEffectivePolicy,
+        personalPolicy?.outputCurrency,
         restrictedActionPolicyID,
         doSelectedItemsBelongToSubmitPolicy,
         openSearchReportSubmitToPopover,

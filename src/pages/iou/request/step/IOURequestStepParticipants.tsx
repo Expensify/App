@@ -1,24 +1,32 @@
-import {useIsFocused} from '@react-navigation/core';
-import React, {useEffect, useRef} from 'react';
 import FormHelpMessage from '@components/FormHelpMessage';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {getRequestType, isFromCreditCardImport, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
+
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
+
 import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receipt';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import StepScreenWrapper from './StepScreenWrapper';
+
+import {useIsFocused} from '@react-navigation/core';
+import React, {useEffect, useRef} from 'react';
+
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import StepScreenWrapper from './StepScreenWrapper';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
@@ -26,10 +34,12 @@ type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof 
 
 function IOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, backTo},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, backTo, isWorkspacesOnly: isWorkspacesOnlyParam},
     },
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
+    // "Submit to my employer" with multiple submit-enabled workspaces passes isWorkspacesOnly=true to limit the picker to workspaces.
+    const isWorkspacesOnlyFromRoute = isWorkspacesOnlyParam === 'true';
     const participants = initialTransaction?.participants;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -117,7 +127,8 @@ function IOURequestStepParticipants({
     };
 
     // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
-    const isWorkspacesOnly = isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType);
+    // Submit-only implies workspaces-only (we still hide individuals/recents in the Submit-to-employer picker).
+    const isWorkspacesOnly = isWorkspacesOnlyFromRoute || (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
     // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.
     // Those without one (e.g. users to invite who don't have an account yet) must be passed explicitly

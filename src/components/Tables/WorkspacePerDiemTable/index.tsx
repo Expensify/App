@@ -1,14 +1,21 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+
 import WorkspacePerDiemTableRow from './WorkspacePerDiemTableRow';
 
 type PerDiemTableColumnKey = 'destination' | 'subrate' | 'amount' | 'actions';
@@ -29,11 +36,11 @@ type WorkspacePerDiemTableProps = {
     perDiemData: PerDiemTableRowData[];
     selectionEnabled: boolean;
     selectedKeys: string[];
+    emptyState: TableEmptyStateProps;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    EmptyStateComponent: React.ReactElement;
 };
 
-export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, onRowSelectionChange, EmptyStateComponent}: WorkspacePerDiemTableProps) {
+export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, selectedKeys, emptyState, onRowSelectionChange}: WorkspacePerDiemTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -105,9 +112,6 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
         />
     );
 
-    const isEmpty = perDiemData.length === 0;
-    const shouldShowSearchBar = perDiemData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
     return (
         <Table
             data={perDiemData}
@@ -123,14 +127,11 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             narrowLayoutSortColumn="destination"
             title={translate('common.perDiem')}
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.perDiem.findPerDiemRate')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.FilterBar label={translate('workspace.perDiem.findPerDiemRate')} />
+            <Table.EmptyState {...emptyState} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

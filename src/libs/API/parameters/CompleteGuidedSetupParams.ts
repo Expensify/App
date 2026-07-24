@@ -1,4 +1,5 @@
 import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
+
 import type {OnboardingAccounting} from '@src/CONST';
 import type {OnboardingPurpose} from '@src/types/onyx';
 

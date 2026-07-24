@@ -1,9 +1,10 @@
-import {rand, randAggregation, randBoolean, randWord} from '@ngneat/falso';
-import {format} from 'date-fns';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type DeepRecord from '@src/types/utils/DeepRecord';
+
+import {rand, randAggregation, randBoolean, randWord} from '@ngneat/falso';
+import {format} from 'date-fns';
 
 const flattenActionNamesValues = (actionNames: DeepRecord<string, ReportActionName>): ReportActionName[] => {
     let result: ReportActionName[] = [];

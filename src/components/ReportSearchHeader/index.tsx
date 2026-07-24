@@ -1,9 +1,13 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import type ReportSearchHeaderProps from './types';
 
 function ReportSearchHeader({report, style, transactions, avatarBorderColor}: ReportSearchHeaderProps) {

@@ -1,3 +1,13 @@
+import SearchActionsBarNarrow from '@components/Search/SearchPageHeader/SearchActionsBarNarrow';
+import type {SearchActionsBarNarrowProps} from '@components/Search/SearchPageHeader/SearchActionsBarNarrow';
+import SearchFiltersBarNarrow from '@components/Search/SearchPageHeader/SearchFiltersBarNarrow';
+import type {SearchFiltersBarNarrowProps} from '@components/Search/SearchPageHeader/SearchFiltersBarNarrow';
+import SearchPageInput from '@components/Search/SearchPageHeader/SearchPageInput';
+import type {SearchPageInputProps} from '@components/Search/SearchPageHeader/SearchPageInput';
+
+import SearchTypeMenuNarrow from '@pages/Search/SearchTypeMenuNarrow';
+import type {SearchTypeMenuNarrowProps} from '@pages/Search/SearchTypeMenuNarrow';
+
 /**
  * Static/Interactive switches for SearchPageNarrow.
  *
@@ -13,14 +23,7 @@
  *    Do NOT add new subscriptions unless absolutely necessary for correctness.
  */
 import React from 'react';
-import SearchActionsBarNarrow from '@components/Search/SearchPageHeader/SearchActionsBarNarrow';
-import type {SearchActionsBarNarrowProps} from '@components/Search/SearchPageHeader/SearchActionsBarNarrow';
-import SearchFiltersBarNarrow from '@components/Search/SearchPageHeader/SearchFiltersBarNarrow';
-import type {SearchFiltersBarNarrowProps} from '@components/Search/SearchPageHeader/SearchFiltersBarNarrow';
-import SearchPageInput from '@components/Search/SearchPageHeader/SearchPageInput';
-import type {SearchPageInputProps} from '@components/Search/SearchPageHeader/SearchPageInput';
-import SearchTypeMenuNarrow from '@pages/Search/SearchTypeMenuNarrow';
-import type {SearchTypeMenuNarrowProps} from '@pages/Search/SearchTypeMenuNarrow';
+
 import StaticSearchActionsBar from './StaticSearchActionsBar';
 import StaticSearchPageInput from './StaticSearchPageInput';
 import StaticSearchTypeMenu from './StaticSearchTypeMenu';

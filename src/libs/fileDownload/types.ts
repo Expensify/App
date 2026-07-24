@@ -1,6 +1,8 @@
-import type {Asset} from 'react-native-image-picker';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {RequestType} from '@src/types/onyx/Request';
+
+import type {Asset} from 'react-native-image-picker';
 
 type FileDownload = (
     translate: LocalizedTranslate,

@@ -1,17 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {FlagForReviewTableItem} from '@libs/FlagForReviewRulesUtils';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const FLAG_BADGE_BACKGROUND_COLOR = colors.tangerine200;
 const FLAG_BADGE_TEXT_COLOR = colors.tangerine700;
@@ -37,7 +42,10 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_ITEM}
-            offlineWithFeedback={{pendingAction: item.pendingAction, shouldHideOnDelete: false}}
+            offlineWithFeedback={{
+                pendingAction: item.pendingAction,
+                shouldHideOnDelete: false,
+            }}
             onPress={item.action}
         >
             {({hovered}) => (
@@ -60,12 +68,14 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                                     isCondensed
                                 />
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     text={item.conditionText}
                                     numberOfLines={1}
                                     style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
                                 />
                             </View>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 text={item.ruleDescription}
                                 numberOfLines={1}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
@@ -93,6 +103,7 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                             </View>
                             <View style={[styles.flex1]}>
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     numberOfLines={1}
                                     text={item.conditionText}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -100,6 +111,7 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                             </View>
                             <View style={[styles.flex1]}>
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     numberOfLines={1}
                                     text={item.ruleDescription}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}

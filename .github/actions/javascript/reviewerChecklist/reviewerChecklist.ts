@@ -1,9 +1,10 @@
-import * as core from '@actions/core';
-import * as github from '@actions/github';
-import https from 'https';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
 import isTeamMember from '@github/libs/isTeamMember';
+
+import * as core from '@actions/core';
+import * as github from '@actions/github';
+import https from 'https';
 
 const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
 const reviewerChecklistContains = '# Reviewer Checklist';
@@ -51,7 +52,6 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
         })
         .then(() => {
             console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);
-            const maxCompletedItems = numberOfChecklistItems + 2;
             const minCompletedItems = numberOfChecklistItems - 2;
             let foundReviewerChecklist = false;
             let numberOfFinishedChecklistItems = 0;
@@ -71,7 +71,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
                     numberOfFinishedChecklistItems = (comment?.match(/- \[x\]/gi) ?? []).length;
                     numberOfUnfinishedChecklistItems = (comment?.match(/- \[ \]/g) ?? []).length;
 
-                    if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfFinishedChecklistItems <= maxCompletedItems && numberOfUnfinishedChecklistItems === 0) {
+                    if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
                         console.log('PR Reviewer checklist is complete 🎉');
                         return;
                     }
@@ -85,7 +85,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
 
             console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
 
-            if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfFinishedChecklistItems <= maxCompletedItems && numberOfUnfinishedChecklistItems === 0) {
+            if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
                 console.log('PR Reviewer checklist is complete 🎉');
                 return;
             }

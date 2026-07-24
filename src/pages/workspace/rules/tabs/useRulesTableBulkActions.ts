@@ -1,7 +1,6 @@
-import {useCallback, useEffect, useRef} from 'react';
-import type {ValueOf} from 'type-fest';
 import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
 import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -15,6 +14,7 @@ import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {deleteExpensifyCardRule} from '@libs/actions/Card';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
@@ -23,16 +23,22 @@ import {deleteFlagForReviewRule, getFlagForReviewTableData} from '@libs/FlagForR
 import {getExpenseDefaultsTableData, isMerchantTypeRuleKey} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {deleteRequireFieldsRule, getRequireFieldsTableData} from '@libs/RequireFieldsRulesUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
+
+import {useCallback, useEffect, useRef} from 'react';
 
 const DEFAULT_SPEND_RULE_ID = 'default-rule';
 const RULES_TAB = CONST.TAB.RULES;
 
 type RulesTab = ValueOf<typeof RULES_TAB>;
-type TableSelectionTab = Exclude<RulesTab, typeof RULES_TAB.GENERAL>;
+type TableSelectionTab = Exclude<RulesTab, typeof RULES_TAB.GENERAL | typeof RULES_TAB.AGENTS>;
 
 type UseRulesTableBulkActionsParams = {
     policyID: string;
@@ -43,7 +49,7 @@ type UseRulesTableBulkActionsParams = {
 };
 
 function isTableSelectionTab(tab: RulesTab): tab is TableSelectionTab {
-    return tab !== RULES_TAB.GENERAL;
+    return tab !== RULES_TAB.GENERAL && tab !== RULES_TAB.AGENTS;
 }
 
 function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, canWriteRules, clearTableSelection}: UseRulesTableBulkActionsParams) {
@@ -268,4 +274,6 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     };
 }
 
+export {isTableSelectionTab};
+export type {RulesTab, TableSelectionTab};
 export default useRulesTableBulkActions;

@@ -1,3 +1,9 @@
+import {setModalVisibility} from '@libs/actions/Modal';
+
+import {setActiveClients} from '@userActions/ActiveClients';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 /**
  * When you have many tabs in one browser, the data of Onyx is shared between all of them. Since we persist write requests in Onyx, we need to ensure that
  * only one tab is processing those saved requests or we would be duplicating data (or creating errors).
@@ -5,9 +11,7 @@
  */
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import {setModalVisibility} from '@libs/actions/Modal';
-import {setActiveClients} from '@userActions/ActiveClients';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {Init, IsClientTheLeader, IsReady} from './types';
 
 const clientID = Str.guid();

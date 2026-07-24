@@ -1,10 +1,12 @@
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 type ThreeDotsMenuProps = WithSentryLabel & {
     /** Tooltip for the popup icon */
@@ -16,8 +18,23 @@ type ThreeDotsMenuProps = WithSentryLabel & {
     /** Any additional styles to pass to the icon container. */
     iconStyles?: StyleProp<ViewStyle>;
 
+    /** Hover style applied to the trigger (e.g. a ghost-button background). */
+    iconHoverStyle?: StyleProp<ViewStyle>;
+
     /** The fill color to pass into the icon. */
     iconFill?: string;
+
+    /** The width of the trigger icon. Defaults to the standard icon size. */
+    iconWidth?: number;
+
+    /** The height of the trigger icon. Defaults to the standard icon size. */
+    iconHeight?: number;
+
+    /** Whether the trigger icon turns green while the menu is open. Defaults to true. */
+    shouldChangeFillOnOpen?: boolean;
+
+    /** Test ID for the trigger */
+    testID?: string;
 
     /** Function to call on icon press */
     onIconPress?: (() => void) | ((e?: GestureResponderEvent | KeyboardEvent | undefined) => void);

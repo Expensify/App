@@ -1,7 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 import type BetaConfiguration from '@src/types/onyx/BetaConfiguration';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 // eslint-disable-next-line rulesdir/no-beta-handler
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {

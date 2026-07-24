@@ -1,5 +1,6 @@
-import {randAvatar, randEmail, randWord} from '@ngneat/falso';
 import type {PersonalDetails} from '@src/types/onyx';
+
+import {randAvatar, randEmail, randWord} from '@ngneat/falso';
 
 export default function createPersonalDetails(index: number): PersonalDetails {
     return {

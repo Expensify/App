@@ -1,6 +1,7 @@
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getAmount, getCurrency, getDescription, getMerchant} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 

@@ -1,5 +1,7 @@
-import {useCallback} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
+import {useCallback} from 'react';
+
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 

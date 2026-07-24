@@ -1,11 +1,16 @@
-import type {Dispatch, SetStateAction} from 'react';
-import {useCallback, useEffect, useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
+
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+
+import type {Dispatch, SetStateAction} from 'react';
+
+import {useCallback, useEffect, useRef, useState} from 'react';
+
 import type {MiddlewareHookResult} from './types';
 
 type UseSelectionProps<DataType extends TableData> = {
@@ -23,6 +28,9 @@ type UseSelectionProps<DataType extends TableData> = {
 
     /** Callback that is fired when the selection of rows in the table changes */
     onRowSelectionChange?: (selectedRowKeys: string[]) => void;
+
+    /** Whether the selection mode should key off the real screen size instead of shouldUseNarrowLayout (for tables inside a narrow pane modal / RHP) */
+    shouldEnableSelectionInNarrowPaneModal?: boolean;
 };
 
 type SelectionMethods = {
@@ -53,8 +61,14 @@ export default function useSelection<DataType extends TableData>({
     selectedKeys,
     currentFilters,
     onRowSelectionChange,
+    shouldEnableSelectionInNarrowPaneModal,
 }: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // When a table opts into selection inside a narrow pane modal (RHP), the selection-mode auto-sync keys off the real
+    // screen size (isSmallScreenWidth) so it behaves correctly there (shouldUseNarrowLayout is always true in an RHP).
+    // Otherwise it keeps the original shouldUseNarrowLayout behavior, so central-pane tables are unaffected.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
     const isSelectionModeEnabled = useMobileSelectionMode();
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
@@ -85,8 +99,8 @@ export default function useSelection<DataType extends TableData>({
 
     // Sync the selection mode with the screen size & selection state
     useEffect(() => {
-        const isMobileMissingSelectionMode = shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length;
-        const isDesktopWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !shouldUseNarrowLayout;
+        const isMobileMissingSelectionMode = selectionUsesNarrowLayout && !isSelectionModeEnabled && selectedKeys.length;
+        const isDesktopWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !selectionUsesNarrowLayout;
         const isSelectionModeEnabledWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !originalSelectableCount;
 
         if (isMobileMissingSelectionMode) {
@@ -94,7 +108,7 @@ export default function useSelection<DataType extends TableData>({
         } else if (isDesktopWithoutSelectableKeys || isSelectionModeEnabledWithoutSelectableKeys) {
             turnOffMobileSelectionMode();
         }
-    }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
+    }, [selectionUsesNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
 
     // When selection mode is turned off, clear the list of selected keys, so that re-enabling selection mode doesn't retain rows
     const wasSelectionModeEnabled = usePrevious(isSelectionModeEnabled);

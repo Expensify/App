@@ -1,6 +1,8 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useWaypointItems from '@hooks/useWaypointItems';
 import type {UseWaypointItemsParams} from '@hooks/useWaypointItems';
+
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
 function createFilledWaypoints(): WaypointCollection {

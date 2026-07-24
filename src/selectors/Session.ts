@@ -1,5 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const emailSelector = (session: OnyxEntry<Session>) => session?.email;
 

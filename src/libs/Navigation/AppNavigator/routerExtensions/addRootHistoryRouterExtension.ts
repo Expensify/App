@@ -1,8 +1,13 @@
-import type {ParamListBase, PartialState, Router, RouterConfigOptions} from '@react-navigation/native';
 import Log from '@libs/Log';
 import type {RootStackNavigatorAction} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import CONST from '@src/CONST';
+
+import type {ParamListBase, PartialState, Router, RouterConfigOptions} from '@react-navigation/native';
+
+import type {PendingReveal, RootHistoryState} from './addRootHistoryRouterExtensionUtils';
+
 import {
     applyRevealPaddingOffset,
     asCustomHistory,
@@ -16,7 +21,6 @@ import {
     isReplaceFullscreenUnderRHPAction,
     stripTrailingModalSentinels,
 } from './addRootHistoryRouterExtensionUtils';
-import type {PendingReveal, RootHistoryState} from './addRootHistoryRouterExtensionUtils';
 import {enhanceStateWithHistory} from './utils';
 
 /** Manages root `state.history` for side-panel, per-modal back-guards, and reveal flows; per-branch rationale inline. */

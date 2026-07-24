@@ -1,62 +1,87 @@
+import fileURIToPath from '@libs/fileURIToPath';
+import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage/index.native';
+
+const mockMkdir = jest.fn<Promise<void>, [string]>();
+const mockExists = jest.fn<Promise<boolean>, [string]>();
+const mockMoveFile = jest.fn<Promise<void>, [string, string]>();
+
 jest.mock('react-native-fs', () => ({
-    exists: jest.fn(() => Promise.resolve(true)),
-    mkdir: jest.fn(() => Promise.resolve()),
-    moveFile: jest.fn(() => Promise.resolve()),
+    mkdir: (...args: [string]) => mockMkdir(...args),
+    exists: (...args: [string]) => mockExists(...args),
+    moveFile: (...args: [string, string]) => mockMoveFile(...args),
 }));
 
-const DURABLE_UPLOAD_DIR = '/var/mobile/Documents/Receipts-Upload';
+const mockGetReceiptsUploadFolderPath = jest.fn<string, []>();
+
 jest.mock('@libs/getReceiptsUploadFolderPath', () => ({
     __esModule: true,
-    default: () => DURABLE_UPLOAD_DIR,
+    default: () => mockGetReceiptsUploadFolderPath(),
 }));
 
-jest.mock('@libs/Log', () => ({
-    __esModule: true,
-    default: {warn: jest.fn(), alert: jest.fn()},
-}));
+const UPLOAD_FOLDER = '/var/mobile/Documents/Receipts-Upload';
 
-type MoveReceiptFn = (uri: string, fileName: string) => Promise<string>;
-
-// Bypass the global jest/setup.ts mock to test the real native implementation.
-
-const {default: moveReceiptToDurableStorage}: {default: MoveReceiptFn} = jest.requireActual('@libs/moveReceiptToDurableStorage/index.native.ts');
-
-describe('Receipt flows should persist to durable storage after crop/rotate', () => {
-    it('should move a cropped receipt out of ImageManipulator cache into Receipts-Upload', async () => {
-        const cachePath = 'file:///var/mobile/Library/Caches/ImageManipulator/cropped-abc123.jpg';
-
-        const result = await moveReceiptToDurableStorage(cachePath, 'receipt.jpg');
-
-        expect(result).toContain('Receipts-Upload');
-        expect(result).not.toContain('Library/Caches');
+describe('moveReceiptToDurableStorage', () => {
+    beforeEach(() => {
+        mockMkdir.mockReset().mockResolvedValue();
+        mockExists.mockReset().mockResolvedValue(true);
+        mockMoveFile.mockReset().mockResolvedValue();
+        mockGetReceiptsUploadFolderPath.mockReset().mockReturnValue(UPLOAD_FOLDER);
     });
 
-    it('should move a rotated receipt out of ImageManipulator cache into Receipts-Upload', async () => {
-        const cachePath = 'file:///var/mobile/Library/Caches/ImageManipulator/rotated-def456.jpg';
-
-        const result = await moveReceiptToDurableStorage(cachePath, 'rotated-receipt.jpg');
-
-        expect(result).toContain('Receipts-Upload');
-        expect(result).not.toContain('Library/Caches');
+    it('moves the file out of the cache into the upload folder and returns a file:// URI to the destination', async () => {
+        const result = await moveReceiptToDurableStorage('file:///var/mobile/Library/Caches/ImageManipulator/cropped-abc123.jpg', 'receipt.jpg');
+        const [sourcePath, destPath] = mockMoveFile.mock.calls.at(0) ?? [];
+        expect(sourcePath).toBe('/var/mobile/Library/Caches/ImageManipulator/cropped-abc123.jpg');
+        expect(destPath).toMatch(new RegExp(`^${UPLOAD_FOLDER}/receipt_\\d+\\.jpg$`));
+        expect(result).toBe(`file://${destPath}`);
     });
 
-    it('should generate unique destination paths to avoid filename collisions', async () => {
-        const cachePath1 = 'file:///var/mobile/Library/Caches/ImageManipulator/img1.jpg';
-        const cachePath2 = 'file:///var/mobile/Library/Caches/ImageManipulator/img2.jpg';
+    it('decodes an encoded source URI before moving', async () => {
+        await moveReceiptToDurableStorage('file:///cache/img%20%2342.jpg', 'receipt.jpg');
+        expect(mockMoveFile.mock.calls.at(0)?.at(0)).toBe('/cache/img #42.jpg');
+    });
 
-        const result1 = await moveReceiptToDurableStorage(cachePath1, 'receipt.jpg');
-        const result2 = await moveReceiptToDurableStorage(cachePath2, 'receipt.jpg');
+    it('sanitizes the on-disk name, keeping the extension', async () => {
+        await moveReceiptToDurableStorage('file:///cache/img.pdf', 'Receipt #42 50%.pdf');
+        const destPath = mockMoveFile.mock.calls.at(0)?.at(1) ?? '';
+        expect(destPath).toMatch(new RegExp(`^${UPLOAD_FOLDER}/Receipt__42_50__\\d+\\.pdf$`));
+        expect(destPath).not.toMatch(/[#% ]/);
+    });
 
+    it('returns a URI whose decoded and raw forms are identical', async () => {
+        const result = await moveReceiptToDurableStorage('file:///cache/img.pdf', 'Receipt from the store. #42.pdf');
+        const destPath = mockMoveFile.mock.calls.at(0)?.at(1);
+        expect(fileURIToPath(result)).toBe(destPath);
+    });
+
+    it('generates unique destination paths for the same filename', async () => {
+        const result1 = await moveReceiptToDurableStorage('file:///cache/img1.jpg', 'receipt.jpg');
+        const result2 = await moveReceiptToDurableStorage('file:///cache/img2.jpg', 'receipt.jpg');
         expect(result1).not.toBe(result2);
-        expect(result1).toMatch(/\.jpg$/);
-        expect(result2).toMatch(/\.jpg$/);
     });
 
-    it('should preserve receipts already in a durable directory', async () => {
-        const durablePath = `file://${DURABLE_UPLOAD_DIR}/existing-receipt.jpg`;
+    it('appends the unique suffix at the end when the filename has no extension', async () => {
+        await moveReceiptToDurableStorage('file:///cache/img', 'receipt');
+        expect(mockMoveFile.mock.calls.at(0)?.at(1)).toMatch(new RegExp(`^${UPLOAD_FOLDER}/receipt_\\d+$`));
+    });
 
-        const result = await moveReceiptToDurableStorage(durablePath, 'existing-receipt.jpg');
+    it('returns the source URI untouched when there is no upload folder', async () => {
+        mockGetReceiptsUploadFolderPath.mockReturnValue('');
+        const result = await moveReceiptToDurableStorage('file:///cache/img.jpg', 'receipt.jpg');
+        expect(result).toBe('file:///cache/img.jpg');
+        expect(mockMoveFile).not.toHaveBeenCalled();
+    });
 
-        expect(result).toContain('Receipts-Upload');
+    it('returns the source URI when the upload folder does not exist after mkdir', async () => {
+        mockExists.mockResolvedValue(false);
+        const result = await moveReceiptToDurableStorage('file:///cache/img.jpg', 'receipt.jpg');
+        expect(result).toBe('file:///cache/img.jpg');
+        expect(mockMoveFile).not.toHaveBeenCalled();
+    });
+
+    it('returns the source URI when the move fails', async () => {
+        mockMoveFile.mockRejectedValue(new Error('disk full'));
+        const result = await moveReceiptToDurableStorage('file:///cache/img.jpg', 'receipt.jpg');
+        expect(result).toBe('file:///cache/img.jpg');
     });
 });

@@ -1,7 +1,9 @@
-import React from 'react';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
 import HomeSectionEmptyState from '@pages/home/HomeSectionEmptyState';
+
+import React from 'react';
 
 function EmptyState() {
     const {translate} = useLocalize();

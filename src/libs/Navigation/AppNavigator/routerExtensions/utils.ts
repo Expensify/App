@@ -1,5 +1,7 @@
-import type {ParamListBase} from '@react-navigation/native';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {ParamListBase} from '@react-navigation/native';
+
 import type {CustomHistoryEntry} from './types';
 
 function enhanceStateWithHistory(state: PlatformStackNavigationState<ParamListBase>) {

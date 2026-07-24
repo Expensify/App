@@ -1,6 +1,7 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const reportByIDsSelector = (reportIDs: string[]) => (attributes: OnyxEntry<ReportAttributesDerivedValue>) =>
     reportIDs.reduce(

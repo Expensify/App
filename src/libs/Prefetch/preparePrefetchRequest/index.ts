@@ -1,4 +1,5 @@
 import PrefetchQueries from '@libs/Prefetch/PrefetchQueries';
+
 import type PreparePrefetchRequest from './types';
 
 const preparePrefetchRequest: PreparePrefetchRequest = (command) => {

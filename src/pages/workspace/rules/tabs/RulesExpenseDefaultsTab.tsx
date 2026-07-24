@@ -1,10 +1,13 @@
-import React from 'react';
 import WorkspaceExpenseDefaultsTable from '@components/Tables/WorkspaceExpenseDefaultsTable';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+
 import {getExpenseDefaultsTableData} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
+import React from 'react';
 
 type RulesExpenseDefaultsTabProps = {
     policyID: string;

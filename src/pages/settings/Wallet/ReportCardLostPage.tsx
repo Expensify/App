@@ -1,28 +1,34 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ReplacementReason} from '@libs/actions/Card';
 import {setErrors} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 const OPTIONS_KEYS = {
     DAMAGED: 'damaged',
@@ -65,6 +71,7 @@ function ReportCardLostPage({
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: formData?.isLoading});
 
     const physicalCard = cardList?.[cardID];
 
@@ -100,7 +107,9 @@ function ReportCardLostPage({
             setShouldShowAddressError(true);
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED, !!isFromDomainCardDetail));
+        startWithLoading(() => {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED, !!isFromDomainCardDetail));
+        });
     };
 
     const handleOptionSelect = (value: string) => {
@@ -161,7 +170,8 @@ function ReportCardLostPage({
                                 isAlertVisible={shouldShowAddressError}
                                 onSubmit={handleSubmitSecondStep}
                                 message={translate('reportCardLostOrDamaged.addressError')}
-                                isLoading={formData?.isLoading}
+                                shouldShowLoadingImmediatelyOnPress={false}
+                                isLoading={isLoading}
                                 buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
                             />
                         </View>
@@ -181,6 +191,7 @@ function ReportCardLostPage({
                                 isAlertVisible={shouldShowReasonError}
                                 onSubmit={handleSubmitFirstStep}
                                 message={translate('reportCardLostOrDamaged.reasonError')}
+                                shouldShowLoadingImmediatelyOnPress={false}
                                 buttonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
                             />
                         </View>

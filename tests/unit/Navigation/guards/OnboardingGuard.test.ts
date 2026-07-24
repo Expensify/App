@@ -1,11 +1,15 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
 import OnboardingGuard from '@libs/Navigation/guards/OnboardingGuard';
 import type {GuardContext} from '@libs/Navigation/guards/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 describe('OnboardingGuard', () => {

@@ -1,8 +1,11 @@
-import {SafeString} from 'expensify-common';
 import CONST from '@src/CONST';
+
+import {SafeString} from 'expensify-common';
+
+import type {RequestError} from './Network/SequentialQueue';
+
 import {WRITE_COMMANDS} from './API/types';
 import Log from './Log';
-import type {RequestError} from './Network/SequentialQueue';
 import {generateRandomInt} from './NumberUtils';
 
 class RequestThrottle {

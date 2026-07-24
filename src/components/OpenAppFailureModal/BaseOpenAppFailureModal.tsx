@@ -1,17 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Header from '@components/Header';
 import Modal from '@components/Modal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type BaseOpenAppFailureModalProps = {
     onRefreshAndTryAgainButtonPress: () => void;

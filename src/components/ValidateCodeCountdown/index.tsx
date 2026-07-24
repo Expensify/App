@@ -1,9 +1,14 @@
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import RenderHTML from '@components/RenderHTML';
+
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
+
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+
 import type {ValidateCodeCountdownProps} from './types';
 
 function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCodeCountdownProps) {

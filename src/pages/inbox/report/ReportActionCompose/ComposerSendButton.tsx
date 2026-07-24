@@ -1,11 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+
 import {useComposerEditState, useComposerSendState, useComposerState} from './ComposerContext';
 import SubmitDraftButton from './SubmitDraftButton';
 import useComposerSubmit from './useComposerSubmit';

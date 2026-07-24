@@ -1,9 +1,13 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import React from 'react';
+import type {ComposerRef} from '@components/Composer/types';
+
+import SCREENS from '@src/SCREENS';
+
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
-import type {ComposerRef} from '@components/Composer/types';
-import SCREENS from '@src/SCREENS';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import React from 'react';
+
 import isReportOpenInRHP from './Navigation/helpers/isReportOpenInRHP';
 import navigationRef from './Navigation/navigationRef';
 import preventTextInputFocusOnFirstResponderOnce from './preventTextInputFocusOnFirstResponderOnce';

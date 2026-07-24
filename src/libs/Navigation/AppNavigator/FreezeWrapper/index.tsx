@@ -1,9 +1,12 @@
+import useOnyx from '@hooks/useOnyx';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import {useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {Freeze} from 'react-freeze';
-import useOnyx from '@hooks/useOnyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import getIsScreenBlurred from './getIsScreenBlurred';
 
 type FreezeWrapperProps = ChildrenProps & {

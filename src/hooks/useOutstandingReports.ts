@@ -1,9 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {getOutstandingReportsForUser, isSelfDM} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
 

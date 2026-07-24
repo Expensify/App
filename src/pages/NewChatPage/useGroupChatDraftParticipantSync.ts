@@ -1,13 +1,18 @@
-import {useEffect, useEffectEvent, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useOnyx from '@hooks/useOnyx';
+
 import {getUserToInviteOption} from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Login, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useEffectEvent, useRef} from 'react';
+
 import type SelectedOption from './types';
 
 /**

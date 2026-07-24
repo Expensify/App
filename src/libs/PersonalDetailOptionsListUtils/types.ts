@@ -1,9 +1,11 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type CONST from '@src/CONST';
 import type {LoginList} from '@src/types/onyx';
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 type OptionData = {
     text: string;

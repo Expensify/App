@@ -1,26 +1,34 @@
-import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCompletedStepsForBankAccount} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+
 import Navigation from '@navigation/Navigation';
+
 import {clearPersonalBankAccount, clearPersonalBankAccountErrors, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect} from 'react';
+
 import Address from './InternationalDepositAccount/PersonalInfo/substeps/AddressStep';
 import LegalName from './InternationalDepositAccount/PersonalInfo/substeps/LegalNameStep';
 import PhoneNumber from './InternationalDepositAccount/PersonalInfo/substeps/PhoneNumberStep';

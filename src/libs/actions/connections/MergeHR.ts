@@ -1,15 +1,19 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import {write} from '@libs/API';
 import type {ConnectPolicyToMergeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 function getMergeHRSetupLink(policyID: string, integration: MergeHRProviderSlug) {
     const params: ConnectPolicyToMergeParams = {policyID, integration};
@@ -37,11 +41,11 @@ function syncMergeHR(policy: OnyxEntry<Policy>) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is the API-defined connection key
-                    merge_hris: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                         lastSync: {
                             syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING,
                             syncType: CONST.MERGE_HR.SYNC_TYPE.MANUAL,
+                            manualSyncTimestamps: [DateUtils.getDBTime(), ...(previousLastSync?.manualSyncTimestamps ?? [])],
                         },
                     },
                 },
@@ -55,9 +59,12 @@ function syncMergeHR(policy: OnyxEntry<Policy>) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is the API-defined connection key
-                    merge_hris: {
-                        lastSync: previousLastSync ?? null,
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        lastSync: {
+                            syncStatus: CONST.MERGE_HR.SYNC_STATUS.FAILED,
+                            errorMessage: null,
+                            manualSyncTimestamps: previousLastSync?.manualSyncTimestamps ?? null,
+                        },
                     },
                 },
             },

@@ -1,14 +1,17 @@
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {
     updateFinancialForceDimension1Mapping,
     updateFinancialForceDimension2Mapping,
     updateFinancialForceDimension3Mapping,
     updateFinancialForceDimension4Mapping,
 } from '@libs/actions/connections/FinancialForce';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FinancialForceConnectionConfig, FinancialForceFFAExportStatus} from '@src/types/onyx/Policy';
+
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 const CERTINIA_DIMENSION_PARAMS = [
     CONST.CERTINIA_CONFIG.CODING_DIMENSION1,

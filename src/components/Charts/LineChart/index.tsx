@@ -1,5 +1,7 @@
-import React from 'react';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
+
+import React from 'react';
+
 import type {LineChartProps} from './LineChartContent';
 
 const getLineChartContent = () => import('./LineChartContent');

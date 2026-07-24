@@ -1,8 +1,13 @@
-import React, {useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import TextInput from '@components/TextInput';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+
 import BasePopup from './BasePopup';
 
 type TextInputPopupProps = {

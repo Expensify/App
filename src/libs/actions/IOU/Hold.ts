@@ -1,5 +1,3 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {HoldMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -31,12 +29,19 @@ import {
     isProcessingReport,
 } from '@libs/ReportUtils';
 import {getAmount} from '@libs/TransactionUtils';
+
 import {notifyNewAction} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {getAllReports, getAllTransactions} from '.';
 
 /**
@@ -50,6 +55,7 @@ function putOnHold(
     currentUserLogin: string,
     currentUserAccountID: number,
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
     ancestors: Ancestor[] = [],
 ) {
     const allTransactions = getAllTransactions();
@@ -281,6 +287,7 @@ function putOnHold(
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
@@ -288,6 +295,7 @@ function putOnHold(
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
 
         optimisticData.push({
@@ -359,12 +367,13 @@ function putTransactionsOnHold(
     currentUserLogin: string,
     currentUserAccountID: number,
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
     ancestors: Ancestor[] = [],
 ) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, ancestors);
+        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, ancestors);
     }
 }
 
@@ -379,6 +388,7 @@ function unholdRequest(
     currentUserLogin: string,
     currentUserAccountID: number,
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
 ) {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -514,6 +524,7 @@ function unholdRequest(
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
@@ -522,6 +533,7 @@ function unholdRequest(
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            isTrackIntentUser,
         });
 
         optimisticData.push({

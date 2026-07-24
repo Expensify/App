@@ -1,7 +1,9 @@
+import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
+
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+
 import type {ForwardedRef, ReactNode} from 'react';
 import type {TextStyle} from 'react-native';
-import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ValidateCodeActionFormProps = {
     /** Primary description of the modal */

@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useSearchSections from '@hooks/useSearchSections';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -61,7 +63,7 @@ describe('useSearchSections', () => {
             mockGetSortedSections.mockReturnValue([{reportID: '1'}, {reportID: '2'}]);
             mockGetSections.mockReturnValue([[{reportID: '1'}, {reportID: '2'}]]);
             onyxData[ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY] = {
-                queryJSON: {hash: '123', type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, status: CONST.SEARCH.STATUS.EXPENSE.ALL},
+                queryJSON: {hash: '123', type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
             };
             onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}123`] = {
                 data: {reports: {}},
@@ -78,7 +80,7 @@ describe('useSearchSections', () => {
             mockGetSortedSections.mockReturnValue([{reportID: '1'}, {reportID: '2'}, {reportID: '3'}]);
             mockGetSections.mockReturnValue([[{reportID: '1'}, {reportID: '2'}, {reportID: '3'}]]);
             onyxData[ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY] = {
-                queryJSON: {hash: '123', type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, status: CONST.SEARCH.STATUS.EXPENSE.ALL},
+                queryJSON: {hash: '123', type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
             };
             onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}123`] = {
                 data: {reports: {}},
@@ -95,7 +97,7 @@ describe('useSearchSections', () => {
 
         it('returns empty allReports when search results are not yet loaded', () => {
             onyxData[ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY] = {
-                queryJSON: {hash: '123', type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, status: CONST.SEARCH.STATUS.EXPENSE.ALL},
+                queryJSON: {hash: '123', type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
             };
             // No snapshot data — simulates deep-link before search has run
 

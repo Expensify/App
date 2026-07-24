@@ -1,6 +1,3 @@
-import {Skia, Text as SkText} from '@shopify/react-native-skia';
-import type {Color, SkFont} from '@shopify/react-native-skia';
-import React from 'react';
 import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
@@ -8,8 +5,15 @@ import computeTextAnchorPosition from '@components/HTMLEngineProvider/HTMLRender
 import getSkiaLineMetrics from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getSkiaLineMetrics';
 import {getLocalizedVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/localizeVictoryChartLabelText';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+
 import useTheme from '@hooks/useTheme';
+
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+
+import type {Color, SkFont} from '@shopify/react-native-skia';
+
+import {Skia, Text as SkText} from '@shopify/react-native-skia';
+import React from 'react';
 
 type VictoryChartLabelsProps = LabelItem & {
     timezone?: SelectedTimezone;

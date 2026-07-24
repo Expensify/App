@@ -1,17 +1,23 @@
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
-import React from 'react';
-// eslint-disable-next-line no-restricted-imports -- ScrollView is imported directly to spy on its prototype in tests
-import {ScrollView} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import NewChatPage from '@pages/NewChatPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
+// eslint-disable-next-line no-restricted-imports -- ScrollView is imported directly to spy on its prototype in tests
+import {ScrollView} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
+
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';

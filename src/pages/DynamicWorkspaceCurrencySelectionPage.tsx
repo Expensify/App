@@ -1,20 +1,23 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setWorkspaceConfirmationCurrency} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 function DynamicWorkspaceCurrencySelectionPage() {
     const styles = useThemeStyles();
@@ -36,10 +39,9 @@ function DynamicWorkspaceCurrencySelectionPage() {
             // After selecting, don't restore focus to the currency menu item on the confirmation page —
             // a focused button suppresses the form's submit-on-Enter, so the next Enter would re-open this
             // page instead of creating the workspace. The header Back button keeps the default focus restore.
-            skipNextFocusRestore();
-            goBack();
+            Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
         },
-        [goBack],
+        [backPath],
     );
 
     return (

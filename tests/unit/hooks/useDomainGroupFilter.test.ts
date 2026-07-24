@@ -1,16 +1,20 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import type {DomainMemberRowData} from '@components/Tables/DomainMembersTable';
+
 import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Domain from '@src/types/onyx/Domain';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const DOMAIN_ACCOUNT_ID = 99999;
 const SECURITY_GROUP_PREFIX = CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX;
-const ALL_MEMBERS_VALUE = 'all';
 
 function buildDomain(groups: Record<string, {members: Record<string, 'read' | null>; name: string}>): Domain {
     const domain: Record<string, unknown> = {
@@ -90,7 +94,7 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.shouldShowGroupColumn).toBe(true);
         });
 
-        it('should include "All Members" and all security groups when multiple groups exist', async () => {
+        it('should include all security groups when multiple groups exist', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
                 '2': {members: {'300': 'read'}, name: 'Marketing'},
@@ -100,13 +104,17 @@ describe('useDomainGroupFilter', () => {
             const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
 
             await waitFor(() => {
-                expect(result.current.filterConfig?.group.options).toHaveLength(3);
+                expect(result.current.filterConfig?.group.options).toHaveLength(2);
             });
 
-            expect(result.current.filterConfig?.group.options.at(0)?.value).toBe(ALL_MEMBERS_VALUE);
-            expect(result.current.filterConfig?.group.options.at(1)).toEqual({label: 'Engineering', value: '1'});
-            expect(result.current.filterConfig?.group.options.at(2)).toEqual({label: 'Marketing', value: '2'});
-            expect(result.current.filterConfig?.group.default).toBe(ALL_MEMBERS_VALUE);
+            expect(result.current.filterConfig?.group.options.at(0)).toEqual({
+                label: 'Engineering',
+                value: '1',
+            });
+            expect(result.current.filterConfig?.group.options.at(1)).toEqual({
+                label: 'Marketing',
+                value: '2',
+            });
         });
     });
 
@@ -116,7 +124,7 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.isItemInFilter).toBeUndefined();
         });
 
-        it('should allow all members through when "All Members" is selected', async () => {
+        it('should allow all members through when the group filter is cleared', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
                 '2': {members: {'300': 'read'}, name: 'Marketing'},
@@ -129,8 +137,8 @@ describe('useDomainGroupFilter', () => {
                 expect(result.current.isItemInFilter).toBeDefined();
             });
 
-            expect(result.current.isItemInFilter?.(buildMemberRow(100), [ALL_MEMBERS_VALUE])).toBe(true);
-            expect(result.current.isItemInFilter?.(buildMemberRow(999), [ALL_MEMBERS_VALUE])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(100), [])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(999), [])).toBe(true);
         });
 
         it('should filter members to the selected group', async () => {

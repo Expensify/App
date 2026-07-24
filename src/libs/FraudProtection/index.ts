@@ -1,9 +1,12 @@
-import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {init, sendEvent, setAttribute, setAuthenticationData} from './GroupIBSdkBridge';
 
 let sessionID = Str.guid();

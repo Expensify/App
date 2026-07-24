@@ -1,13 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getOriginalMessage, isExportedToIntegrationAction} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ExportedIconCellProps = {
     reportActions?: ReportAction[];
@@ -81,14 +85,14 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
                 <Icon
                     src={icons.Table}
                     fill={theme.icon}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                 />
             )}
             {isExportedToCustomTemplate && (
                 <Icon
                     src={icons.TablePencil}
                     fill={theme.icon}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                 />
             )}
             {isExportedToNetsuite && (

@@ -1,6 +1,8 @@
-import {clearTokenRefresh, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
 import Log from '@libs/Log';
 import PrefetchQueries from '@libs/Prefetch/PrefetchQueries';
+
+import {clearTokenRefresh, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
+
 import type ClearPrefetchOnAppStart from './types';
 
 const clearPrefetchOnAppStart: ClearPrefetchOnAppStart = () => {

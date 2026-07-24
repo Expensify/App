@@ -1,6 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {TableData} from '@components/Table';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -8,6 +10,7 @@ import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm'
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
 import {setPolicyCategoryMaxAmount} from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToFrontendAmountAsString} from './CurrencyUtils';
@@ -61,25 +64,14 @@ function getFlagForReviewFormFromCategory(
     };
 }
 
-function getEffectiveFlagForReviewRuleForm(
-    category: PolicyCategory | undefined,
-    form: Partial<FlagForReviewRuleForm>,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    policyCurrency: string,
-): FlagForReviewRuleForm {
-    const categoryForm = getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency);
-
-    return {
-        [INPUT_IDS.CATEGORY]: form[INPUT_IDS.CATEGORY] ?? categoryForm[INPUT_IDS.CATEGORY] ?? '',
-        [INPUT_IDS.MAX_EXPENSE_AMOUNT]: form[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? categoryForm[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '',
-        [INPUT_IDS.EXPENSE_LIMIT_TYPE]: form[INPUT_IDS.EXPENSE_LIMIT_TYPE] ?? categoryForm[INPUT_IDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
-    };
-}
-
-function saveFlagForReviewRule(policyID: string, policyCategories: PolicyCategories | undefined, form: FlagForReviewRuleForm) {
+function saveFlagForReviewRule(policyID: string, policyCategories: PolicyCategories | undefined, form: FlagForReviewRuleForm, originalCategoryName?: string) {
     const categoryName = form[INPUT_IDS.CATEGORY];
     if (!categoryName) {
         return;
+    }
+
+    if (originalCategoryName && originalCategoryName !== categoryName) {
+        deleteFlagForReviewRule(policyID, originalCategoryName, policyCategories);
     }
 
     setPolicyCategoryMaxAmount(
@@ -165,5 +157,5 @@ function getFlagForReviewTableData({
     return rules;
 }
 
-export {deleteFlagForReviewRule, getEffectiveFlagForReviewRuleForm, getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, getFlagForReviewTableData, saveFlagForReviewRule};
+export {deleteFlagForReviewRule, getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, getFlagForReviewTableData, hasExplicitFlagAmount, saveFlagForReviewRule};
 export type {FlagForReviewTableItem};

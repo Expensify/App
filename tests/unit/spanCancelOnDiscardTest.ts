@@ -1,5 +1,6 @@
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SubmitExpenseContext} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
 
 const mockCancelSpan = jest.fn();

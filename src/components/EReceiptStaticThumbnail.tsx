@@ -1,16 +1,21 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {Image, View} from 'react-native';
 import blueThumbnail from '@assets/images/eReceiptBGs/ereceipt_thumbnail_blue.png';
 import greenThumbnail from '@assets/images/eReceiptBGs/ereceipt_thumbnail_green.png';
 import iceThumbnail from '@assets/images/eReceiptBGs/ereceipt_thumbnail_ice.png';
 import pinkThumbnail from '@assets/images/eReceiptBGs/ereceipt_thumbnail_pink.png';
 import tangerineThumbnail from '@assets/images/eReceiptBGs/ereceipt_thumbnail_tangerine.png';
 import yellowThumbnail from '@assets/images/eReceiptBGs/ereceipt_thumbnail_yellow.png';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {Image, View} from 'react-native';
+
 import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 
 const eReceiptThumbnailSources = {

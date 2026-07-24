@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+
 import Log from './Log';
 import ConvertGpsPointsTo2DArray from './migrations/ConvertGpsPointsTo2DArray';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';

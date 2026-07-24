@@ -1,6 +1,8 @@
-import {createContext} from 'react';
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import {createContext} from 'react';
 
 type AttachmentContextProps = {
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;

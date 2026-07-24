@@ -1,6 +1,8 @@
-import {useCallback, useRef} from 'react';
 import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
+
+import {useCallback, useRef} from 'react';
 
 type Options = {
     requireLayout?: boolean;

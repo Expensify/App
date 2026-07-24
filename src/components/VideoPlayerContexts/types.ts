@@ -1,7 +1,8 @@
+import type CONST from '@src/CONST';
+
 import type {VideoPlayer} from 'expo-video';
 import type {SharedValue} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
-import type CONST from '@src/CONST';
 
 type VolumeStateContextType = {
     /**

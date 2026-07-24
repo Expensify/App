@@ -28,7 +28,7 @@ Expensify offers flexible options to search and export expenses and reports in v
    - **Basic Export** – Simplified, essential fields (date, amount, merchant, category, receipt URL).
    - **All Data – Expense Level Export** – One row per expense with full data.
    - **All Data – Report Level Export** – One row per report with summary data.
-   - **Export current view** – A CSV that matches the columns currently shown on the page. Set the columns using **Display** > **Edit columns**. Not available when a **Group by** filter is applied.
+   - **Current view** – A CSV that matches the columns currently shown on the page. Set the columns using **Display** > **Edit columns**. Not available when a **Group by** filter is applied.
    - **Custom Templates** – Any template created by you or your Workspace Admin (if available).
 
 After you choose a template, a status window appears while your file is prepared. When it’s ready, the file downloads automatically—if it doesn’t, click **Download file**. You can also click **Send me the file when it’s ready** to have **Concierge** send you the file via chat instead.
@@ -47,6 +47,14 @@ After you choose a template, a status window appears while your file is prepared
 After you choose a template, a status window appears while your file is prepared. When it’s ready, the file downloads automatically—if it doesn’t, tap **Download file**. You can also tap **Send me the file when it’s ready** to have **Concierge** send you the file via chat instead.
 
 **Note:** Report-level templates only appear when full reports are selected.
+
+# Export your current filtered view
+
+To export exactly what you see on the Spend page, select **Export** from the bulk actions menu, then choose **Current view**. The resulting CSV reflects your active filters, column configuration, and ordering—no additional processing needed.
+
+The exported file is named `Expensify_<current_view>_<unique id>.csv`.
+
+Once you initiate the export, you can choose to wait for the download to finish or have **Concierge** send it to you in a chat message once it's ready.
 
 # Export grouped expenses
 
@@ -67,14 +75,22 @@ In the exported file:
 
 # Export as PDF
 
-1. Open the individual report you want to export.
-2. Click **More** in the top-right corner.
+You can download a single report or multiple reports as PDFs. Each PDF includes all expenses, attached receipts, and report notes.
+
+## Download a single report
+
+1. Open the report you want to download.
+2. Select the three dots **(⋮)**.
 3. Select **Download as PDF**.
 
-The PDF will include:
-- All expenses
-- Attached receipts
-- Report notes
+## Download multiple reports
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), then select **Spend** > **Reports**.
+2. Check the box next to each report you want to download, or use the top checkbox to select all.
+3. Click **Selected**.
+4. Select **Download as PDF**.
+
+A status window appears while your files are prepared. When they're ready, the download starts automatically. If it doesn't, click **Download file**. You can also click **Send me the file when it's ready** to have **Concierge** send the files to you in a chat message instead.
 
 # FAQ
 
@@ -97,7 +113,7 @@ No, PDF export is only available for full reports.
 
 ## Can I customize the columns in the CSV export?
 
-Yes. Select **Export current view** to download a CSV that matches the columns currently shown on the page. Adjust which columns appear by selecting **Display** > **Edit columns**. The other export templates use a fixed set of columns.
+Yes. Select **Current view** to download a CSV that matches the columns currently shown on the page. Adjust which columns appear by selecting **Display** > **Edit columns**. The other export templates use a fixed set of columns.
 
 ## How do I export to an accounting integration?
 
@@ -110,7 +126,11 @@ A status window appears while your file is prepared, and the file downloads auto
 ## Can I export expenses or reports in bulk?
 
 - **CSV export**: Yes, select multiple or all items.
-- **PDF export**: Must be downloaded one at a time.
+- **PDF export**: Yes, select multiple reports and choose **Download as PDF**. Each report is downloaded as a separate PDF.
+
+## What happens if some reports fail to download as PDFs?
+
+When you download multiple reports as PDFs, a message tells you how many of the selected reports were exported. If any reports couldn't be generated, open your **Concierge** chat in the **Inbox** to see which reports failed.
 
 ## Why do I see a 404 error when clicking a receipt URL?
 

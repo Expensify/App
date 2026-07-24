@@ -1,10 +1,3 @@
-import React, {useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
-import {GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
-import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
-import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
@@ -23,10 +16,23 @@ import {
 } from '@components/Charts/hooks';
 import {calculateMinDomainPadding, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {GestureDetector} from 'react-native-gesture-handler';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import {Bar, CartesianChart} from 'victory-native';
+
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
 /** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)

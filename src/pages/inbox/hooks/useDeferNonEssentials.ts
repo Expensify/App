@@ -1,9 +1,11 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {useCallback, useRef, useState} from 'react';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {useCallback, useRef, useState} from 'react';
 
 const SAFETY_TIMEOUT_MULTIPLIER = 3;
 

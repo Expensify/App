@@ -1,21 +1,14 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const mockRemoveDraftTransactionsByIDs = jest.fn();
 
 jest.mock('@libs/actions/TransactionEdit', () => ({
     removeDraftTransactionsByIDs: (ids: string[] | undefined) => mockRemoveDraftTransactionsByIDs(ids) as void,
-}));
-
-jest.mock('react-native', () => ({
-    InteractionManager: {
-        runAfterInteractions: (callback: () => void) => {
-            callback();
-            return {then: (cb: () => void) => cb(), cancel: jest.fn()};
-        },
-    },
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -28,7 +21,7 @@ describe('cleanupAfterExpenseCreate', () => {
         jest.clearAllMocks();
     });
 
-    it('should remove draft transactions via InteractionManager when draftTransactionIDs is provided', () => {
+    it('should remove draft transactions when draftTransactionIDs is provided', () => {
         cleanupAfterExpenseCreate({
             draftTransactionIDs: ['txn-1', 'txn-2'],
         });

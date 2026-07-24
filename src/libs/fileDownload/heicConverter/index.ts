@@ -1,6 +1,8 @@
 import {canvasFallback, hasHeicOrHeifExtension} from '@libs/fileDownload/FileUtils';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
 import type {HeicConverterFunction} from './types';
 
 type HeicConverter = {

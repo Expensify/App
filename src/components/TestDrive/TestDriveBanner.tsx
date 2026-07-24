@@ -1,10 +1,12 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TestDriveBannerProps = {
     /** Callback to finish the test drive */

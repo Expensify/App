@@ -1,19 +1,24 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {getPolicyBrickRoadIndicatorStatus, getUberConnectionErrorDirectlyFromPolicy, isMergeHRCompleteSetupNeededSelector, shouldShowEmployeeListError} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasReimbursementAccountErrorsSelector} from '@src/selectors/ReimbursementAccount';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceRowBrickRoadIndicatorProps = {
     /** ID of the policy the row represents */

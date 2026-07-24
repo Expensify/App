@@ -1,11 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -13,10 +12,18 @@ import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import isChunkLoadError from '@libs/isChunkLoadError';
+
 import variables from '@styles/variables';
+
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ErrorBodyText from './ErrorBodyText';
 
 function GenericErrorPage({error}: {error?: Error}) {

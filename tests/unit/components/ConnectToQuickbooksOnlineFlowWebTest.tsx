@@ -1,14 +1,17 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import type ConnectToQuickbooksOnlineFlowType from '@components/ConnectToQuickbooksOnlineFlow';
+
 import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {openLink} from '@userActions/Link';
 import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 
+import React from 'react';
+
 // Jest (jest-expo) resolves the `.native` variant by default, so we require the web entry point
 // explicitly (with its `.tsx` extension) to exercise the web implementation.
-// eslint-disable-next-line import/extensions
 const connectToQuickbooksOnlineFlowModule: unknown = require('@components/ConnectToQuickbooksOnlineFlow/index.tsx');
 
 // The `require` above yields `any`, and narrowing it to the module shape needs a type assertion that

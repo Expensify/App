@@ -1,22 +1,32 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import {render} from '@testing-library/react-native';
-import React from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import * as MoneyRequestReportUtils from '@libs/MoneyRequestReportUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+
+import {AgentZeroStatusProvider} from '@pages/inbox/AgentZeroStatusContext';
+import {ConciergeDraftProvider} from '@pages/inbox/ConciergeDraftContext';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const REPORT_ID = '777';
@@ -47,6 +57,22 @@ jest.mock('@components/MoneyRequestHeader', () => jest.fn(() => null));
 jest.mock('@components/CollapsibleHeaderOnKeyboard', () => jest.fn(() => null));
 jest.mock('@components/ReportActionItem/MoneyRequestReceiptView', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportFooter', () => jest.fn(() => null));
+jest.mock('@pages/inbox/AgentZeroStatusContext', () => {
+    const reactModule = jest.requireActual<typeof React>('react');
+    return {
+        AgentZeroStatusProvider: jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children)),
+        useAgentZeroStatus: jest.fn(() => ({candidateAgentIDs: []})),
+        useAgentZeroStatusActions: jest.fn(() => ({kickoffWaitingIndicator: jest.fn()})),
+    };
+});
+jest.mock('@pages/inbox/ConciergeDraftContext', () => {
+    const reactModule = jest.requireActual<typeof React>('react');
+    return {
+        ConciergeDraftProvider: jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children)),
+        useConciergeDraft: jest.fn(() => ({draftReportAction: null, hasActiveDraft: false, isDraftPendingCompletion: false})),
+        useConciergeDraftActions: jest.fn(() => ({clearDraft: jest.fn(), dispatchLocalDraftEvent: jest.fn(), revealDraftFromReportAction: jest.fn()})),
+    };
+});
 jest.mock('@components/OfflineWithFeedback', () => {
     const reactModule = jest.requireActual<typeof React>('react');
     return jest.fn(({children}: {children: React.ReactNode}) => reactModule.createElement(reactModule.Fragment, null, children));
@@ -60,6 +86,8 @@ const mockUseReportTransactionsCollection = useReportTransactionsCollection as j
 const mockMoneyRequestReportActionsList = MoneyRequestReportActionsList as jest.MockedFunction<typeof MoneyRequestReportActionsList>;
 const mockReportActionsListBody = ReportActionsList as jest.MockedFunction<typeof ReportActionsList>;
 const mockUserTypingEventListener = UserTypingEventListener as jest.MockedFunction<typeof UserTypingEventListener>;
+const mockAgentZeroStatusProvider = AgentZeroStatusProvider as jest.MockedFunction<typeof AgentZeroStatusProvider>;
+const mockConciergeDraftProvider = ConciergeDraftProvider as jest.MockedFunction<typeof ConciergeDraftProvider>;
 
 const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportActions> = {
     reportActions: [],
@@ -183,5 +211,12 @@ describe('MoneyRequestReportView', () => {
         expect(mockMoneyRequestReportActionsList).toHaveBeenCalled();
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockUserTypingEventListener).not.toHaveBeenCalled();
+    });
+
+    it('wraps the action list and footer in the AgentZero providers for the report', () => {
+        renderMoneyRequestReportView(jest.fn());
+
+        expect(mockAgentZeroStatusProvider.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({reportID: REPORT_ID}));
+        expect(mockConciergeDraftProvider.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({reportID: REPORT_ID}));
     });
 });

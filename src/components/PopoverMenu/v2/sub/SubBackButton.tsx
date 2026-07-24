@@ -1,12 +1,18 @@
-import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import MenuItem from '@components/MenuItem';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React from 'react';
+
 import {useSubContext} from './SubContext';
 import useSubBackButton from './useSubBackButton';
 

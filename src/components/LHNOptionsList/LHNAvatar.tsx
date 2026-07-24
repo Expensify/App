@@ -1,11 +1,15 @@
-import React from 'react';
-import type {ColorValue, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import ReportActionAvatar from '@components/ReportActionAvatars/ReportActionAvatar';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+
+import type {ColorValue, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
 
 type LHNAvatarProps = {
     icons: Icon[];

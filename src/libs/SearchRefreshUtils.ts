@@ -1,6 +1,8 @@
 import type {SearchQueryJSON} from '@components/Search/types';
-import {search} from './actions/Search';
+
 import type {SearchKey} from './SearchUIUtils';
+
+import {search} from './actions/Search';
 
 type RefreshSearchParams = {
     currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;

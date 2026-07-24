@@ -1,11 +1,16 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SearchAutocompleteQueryRange} from '@components/Search/types';
+
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import type {BankAccountList, CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
+
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
 /**

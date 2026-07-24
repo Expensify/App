@@ -1,4 +1,5 @@
 import type {MileageRate} from '@libs/DistanceRequestUtils';
+
 import type {PolicyCategories, PolicyTagLists, TaxRates} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';

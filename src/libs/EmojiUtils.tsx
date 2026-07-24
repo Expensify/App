@@ -1,21 +1,27 @@
-import {parseExpensiMark} from '@expensify/react-native-live-markdown';
-import type {MarkdownRange} from '@expensify/react-native-live-markdown';
-import {Str} from 'expensify-common';
-import lodashSortBy from 'lodash/sortBy';
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
+
 import Text from '@components/Text';
+
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type ReportActionReactions from '@src/types/onyx/ReportActionReactions';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {isSafari} from './Browser';
+
+import type {MarkdownRange} from '@expensify/react-native-live-markdown';
+import type {StyleProp, TextStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {parseExpensiMark} from '@expensify/react-native-live-markdown';
+import {Str} from 'expensify-common';
+import lodashSortBy from 'lodash/sortBy';
+import React from 'react';
+
 import type {getEmojiTrie as getEmojiTrieType} from './EmojiTrie';
+
+import {isSafari} from './Browser';
 import memoize from './memoize';
 
 type HeaderIndices = {code: string; index: number; icon: IconAsset};

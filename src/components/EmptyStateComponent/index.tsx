@@ -1,14 +1,20 @@
-import isEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+
 import CONST from '@src/CONST';
+
+import isEmpty from 'lodash/isEmpty';
+import React, {useMemo} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {EmptyStateComponentProps} from './types';
 
 function EmptyStateComponent({
@@ -68,6 +74,7 @@ function EmptyStateComponent({
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, innerStyles, hoverStyles, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
+                                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                                             key={buttonText}
                                             onPress={() => {}}
                                             shouldAlwaysShowDropdownMenu

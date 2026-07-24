@@ -1,11 +1,16 @@
-import type {RouteProp} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
-import type {ComponentType} from 'react';
+
 import Text from '@components/Text';
+
 import useSubPage from '@hooks/useSubPage';
 import type {PageConfig, SubPageProps} from '@hooks/useSubPage/types';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {Route} from '@src/ROUTES';
+
+import type {RouteProp} from '@react-navigation/native';
+import type {ComponentType} from 'react';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -623,6 +628,55 @@ describe('useSubPage hook', () => {
             result.current.nextPage();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page3'));
+        });
+    });
+
+    describe('shouldReplaceRoute (dynamic routes)', () => {
+        it('replaces the route when navigating forward', () => {
+            const pages = createMockPages();
+            const buildRoute = createBuildRoute();
+            mockUseRoute.mockReturnValue({
+                name: 'TestRoute',
+                key: 'test-key',
+                params: {subPage: 'page1'},
+            } as AnyRoute);
+
+            const {result} = renderHook(() =>
+                useSubPage({
+                    pages,
+                    onFinished: mockOnFinished,
+                    buildRoute,
+                    shouldReplaceRoute: true,
+                }),
+            );
+
+            result.current.nextPage();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page2'), {forceReplace: true});
+        });
+
+        it('replaces the route (instead of popping) when navigating back', () => {
+            const pages = createMockPages();
+            const buildRoute = createBuildRoute();
+            mockUseRoute.mockReturnValue({
+                name: 'TestRoute',
+                key: 'test-key',
+                params: {subPage: 'page2'},
+            } as AnyRoute);
+
+            const {result} = renderHook(() =>
+                useSubPage({
+                    pages,
+                    onFinished: mockOnFinished,
+                    buildRoute,
+                    shouldReplaceRoute: true,
+                }),
+            );
+
+            result.current.prevPage();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page1'), {forceReplace: true});
+            expect(Navigation.goBack).not.toHaveBeenCalled();
         });
     });
 

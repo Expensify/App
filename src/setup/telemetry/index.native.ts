@@ -1,7 +1,10 @@
-import {AppStartTimeNitroModule} from '@expensify/nitro-utils';
 import Log from '@libs/Log';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
+
+import {AppStartTimeNitroModule} from '@expensify/nitro-utils';
+
 import reportModuleInitTimes from './reportModuleInitTimes';
 import setupSentry from './setupSentry';
 

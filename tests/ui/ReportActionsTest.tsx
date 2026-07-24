@@ -1,21 +1,29 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
-import type * as ReactNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+
 import {shouldDisplayReportTableView, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+
 import ReportActionsListBody from '@pages/inbox/report/ReportActionsList';
 import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
 import ReportActions from '@pages/inbox/ReportActions';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+import type * as ReactNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const REPORT_ID = '123';
@@ -89,7 +97,7 @@ const mockReport: OnyxTypes.Report = {
 
 type ReportLoadingStateOverrides = Partial<{isLoadingInitialReportActions: boolean; hasOnceLoadedReportActions: boolean}>;
 
-/** Builds the keyed useOnyx mock the orchestrator reads: the report, its loading state and IS_LOADING_APP. */
+/** Builds the keyed useOnyx mock the orchestrator reads: the report, its loading state and the app-load request queue. */
 const setupUseOnyx = (options: {report?: OnyxTypes.Report | undefined; isLoadingApp?: boolean; loadingState?: ReportLoadingStateOverrides} = {}) => {
     // `'report' in options` distinguishes "not passed" (default to mockReport) from an explicit
     // `{report: undefined}` (the report-not-available case) — a destructuring default would swallow the latter.
@@ -97,7 +105,10 @@ const setupUseOnyx = (options: {report?: OnyxTypes.Report | undefined; isLoading
     const isLoadingApp = options.isLoadingApp ?? false;
     const loadingState = options.loadingState ?? {};
     mockUseOnyx.mockImplementation((key: string) => {
-        if (key === ONYXKEYS.IS_LOADING_APP) {
+        // ReportActions derives app-load state from the request queue via useIsAppLoadPending, which reads these
+        // queue keys through selectors that resolve to a boolean. Returning that boolean directly mirrors what
+        // useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept for any direct reader.
+        if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
             return [isLoadingApp, {status: 'loaded'}];
         }
         if (key.includes('reportLoadingState')) {

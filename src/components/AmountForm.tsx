@@ -1,13 +1,19 @@
-import type {ForwardedRef} from 'react';
-import React from 'react';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
-import NumberWithSymbolForm from './NumberWithSymbolForm';
+
+import type {ForwardedRef} from 'react';
+
+import React from 'react';
+
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+
+import NumberWithSymbolForm from './NumberWithSymbolForm';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */

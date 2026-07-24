@@ -1,12 +1,16 @@
-import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React from 'react';
 
 type ParticipantSelectorFooterProps = {
     /** The type of IOU report — used to exclude the referral banner on invoice flows */
