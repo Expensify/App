@@ -7,9 +7,9 @@ type ReportNamesByID = Record<string, string | undefined>;
  * Reads a single report's name from a {@link ReportNamesByID} map, guarding the `reportID` internally so call sites
  * stay a single expression.
  */
-function getDerivedReportNameByReportID(reportNames: OnyxEntry<ReportNamesByID>, reportID: string | undefined): string | undefined {
+function getReportNameFromNames(reportNames: OnyxEntry<ReportNamesByID>, reportID: string | undefined): string | undefined {
     return reportID ? reportNames?.[reportID] : undefined;
 }
 
-export {getDerivedReportNameByReportID};
+export {getReportNameFromNames};
 export type {ReportNamesByID};

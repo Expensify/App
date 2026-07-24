@@ -14,7 +14,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
-import {getDerivedReportNameByReportID} from '@libs/ReportAttributesUtils';
+import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
@@ -206,9 +206,9 @@ function AvatarWithDisplayName({
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const derivedReportNames = useDerivedReportNamesByReportIDs([report?.reportID, report?.parentReportID]);
-    const derivedParentReportName = getDerivedReportNameByReportID(derivedReportNames, report?.parentReportID);
+    const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const title = getReportName(report, getDerivedReportNameByReportID(derivedReportNames, report?.reportID));
+    const title = getReportName(report, getReportNameFromNames(derivedReportNames, report?.reportID));
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, true, isReportArchived);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived);
