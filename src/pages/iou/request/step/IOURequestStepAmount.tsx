@@ -81,7 +81,8 @@ function IOURequestStepAmount({
     const iouRequestType = getRequestType(transaction);
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const policyID = isTrackExpense ? policyForMovingExpensesID : report?.policyID;
+    const participantPolicyID = transaction?.participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
+    const policyID = (isTrackExpense ? policyForMovingExpensesID : report?.policyID) ?? participantPolicyID;
 
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isIouReport = isMoneyRequestReport(report);
@@ -182,6 +183,10 @@ function IOURequestStepAmount({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -195,7 +200,7 @@ function IOURequestStepAmount({
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID);
     });
     const participant = participants.at(0);
     const policyTags = useMoneyRequestPolicyTags({
@@ -231,7 +236,7 @@ function IOURequestStepAmount({
             shouldSkipConfirmation,
             isReportArchived,
             currentUserPersonalDetails,
-            navigateBack,
+            navigateBack: saveAndNavigateBack,
             amount,
             paymentMethod,
             isTrackIntentUser,

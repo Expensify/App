@@ -29,8 +29,10 @@ type SearchSingleSelectionPickerProps = {
     onSaveSelection: (value: string | undefined) => void;
     backToRoute?: Route;
     shouldAutoSave?: boolean;
+    shouldNavigateOnSave?: boolean;
     shouldShowTextInput?: boolean;
     allowNoneOption?: boolean;
+    shouldSkipFocusRestoreOnSave?: boolean;
 };
 
 function SearchSingleSelectionPicker({
@@ -40,8 +42,10 @@ function SearchSingleSelectionPicker({
     onSaveSelection,
     backToRoute,
     shouldAutoSave,
+    shouldNavigateOnSave = true,
     shouldShowTextInput = true,
     allowNoneOption = false,
+    shouldSkipFocusRestoreOnSave = false,
 }: SearchSingleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
 
@@ -99,8 +103,14 @@ function SearchSingleSelectionPicker({
             return;
         }
         if (shouldAutoSave) {
-            onSaveSelection(item.isSelected ? '' : item.value);
-            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
+            if (item.isSelected && !allowNoneOption) {
+                return;
+            }
+            const selectedValue = item.isSelected ? '' : item.value;
+            onSaveSelection(selectedValue);
+            if (shouldNavigateOnSave) {
+                Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS, {shouldSkipFocusRestore: shouldSkipFocusRestoreOnSave});
+            }
             return;
         }
         if (!item.isSelected) {
@@ -114,7 +124,9 @@ function SearchSingleSelectionPicker({
 
     const applyChanges = () => {
         onSaveSelection(selectedItem?.value);
-        Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS);
+        if (shouldNavigateOnSave) {
+            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS, {shouldSkipFocusRestore: shouldSkipFocusRestoreOnSave});
+        }
     };
 
     const footerContent = (

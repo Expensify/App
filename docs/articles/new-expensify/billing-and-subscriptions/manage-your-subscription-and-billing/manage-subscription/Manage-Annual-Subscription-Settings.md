@@ -33,6 +33,8 @@ The Workspace owner can make changes to the **Auto-renew**, and **Auto-increase 
  - **Auto-renew** keeps your Annual subscription going. When it's enabled, the subscription renews for another 12 months at the end of the term. When it's disabled, the Annual subscription does not renew and your workspace continues on Pay-per-use billing after the renewal date.
  - **Auto-increase annual seats** removes the need to adjust your subscription size manually as your team grows. When it's enabled and your active members exceed your **Subscription size**, Expensify raises the size to cover them—which starts a new 12-month subscription and extends your subscription end date.
 
+![Subscription settings page for an Annual subscription showing the Subscription size field, Auto-renew toggle, and Auto-increase annual seats toggle together]({{site.url}}/assets/images/ExpensiHelp-Manage-Annual-Subscription-Settings.png){:width="100%"}
+
 ---
 
 ## How to increase your Annual subscription size
