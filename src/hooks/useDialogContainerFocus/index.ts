@@ -1,4 +1,6 @@
+import Accessibility from '@libs/Accessibility';
 import claimInitialFocus, {claimDialogFocus} from '@libs/claimInitialFocus';
+import hasHoverSupport from '@libs/DeviceCapabilities/hasHoverSupport';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
@@ -15,9 +17,10 @@ import type UseDialogContainerFocus from './types';
  * Dialog title/role are announced via aria-live (see Header) — not by focusing the heading — so JAWS/NVDA
  * get a clean "{title}, dialog" without nested "group / and N more items" chrome.
  *
- * Still steals focus from the activator into the first interactive control (APG modal). claimInitialFocus's
- * body-only gate would leave JAWS on the trigger and skip the panel entirely. If the user already moved
- * focus into the dialog (click/Tab), leave it alone.
+ * Focus gate matches {@link useScreenInitialFocus}: skip only for hover-capable + never-tabbed + SR known-off
+ * (mouse-open must not focus Back, or Enter closes the RHP). Tab users and screen-reader users (including
+ * JAWS virtual cursor without prior Tab) still steal focus via claimDialogFocus. If focus is already inside
+ * the dialog, leave it alone.
  */
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!container) {
@@ -33,8 +36,11 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     const target = Array.from(targets).find(hasFocusableAttributes);
 
     if (container.getAttribute('role') === 'dialog') {
+        // Same gate as useScreenInitialFocus — mouse without SR must not land on Back.
+        if (hasHoverSupport() && !getHadTabNavigation() && Accessibility.getScreenReaderState() === 'disabled') {
+            return false;
+        }
         const focusTarget = target ?? container;
-        // No ring unless the user is already keyboard-navigating (WCAG 2.4.7).
         return claimDialogFocus(focusTarget, {focusVisible: getHadTabNavigation()});
     }
 

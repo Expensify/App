@@ -6,6 +6,24 @@
 
 // Import the web implementation directly (Jest resolves index.native.ts by default).
 
+let mockHasHoverSupport = true;
+jest.mock('@libs/DeviceCapabilities/hasHoverSupport', () => ({
+    __esModule: true,
+    default: () => mockHasHoverSupport,
+}));
+
+let mockScreenReaderState: 'enabled' | 'disabled' | 'unknown' = 'disabled';
+jest.mock('@libs/Accessibility', () => ({
+    __esModule: true,
+    default: {
+        getScreenReaderState: () => mockScreenReaderState,
+        isScreenReaderEnabledSync: () => mockScreenReaderState === 'enabled',
+        useScreenReaderStatus: () => mockScreenReaderState === 'enabled',
+        useReducedMotion: () => false,
+        moveAccessibilityFocus: jest.fn(),
+    },
+}));
+
 const {focusFirstInteractiveElement} = require<{
     focusFirstInteractiveElement: (container: HTMLElement | null) => boolean;
 }>('../../src/hooks/useDialogContainerFocus/index.ts');
@@ -57,6 +75,8 @@ function simulateSpace() {
 afterEach(() => {
     document.body.innerHTML = '';
     resetArbiter();
+    mockHasHoverSupport = true;
+    mockScreenReaderState = 'disabled';
 });
 
 describe('focusFirstInteractiveElement', () => {
@@ -172,9 +192,32 @@ describe('focusFirstInteractiveElement', () => {
     });
 
     describe('when Tab was NOT used (should skip focus)', () => {
-        it('should still move focus into a dialog after activator Enter/Space (JAWS virtual cursor — no prior Tab)', () => {
+        it('should not move focus into a dialog after mouse click when screen reader is off (Enter must not close via Back)', () => {
             // Ensure keyboard modality is cleared (prior tests may have pressed Tab).
             simulateMouse();
+            mockScreenReaderState = 'disabled';
+
+            const activator = document.createElement('button');
+            document.body.appendChild(activator);
+            activator.focus();
+
+            const button = document.createElement('button');
+            const container = createContainer(button);
+            container.setAttribute('role', 'dialog');
+            container.setAttribute('aria-label', 'App download links');
+            const buttonSpy = jest.spyOn(button, 'focus');
+            const containerSpy = jest.spyOn(container, 'focus');
+
+            // Title/role still announced via polite aria-live in Header — focus stays on the activator.
+            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(buttonSpy).not.toHaveBeenCalled();
+            expect(containerSpy).not.toHaveBeenCalled();
+            expect(document.activeElement).toBe(activator);
+        });
+
+        it('should still move focus into a dialog for screen-reader users without prior Tab (JAWS virtual cursor)', () => {
+            simulateMouse();
+            mockScreenReaderState = 'enabled';
 
             const activator = document.createElement('button');
             document.body.appendChild(activator);
