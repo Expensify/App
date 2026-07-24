@@ -48,6 +48,7 @@ import {clearPreInsertedOriginalTabRoute, getPreInsertedOriginalTabRoute} from '
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveTabName from './helpers/getActiveTabName';
+import getFocusedReportParams from './helpers/getFocusedReportParams';
 import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
@@ -190,6 +191,12 @@ function canNavigate(methodName: string, params: CanNavigateParams = {}): boolea
  * Extracts from the topmost report its id.
  */
 const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportID;
+
+/**
+ * Extracts the report ID the user is focused on across RHP, central-pane inbox, and search fullscreen.
+ * Prefer this over getTopmostReportId when suppressing notifications; getTopmostReportId only reads the central-pane report.
+ */
+const getFocusedReportId = (state = navigationRef.getState()) => getFocusedReportParams(state)?.reportID;
 
 /**
  * Extracts from the topmost report its action id.
@@ -459,11 +466,11 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     }
 
     // Arms the one-shot inline with each dispatch — no window between "set flag" and dispatch for an early-return to leak it.
-    const dispatch = (dispatchable: NavigationAction) => {
+    const dispatch = (navigationAction: NavigationAction) => {
         if (options?.shouldSkipFocusRestore) {
             skipNextFocusRestore();
         }
-        navigationRef.current?.dispatch(dispatchable);
+        navigationRef.current?.dispatch(navigationAction);
     };
 
     // TabRouter does not handle POP or REPLACE (BaseRouter returns null). Switch tabs with jumpTo.
@@ -1271,6 +1278,7 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,
+    getFocusedReportId,
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
     waitForProtectedRoutes,
