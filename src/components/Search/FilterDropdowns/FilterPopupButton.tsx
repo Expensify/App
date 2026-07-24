@@ -1,3 +1,4 @@
+import useIsYearSelectorOpen from '@components/DatePicker/useIsYearSelectorOpen';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 
@@ -59,6 +60,11 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
+    // While the year-selector RHP is open the popover stays mounted across the blur (its render is gated on the
+    // user-controlled isOverlayVisible, not navigation focus) so its state survives the round-trip. The
+    // CalendarPicker inside asks the popover's modal to hide in place via OverlayHiddenContext — this host
+    // only has to keep it mounted and ignore the selector's goBack (see toggleOverlay).
+    const isYearSelectorOpen = useIsYearSelectorOpen();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
@@ -82,6 +88,11 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const popoverAnchorAlignment = popoverAnchorAlignmentProp ?? ANCHOR_ORIGIN;
 
     const toggleOverlay = () => {
+        // The year-selector RHP's goBack fires this popover's onClose; ignore it while the year selector is open
+        // so the popover stays mounted and its CalendarPicker is there to consume/apply the picked year on return.
+        if (isYearSelectorOpen) {
+            return;
+        }
         setIsOverlayVisible((previousValue) => {
             if (!previousValue && willAlertModalBecomeVisible) {
                 return false;
@@ -117,8 +128,10 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
             {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
 
             {/* Dropdown overlay. Gated on hasEverExpanded so the (potentially heavy) content subtree isn't mounted
-                until the dropdown is first opened — PopoverWithMeasuredContentBase mounts children even while hidden. */}
-            {isFocused && hasEverExpanded && (
+                until the dropdown is first opened — PopoverWithMeasuredContentBase mounts children even while hidden.
+                Kept mounted while the user has it open (isOverlayVisible), not only while the screen is focused, so
+                opening the year-selector RHP (which blurs the screen) doesn't unmount it mid round-trip. */}
+            {(isFocused || isOverlayVisible) && hasEverExpanded && (
                 <PopoverWithMeasuredContent
                     anchorRef={triggerRef}
                     avoidKeyboard

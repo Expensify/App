@@ -2,7 +2,10 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getPlatform from '@libs/getPlatform';
 
 import {setDraftValues} from '@userActions/FormActions';
 
@@ -16,6 +19,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import type {DatePickerProps} from './types';
 
 import CalendarPicker from './CalendarPicker';
+import useIsYearSelectorOpen from './useIsYearSelectorOpen';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -50,10 +54,16 @@ function DatePickerModal({
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
     const anchorRef = useRef<View>(null);
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
+    // On desktop web the date popover stays mounted while the year-selector RHP is open (so the picked year is
+    // applied on return). The CalendarPicker inside asks the hosting modal to hide in place via
+    // OverlayHiddenContext — this host only has to keep the popover mounted and suppress the popstate close.
+    const isYearSelectorOpen = useIsYearSelectorOpen();
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
@@ -84,8 +94,10 @@ function DatePickerModal({
             onClose={onClose}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
-            shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
-            innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
+            // Suppress the popstate close while the year selector is open; selecting a year does a goBack (history
+            // change) and would otherwise tear this host down instead of returning to it with the new year applied.
+            shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged && !isYearSelectorOpen}
+            innerContainerStyle={isSmallScreenWidth ? styles.w100 : StyleUtils.getWidthStyle(CONST.POPOVER_DATE_WIDTH)}
             anchorAlignment={anchorAlignment}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow
@@ -103,6 +115,8 @@ function DatePickerModal({
                 onSelected={handleDateSelection}
                 containerStyle={bottomSafeAreaPaddingStyle}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
+                pickerContextID={`datePicker-${inputID}`}
+                shouldCloseModalOnYearPickerOpen={!isDesktopWeb}
             />
         </PopoverWithMeasuredContent>
     );

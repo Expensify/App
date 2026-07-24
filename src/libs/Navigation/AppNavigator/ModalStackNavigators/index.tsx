@@ -397,6 +397,7 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
     [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/DynamicVerifyAccountPage').default,
     [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/DynamicAddBankAccountVerifyAccountPage').default,
+    [SCREENS.SETTINGS.DYNAMIC_YEAR_SELECTOR]: () => require<ReactComponentModule>('../../../../components/DatePicker/CalendarPicker/DynamicYearSelectorPage').default,
     [SCREENS.SETTINGS.SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/ShareCodePage').default,
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PronounsPage').default),
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/DisplayNamePage').default,

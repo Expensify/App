@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import getPlatform from '@libs/getPlatform';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
@@ -23,6 +24,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import SelectedDateModifierHeader from './SelectedDateModifierHeader';
+import useSearchYearSelector from './useSearchYearSelector';
 
 type DateSelectPopupProps = {
     /** The label to show when in an overlay on mobile */
@@ -50,6 +52,7 @@ type DateSelectPopupProps = {
 function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -58,6 +61,11 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
+
+    // The Search-filter layer of the year-selector coordination: persists the open Custom date/range sub-view and
+    // restores it after the year picker unmounts this popover, so the calendar reopens with the picked year applied.
+    const {clearBreadcrumb} = useSearchYearSelector({selectedDateModifier, onRestoreDateModifier: setSelectedDateModifier});
+
     const [rangeText, setRangeText] = useState(() =>
         getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
     );
@@ -82,9 +90,11 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     }, [selectedDateModifier, setPopoverWidth]);
 
     const clearSelection = useCallback(() => {
+        // Leaving the sub-view (not via the year picker, which unmounts us instead) — drop the persisted breadcrumb.
+        clearBreadcrumb();
         setSelectedDateModifier(null);
         setShouldShowRangeError(false);
-    }, []);
+    }, [clearBreadcrumb]);
 
     const handleBackPress = useCallback(() => {
         if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
@@ -139,6 +149,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                         presets={presets}
                         onDateValuesChange={updateRangeText}
                         onRangeValidationErrorChange={setShouldShowRangeError}
+                        shouldCloseModalOnYearPickerOpen={!isDesktopWeb}
                     />
                     {shouldShowRangeError && (
                         <FormHelpMessage

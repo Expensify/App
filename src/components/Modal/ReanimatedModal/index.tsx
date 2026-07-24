@@ -25,6 +25,7 @@ import type ReanimatedModalProps from './types';
 
 import Backdrop from './Backdrop';
 import Container from './Container';
+import OverlayHiddenContext from './OverlayHiddenContext';
 
 function ReanimatedModal({
     testID,
@@ -64,11 +65,19 @@ function ReanimatedModal({
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    // Content inside this modal (e.g. a CalendarPicker whose year selector opened as a route on top) can ask
+    // the modal to hide in place — visually hidden, no backdrop, pointer-transparent — while staying mounted.
+    // See OverlayHiddenContext.
+    const [isOverlayHidden, setIsOverlayHidden] = useState(false);
     const {windowWidth, windowHeight} = useWindowDimensions();
 
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const handleRef = useRef<number | undefined>(undefined);
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
+    // Web-only: RNW forwards the <Modal> ref to ModalContent's outermost element (an HTMLElement despite the
+    // native Modal type); its parentElement is the full-screen portal root (ModalAnimation). On native it is the
+    // Modal instance and the instanceof guard in the pointer-events effect below makes reading it a no-op.
+    const modalContentRef = useRef<Modal | null>(null);
 
     const styles = useThemeStyles();
 
@@ -190,6 +199,29 @@ function ReanimatedModal({
         return {zIndex: StyleSheet.flatten(style)?.zIndex};
     }, [style]);
 
+    // react-native-web's <Modal> renders two full-screen wrappers around the content: ModalAnimation
+    // (position:fixed, inset 0, z-index 9996 — the portal root) and ModalContent. While a route (the dynamic
+    // year-selector RHP) is intentionally shown over this kept-mounted popover, those wrappers would swallow
+    // the clicks meant for it, and RNW forwards no prop to make the root pointer-transparent (only `zIndex`).
+    // RNW does forward the <Modal> ref to ModalContent's outermost element, whose parentElement IS the portal
+    // root — so it can be toggled directly, no DOM traversal needed. The content stays mounted (state survives
+    // the round-trip) and is already visually hidden, so disabling pointer events on the subtree is safe.
+    useEffect(() => {
+        if (getPlatform() !== CONST.PLATFORM.WEB) {
+            return;
+        }
+        // Typed as Modal for the ref prop, but on web RNW actually stores an HTMLElement here — narrow via instanceof.
+        const modalContent: unknown = modalContentRef.current;
+        const portalRoot = modalContent instanceof HTMLElement ? modalContent.parentElement : null;
+        if (!portalRoot) {
+            return;
+        }
+        portalRoot.style.pointerEvents = isOverlayHidden ? 'none' : '';
+        return () => {
+            portalRoot.style.pointerEvents = '';
+        };
+    }, [isOverlayHidden, isVisibleState]);
+
     const containerView = (
         <Container
             pointerEvents="box-none"
@@ -200,12 +232,12 @@ function ReanimatedModal({
             onCloseCallBack={onCloseCallBack}
             animationIn={animationIn}
             animationOut={animationOut}
-            style={style}
+            style={[style, isOverlayHidden && [styles.opacity0, styles.visibilityHidden]]}
             type={type}
             onSwipeComplete={onSwipeComplete}
             swipeDirection={swipeDirection}
         >
-            {children}
+            <OverlayHiddenContext.Provider value={setIsOverlayHidden}>{children}</OverlayHiddenContext.Provider>
         </Container>
     );
 
@@ -225,10 +257,10 @@ function ReanimatedModal({
     if (!coverScreen && isVisibleState) {
         return (
             <View
-                pointerEvents="box-none"
+                pointerEvents={isOverlayHidden ? 'none' : 'box-none'}
                 style={[styles.modalBackdrop, styles.modalContainerBox]}
             >
-                {hasBackdrop && backdropView}
+                {hasBackdrop && !isOverlayHidden && backdropView}
                 {containerView}
             </View>
         );
@@ -238,6 +270,8 @@ function ReanimatedModal({
     return (
         <LayoutAnimationConfig skipExiting={getPlatform() !== CONST.PLATFORM.WEB}>
             <Modal
+                // See the pointer-events effect above for what this ref resolves to on each platform.
+                ref={modalContentRef}
                 transparent
                 animationType="none"
                 visible={modalVisibility}
@@ -253,7 +287,7 @@ function ReanimatedModal({
                 style={modalStyle}
                 {...props}
             >
-                {isBackdropMounted && hasBackdrop && backdropView}
+                {isBackdropMounted && hasBackdrop && !isOverlayHidden && backdropView}
                 {avoidKeyboard ? (
                     <KeyboardAvoidingView
                         behavior="padding"
