@@ -2786,6 +2786,14 @@ ${amount} für ${merchant} – ${date}`,
         autoReportingFrequencyErrorMessage: 'Sendehäufigkeit konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
         monthlyOffsetErrorMessage: 'Die monatliche Häufigkeit konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
     },
+    workflowsCurrencyConversionFeesPage: {
+        title: 'Währungsumrechnungsgebühren',
+        subtitle:
+            'Bei Erstattungen in einer anderen Währung können Umrechnungsgebühren anfallen. Wähle unten aus, wer die Gebühren zahlt. Dies gilt nur für grenzüberschreitende Umrechnungen.',
+        companyPays: 'Unternehmen zahlt',
+        employeePays: 'Mitarbeitende zahlen',
+        errorMessage: 'Die Einstellung für Währungsumrechnungsgebühren konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
+    },
     workflowsCreateApprovalsPage: {
         title: 'Bestätigen',
         header: 'Fügen Sie weitere Genehmigende hinzu und bestätigen Sie.',

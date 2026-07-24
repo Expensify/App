@@ -168,6 +168,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isGlobalReimbursementsBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS);
+    const isGlobalReimbursementFXBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const {showConfirmModal} = useConfirmModal();
@@ -836,6 +838,32 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                           />
                                       </OfflineWithFeedback>
                                   )}
+                                  {policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
+                                      canWritePayments &&
+                                      isGlobalReimbursementsBetaEnabled &&
+                                      isGlobalReimbursementFXBetaEnabled && (
+                                          <OfflineWithFeedback
+                                              pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
+                                              errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                                              onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                                              errorRowStyles={[styles.mt3]}
+                                          >
+                                              <MenuItemWithTopDescription
+                                                  title={
+                                                      policy?.globalReimbursementFXPreferCompany
+                                                          ? translate('workflowsCurrencyConversionFeesPage.companyPays')
+                                                          : translate('workflowsCurrencyConversionFeesPage.employeePays')
+                                                  }
+                                                  titleStyle={styles.textNormalThemeText}
+                                                  descriptionTextStyle={styles.textLabelSupportingNormal}
+                                                  description={translate('workflowsCurrencyConversionFeesPage.title')}
+                                                  onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(route.params.policyID))}
+                                                  sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
+                                                  shouldShowRightIcon
+                                                  wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                              />
+                                          </OfflineWithFeedback>
+                                      )}
                               </>
                           ),
                           isEndOptionRow: true,
@@ -904,6 +932,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
         canAccessSubmit2026Features,
+        isGlobalReimbursementsBetaEnabled,
+        isGlobalReimbursementFXBetaEnabled,
         canWriteApprovals,
         canWritePayments,
         canWriteWorkflows,
