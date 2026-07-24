@@ -278,6 +278,9 @@ function updateSplitTransactions({
                 },
                 reimbursable: split?.reimbursable,
                 billable: split?.billable,
+                taxCode: split?.taxCode,
+                taxAmount: split?.taxAmount,
+                taxValue: split?.taxValue,
                 quantity: split.customUnit?.quantity ?? undefined,
                 customUnitRateID: split.customUnit?.customUnitRateID,
                 odometerStart: split.odometerStart,
@@ -567,11 +570,13 @@ function updateSplitTransactions({
                 linkedTrackedExpenseReportAction: currentReportAction,
                 pendingAction: splitTransaction ? (splitTransaction.pendingAction ?? null) : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: splitTransaction ? splitTransaction.pendingFields : undefined,
-                reimbursable: originalTransactionDetails?.reimbursable,
-                taxCode: originalTransactionDetails?.taxCode,
-                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
-                taxValue: originalTransactionDetails?.taxValue,
-                billable: originalTransactionDetails?.billable,
+                reimbursable: splitExpense.reimbursable ?? originalTransactionDetails?.reimbursable,
+                taxCode: splitExpense.taxCode ?? originalTransactionDetails?.taxCode,
+                taxAmount:
+                    splitExpense.taxAmount ??
+                    calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxValue: splitExpense.taxValue ?? originalTransactionDetails?.taxValue,
+                billable: splitExpense.billable ?? originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
                 customUnit: splitExpense.customUnit,
                 // For distance transactions, also pass distance from customUnit.quantity so buildOptimisticTransaction sets it correctly
@@ -611,10 +616,13 @@ function updateSplitTransactions({
                 tag: splitExpense.tags?.[0],
                 attendees: originalTransactionDetails?.attendees as Attendee[],
                 linkedTrackedExpenseReportAction: reverseSplitLinkedTrackedExpenseReportAction,
-                taxCode: originalTransactionDetails?.taxCode,
-                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
-                taxValue: originalTransactionDetails?.taxValue,
-                billable: originalTransactionDetails?.billable,
+                taxCode: splitExpense.taxCode ?? originalTransactionDetails?.taxCode,
+                taxAmount:
+                    splitExpense.taxAmount ??
+                    calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxValue: splitExpense.taxValue ?? originalTransactionDetails?.taxValue,
+                reimbursable: splitExpense.reimbursable ?? originalTransactionDetails?.reimbursable,
+                billable: splitExpense.billable ?? originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
                 customUnit: splitExpense.customUnit,
                 // For distance transactions, also pass distance from customUnit.quantity so buildOptimisticTransaction sets it correctly

@@ -6,6 +6,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
+import Switch from '@components/Switch';
+import Text from '@components/Text';
 
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -23,24 +25,25 @@ import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
 
-import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
+import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseDraftField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedLeafCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {arePolicyRulesEnabled, getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, getTaxName, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,6 +56,26 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
+
+type SplitToggleRowProps = {
+    label: string;
+    isOn: boolean;
+    onToggle: (value: boolean) => void;
+};
+
+function SplitToggleRow({label, isOn, onToggle}: SplitToggleRowProps) {
+    const styles = useThemeStyles();
+    return (
+        <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}>
+            <Text>{label}</Text>
+            <Switch
+                accessibilityLabel={label}
+                isOn={isOn}
+                onToggle={onToggle}
+            />
+        </View>
+    );
+}
 
 function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
@@ -164,6 +187,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     );
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
+
+    const shouldShowTax = isPolicyExpenseChat && isTaxTrackingEnabled(true, effectivePolicy, isDistanceRequest(splitExpenseDraftTransaction), false, false);
+    const taxRatesDescription = effectivePolicy?.taxRates?.name;
+    const taxRateTitle = getTaxName(effectivePolicy, splitExpenseDraftTransaction);
+
+    const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!splitExpenseDraftTransactionDetails?.billable || isBillableEnabledOnPolicy(effectivePolicy));
+    const shouldShowReimbursable = (isPolicyExpenseChat || (isExpenseUnreported && !!effectivePolicy)) && effectivePolicy?.disabledFields?.reimbursable !== true;
 
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
@@ -425,6 +455,53 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                         />
+                        {shouldShowTax && (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                key={translate('common.tax')}
+                                description={taxRatesDescription ?? translate('common.tax')}
+                                title={taxRateTitle}
+                                numberOfLinesTitle={2}
+                                onPress={() => {
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
+                                            CONST.IOU.ACTION.EDIT,
+                                            CONST.IOU.TYPE.SPLIT,
+                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                            reportID,
+                                            Navigation.getActiveRoute(),
+                                        ),
+                                    );
+                                }}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                            />
+                        )}
+                        {shouldShowTax && (
+                            <MenuItemWithTopDescription
+                                key={translate('iou.taxAmount')}
+                                description={translate('iou.taxAmount')}
+                                title={convertToDisplayString(Math.abs(splitExpenseDraftTransaction?.taxAmount ?? 0), currency)}
+                                numberOfLinesTitle={2}
+                                interactive={false}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                            />
+                        )}
+                        {shouldShowReimbursable && (
+                            <SplitToggleRow
+                                label={translate('common.reimbursable')}
+                                isOn={splitExpenseDraftTransaction?.reimbursable ?? true}
+                                onToggle={(value) => updateSplitExpenseDraftField({reimbursable: value})}
+                            />
+                        )}
+                        {shouldShowBillable && (
+                            <SplitToggleRow
+                                label={translate('common.billable')}
+                                isOn={splitExpenseDraftTransaction?.billable ?? false}
+                                onToggle={(value) => updateSplitExpenseDraftField({billable: value})}
+                            />
+                        )}
                         <MenuItemWithTopDescription
                             key={translate('common.report')}
                             description={translate('common.report')}
