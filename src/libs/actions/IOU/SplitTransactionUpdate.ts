@@ -43,12 +43,10 @@ import {
     navigateBackOnDeleteTransaction,
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
-import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {getChildTransactions, isDistanceRequest as isDistanceRequestTransactionUtils, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
 
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
-import {mergeTransactionIdsHighlightOnSearchRoute} from '@userActions/Transaction';
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
@@ -1938,28 +1936,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
-    // The new (not pre-existing) split transactions created by this save, in split order. Reverse splits
-    // create none.
-    const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
-    const newSplitTransactionIDs = isReverseSplitOperation
-        ? []
-        : splitExpenses
-              .map((splitExpense) => splitExpense.transactionID)
-              .filter((transactionID): transactionID is string => !!transactionID && !existingChildTransactionIDs.has(transactionID));
-
-    // Register newly created split transaction IDs so they briefly highlight in the expense list.
-    // We skip the last-transaction case (the report navigates away before the highlight renders).
-    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
-        for (const transactionID of newSplitTransactionIDs) {
-            addPendingNewTransactionIDs(targetReportID, transactionID);
-        }
-    }
-
-    signalExpenseAddedGrowl(newSplitTransactionIDs.at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
+    signalExpenseAddedGrowl(getNewSplitTransactionIDs().at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
 
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
-        registerSearchRouteHighlight();
-
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
         }
