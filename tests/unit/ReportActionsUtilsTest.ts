@@ -4845,6 +4845,28 @@ describe('ReportActionsUtils', () => {
             // Then the message reports the credited amount instead of the report total and names both accounts
             expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
         });
+
+        it('keeps the hold-release wording when the submitter adds a bank account for a cross-border payment', () => {
+            // Given a cross-border payment retried because the submitter added a deposit account
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                isSubmitterAddingBankAccount: true,
+                debitBankAccountLast4: '9999',
+                creditBankAccountLast4: '5678',
+                creditedAmount: 8050,
+                creditedCurrency: 'USD',
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, 'submitter@expensify.com', undefined);
+
+            // Then the message announces the submitter taking the report off hold rather than the credited amount
+            expect(result).toBe(
+                `${translateLocal('iou.reimbursedSubmitterAddedBankAccount', 'submitter@expensify.com')}${translateLocal('iou.reimbursedWithACH', {
+                    creditBankAccount: '5678',
+                    expectedDate: undefined,
+                })}`,
+            );
+        });
     });
 
     describe('getAutoReimbursementMessage', () => {

@@ -534,7 +534,8 @@ function getReimbursedMessage(
 
     const isAutomation = !!reportAction?.delegateAccountID;
 
-    if (originalMessage.creditedAmount) {
+    // The hold-release wording wins over the cross-border amount because it announces the submitter's action.
+    if (originalMessage.creditedAmount && !isSubmitterAddingBankAccount) {
         let crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, effectiveDebitBankAccountLast4);
         if (isAutomation) {
             crossBorderMessage += ` ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}`;
