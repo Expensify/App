@@ -7805,6 +7805,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     `Die von RuleBot durchgesetzten <a href="${rulesRoute}">Agentenregeln</a> müssen zuerst aus Ihrem Workspace entfernt werden, bevor Sie diese Agentin/diesen Agenten entfernen können.`,
                 unableToCloseAccountTitle: 'Konto kann nicht geschlossen werden',
                 unableToCloseAccountPrompt: 'Die von RuleBot durchgesetzten Agentenregeln müssen zuerst aus Ihrem Workspace entfernt werden, bevor Sie dieses Konto schließen können.',
+                unableToDeleteAgentTitle: 'Agent kann nicht gelöscht werden',
+                unableToDeleteAgentPrompt:
+                    'Die von RuleBot durchgesetzten Agentenregeln müssen zuerst aus Ihrem Workspace entfernt werden, bevor Sie diese Agentin/diesen Agenten löschen können.',
+                unableToChangeRoleTitle: 'Rolle kann nicht geändert werden',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `Die von RuleBot durchgesetzten <a href="${rulesRoute}">Agentenregeln</a> müssen zuerst aus Ihrem Workspace entfernt werden, bevor Sie die Rolle dieser Agentin/dieses Agenten ändern können.`,
                 describeRuleTitle: 'Beschreiben Sie die Regel, der Ihre KI-Agentin/Ihr KI-Agent folgen soll',
                 describeRuleHeadline: 'Beschreibe deine Regel',
                 disclaimer: 'KI-Agenten können Fehler machen.',

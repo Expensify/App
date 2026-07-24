@@ -8125,6 +8125,11 @@ const translations = {
                     `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can remove this agent.`,
                 unableToCloseAccountTitle: 'Unable to close account',
                 unableToCloseAccountPrompt: 'The agent rules being enforced by RuleBot need to be removed from your workspace first before you can close this account.',
+                unableToDeleteAgentTitle: 'Unable to delete agent',
+                unableToDeleteAgentPrompt: 'The agent rules being enforced by RuleBot need to be removed from your workspace first before you can delete this agent.',
+                unableToChangeRoleTitle: 'Unable to change role',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can change this agent's role.`,
                 describeRuleTitle: 'Describe the rule for your AI agent to follow',
                 describeRuleHeadline: 'Describe your rule',
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',

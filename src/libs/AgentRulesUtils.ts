@@ -2,7 +2,7 @@ import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {AgentRule} from '@src/types/onyx/Policy';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 type AgentRulesCollection = Record<string, AgentRule> | undefined;
 
@@ -44,5 +44,10 @@ function isRuleBotEnforcingRules(accountID: number | undefined, policy: OnyxEntr
     return !!accountID && policy?.ruleBotAccountID === accountID && hasAgentRules(policy);
 }
 
-export {getAgentRuleDisplayTitle, getVisibleAgentRules, isRuleBotEnforcingRules};
+/** Whether the given account is the RuleBot agent enforcing Agent rules on any of the given policies. Such an account can't be deleted until its rules are removed. */
+function isRuleBotEnforcingRulesOnAnyPolicy(accountID: number | undefined, policies: OnyxCollection<Policy>): boolean {
+    return !!accountID && Object.values(policies ?? {}).some((policy) => isRuleBotEnforcingRules(accountID, policy));
+}
+
+export {getAgentRuleDisplayTitle, getVisibleAgentRules, isRuleBotEnforcingRules, isRuleBotEnforcingRulesOnAnyPolicy};
 export type {AgentRuleWithID};

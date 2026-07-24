@@ -7719,6 +7719,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     `Las <a href="${rulesRoute}">reglas de agente</a> que RuleBot está aplicando deben eliminarse primero de tu espacio de trabajo antes de que puedas eliminar este agente.`,
                 unableToCloseAccountTitle: 'No se puede cerrar la cuenta',
                 unableToCloseAccountPrompt: 'Las reglas de agente que RuleBot está aplicando deben eliminarse primero de tu espacio de trabajo antes de que puedas cerrar esta cuenta.',
+                unableToDeleteAgentTitle: 'No se puede eliminar el agente',
+                unableToDeleteAgentPrompt: 'Las reglas de agente que RuleBot está aplicando deben eliminarse primero de tu espacio de trabajo antes de que puedas eliminar este agente.',
+                unableToChangeRoleTitle: 'No se puede cambiar el rol',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `Las <a href="${rulesRoute}">reglas de agente</a> que RuleBot está aplicando deben eliminarse primero de tu espacio de trabajo antes de que puedas cambiar el rol de este agente.`,
                 disclaimer: 'Los agentes de IA pueden cometer errores.',
                 agentCreatedTitle: '¡RuleBot se ha añadido a tu espacio de trabajo!',
                 agentCreatedDescription: (agentsRoute: string) =>

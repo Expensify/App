@@ -23,6 +23,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {deleteAgent} from '@libs/actions/Agent';
 import {disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
+import {isRuleBotEnforcingRulesOnAnyPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {hasDeviceManagementError} from '@libs/UserUtils';
@@ -197,6 +198,15 @@ function SecuritySettingsPage() {
                             prompt: translate('common.thisFeatureRequiresInternet'),
                             confirmText: translate('common.buttonConfirm'),
                             shouldShowCancelButton: false,
+                        });
+                        return;
+                    }
+                    if (isRuleBotEnforcingRulesOnAnyPolicy(session?.accountID, allPolicies)) {
+                        showConfirmModal({
+                            shouldShowCancelButton: false,
+                            title: translate('workspace.rules.agentRules.unableToDeleteAgentTitle'),
+                            prompt: translate('workspace.rules.agentRules.unableToDeleteAgentPrompt'),
+                            confirmText: translate('common.buttonConfirm'),
                         });
                         return;
                     }

@@ -512,6 +512,19 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     });
 
     const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
+        if (role !== CONST.POLICY.ROLE.ADMIN && selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy))) {
+            showConfirmModal({
+                shouldShowCancelButton: false,
+                title: translate('workspace.rules.agentRules.unableToChangeRoleTitle'),
+                prompt: (
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML html={translate('workspace.rules.agentRules.unableToChangeRolePrompt', ROUTES.WORKSPACE_RULES.getRoute(policyID))} />
+                    </View>
+                ),
+                confirmText: translate('common.buttonConfirm'),
+            });
+            return;
+        }
         const loginsToUpdate = selectedEmployees.filter((login) => {
             return policy?.employeeList?.[login]?.role !== role;
         });

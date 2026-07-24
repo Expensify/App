@@ -16,6 +16,7 @@ import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearAgentAvatarUpdateError, clearAgentNameUpdateError, clearAgentPromptUpdateError, deleteAgent} from '@libs/actions/Agent';
+import {isRuleBotEnforcingRulesOnAnyPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -53,6 +54,15 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const handleEditNamePress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_NAME.getRoute(accountID));
     const handleEditPromptPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID));
     const handleDeletePress = async () => {
+        if (isRuleBotEnforcingRulesOnAnyPolicy(accountID, allPolicies)) {
+            showConfirmModal({
+                shouldShowCancelButton: false,
+                title: translate('workspace.rules.agentRules.unableToDeleteAgentTitle'),
+                prompt: translate('workspace.rules.agentRules.unableToDeleteAgentPrompt'),
+                confirmText: translate('common.buttonConfirm'),
+            });
+            return;
+        }
         const result = await showConfirmModal({
             title: translate('editAgentPage.deleteAgentTitle'),
             prompt: translate('editAgentPage.deleteAgentMessage'),

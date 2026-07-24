@@ -26,6 +26,7 @@ import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {isRuleBotEnforcingRulesOnAnyPolicy} from '@libs/AgentRulesUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -146,6 +147,16 @@ function AgentsPage() {
     };
 
     const askForConfirmationToDelete = async () => {
+        const isRuleBotSelected = selectedAgentKeys.some((accountIDString) => isRuleBotEnforcingRulesOnAnyPolicy(Number(accountIDString), allPolicies));
+        if (isRuleBotSelected) {
+            showConfirmModal({
+                shouldShowCancelButton: false,
+                title: translate('workspace.rules.agentRules.unableToDeleteAgentTitle'),
+                prompt: translate('workspace.rules.agentRules.unableToDeleteAgentPrompt'),
+                confirmText: translate('common.buttonConfirm'),
+            });
+            return;
+        }
         const result = await showConfirmModal({
             title: translate('agentsPage.deleteAgentsTitle', {count: selectedAgentKeys.length}),
             prompt: translate('agentsPage.deleteAgentsMessage', {count: selectedAgentKeys.length}),
