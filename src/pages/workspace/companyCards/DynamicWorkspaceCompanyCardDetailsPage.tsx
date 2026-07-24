@@ -71,9 +71,9 @@ import {getExportMenuItem} from './utils';
 type DynamicWorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS>;
 
 function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompanyCardDetailsPageProps) {
-    const {policyID, cardID} = route.params;
+    const {policyID, feed, cardID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.path);
-    const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
+    const feedName = decodeURIComponent(feed) as CompanyCardFeedWithDomainID;
     const bank = getCompanyCardFeed(feedName);
 
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -258,7 +258,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                                 title={exportMenuItem.title}
                                 numberOfLinesTitle={2}
                                 shouldShowRightIcon={canWriteCompanyCards}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute()))}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(feed, cardID)))}
                                 interactive={canWriteCompanyCards}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
                             />
