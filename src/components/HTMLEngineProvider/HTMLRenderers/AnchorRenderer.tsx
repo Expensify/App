@@ -6,6 +6,7 @@ import TextLink from '@components/TextLink';
 
 import useEnvironment from '@hooks/useEnvironment';
 import useHover from '@hooks/useHover';
+import useIsHighContrast from '@hooks/useIsHighContrast';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,6 +32,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isHighContrast} = useIsHighContrast();
     const htmlAttribs = tnode.attributes;
     const {environmentURL} = useEnvironment();
     const {hovered, bind} = useHover();
@@ -104,6 +106,12 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             delete linkStyle.color;
             delete linkStyle.textDecorationLine;
             delete linkStyle.textDecorationColor;
+        }
+
+        // In high-contrast themes, underline links so they are distinguishable by more than color (WCAG 1.4.1).
+        // styles.link sets textDecorationLine: 'none', so the underline is appended last to override it.
+        if (isHighContrast) {
+            linkStyle = [linkStyle, styles.underline];
         }
 
         return (
