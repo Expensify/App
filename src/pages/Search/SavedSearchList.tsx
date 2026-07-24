@@ -2,6 +2,7 @@ import MenuItemList from '@components/MenuItemList';
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -17,8 +18,9 @@ import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
+import type {SavedSearchMenuItem, SearchKey} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -36,17 +38,18 @@ import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuItem from './SearchTypeMenuItem';
 
 type SavedSearchListProps = {
-    hash: number | undefined;
     areAllSectionsExpanded: boolean;
 };
 
 type SavedSearchMenuItemBuilderParams = {
     item: SaveSearchItem;
+    itemQuery: string;
     key: string;
     index: number;
-    hash: number | undefined;
+    currentSearchKey: SearchKey | undefined;
     title: string;
-    getOverflowMenu: (itemName: string, itemHash: number, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
+    onPress: (searchKey: SearchKey) => void;
+    getOverflowMenu: (itemName: string, itemSavedSearchID: string, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
     shouldShowSavedSearchTooltip: boolean;
     hideSavedSearchTooltip: (() => void) | undefined;
     renderSavedSearchTooltip: () => React.JSX.Element;
@@ -57,10 +60,12 @@ type SavedSearchMenuItemBuilderParams = {
 
 function buildSavedSearchMenuItem({
     item,
+    itemQuery,
     key,
     index,
-    hash,
+    currentSearchKey,
     title,
+    onPress,
     getOverflowMenu,
     shouldShowSavedSearchTooltip,
     hideSavedSearchTooltip,
@@ -69,7 +74,8 @@ function buildSavedSearchMenuItem({
     tooltipWrapperStyle,
     isCopied,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
-    const isItemFocused = Number(key) === hash;
+    const savedSearchKey = savedSearchIDToSearchKey(key);
+    const isItemFocused = savedSearchKey === currentSearchKey;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
 
     return {
@@ -78,11 +84,12 @@ function buildSavedSearchMenuItem({
         sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
         onPress: () => {
             setSearchContext(false);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+            onPress(savedSearchKey);
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: itemQuery, name: item?.name}));
         },
         rightComponent: (
             <SavedSearchItemThreeDotMenu
-                menuItems={getOverflowMenu(title, Number(key), item.query)}
+                menuItems={getOverflowMenu(title, key, item.query)}
                 isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                 hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
                 shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
@@ -102,7 +109,7 @@ function buildSavedSearchMenuItem({
     };
 }
 
-function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
+function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -110,6 +117,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const isFocused = useIsFocused();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetails = usePersonalDetails();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -120,6 +128,8 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
+    const {currentSearchKey, currentSearchHash} = useSearchQueryContext();
+    const {setCurrentSearchKey} = useSearchQueryActions();
 
     const {showDeleteModal} = useDeleteSavedSearch();
     const {
@@ -129,7 +139,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused && areAllSectionsExpanded);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
-    const {copiedHash, handleShare} = useShareSavedSearch();
+    const {copiedID, handleShare} = useShareSavedSearch();
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
@@ -149,10 +159,10 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
         bankAccountList,
     });
 
-    const getOverflowMenu = (itemName: string, itemHash: number, itemQuery: string) =>
-        getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal, false, undefined, {
-            onShare: () => handleShare(itemHash, itemQuery),
-            isCopied: copiedHash === itemHash,
+    const getOverflowMenu = (itemName: string, itemID: string, itemQuery: string) =>
+        getOverflowMenuUtil(expensifyIcons, itemName, itemID, itemQuery, translate, showDeleteModal, false, undefined, {
+            onShare: () => handleShare(itemID, itemQuery),
+            isCopied: copiedID === itemID,
         });
 
     const itemStyle = [styles.alignItemsCenter];
@@ -160,22 +170,25 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
 
     const savedSearchesMenuItems = savedSearches
         ? Object.entries(savedSearches)
-              .map(([key, item], index) =>
-                  buildSavedSearchMenuItem({
+              .map(([key, item], index) => {
+                  const itemQuery = getValidLastQuery(searchFilters?.[savedSearchIDToSearchKey(key)], item.query);
+                  return buildSavedSearchMenuItem({
                       item,
+                      itemQuery,
                       key,
                       index,
-                      hash,
+                      currentSearchKey,
                       title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
+                      onPress: (savedSearchKey) => setCurrentSearchKey(savedSearchKey, buildSearchQueryJSON(itemQuery)?.hash !== currentSearchHash),
                       getOverflowMenu,
                       shouldShowSavedSearchTooltip,
                       hideSavedSearchTooltip,
                       renderSavedSearchTooltip,
                       itemStyle,
                       tooltipWrapperStyle,
-                      isCopied: copiedHash === Number(key),
-                  }),
-              )
+                      isCopied: copiedID === key,
+                  });
+              })
               .sort((a, b) => localeCompare(a.title ?? '', b.title ?? ''))
         : [];
 

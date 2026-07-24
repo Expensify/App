@@ -1,4 +1,5 @@
 import TopBar from '@components/Navigation/TopBar';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -14,11 +15,12 @@ type SearchPageHeaderWideProps = {
 
 function SearchPageHeaderWide({queryJSON}: SearchPageHeaderWideProps) {
     const {translate} = useLocalize();
-    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections(queryJSON);
-    const selectedItem = typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex);
+    const typeMenuSections = useSearchTypeMenuSections();
+    const {currentSearchKey} = useSearchQueryContext();
+    const selectedItem = typeMenuSections.flatMap((section) => section.menuItems).find((item) => item.key === currentSearchKey);
 
     let title = translate('common.spend');
-    if (activeItemIndex >= 0 && selectedItem) {
+    if (selectedItem) {
         title = translate(selectedItem.translationPath);
     } else {
         const {type} = queryJSON;

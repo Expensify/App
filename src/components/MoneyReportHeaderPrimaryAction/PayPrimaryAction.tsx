@@ -123,7 +123,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
 

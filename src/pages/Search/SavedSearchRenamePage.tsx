@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -43,6 +44,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
         const queryJSON = buildSearchQueryJSON(q || buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
 
         saveSearch({
+            id: rand64(),
             queryJSON,
             newName: newName?.trim() || q,
         });

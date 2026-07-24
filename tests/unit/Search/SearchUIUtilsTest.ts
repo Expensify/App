@@ -16,7 +16,7 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
+import type {SearchFilterKey, SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
 
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 
@@ -11348,6 +11348,52 @@ describe('SearchUIUtils', () => {
         it('returns false for an unknown key', () => {
             expect(SearchUIUtils.isTextFilterKey('someUnknownKey')).toBe(false);
             expect(SearchUIUtils.isTextFilterKey('')).toBe(false);
+        });
+    });
+
+    describe('searchKeyToSavedSearchID', () => {
+        it('strips the prefix to recover the saved search ID', () => {
+            expect(SearchUIUtils.searchKeyToSavedSearchID(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`)).toBe('12345');
+        });
+
+        it('returns undefined for a non saved-search key', () => {
+            expect(SearchUIUtils.searchKeyToSavedSearchID(CONST.SEARCH.SEARCH_KEYS.EXPENSES)).toBeUndefined();
+        });
+
+        it('returns undefined when the key is undefined', () => {
+            expect(SearchUIUtils.searchKeyToSavedSearchID(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('savedSearchIDToSearchKey', () => {
+        it('prefixes a saved search ID to build a search key', () => {
+            expect(SearchUIUtils.savedSearchIDToSearchKey('12345')).toBe(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`);
+        });
+    });
+
+    describe('mapFiltersFormToLabelValueList', () => {
+        const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
+
+        it('places default filters before non-default filters', () => {
+            const form = {
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: 'hotel',
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: 'Amazon',
+            };
+            const defaultKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(
+                form,
+                defaultKeys,
+                new Set(),
+                translateLocal,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+                (filterKey, isDefault) => ({isDefault}),
+            );
+
+            expect(result.map((filter) => filter.key)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]);
+            expect(result.at(0)?.isDefault).toBe(true);
+            expect(result.at(1)?.isDefault).toBe(false);
         });
     });
 });

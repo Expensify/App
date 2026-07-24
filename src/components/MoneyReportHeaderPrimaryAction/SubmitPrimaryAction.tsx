@@ -126,7 +126,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'Document']);
 

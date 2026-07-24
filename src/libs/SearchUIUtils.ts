@@ -30,6 +30,7 @@ import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import type {
     GroupedItem,
     QueryFilters,
+    ReportFieldKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
     SearchColumnType,
@@ -727,7 +728,7 @@ function getSuggestedSearches(
     defaultFeedID?: string,
     shouldShowExpensifyCard?: boolean,
     topSpendersPolicyIDs: string[] = [],
-): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
+): Record<SearchKey, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -3026,7 +3027,7 @@ function getReportSections({
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
 }
 
-function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: SearchFilterKey; value: string | number} | undefined {
+function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: QueryFilters[number]['key']; value: string | number} | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
@@ -3051,7 +3052,7 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
     }
 }
 
-function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
+function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFilters[number]['key'], filterValue: string | number): SearchQueryJSON | undefined {
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
     const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
@@ -4503,10 +4504,10 @@ type ShareProps = {
 function getOverflowMenu(
     icons: OverflowMenuIconsType,
     itemName: string,
-    hash: number,
+    savedSearchID: string,
     inputQuery: string,
     translate: LocalizedTranslate,
-    showDeleteModal: (hash: number) => void,
+    showDeleteModal: (savedSearchID: string) => void,
     isMobileMenu?: boolean,
     closeMenu?: () => void,
     shareProps?: ShareProps,
@@ -4544,7 +4545,7 @@ function getOverflowMenu(
                 if (isMobileMenu && closeMenu) {
                     closeMenu();
                 }
-                showDeleteModal(hash);
+                showDeleteModal(savedSearchID);
             },
             icon: icons.Trashcan,
             shouldShowRightIcon: false,
@@ -4553,6 +4554,14 @@ function getOverflowMenu(
             shouldCloseAllModals: true,
         },
     ];
+}
+
+function savedSearchIDToSearchKey(id: string): SearchKey {
+    return `${CONST.SEARCH.SAVED_SEARCH_PREFIX}${id}`;
+}
+
+function searchKeyToSavedSearchID(key: SearchKey | undefined) {
+    return key?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) ? key.replace(CONST.SEARCH.SAVED_SEARCH_PREFIX, '') : undefined;
 }
 
 /**
@@ -5060,7 +5069,7 @@ function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, d
     };
 }
 
-const FILTER_TO_SYNTAX_KEY: Partial<Record<SearchAdvancedFiltersKey, Exclude<SearchDateFilterKeys, ReportFieldTextKey> | SearchAmountFilterKeys>> = {
+const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.DATE_ON]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
     [FILTER_KEYS.DATE_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
     [FILTER_KEYS.DATE_BEFORE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -5533,6 +5542,10 @@ const isDateFilterKey = (key: SearchFilter['key']): key is Exclude<SearchDateFil
     return DATE_FILTER_KEYS.includes(key as SearchDateFilterKeys);
 };
 
+function isReportFieldKey(key: string): key is ReportFieldKey {
+    return key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
+}
+
 type SearchFilter = {
     key: keyof typeof FILTER_VIEW_MAP;
     label: string;
@@ -5541,13 +5554,15 @@ type SearchFilter = {
 
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    defaultSearchQueryFilterKeys: Set<SearchFilterKey>,
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
-    mapper?: (filterKey: SearchFilter['key']) => T,
+    mapper?: (filterKey: SearchFilter['key'], isDefault: boolean) => T,
 ): Array<SearchFilter & T> {
-    const filters: Array<SearchFilter & T> = [];
+    const defaultFilters: Array<SearchFilter & T> = [];
+    const nonDefaultFilters: Array<SearchFilter & T> = [];
     const addedGroups = new Set<SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX>();
     const type = searchAdvancedFiltersForm.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -5558,8 +5573,8 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
         }
 
         // Handle grouped filters (date, amount) - only add once per group
-        const syntax = FILTER_TO_SYNTAX_KEY[key];
-        if (syntax) {
+        if (hasKey(FILTER_TO_SYNTAX_KEY, key)) {
+            const syntax = FILTER_TO_SYNTAX_KEY[key];
             if (addedGroups.has(syntax)) {
                 continue;
             }
@@ -5571,14 +5586,15 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
 
             if (displayValue && label) {
                 addedGroups.add(syntax);
-                const extra = mapper?.(syntax) ?? ({} as T);
-                filters.push({key: syntax, label: translate(label), value: displayValue, ...extra});
+                const isDefault = defaultSearchQueryFilterKeys.has(syntax);
+                const extra = mapper?.(syntax, isDefault) ?? ({} as T);
+                (isDefault ? defaultFilters : nonDefaultFilters).push({key: syntax, label: translate(label), value: displayValue, ...extra});
             }
             continue;
         }
 
         // Handle report field filters - only add once
-        if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        if (isReportFieldKey(key)) {
             if (addedGroups.has(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
                 continue;
             }
@@ -5586,8 +5602,9 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
             const value = getReportFieldDisplayValue(searchAdvancedFiltersForm, translate);
             if (value) {
                 addedGroups.add(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
-                const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) ?? ({} as T);
-                filters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, label: translate('workspace.common.reportField'), value, ...extra});
+                const isDefault = defaultSearchQueryFilterKeys.has(key);
+                const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, isDefault) ?? ({} as T);
+                (isDefault ? defaultFilters : nonDefaultFilters).push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, label: translate('workspace.common.reportField'), value, ...extra});
             }
             continue;
         }
@@ -5598,12 +5615,13 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
             const filterLabelMapKey = key as keyof typeof FILTER_VIEW_MAP;
-            const extra = mapper?.(filterLabelMapKey) ?? ({} as T);
-            filters.push({key: filterLabelMapKey, label: translate(label), value, ...extra});
+            const isDefault = defaultSearchQueryFilterKeys.has(filterLabelMapKey);
+            const extra = mapper?.(filterLabelMapKey, isDefault) ?? ({} as T);
+            (isDefault ? defaultFilters : nonDefaultFilters).push({key: filterLabelMapKey, label: translate(label), value, ...extra});
         }
     }
 
-    return filters;
+    return [...defaultFilters, ...nonDefaultFilters];
 }
 
 function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, translate: LocalizedTranslate) {
@@ -6527,6 +6545,8 @@ export {
     isReportActionListItemType,
     shouldShowYear,
     getOverflowMenu,
+    savedSearchIDToSearchKey,
+    searchKeyToSavedSearchID,
     isCorrectSearchUserName,
     isReportActionEntry,
     isTaskListItemType,

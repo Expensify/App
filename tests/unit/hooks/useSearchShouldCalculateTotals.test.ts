@@ -32,19 +32,19 @@ describe('useSearchShouldCalculateTotals', () => {
     });
 
     it('returns false when disabled', () => {
-        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.SUBMIT, 123, false));
+        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.SUBMIT, false));
 
         expect(result.current).toBe(false);
     });
 
     it('returns true for eligible suggested searches', () => {
-        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.SUBMIT, 123, true));
+        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.SUBMIT, true));
 
         expect(result.current).toBe(true);
     });
 
     it('returns false for non-eligible searches', () => {
-        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, true));
+        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, true));
 
         expect(result.current).toBe(false);
     });
@@ -58,7 +58,7 @@ describe('useSearchShouldCalculateTotals', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchShouldCalculateTotals(undefined, 456, true));
+        const {result} = renderHook(() => useSearchShouldCalculateTotals('savedSearch_456', true));
 
         expect(result.current).toBe(true);
     });
@@ -72,19 +72,19 @@ describe('useSearchShouldCalculateTotals', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchShouldCalculateTotals(undefined, 789, true));
+        const {result} = renderHook(() => useSearchShouldCalculateTotals('savedSearch_123', true));
 
         expect(result.current).toBe(false);
     });
 
     it('returns true for an ad-hoc search when all matching items are selected', () => {
-        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, true, true));
+        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, true, true));
 
         expect(result.current).toBe(true);
     });
 
     it('returns true when all matching items are selected even when the hook is disabled (select-all bypasses the offset gate)', () => {
-        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, false, true));
+        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, false, true));
 
         expect(result.current).toBe(true);
     });

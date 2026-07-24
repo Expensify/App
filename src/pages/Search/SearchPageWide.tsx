@@ -72,7 +72,7 @@ function SearchPageWide({
     // the indicator unreserved and it drops onto its own line. Reading `hasSelectedTransactions` re-renders only
     // this component on selection changes (its memoized JSX keeps the <Search> subtree from re-rendering;
     // verified via profiling), so the heavy list is unaffected.
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
     const shouldReserveFooterSpace = hasSelectedTransactions || (shouldAllowFooterTotals && !!searchResults?.search?.count);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);

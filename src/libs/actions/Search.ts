@@ -769,7 +769,7 @@ function getOnyxLoadingData(
     return {optimisticData, successData, finallyData, failureData};
 }
 
-function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
+function saveSearch({id, queryJSON, newName}: {id: string; queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
     const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
     const jsonQuery = JSON.stringify(queryJSON);
 
@@ -778,7 +778,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: {
+                [id]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     name: saveSearchName,
                     query: queryJSON.inputQuery,
@@ -792,7 +792,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: null,
+                [id]: null,
             },
         },
     ];
@@ -802,22 +802,22 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: {
+                [id]: {
                     pendingAction: null,
                 },
             },
         },
     ];
-    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: id, newName: saveSearchName}, {optimisticData, failureData, successData});
 }
 
-function deleteSavedSearch(hash: number) {
+function deleteSavedSearch(savedSearchID: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [hash]: {
+                [savedSearchID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             },
@@ -828,7 +828,7 @@ function deleteSavedSearch(hash: number) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [hash]: null,
+                [savedSearchID]: null,
             },
         },
     ];
@@ -837,14 +837,14 @@ function deleteSavedSearch(hash: number) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [hash]: {
+                [savedSearchID]: {
                     pendingAction: null,
                 },
             },
         },
     ];
 
-    write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {savedSearchID}, {optimisticData, failureData, successData});
 }
 
 function openSearchPage(params?: OpenSearchPageParams) {
@@ -963,7 +963,7 @@ function search({
     }
     inFlightSearchRequests.add(dedupeKey);
 
-    const {optimisticData, successData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
+    const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
@@ -994,6 +994,21 @@ function search({
             queryJSON,
             offset,
             allowPostSearchRecount: false,
+        });
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.optimisticData ?? [])];
+    const successData = onyxLoadingData.successData;
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.failureData ?? [])];
+    const finallyData = onyxLoadingData.finallyData;
+
+    if (searchKey) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SEARCH_FILTERS,
+            value: {
+                [searchKey]: query.inputQuery,
+            },
         });
     }
 

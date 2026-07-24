@@ -185,12 +185,17 @@ type SearchQueryContextValue = {
     currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
+    currentDefaultSearchQueryString: string | undefined;
+    currentDefaultSearchQueryJSON: SearchQueryJSON | undefined;
+    currentDefaultSearchQueryFilterKeys: Set<QueryFilters[number]['key']>;
     suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
     shouldResetSearchQuery: boolean;
 };
 
 type SearchQueryActionsValue = {
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
+    setCurrentSearchKey: (searchKey: SearchKey, pending?: boolean) => void;
+    resetSearchKey: (pending: boolean, queryJSON: SearchQueryJSON | undefined) => void;
 };
 
 type SearchResultsContextValue = {
@@ -320,6 +325,7 @@ type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, 
 
 type SearchFilterKey =
     | SyntaxFilterKey
+    | ReportFieldKey
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
@@ -331,7 +337,7 @@ type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
 
 type QueryFilters = Array<{
-    key: SearchFilterKey;
+    key: SyntaxFilterKey | ReportFieldTextKey;
     filters: QueryFilter[];
 }>;
 

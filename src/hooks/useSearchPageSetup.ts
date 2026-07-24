@@ -34,7 +34,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const {currentSearchKey} = useSearchQueryContext();
 
     const hash = queryJSON?.hash;
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     // Derived primitives so effects do not depend on the whole snapshot object (new reference every
     // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().

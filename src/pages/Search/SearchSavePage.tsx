@@ -10,7 +10,7 @@ import useFilterReportValue from '@components/Search/hooks/useFilterReportValue'
 import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
 import useFilterUserValue from '@components/Search/hooks/useFilterUserValue';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -23,7 +23,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {rand64} from '@libs/NumberUtils';
+import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -156,7 +157,8 @@ function SearchSavePage() {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [name, setName] = useState('');
 
-    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
+    const {setCurrentSearchKey} = useSearchQueryActions();
 
     const onSaveSearch = () => {
         if (!currentSearchQueryJSON) {
@@ -165,11 +167,20 @@ function SearchSavePage() {
         }
 
         const newName = name.trim() || currentSearchQueryJSON?.inputQuery;
-        saveSearch({queryJSON: currentSearchQueryJSON, newName});
+        const id = rand64();
+        setCurrentSearchKey(savedSearchIDToSearchKey(id));
+        saveSearch({id, queryJSON: currentSearchQueryJSON, newName});
         Navigation.goBack();
     };
 
-    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
+    const appliedFilters = mapFiltersFormToLabelValueList(
+        searchAdvancedFiltersForm,
+        currentDefaultSearchQueryFilterKeys,
+        undefined,
+        translate,
+        localeCompare,
+        convertToDisplayStringWithoutCurrency,
+    );
     const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
 
     const {inputCallbackRef} = useAutoFocusInput();

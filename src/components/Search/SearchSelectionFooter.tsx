@@ -22,8 +22,8 @@ type SearchSelectionFooterProps = {
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
+    const {currentSearchKey} = useSearchQueryContext();
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
 
     const metadata = searchResults?.search;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});

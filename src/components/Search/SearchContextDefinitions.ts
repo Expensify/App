@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 import type {
+    QueryFilters,
     SearchQueryActionsValue,
     SearchQueryContextValue,
     SearchResultsActionsValue,
@@ -23,12 +24,17 @@ const defaultSearchQueryContext: SearchQueryContextValue = {
     currentSimilarSearchHash: -1,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
+    currentDefaultSearchQueryString: undefined,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set<QueryFilters[number]['key']>(),
     suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
     shouldResetSearchQuery: false,
 };
 
 const defaultSearchQueryActions: SearchQueryActionsValue = {
     setShouldResetSearchQuery: () => {},
+    setCurrentSearchKey: () => {},
+    resetSearchKey: () => {},
 };
 
 const defaultSearchResultsContext: SearchResultsContextValue = {

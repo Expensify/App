@@ -2,6 +2,7 @@ import type BaseModalProps from '@components/Modal/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
@@ -22,7 +23,9 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
+import {buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
+import {getItemBadgeText, getOverflowMenu, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,11 +48,11 @@ type SearchTypeMenuNarrowProps = {
 };
 
 type SearchTypeMenuNarrowContentProps = {
-    tabs: TabSelectorBaseItem[];
-    activeTabKey: string;
-    onActiveTabPress?: (key: string) => void;
-    onTabPress?: (key: string) => void;
-    onLongTabPress?: (key: string) => void;
+    tabs: Array<TabSelectorBaseItem<SearchKey>>;
+    activeTabKey: SearchKey | undefined;
+    onActiveTabPress?: (key: SearchKey) => void;
+    onTabPress?: (key: SearchKey) => void;
+    onLongTabPress?: (key: SearchKey) => void;
     containerRef?: React.RefObject<View | null>;
     children?: React.ReactNode;
 };
@@ -82,16 +85,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections(
-        {
-            hash: queryJSON?.hash,
-            similarSearchHash: queryJSON?.similarSearchHash,
-            sortBy: queryJSON?.sortBy,
-            sortOrder: queryJSON?.sortOrder,
-            type: queryJSON?.type,
-        },
-        isFocused,
-    );
+    const typeMenuSections = useSearchTypeMenuSections(isFocused);
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -103,9 +97,12 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const {counts: reportCounts} = useTodoCounts(isFocused);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
+    const {currentSearchKey, currentSearchHash} = useSearchQueryContext();
+    const {setCurrentSearchKey} = useSearchQueryActions();
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
@@ -125,11 +122,11 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         enabled: !!queryJSON,
     });
 
-    const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<string | null>(null);
+    const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<SearchKey | null>(null);
     const menuAnchorRef = useRef<View>(null);
     const {showDeleteModal} = useDeleteSavedSearch();
 
-    const {copiedHash, handleShare} = useShareSavedSearch();
+    const {copiedID, handleShare} = useShareSavedSearch();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Receipt',
@@ -152,36 +149,41 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         'CheckCircle',
     ]);
 
-    const queryMap = new Map<string, {query: string; name?: string}>();
-    const tabItems: TabSelectorBaseItem[] = [];
-    const savedSearchesPopoverMenuItems: Record<string, PopoverMenuItem[]> = {};
-    let activeKey = '';
+    const queryMap = new Map<SearchKey, {query: string; name?: string}>();
+    const tabItems: Array<TabSelectorBaseItem<SearchKey>> = [];
+    const savedSearchesPopoverMenuItems: Partial<Record<SearchKey, PopoverMenuItem[]>> = {};
 
-    const savedSearchesTabItems: TabSelectorBaseItem[] = savedSearches
+    const savedSearchesTabItems: Array<TabSelectorBaseItem<SearchKey>> = savedSearches
         ? Object.entries(savedSearches)
-              .map(([key, item]): TabSelectorBaseItem | null => {
+              .map(([key, item]): TabSelectorBaseItem<SearchKey> | null => {
                   if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
                       return null;
                   }
 
                   const title = item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name;
 
-                  queryMap.set(key, {query: item.query ?? '', name: item.name});
-                  const itemHash = Number(key);
-                  savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, itemHash, item.query, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null), {
-                      onShare: () => {
-                          handleShare(itemHash, item.query);
-                          setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
+                  const savedSearchKey = savedSearchIDToSearchKey(key);
+                  queryMap.set(savedSearchKey, {query: item.query ?? '', name: item.name});
+                  savedSearchesPopoverMenuItems[savedSearchKey] = getOverflowMenu(
+                      expensifyIcons,
+                      title,
+                      key,
+                      item.query,
+                      translate,
+                      showDeleteModal,
+                      true,
+                      () => setSavedSearchToModifyKey(null),
+                      {
+                          onShare: () => {
+                              handleShare(key, item.query);
+                              setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
+                          },
+                          isCopied: copiedID === key,
                       },
-                      isCopied: copiedHash === itemHash,
-                  });
-
-                  if (Number(key) === queryJSON?.hash) {
-                      activeKey = key;
-                  }
+                  );
 
                   return {
-                      key,
+                      key: savedSearchKey,
                       icon: expensifyIcons.Bookmark,
                       title,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -209,41 +211,41 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     badgeStyles: styles.tabSelectorBadge,
                 });
                 queryMap.set(item.key, {query: item.searchQuery});
-                if (item.key === activeTypeMenuKey) {
-                    activeKey = item.key;
-                }
             }
         }
     }
 
-    const popoverMenuItems = savedSearchToModifyKey ? savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] : [];
+    const popoverMenuItems = savedSearchToModifyKey ? (savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] ?? []) : [];
     const shouldShowSavedSearchPopover = savedSearchToModifyKey && popoverMenuItems.length > 0;
 
-    const handleActiveTabPress = (tabKey: string) => {
+    const handleActiveTabPress = (tabKey: SearchKey) => {
         const searchData = queryMap.get(tabKey);
         if (!searchData) {
             return;
         }
         onTabPress?.();
+        setCurrentSearchKey(tabKey);
         setSearchContext(false);
     };
 
-    const handleTabPress = (tabKey: string) => {
+    const handleTabPress = (tabKey: SearchKey) => {
         const searchData = queryMap.get(tabKey);
         if (!searchData) {
             return;
         }
         onTabPress?.();
+        const query = getValidLastQuery(searchFilters?.[tabKey], searchData.query);
+        setCurrentSearchKey(tabKey, buildSearchQueryJSON(query)?.hash !== currentSearchHash);
         setSearchContext(false);
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {
-                params: {q: searchData.query, name: searchData.name, rawQuery: undefined},
+                params: {q: query, name: searchData.name, rawQuery: undefined},
             },
         });
     };
 
-    const handleLongTabPress = (tabKey: string) => {
+    const handleLongTabPress = (tabKey: SearchKey) => {
         if (!savedSearchesPopoverMenuItems?.[tabKey]) {
             return;
         }
@@ -254,7 +256,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     return (
         <SearchTypeMenuNarrowContent
             tabs={tabItems}
-            activeTabKey={activeKey}
+            activeTabKey={currentSearchKey}
             onActiveTabPress={handleActiveTabPress}
             onTabPress={handleTabPress}
             onLongTabPress={handleLongTabPress}
