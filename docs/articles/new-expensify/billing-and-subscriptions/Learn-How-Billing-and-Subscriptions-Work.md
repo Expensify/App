@@ -48,7 +48,7 @@ Your monthly Expensify bill is calculated based on:
  - The number of billable members
  - Whether your organization qualifies for reduced pricing through the Expensify Card
 
-To learn more, see [How the Expensify Card Discount Works](/docs/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).
+To learn more, see [How the Expensify Card Discount Works](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Understand-Expensify-Pricing#how-the-expensify-card-discount-works).
 
 ## Who pays the monthly bill 
 

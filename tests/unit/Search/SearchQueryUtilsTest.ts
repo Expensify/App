@@ -23,6 +23,7 @@ import {
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getFilterFromQuery,
+    getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
     getParamsState,
@@ -31,6 +32,7 @@ import {
     getRoutes,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
+    isSearchBeforeViolationsSnapshotStarted,
     isSearchRootParams,
     serializeQueryJSONForBackend,
     shouldHighlight,
@@ -699,6 +701,37 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense withdrawn:last-month');
+        });
+
+        test('with Expensify Card current balance view transactions filters', () => {
+            const feedKey = '21557189_Expensify Card';
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                feed: [feedKey],
+                withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.NEVER, CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense feed:"21557189_Expensify Card" withdrawalStatus:never,pending');
+
+            const queryJSON = buildSearchQueryJSON(result);
+            expect(queryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(queryJSON?.flatFilters).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: feedKey}],
+                    }),
+                    expect.objectContaining({
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+                        filters: [
+                            {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.SETTLEMENT_STATUS.NEVER},
+                            {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.SETTLEMENT_STATUS.PENDING},
+                        ],
+                    }),
+                ]),
+            );
         });
 
         describe('limit option', () => {
@@ -3867,6 +3900,91 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(result.size).toBe(2);
+        });
+    });
+
+    describe('getDateFilterRange', () => {
+        test('returns start and end for an on-date filter', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date:2025-03-15');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getDateFilterRange(queryJSON)).toEqual({
+                start: '2025-03-15',
+                end: '2025-03-15',
+            });
+        });
+
+        test('returns start and end for an inclusive date range', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2025-03-01 date<=2025-03-10');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getDateFilterRange(queryJSON)).toEqual({
+                start: '2025-03-01',
+                end: '2025-03-10',
+            });
+        });
+
+        test('excludes exact boundary days for exclusive greater than and less than filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>2025-03-01 date<2025-03-10');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getDateFilterRange(queryJSON)).toEqual({
+                start: '2025-03-02',
+                end: '2025-03-09',
+            });
+        });
+    });
+
+    describe('isSearchBeforeViolationsSnapshotStarted', () => {
+        const violationSnapshotStartedAt = '2026-06-20';
+
+        test('returns false when violationSnapshotStartedAt is undefined', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date:2025-03-15');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, undefined)).toBe(false);
+        });
+
+        test('returns true when the start date is before the violation snapshot start date', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2025-03-01 date<=2025-03-10');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(true);
+        });
+
+        test('returns true when the end date is before the violation snapshot start date', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-01-01 date<=2026-06-01');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(true);
+        });
+
+        test('returns false when both start and end are on or after the violation snapshot start date', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-06-20 date<=2026-07-01');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(false);
         });
     });
 });
