@@ -10,7 +10,7 @@ import SCREENS from '@src/SCREENS';
 const SEARCH_TO_RHP_DEEPLINK: Partial<Record<keyof SearchFullscreenNavigatorParamList, string[]>> = {
     // Create-flow entry points land on Spend > Expenses instead of the Inbox default.
     // See https://github.com/Expensify/App/pull/94952 and issue #94821.
-    [SCREENS.SEARCH.ROOT]: [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DISTANCE_CREATE, SCREENS.MONEY_REQUEST.START, SCREENS.SUBMIT_EXPENSE],
+    [SCREENS.SEARCH.ROOT]: [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DISTANCE_CREATE, SCREENS.SUBMIT_EXPENSE],
 };
 
 export default SEARCH_TO_RHP_DEEPLINK;
