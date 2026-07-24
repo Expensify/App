@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCompanyCardDescription} from '@libs/CardUtils';
-import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedFullCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isExpenseReport, isSettled, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
@@ -136,7 +136,7 @@ function TransactionItemRow({
     if (shouldUseNarrowLayout) {
         const description = getDescription(transactionItem);
         const merchantOrDescription = merchant || description;
-        const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
+        const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedFullCategoryName(transactionItem?.category ?? '');
         const shouldRenderChatBubbleCell = columns?.includes(CONST.SEARCH.TABLE_COLUMNS.COMMENTS) ?? false;
 
         // TransactionItemRowNarrow intentionally omits column sizing, hover, action button, and related table-only props that only the wide layout consumes.
