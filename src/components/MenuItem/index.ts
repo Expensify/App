@@ -54,9 +54,6 @@ import MenuItemRow from './layout/MenuItemRow';
 import MenuItemTrailing from './layout/MenuItemTrailing';
 import MenuItemAvatar from './leaves/leading/MenuItemAvatar';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
-import MenuItemError from './leaves/messages/MenuItemError';
-import MenuItemHelperText from './leaves/messages/MenuItemHelperText';
-import MenuItemHint from './leaves/messages/MenuItemHint';
 import MenuItemDescription from './leaves/text/MenuItemDescription';
 import MenuItemLabel from './leaves/text/MenuItemLabel';
 import MenuItemTitle from './leaves/text/MenuItemTitle';
@@ -117,15 +114,6 @@ type MenuItemType = {
 
     /** Hover-revealed copy-to-clipboard button (devices with hover support) */
     CopyButton: typeof MenuItemCopyButton;
-
-    /** Error message rendered under the main line (inside the pressable) */
-    Error: typeof MenuItemError;
-
-    /** Hint message rendered under the main line (inside the pressable) */
-    Hint: typeof MenuItemHint;
-
-    /** Non-interactive helper text — place it AFTER the root, outside the pressable */
-    HelperText: typeof MenuItemHelperText;
 };
 
 const MenuItem: MenuItemType = Object.assign(LegacyMenuItem, {
@@ -143,9 +131,6 @@ const MenuItem: MenuItemType = Object.assign(LegacyMenuItem, {
     RightLabel: MenuItemRightLabel,
     BrickRoadIndicator: MenuItemBrickRoadIndicator,
     CopyButton: MenuItemCopyButton,
-    Error: MenuItemError,
-    Hint: MenuItemHint,
-    HelperText: MenuItemHelperText,
 });
 
 export default MenuItem;
