@@ -25,6 +25,7 @@ import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -45,6 +46,8 @@ type AutocompleteItemData = {
     text: string;
     autocompleteID?: string;
     mapKey?: SearchFilterKey;
+    /** Workspace avatar/name that owns the report. Only set for report-backed `in:` suggestions so the row can show which workspace the room belongs to. */
+    workspaceIcon?: Icon;
 };
 
 type UseAutocompleteSuggestionsParams = {
@@ -304,12 +307,19 @@ function useAutocompleteSuggestions({
                 return !alreadyAutocompletedKeys.has(chat.text.toLowerCase());
             });
 
-            return filteredReports.map((chat) => ({
-                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
-                text: chat.text ?? '',
-                autocompleteID: chat.reportID,
-                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
-            }));
+            return filteredReports.map((chat) => {
+                // For reports owned by a workspace (rooms, policy expense chats, etc.) the first icon is the workspace
+                // avatar. We surface it on the row so identically named rooms (e.g. #admins) in different workspaces can
+                // be told apart. DMs/groups have an avatar-type first icon, so they naturally get no workspace icon.
+                const firstIcon = chat.icons?.at(0);
+                return {
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
+                    text: chat.text ?? '',
+                    autocompleteID: chat.reportID,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                    workspaceIcon: firstIcon?.type === CONST.ICON_TYPE_WORKSPACE ? firstIcon : undefined,
+                };
+            });
         }
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE: {
             const filteredTypes = DATA_TYPE_VALUES.filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(type.toLowerCase())).sort();
