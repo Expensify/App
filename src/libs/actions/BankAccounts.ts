@@ -509,6 +509,8 @@ function addPersonalBankAccount(
         addressZip: account?.addressZipCode,
         addressCountry: account?.country,
         confirmedOwnershipDetails: account?.confirmedOwnershipDetails,
+        iban: account?.iban,
+        swiftCode: account?.swiftCode,
     };
     if (policyID) {
         parameters.policyID = policyID;

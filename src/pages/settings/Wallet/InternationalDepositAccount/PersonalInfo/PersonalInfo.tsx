@@ -2,6 +2,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldCollectInternationalDepositDetails from '@hooks/useShouldCollectInternationalDepositDetails';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 
@@ -20,6 +21,7 @@ import React, {useEffect, useRef} from 'react';
 
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
+import InternationalBankAccountDetails from './substeps/InternationalBankAccountDetailsStep';
 import LegalName from './substeps/LegalNameStep';
 import ManualBankAccountDetails from './substeps/ManualBankAccountDetailsStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
@@ -27,8 +29,8 @@ import PlaidBankAccount from './substeps/PlaidBankAccountStep';
 import getSkippedStepsPersonalInfo from './utils/getSkippedStepsPersonalInfo';
 
 const bodyContentInfoSet: Array<React.ComponentType<SubStepProps>> = [LegalName, Address, PhoneNumber, Confirmation];
-const bodyContentWithPlaid: Array<React.ComponentType<SubStepProps>> = [PlaidBankAccount, ...bodyContentInfoSet];
-const bodyContentWithManualSetup: Array<React.ComponentType<SubStepProps>> = [ManualBankAccountDetails, ...bodyContentInfoSet];
+const bodyContentWithPlaid: Array<React.ComponentType<SubStepProps>> = [PlaidBankAccount, InternationalBankAccountDetails, ...bodyContentInfoSet];
+const bodyContentWithManualSetup: Array<React.ComponentType<SubStepProps>> = [ManualBankAccountDetails, InternationalBankAccountDetails, ...bodyContentInfoSet];
 
 const DEFAULT_OBJECT = {};
 const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
@@ -46,6 +48,7 @@ function PersonalInfoPage() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const shouldCollectInternationalDepositDetails = useShouldCollectInternationalDepositDetails(CONST.COUNTRY.US);
 
     const submitBankAccountForm = () => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -86,7 +89,9 @@ function PersonalInfoPage() {
         addPersonalBankAccount(accountData, personalPolicyID);
     };
 
-    const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails);
+    const shouldSkipInternationalBankAccountDetails = !shouldCollectInternationalDepositDetails || (!!personalBankAccount?.iban && !!personalBankAccount?.swiftCode);
+
+    const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails, shouldSkipInternationalBankAccountDetails);
 
     const {
         componentToRender: SubStep,
