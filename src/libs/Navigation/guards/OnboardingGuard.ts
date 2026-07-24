@@ -1,6 +1,8 @@
+import AccountUtils from '@libs/AccountUtils';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 
@@ -119,6 +121,41 @@ function getOnboardingRoute(): Route {
     }) as Route;
 }
 
+function isRequiredTwoFactorSetupExceptionActive(): boolean {
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
+    // Allow 2FA setup while the blocking overlay is up, and also through the post-verify
+    // handoff window when the overlay is intentionally hidden but setup is still in progress.
+    return AccountUtils.shouldShowRequire2FAPage(account, hasCompletedGuidedSetupFlow) || AccountUtils.isForced2FAOnboardingSetup(account, hasCompletedGuidedSetupFlow);
+}
+
+type DeepestFocusedScreenInput = NonNullable<Parameters<typeof getDeepestFocusedScreen>[0]>;
+
+function isDeepestFocusedScreenInput(value: unknown): value is DeepestFocusedScreenInput {
+    return typeof value === 'object' && value !== null;
+}
+
+function getActionPayloadScreenName(action: NavigationAction): string | undefined {
+    if (!isDeepestFocusedScreenInput(action.payload)) {
+        return undefined;
+    }
+
+    return getDeepestFocusedScreen(action.payload)?.name;
+}
+
+function isTwoFactorSetupRouteName(screenName: string | undefined): boolean {
+    return isTwoFactorSetupScreen(screenName);
+}
+
+function isTargetTwoFactorSetupRoute(action: NavigationAction): boolean {
+    return isTwoFactorSetupRouteName(getActionPayloadScreenName(action));
+}
+
+function isCurrentlyOnTwoFactorSetupRoute(state: NavigationState): boolean {
+    const screenName = getDeepestFocusedScreen(state)?.name;
+
+    return isTwoFactorSetupRouteName(screenName);
+}
+
 function shouldPreventReset(state: NavigationState, action: NavigationAction) {
     if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
         return false;
@@ -126,6 +163,11 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
 
     const currentFocusedRoute = findFocusedRoute(state);
     const targetFocusedRoute = findFocusedRoute(action?.payload as NavigationState);
+
+    // Allow required 2FA setup navigation even when the user is currently on onboarding.
+    if (isRequiredTwoFactorSetupExceptionActive() && isTargetTwoFactorSetupRoute(action)) {
+        return false;
+    }
 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
@@ -168,6 +210,10 @@ const OnboardingGuard: NavigationGuard = {
     evaluate: (state, action, context): GuardResult => {
         if (shouldPreventReset(state, action)) {
             return {type: 'BLOCK', reason: 'Cannot reset to non-onboarding screen while on onboarding'};
+        }
+
+        if (isRequiredTwoFactorSetupExceptionActive() && (isTargetTwoFactorSetupRoute(action) || isCurrentlyOnTwoFactorSetupRoute(state))) {
+            return {type: 'ALLOW'};
         }
 
         const isTransitioning = context.currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS);

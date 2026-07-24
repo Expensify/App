@@ -15,15 +15,18 @@ import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs
 
 import variables from '@styles/variables';
 
+import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/core';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 /**
@@ -54,12 +57,27 @@ function RequireTwoFactorAuthenticationOverlay() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
+    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const requires2FAForXeroSelector = useCallback((workspaces: OnyxCollection<Policy>) => is2FARequiredBecauseOfXeroSelector(email)(workspaces), [email]);
     const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: requires2FAForXeroSelector});
 
+    useEffect(() => {
+        if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
+            return;
+        }
+        const activeRoute = Navigation.getActiveRoute();
+        if (activeRoute.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
+            updateOnboardingLastVisitedPath(activeRoute);
+        }
+    }, [shouldShowRequire2FAPage, isIn2FASetupFlow]);
+
     const handleOnPress = () => {
-        Navigation.navigate(getTwoFactorAuthRoute());
+        const activeRoute = Navigation.getActiveRoute();
+        if (!onboardingInitialPath && activeRoute.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
+            updateOnboardingLastVisitedPath(activeRoute);
+        }
+        Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true}));
     };
 
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {

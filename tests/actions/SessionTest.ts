@@ -12,6 +12,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
 import reauthenticate from '@libs/Reauthentication';
@@ -743,6 +744,49 @@ describe('Session', () => {
             expect(accountSuccess?.value.twoFactorAuthSecretKey).toBeNull();
 
             writeSpy.mockRestore();
+        });
+    });
+
+    describe('validateTwoFactorAuth', () => {
+        test('forced onboarding path updates auth token before clearing Onyx without openApp', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- spy setup for asserts below
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
+                authToken: 'newAuthToken',
+                encryptedAuthToken: 'newEncryptedAuthToken',
+            });
+            const setAuthTokenSpy = jest.spyOn(NetworkStore, 'setAuthToken');
+            const multiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+            const clearSpy = jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- assert openApp (API.write) was not chained
+            const writeWithNoDuplicatesSpy = jest.spyOn(API, 'writeWithNoDuplicatesConflictAction').mockResolvedValue(undefined);
+
+            SessionUtil.validateTwoFactorAuth('123456', false, {shouldKeepTwoFactorAuthFlowOpen: true});
+            await waitForBatchedUpdates();
+
+            expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, {twoFactorAuthCode: '123456'}, expect.any(Object));
+            expect(setAuthTokenSpy).toHaveBeenCalledWith('newAuthToken');
+            expect(setAuthTokenSpy.mock.invocationCallOrder.at(0)).toBeLessThan(multiSetSpy.mock.invocationCallOrder.at(0) ?? Number.MAX_SAFE_INTEGER);
+            expect(multiSetSpy).toHaveBeenCalled();
+            expect(clearSpy).toHaveBeenCalled();
+            expect(clearSpy.mock.calls.at(0)?.at(0)).toEqual(
+                expect.arrayContaining([
+                    ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    ONYXKEYS.NVP_ONBOARDING,
+                    ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
+                    ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+                    ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+                    ONYXKEYS.ACCOUNT,
+                    ONYXKEYS.SESSION,
+                ]),
+            );
+            // openApp must stay deferred until DynamicSuccessPage Got it
+            expect(writeWithNoDuplicatesSpy).not.toHaveBeenCalled();
+
+            makeRequestSpy.mockRestore();
+            setAuthTokenSpy.mockRestore();
+            multiSetSpy.mockRestore();
+            clearSpy.mockRestore();
+            writeWithNoDuplicatesSpy.mockRestore();
         });
     });
 
