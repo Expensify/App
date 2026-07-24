@@ -34,6 +34,24 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
    
 ---
 
+## How to View the Transactions Counted Against Your Expensify Card Current Balance
+
+Your Expensify Card page shows a **Current balance** for each card feed. You can open a filtered list of the transactions that make up that balance directly from the card page.
+
+1. From the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
+2. Under the **Current balance** amount, click **View transactions**.
+3. Review the filtered list of expenses that are counted against the current balance.
+
+The **View transactions** link opens a search filtered to that card feed's transactions that have not yet been withdrawn. The link appears only under the **Current balance** amount, not under the remaining limit or cash back amounts.
+
+<!-- SCREENSHOT:
+Suggestion: The workspace Expensify Card page with the View transactions link highlighted under the Current balance amount
+Location: Under the numbered steps in this section
+Purpose: Show where the View transactions link appears relative to the Current balance
+-->
+
+---
+
 ## How to Verify Expensify Card Withdrawal Totals Against Your Bank Statement
 
 1. On your bank statement, locate Expensify Card settlement charges.
