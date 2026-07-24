@@ -413,7 +413,7 @@ describe('Spend Search Router navigation source', () => {
         if (!isValidElement<{label: string; icon: IconAsset}>(rightElement)) {
             throw new Error('Expected Spend navigation context to be a React element');
         }
-        expect(rightElement.props).toMatchObject({label: 'Spend', icon: spendContextIcon});
+        expect(rightElement.props).toMatchObject({text: 'Spend', icon: spendContextIcon, showTooltip: false});
 
         rerender({shouldWatchForApprovals: true});
         expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(undefined, true);

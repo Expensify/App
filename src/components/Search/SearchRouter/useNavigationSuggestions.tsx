@@ -1,17 +1,15 @@
 /**
  * Builds the top-level and Spend navigation suggestions shown in the Search Router.
  */
-import Icon from '@components/Icon';
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
-import Text from '@components/Text';
+import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,7 +18,6 @@ import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtil
 
 import navigationRef from '@navigation/navigationRef';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -29,7 +26,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ReactNode} from 'react';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
@@ -40,30 +36,6 @@ type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
 const SAVED_SEARCHES_SECTION_PATH = 'search.savedSearchesMenuItemTitle';
-
-type RightSideLabelProps = {
-    /** Text label shown to the right of the suggestion row */
-    label: string;
-
-    /** Icon rendered alongside the label */
-    icon: IconAsset;
-};
-
-function RightSideLabel({label, icon}: RightSideLabelProps) {
-    const styles = useThemeStyles();
-    const theme = useTheme();
-
-    return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-            <Icon
-                src={icon}
-                fill={theme.icon}
-                size={CONST.ICON_SIZE.SMALL}
-            />
-            <Text style={styles.textLabelSupporting}>{label}</Text>
-        </View>
-    );
-}
 
 type BuildTopLevelNavigationItemsParams = {
     labels: {
@@ -148,6 +120,7 @@ function buildSpendNavigationItems({sections, icons, rightElement, getItemText, 
 
 function useNavigationSuggestions(query: string, shouldWatchForApprovals = true): SearchQueryItem[] {
     const {translate, localeCompare} = useLocalize();
+    const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons([
         'Home',
         'Inbox',
@@ -190,9 +163,11 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         sections: typeMenuSections,
         icons,
         rightElement: (
-            <RightSideLabel
-                label={translate('common.spend')}
+            <TextWithIconCell
+                text={translate('common.spend')}
                 icon={icons.ReceiptMultiple}
+                showTooltip={false}
+                textStyle={styles.textLabelSupporting}
             />
         ),
         getItemText: (item) => translate(item.translationPath),
