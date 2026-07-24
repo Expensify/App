@@ -484,7 +484,6 @@ function useSelectedTransactionsActions({
                             getCurrencyDecimals,
                             [],
                             false,
-                            isOnSearch,
                             selectedTransactionsList.length > 1 ? [policy, policy] : undefined,
                         ),
                 });

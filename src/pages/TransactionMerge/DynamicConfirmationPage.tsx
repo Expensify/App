@@ -10,6 +10,7 @@ import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -29,7 +30,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Transaction} from '@src/types/onyx';
@@ -41,14 +42,15 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
+type DynamicConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE>;
 
-function ConfirmationPage({route}: ConfirmationPageProps) {
+function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
-    const {transactionID, isOnSearch, backTo} = route.params;
+    const {transactionID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION.path);
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -67,9 +69,13 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(targetTransactionThreadParentReport?.ownerAccountID)});
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsLoginSelector(targetTransactionThreadParentReport?.ownerAccountID),
+    });
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetTransactionThreadParentReport?.policyID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
 
     const selfDMReport = useSelfDMReport();
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReport?.reportID)}`);
@@ -112,8 +118,8 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
         const searchReportIDToOpen = targetTransactionThreadReportID ?? reportIDToDismiss;
 
-        // If we're in search (or the topmost route is search), dismiss the modal and open the expense in the RHP
-        if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
+        // If we're in search, dismiss the modal and open the expense in the RHP
+        if (isSearchTopmostFullScreenRoute() && searchReportIDToOpen) {
             Navigation.dismissModal();
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
@@ -147,7 +153,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.confirmationPage.header')}
                     onBackButtonPress={() => {
-                        Navigation.goBack(backTo);
+                        Navigation.goBack(backPath);
                     }}
                 />
                 <ScrollView>
@@ -176,4 +182,4 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     );
 }
 
-export default ConfirmationPage;
+export default DynamicConfirmationPage;

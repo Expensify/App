@@ -983,6 +983,6 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, false, undefined);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, undefined);
     });
 });
