@@ -21,7 +21,7 @@ const fontScale = {
 
 const lineHeightScale = {
     micro: variables.lineHeightSmall,
-    label: variables.lineHeightLarge,
+    label: variables.lineHeightNormal,
     text: variables.fontSizeNormalHeight,
     pageHeader: variables.lineHeightXLarge,
     h2: variables.lineHeightSizeH2,
@@ -43,6 +43,11 @@ const fontFamilyScale = {
 const textVariants = {
     micro: {
         ...fontFamilyScale.regular,
+        fontSize: fontScale.micro,
+        lineHeight: lineHeightScale.micro,
+    },
+    microStrong: {
+        ...fontFamilyScale.strong,
         fontSize: fontScale.micro,
         lineHeight: lineHeightScale.micro,
     },

@@ -500,8 +500,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         mutedNormalTextLabel: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightNormal,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         textSmall: {
@@ -519,17 +519,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textMicroBold: {
+            ...textVariants.microStrong,
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroBoldSupporting: {
+            ...textVariants.microStrong,
             color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroSupporting: {
@@ -603,7 +599,6 @@ const staticStyles = (theme: ThemeColors) =>
         textHeadline: {
             ...textVariants.h1,
             color: theme.heading,
-            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHeadlineH2: {
