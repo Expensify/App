@@ -4,7 +4,7 @@ import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {
     generateIsEmptyReport,
@@ -232,16 +232,20 @@ export default createOnyxDerivedValueConfig({
             conciergeReportID,
             introSelected,
         ],
-        {currentValue, sourceValues},
+        {currentValue, sourceValues, triggeredKeys},
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
         // Check if display names changed when personal details are updated
         let displayNameChanges: Set<number> | typeof RECOMPUTE_ALL | null = null;
-        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
+        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
             displayNameChanges = getDisplayNameChanges(personalDetails);
-            if (!displayNameChanges) {
+
+            // Only short-circuit when personal details were the sole trigger; coalescing can batch them
+            // with report/transaction changes, and returning early would drop those.
+            const personalDetailsIsOnlyTrigger = triggeredKeys?.size === 1;
+            if (!displayNameChanges && personalDetailsIsOnlyTrigger) {
                 return currentValue ?? {reports: {}, locale: null};
             }
         } else if (!sourceValues) {
@@ -256,14 +260,15 @@ export default createOnyxDerivedValueConfig({
         // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
         // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
         const needsFullRecompute =
-            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
+            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) && preferredLocale !== currentValue?.locale) ||
             displayNameChanges === RECOMPUTE_ALL ||
-            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues) ||
-            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues);
+            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, triggeredKeys) ||
+            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);
 
         const policyChangedReportKeys: string[] = [];
-        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
+        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, triggeredKeys)) {
             if (!needsFullRecompute) {
+                // Policy updated — only recompute reports whose relevant fields actually changed
                 const changedPolicyIDs = new Set<string>();
                 for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
                     if (hasPolicyRelevantFieldChanged(previousPolicies?.[key], policies?.[key])) {
@@ -568,6 +573,16 @@ export default createOnyxDerivedValueConfig({
             const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
             childReportIDs.push(report.reportID);
             childReportIDsByChat.set(report.chatReportID, childReportIDs);
+
+            // When the child IOU's parent action in the chat is deleted (e.g. another user deleted the request
+            // while an optimistic pay was queued offline), the chat has no actionable surface for the error.
+            // Skip propagation so the parent DM row doesn't show a stale "Fix" for a request that no longer exists.
+            const parentReportAction = report.parentReportActionID
+                ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
+                : undefined;
+            if (isDeletedAction(parentReportAction)) {
+                continue;
+            }
 
             // If this is an IOU report and its calculated attributes have an error,
             // then we need to mark its parent chat report.

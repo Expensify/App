@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -81,11 +81,12 @@ function DebugReportActionPage({
                 {!!transactionID && (
                     <View style={[styles.mh5, styles.mb5]}>
                         <Button
-                            text={translate('debug.viewTransaction')}
                             onPress={() => {
                                 Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
                             }}
-                        />
+                        >
+                            <Button.Text>{translate('debug.viewTransaction')}</Button.Text>
+                        </Button>
                     </View>
                 )}
             </DebugDetails>
