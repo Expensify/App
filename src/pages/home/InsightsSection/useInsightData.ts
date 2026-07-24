@@ -1,4 +1,4 @@
-import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+import type {ChartView, GroupedItem, SearchQueryJSON, SearchView} from '@components/Search/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -28,7 +28,9 @@ const INSIGHT_STATE = {
     READY: 'ready',
 } as const;
 
-const CHART_VIEWS = new Set<ValueOf<typeof CONST.SEARCH.VIEW>>([CONST.SEARCH.VIEW.BAR, CONST.SEARCH.VIEW.LINE, CONST.SEARCH.VIEW.PIE]);
+function isChartView(view: SearchView): view is ChartView {
+    return view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE;
+}
 
 const MIN_INSIGHT_DATA_POINTS = 2;
 
@@ -60,7 +62,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     const query = config?.searchQuery;
     const searchKey = config?.key;
     const {groupBy} = queryJSON ?? {};
-    const view = queryJSON?.view && CHART_VIEWS.has(queryJSON.view) ? queryJSON.view : CONST.SEARCH.VIEW.BAR;
+    const view = queryJSON?.view && isChartView(queryJSON.view) ? queryJSON.view : CONST.SEARCH.VIEW.BAR;
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();

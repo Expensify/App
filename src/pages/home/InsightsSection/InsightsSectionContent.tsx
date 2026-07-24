@@ -36,7 +36,7 @@ function InsightsSectionContent() {
     const {displayed, state, dropdownConfigs, onSelectInsight} = useHomeInsights();
     const {config, query, queryJSON, groupBy, view, sortedData} = displayed ?? {};
 
-    if (!config || !query || !queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE || state === INSIGHT_STATE.HIDDEN) {
+    if (!config || !query || !queryJSON || !view || !groupBy || state === INSIGHT_STATE.HIDDEN) {
         return null;
     }
 
