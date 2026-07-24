@@ -4481,11 +4481,16 @@ const translations = {
         errorMessage: 'Something went wrong. Please try again later.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</rbr>`,
         domainSelector: {
+            headline: 'Choose domain',
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
             recommended: 'Recommended',
         },
+        workspaceAddress: {
+            headline: "What's your business address?",
+        },
         taxID: {
+            headline: "What's your business tax ID?",
             title: 'Tax ID',
             subtitle: 'Enter your legal entity tax ID so we can set up travel billing in your local currency.',
             inputLabel: 'Legal entity tax ID',

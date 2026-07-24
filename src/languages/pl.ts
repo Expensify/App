@@ -4356,11 +4356,8 @@ ${amount} dla ${merchant} - ${date}`,
         departs: 'Odjazd',
         errorMessage: 'Coś poszło nie tak. Spróbuj ponownie później.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Aby zarezerwować podróż, <a href="${phoneErrorMethodsRoute}">dodaj służbowy adres e‑mail jako swój główny login</a>.</rbr>`,
-        domainSelector: {
-            title: 'Domena',
-            subtitle: 'Wybierz domenę do konfiguracji Expensify Travel.',
-            recommended: 'Polecane',
-        },
+        domainSelector: {headline: 'Wybierz domenę', title: 'Domena', subtitle: 'Wybierz domenę do konfiguracji Expensify Travel.', recommended: 'Polecane'},
+        workspaceAddress: {headline: 'Jaki jest adres twojej firmy?'},
         domainPermissionInfo: {
             title: 'Domena',
             restriction: (domain: string) =>
@@ -4415,6 +4412,7 @@ ${amount} dla ${merchant} - ${date}`,
         nightIn: 'nocleg w',
         nightsIn: 'noce w',
         taxID: {
+            headline: 'Jaki jest twój firmowy numer identyfikacji podatkowej?',
             title: 'NIP',
             subtitle: 'Podaj swój numer identyfikacji podatkowej podmiotu prawnego, żebyśmy mogli skonfigurować rozliczenia za podróże w twojej lokalnej walucie.',
             inputLabel: 'NIP podmiotu prawnego',

@@ -544,7 +544,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
-            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
         ],
         getRoute: (country = '') => `country?country=${country}`,
@@ -1000,27 +1000,11 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
         getRoute: (policyID?: string) => getUrlWithParams('public-domain-error', {policyID}),
     },
-    TRAVEL_TCS: {
-        path: 'terms/:domain/accept/:policyID?',
-        entryScreens: [
-            SCREENS.TRAVEL.MY_TRIPS,
-            SCREENS.WORKSPACE.TRAVEL,
-            SCREENS.SEARCH.ROOT,
-            SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR,
-            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
-            SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID,
-            SCREENS.TRAVEL.VERIFY_ACCOUNT,
-        ],
-        getRoute: (domain: string, policyID?: string) => `terms/${domain}/accept${policyID ? `/${policyID}` : ''}`,
-    },
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         path: 'domain-permission-info',
-        entryScreens: [SCREENS.TRAVEL.DYNAMIC_TCS],
-    },
-    TRAVEL_DOMAIN_SELECTOR: {
-        path: 'domain-selector',
-        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
-        getRoute: (policyID?: string) => getUrlWithParams('domain-selector', {policyID}),
+        entryScreens: [SCREENS.TRAVEL.ENABLE],
+        getRoute: (domain: string) => getUrlWithParams('domain-permission-info', {domain}),
+        queryParams: ['domain'],
     },
     TRAVEL_UPGRADE: {
         path: 'travel-upgrade',
@@ -3449,20 +3433,19 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
     },
-    TRAVEL_WORKSPACE_ADDRESS: {
-        route: 'travel/:domain/workspace-address',
-
-        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address?${policyID ? `policyID=${policyID}` : ''}`, backTo),
-    },
-    TRAVEL_LEGAL_ENTITY_TAX_ID: {
-        route: 'travel/:domain/legal-entity-tax-id',
-
-        getRoute: (domain: string, policyID?: string) => `travel/${domain}/legal-entity-tax-id${policyID ? `?policyID=${policyID}` : ''}` as const,
-    },
     TRAVEL_VERIFY_ACCOUNT: {
         route: `travel/${VERIFY_ACCOUNT}`,
 
         getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
+    },
+    TRAVEL_ENABLE: {
+        route: 'travel/enable/:policyID/:subPage?/:action?',
+        getRoute: (policyID: string, subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return `travel/enable/${policyID}` as const;
+            }
+            return `travel/enable/${policyID}/${subPage}${action ? `/${action}` : ''}` as const;
+        },
     },
     ONBOARDING_ROOT: {
         route: 'onboarding',

@@ -4360,11 +4360,8 @@ ${amount} para ${merchant} - ${date}`,
         errorMessage: 'Algo deu errado. Tente novamente mais tarde.',
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Por favor, <a href="${phoneErrorMethodsRoute}">adicione um e-mail profissional como seu login principal</a> para reservar viagens.</rbr>`,
-        domainSelector: {
-            title: 'Domínio',
-            subtitle: 'Escolha um domínio para a configuração do Expensify Travel.',
-            recommended: 'Recomendado',
-        },
+        domainSelector: {headline: 'Escolher domínio', title: 'Domínio', subtitle: 'Escolha um domínio para a configuração do Expensify Travel.', recommended: 'Recomendado'},
+        workspaceAddress: {headline: 'Qual é o endereço da sua empresa?'},
         domainPermissionInfo: {
             title: 'Domínio',
             restriction: (domain: string) =>
@@ -4419,6 +4416,7 @@ ${amount} para ${merchant} - ${date}`,
         nightIn: 'noite em',
         nightsIn: 'noites em',
         taxID: {
+            headline: 'Qual é o CNPJ da sua empresa?',
             title: 'CPF/CNPJ',
             subtitle: 'Insira o CNPJ da sua empresa para que possamos configurar a cobrança de viagens na sua moeda local.',
             inputLabel: 'CNPJ da pessoa jurídica',
