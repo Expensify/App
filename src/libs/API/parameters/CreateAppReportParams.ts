@@ -5,6 +5,7 @@ type CreateAppReportParams = {
     reportActionID: string;
     reportPreviewReportActionID: string;
     ownerEmail?: string;
+    managedCardTransactionID?: string;
     shouldDismissEmptyReportsConfirmation?: boolean;
     reportName?: string;
 };
