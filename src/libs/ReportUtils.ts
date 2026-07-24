@@ -3556,11 +3556,11 @@ function getDisplayNameForParticipant({
 
     // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
-    // when searching for a new user. Imported device contacts persist a real
-    // display name on their optimistic record, so prefer that over the login.
-    if (personalDetails.isOptimisticPersonalDetail === true) {
-        const optimisticDisplayName = getDisplayNameOrDefault(personalDetails, formattedLogin, false);
-        return shouldUseShortForm && personalDetails.firstName ? personalDetails.firstName : optimisticDisplayName;
+    // when searching for a new user. Optimistic personal details that already have a known displayName
+    // (e.g. an agent pending creation, or an imported device contact) fall through to the normal name
+    // resolution below instead, so that name is shown rather than an empty/placeholder login.
+    if (personalDetails.isOptimisticPersonalDetail === true && !personalDetails.displayName) {
+        return formattedLogin;
     }
 
     // For selfDM, we display the user's displayName followed by '(you)' as a postfix

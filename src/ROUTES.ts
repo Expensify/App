@@ -1602,6 +1602,10 @@ const ROUTES = {
         route: 'settings/agents/:accountID/edit/avatar',
         getRoute: (accountID: number) => `settings/agents/${accountID}/edit/avatar` as const,
     },
+    AGENT_REPORT: {
+        route: 'settings/agents/report/:reportID',
+        getRoute: (reportID: string) => `settings/agents/report/${reportID}` as const,
+    },
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',

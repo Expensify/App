@@ -5,7 +5,8 @@ import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {generateReportID} from '@libs/ReportUtils';
+import {rand64} from '@libs/NumberUtils';
+import {buildOptimisticChatReport, buildOptimisticCreatedReportAction, generateReportID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
@@ -38,6 +39,8 @@ function openProfilePage() {
 function createAgent(
     firstName: string | undefined,
     prompt: string,
+    ownerAccountID: number,
+    ownerLogin: string | undefined,
     customExpensifyAvatarID?: string,
     file?: File | CustomRNImageManipulatorResult,
     optimisticAvatarURI?: string,
@@ -60,6 +63,22 @@ function createAgent(
         ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
     };
 
+    // Generate the DM report ID client-side so it can be written to Onyx and opened immediately.
+    const optimisticReportID = generateReportID();
+    const optimisticChatReport = buildOptimisticChatReport({
+        participantList: [ownerAccountID, optimisticAccountID],
+        ownerAccountID,
+        optimisticReportID,
+        currentUserAccountID: ownerAccountID,
+    });
+    // Reuse the client-generated CREATED action ID when CreateAgent creates the DM.
+    const createdReportActionID = rand64();
+    const optimisticCreatedAction = buildOptimisticCreatedReportAction({
+        emailCreatingAction: ownerLogin ?? CONST.REPORT.OWNER_EMAIL_FAKE,
+        currentUserAccountID: ownerAccountID,
+        optimisticReportActionID: createdReportActionID,
+    });
+
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -70,6 +89,21 @@ function createAgent(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
             value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+            value: {...optimisticChatReport, pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
+            value: {isOptimisticReport: true},
         },
     ];
 
@@ -83,6 +117,16 @@ function createAgent(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
             value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+            value: {pendingFields: {createChat: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
+            value: {isOptimisticReport: false},
         },
     ];
 
@@ -101,16 +145,32 @@ function createAgent(
                 errors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.genericAdd'),
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
+            value: null,
+        },
     ];
 
     write(
         // Flag this as the user's personal agent; the backend makes personal agents a full co-pilot of the creator.
+        // optimisticReportID is the owner<->agent DM's optimistic reportID; CreateAgent creates the DM under this exact ID.
         WRITE_COMMANDS.CREATE_AGENT,
-        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true},
+        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID, createdReportActionID},
         {optimisticData, successData, failureData},
     );
 
-    return {optimisticAccountID, avatarURI};
+    return {optimisticAccountID, avatarURI, optimisticReportID};
 }
 
 function clearAgentError(optimisticAccountID: number) {
