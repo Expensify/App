@@ -21,6 +21,7 @@ type ExportIntegration = {
     data: SelectorType[];
     exportType?: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>;
     shouldHideMenuItemDescription?: boolean;
+    shouldShowMenuItemIcon?: boolean;
     shouldShowMenuItem?: boolean;
 };
 
@@ -419,6 +420,7 @@ function getExportMenuItem(
                 description,
                 exportType,
                 shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
                 shouldShowMenuItem,
                 exportPageLink: ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID),
                 data: filteredData,
