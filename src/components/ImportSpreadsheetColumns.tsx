@@ -51,6 +51,9 @@ type ImportSpreadsheetColumnsProps = {
     shouldShowDropdownMenu?: boolean;
 
     customHeaderText?: string;
+
+    // An optional boolean indicating whether the import button should be disabled while offline. Defaults to true.
+    shouldDisableButtonWhenOffline?: boolean;
 };
 
 function ImportSpreadsheetColumns({
@@ -64,6 +67,7 @@ function ImportSpreadsheetColumns({
     shouldShowColumnHeader = true,
     shouldShowDropdownMenu = true,
     customHeaderText,
+    shouldDisableButtonWhenOffline = true,
 }: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -124,7 +128,7 @@ function ImportSpreadsheetColumns({
                         text={translate('common.import')}
                         onPress={importFunction}
                         isLoading={isButtonLoading}
-                        isDisabled={isOffline}
+                        isDisabled={shouldDisableButtonWhenOffline && isOffline}
                         pressOnEnter
                         success
                         large
