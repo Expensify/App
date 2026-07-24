@@ -660,7 +660,7 @@ function TransactionItemRowWide({
                 style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, styles.alignSelfStretch, bgActiveStyles, styles.mw100, style]}
                 testID="transaction-item-row"
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.tableRowHeight]}>
                     {!shouldShowRadioButton && (
                         <Checkbox
                             disabled={isDisabled}
