@@ -46,8 +46,6 @@ describe('useSearchHighlightAndScroll', () => {
                 hasResults: true,
                 offset: 0,
                 hash: 0,
-                sortBy: 'date',
-                sortOrder: 'desc',
                 type: 'expense',
                 isLoading: false,
             },

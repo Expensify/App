@@ -195,8 +195,6 @@ describe('SearchPageNarrow', () => {
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     offset: 0,
                     hash: failedQueryJSON?.hash,
-                    sortBy: failedQueryJSON?.sortBy,
-                    sortOrder: failedQueryJSON?.sortOrder,
                     isLoading: false,
                     hasMoreResults: false,
                 },
