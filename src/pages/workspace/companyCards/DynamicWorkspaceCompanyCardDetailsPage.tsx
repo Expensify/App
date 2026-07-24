@@ -42,6 +42,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getIntegrationIcon} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -71,16 +72,29 @@ import {getExportMenuItem} from './utils';
 type DynamicWorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS>;
 
 function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompanyCardDetailsPageProps) {
-    const {policyID, cardID} = route.params;
+    const {policyID, feed, cardID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.path);
-    const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
+    const feedName = decodeURIComponent(feed) as CompanyCardFeedWithDomainID;
     const bank = getCompanyCardFeed(feedName);
 
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'RemoveMembers', 'Sync', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'MoneySearch',
+        'RemoveMembers',
+        'Sync',
+        'Trashcan',
+        'XeroSquare',
+        'QBOSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'GustoSquare',
+    ]);
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
 
@@ -111,7 +125,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
 
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardholder, translate});
-    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
+    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, styles, policy, card);
 
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
@@ -241,29 +255,6 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
-                    {exportMenuItem?.shouldShowMenuItem ? (
-                        <OfflineWithFeedback
-                            pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
-                            errorRowStyles={errorRowStyles}
-                            errors={exportMenuItem.exportType ? getLatestErrorField(card?.nameValuePairs ?? {}, exportMenuItem.exportType) : undefined}
-                            onClose={() => {
-                                if (!exportMenuItem.exportType) {
-                                    return;
-                                }
-                                clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, exportMenuItem.exportType);
-                            }}
-                        >
-                            <MenuItemWithTopDescription
-                                description={exportMenuItem.description}
-                                title={exportMenuItem.title}
-                                numberOfLinesTitle={2}
-                                shouldShowRightIcon={canWriteCompanyCards}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute()))}
-                                interactive={canWriteCompanyCards}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
-                            />
-                        </OfflineWithFeedback>
-                    ) : null}
                     <OfflineWithFeedback
                         pendingAction={card?.pendingFields?.scrapeMinDate}
                         errorRowStyles={errorRowStyles}
@@ -312,6 +303,37 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
                         />
                     )}
+                    {exportMenuItem?.shouldShowMenuItem ? (
+                        <>
+                            <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
+                                <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.common.accounting')}</Text>
+                            </View>
+                            <OfflineWithFeedback
+                                pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
+                                errorRowStyles={errorRowStyles}
+                                errors={exportMenuItem.exportType ? getLatestErrorField(card?.nameValuePairs ?? {}, exportMenuItem.exportType) : undefined}
+                                onClose={() => {
+                                    if (!exportMenuItem.exportType) {
+                                        return;
+                                    }
+                                    clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, exportMenuItem.exportType);
+                                }}
+                            >
+                                <MenuItemWithTopDescription
+                                    description={exportMenuItem.shouldHideMenuItemDescription ? undefined : exportMenuItem.description}
+                                    title={exportMenuItem.title}
+                                    numberOfLinesTitle={2}
+                                    icon={exportMenuItem.shouldShowMenuItemIcon ? getIntegrationIcon(connectedIntegration, expensifyIcons) : undefined}
+                                    iconType={CONST.ICON_TYPE_AVATAR}
+                                    avatarSize={CONST.AVATAR_SIZE.SMALLER}
+                                    shouldShowRightIcon={canWriteCompanyCards}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(feed, cardID)))}
+                                    interactive={canWriteCompanyCards}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
+                                />
+                            </OfflineWithFeedback>
+                        </>
+                    ) : null}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

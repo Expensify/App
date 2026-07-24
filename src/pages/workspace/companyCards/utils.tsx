@@ -1,8 +1,11 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 
+import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
+
+import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -17,6 +20,8 @@ type ExportIntegration = {
     exportPageLink: string;
     data: SelectorType[];
     exportType?: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>;
+    shouldHideMenuItemDescription?: boolean;
+    shouldShowMenuItemIcon?: boolean;
     shouldShowMenuItem?: boolean;
 };
 
@@ -24,6 +29,7 @@ function getExportMenuItem(
     connectionName: PolicyConnectionName | undefined,
     policyID: string,
     translate: LocaleContextProps['translate'],
+    styles: ThemeStyles,
     policy?: Policy,
     companyCard?: Card,
     backTo?: string | undefined,
@@ -389,31 +395,35 @@ function getExportMenuItem(
                     : undefined) ?? cardProgramAccount?.id;
             const cardAccount = rilletData?.accounts?.find((account) => account.id === cardAccountID);
             const cardAccountDisplayName = cardAccount ? `${cardAccount.code} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}` : '';
-            const title = cardAccountDisplayName;
+            const title = `${translate('common.exportsTo')} ${cardAccountDisplayName}`;
             const description = currentConnectionName
                 ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.rillet.cardAccount.label'))
                 : undefined;
+            const filteredUnprocessedData =
+                rilletData?.accounts
+                    ?.filter(
+                        (accountItem) =>
+                            accountItem.type === CONST.RILLET_ACCOUNT_TYPE.LIABILITY &&
+                            accountItem.subtype === CONST.RILLET_ACCOUNT_SUBTYPE.CREDIT_CARD &&
+                            accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE,
+                    )
+                    .map((accountItem) => ({
+                        value: cardProgramAccount?.id === accountItem.id ? '' : accountItem.id,
+                        text: `${cardProgramAccount?.id === accountItem.id ? `${translate('common.default')} - ` : ''}${accountItem.code} ${accountItem.name}`,
+                        keyForList: accountItem.id,
+                        isSelected: cardAccountID === accountItem.id,
+                    })) ?? [];
+            const filteredData = sortDefaultToTop(filteredUnprocessedData, (accountItem) => cardProgramAccount?.id === accountItem.keyForList, styles);
 
             return {
                 title,
                 description,
                 exportType,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
                 shouldShowMenuItem,
                 exportPageLink: ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID),
-                data:
-                    rilletData?.accounts
-                        ?.filter(
-                            (accountItem) =>
-                                accountItem.type === CONST.RILLET_ACCOUNT_TYPE.LIABILITY &&
-                                accountItem.subtype === CONST.RILLET_ACCOUNT_SUBTYPE.CREDIT_CARD &&
-                                accountItem.status === CONST.RILLET_ACCOUNT_STATUS.ACTIVE,
-                        )
-                        .map((accountItem) => ({
-                            value: cardProgramAccount?.id === accountItem.id ? '' : accountItem.id,
-                            text: `${cardProgramAccount?.id === accountItem.id ? `${translate('common.default')} - ` : ''}${accountItem.code} ${accountItem.name}`,
-                            keyForList: accountItem.id,
-                            isSelected: cardAccountID === accountItem.id,
-                        })) ?? [],
+                data: filteredData,
             };
         }
 
