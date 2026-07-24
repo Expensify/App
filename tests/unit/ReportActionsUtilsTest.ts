@@ -5471,7 +5471,7 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns false when message is from current user and is already present (not new, not optimistic) and no existing marker', () => {
+        it('returns true when the current user explicitly marks their own already-present message as unread and no marker exists yet', () => {
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
             const prevSortedVisibleReportActionsObjects = {
                 [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
@@ -5484,7 +5484,7 @@ describe('ReportActionsUtils', () => {
                     prevUnreadMarkerReportActionID: null,
                     isOffline: false,
                 }),
-            ).toBe(false);
+            ).toBe(true);
         });
 
         it('returns true when message is from current user, already present, and marker is being relocated after deletion', () => {
@@ -5543,6 +5543,65 @@ describe('ReportActionsUtils', () => {
                     isOffline: false,
                 }),
             ).toBe(true);
+        });
+
+        it('anchors the marker on the explicitly marked-unread action even after its confirmed created drifts before unreadMarkerTime', () => {
+            // Simulates the offline→online case: an optimistic self-message the user marked unread confirms
+            // with a `created` that lands before unreadMarkerTime, so the timestamp check reads it as "read".
+            // The stable manuallyMarkedUnreadReportActionID must still anchor the marker here.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'marked-action-id', pendingAction: null, created: '2023-01-01 09:00:00.000'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({
+                    actorAccountID: currentUserAccountID,
+                    reportActionID: 'marked-action-id',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                }),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('does not anchor the marker on a just-sent self-message when no action is marked unread', () => {
+            // Same confirmed self-message, but nothing is marked unread. The stable-id override is skipped and
+            // the existing just-sent suppression applies, keeping the #91443 fix intact.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'confirmed-action-id', pendingAction: null});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({
+                    actorAccountID: currentUserAccountID,
+                    reportActionID: 'confirmed-action-id',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                }),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    manuallyMarkedUnreadReportActionID: null,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('yields the marker to a more-recent unread message even when an older action is marked unread', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'marked-action-id', created: '2023-01-01 11:00:00.000'});
+            const nextMessage = makeAction({created: '2023-01-01 11:30:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    nextMessage,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(false);
         });
     });
 
