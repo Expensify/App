@@ -28,6 +28,10 @@ function ReportRouteParamHandler() {
     const navigation = useNavigation();
     const {isBetaEnabled} = usePermissions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    // Subscribing to the reports collection (instead of relying on the module-scoped copy inside ReportUtils)
+    // makes this handler re-run once the reports finish loading, so a route that was created without a reportID
+    // recovers instead of staying stuck on the loading skeleton.
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     useFocusEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -45,6 +49,7 @@ function ReportRouteParamHandler() {
             'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
             undefined,
             reportNameValuePairs,
+            reports,
         )?.reportID;
 
         // It's possible that reports aren't fully loaded yet
