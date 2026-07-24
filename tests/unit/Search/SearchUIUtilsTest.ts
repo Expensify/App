@@ -2697,7 +2697,7 @@ describe('SearchUIUtils', () => {
                         login: adminEmail,
                     },
                 },
-                [`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`]: taskReport,
+                [`report_${taskReportID}`]: taskReport,
             });
 
             const getTaskSectionsResult = () =>
