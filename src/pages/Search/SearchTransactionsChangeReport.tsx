@@ -4,7 +4,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
-import useHydrateReportsFromSnapshot from '@hooks/useHydrateSnapshotReport';
+import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';

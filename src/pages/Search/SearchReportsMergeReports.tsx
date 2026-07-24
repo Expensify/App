@@ -6,7 +6,7 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import useHydrateReportsFromSnapshot from '@hooks/useHydrateSnapshotReport';
+import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -59,34 +59,35 @@ function SearchReportsMergeReports() {
     useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions ?? {}, selectedReports);
 
     const allReportsTransactions: Record<string, Transaction[]> = useMemo(() => {
-        const snapshotData = currentSearchResults?.data;
-        if (!snapshotData) {
-            return {};
-        }
         const selectedReportIDSet = new Set(selectedReports.map((report) => report.reportID));
         const addedTransactionIDSet = new Set<string>();
 
         const isTransaction = (key: string, value: unknown): value is Transaction =>
             key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && typeof value === 'object' && value !== null && 'transactionID' in value;
         const result: Record<string, Transaction[]> = {};
-        for (const [key, value] of Object.entries(snapshotData)) {
-            if (!isTransaction(key, value)) {
-                continue;
-            }
-            const transaction = value;
+        for (const transaction of Object.values(allTransactions ?? {})) {
             if (!transaction?.reportID || !selectedReportIDSet.has(transaction.reportID)) {
                 continue;
             }
             addedTransactionIDSet.add(transaction.transactionID);
-            result[transaction.reportID] = [...(result[transaction.reportID] ?? []), transaction];
+            if (!result[transaction.reportID]) {
+                result[transaction.reportID] = [];
+            }
+            result[transaction.reportID].push(transaction);
         }
-
-        // We need to iterate through `allTransactions` because expenses created offline are not available in the `snapshot_` data.
-        for (const transaction of Object.values(allTransactions ?? {})) {
-            if (!transaction?.reportID || !selectedReportIDSet.has(transaction.reportID) || addedTransactionIDSet.has(transaction.transactionID)) {
+        // We iterate through `snapshotData` because some transactions may not yet be available in `allTransactions` immediately after the user logs in.
+        for (const [key, value] of Object.entries(currentSearchResults?.data ?? {})) {
+            if (!isTransaction(key, value)) {
                 continue;
             }
-            result[transaction.reportID] = [...(result[transaction.reportID] ?? []), transaction];
+            const transaction = value;
+            if (!transaction.reportID || !selectedReportIDSet.has(transaction.reportID) || addedTransactionIDSet.has(transaction.transactionID)) {
+                continue;
+            }
+            if (!result[transaction.reportID]) {
+                result[transaction.reportID] = [];
+            }
+            result[transaction.reportID].push(transaction);
         }
         return result;
     }, [currentSearchResults?.data, selectedReports, allTransactions]);
@@ -119,7 +120,7 @@ function SearchReportsMergeReports() {
             .filter((item) => !!item);
     }, [selectedReports, allReports, destinationReportID, personalDetails, currentSearchQueryJSON?.type]);
 
-    const handleConfirm = () => {
+    const mergeSelectedReports = () => {
         if (!destinationReportID || selectedReports.length < 2) {
             return;
         }
@@ -184,7 +185,7 @@ function SearchReportsMergeReports() {
                 footerContent={
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.confirm')}
-                        onSubmit={handleConfirm}
+                        onSubmit={mergeSelectedReports}
                         isDisabled={!destinationReportID || selectedReports.length < 2}
                         enabledWhenOffline
                     />

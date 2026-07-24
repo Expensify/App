@@ -29,9 +29,9 @@ function SearchReportsMergeReportsListItem<TItem extends ListItem>({item, isFocu
         isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
     ];
 
-    const listItemWrapperStyle = [styles.flex1, styles.userSelectNone, {...styles.flexColumn, ...styles.alignItemsStretch}];
+    const listItemWrapperStyle = [styles.flex1, styles.userSelectNone, styles.flexColumn, styles.alignItemsStretch];
 
-    const handleOnSelectRow = () => {
+    const selectRow = () => {
         onSelectRow(item);
     };
 
@@ -72,7 +72,7 @@ function SearchReportsMergeReportsListItem<TItem extends ListItem>({item, isFocu
                         />
                         <ExpenseReportListItemRowNarrow
                             item={reportItem}
-                            onCheckboxPress={handleOnSelectRow}
+                            onCheckboxPress={selectRow}
                             canSelectMultiple={false}
                             isSelectAllChecked={isSelected}
                             isIndeterminate={false}
@@ -80,7 +80,7 @@ function SearchReportsMergeReportsListItem<TItem extends ListItem>({item, isFocu
                         />
                     </View>
                     <RadioButton
-                        onPress={handleOnSelectRow}
+                        onPress={selectRow}
                         isChecked={isSelected}
                         containerStyle={styles.m0}
                         disabled={false}
