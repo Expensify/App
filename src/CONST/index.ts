@@ -1811,6 +1811,7 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
+            AUTOSCROLL_TO_TOP_THRESHOLD: 250,
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
         },
@@ -4457,6 +4458,9 @@ const CONST = {
         DEFAULT_RATE: 'Default Rate',
         NEW_RATE: 'New Rate',
         RATE_DECIMALS: 3,
+        // Rate amounts are stored as `Number(value) * 100` cents, which can introduce tiny floating-point errors. Meaningful
+        // amounts differ by at least 0.01 cents, so this tolerance safely absorbs the float noise when matching government rates.
+        GOVERNMENT_RATE_MATCH_TOLERANCE: 0.001,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
@@ -6489,6 +6493,11 @@ const CONST = {
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
+    TRIAL_REMINDER_VARIANT: {
+        BASIC: 'basic',
+        NEAR_END: 'nearEnd',
+        COUNTDOWN: 'countdown',
+    },
     ONBOARDING_ACCOUNTING_MAPPING,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',

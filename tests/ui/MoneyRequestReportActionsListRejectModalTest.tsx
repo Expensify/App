@@ -66,7 +66,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return () => <View testID="MockMoneyRequestReportTransactionList" />;
+    return ({listFooterComponent}: {listFooterComponent?: React.ReactElement}) => <View testID="MockMoneyRequestReportTransactionList">{listFooterComponent}</View>;
 });
 
 jest.mock('@pages/home/report/ConciergeThinkingMessage', () => {

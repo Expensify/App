@@ -158,6 +158,7 @@
     "group-ib-fp": "file:modules/group-ib-fp",
     "heic-to": "^1.1.14",
     "howler": "^2.2.4",
+    "html-entities": "2.5.3",
     "htmlparser2": "10.0.0",
     "idb-keyval": "^6.2.1",
     "json5": "2.2.2",
@@ -204,7 +205,7 @@
     "react-native-picker-select": "github:Expensify/react-native-picker-select#69d750a89aaba48392fb8b6f92a3d79f53b99c41",
     "react-native-plaid-link-sdk": "12.5.3",
     "react-native-qrcode-svg": "6.3.21",
-    "react-native-reanimated": "4.3.1",
+    "react-native-reanimated": "4.5.2",
     "react-native-render-html": "6.3.1",
     "react-native-safe-area-context": "5.6.2",
     "react-native-screens": "4.25.0",
@@ -216,7 +217,7 @@
     "react-native-vision-camera": "^4.7.2",
     "react-native-web": "0.21.2",
     "react-native-webview": "13.16.0",
-    "react-native-worklets": "0.8.3",
+    "react-native-worklets": "0.11.1",
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
@@ -250,6 +251,7 @@
     "@react-native-community/cli-platform-android": "20.1.0",
     "@react-native-community/cli-platform-ios": "20.1.0",
     "@react-native/babel-preset": "0.85.3",
+    "@react-native/jest-preset": "0.85.3",
     "@react-native/metro-config": "0.85.3",
     "@react-navigation/devtools": "7.0.52",
     "@rock-js/platform-android": "0.13.4",
@@ -413,6 +415,9 @@
     },
     "@sentry/react-native": {
       "expo": "56.0.8"
+    },
+    "expo-modules-core": {
+      "react-native-worklets": "0.11.1"
     }
   },
   "expo": {
