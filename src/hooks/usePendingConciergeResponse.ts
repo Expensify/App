@@ -1,7 +1,7 @@
 import {clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {applyPendingConciergeAction, clearPendingFollowupList, discardPendingConciergeAction, hidePendingFollowupList} from '@libs/actions/Report/SuggestedFollowup';
 import AgentZeroOptimisticStore, {MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
-import {ACCELERATED_REMAINING_MS, MIN_TRICKLE_TOKEN_COUNT, OPTIMISTIC_FLAT_MS_PER_TOKEN, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
+import {ACCELERATED_REMAINING_MS, getOptimisticRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
@@ -157,10 +157,9 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         let sequence = 0;
         let intervalID: ReturnType<typeof setInterval> | null = null;
         let trickleStart = 0;
-        // The reveal runs at a constant rate, so total duration scales linearly with
-        // length. The accelerator recomputes effectiveDuration when the canonical
-        // reply lands so the tail finishes quickly.
-        let effectiveDuration = Math.max(1, snapshotTokens.length - 1) * OPTIMISTIC_FLAT_MS_PER_TOKEN;
+        // The accelerator recomputes effectiveDuration when the canonical reply lands
+        // so the tail finishes quickly.
+        let effectiveDuration = getOptimisticRevealDurationMS(snapshotTokens.length);
         let lastStage = 0;
         let cancelled = false;
         const clampProgress = (elapsedMs: number) => Math.max(0, Math.min(1, elapsedMs / effectiveDuration));
