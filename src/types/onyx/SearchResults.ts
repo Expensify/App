@@ -1,5 +1,11 @@
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchStatus} from '@components/Search/types';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
+import type {SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -22,13 +28,15 @@ import type {TransactionViolation} from './TransactionViolation';
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 
 /** Model of search list item data type */
-type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
+type ListItemDataType<C extends SearchDataTypes, G extends SearchGroupBy | undefined> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? ReportActionListItemType[]
     : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
       ? TaskListItemType[]
-      : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-        ? TransactionListItemType[]
-        : TransactionGroupListItemType[];
+      : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
+        ? TransactionReportGroupListItemType[]
+        : G extends SearchGroupBy
+          ? TransactionGroupListItemType[]
+          : TransactionListItemType[];
 
 /** Model of search result state */
 type SearchResultsInfo = {
@@ -38,8 +46,8 @@ type SearchResultsInfo = {
     /** Type of search */
     type: SearchDataTypes;
 
-    /** The status filter for the current search */
-    status: SearchStatus;
+    /** The hash of the current search */
+    hash: number;
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
@@ -51,6 +59,24 @@ type SearchResultsInfo = {
     /** Whether the search results are currently loading */
     isLoading: boolean;
 
+    /** The sort by of the current search */
+    sortBy: SearchSortBy;
+
+    /** The sort order of the current search */
+    sortOrder: SortOrder;
+
+    /** Explicit terminal lifecycle state of the most recent search request for this snapshot.
+     * Optional because snapshots persisted before this field existed (and snapshots written by
+     * non-search actions) may not carry it.
+     *
+     * Nothing reads this field yet. The existing isLoading/type/status-based loading and error gates
+     * migrate to read it in a follow-up PR.
+     *
+     * Residual limitation: if the app is killed or reloaded mid-request, no cleanup runs, so `loading` can
+     * still be stranded on disk. The future read side must treat a `loading` state with no in-flight request
+     * as stale. */
+    state?: ValueOf<typeof CONST.SEARCH.SNAPSHOT_STATE>;
+
     /** The number of results */
     count?: number;
 
@@ -59,6 +85,9 @@ type SearchResultsInfo = {
 
     /** The currency of the total spend */
     currency?: string;
+
+    /** The date from which violation snapshots are available for search */
+    violationSnapshotStartedAt?: string;
 };
 
 /** The action that can be performed for the transaction */

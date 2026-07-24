@@ -8,7 +8,7 @@ import withNavigationFallback from '@components/withNavigationFallback';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {Meta} from '@storybook/react-webpack5';
+import type {Meta} from 'storybook-react-rsbuild';
 
 import React, {useMemo, useState} from 'react';
 

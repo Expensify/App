@@ -83,6 +83,7 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID,
             delegateAccountID,
+            conciergeReportID,
         });
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     };

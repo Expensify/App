@@ -1,4 +1,4 @@
-import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
+import type FlatListRefType from '@components/FlashList/types';
 
 import type {FlashListProps} from '@shopify/flash-list';
 

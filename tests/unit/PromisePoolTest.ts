@@ -40,4 +40,28 @@ describe('PromisePool', () => {
         // Now C and D should have finished
         expect(completedTasks).toEqual(['A', 'B', 'C', 'D']);
     });
+
+    it('does not exceed concurrency when many tasks are enqueued at once', async () => {
+        let currentlyRunning = 0;
+        let maxObserved = 0;
+
+        const makeTask = () => () =>
+            new Promise<string>((resolve) => {
+                currentlyRunning++;
+                maxObserved = Math.max(maxObserved, currentlyRunning);
+                setTimeout(() => {
+                    currentlyRunning--;
+                    resolve('done');
+                }, 1000);
+            });
+
+        // Same pattern as markPullRequestsAsDeployed / generateTranslations: fire all add() calls via map
+        const promises = Array.from({length: 20}, () => pool.add(makeTask()));
+
+        // Drive all timer waves (20 tasks / concurrency 2 = 10 waves)
+        await jest.advanceTimersByTimeAsync(10_000);
+        await Promise.all(promises);
+
+        expect(maxObserved).toBeLessThanOrEqual(2);
+    });
 });

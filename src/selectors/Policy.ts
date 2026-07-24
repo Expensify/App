@@ -2,6 +2,7 @@ import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/acti
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
 import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,7 +68,12 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
     isJoinRequestPending: boolean;
 
     /** Projection of policyDetailsForNonMembers for join-request-pending policies */
-    nonMemberDetails?: Pick<PolicyDetailsForNonMembers, 'name' | 'type' | 'ownerAccountID' | 'avatar'> & {policyID: string};
+    nonMemberDetails?: Pick<PolicyDetailsForNonMembers, 'name' | 'type' | 'ownerAccountID' | 'ownerEmail' | 'avatar'> & {
+        policyID: string;
+
+        /** Default avatar URL for the owner, derived here so the page doesn't re-hash the email on every render */
+        ownerDefaultAvatar?: string;
+    };
 };
 
 /**
@@ -95,6 +101,9 @@ const createWorkspaceListPoliciesSelector =
                         name: details.name,
                         type: details.type,
                         ownerAccountID: details.ownerAccountID,
+                        ownerEmail: details.ownerEmail,
+                        ownerDefaultAvatar:
+                            details.ownerAccountID && details.ownerEmail ? getDefaultAvatarURL({accountID: details.ownerAccountID, accountEmail: details.ownerEmail}) : undefined,
                         avatar: details.avatar,
                     };
                 }

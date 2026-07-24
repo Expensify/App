@@ -62,9 +62,21 @@ function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: Vi
     );
 }
 
-function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding, onClose: onCloseOverride, titleStyle}: OutcomeScreenBaseProps) {
+function OutcomeScreenBaseContent({
+    headerTitle,
+    illustration,
+    iconWidth,
+    iconHeight,
+    title,
+    subtitle,
+    customSubtitle,
+    padding,
+    onClose: onCloseOverride,
+    titleStyle,
+}: OutcomeScreenBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    // useMemoizedLazyAsset freezes the first importFn; remount when illustration changes (see OutcomeScreenBase key).
     const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(illustration));
     const {dispatch} = useMultifactorAuthenticationActions();
 
@@ -113,6 +125,19 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
                 </View>
             </View>
         </ScreenWrapper>
+    );
+}
+
+/**
+ * Remounts content when `illustration` changes so useMemoizedLazyAsset picks up a new loader.
+ * That hook intentionally freezes the first importFn to avoid infinite loops from inline loaders.
+ */
+function OutcomeScreenBase(props: OutcomeScreenBaseProps) {
+    return (
+        <OutcomeScreenBaseContent
+            key={props.illustration}
+            {...props}
+        />
     );
 }
 

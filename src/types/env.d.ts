@@ -8,5 +8,6 @@ declare namespace NodeJS {
         WORKING_DIRECTORY: string | undefined;
         OPENAI_API_KEY: string | undefined;
         LANGUAGES_DIR: string | undefined;
+        SLACK_RETEST_WEBHOOK: string | undefined;
     }
 }

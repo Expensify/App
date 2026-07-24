@@ -40,7 +40,7 @@ function UserSelectionListItem<TItem extends ListItem>({
 }: UserSelectionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const userHandle = useMemo(() => {
         const login = item.login ?? '';
@@ -58,8 +58,9 @@ function UserSelectionListItem<TItem extends ListItem>({
         return getDisplayNameForParticipant({
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
             formatPhoneNumber,
+            translate,
         });
-    }, [formatPhoneNumber, item.accountID]);
+    }, [formatPhoneNumber, item.accountID, translate]);
 
     return (
         <SelectableListItem

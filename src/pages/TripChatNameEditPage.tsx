@@ -14,7 +14,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import StringUtils from '@libs/StringUtils';
 
 import {updateChatName} from '@userActions/Report';
@@ -40,7 +40,7 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const reportID = report?.reportID;
-    const currentChatName = getReportName(report, reportAttributes);
+    const currentChatName = deprecatedGetReportName(report, reportAttributes);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
         const errors: Errors = {};
