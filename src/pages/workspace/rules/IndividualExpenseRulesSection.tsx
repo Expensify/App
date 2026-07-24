@@ -26,6 +26,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
+import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
+
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
     canWriteRules: boolean;
@@ -287,6 +289,13 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
                     showLockIcon={!canWriteRules}
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
+                />
+                <PublicReceiptVisibilityToggle
+                    policyID={policyID}
+                    canWriteRules={canWriteRules}
+                    withReadOnlyFallback={withReadOnlyFallback}
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
                 />
             </View>
         </Section>

@@ -6880,6 +6880,53 @@ function setPolicyAttendeeTrackingEnabled(policyID: string, isAttendeeTrackingEn
     API.write(WRITE_COMMANDS.SET_POLICY_ATTENDEE_TRACKING_ENABLED, parameters, onyxData);
 }
 
+function setPolicyReceiptVisibilityPublic(policyID: string, isReceiptVisibilityPublic: boolean, currentIsReceiptVisibilityPublic: boolean | undefined) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isReceiptVisibilityPublic,
+                    pendingFields: {
+                        isReceiptVisibilityPublic: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        isReceiptVisibilityPublic: null,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isReceiptVisibilityPublic: currentIsReceiptVisibilityPublic,
+                    pendingFields: {isReceiptVisibilityPublic: null},
+                    errorFields: {isReceiptVisibilityPublic: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        enabled: isReceiptVisibilityPublic,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_PUBLIC_RECEIPT_VISIBILITY_ENABLED, parameters, onyxData);
+}
+
 /**
  * Call the API to set default report title pattern for the given policy
  * @param policyID - id of the policy to apply the naming pattern to
@@ -7825,6 +7872,7 @@ export {
     openPolicyReceiptPartnersPage,
     setIsComingFromGlobalReimbursementsFlow,
     setPolicyAttendeeTrackingEnabled,
+    setPolicyReceiptVisibilityPublic,
     setPolicyReimbursableMode,
     getCashExpenseReimbursableMode,
     clearPolicyTitleFieldError,

@@ -2803,6 +2803,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether Attendee Tracking is enabled */
         isAttendeeTrackingEnabled?: boolean;
 
+        /** Whether receipts are publicly viewable via URL without report access */
+        isReceiptVisibilityPublic?: boolean;
+
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,

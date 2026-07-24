@@ -7460,6 +7460,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Rules are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            publicReceiptVisibility: {
+                title: 'Public receipt visibility',
+                description: 'If you want to make your receipt links accessible to anyone, such as a client or external accountant, this feature is for you.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Public receipt visibility is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             perDiem: {
                 title: 'Per diem',
                 description:
@@ -7744,6 +7750,9 @@ const translations = {
                 eReceiptsHint: `eReceipts are auto-created [for most USD credit transactions](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Attendee tracking',
                 attendeeTrackingHint: 'Track the per-person cost for every expense.',
+                publicReceiptVisibility: 'Public receipt visibility',
+                publicReceiptVisibilityHintEnabled: 'Receipts are viewable by anyone with the URL. Access to the report with the receipt is not required.',
+                publicReceiptVisibilityHintDisabled: 'Receipts are only viewable by Expensify members with access to the report containing the receipt.',
                 prohibitedDefaultDescription: 'Flag receipts with these line items for manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
                 alcohol: 'Alcohol',

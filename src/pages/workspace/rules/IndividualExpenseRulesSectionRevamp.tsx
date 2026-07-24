@@ -25,6 +25,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
+import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
+
 type IndividualExpenseRulesSectionRevampProps = {
     policyID: string;
     canWriteRules: boolean;
@@ -44,7 +46,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -229,6 +231,12 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                     rowIcon={icons.Users}
+                />
+                <PublicReceiptVisibilityToggle
+                    policyID={policyID}
+                    canWriteRules={canWriteRules}
+                    shouldUseCompactSubtitleSpacing
+                    rowIcon={icons.Eye}
                 />
             </View>
         </Section>
