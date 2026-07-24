@@ -12,7 +12,7 @@ const TRICKLE_HARD_CAP_MS = 60_000;
 const ACCELERATED_REMAINING_MS = 1_500;
 /** Minimum char-level anchors before we opt into the trickle reveal. Replies under this fall back to an immediate reveal. */
 const MIN_TRICKLE_TOKEN_COUNT = 100;
-/** Flat per-token cadence for the OPTIMISTIC reveal (usePendingConciergeResponse). The optimistic bubble reveals at this constant rate with no easing — ~30 chars/sec. Server-streamed reveals keep their own pacing (getRevealDurationMS + easeOut / the Pusher pace loop) and are unaffected by this value. */
+/** Per-token cadence for the optimistic reveal in usePendingConciergeResponse, a constant ~30 chars/sec. Server-streamed reveals are paced separately by getRevealDurationMS and easeOut. */
 const OPTIMISTIC_FLAT_MS_PER_TOKEN = 33;
 
 function easeOut(t: number): number {

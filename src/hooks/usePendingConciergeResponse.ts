@@ -157,13 +157,12 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         let sequence = 0;
         let intervalID: ReturnType<typeof setInterval> | null = null;
         let trickleStart = 0;
-        // Flat cadence: the optimistic bubble reveals at a constant rate (no ease-out),
-        // so total duration scales linearly with length. The accelerator recomputes
-        // effectiveDuration when the canonical reply lands so the tail finishes quickly.
+        // The reveal runs at a constant rate, so total duration scales linearly with
+        // length. The accelerator recomputes effectiveDuration when the canonical
+        // reply lands so the tail finishes quickly.
         let effectiveDuration = Math.max(1, snapshotTokens.length - 1) * OPTIMISTIC_FLAT_MS_PER_TOKEN;
         let lastStage = 0;
         let cancelled = false;
-        // Linear progress in [0,1] — replaces the easeOut curve for the optimistic reveal.
         const clampProgress = (elapsedMs: number) => Math.max(0, Math.min(1, elapsedMs / effectiveDuration));
         // Snapshot of trickle progress at the moment the canonical reportComment
         // arrives. Presence (`arrival !== undefined`) doubles as the
