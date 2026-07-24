@@ -3,7 +3,7 @@ import {areTransactionsEligibleForMerge, getTransactionsForMerging, mergeTransac
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildTransactionThread} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -66,6 +66,15 @@ function createAllTransactionViolations(
     return allViolations;
 }
 
+function isIOUActionForTransaction(reportAction: OnyxEntry<ReportAction>, transactionID: string): boolean {
+    if (!isMoneyRequestAction(reportAction)) {
+        return false;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE && originalMessage?.IOUTransactionID === transactionID;
+}
+
 type CrossReportMergeToSourceReportFixtures = {
     targetTransaction: Transaction;
     sourceTransaction: Transaction;
@@ -75,6 +84,7 @@ type CrossReportMergeToSourceReportFixtures = {
     targetReport: Report;
     sourceIOUActionID: string;
     targetIOUActionID: string;
+    targetIOUAction: ReportAction;
     targetTransactionThreadID: string;
     targetTransactionThread: Report;
     mockViolations: TransactionViolation[];
@@ -176,6 +186,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
         targetReport,
         sourceIOUActionID,
         targetIOUActionID,
+        targetIOUAction,
         targetTransactionThreadID,
         targetTransactionThread,
         mockViolations,
@@ -183,7 +194,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
 }
 
 function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSourceReportFixtures) {
-    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport} = fixtures;
+    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetTransactionThread} = fixtures;
 
     mergeTransactionRequest({
         iouReportOwnerLogin: undefined,
@@ -195,7 +206,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         policyTags: undefined,
         policyCategories: undefined,
         allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID, mockViolations, mockViolations),
-        targetTransactionThreadReport: {reportID: targetReport.reportID},
+        targetTransactionThreadReport: targetTransactionThread,
         targetTransactionThreadParentReport: undefined,
         reportPolicyTags: undefined,
         targetTransactionThreadParentReportNextStep: undefined,
@@ -885,15 +896,7 @@ describe('mergeTransactionRequest', () => {
         // The source IOU action is no longer removed — only the target report's IOU action is handled in the cross-report branch
         expect(sourceReportActions?.[sourceIOUActionID]).toBeDefined();
 
-        const newIOUAction = Object.values(sourceReportActions ?? {}).find((action) => {
-            const reportAction = action as OnyxEntry<ReportAction>;
-            const originalMessage = getOriginalMessage(reportAction) as OriginalMessageIOU | undefined;
-            return (
-                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-                originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE &&
-                originalMessage?.IOUTransactionID === targetTransaction.transactionID
-            );
-        }) as OnyxEntry<ReportAction>;
+        const newIOUAction = Object.values(sourceReportActions ?? {}).find((action) => isIOUActionForTransaction(action, targetTransaction.transactionID));
 
         // Verify the new IOU action is created and points to the merged transaction
         expect(newIOUAction).toBeTruthy();
@@ -911,6 +914,150 @@ describe('mergeTransactionRequest', () => {
 
         // Verify target transaction thread parent references are rewired to the new IOU action in the source report
         expect(updatedTargetTransactionThread?.parentReportID).toBe(sourceExpenseReport.reportID);
+        expect(updatedTargetTransactionThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
+    });
+
+    it('should move a passed transaction thread when the original IOU action has no child report ID', async () => {
+        const fixtures = await setupCrossReportMergeToSourceReportFixtures();
+        const {targetTransaction, sourceExpenseReport, targetReport, targetIOUActionID, targetIOUAction, targetTransactionThreadID, targetTransactionThread} = fixtures;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReport.reportID}`, {
+            [targetIOUActionID]: {
+                ...targetIOUAction,
+                childReportID: undefined,
+            },
+        });
+        await waitForBatchedUpdates();
+
+        mockFetch?.pause?.();
+        runCrossReportMergeToSourceReportRequest({
+            ...fixtures,
+            targetTransactionThread,
+        });
+
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
+
+        const sourceReportActions = await new Promise<ReportActions | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceExpenseReport.reportID}`,
+                callback: (actions) => {
+                    Onyx.disconnect(connection);
+                    resolve(actions ?? null);
+                },
+            });
+        });
+
+        const newIOUAction = Object.values(sourceReportActions ?? {}).find((action) => {
+            const reportAction = action as OnyxEntry<ReportAction>;
+            const originalMessage = getOriginalMessage(reportAction) as OriginalMessageIOU | undefined;
+            return (
+                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+                originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE &&
+                originalMessage?.IOUTransactionID === targetTransaction.transactionID
+            );
+        }) as OnyxEntry<ReportAction>;
+
+        expect(newIOUAction?.childReportID).toBe(targetTransactionThreadID);
+
+        const updatedTargetTransactionThread = await new Promise<Report | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadID}`,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    resolve(report ?? null);
+                },
+            });
+        });
+
+        expect(updatedTargetTransactionThread?.parentReportID).toBe(sourceExpenseReport.reportID);
+        expect(updatedTargetTransactionThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
+    });
+
+    it('should attach optimistic cross-report merge data to self DM when destination reportID is unreported', async () => {
+        const fixtures = await setupCrossReportMergeToSourceReportFixtures();
+        const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetTransactionThreadID, targetTransactionThread} = fixtures;
+        const selfDMReport = {
+            ...createRandomReport(5),
+            reportID: 'self-dm-report-123',
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+        const unreportedSourceTransaction = {
+            ...sourceTransaction,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+        };
+        const unreportedMergeTransaction = {
+            ...mergeTransaction,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${unreportedSourceTransaction.transactionID}`, unreportedSourceTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, unreportedMergeTransaction);
+        await waitForBatchedUpdates();
+
+        mockFetch?.pause?.();
+        mergeTransactionRequest({
+            iouReportOwnerLogin: undefined,
+            mergeTransactionID,
+            mergeTransaction: unreportedMergeTransaction,
+            targetTransaction,
+            sourceTransaction: unreportedSourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+            allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, unreportedSourceTransaction.transactionID, mockViolations, mockViolations),
+            targetTransactionThreadReport: targetTransactionThread,
+            targetTransactionThreadParentReport: undefined,
+            reportPolicyTags: undefined,
+            targetTransactionThreadParentReportNextStep: undefined,
+            currentUserAccountIDParam: 123,
+            currentUserEmailParam: 'existing@example.com',
+            isASAPSubmitBetaEnabled: false,
+            selfDMReport,
+            selfDMReportActions: undefined,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+        });
+
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
+
+        const selfDMReportActions = await new Promise<ReportActions | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                callback: (actions) => {
+                    Onyx.disconnect(connection);
+                    resolve(actions ?? null);
+                },
+            });
+        });
+        const unreportedReportActions = await new Promise<ReportActions | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONST.REPORT.UNREPORTED_REPORT_ID}`,
+                callback: (actions) => {
+                    Onyx.disconnect(connection);
+                    resolve(actions ?? null);
+                },
+            });
+        });
+
+        const newIOUAction = Object.values(selfDMReportActions ?? {}).find((action) => isIOUActionForTransaction(action, targetTransaction.transactionID));
+
+        expect(newIOUAction?.childReportID).toBe(targetTransactionThreadID);
+        expect(unreportedReportActions).toBeNull();
+
+        const updatedTargetTransactionThread = await new Promise<Report | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadID}`,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    resolve(report ?? null);
+                },
+            });
+        });
+
+        expect(updatedTargetTransactionThread?.parentReportID).toBe(selfDMReport.reportID);
         expect(updatedTargetTransactionThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
     });
 
