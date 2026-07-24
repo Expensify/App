@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 
+import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 
@@ -12,8 +13,6 @@ import type {Card, Policy} from '@src/types/onyx';
 import type {Account, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
-
-import {View} from 'react-native';
 
 type ExportIntegration = {
     title?: string;
@@ -28,10 +27,10 @@ function getExportMenuItem(
     connectionName: PolicyConnectionName | undefined,
     policyID: string,
     translate: LocaleContextProps['translate'],
+    styles: ThemeStyles,
     policy?: Policy,
     companyCard?: Card,
     backTo?: string | undefined,
-    styles?: ThemeStyles,
 ): ExportIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const currentConnectionName = getCurrentConnectionName(policy);
@@ -412,23 +411,7 @@ function getExportMenuItem(
                         keyForList: accountItem.id,
                         isSelected: cardAccountID === accountItem.id,
                     })) ?? [];
-            const filteredData = filteredUnprocessedData
-                .sort((a, b) => {
-                    if (cardProgramAccount?.id === a.keyForList) {
-                        return -1;
-                    }
-                    if (cardProgramAccount?.id === b.keyForList) {
-                        return 1;
-                    }
-                    return 0;
-                })
-                .map((item) => ({
-                    ...item,
-                    footerContent:
-                        cardProgramAccount?.id === item.keyForList && filteredUnprocessedData.length > 1 && styles ? (
-                            <View style={[styles.mh5, styles.mv1, styles.borderBottom]} />
-                        ) : undefined,
-                }));
+            const filteredData = sortDefaultToTop(filteredUnprocessedData, (accountItem) => cardProgramAccount?.id === accountItem.keyForList, styles);
 
             return {
                 title,
