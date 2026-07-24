@@ -894,7 +894,7 @@ const CONST = {
                 PROOF_OF_OWNERSHIP: 'proofOfBeneficialOwner',
                 COPY_OF_ID: 'copyOfIDForBeneficialOwner',
                 ADDRESS_PROOF: 'addressProofForBeneficialOwner',
-                CODICE_FISCALE: 'codiceFisclaleTaxID',
+                CODICE_FISCALE: 'codiceFiscaleTaxID',
                 FULL_NAME: 'fullName',
                 RESIDENTIAL_ADDRESS: 'residentialAddress',
             },
@@ -936,7 +936,7 @@ const CONST = {
                 PROOF_OF_DIRECTORS: 'proofOfDirectors',
                 COPY_OF_ID: 'signerCopyOfID',
                 ADDRESS_PROOF: 'signerAddressProof',
-                CODICE_FISCALE: 'signerCodiceFiscale',
+                CODICE_FISCALE: 'signerCodiceFiscaleTaxID',
                 DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             },
         },
@@ -1811,6 +1811,7 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
+            AUTOSCROLL_TO_TOP_THRESHOLD: 250,
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
         },
@@ -2229,6 +2230,8 @@ const CONST = {
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
         ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
+        ATTRIBUTE_REPORT_ACTION_COUNT: 'report_action_count',
+        ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT: 'money_request_preview_count',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
@@ -2479,6 +2482,9 @@ const CONST = {
         BAD_GATEWAY: 502,
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
+    },
+    HTTP_HEADER_NAMES: {
+        AUTH_TOKEN: 'authToken',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
@@ -4452,6 +4458,9 @@ const CONST = {
         DEFAULT_RATE: 'Default Rate',
         NEW_RATE: 'New Rate',
         RATE_DECIMALS: 3,
+        // Rate amounts are stored as `Number(value) * 100` cents, which can introduce tiny floating-point errors. Meaningful
+        // amounts differ by at least 0.01 cents, so this tolerance safely absorbs the float noise when matching government rates.
+        GOVERNMENT_RATE_MATCH_TOLERANCE: 0.001,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
@@ -6484,6 +6493,11 @@ const CONST = {
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
+    TRIAL_REMINDER_VARIANT: {
+        BASIC: 'basic',
+        NEAR_END: 'nearEnd',
+        COUNTDOWN: 'countdown',
+    },
     ONBOARDING_ACCOUNTING_MAPPING,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
@@ -6675,6 +6689,7 @@ const CONST = {
             LINK: 'link',
             CATEGORY: 'category',
             TAG: 'tag',
+            SUBMITTED_VIOLATION: 'submitted-violation',
         },
         BULK_ACTION_TYPES: {
             EDIT: 'edit',
@@ -8450,6 +8465,7 @@ const CONST = {
             REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON: 'Report-ReportActionItemMessageEditCancelButton',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON: 'Report-ReportActionItemMessageEditSaveButton',
             REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON: 'Report-ReportActionItemSingleAvatarButton',
+            CONCIERGE_THINKING_AVATAR_BUTTON: 'Report-ConciergeThinkingAvatarButton',
             REPORT_ACTION_ITEM_SINGLE_ACTOR_BUTTON: 'Report-ReportActionItemSingleActorButton',
             REPORT_ACTION_ITEM_THREAD: 'Report-ReportActionItemThread',
             THREAD_DIVIDER: 'Report-ThreadDivider',
