@@ -1,7 +1,7 @@
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, getPolicyIDFromDomainName, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
@@ -149,12 +149,7 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
 };
 
 const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
-    const policyIDs = new Set(
-        domainNames
-            .map((domainName) => domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1])
-            .filter((policyID): policyID is string => !!policyID)
-            .map((policyID) => policyID.toUpperCase()),
-    );
+    const policyIDs = new Set(domainNames.map(getPolicyIDFromDomainName).filter((policyID): policyID is string => !!policyID));
 
     return (policies: OnyxCollection<Policy>) => {
         if (policyIDs.size === 0) {
@@ -360,7 +355,12 @@ const createAdminPoliciesSelector =
             if (!isCurrentPolicy && (policy.type === CONST.POLICY.TYPE.PERSONAL || policy.role !== CONST.POLICY.ROLE.ADMIN)) {
                 return acc;
             }
-            acc[key] = {id: policy.id, name: policy.name, avatarURL: policy.avatarURL, created: policy.created};
+            acc[key] = {
+                id: policy.id,
+                name: policy.name,
+                avatarURL: policy.avatarURL,
+                created: policy.created,
+            };
             return acc;
         }, {});
     };

@@ -1,4 +1,7 @@
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
+import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
+import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
+import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
@@ -41,7 +44,7 @@ import {
     setWorkspaceReimbursement,
 } from '@libs/actions/Policy/Policy';
 import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/HRUtils';
@@ -168,6 +171,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isWalletConnectionStatusBetaEnabled = isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const {showConfirmModal} = useConfirmModal();
@@ -197,6 +201,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     );
 
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
+    const canAccessWalletConnectionStatusFeatures = canAccessSubmitWorkspaceFeatures(policy, isWalletConnectionStatusBetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
@@ -430,7 +435,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
-
         const getBadgeText = (accountState: string | undefined) => {
             switch (accountState) {
                 case CONST.BANK_ACCOUNT.STATE.SETUP:
@@ -441,6 +445,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     return undefined;
             }
         };
+        const bankConnectionStatus = canAccessWalletConnectionStatusFeatures ? getBankAccountConnectionStatus(state) : undefined;
+        const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
+        const bankConnectionStatusAddon = bankConnectionStatus ? (
+            <ConnectionStatusBadge
+                text={translate(bankConnectionStatus.labelKey)}
+                tone={bankConnectionStatus.tone}
+                tooltipText={bankConnectionStatus.tooltipKey ? translate(bankConnectionStatus.tooltipKey) : undefined}
+            />
+        ) : undefined;
+        const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
+        const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
+        const bankBadgeIcon =
+            !canAccessWalletConnectionStatusFeatures && (isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments)) ? expensifyIcons.DotIndicator : undefined;
+        const canInteractWithBankAccountRow = canWritePayments && !isOffline;
 
         const updateWorkspaceCurrencyPrompt = (
             <View style={[styles.renderHTML, styles.flexRow]}>
@@ -456,6 +474,72 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             return undefined;
         };
 
+        const handleBankAccountPress = () => {
+            if (isAccountLocked) {
+                showLockedAccountModal();
+                return;
+            }
+            // User who is reimburser can initiate unlocking process
+            if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
+                pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
+                navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                return;
+            }
+
+            // A non-reimburser can't edit or unlock the workspace's connected account, so if they have another
+            // eligible existing account and no setup in progress, let them link it (change the workspace's account).
+            if (!isUserReimburser && hasOtherEligibleExistingAccounts && !shouldShowContinueModal) {
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
+                return;
+            }
+
+            navigateToBankAccountRoute({
+                policyID: route.params.policyID,
+                backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+            });
+        };
+        let bankAccountMenuItemOnPress: React.ComponentProps<typeof MenuItem>['onPress'];
+        if (canAccessWalletConnectionStatusFeatures) {
+            bankAccountMenuItemOnPress = canInteractWithBankAccountRow ? handleBankAccountPress : undefined;
+        } else {
+            bankAccountMenuItemOnPress = canWritePayments ? handleBankAccountPress : undefined;
+        }
+
+        const bankAccountMenuItemProps: React.ComponentProps<typeof MenuItem> = {
+            title: bankTitle,
+            description: getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate),
+            onPress: bankAccountMenuItemOnPress,
+            displayInDefaultIconColor: true,
+            icon: bankIcon.icon,
+            iconHeight: bankIcon.iconHeight ?? bankIcon.iconSize,
+            iconWidth: bankIcon.iconWidth ?? bankIcon.iconSize,
+            iconStyles: bankIcon.iconStyles,
+            titleStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
+            descriptionTextStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
+            disabled: isOffline || !canWritePayments,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT,
+            shouldShowRightIcon: canWritePayments,
+            interactive: canWritePayments,
+            shouldGreyOutWhenDisabled: !policy?.pendingFields?.reimbursementChoice,
+            ...(canAccessWalletConnectionStatusFeatures
+                ? {
+                      badgeIcon: bankBadgeIcon,
+                      descriptionAddon: bankConnectionStatusAddon,
+                      shouldRemoveBackground: true,
+                      shouldRemoveHoverBackground: true,
+                      wrapperStyle: styles.ph0,
+                      brickRoadIndicator: bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator,
+                  }
+                : {
+                      badgeText: getBadgeText(accountData?.state),
+                      badgeIcon: isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments) ? expensifyIcons.DotIndicator : undefined,
+                      isBadgeSuccess: isAccountInSetupState,
+                      isBadgeError: isBusinessBankAccountLocked && canWritePayments,
+                      wrapperStyle: [styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3],
+                      brickRoadIndicator: hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                  }),
+        };
+        const bankAccountMenuItem = <MenuItem {...bankAccountMenuItemProps} />;
         const shouldShowSubmissionFrequency = canWriteWorkflows || !canWriteApprovals;
         const shouldShowPayments = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
@@ -708,56 +792,29 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                           <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
                                               <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
                                           </View>
-                                          <MenuItem
-                                              title={bankTitle}
-                                              description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
-                                              onPress={
-                                                  canWritePayments
-                                                      ? () => {
-                                                            if (isAccountLocked) {
-                                                                showLockedAccountModal();
-                                                                return;
-                                                            }
-                                                            // User who is reimburser can initiate unlocking process
-                                                            if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
-                                                                pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
-                                                                navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
-                                                                return;
-                                                            }
-
-                                                            // A non-reimburser can't edit or unlock the workspace's connected account, so if they have another
-                                                            // eligible existing account and no setup in progress, let them link it (change the workspace's account).
-                                                            if (!isUserReimburser && hasOtherEligibleExistingAccounts && !shouldShowContinueModal) {
-                                                                Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
-                                                                return;
-                                                            }
-
-                                                            navigateToBankAccountRoute({
-                                                                policyID: route.params.policyID,
-                                                                backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
-                                                            });
-                                                        }
-                                                      : undefined
-                                              }
-                                              displayInDefaultIconColor
-                                              icon={bankIcon.icon}
-                                              iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
-                                              iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
-                                              iconStyles={bankIcon.iconStyles}
-                                              titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
-                                              descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
-                                              disabled={isOffline || !canWritePayments}
-                                              badgeText={getBadgeText(accountData?.state)}
-                                              sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
-                                              badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments) ? expensifyIcons.DotIndicator : undefined}
-                                              isBadgeSuccess={isAccountInSetupState}
-                                              isBadgeError={isBusinessBankAccountLocked && canWritePayments}
-                                              shouldShowRightIcon={canWritePayments}
-                                              interactive={canWritePayments}
-                                              shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
-                                              wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                              brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                          />
+                                          {canAccessWalletConnectionStatusFeatures ? (
+                                              <Hoverable>
+                                                  {(isHovered) => (
+                                                      <View style={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3, isHovered && styles.hoveredComponentBG]}>
+                                                          {bankAccountMenuItem}
+                                                          {!!bankConnectionMessage && (
+                                                              <View style={styles.mb2}>
+                                                                  <ConnectionStatusMessage
+                                                                      message={bankConnectionMessage}
+                                                                      actionText={bankConnectionActionText}
+                                                                      onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
+                                                                      isActionDisabled={!canInteractWithBankAccountRow}
+                                                                      statusTone="danger"
+                                                                      shouldIncludeHorizontalPadding={false}
+                                                                  />
+                                                              </View>
+                                                          )}
+                                                      </View>
+                                                  )}
+                                              </Hoverable>
+                                          ) : (
+                                              bankAccountMenuItem
+                                          )}
                                       </OfflineWithFeedback>
                                   ) : (
                                       canWritePayments && (
@@ -869,9 +926,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         promptConfigureApprovalsInHR,
         isDEWEnabled,
         shouldUseNarrowLayout,
+        expensifyIcons.DotIndicator,
         expensifyIcons.Info,
         expensifyIcons.Plus,
-        expensifyIcons.DotIndicator,
         theme.textSupporting,
         accountManagerReportID,
         filteredApprovalWorkflows.length,
@@ -904,6 +961,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
         canAccessSubmit2026Features,
+        canAccessWalletConnectionStatusFeatures,
         canWriteApprovals,
         canWritePayments,
         canWriteWorkflows,
