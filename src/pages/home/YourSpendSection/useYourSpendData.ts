@@ -4,6 +4,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -12,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, Policy, Report} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {AnyRequest} from '@src/types/onyx/Request';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -95,6 +97,10 @@ type UseYourSpendDataReturn = {
     cardRows: YourSpendCardRow[];
     awaitingApprovalQuery: string;
     repaidLast30DaysQuery: string;
+    // True when offline with a queued change that would move this specific total,
+    // so its row renders greyed out until the next online refresh.
+    isApprovalStale: boolean;
+    isPaymentStale: boolean;
 };
 
 function getOutstandingReportsSignature(reports: OnyxCollection<Report> | undefined, paidGroupPolicyIDs: string[], accountID: number): string {
@@ -115,6 +121,95 @@ function getOutstandingReportsSignature(reports: OnyxCollection<Report> | undefi
         }
     }
     return ids.sort().join(',');
+}
+
+// Offline queue commands that move each "Your spend" total. Read from the action
+// queue rather than inferred from a report's status, because a report can pass
+// through several states offline (e.g. approve then pay) and only its final status
+// would otherwise survive — dropping the earlier action's stale signal.
+const YOUR_SPEND_APPROVAL_COMMANDS = new Set<string>([
+    WRITE_COMMANDS.SUBMIT_REPORT,
+    WRITE_COMMANDS.RETRACT_REPORT,
+    WRITE_COMMANDS.APPROVE_MONEY_REQUEST,
+    WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT,
+]);
+const YOUR_SPEND_PAYMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.PAY_MONEY_REQUEST, WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET, WRITE_COMMANDS.CANCEL_PAYMENT]);
+
+type YourSpendPendingBuckets = {
+    // A queued offline change would move the "Awaiting approval" (status:outstanding) total.
+    approval: boolean;
+    // A queued offline change would move the "Repaid last 30 days" (status:paid) total.
+    payment: boolean;
+};
+
+// Status of each report the user owns on a paid group workspace, plus the totals an
+// amount change (edit / delete / reject; marked by `pendingFields.total`) would move.
+// Amount changes keep a report in the same bucket, so the report's current status
+// classifies them; state transitions are handled from the queue instead.
+type YourSpendReportsProjection = {
+    // reportID -> statusNum, used to scope queued commands to the user's own paid reports.
+    statusByID: Record<string, number>;
+    amount: YourSpendPendingBuckets;
+};
+
+function projectYourSpendReports(reports: OnyxCollection<Report> | undefined, paidGroupPolicyIDs: string[], accountID: number): YourSpendReportsProjection {
+    const projection: YourSpendReportsProjection = {statusByID: {}, amount: {approval: false, payment: false}};
+    if (!reports || paidGroupPolicyIDs.length === 0) {
+        return projection;
+    }
+    const policyIDSet = new Set(paidGroupPolicyIDs);
+    for (const report of Object.values(reports)) {
+        if (report?.ownerAccountID !== accountID || !report?.policyID || !policyIDSet.has(report.policyID) || report.statusNum === undefined) {
+            continue;
+        }
+        projection.statusByID[report.reportID] = report.statusNum;
+        if (report.pendingFields?.total == null) {
+            continue;
+        }
+        if (report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            projection.amount.approval = true;
+        } else if (report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) {
+            projection.amount.payment = true;
+        }
+    }
+    return projection;
+}
+
+// Which "Your spend" totals a queued offline change would move. The totals come
+// from server-computed search snapshots we cannot recompute offline, so instead of
+// patching a value we can't trust we detect that a relevant change is pending and
+// grey only the affected total until the next online refresh.
+//
+// State transitions (submit / retract / approve / unapprove / pay / cancel) are read
+// from the offline action queue: every queued command persists for the whole offline
+// session, so a report that was approved and then paid keeps BOTH signals. Amount
+// changes (edit / delete / reject) don't move a report between buckets, so they're
+// classified by the report's current status (see projectYourSpendReports).
+function getYourSpendPendingBuckets(projection: YourSpendReportsProjection, queuedRequests: AnyRequest[] | undefined): YourSpendPendingBuckets {
+    const buckets: YourSpendPendingBuckets = {approval: projection.amount.approval, payment: projection.amount.payment};
+    for (const request of queuedRequests ?? []) {
+        const isApprovalCommand = YOUR_SPEND_APPROVAL_COMMANDS.has(request.command);
+        const isPaymentCommand = YOUR_SPEND_PAYMENT_COMMANDS.has(request.command);
+        if (!isApprovalCommand && !isPaymentCommand) {
+            continue;
+        }
+        // Report-level commands carry `reportID`; money-request commands (e.g. pay) carry `iouReportID`.
+        const rawReportID = request.data?.reportID ?? request.data?.iouReportID;
+        const reportID = typeof rawReportID === 'string' ? rawReportID : undefined;
+        // Only count commands acting on one of the user's own paid-group reports.
+        if (!reportID || projection.statusByID[reportID] === undefined) {
+            continue;
+        }
+        if (isApprovalCommand) {
+            buckets.approval = true;
+        } else {
+            buckets.payment = true;
+        }
+        if (buckets.approval && buckets.payment) {
+            break;
+        }
+    }
+    return buckets;
 }
 
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {
@@ -161,6 +256,21 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const [outstandingReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => getOutstandingReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
+
+    // Which totals a queued offline change would move. When offline we can't
+    // refresh the snapshots, so we grey only the affected total to signal it may
+    // be stale rather than showing a value we know might be wrong.
+    const [reportsProjection] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => projectYourSpendReports(reports, paidGroupPolicyIDs, accountID),
+    });
+    const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {
+        selector: (requests) =>
+            (requests ?? []).filter((request) => !!request?.command && (YOUR_SPEND_APPROVAL_COMMANDS.has(request.command) || YOUR_SPEND_PAYMENT_COMMANDS.has(request.command))),
+    });
+    const pendingSpendBuckets = useMemo(
+        () => getYourSpendPendingBuckets(reportsProjection ?? {statusByID: {}, amount: {approval: false, payment: false}}, queuedSpendRequests),
+        [reportsProjection, queuedSpendRequests],
+    );
 
     // Destructure here so downstream memos depend only on the sub-records, not on
     // the parent value that's rebuilt on every CARD_FEED_ERRORS tick.
@@ -428,8 +538,29 @@ function useYourSpendData(): UseYourSpendDataReturn {
         cardRows,
         awaitingApprovalQuery,
         repaidLast30DaysQuery,
+        isApprovalStale: isOffline && !!pendingSpendBuckets?.approval,
+        isPaymentStale: isOffline && !!pendingSpendBuckets?.payment,
     };
 }
 
-export {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE, getOutstandingReportsSignature, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
-export type {GetYourSpendRowStateParams, UseYourSpendDataReturn, YourSpendApplicability, YourSpendCardKind, YourSpendCardRow, YourSpendRowState, YourSpendRowTotals};
+export {
+    YOUR_SPEND_CARD_KIND,
+    YOUR_SPEND_ROW_STATE,
+    getOutstandingReportsSignature,
+    getYourSpendApplicability,
+    getYourSpendPendingBuckets,
+    getYourSpendRowState,
+    projectYourSpendReports,
+    useYourSpendData,
+};
+export type {
+    GetYourSpendRowStateParams,
+    UseYourSpendDataReturn,
+    YourSpendApplicability,
+    YourSpendCardKind,
+    YourSpendCardRow,
+    YourSpendPendingBuckets,
+    YourSpendReportsProjection,
+    YourSpendRowState,
+    YourSpendRowTotals,
+};
