@@ -1,22 +1,24 @@
 /**
  * ESLint processor that conditionally suppresses lint rules which are unnecessary
- * for files that React Compiler successfully compiles.
+ * for files that BOTH React Compilers memoize.
  *
  * React Compiler automatically memoizes components and hooks, making rules like
- * `react/jsx-no-constructed-context-values` redundant for compiled files.
+ * `react/jsx-no-constructed-context-values` redundant for memoized files. But the app
+ * runs two different compilers -- Babel (babel-plugin-react-compiler) on native/Jest and
+ * OXC (oxc-transform) on web -- and they don't always agree. A file that only one compiler
+ * memoizes still ships without memoization on the other platform, so the manual memoization
+ * (and the lint rules that enforce it) is still needed there.
  *
- * This processor:
- * 1. Runs React Compiler on each file during the `preprocess` phase
- * 2. If all functions/components compile successfully, filters out messages
- *    from rules that React Compiler makes unnecessary in `postprocess`
- * 3. If any function fails to compile, preserves all lint messages as-is
+ * This processor therefore:
+ * 1. Runs BOTH React Compilers on each file during the `preprocess` phase
+ * 2. Only if BOTH compilers memoize the file, filters out messages from rules that
+ *    React Compiler makes unnecessary in `postprocess`
+ * 3. Otherwise (either compiler skips memoization, or a file fails to compile) preserves
+ *    all lint messages as-is
  */
-import {transformSync} from '@babel/core';
 import _ from 'lodash';
-import {createRequire} from 'module';
 
-const require = createRequire(import.meta.url);
-const ReactCompilerConfig = require('../../babel/reactCompilerConfig');
+import {didBothCompilersMemoizeFile} from '../../reactCompiler/checkBoth.mjs';
 
 // Rules that are entirely unnecessary when React Compiler successfully compiles
 // all functions in a file. Add more rules here as needed.
@@ -31,58 +33,6 @@ const EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN = /\buseCallback\(\) Hook\b|\b
 // Per-file compilation results, populated in preprocess, consumed in postprocess.
 const compilationResults = new Map();
 
-/**
- * Check whether React Compiler can successfully compile all functions in a file.
- *
- * Uses @babel/core's transformSync with the React Compiler plugin and a custom
- * logger to detect CompileError/CompileSuccess events without emitting code.
- *
- * @param {string} text - The source code of the file
- * @param {string} filename - The file path (used by Babel for parser heuristics)
- * @returns {boolean} true if at least one function compiled and none errored
- */
-function checkReactCompilerCompilation(text, filename) {
-    let hasError = false;
-    let hasSuccess = false;
-
-    try {
-        transformSync(text, {
-            filename,
-            ast: false,
-            code: false,
-            configFile: false,
-            babelrc: false,
-            parserOpts: {
-                plugins: ['typescript', 'jsx'],
-            },
-            plugins: [
-                [
-                    'babel-plugin-react-compiler',
-                    {
-                        ...ReactCompilerConfig,
-                        panicThreshold: 'none',
-                        noEmit: true,
-                        logger: {
-                            logEvent(_filename, event) {
-                                if (event.kind === 'CompileError') {
-                                    hasError = true;
-                                }
-                                if (event.kind === 'CompileSuccess') {
-                                    hasSuccess = true;
-                                }
-                            },
-                        },
-                    },
-                ],
-            ],
-        });
-    } catch {
-        hasError = true;
-    }
-
-    return hasSuccess && !hasError;
-}
-
 const processor = {
     meta: {
         name: 'react-compiler-compat',
@@ -95,7 +45,7 @@ const processor = {
         if (filename.includes('/tests/') || filename.includes('node_modules/')) {
             compilationResults.set(filename, false);
         } else {
-            compilationResults.set(filename, checkReactCompilerCompilation(text, filename));
+            compilationResults.set(filename, didBothCompilersMemoizeFile(text, filename));
         }
 
         // Pass the source through unchanged as a single code block
@@ -103,10 +53,10 @@ const processor = {
     },
 
     postprocess(messages, filename) {
-        const allCompiled = compilationResults.get(filename);
+        const bothMemoized = compilationResults.get(filename);
         compilationResults.delete(filename);
 
-        if (allCompiled) {
+        if (bothMemoized) {
             return _.filter(messages[0], (msg) => {
                 if (RULES_SUPPRESSED_BY_REACT_COMPILER.has(msg.ruleId)) {
                     return false;

@@ -1,7 +1,7 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information, phone number, magic code]
+keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information, phone number, security code]
 ---
 
 Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from the left-hand navigation menu.
@@ -13,7 +13,7 @@ Expensify allows you to personalize your experience by customizing your profile,
 You can update the following profile settings:
 
 - **Profile Photo** – Upload or change your photo.
-- **Customized Avatar** – Select an avatar or letter instead of a profile photo.
+- **Customized Avatar** – Select an avatar instead of a profile photo.
 - **Status** – Add a custom message and emoji to show your current status.
 - **Pronouns** – Display your preferred pronouns on your profile.
 - **Language** – Update your account to your preferred language.
@@ -53,7 +53,7 @@ To choose an avatar instead of a photo:
 1. In the navigation tabs, click **Account > Profile**.
 2. Click the pencil icon next to your profile image.
 3. Scroll down to **Or choose a custom avatar**.
-4. Select an avatar or letter in your desired colored palette.
+4. Select an avatar in your desired colored palette.
 5. Click **Save**.
 
 ## Timezone
@@ -114,7 +114,7 @@ High contrast mode increases the visual contrast of UI elements, making text and
 2. Click **Theme**.
 3. Toggle **High contrast mode** on.
 
-You can also enable high contrast mode from from the [login page](https://new.expensify.com/Home) by selecting **Enable high contrast**.
+You can also enable high contrast mode from the [login page](https://new.expensify.com/) by selecting **Enable high contrast**.
 
 ## How to update personal information
 
@@ -124,7 +124,7 @@ To update your legal name, date of birth, phone number, or address:
 3. Click **Legal Name**, **Date of Birth**, **Phone Number**, or **Address**.
 4. Enter the updated information.
 5. Click **Save**.
-6. Enter the magic code sent to your email or phone to verify the changes.
+6. Enter the security code sent to your email or phone to verify the changes.
 
 When typing in the **Address line 1** field, a list of address suggestions appears. Select a suggestion to auto-populate the address fields including city, state, ZIP code, and country.
 
@@ -140,7 +140,7 @@ To edit your legal name:
 1. Go to **Account > Profile**.
 2. Scroll to **Private** and click **Legal Name**.
 3. Enter the updated information and click **Save**.
-4. Enter the magic code sent to you to verify the change.
+4. Enter the security code sent to you to verify the change.
 
 ---
 

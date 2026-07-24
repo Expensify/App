@@ -1,6 +1,7 @@
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 
+import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -10,7 +11,7 @@ import variables from '@styles/variables';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
-import React from 'react';
+import React, {useRef} from 'react';
 
 import type {DomainGroupRowData} from './DomainGroupsTableRow';
 
@@ -19,12 +20,15 @@ import DomainGroupsTableRow from './DomainGroupsTableRow';
 type DomainGroupsTableColumnKey = 'name' | 'members' | 'actions';
 
 type DomainGroupsTableProps = {
+    domainAccountID: number;
     groups: DomainGroupRowData[];
 };
 
-export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
+export default function DomainGroupsTable({domainAccountID, groups}: DomainGroupsTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const tableRef = useRef<TableHandle<DomainGroupRowData, DomainGroupsTableColumnKey>>(null);
+    useDomainHighlightOnReturn(domainAccountID, 'groups', tableRef);
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -73,6 +77,7 @@ export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
 
     return (
         <Table
+            ref={tableRef}
             data={groups}
             columns={domainGroupsTableColumns}
             renderItem={renderTableItem}

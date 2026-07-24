@@ -101,6 +101,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         }
 
         let isRoleMissing = false;
+        let shouldShowMemberRolePermissionWarning = false;
 
         const columns = Object.values(spreadsheet?.columns ?? {});
 
@@ -130,6 +131,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                     route.params.policyID,
                     hasControlPolicyOnlyRole ? CONST.UPGRADE_FEATURE_INTRO_MAPPING.controlPolicyRoles.alias : CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
                     Navigation.getActiveRoute(),
+                    undefined,
+                    // Both the Control-only roles and the Control-only columns require the Control plan, so a Submit workspace must upgrade to Control here rather than the Collect default
+                    CONST.POLICY.TYPE.CORPORATE,
                 ),
             );
             return;
@@ -155,8 +159,14 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             let role = isPolicyMember ? (policy?.employeeList?.[email]?.role ?? '') : '';
             const importedRole = membersRoles?.[containsHeader ? index + 1 : index];
             const canManageCurrentRole = !isPolicyMember || canMemberManageMemberWithRole(policy, currentUserLogin, role);
-            if (canAssignElevatedRoles && membersRolesColumn !== -1 && importedRole && canManageCurrentRole && canMemberAssignRole(policy, currentUserLogin, importedRole)) {
-                role = importedRole;
+            const isImportedRoleValid = Object.values(CONST.POLICY.ROLE).some((policyRole) => policyRole === importedRole);
+            if (canAssignElevatedRoles && membersRolesColumn !== -1 && importedRole && canManageCurrentRole) {
+                if (canMemberAssignRole(policy, currentUserLogin, importedRole)) {
+                    role = importedRole;
+                } else if (!isPolicyMember && isImportedRoleValid) {
+                    role = CONST.POLICY.ROLE.USER;
+                    shouldShowMemberRolePermissionWarning = true;
+                }
             }
             if (canAssignElevatedRoles && membersRolesColumn !== -1 && !role) {
                 isRoleMissing = true;
@@ -243,11 +253,11 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         }
 
         if (isRoleMissing) {
-            setImportedSpreadsheetMemberData(allMembers);
+            await setImportedSpreadsheetMemberData(allMembers, shouldShowMemberRolePermissionWarning);
             Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
             setIsImporting(true);
-            const importFinalModal = await importPolicyMembers(policy, allMembers);
+            const importFinalModal = await importPolicyMembers(policy, allMembers, shouldShowMemberRolePermissionWarning);
             const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {onModalHide: navigateBackToMembers});
             if (!didShowImportFinalModal) {
                 setIsImporting(false);
