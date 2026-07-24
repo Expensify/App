@@ -202,7 +202,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         }
 
         // This branch only runs when the player is paused (the check above returns early while playing),
-        // so a playhead within REPLAY_END_THRESHOLD_SECONDS of the end unambiguously means the video is
+        // so a playback position within REPLAY_END_THRESHOLD_SECONDS of the end unambiguously means the video is
         // finished and should be replayed. We rely on the position rather than the `isEnded` flag because
         // changing the playback speed can spuriously clear `isEnded` on iOS (the playbackRate write briefly
         // resumes playback and fires `playingChange`), which would otherwise make Play a no-op at the end.
