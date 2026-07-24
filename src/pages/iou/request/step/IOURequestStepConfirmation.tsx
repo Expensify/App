@@ -160,7 +160,7 @@ function IOURequestStepConfirmation({
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -180,9 +180,9 @@ function IOURequestStepConfirmation({
                 transactionReport,
                 routeReport: reportWithDraftFallback,
                 policy: policyReal,
-                reportNameValuePairs,
+                reportNameValuePair,
             }),
-        [transaction, transactionReport, reportWithDraftFallback, policyReal, reportNameValuePairs],
+        [transaction, transactionReport, reportWithDraftFallback, policyReal, reportNameValuePair],
     );
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 

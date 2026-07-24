@@ -5,7 +5,7 @@ import type {OnyxInputOrEntry, Policy, Report, ReportAction, ReportNameValuePair
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {SafeString} from 'expensify-common';
@@ -511,19 +511,19 @@ function resolveReportForMoneyRequest({
     transactionReport,
     routeReport,
     policy,
-    reportNameValuePairs,
+    reportNameValuePair,
 }: {
     transaction: OnyxEntry<Transaction>;
     transactionReport: OnyxEntry<Report>;
     routeReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    reportNameValuePair?: OnyxInputOrEntry<ReportNameValuePairs>;
 }): OnyxEntry<Report> {
     if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return undefined;
     }
     const canUseTransactionReport =
-        !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, reportNameValuePairs, false);
+        !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, reportNameValuePair, false);
     const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
     if (shouldUseTransactionReport) {
         return transactionReport;

@@ -9290,8 +9290,8 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            const reportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: '2024-01-01 00:00:00.000'}};
-            expect(isReportOutstanding(report, policy.id, reportNameValuePairs)).toBe(false);
+            const reportNameValuePair = {private_isArchived: '2024-01-01 00:00:00.000'};
+            expect(isReportOutstanding(report, policy.id, reportNameValuePair)).toBe(false);
         });
     });
 

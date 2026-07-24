@@ -947,11 +947,9 @@ describe('getExistingTransactionID', () => {
             const transaction = makeTransaction('500');
             const transactionReport = makeOutstandingReport('500');
             const routeReport = makeRouteReport('100');
-            const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${transactionReport.reportID}`]: {private_isArchived: testDate},
-            };
+            const reportNameValuePair: ReportNameValuePairs = {private_isArchived: testDate};
 
-            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve, reportNameValuePairs})).toBeUndefined();
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve, reportNameValuePair})).toBeUndefined();
         });
 
         it('returns undefined when the picked report is non-outstanding and differs from the route (forces a new optimistic IOU)', () => {
