@@ -85,6 +85,7 @@ describe('DateUtils', () => {
     });
 
     it('should fallback to current date when getLocalDateFromDatetime is failing', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, 'InvalidTimezone' as SelectedTimezone, undefined);
         expect(localDate.getTime()).not.toBeNaN();
     });
@@ -145,6 +146,7 @@ describe('DateUtils', () => {
     it('should update timezone if automatic and selected timezone do not match', async () => {
         jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
             () =>
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 ({
                     resolvedOptions: () => ({timeZone: 'America/Chicago'}),
                 }) as Intl.DateTimeFormat,
@@ -161,6 +163,7 @@ describe('DateUtils', () => {
     it('should not update timezone if automatic and selected timezone match', async () => {
         jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
             () =>
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 ({
                     resolvedOptions: () => ({timeZone: UTC}),
                 }) as Intl.DateTimeFormat,
@@ -742,6 +745,7 @@ describe('DateUtils', () => {
         });
 
         it('should return empty string when timeZone is empty', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             expect(DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00', '' as SelectedTimezone)).toBe('');
         });
 
@@ -776,6 +780,51 @@ describe('DateUtils', () => {
 
         it('should return empty string for invalid date', () => {
             const result = DateUtils.formatUTCDateTimeToDateInTimezone('invalid-date', UTC);
+            expect(result).toBe('');
+        });
+    });
+
+    describe('formatViolationSnapshotStartedAtDate', () => {
+        const originalTZ = process.env.TZ;
+
+        beforeEach(() => {
+            process.env.TZ = 'UTC';
+        });
+
+        afterEach(() => {
+            process.env.TZ = originalTZ;
+        });
+
+        it('should return empty string when violationSnapshotStartedAt is empty', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            expect(DateUtils.formatViolationSnapshotStartedAtDate('', UTC as SelectedTimezone)).toBe('');
+        });
+
+        it('should return empty string when timeZone is undefined', () => {
+            expect(DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', undefined)).toBe('');
+        });
+
+        it('should format a date-only value in the target timezone', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', UTC as SelectedTimezone);
+            expect(result).toBe('June 20th, 2026');
+        });
+
+        it('should format a UTC datetime value in the target timezone', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 00:00:00', UTC as SelectedTimezone);
+            expect(result).toBe('June 20th, 2026');
+        });
+
+        it('should format a UTC datetime using the target timezone date', () => {
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 02:00:00', americaNewYork);
+            expect(result).toBe('June 19th, 2026');
+        });
+
+        it('should return empty string for invalid date', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('invalid-date', UTC as SelectedTimezone);
             expect(result).toBe('');
         });
     });

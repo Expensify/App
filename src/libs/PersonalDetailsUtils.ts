@@ -28,11 +28,13 @@ type FirstAndLastName = {
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
+let allPersonalDetailLogins: string[] = [];
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         const personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
+        allPersonalDetailLogins = personalDetails.map((detail) => detail?.login ?? '');
         emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
                 acc[detail.login.toLowerCase()] = detail;
@@ -262,6 +264,10 @@ function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | 
         return undefined;
     }
     return emailToPersonalDetailsCache[email.toLowerCase()];
+}
+
+function getAllPersonalDetailLogins(): string[] {
+    return allPersonalDetailLogins;
 }
 
 /**
@@ -625,6 +631,7 @@ export {
     getParticipantsPersonalDetails,
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
+    getAllPersonalDetailLogins,
     getPersonalDetailByEmail,
     getKnownAccountIDByLogin,
     getAccountIDsByLogins,
