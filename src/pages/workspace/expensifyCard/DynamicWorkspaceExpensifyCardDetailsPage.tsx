@@ -458,7 +458,6 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             />
                         </OfflineWithFeedback>
                     ) : null}
-
                     <View style={styles.mt6}>
                         {canEditSpendRules && (
                             <MenuItem

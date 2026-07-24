@@ -241,6 +241,22 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
+                    <OfflineWithFeedback
+                        pendingAction={card?.pendingFields?.scrapeMinDate}
+                        errorRowStyles={errorRowStyles}
+                        errors={getLatestErrorField(card ?? {}, 'scrapeMinDate')}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'scrapeMinDate', true)}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                            title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
+                            shouldShowRightIcon={canWriteCompanyCards}
+                            brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
+                            interactive={canWriteCompanyCards}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TRANSACTION_START_DATE}
+                        />
+                    </OfflineWithFeedback>
                     {exportMenuItem?.shouldShowMenuItem ? (
                         <OfflineWithFeedback
                             pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
@@ -264,22 +280,6 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                             />
                         </OfflineWithFeedback>
                     ) : null}
-                    <OfflineWithFeedback
-                        pendingAction={card?.pendingFields?.scrapeMinDate}
-                        errorRowStyles={errorRowStyles}
-                        errors={getLatestErrorField(card ?? {}, 'scrapeMinDate')}
-                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'scrapeMinDate', true)}
-                    >
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                            title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
-                            shouldShowRightIcon={canWriteCompanyCards}
-                            brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
-                            interactive={canWriteCompanyCards}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TRANSACTION_START_DATE}
-                        />
-                    </OfflineWithFeedback>
                     {canWriteCompanyCards && shouldShowBreakConnection && (
                         <MenuItem
                             icon={expensifyIcons.Trashcan}
