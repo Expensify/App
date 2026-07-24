@@ -1,7 +1,7 @@
 import {clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {applyPendingConciergeAction, clearPendingFollowupList, discardPendingConciergeAction, hidePendingFollowupList} from '@libs/actions/Report/SuggestedFollowup';
 import AgentZeroOptimisticStore, {MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
-import {ACCELERATED_REMAINING_MS, DEFAULT_STREAM_DURATION_MS, easeOut, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
+import {ACCELERATED_REMAINING_MS, MIN_TRICKLE_TOKEN_COUNT, OPTIMISTIC_FLAT_MS_PER_TOKEN, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
@@ -157,9 +157,14 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         let sequence = 0;
         let intervalID: ReturnType<typeof setInterval> | null = null;
         let trickleStart = 0;
-        let effectiveDuration = DEFAULT_STREAM_DURATION_MS;
+        // Flat cadence: the optimistic bubble reveals at a constant rate (no ease-out),
+        // so total duration scales linearly with length. The accelerator recomputes
+        // effectiveDuration when the canonical reply lands so the tail finishes quickly.
+        let effectiveDuration = Math.max(1, snapshotTokens.length - 1) * OPTIMISTIC_FLAT_MS_PER_TOKEN;
         let lastStage = 0;
         let cancelled = false;
+        // Linear progress in [0,1] — replaces the easeOut curve for the optimistic reveal.
+        const clampProgress = (elapsedMs: number) => Math.max(0, Math.min(1, elapsedMs / effectiveDuration));
         // Snapshot of trickle progress at the moment the canonical reportComment
         // arrives. Presence (`arrival !== undefined`) doubles as the
         // "acceleration fired" check that selects the completion reason below.
@@ -225,7 +230,7 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             // Compressing effectiveDuration is what makes progress hit 1 within
             // ACCELERATED_REMAINING_MS — the next tick observes progress >= 1
             // and runs completeAndApply via the normal path.
-            arrival = {progress: easeOut(elapsed / effectiveDuration), elapsedMs: elapsed};
+            arrival = {progress: clampProgress(elapsed), elapsedMs: elapsed};
             effectiveDuration = elapsed + ACCELERATED_REMAINING_MS;
         };
 
@@ -238,7 +243,7 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             trickleStart = displayAfter;
             const lastIndex = snapshotTokens.length - 1;
             const elapsedAtStart = Date.now() - trickleStart;
-            const initialProgress = easeOut(elapsedAtStart / effectiveDuration);
+            const initialProgress = clampProgress(elapsedAtStart);
             // Floor at 1 so a fresh trickle (elapsed ≈ 0) still reveals the leading chunk on the first dispatch.
             const initialStage = Math.max(1, Math.min(lastIndex, Math.ceil(initialProgress * lastIndex)));
             Log.info('[ConciergeTrickle] start', false, {
@@ -257,8 +262,8 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             }
             intervalID = setInterval(() => {
                 const elapsed = Date.now() - trickleStart;
-                const progress = easeOut(elapsed / effectiveDuration);
-                // progress ∈ [0,1] (easeOut clamps) and lastIndex ≥ 99 (shouldTrickle gate),
+                const progress = clampProgress(elapsed);
+                // progress ∈ [0,1] (clampProgress clamps) and lastIndex ≥ 99 (shouldTrickle gate),
                 // so `progress * lastIndex` is always non-negative — only the upper bound needs clamping.
                 const stage = Math.min(lastIndex, Math.ceil(progress * lastIndex));
                 if (stage > lastStage) {
