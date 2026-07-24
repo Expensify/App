@@ -2696,6 +2696,60 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.tableHeaderContentHeight,
         },
 
+        htmlTable: {
+            marginVertical: 8,
+            borderRadius: variables.componentBorderRadius,
+            backgroundColor: theme.highlightBG,
+            overflow: 'hidden',
+        },
+
+        htmlTableHeaderRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: variables.htmlTableHeaderRowMinHeight,
+            paddingHorizontal: variables.tableRowPaddingHorizontal,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+        },
+
+        htmlTableRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: variables.htmlTableRowMinHeight,
+            paddingHorizontal: variables.tableRowPaddingHorizontal,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+        },
+
+        htmlTableLastRow: {
+            borderBottomWidth: 0,
+        },
+
+        htmlTableCell: {
+            // A definite flexBasis with flexShrink: 0 gives every column a fixed width so a wide table keeps its size
+            // and can be scrolled horizontally, and columns stay aligned across rows; flexGrow: 1 still lets columns
+            // expand to fill the message width when the table is narrower than it.
+            flexGrow: 1,
+            flexShrink: 0,
+            flexBasis: variables.htmlTableColumnMaxWidth,
+            minWidth: variables.htmlTableColumnMinWidth,
+            paddingEnd: 8,
+        },
+
+        htmlTableCellMaxWidth: {
+            maxWidth: variables.htmlTableColumnMaxWidth,
+        },
+
+        htmlTableCellText: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
+        htmlTableHeaderCellText: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeSmall,
+        },
+
         borderBottom: {
             borderBottomWidth: 1,
             borderColor: theme.border,
