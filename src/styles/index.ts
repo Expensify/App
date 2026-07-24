@@ -2831,6 +2831,12 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: 'black',
         },
 
+        trialReminderIllustrationContainer: {
+            // Fixed brand navy used as the illustration backdrop; intentionally not theme-dependent.
+            backgroundColor: colors.blue800,
+            height: CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT,
+        },
+
         reportActionContextMenuMiniButton: {
             height: 28,
             width: 28,
@@ -2977,6 +2983,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         avatarSectionWrapperSkeleton: {
             width: '100%',
+        },
+
+        conciergeAnimatedAvatar: {
+            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeNormal,
         },
 
         accountSettingsSectionContainer: {
