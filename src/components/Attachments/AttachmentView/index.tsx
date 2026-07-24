@@ -220,7 +220,7 @@ function AttachmentView({
             return (
                 <MultiGestureIcon
                     src={source}
-                    contentSize={{width: variables.defaultAvatarPreviewSize, height: variables.defaultAvatarPreviewSize}}
+                    contentSize={{width: variables.avatarPreview, height: variables.avatarPreview}}
                     fill={iconFillColor}
                     additionalStyles={additionalStyles}
                 />

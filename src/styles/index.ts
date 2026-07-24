@@ -2990,8 +2990,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         conciergeAnimatedAvatar: {
-            width: variables.avatarSizeNormal,
-            height: variables.avatarSizeNormal,
+            width: variables.avatarSizeMedium,
+            height: variables.avatarSizeMedium,
         },
 
         accountSettingsSectionContainer: {

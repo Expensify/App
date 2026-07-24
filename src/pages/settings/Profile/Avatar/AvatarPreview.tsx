@@ -126,7 +126,7 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     <UserInitialsAvatar
                         text={initials}
                         colors={selectedLetterScheme}
-                        size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.X_LARGE)}
+                        size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.XXXX_LARGE)}
                     />
                 </View>
             ) : (
