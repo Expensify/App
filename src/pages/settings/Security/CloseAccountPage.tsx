@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -32,6 +33,10 @@ import {View} from 'react-native';
 function CloseAccountPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    // The account being closed can be a workspace's RuleBot agent (e.g. when accessed via copilot). Closing it would leave the workspace's Agent rules without an enforcer, so it stays open until those rules are removed.
+    const isRuleBotWithRules = Object.values(policies ?? {}).some((policy) => isRuleBotEnforcingRules(session?.accountID, policy));
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -56,6 +61,15 @@ function CloseAccountPage() {
     useEffect(() => () => clearError(), []);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
+        if (isRuleBotWithRules) {
+            showConfirmModal({
+                shouldShowCancelButton: false,
+                title: translate('workspace.rules.agentRules.unableToCloseAccountTitle'),
+                prompt: translate('workspace.rules.agentRules.unableToCloseAccountPrompt'),
+                confirmText: translate('common.buttonConfirm'),
+            });
+            return;
+        }
         showCloseAccountWarningModal().then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;

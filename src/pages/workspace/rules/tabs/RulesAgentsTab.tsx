@@ -43,7 +43,6 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
     const {renderTitle, renderSubtitle} = useAgentRulesSectionHeader({
         policyID,
         subtitle: translate('workspace.rules.agentRules.revampSubtitle'),
-        hasRules,
     });
 
     const handleAddAgentRule = () => {
