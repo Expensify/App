@@ -1355,6 +1355,28 @@ describe('ReportUtils', () => {
             expect(participants.at(4)?.pronouns).toBeUndefined();
         });
 
+        test('routes each display name through the injected translate function', async () => {
+            const hiddenAccountID = 909090;
+            // The participant has no resolvable name, so it falls back to the "hidden" copy produced by the injected translate
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''},
+            });
+            await waitForBatchedUpdates();
+
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenTooltipMarker' : translateLocal(path, ...parameters));
+
+            const result = getDisplayNamesWithTooltips(
+                createMock<PersonalDetailsList>({[hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''}}),
+                false,
+                localeCompare,
+                formatPhoneNumber,
+                translateWithMarker,
+            );
+
+            // The nameless participant resolves to the marker, proving getDisplayNameForParticipant received the injected translate
+            expect(result.at(0)?.displayName).toBe('HiddenTooltipMarker');
+        });
+
         test('should return hidden translation for participants with no displayName or login', async () => {
             const hiddenAccountID = 8888;
             const personalDetailsWithHidden: PersonalDetailsList = {

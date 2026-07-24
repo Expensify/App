@@ -1,5 +1,7 @@
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import DateUtils from '@libs/DateUtils';
 import {canCreateOptimisticPersonalDetailOption, createOption, createOptionList, filterOption, getValidOptions, matchesSearchTerms} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils/types';
@@ -15,7 +17,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {formatPhoneNumber} from '../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type PersonalDetailsList = Record<string, PersonalDetails>;
@@ -356,7 +358,16 @@ describe('PersonalDetailOptionsListUtils', () => {
 
     beforeEach(() => {
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
-        OPTIONS = createOptionList(currentUserAccountID, PERSONAL_DETAILS, ACCOUNT_ID_TO_REPORT_ID_MAP, translateReportObjectToOnyxCollection(REPORTS), undefined, {}, formatPhoneNumber);
+        OPTIONS = createOptionList(
+            currentUserAccountID,
+            PERSONAL_DETAILS,
+            ACCOUNT_ID_TO_REPORT_ID_MAP,
+            translateReportObjectToOnyxCollection(REPORTS),
+            undefined,
+            {},
+            formatPhoneNumber,
+            translateLocal,
+        );
         OPTIONS_WITH_SELF_DM = createOptionList(
             currentUserAccountID,
             PERSONAL_DETAILS,
@@ -365,6 +376,7 @@ describe('PersonalDetailOptionsListUtils', () => {
             undefined,
             {},
             formatPhoneNumber,
+            translateLocal,
         );
         OPTIONS_WITH_CONCIERGE = createOptionList(
             currentUserAccountID,
@@ -374,6 +386,7 @@ describe('PersonalDetailOptionsListUtils', () => {
             undefined,
             {},
             formatPhoneNumber,
+            translateLocal,
         );
         OPTIONS_WITH_CHRONOS = createOptionList(
             currentUserAccountID,
@@ -383,6 +396,7 @@ describe('PersonalDetailOptionsListUtils', () => {
             undefined,
             {},
             formatPhoneNumber,
+            translateLocal,
         );
         OPTIONS_WITH_RECEIPTS = createOptionList(
             currentUserAccountID,
@@ -392,6 +406,7 @@ describe('PersonalDetailOptionsListUtils', () => {
             undefined,
             {},
             formatPhoneNumber,
+            translateLocal,
         );
     });
 
@@ -474,6 +489,17 @@ describe('PersonalDetailOptionsListUtils', () => {
                 selected: false,
                 tooltipText: null,
             });
+        });
+
+        it('routes the option text through the injected translate function', () => {
+            // A non-optimistic participant with no name resolves to the "hidden" copy, which is produced by the injected translate
+            const hiddenDetail = {accountID: 424242, login: '', displayName: '', isOptimisticPersonalDetail: false} as PersonalDetails;
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenOptionMarker' : translateLocal(path, ...parameters));
+
+            const option = createOption(hiddenDetail, undefined, formatPhoneNumber, undefined, undefined, undefined, translateWithMarker);
+
+            // The nameless participant resolves to the marker, proving getDisplayNameForParticipant received the injected translate
+            expect(option.text).toBe('HiddenOptionMarker');
         });
 
         it('should use displayName from personalDetail for optimistic (device-contact) accountIDs not in Onyx', () => {
