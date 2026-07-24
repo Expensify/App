@@ -324,28 +324,9 @@ function SearchAutocompleteList({
         }
     };
 
-    // Reset focus when query changes to prevent stale focus on wrong items
-    useEffect(() => {
-        if (isInitialRender) {
-            return;
-        }
-
-        const queryChanged = prevQueryRef.current !== effectiveInputQueryValue;
-        prevQueryRef.current = effectiveInputQueryValue;
-
-        if (queryChanged) {
-            if (effectiveInputQueryValue === '') {
-                // When query is cleared, reset the initial focus guard so the initial focus
-                // effect can re-fire and correctly focus the first focusable item (skipping section headers).
-                hasSetInitialFocusRef.current = false;
-            } else {
-                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top.
-                // The highlight effect below switches focus to the first result when there's a good match.
-                lastProgrammaticFocusKeyRef.current = searchQueryItems?.at(0)?.keyForList;
-                innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
-            }
-        }
-    }, [effectiveInputQueryValue, isInitialRender, searchQueryItems]);
+    // The "reset focus when query changes" effect lives further down (after firstRecentReportFlatIndex/Key and
+    // normalizedReferenceText are computed) because it now needs those values to decide, synchronously, whether
+    // the debounced query has already settled for the freshly typed text. See the comment there for why.
 
     // Track external text input focus to prevent list items from stealing focus while typing
     useEffect(() => {
@@ -714,6 +695,60 @@ function SearchAutocompleteList({
 
     const normalizedReferenceText = firstRecentReportText.toLowerCase();
 
+    // Stable across renders while the query is non-empty (searchQueryItems is a fresh array reference on every
+    // SearchRouter render since it isn't memoized there, but its first item's key is always this same constant).
+    // Depending on this value instead of the raw array keeps the effects below from re-running on every keystroke.
+    const searchQueryRowKey = searchQueryItems?.at(0)?.keyForList;
+
+    // Reset focus when query changes to prevent stale focus on wrong items.
+    useEffect(() => {
+        if (isInitialRender) {
+            return;
+        }
+
+        const queryChanged = prevQueryRef.current !== effectiveInputQueryValue;
+        prevQueryRef.current = effectiveInputQueryValue;
+
+        if (!queryChanged) {
+            return;
+        }
+
+        if (effectiveInputQueryValue === '') {
+            // When query is cleared, reset the initial focus guard so the initial focus
+            // effect can re-fire and correctly focus the first focusable item (skipping section headers).
+            hasSetInitialFocusRef.current = false;
+            return;
+        }
+
+        // autocompleteQueryValue (debounced) can already equal the freshly typed text the moment the query
+        // changes, not just once it "catches up" later. This happens on a fast clear + retype of the exact same
+        // text: clearing doesn't reset the debounce hook's internal value, so retyping the same text is a no-op
+        // update and the debounced prop never changes again -- nothing would re-run the highlight effect below
+        // afterward. Deciding the correct focus target here, synchronously from this render's own props (rather
+        // than by reading the list's focus state back, which lags a render behind our own updates), is what
+        // prevents focus from being left stranded on the search-query row in that case.
+        const isDebounceSettled = autocompleteQueryValue.trim() === effectiveInputQueryValue.trim();
+        if (isDebounceSettled && shouldHighlightFirstItem && firstRecentReportFlatIndex !== -1 && shouldHighlight(normalizedReferenceText, autocompleteQueryValue)) {
+            lastProgrammaticFocusKeyRef.current = firstRecentReportKey;
+            innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, true);
+            return;
+        }
+
+        // Otherwise the debounce is still pending for this query: focus the search query item (index 0) and
+        // scroll to top. The highlight effect below switches focus to the first result once a good match settles.
+        lastProgrammaticFocusKeyRef.current = searchQueryRowKey;
+        innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
+    }, [
+        autocompleteQueryValue,
+        effectiveInputQueryValue,
+        firstRecentReportFlatIndex,
+        firstRecentReportKey,
+        isInitialRender,
+        normalizedReferenceText,
+        searchQueryRowKey,
+        shouldHighlightFirstItem,
+    ]);
+
     // When options initialize after the list is already mounted, initiallyFocusedItemKey has no effect
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
     // Imperatively focus the first recent report once options become available (desktop only).
@@ -735,16 +770,14 @@ function SearchAutocompleteList({
         }
 
         // Only suppress the auto-highlight when the user has manually moved focus to some *other* real row
-        // (e.g. arrow-keyed to Ask Concierge). Advancing is still allowed when focus is on the row we last set
-        // programmatically OR on the search-query row (index 0): after a fast clear + retype the query-change
-        // effect parks focus on the query row, and we must still be able to move it onto the first matching
-        // result once the debounced options settle. Without this, focus is stranded on the query row and the
-        // first recent-chat row is left unselected on a fast clear & search.
+        // (e.g. arrow-keyed to Ask Concierge). The reset effect above always keeps lastProgrammaticFocusKeyRef in
+        // sync with wherever it last placed focus (the search-query row while unsettled, or the first result once
+        // settled), so comparing against it alone is enough to detect a real, user-initiated divergence -- this
+        // effect is what promotes focus onto the first result once the debounce genuinely settles *later*, the
+        // common, non-coalesced typing flow.
         const currentFocusedKey = innerListRef.current?.getFocusedOption?.()?.keyForList;
-        const searchQueryRowKey = searchQueryItems?.at(0)?.keyForList;
         const isOnProgrammaticTarget = lastProgrammaticFocusKeyRef.current === undefined || currentFocusedKey === lastProgrammaticFocusKeyRef.current;
-        const isOnSearchQueryRow = currentFocusedKey !== undefined && currentFocusedKey === searchQueryRowKey;
-        if (!isOnProgrammaticTarget && !isOnSearchQueryRow) {
+        if (!isOnProgrammaticTarget) {
             return;
         }
 
@@ -752,7 +785,7 @@ function SearchAutocompleteList({
         // lands on the "Recent chats" section header row after the two-section switcher was introduced.
         lastProgrammaticFocusKeyRef.current = firstRecentReportKey;
         innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, true);
-    }, [autocompleteQueryValue, firstRecentReportFlatIndex, firstRecentReportKey, normalizedReferenceText, searchQueryItems, shouldHighlightFirstItem]);
+    }, [autocompleteQueryValue, firstRecentReportFlatIndex, firstRecentReportKey, normalizedReferenceText, shouldHighlightFirstItem]);
 
     if (isLoading) {
         return (
