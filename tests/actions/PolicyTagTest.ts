@@ -419,17 +419,16 @@ describe('actions/Policy', () => {
                 setupCategoriesAndTagsParentReportAction: undefined,
                 currentUserAccountID: 0,
                 policyHasCustomCategories: false,
-                shouldRestoreRequiresTagAfterSwitch: true,
+                shouldRestoreRequiresTagAfterSwitch: policyData.current.policy?.shouldRestoreRequiresTagAfterSwitch === true,
             });
             await waitForBatchedUpdates();
 
             const policy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
             const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
-            const shouldRestoreRequiresTag = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS_REQUIRED_AFTER_SWITCH}${fakePolicy.id}`);
 
             expect(policy?.requiresTag).toBe(true);
             expect(policyTags?.[tagListName]?.required).toBe(true);
-            expect(shouldRestoreRequiresTag).toBeFalsy();
+            expect(policy?.shouldRestoreRequiresTagAfterSwitch).toBeFalsy();
 
             mockFetch.resume();
             await waitForBatchedUpdates();

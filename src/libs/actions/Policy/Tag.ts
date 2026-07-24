@@ -64,10 +64,6 @@ type CreatePolicyTagParams = {
     shouldRestoreRequiresTagAfterSwitch?: boolean;
 };
 
-function getPolicyTagsRequiredAfterSwitchKey(policyID: string): `${typeof ONYXKEYS.COLLECTION.POLICY_TAGS_REQUIRED_AFTER_SWITCH}${string}` {
-    return `${ONYXKEYS.COLLECTION.POLICY_TAGS_REQUIRED_AFTER_SWITCH}${policyID}`;
-}
-
 function getEnabledPolicyTagsCount(policyTagList: PolicyTagList) {
     return Object.values(policyTagList.tags ?? {}).filter((tag) => tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
 }
@@ -149,9 +145,8 @@ function createPolicyTag({
     const policyID = policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
-    const requiredAfterSwitchKey = policyID ? getPolicyTagsRequiredAfterSwitchKey(policyID) : undefined;
     // Restore the required toggle only for the first tag created after the switch-level cleanup.
-    const shouldRestoreRequiresTag = !!requiredAfterSwitchKey && shouldRestoreRequiresTagAfterSwitch === true && getEnabledPolicyTagsCount(policyTag) === 0;
+    const shouldRestoreRequiresTag = !!policyID && shouldRestoreRequiresTagAfterSwitch === true && getEnabledPolicyTagsCount(policyTag) === 0;
     const policyRequiresTagOptimisticData: Partial<Policy> = shouldRestoreRequiresTag ? {requiresTag: true} : {};
     const tagListsOptimisticData = {
         [policyTag.name]: {
@@ -209,35 +204,31 @@ function createPolicyTag({
             },
         ],
     };
-    const requiredAfterSwitchOnyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS_REQUIRED_AFTER_SWITCH> = {};
 
-    if (shouldRestoreRequiresTag && requiredAfterSwitchKey) {
-        // Clear the marker immediately and on success so later unrelated tag creations do not re-enable required tags.
-        requiredAfterSwitchOnyxData.optimisticData = [{onyxMethod: Onyx.METHOD.SET, key: requiredAfterSwitchKey, value: null}];
-        requiredAfterSwitchOnyxData.successData = [{onyxMethod: Onyx.METHOD.SET, key: requiredAfterSwitchKey, value: null}];
-        requiredAfterSwitchOnyxData.failureData = [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: requiredAfterSwitchKey,
-                // Keep the marker if tag creation fails, so retrying the first tag can still restore the required state.
-                value: true,
-            },
-        ];
+    if (shouldRestoreRequiresTag) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: policyRequiresTagOptimisticData,
+            value: {
+                ...policyRequiresTagOptimisticData,
+                shouldRestoreRequiresTagAfterSwitch: null,
+            },
         });
         onyxData.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: policyRequiresTagOptimisticData,
+            value: {
+                ...policyRequiresTagOptimisticData,
+                shouldRestoreRequiresTagAfterSwitch: null,
+            },
         });
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 requiresTag: policy?.requiresTag ?? false,
+                // Keep the marker if tag creation fails, so retrying the first tag can still restore the required state.
+                shouldRestoreRequiresTagAfterSwitch: true,
             },
         });
     }
@@ -247,13 +238,8 @@ function createPolicyTag({
         policyID,
         tags: JSON.stringify([{name: newTagName}]),
     };
-    const createTagOnyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_TAGS_REQUIRED_AFTER_SWITCH> = {
-        optimisticData: [...(onyxData.optimisticData ?? []), ...(requiredAfterSwitchOnyxData.optimisticData ?? [])],
-        successData: [...(onyxData.successData ?? []), ...(requiredAfterSwitchOnyxData.successData ?? [])],
-        failureData: [...(onyxData.failureData ?? []), ...(requiredAfterSwitchOnyxData.failureData ?? [])],
-    };
 
-    API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, createTagOnyxData);
+    API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 
     const isTaskForCurrentWorkspace = (taskReport: OnyxEntry<Report>) => !taskReport?.policyID || taskReport.policyID === policyID;
 
@@ -944,7 +930,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
 
 function cleanPolicyTags(policyID: string, shouldRestoreRequiresTagAfterTagCreate = false) {
     // Remember this locally because the clean response can leave policy.requiresTag false until the next policy refresh.
-    Onyx.set(getPolicyTagsRequiredAfterSwitchKey(policyID), shouldRestoreRequiresTagAfterTagCreate ? true : null);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {shouldRestoreRequiresTagAfterSwitch: shouldRestoreRequiresTagAfterTagCreate ? true : null});
 
     // We do not have any optimistic data or success data for this command as this action cannot be done offline
     API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID});
@@ -1079,13 +1065,11 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
 
 function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
     const policyID = policyData.policy?.id;
-    if (policyID) {
-        // A manual toggle is explicit, so any pending switch-level restore intent is no longer needed.
-        Onyx.set(getPolicyTagsRequiredAfterSwitchKey(policyID), null);
-    }
 
     const policyOptimisticData: Partial<Policy> = {
         requiresTag,
+        // A manual toggle is explicit, so any pending switch-level restore intent is no longer needed.
+        shouldRestoreRequiresTagAfterSwitch: null,
         errors: {requiresTag: null},
         pendingFields: {
             requiresTag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -1430,5 +1414,4 @@ export {
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
     importMultiLevelTags,
-    getPolicyTagsRequiredAfterSwitchKey,
 };

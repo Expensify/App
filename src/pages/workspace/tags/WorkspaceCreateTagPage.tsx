@@ -10,7 +10,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
-import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,7 +23,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {createPolicyTag, getPolicyTagsRequiredAfterSwitchKey} from '@userActions/Policy/Tag';
+import {createPolicyTag} from '@userActions/Policy/Tag';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,7 +41,6 @@ type WorkspaceCreateTagPageProps =
 function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const {policyID} = route.params;
     const policyData = usePolicyData(policyID);
-    const [shouldRestoreRequiresTagAfterSwitch] = useOnyx(getPolicyTagsRequiredAfterSwitchKey(policyID));
     const {tags: policyTagLists, categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -105,7 +103,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             setupCategoriesAndTagsParentReportAction,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             policyHasCustomCategories,
-            shouldRestoreRequiresTagAfterSwitch: shouldRestoreRequiresTagAfterSwitch === true,
+            shouldRestoreRequiresTagAfterSwitch: policyData.policy?.shouldRestoreRequiresTagAfterSwitch === true,
         });
         Keyboard.dismiss();
         Navigation.goBack(isDynamicFlow ? backPath : undefined);
