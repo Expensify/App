@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -166,15 +166,16 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             </View>
             <FixedFooter style={[styles.flex1, styles.justifyContentEnd]}>
                 <Button
-                    text={translate('common.import')}
                     onPress={importMembers}
                     isLoading={isImporting}
                     isDisabled={isOffline}
-                    pressOnEnter
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={styles.mb3}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.import')}</Button.Text>
+                </Button>
                 <PressableWithoutFeedback
                     onPress={openPrivacyURL}
                     role={CONST.ROLE.LINK}

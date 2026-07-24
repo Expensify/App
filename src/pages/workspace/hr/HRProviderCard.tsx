@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -154,13 +154,14 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
     if (!card.isConnected) {
         rightInset = (
             <Button
-                small
-                text={translate('workspace.hr.connect')}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleConnect}
                 innerStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                 hoverStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                 isDisabled={isOffline}
-            />
+            >
+                <Button.Text>{translate('workspace.hr.connect')}</Button.Text>
+            </Button>
         );
     } else if (card.isSyncInProgress) {
         rightInset = (
