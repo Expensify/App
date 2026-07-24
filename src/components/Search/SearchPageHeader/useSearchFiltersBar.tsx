@@ -15,12 +15,14 @@ import useOnyx from '@hooks/useOnyx';
 
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
 import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
 import {FILTER_VIEW_MAP, getFilterNegatableValue, isAmountFilterKey, isDateFilterKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -35,6 +37,7 @@ import DatePickerFilterPopup from './DatePickerFilterPopup';
 type FilterItem = WithSentryLabel & {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
     onClosePress: () => void;
+    onLandscapePress?: () => void;
 };
 
 type UseSearchFiltersBarResult = {
@@ -163,6 +166,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                 </ListFilterHeightContextProvider>
             ),
             sentryLabel: getFilterSentryLabel(filterKey),
+            onLandscapePress: () => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey, true)),
             onClosePress: () => {
                 if (isAmountFilterKey(filterKey)) {
                     const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;

@@ -7,7 +7,9 @@ import useLocalize from '@hooks/useLocalize';
 
 import React, {useState} from 'react';
 
-function CommonFilterContentPageWrapper({filterKey, value: initialValue, type, policyID, ready, onChange}: CommonFilterContentWrapperProps) {
+type CommonFilterContentPageWrapperProps = CommonFilterContentWrapperProps;
+
+function CommonFilterContentPageWrapper({filterKey, value: initialValue, type, policyID, ready, onChange, buttonText}: CommonFilterContentPageWrapperProps) {
     const {translate} = useLocalize();
     const [value, setValue] = useState<FilterComponentsProps['value']>(initialValue);
 
@@ -24,7 +26,7 @@ function CommonFilterContentPageWrapper({filterKey, value: initialValue, type, p
                 <Button
                     success
                     large
-                    text={translate('common.confirm')}
+                    text={buttonText ?? translate('common.confirm')}
                     onPress={() => onChange(value)}
                 />
             }

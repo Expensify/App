@@ -1158,7 +1158,10 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_CONTENT: {
         route: 'search/filters/:filterKey',
-        getRoute: (filterKey: SearchFilterKey | UserFriendlyKey) => `search/filters/${filterKey}` as const,
+        getRoute: (filterKey: SearchFilterKey | UserFriendlyKey, applyDirectly?: boolean) => {
+            const baseRoute = `search/filters/${filterKey}` as const;
+            return applyDirectly ? (`${baseRoute}?applyDirectly=true` as const) : baseRoute;
+        },
     },
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
