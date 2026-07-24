@@ -39,6 +39,7 @@ import {
     hasExportError as hasExportErrorUtil,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
+    isActionCreator,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -331,14 +332,40 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
     }
 
     const reportActions = getAllReportActions(report.reportID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+    const transactionIDs = reportTransactions.map((t) => t.transactionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, undefined, transactionIDs);
 
-    if (!transactionThreadReportID) {
-        return false;
+    if (transactionThreadReportID) {
+        // Transaction is attached to expense report but hold action is attached to transaction thread report
+        const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID));
+        if (isHolder) {
+            return true;
+        }
     }
 
-    // Transaction is attached to expense report but hold action is attached to transaction thread report
-    const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID));
+    // Fallback: after reverting a split, the hold action may exist in a different transaction thread
+    // than the one returned by getOneTransactionThreadReportID. Search all IOU actions' child reports.
+    const reportActionsArray = Object.values(reportActions);
+    const isHolder = reportTransactions.some((transaction) => {
+        const holdActionID = transaction.comment?.hold;
+        if (!holdActionID) {
+            return false;
+        }
+
+        for (const action of reportActionsArray) {
+            if (!isMoneyRequestAction(action) || !action.childReportID) {
+                continue;
+            }
+
+            const childActions = getAllReportActions(action.childReportID);
+            const holdAction = childActions[holdActionID];
+            if (holdAction) {
+                return isActionCreator(holdAction);
+            }
+        }
+
+        return false;
+    });
 
     return isHolder;
 }

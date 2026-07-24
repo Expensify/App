@@ -3359,6 +3359,154 @@ describe('getSecondaryAction', () => {
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 
+    it('includes REMOVE HOLD via fallback when hold action is in a different child report after reverting split', async () => {
+        const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
+        const REPORT_ACTION_ID_1 = 'REPORT_ACTION_ID_1';
+        const CHILD_REPORT_ID_1 = 'CHILD_REPORT_ID_1';
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        } as unknown as Report;
+
+        await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            comment: {
+                hold: HOLD_ACTION_ID,
+            },
+        } as unknown as Transaction;
+
+        const iouAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            type: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportActionID: REPORT_ACTION_ID_1,
+            actorAccountID: EMPLOYEE_ACCOUNT_ID,
+            childReportID: CHILD_REPORT_ID_1,
+            message: [{html: 'html'}],
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUTransactionID: TRANSACTION_ID,
+            },
+        } as unknown as ReportAction;
+
+        const holdAction = {
+            reportActionID: HOLD_ACTION_ID,
+            reportID: CHILD_REPORT_ID_1,
+            actorAccountID: EMPLOYEE_ACCOUNT_ID,
+        };
+
+        const policy = {
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        // getOneTransactionThreadReportID returns undefined to simulate the revert-split scenario
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(undefined);
+        // getAllReportActions returns the IOU action for the parent report and the hold action for the child report
+        jest.spyOn(ReportActionsUtils, 'getAllReportActions').mockImplementation((reportID) => {
+            if (reportID === String(REPORT_ID)) {
+                return {[REPORT_ACTION_ID_1]: iouAction};
+            }
+            if (reportID === CHILD_REPORT_ID_1) {
+                return {[HOLD_ACTION_ID]: holdAction} as unknown as ReturnType<typeof ReportActionsUtils.getAllReportActions>;
+            }
+            return {};
+        });
+        jest.spyOn(ReportUtils, 'isActionCreator').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+        expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
+    });
+
+    it('does not include REMOVE HOLD via fallback when current user is not the hold creator', async () => {
+        const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
+        const REPORT_ACTION_ID_1 = 'REPORT_ACTION_ID_1';
+        const CHILD_REPORT_ID_1 = 'CHILD_REPORT_ID_1';
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as unknown as Report;
+
+        await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            comment: {
+                hold: HOLD_ACTION_ID,
+            },
+        } as unknown as Transaction;
+
+        const iouAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            type: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportActionID: REPORT_ACTION_ID_1,
+            actorAccountID: EMPLOYEE_ACCOUNT_ID,
+            childReportID: CHILD_REPORT_ID_1,
+            message: [{html: 'html'}],
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUTransactionID: TRANSACTION_ID,
+            },
+        } as unknown as ReportAction;
+
+        const holdAction = {
+            reportActionID: HOLD_ACTION_ID,
+            reportID: CHILD_REPORT_ID_1,
+            actorAccountID: 999,
+        };
+
+        // getOneTransactionThreadReportID returns undefined to simulate the revert-split scenario
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(undefined);
+        jest.spyOn(ReportActionsUtils, 'getAllReportActions').mockImplementation((reportID) => {
+            if (reportID === String(REPORT_ID)) {
+                return {[REPORT_ACTION_ID_1]: iouAction};
+            }
+            if (reportID === CHILD_REPORT_ID_1) {
+                return {[HOLD_ACTION_ID]: holdAction} as unknown as ReturnType<typeof ReportActionsUtils.getAllReportActions>;
+            }
+            return {};
+        });
+        // Current user is NOT the hold creator
+        jest.spyOn(ReportUtils, 'isActionCreator').mockReturnValue(false);
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy: {} as Policy,
+        });
+        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
+    });
+
     it('include DUPLICATE option for single-transaction expense report', () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,

@@ -43,6 +43,7 @@ import {
     getReportAction,
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
+    isMoneyRequestAction,
     isPayAction,
 } from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
@@ -847,16 +848,43 @@ function isRemoveHoldAction(
         return false;
     }
 
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
-
-    if (!transactionThreadReportID) {
-        return false;
-    }
-
-    const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID));
+    const transactionIDs = reportTransactions.map((t) => t.transactionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, undefined, transactionIDs);
     const isPrimaryActionRemoveHold = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
 
-    if (isHolder) {
+    if (transactionThreadReportID) {
+        const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID));
+        if (isHolder) {
+            return !isPrimaryActionRemoveHold;
+        }
+    }
+
+    // Fallback: after reverting a split, the hold action may exist in a different transaction thread
+    // than the one returned by getOneTransactionThreadReportID. Search all IOU actions' child reports.
+    const allReportActions = getAllReportActions(report.reportID);
+    const allReportActionsArray = Object.values(allReportActions);
+    const isHolderFallback = reportTransactions.some((transaction) => {
+        const holdActionID = transaction.comment?.hold;
+        if (!holdActionID) {
+            return false;
+        }
+
+        for (const action of allReportActionsArray) {
+            if (!isMoneyRequestAction(action) || !action.childReportID) {
+                continue;
+            }
+
+            const childActions = getAllReportActions(action.childReportID);
+            const holdAction = childActions[holdActionID];
+            if (holdAction) {
+                return isActionCreator(holdAction);
+            }
+        }
+
+        return false;
+    });
+
+    if (isHolderFallback) {
         return !isPrimaryActionRemoveHold;
     }
 
