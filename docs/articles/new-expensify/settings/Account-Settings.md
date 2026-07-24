@@ -1,7 +1,7 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information, phone number, magic code]
+keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information, phone number, security code]
 ---
 
 Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from the left-hand navigation menu.
@@ -124,7 +124,7 @@ To update your legal name, date of birth, phone number, or address:
 3. Click **Legal Name**, **Date of Birth**, **Phone Number**, or **Address**.
 4. Enter the updated information.
 5. Click **Save**.
-6. Enter the magic code sent to your email or phone to verify the changes.
+6. Enter the security code sent to your email or phone to verify the changes.
 
 When typing in the **Address line 1** field, a list of address suggestions appears. Select a suggestion to auto-populate the address fields including city, state, ZIP code, and country.
 
@@ -140,7 +140,7 @@ To edit your legal name:
 1. Go to **Account > Profile**.
 2. Scroll to **Private** and click **Legal Name**.
 3. Enter the updated information and click **Save**.
-4. Enter the magic code sent to you to verify the change.
+4. Enter the security code sent to you to verify the change.
 
 ---
 
