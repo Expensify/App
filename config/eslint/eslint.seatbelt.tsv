@@ -1971,6 +1971,7 @@
 "../../tests/unit/ImportTransactions.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../tests/unit/LHNAvatarPipelineTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/LightboxTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../tests/unit/ListUtilsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/LoadTestMiddlewareTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/LocalizeTests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/LogTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
