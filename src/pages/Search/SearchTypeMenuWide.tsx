@@ -15,7 +15,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import type {TodoCounts} from '@hooks/useTodoCounts';
 
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
-import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,22 +50,7 @@ type SectionParams = {
 
 function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, areAllSectionsExpanded, onItemPress, onCollapsed}: SectionParams) {
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Basket',
-        'CalendarSolid',
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Document',
-        'Pencil',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(SEARCH_TYPE_MENU_ICON_NAMES);
 
     const [isExpanded, setIsExpanded] = useState(true);
 

@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
+import {SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import navigationRef from '@navigation/navigationRef';
@@ -33,6 +34,8 @@ import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Gear', IconAsset>;
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
+
+const SEARCH_ROUTER_ICON_NAMES = ['Home', 'Inbox', 'ReceiptMultiple', 'Building', 'Gear', ...SEARCH_TYPE_MENU_ICON_NAMES] as const;
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
 const SAVED_SEARCHES_SECTION_PATH = 'search.savedSearchesMenuItemTitle';
@@ -121,27 +124,7 @@ function buildSpendNavigationItems({sections, icons, rightElement, getItemText, 
 function useNavigationSuggestions(query: string, shouldWatchForApprovals = true): SearchQueryItem[] {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons([
-        'Home',
-        'Inbox',
-        'ReceiptMultiple',
-        'Building',
-        'Gear',
-        'Basket',
-        'CalendarSolid',
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Document',
-        'Pencil',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
+    const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {typeMenuSections} = useSearchTypeMenuSections(undefined, shouldWatchForApprovals);

@@ -90,7 +90,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
@@ -538,27 +538,28 @@ type SearchTypeMenuSection = {
     menuItems: SearchTypeMenuItem[];
 };
 
+const SEARCH_TYPE_MENU_ICON_NAMES = [
+    'Receipt',
+    'MoneyBag',
+    'CreditCard',
+    'MoneyHourglass',
+    'CreditCardHourglass',
+    'Bank',
+    'User',
+    'Folder',
+    'Basket',
+    'CalendarSolid',
+    'Document',
+    'Pencil',
+    'ThumbsUp',
+    'CheckCircle',
+] as const satisfies readonly ExpensifyIconName[];
+
 type SearchTypeMenuItem = {
     key: SearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
-    icon: Extract<
-        ExpensifyIconName,
-        | 'Receipt'
-        | 'MoneyBag'
-        | 'CreditCard'
-        | 'MoneyHourglass'
-        | 'CreditCardHourglass'
-        | 'Bank'
-        | 'User'
-        | 'Folder'
-        | 'Basket'
-        | 'CalendarSolid'
-        | 'Document'
-        | 'Pencil'
-        | 'ThumbsUp'
-        | 'CheckCircle'
-    >;
+    icon: TupleToUnion<typeof SEARCH_TYPE_MENU_ICON_NAMES>;
     searchQuery: string;
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
@@ -6594,5 +6595,6 @@ export {
     splitGroupsIntoPairs,
     isEligibleForStatus,
     SKIPPED_SEARCH_FILTERS,
+    SEARCH_TYPE_MENU_ICON_NAMES,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};
