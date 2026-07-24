@@ -11,6 +11,7 @@ import {View} from 'react-native';
 import TableFilterPopoverComponent from './TableFilterPopoverComponent';
 import TableFilterTrigger from './TableFilterTrigger';
 import TableSearchBar from './TableSearchBar';
+import TableSettingsTrigger, {shouldShowTableSettingsTrigger} from './TableSettingsTrigger';
 
 type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */
@@ -19,10 +20,11 @@ type TableFilterBarProps = PropsWithChildren<{
 
 export default function TableFilterBar({label, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
-    const {filterConfig, tableMethods, activeFilters, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
+    const {filterConfig, tableMethods, activeFilters, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
-    const actionColumnVisible = hasFiltersAvailable || !!children;
+    const showsSettingsTrigger = shouldShowTableSettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn});
+    const actionColumnVisible = hasFiltersAvailable || showsSettingsTrigger || !!children;
 
     const appliedFilters = Object.entries(activeFilters ?? {})
         .filter(([, value]) => !!value?.length)
@@ -72,6 +74,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
                 {actionColumnVisible && (
                     <View style={[styles.flexRow, styles.gap1]}>
                         <TableFilterTrigger />
+                        <TableSettingsTrigger />
                         {children}
                     </View>
                 )}

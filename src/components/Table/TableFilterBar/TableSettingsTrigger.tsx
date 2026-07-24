@@ -1,0 +1,91 @@
+import Icon from '@components/Icon';
+import {PressableWithFeedback} from '@components/Pressable';
+import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import {useTableContext} from '@components/Table/TableContext';
+import type {TableColumn} from '@components/Table/types';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+
+import TableSettingsPopoverComponent from './TableSettingsPopoverComponent';
+
+type ShouldShowTableSettingsTriggerParams = {
+    columns: Array<TableColumn<string>>;
+    shouldUseNarrowTableLayout: boolean;
+    narrowLayoutSortColumn: string | undefined;
+};
+
+// On narrow layouts, tables with a narrowLayoutSortColumn ignore user sorting entirely, so a sort control would be a no-op.
+function shouldShowTableSettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn}: ShouldShowTableSettingsTriggerParams): boolean {
+    const hasSortableColumns = columns.some((column) => column.sortable);
+    const isSortingLockedByLayout = shouldUseNarrowTableLayout && !!narrowLayoutSortColumn;
+    return hasSortableColumns && !isSortingLockedByLayout;
+}
+
+// FilterPopupButton invokes PopoverComponent as a plain function during its own render, so the popover must be
+// wrapped in a JSX element here — otherwise its hooks would run inside FilterPopupButton's hook list and crash React.
+function renderTableSettingsPopover({closeOverlay}: PopoverComponentProps) {
+    return (
+        <ListFilterHeightContextProvider>
+            <TableSettingsPopoverComponent closeOverlay={closeOverlay} />
+        </ListFilterHeightContextProvider>
+    );
+}
+
+export default function TableSettingsTrigger() {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Eye']);
+    const {columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn} = useTableContext();
+
+    if (!shouldShowTableSettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn})) {
+        return null;
+    }
+
+    if (shouldUseNarrowTableLayout) {
+        return (
+            <FilterPopupButton
+                PopoverComponent={renderTableSettingsPopover}
+                renderButton={({ref, onPress}) => (
+                    <PressableWithFeedback
+                        ref={ref}
+                        accessibilityLabel={translate('search.display.label')}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.TABLE.SETTINGS}
+                        hoverStyle={styles.buttonHoveredBG}
+                        style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.componentSizeNormal, styles.borderRadiusCircle]}
+                        onPress={onPress}
+                    >
+                        <Icon
+                            size={CONST.ICON_SIZE.SMALL}
+                            src={icons.Eye}
+                            fill={theme.icon}
+                        />
+                    </PressableWithFeedback>
+                )}
+            />
+        );
+    }
+
+    return (
+        <DropdownButton
+            label={translate('search.display.label')}
+            sentryLabel={CONST.SENTRY_LABEL.TABLE.SETTINGS}
+            value={null}
+            wrapperStyle={styles.mt0Half}
+            PopoverComponent={renderTableSettingsPopover}
+        />
+    );
+}
+
+export {shouldShowTableSettingsTrigger};
