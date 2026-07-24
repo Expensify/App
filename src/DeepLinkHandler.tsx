@@ -12,6 +12,7 @@ import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken, isAnonymousUser} from './libs/actions/Session';
 import Log from './libs/Log';
+import {setPendingHomeDeepLinkIfNoPendingConcierge} from './libs/PendingConciergeDeepLink';
 import {getReportIDFromLink} from './libs/ReportUtils';
 import {endSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
@@ -106,6 +107,10 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                     openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
                     trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
+                    if (!isCurrentlyAuthenticated && typeof window !== 'undefined' && window.location.pathname === '/') {
+                        // A missing initial URL at root can happen during startup, so don't override a stored /concierge intent.
+                        setPendingHomeDeepLinkIfNoPendingConcierge();
+                    }
                     Report.doneCheckingPublicRoom();
                 }
 
