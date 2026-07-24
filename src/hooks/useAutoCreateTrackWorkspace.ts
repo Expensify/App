@@ -139,7 +139,6 @@ function useAutoCreateTrackWorkspace() {
                     reportNameValuePairs,
                     newPolicyID,
                     mergedAccountConciergeReportID,
-                    false,
                     rhpVariant,
                 );
             }
