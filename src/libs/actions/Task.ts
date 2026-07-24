@@ -1150,6 +1150,7 @@ function getShareDestination(
         isMultipleParticipant,
         localeCompare,
         LocalePhoneNumber.formatPhoneNumber,
+        translate,
     );
 
     let subtitle = '';
