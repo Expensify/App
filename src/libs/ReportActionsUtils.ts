@@ -467,6 +467,22 @@ function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, o
     return translate('iou.paidElsewhere', {payer, comment: originalMessage?.comment?.trim()});
 }
 
+/**
+ * Builds the payment message for a cross-border FX reimbursement: the amount credited to the employee (in their
+ * deposit currency) plus both account last-4s, since the company and employee move different currencies.
+ */
+function getCrossBorderReimbursedMessage(
+    translate: LocalizedTranslate,
+    originalMessage: Pick<OriginalMessageIOU, 'creditedAmount' | 'creditedCurrency' | 'debitBankAccountLast4' | 'creditBankAccountLast4'>,
+    fallbackDebitBankAccountLast4?: string,
+): string {
+    return translate('iou.reimbursedCrossBorder', {
+        amount: convertToDisplayString(originalMessage.creditedAmount, originalMessage.creditedCurrency),
+        debitBankAccount: originalMessage.debitBankAccountLast4 ?? fallbackDebitBankAccountLast4 ?? '',
+        creditBankAccount: originalMessage.creditBankAccountLast4 ?? '',
+    });
+}
+
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
     return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
@@ -520,13 +536,8 @@ function getReimbursedMessage(
 
     // Cross-border FX reimbursements report the credited amount (in the employee's deposit currency) instead of the
     // report total, since the company and employee move different currencies.
-    const {creditedAmount, creditedCurrency} = originalMessage;
-    if (creditedAmount) {
-        let crossBorderMessage = translate('iou.reimbursedCrossBorder', {
-            amount: convertToDisplayString(creditedAmount, creditedCurrency),
-            debitBankAccount: effectiveDebitBankAccountLast4 ?? '',
-            creditBankAccount: creditBankAccountLast4 ?? '',
-        });
+    if (originalMessage.creditedAmount) {
+        let crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, effectiveDebitBankAccountLast4);
         if (isAutomation) {
             crossBorderMessage += ` ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}`;
         }
@@ -4808,6 +4819,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getCrossBorderReimbursedMessage,
     getElsewherePaymentReportActionMessage,
     getMarkedReimbursedMessage,
     getReimbursedMessage,

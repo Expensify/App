@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
-import {getElsewherePaymentReportActionMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getCrossBorderReimbursedMessage, getElsewherePaymentReportActionMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -40,6 +40,12 @@ function PaymentContent({action, policyID}: PaymentContentProps) {
 
     if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         const last4Digits = getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policy);
+
+        // Cross-border FX reimbursements report the amount credited to the employee (in their deposit currency)
+        // plus both account last-4s, since the company and employee move different currencies.
+        if (originalMessage.creditedAmount) {
+            return <ReportActionItemBasicMessage message={getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits)} />;
+        }
         if (wasAutoPaid) {
             const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
             return (

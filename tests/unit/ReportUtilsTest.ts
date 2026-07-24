@@ -571,6 +571,30 @@ describe('ReportUtils', () => {
             expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, undefined, iouReport)).toBe(paidSystemMessage);
         });
 
+        it('should show the cross-border FX message with the credited amount and both account last-4s', async () => {
+            // Given a VBBA pay action enriched with the cross-border FX amounts (company-paid conversion)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            const crossBorderAction = {
+                ...reportAction,
+                originalMessage: {
+                    ...reportAction.originalMessage,
+                    creditedAmount: 1340,
+                    creditedCurrency: 'GBP',
+                    debitBankAccountLast4: '6789',
+                    creditBankAccountLast4: '3335',
+                },
+            };
+
+            // Then the message reports the credited amount and moves "from account VBA to account employee"
+            const expectedMessage = translate(CONST.LOCALES.EN, 'iou.reimbursedCrossBorder', {
+                amount: convertToDisplayString(1340, 'GBP'),
+                debitBankAccount: '6789',
+                creditBankAccount: '3335',
+            });
+            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, undefined, iouReport)).toBe(expectedMessage);
+        });
+
         it('should return received payment when submitter marked payment received', () => {
             const paymentReceivedReportAction = {
                 ...createRandomReportAction(45),
