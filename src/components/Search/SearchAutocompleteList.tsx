@@ -198,6 +198,13 @@ function SearchAutocompleteList({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
+    // hasEffectiveInputQuery reflects the immediate input (used to hide recent searches the moment the user types).
+    // hasActiveSearchResults additionally requires the debounced autocompleteQueryValue to be non-empty, i.e. the
+    // filtered searchOptions/recentReportsOptions actually reflect the typed query. Gating the results layout on this
+    // (rather than the immediate value) keeps the sections in sync with the data they render: during the debounce
+    // window we keep showing recent chats instead of briefly rendering the previous/unfiltered rows under the search
+    // layout and then reflowing once the debounced query catches up.
+    const hasActiveSearchResults = hasEffectiveInputQuery && autocompleteQueryValue.trim() !== '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -405,13 +412,14 @@ function SearchAutocompleteList({
     ]);
 
     const recentReportsOptions = useMemo(() => {
-        if (!hasEffectiveInputQuery) {
+        if (!hasActiveSearchResults) {
             return searchOptions.recentReports;
         }
 
-        // searchOptions/autocompleteQueryValue are debounced, so during the debounce window this still
-        // returns the previous query's matches instead of blanking the list. Keeping rows visible (rather
-        // than emptying them) is what preserves focus, Enter, and arrow-key navigation while typing.
+        // searchOptions/autocompleteQueryValue are debounced. For a query -> query change this still returns the
+        // previous query's matches during the debounce window (rows stay visible, preserving focus/Enter/arrow keys).
+        // For the empty -> query transition hasActiveSearchResults is false until the debounced query lands, so this
+        // returns recent chats instead of unfiltered rows, avoiding the stale-then-filtered reflow.
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
@@ -423,7 +431,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, hasEffectiveInputQuery, searchOptions]);
+    }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions]);
 
     // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
@@ -544,8 +552,9 @@ function SearchAutocompleteList({
             />
         );
 
-        if (!hasEffectiveInputQuery) {
-            // Empty query: single "Recent chats" section
+        if (!hasActiveSearchResults) {
+            // No active (debounced) query yet: single "Recent chats" section. This also covers the debounce window
+            // right after the user starts typing, so we keep recent chats visible instead of flashing search rows.
             if (!isLoadingOptions) {
                 pushSection({title: translate('search.recentChats'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
             } else {
@@ -613,6 +622,7 @@ function SearchAutocompleteList({
         return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
     }, [
         hasEffectiveInputQuery,
+        hasActiveSearchResults,
         autocompleteSuggestions,
         expensifyIcons,
         frozenLocalRank,
