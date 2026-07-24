@@ -20,6 +20,7 @@ type ExportIntegration = {
     exportPageLink: string;
     data: SelectorType[];
     exportType?: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>;
+    shouldHideMenuItemDescription?: boolean;
     shouldShowMenuItem?: boolean;
 };
 
@@ -393,7 +394,7 @@ function getExportMenuItem(
                     : undefined) ?? cardProgramAccount?.id;
             const cardAccount = rilletData?.accounts?.find((account) => account.id === cardAccountID);
             const cardAccountDisplayName = cardAccount ? `${cardAccount.code} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}` : '';
-            const title = cardAccountDisplayName;
+            const title = `${translate('common.exportsTo')} ${cardAccountDisplayName}`;
             const description = currentConnectionName
                 ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.rillet.cardAccount.label'))
                 : undefined;
@@ -417,6 +418,7 @@ function getExportMenuItem(
                 title,
                 description,
                 exportType,
+                shouldHideMenuItemDescription: true,
                 shouldShowMenuItem,
                 exportPageLink: ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID),
                 data: filteredData,
