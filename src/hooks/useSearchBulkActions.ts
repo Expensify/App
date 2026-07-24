@@ -158,6 +158,10 @@ function getRestrictedPolicyID(
         );
 }
 
+function isGroupSelection(key: string, transaction: SelectedTransactions[string]): boolean {
+    return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey);
+}
+
 function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON {
     const {groupBy} = queryJSON;
     if (!groupBy || !searchData) {
@@ -165,11 +169,14 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
     }
 
     const groupKeys = new Set<string>();
-    for (const [key, value] of Object.entries(selectedTransactions)) {
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (!isGroupSelection(key, transaction)) {
+            continue;
+        }
         if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
             groupKeys.add(key);
-        } else if (value.groupKey) {
-            groupKeys.add(value.groupKey);
+        } else if (transaction.groupKey) {
+            groupKeys.add(transaction.groupKey);
         }
     }
 
@@ -643,7 +650,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     true,
                 );
             } else {
-                const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+                const isGroupExport = !!queryJSON?.groupBy && Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
                 exportID = queueExportSearchWithTemplate(
                     {
                         templateName,
@@ -743,7 +750,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const isGroupExport = !!queryJSON?.groupBy && selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+            const isGroupExport = !!queryJSON?.groupBy && Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
+            const transactionIDList = isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys;
             let didFail = false;
             const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
             const queryJSONToExport = isGroupExport && queryJSON ? addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data) : queryJSON;
@@ -752,10 +760,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 {
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList: isGroupExport ? [] : reportIDList,
-                    transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
+                    transactionIDList,
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
+                    isGroupExport,
                 },
                 () => {
                     didFail = true;
