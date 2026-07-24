@@ -1,8 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {IntroSelected, Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -12,11 +11,9 @@ import type {ValueOf} from 'type-fest';
 
 import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
-import {isTrackOnboardingChoice} from './OnboardingUtils';
 import {deprecatedGetLoginsByAccountIDs, deprecatedGetPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
@@ -32,15 +29,6 @@ import {
     shouldShowMarkAsDone,
 } from './ReportUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
-
-let introSelected: OnyxEntry<IntroSelected>;
-// eslint-disable-next-line rulesdir/no-onyx-connect -- NextStepUtils is a pure utility called from action files that cannot use hooks
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelected = value;
-    },
-});
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -59,6 +47,7 @@ type BuildNextStepNewParams = {
      * This is necessary in the case where report actions are not yet updated to determine the bypass action.
      */
     bypassNextApproverID?: number;
+    isTrackIntentUser: boolean | undefined;
 };
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
@@ -91,7 +80,7 @@ function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
     return (report?.transactionCount ?? 0) > 0;
 }
 
-function buildOptimisticNextStep(params: BuildNextStepNewParams & {isTrackIntentUser: boolean | undefined}): ReportNextStep | null {
+function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
     const {
         report,
         policy,
@@ -390,6 +379,7 @@ function getReportNextStep(
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail: string,
     currentUserAccountID: number,
+    isTrackIntentUser: boolean | undefined,
     reportNextStep?: ReportNextStep,
 ) {
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
@@ -427,6 +417,7 @@ function getReportNextStep(
             hasViolations: false,
             isASAPSubmitBetaEnabled: false,
             predictedNextStatus: moneyRequestReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            isTrackIntentUser,
         });
     }
 
@@ -503,6 +494,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         isReopen,
         isRejectedReport,
         bypassNextApproverID,
+        isTrackIntentUser,
     } = params;
     if (!isExpenseReport(report)) {
         return null;
@@ -575,7 +567,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
             {
-                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy});
+                const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({isTrackIntentUser, report, policy});
 
                 if (isRejectedReport) {
                     optimisticNextStep = {

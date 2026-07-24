@@ -1,8 +1,8 @@
-import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
-
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import {scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
+import {markActivePopoverLauncherDeactivated, setActivePopoverLauncher} from '@libs/LauncherStack';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import restoreFocusWithModality from '@libs/restoreFocusWithModality';
+import sharedTrapStack from '@libs/sharedTrapStack';
 
 import {FocusTrap} from 'focus-trap-react';
 import React, {useRef} from 'react';
@@ -31,8 +31,11 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                     if (!launcher) {
                         return;
                     }
-                    // Deferred so popover paths that navigate after modal-hide can still consume.
-                    scheduleClearActivePopoverLauncher(launcher);
+                    // Mark first so a throw in restoreFocusWithModality can't leak the LauncherStack entry; the deferred clear keeps the post-hide capture window.
+                    markActivePopoverLauncherDeactivated(launcher);
+                    if (shouldReturnFocus && !ReportActionComposeFocusManager.isFocused() && document.contains(launcher)) {
+                        restoreFocusWithModality(launcher, {preventScroll: shouldPreventScroll});
+                    }
                 },
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,
@@ -40,15 +43,7 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                 initialFocus,
                 // Lazy so document.body isn't evaluated at render time (SSR-safe).
                 fallbackFocus: () => document.body,
-                setReturnFocus: (element) => {
-                    if (ReportActionComposeFocusManager.isFocused()) {
-                        return false;
-                    }
-                    if (shouldReturnFocus) {
-                        return element;
-                    }
-                    return false;
-                },
+                setReturnFocus: false,
             }}
         >
             {children}

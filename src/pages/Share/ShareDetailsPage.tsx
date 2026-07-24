@@ -162,6 +162,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         personalDetails,
                         newReportObject: report,
                         betas,
+                        hasReportActions: false,
                     });
                 }
                 if (report.reportID) {

@@ -19,13 +19,9 @@ const hasPerDiemTransactionsSelector = (transactions: OnyxCollection<Transaction
 function useHasPerDiemTransactions(transactionIDs: string[]) {
     const selector = useCallback((transactions: OnyxCollection<Transaction>) => hasPerDiemTransactionsSelector(transactions, transactionIDs), [transactionIDs]);
 
-    const [hasPerDiemTransactions] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        {
-            selector,
-        },
-        [selector],
-    );
+    const [hasPerDiemTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector,
+    });
 
     return hasPerDiemTransactions ?? false;
 }

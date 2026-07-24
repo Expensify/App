@@ -32,10 +32,11 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
-import {buildSearchQueryJSON, getDateRangeForPreset, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
@@ -325,10 +326,12 @@ const approverAvatarIcon = {
     fallbackIcon: undefined,
 };
 
-const policyWorkspaceIcon = {
-    source: defaultWorkspaceAvatars.WorkspaceU,
+// getReportSections passes the snapshot's policy to getPolicyName, so the workspace avatar resolves the
+// policy's real name instead of falling back to "Unavailable workspace".
+const resolvedPolicyWorkspaceIcon = {
+    source: defaultWorkspaceAvatars.WorkspaceP,
     type: CONST.ICON_TYPE_WORKSPACE,
-    name: 'Unavailable workspace',
+    name: policy.name,
     id: policyID,
 };
 
@@ -549,6 +552,8 @@ const searchResults: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         isLoading: false,
         type: 'expense',
     },
@@ -606,6 +611,8 @@ const searchResultsGroupByFrom: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 100,
         isLoading: false,
         type: 'expense',
@@ -656,6 +663,8 @@ const searchResultsGroupByCard: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 60,
         isLoading: false,
         type: 'expense',
@@ -693,6 +702,8 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 60,
         isLoading: false,
         type: 'expense',
@@ -725,6 +736,8 @@ const searchResultsGroupByCategory: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -1184,7 +1197,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         isAllScanning: false,
         isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
-        secondaryAvatar: policyWorkspaceIcon,
+        secondaryAvatar: resolvedPolicyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
@@ -1314,7 +1327,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         isAllScanning: false,
         isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
-        secondaryAvatar: policyWorkspaceIcon,
+        secondaryAvatar: resolvedPolicyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
@@ -1652,7 +1665,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         isAllScanning: false,
         isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
-        secondaryAvatar: policyWorkspaceIcon,
+        secondaryAvatar: resolvedPolicyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 0,
         transactions: [],
@@ -1954,6 +1967,8 @@ const searchResultsGroupByMerchant: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 470,
         isLoading: false,
         type: 'expense',
@@ -2011,6 +2026,8 @@ const searchResultsGroupByTag: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2092,6 +2109,8 @@ const searchResultsGroupByMonth: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2121,6 +2140,8 @@ const searchResultsGroupByYear: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2152,6 +2173,8 @@ const searchResultsGroupByQuarter: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2181,6 +2204,8 @@ const searchResultsGroupByWeek: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2796,6 +2821,34 @@ describe('SearchUIUtils', () => {
             )[0];
 
             expect(result.find((item) => item.reportID === reportID2)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        });
+
+        it('should decode HTML entities in the expense report name', () => {
+            const localSearchResults: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`report_${reportID2}`]: {
+                    ...searchResults.data[`report_${reportID2}`],
+                    reportName: 'A &amp; B &#39;C&#39;',
+                },
+            };
+
+            const result = getSectionsByType(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    data: localSearchResults,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionReportGroupListItemType,
+            )[0];
+
+            expect(result.find((item) => item.reportID === reportID2)?.reportName).toBe("A & B 'C'");
         });
 
         it('should use custom avatar from onyxPersonalDetailsList when search API personalDetailsList is absent', () => {
@@ -8309,6 +8362,8 @@ describe('SearchUIUtils', () => {
                     hash: queryJSON?.hash ?? 0,
                     isLoading: false,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: queryJSON?.sortBy ?? 'date',
+                    sortOrder: queryJSON?.sortOrder ?? 'desc',
                 },
                 ...overrides,
             };
@@ -8330,16 +8385,44 @@ describe('SearchUIUtils', () => {
 
         it('should return false when the search type does not match the query type', () => {
             const results = makeSearchResults({
-                search: {hasMoreResults: false, hasResults: true, offset: 0, hash: queryJSON?.hash ?? 0, isLoading: false, type: CONST.SEARCH.DATA_TYPES.CHAT},
+                search: {
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    sortBy: 'date',
+                    sortOrder: 'desc',
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                },
             });
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
         });
 
         it('should return false when the search hash does not match the query hash', () => {
             const results = makeSearchResults({
-                search: {hasMoreResults: false, hasResults: true, offset: 0, hash: (queryJSON?.hash ?? 0) + 1, isLoading: false, type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+                search: {
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    hash: (queryJSON?.hash ?? 0) + 1,
+                    sortBy: 'date',
+                    sortOrder: 'desc',
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                },
             });
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
+        it('should return true even when the search sortBy/sortOrder is different from the query', () => {
+            const sortBy = CONST.SEARCH.TABLE_COLUMNS.MERCHANT;
+            const sortOrder = CONST.SEARCH.SORT_ORDER.ASC;
+            const expectedHash = queryJSON ? getQueryHashes({...queryJSON, sortBy, sortOrder}).primaryHash : 0;
+            const results = makeSearchResults({
+                search: {hasMoreResults: false, hasResults: true, offset: 0, hash: expectedHash, isLoading: false, type: CONST.SEARCH.DATA_TYPES.EXPENSE, sortBy, sortOrder},
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
 
         it('should return false when searchResults is undefined', () => {
@@ -8388,6 +8471,8 @@ describe('SearchUIUtils', () => {
                     type: 'expense',
                     hash: 0,
                     offset: 0,
+                    sortBy: 'date',
+                    sortOrder: 'desc',
                     hasMoreResults: false,
                     hasResults: true,
                     isLoading: false,
@@ -8520,6 +8605,8 @@ describe('SearchUIUtils', () => {
                 type: 'expense',
                 hash: 0,
                 offset: 0,
+                sortBy: 'date',
+                sortOrder: 'desc',
                 hasMoreResults: false,
                 hasResults: true,
                 isLoading: false,
@@ -8609,6 +8696,30 @@ describe('SearchUIUtils', () => {
 
             const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response2.visibility.export).toBe(true);
+        });
+
+        test('Should show approve suggestion for a report awaiting approval even when the user is not a workflow approver', () => {
+            // An approval-enabled group policy where the current user is neither the approver nor a submitsTo/forwardsTo target.
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: 'someoneelse@policy.com',
+                    employeeList: {
+                        'employee@policy.com': {email: 'employee@policy.com', submitsTo: 'someoneelse@policy.com'},
+                    },
+                },
+            };
+
+            // Without a report awaiting approval, the workflow gate hides the suggestion.
+            const withoutReport = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, false);
+            expect(withoutReport.visibility.approve).toBe(false);
+
+            // A report awaiting the user's approval surfaces the suggestion regardless of workflow membership.
+            const withReport = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, true);
+            expect(withReport.visibility.approve).toBe(true);
         });
 
         test('Should show Top Categories when areCategoriesEnabled is true', () => {
@@ -8916,6 +9027,48 @@ describe('SearchUIUtils', () => {
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(workflowApproverEmail, {}, policies, undefined);
             expect(response.visibility.topSpenders).toBe(true);
+        });
+
+        test('Should collect Top Spenders-eligible policy IDs and scope the suggested search query to them', () => {
+            const eligiblePolicyID = 'GROUP_POLICY_01';
+            const ineligiblePolicyID = 'PERSONAL_POLICY_02';
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${eligiblePolicyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: eligiblePolicyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                },
+                // Personal (non-group) policy is not eligible for Top Spenders and must not be scoped in.
+                [`policy_${ineligiblePolicyID}`]: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL),
+                    id: ineligiblePolicyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                },
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility.topSpenders).toBe(true);
+            expect(response.topSpendersPolicyIDs).toEqual([eligiblePolicyID]);
+
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined, response.topSpendersPolicyIDs);
+            const topSpendersQuery = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQuery;
+            expect(topSpendersQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${eligiblePolicyID}`);
+            expect(topSpendersQuery).not.toContain(ineligiblePolicyID);
+        });
+
+        test('Should not add a policyID filter to the Top Spenders query when there are no eligible workspaces', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined, []);
+            const topSpendersQuery = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQuery;
+            expect(topSpendersQuery).not.toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:`);
         });
 
         test('Should show Spend Over Time for workflow approver (forwardsTo) in paid policy', () => {
@@ -10998,6 +11151,59 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getHasOptions', () => {
+        test('returns expense has options including submitted violation', () => {
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE);
+
+            expect(result).toEqual([
+                {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+                {text: translateLocal('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+            ]);
+        });
+
+        test('returns chat has options without submitted violation', () => {
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.CHAT);
+
+            expect(result).toEqual([
+                {text: translateLocal('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+            ]);
+        });
+
+        test('returns empty array for unsupported search types', () => {
+            expect(SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual([]);
+        });
+    });
+
+    describe('getDisplayValue', () => {
+        test('returns translated has option labels from getHasOptions', () => {
+            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(translateLocal('search.filters.has.submittedViolation'));
+        });
+
+        test('returns multiple has option labels joined by comma', () => {
+            const result = SearchUIUtils.getDisplayValue(
+                'has',
+                {has: [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+            );
+
+            expect(result).toBe(`${translateLocal('common.receipt')}, ${translateLocal('search.filters.has.submittedViolation')}`);
+        });
+
+        test('continues to use common translations for is filter values', () => {
+            const result = SearchUIUtils.getDisplayValue('is', {is: [CONST.SEARCH.IS_VALUES.READ]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(translateLocal('common.read'));
+        });
+    });
+
     describe('filterValidHasValues', () => {
         test('should return undefined when hasValues or type is undefined', () => {
             expect(SearchUIUtils.filterValidHasValues(undefined, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal)).toBeUndefined();
@@ -11005,12 +11211,12 @@ describe('SearchUIUtils', () => {
         });
 
         test('should filter and return only valid hasValues', () => {
-            // Valid values for EXPENSE: receipt, attachment, tag, category
+            // Valid values for EXPENSE: receipt, attachment, tag, category, submitted-violation
             // Invalid value: link (only valid for CHAT)
-            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK];
+            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION];
             const result = SearchUIUtils.filterValidHasValues(hasValues, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
 
-            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG]);
+            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]);
         });
     });
 
@@ -11208,6 +11414,21 @@ describe('getCardDescriptionForSearchTable', () => {
 
     it('uses only last four with leading separator when displayName is missing (search table card group shape)', () => {
         expect(getCardDescriptionForSearchTable(baseCompanyCard, translateLocal)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
+    });
+});
+
+describe('getMultiSelectFilterOptions', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('returns only the selectable receipt types, excluding hotel', () => {
+        const options = SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.RECEIPT_TYPE, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
+        expect(options).toEqual([
+            {value: CONST.SEARCH.RECEIPT_TYPE.ERECEIPT, text: 'eReceipt'},
+            {value: CONST.SEARCH.RECEIPT_TYPE.ITEMIZED, text: 'Itemized'},
+        ]);
+        expect(options).not.toContainEqual(expect.objectContaining({value: CONST.SEARCH.RECEIPT_TYPE.HOTEL}));
     });
 });
 

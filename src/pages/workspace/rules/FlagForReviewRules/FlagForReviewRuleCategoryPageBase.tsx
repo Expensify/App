@@ -1,6 +1,6 @@
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -8,7 +8,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getEffectiveFlagForReviewRuleForm} from '@libs/FlagForReviewRulesUtils';
+import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -28,11 +28,10 @@ type FlagForReviewRuleCategoryPageBaseProps = {
 function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForReviewRuleCategoryPageBaseProps) {
     const isEditing = !!categoryName;
     const policy = usePolicy(policyID);
-    const {getCurrencyDecimals} = useCurrencyListActions();
-    const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const {isOffline} = useNetwork();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -41,7 +40,24 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
     const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
 
     const categoryItems = Object.values(policyCategories ?? {})
-        .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .filter((category) => {
+            if (!category.enabled) {
+                return false;
+            }
+
+            // Match the rules table: keep pending-delete categories visible while offline.
+            if (!isOffline && category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return false;
+            }
+
+            // Keep the currently selected / route category available, but don't offer other
+            // categories that already have a flag-for-review rule (avoids silent overwrite).
+            if (category.name === categoryName || category.name === selectedCategoryName) {
+                return true;
+            }
+
+            return !hasExplicitFlagAmount(category.maxExpenseAmount);
+        })
         .map((category) => {
             const decodedCategoryName = getDecodedCategoryName(category.name);
             return {name: decodedCategoryName, value: category.name};
@@ -50,13 +66,12 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
     const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
-        const selectedCategory = value ? policyCategories?.[value] : undefined;
-        const draftForm = {
+        // Preserve the current draft amount / limit type. Merging from the destination category
+        // would discard in-progress edits and can overwrite an existing rule on save.
+        updateDraftFlagForReviewRule({
             ...form,
             [INPUT_IDS.CATEGORY]: value,
-        };
-
-        updateDraftFlagForReviewRule(selectedCategory ? getEffectiveFlagForReviewRuleForm(selectedCategory, draftForm, getCurrencyDecimals, policyCurrency) : draftForm);
+        });
     };
 
     return (
@@ -75,6 +90,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
                 onSave={onSave}
                 onBack={() => Navigation.goBack(backToRoute)}
                 backToRoute={backToRoute}
+                shouldSkipFocusRestoreOnSave
             />
         </AccessOrNotFoundWrapper>
     );
