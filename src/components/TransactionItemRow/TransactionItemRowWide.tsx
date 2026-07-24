@@ -50,7 +50,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {TransactionItemRowProps, TransactionItemRowWideComputedData} from './types';
+import type {TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, TransactionItemRowWideComputedData} from './types';
 
 import CategoryCell from './DataCells/CategoryCell';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
@@ -62,8 +62,12 @@ import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
 
-type TransactionItemRowWideProps = Omit<TransactionItemRowProps, 'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox'> &
-    TransactionItemRowWideComputedData;
+type TransactionItemRowWideProps = Omit<
+    TransactionItemRowProps,
+    'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox' | 'shouldSkipDeferRBR'
+> &
+    TransactionItemRowWideComputedData &
+    TransactionItemRowRBRDeferControlProps;
 
 function TransactionItemRowWide({
     transactionItem,
@@ -92,6 +96,7 @@ function TransactionItemRowWide({
     shouldStopRadioButtonMouseDownPropagation = false,
     radioButtonContainerStyle,
     shouldShowErrors = true,
+    shouldDeferRBR = true,
     isDisabled = false,
     shouldDisableActionPointerEvents = false,
     violations,
@@ -710,6 +715,7 @@ function TransactionItemRowWide({
                 </View>
                 {shouldShowErrors && (
                     <DeferredTransactionItemRowRBR
+                        shouldDefer={shouldDeferRBR}
                         transaction={transactionItem}
                         violations={violations}
                         report={report}

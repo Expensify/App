@@ -60,7 +60,6 @@ function ShareTab() {
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options: listOptions, isLoading} = useFilteredOptions({
         enabled: didScreenTransitionEnd,
-        betas: betas ?? [],
         isSearching: !!debouncedTextInputValue.trim(),
     });
     const areOptionsInitialized = !isLoading;

@@ -67,7 +67,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
 
                 <View style={[styles.mt5]}>
                     <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !shouldUseNarrowLayout ? styles.textAlignLeft : {}]}>
-                        {translate('samlSignIn.orContinueWithMagicCode')}
+                        {translate('samlSignIn.orContinueWithSecurityCode')}
                     </Text>
                 </View>
 
@@ -75,7 +75,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
                     isDisabled={isOffline}
                     style={[styles.mv3]}
                     large
-                    text={translate('samlSignIn.useMagicCode')}
+                    text={translate('samlSignIn.useSecurityCode')}
                     isLoading={account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {
                         resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}, credentials?.login);
