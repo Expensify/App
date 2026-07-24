@@ -242,7 +242,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             if (!validateCode) {
                 addMFABreadcrumb('Validate code requested');
                 requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY});
-                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
+                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE);
                 return;
             }
 
