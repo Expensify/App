@@ -1,66 +1,64 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
+import useOnyx from '@hooks/useOnyx';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import Onyx from 'react-native-onyx';
+// The SESSION/ACCOUNT selector mapping is covered by tests/unit/selectors/SessionTest.ts and AccountTest.ts,
+// so here we mock useOnyx to exercise the hook's own logic: combining the two booleans and failing closed while loading.
+jest.mock('@hooks/useOnyx', () => jest.fn());
 
-import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+const mockedUseOnyx = jest.mocked(useOnyx);
+
+type MockedResult = [boolean, {status: 'loading' | 'loaded'}];
+
+function mockUseOnyx(session: MockedResult, account: MockedResult) {
+    mockedUseOnyx.mockImplementation(((key: string) => (key === ONYXKEYS.SESSION ? session : account)) as typeof useOnyx);
+}
 
 describe('useShouldSuppressPromotionalUI', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-        return waitForBatchedUpdates();
+    afterEach(() => {
+        mockedUseOnyx.mockReset();
     });
 
-    beforeEach(() => {
-        Onyx.clear();
-        return waitForBatchedUpdates();
-    });
-
-    it('returns false for a regular session', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS, email: 'user@example.com'});
-        await waitForBatchedUpdates();
+    it('fails closed (returns true) while SESSION is still loading', () => {
+        mockUseOnyx([false, {status: 'loading'}], [false, {status: 'loaded'}]);
 
         const {result} = renderHook(() => useShouldSuppressPromotionalUI());
 
-        await waitFor(() => {
-            expect(result.current).toBe(false);
-        });
+        expect(result.current).toBe(true);
     });
 
-    it('returns true when the session uses a support auth token', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
-        await waitForBatchedUpdates();
+    it('fails closed (returns true) while ACCOUNT is still loading', () => {
+        mockUseOnyx([false, {status: 'loaded'}], [false, {status: 'loading'}]);
 
         const {result} = renderHook(() => useShouldSuppressPromotionalUI());
 
-        await waitFor(() => {
-            expect(result.current).toBe(true);
-        });
+        expect(result.current).toBe(true);
     });
 
-    it('returns true mid-transition when isSupportAuthTokenUsed is set', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {isSupportAuthTokenUsed: true});
-        await waitForBatchedUpdates();
+    it('returns false for a loaded regular (non-supportal, non-copilot) session', () => {
+        mockUseOnyx([false, {status: 'loaded'}], [false, {status: 'loaded'}]);
 
         const {result} = renderHook(() => useShouldSuppressPromotionalUI());
 
-        await waitFor(() => {
-            expect(result.current).toBe(true);
-        });
+        expect(result.current).toBe(false);
     });
 
-    it('returns true when acting as a copilot', async () => {
-        await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'copilot@expensify.com'}});
-        await waitForBatchedUpdates();
+    it('returns true for a supportal session', () => {
+        mockUseOnyx([true, {status: 'loaded'}], [false, {status: 'loaded'}]);
 
         const {result} = renderHook(() => useShouldSuppressPromotionalUI());
 
-        await waitFor(() => {
-            expect(result.current).toBe(true);
-        });
+        expect(result.current).toBe(true);
+    });
+
+    it('returns true when acting as a copilot', () => {
+        mockUseOnyx([false, {status: 'loaded'}], [true, {status: 'loaded'}]);
+
+        const {result} = renderHook(() => useShouldSuppressPromotionalUI());
+
+        expect(result.current).toBe(true);
     });
 });
