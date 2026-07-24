@@ -117,7 +117,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const isMonthlySettlementFrequency = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
     const localizedFrequency = isMonthlySettlementFrequency ? translate('workspace.expensifyCard.frequency.monthly') : translate('workspace.expensifyCard.frequency.daily');
 
-    const shouldShowPayButton = travelSpend > 0 && isMonthlySettlementFrequency && !hasPendingSettlement;
+    const shouldShowPayButton = travelSpend > 0 && travelSpend > pendingInvoiceAmount && isMonthlySettlementFrequency && !hasPendingSettlement;
     const formattedSpend = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
 
     // Pay-by-invoice customers settle by wire against an invoice, so the pay CTA and modal use invoice copy
@@ -360,12 +360,11 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 </View>
                 {shouldShowPayButton && canWriteMoreFeatures && (
                     <Button
-                        text={payBalanceCtaText}
                         onPress={handlePayBalance}
                         isDisabled={isOffline}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                     >
-                        <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}</Button.Text>
+                        <Button.Text>{payBalanceCtaText}</Button.Text>
                     </Button>
                 )}
             </View>
