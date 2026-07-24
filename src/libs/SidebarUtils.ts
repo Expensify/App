@@ -152,7 +152,7 @@ import {
     isTagModificationAction,
     isTaskAction,
 } from './ReportActionsUtils';
-import {deprecatedGetReportName} from './ReportNameUtils';
+import {deprecatedGetReportName, getReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
@@ -223,7 +223,7 @@ type WelcomeMessageParams = {
     translate: LocalizedTranslate;
     localeCompare: LocaleContextProps['localeCompare'];
     conciergeReportID: string | undefined;
-    reportAttributes?: ReportAttributesDerivedValue['reports'];
+    derivedReportName?: string;
     isReportArchived?: boolean;
     reportDetailsLink?: string;
     shouldShowUsePlusButtonText?: boolean;
@@ -1324,7 +1324,7 @@ function getOptionData({
                         translate,
                         localeCompare,
                         conciergeReportID,
-                        reportAttributes: reportAttributesDerived,
+                        derivedReportName: reportAttributesDerived?.[report.reportID]?.reportName,
                         isReportArchived,
                         isTrackIntentUser,
                         currentUserAccountID,
@@ -1344,7 +1344,7 @@ function getOptionData({
                     translate,
                     localeCompare,
                     conciergeReportID,
-                    reportAttributes: reportAttributesDerived,
+                    derivedReportName: reportAttributesDerived?.[report.reportID]?.reportName,
                     isReportArchived,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 }).messageText || translate('report.noActivityYet'),
@@ -1430,7 +1430,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         translate,
         localeCompare,
         conciergeReportID,
-        reportAttributes,
+        derivedReportName,
         isReportArchived = false,
         reportDetailsLink = '',
         shouldShowUsePlusButtonText = false,
@@ -1445,7 +1445,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, reportAttributes, isReportArchived, reportDetailsLink);
+        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, derivedReportName, isReportArchived, reportDetailsLink);
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -1507,13 +1507,13 @@ function getRoomWelcomeMessage(
     translate: LocalizedTranslate,
     report: OnyxEntry<Report>,
     invoiceReceiverPolicy: OnyxEntry<Policy>,
-    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+    derivedReportName: string | undefined,
     isReportArchived = false,
     reportDetailsLink = '',
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    const reportName = deprecatedGetReportName(report ?? undefined, reportAttributes);
+    const reportName = getReportName(report ?? undefined, derivedReportName);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);

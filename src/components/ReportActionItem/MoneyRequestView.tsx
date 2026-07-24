@@ -76,7 +76,7 @@ import {
     isXeroActiveMatchingSource,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -558,7 +558,7 @@ function MoneyRequestView({
         }
         return {
             reportID: match.reportID,
-            name: deprecatedGetReportName(match, reportAttributes) || match.reportName,
+            name: getReportName(match, reportAttributes?.[match.reportID]?.reportName) || match.reportName,
         };
     };
     const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
@@ -1144,7 +1144,7 @@ function MoneyRequestView({
 
     const reportNameToDisplay = isFromMergeTransaction
         ? (updatedTransaction?.reportName ?? translate('common.none'))
-        : deprecatedGetReportName(parentReport, reportAttributes) || parentReport?.reportName;
+        : getReportName(parentReport, parentReport?.reportID ? reportAttributes?.[parentReport.reportID]?.reportName : undefined) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
