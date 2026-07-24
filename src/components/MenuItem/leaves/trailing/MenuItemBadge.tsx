@@ -13,12 +13,12 @@ import React from 'react';
  */
 function MenuItemBadge({badgeStyles, pressable, ...rest}: BadgeProps) {
     const styles = useThemeStyles();
-    const {isFocused} = useMenuItemState();
+    const {isActive} = useMenuItemState();
 
     return (
         <Badge
             {...rest}
-            badgeStyles={[badgeStyles, isFocused && !rest.success && styles.badgeDefaultActive]}
+            badgeStyles={[badgeStyles, isActive && !rest.success && styles.badgeDefaultActive]}
             pressable={pressable ?? !!rest.onPress}
         />
     );

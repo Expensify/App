@@ -9,17 +9,18 @@ import CONST from '@src/CONST';
 
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-type MenuItemTitleVariant = (typeof CONST.MENU_ITEM.TITLE_VARIANT)[keyof typeof CONST.MENU_ITEM.TITLE_VARIANT];
+type MenuItemTitleWeight = ValueOf<typeof CONST.MENU_ITEM.TITLE_WEIGHT>;
 
 type MenuItemTitleProps = PropsWithChildren & {
     /** Used to truncate the text with an ellipsis after computing the text layout */
     numberOfLines?: number;
 
-    /** Font weight variant. `strong` (default) is bold; `normal` uses the default weight. */
-    variant?: MenuItemTitleVariant;
+    /** Font weight. `strong` (default) is bold; `normal` uses the default weight. */
+    weight?: MenuItemTitleWeight;
 
     /** Any additional styles to apply to the title (e.g. pass a non-bold text style for a basic title) */
     style?: StyleProp<TextStyle>;
@@ -28,7 +29,7 @@ type MenuItemTitleProps = PropsWithChildren & {
 /**
  * The title block of a `MenuItem.Content`. Bold by default, single line by default.
  */
-function MenuItemTitle({children, numberOfLines = 1, variant = CONST.MENU_ITEM.TITLE_VARIANT.STRONG, style}: MenuItemTitleProps) {
+function MenuItemTitle({children, numberOfLines = 1, weight = CONST.MENU_ITEM.TITLE_WEIGHT.STRONG, style}: MenuItemTitleProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemState();
 
@@ -37,7 +38,7 @@ function MenuItemTitle({children, numberOfLines = 1, variant = CONST.MENU_ITEM.T
             style={[
                 styles.flexShrink1,
                 styles.popoverMenuText,
-                variant === CONST.MENU_ITEM.TITLE_VARIANT.STRONG && styles.textStrong,
+                weight === CONST.MENU_ITEM.TITLE_WEIGHT.STRONG && styles.textStrong,
                 numberOfLines !== 1 ? styles.preWrap : styles.pre,
                 isInteractive && isDisabled && styles.userSelectNone,
                 styles.ltr,

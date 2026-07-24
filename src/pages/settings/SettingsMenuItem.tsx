@@ -66,8 +66,8 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             style={wrapperStyle}
             onPress={onPress}
             onSecondaryInteraction={onSecondaryInteraction}
-            disabled={isExecuting}
-            focused={isFocused}
+            isDisabled={isExecuting}
+            isActive={isFocused}
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
             accessibilityHint={accessibilityHint}

@@ -12,11 +12,12 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ImageContentFit} from 'expo-image';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
 
-type MenuItemIconVariant = (typeof CONST.MENU_ITEM.ICON_VARIANT)[keyof typeof CONST.MENU_ITEM.ICON_VARIANT];
+type MenuItemIconVariant = ValueOf<typeof CONST.MENU_ITEM.ICON_VARIANT>;
 
 type MenuItemIconProps = {
     /** Icon to display */
@@ -67,14 +68,14 @@ function MenuItemIcon({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const menuItemState = useMenuItemState();
-    const {isHovered, isPressed, isFocused, isDisabled, isInteractive, isSuccess, isCompact} = menuItemState;
+    const {isHovered, isPressed, isActive, isDisabled, isInteractive, isSuccess, isCompact} = menuItemState;
 
     let iconFill: string | undefined;
     if (!displayInDefaultIconColor) {
         if (typeof fill === 'function') {
             iconFill = fill(menuItemState);
         } else {
-            iconFill = fill ?? StyleUtils.getIconFillColor(getButtonState(isFocused || isHovered, isPressed, isSuccess, isDisabled, isInteractive), true, true);
+            iconFill = fill ?? StyleUtils.getIconFillColor(getButtonState(isActive || isHovered, isPressed, isSuccess, isDisabled, isInteractive), true, true);
         }
     }
 

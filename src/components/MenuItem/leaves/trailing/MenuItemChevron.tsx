@@ -34,7 +34,7 @@ function MenuItemChevron({src, style}: MenuItemChevronProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isHovered, isPressed, isFocused, isDisabled, isInteractive, isSuccess} = useMenuItemState();
+    const {isHovered, isPressed, isActive, isDisabled, isInteractive, isSuccess} = useMenuItemState();
 
     const isDefaultChevron = !src || src === icons.ArrowRight;
 
@@ -51,7 +51,7 @@ function MenuItemChevron({src, style}: MenuItemChevronProps) {
         >
             <Icon
                 src={src ?? icons.ArrowRight}
-                fill={isDefaultChevron ? theme.icon : StyleUtils.getIconFillColor(getButtonState(isFocused || isHovered, isPressed, isSuccess, isDisabled, isInteractive))}
+                fill={isDefaultChevron ? theme.icon : StyleUtils.getIconFillColor(getButtonState(isActive || isHovered, isPressed, isSuccess, isDisabled, isInteractive))}
                 width={variables.iconSizeNormal}
                 height={variables.iconSizeNormal}
             />

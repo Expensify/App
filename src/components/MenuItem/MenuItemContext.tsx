@@ -11,8 +11,8 @@ type MenuItemState = {
     /** Whether the row is currently pressed */
     isPressed: boolean;
 
-    /** Whether the row is focused/active (the selected-row state, not screen focus) */
-    isFocused: boolean;
+    /** Whether the row uses the active (selected-row) styling */
+    isActive: boolean;
 
     /** Whether the row is disabled */
     isDisabled: boolean;

@@ -47,13 +47,13 @@ type MenuItemRootProps = PropsWithChildren &
         onBlur?: () => void;
 
         /** Should we disable this row? */
-        disabled?: boolean;
+        isDisabled?: boolean;
 
-        /** Whether the row is focused or active (selected-row styling) */
-        focused?: boolean;
+        /** Whether the row uses the active (selected-row) styling */
+        isActive?: boolean;
 
         /** A boolean flag that gives the row (and its icon) a green fill if true */
-        success?: boolean;
+        isSuccess?: boolean;
 
         /** Whether the screen containing the row is focused (forwarded to Hoverable) */
         isScreenFocused?: boolean;
@@ -97,9 +97,9 @@ function MenuItemRoot({
     onSecondaryInteraction,
     onFocus,
     onBlur,
-    disabled = false,
-    focused = false,
-    success = false,
+    isDisabled = false,
+    isActive = false,
+    isSuccess = false,
     isScreenFocused,
     variant = CONST.MENU_ITEM.VARIANT.DEFAULT,
     style,
@@ -120,11 +120,11 @@ function MenuItemRoot({
     const pressableRef = useRef<View>(null);
     const isCompactMenu = useIsCompactMenu();
     const isCompact = isCompactMenu && !shouldUseNarrowLayout;
-    const interactive = !!onPress;
+    const isInteractive = !!onPress;
 
     useEffect(() => {
         const element = pressableRef.current;
-        if (interactive || !element || typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
+        if (isInteractive || !element || typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
             return;
         }
         // React Native Web's Pressable always attaches an onClick handler to the DOM element.
@@ -132,10 +132,10 @@ function MenuItemRoot({
         // an element is clickable and announces "double tap to activate" even for non-interactive elements.
         // Removing the onclick property prevents TalkBack from treating the element as clickable.
         element.onclick = null;
-    }, [interactive]);
+    }, [isInteractive]);
 
     const onPressAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (disabled || !interactive) {
+        if (isDisabled || !isInteractive) {
             return;
         }
 
@@ -168,29 +168,29 @@ function MenuItemRoot({
                         onPressOut={ControlSelection.unblock}
                         onSecondaryInteraction={onSecondaryInteraction}
                         wrapperStyle={wrapperStyle}
-                        activeOpacity={!interactive ? 1 : variables.pressDimValue}
+                        activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
                         opacityAnimationDuration={variables.noDimAnimationDuration}
                         testID={testID}
                         style={({pressed}) =>
                             [
                                 styles.popoverMenuItem,
-                                !interactive && styles.cursorDefault,
+                                !isInteractive && styles.cursorDefault,
                                 isCompact && styles.compactPopoverMenuItemBase,
-                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(isActive || isHovered, pressed, isSuccess, isDisabled, isInteractive), true),
                                 variant === CONST.MENU_ITEM.VARIANT.SECTION && styles.sectionMenuItemTopDescription,
                                 style,
-                                disabled && styles.buttonOpacityDisabled,
-                                isHovered && interactive && !focused && !pressed && styles.hoveredComponentBG,
+                                isDisabled && styles.buttonOpacityDisabled,
+                                isHovered && isInteractive && !isActive && !pressed && styles.hoveredComponentBG,
                             ] as StyleProp<ViewStyle>
                         }
-                        disabled={disabled || isExecuting}
+                        disabled={isDisabled || isExecuting}
                         ref={mergeRefs(ref, pressableRef)}
-                        role={interactive ? role : undefined}
+                        role={isInteractive ? role : undefined}
                         accessibilityLabel={accessibilityLabel}
                         accessibilityHint={accessibilityHint}
                         accessible={isAccessible}
-                        accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
-                        tabIndex={interactive ? tabIndex : -1}
+                        accessibilityState={role === CONST.ROLE.TAB ? {selected: isActive} : undefined}
+                        tabIndex={isInteractive ? tabIndex : -1}
                         onFocus={onFocus}
                         sentryLabel={sentryLabel}
                     >
@@ -199,10 +199,10 @@ function MenuItemRoot({
                                 value={{
                                     isHovered,
                                     isPressed: pressed,
-                                    isFocused: focused,
-                                    isDisabled: disabled,
-                                    isInteractive: interactive,
-                                    isSuccess: success,
+                                    isActive,
+                                    isDisabled,
+                                    isInteractive,
+                                    isSuccess,
                                     isCompact,
                                 }}
                             >

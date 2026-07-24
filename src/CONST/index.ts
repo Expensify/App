@@ -9247,7 +9247,7 @@ const CONST = {
             MARKDOWN: 'markdown',
             HTML: 'html',
         },
-        TITLE_VARIANT: {
+        TITLE_WEIGHT: {
             NORMAL: 'normal',
             STRONG: 'strong',
         },
