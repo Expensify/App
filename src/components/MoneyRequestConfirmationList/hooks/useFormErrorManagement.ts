@@ -203,6 +203,13 @@ function useFormErrorManagement({
     }, [formError]);
 
     useEffect(() => {
+        if (formErrorRef.current !== 'iou.error.invalidMerchant' || !isMerchantFieldValid) {
+            return;
+        }
+        setFormError('');
+    }, [isMerchantFieldValid, setFormError]);
+
+    useEffect(() => {
         const currentFormError = formErrorRef.current;
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -210,10 +217,6 @@ function useFormErrorManagement({
         }
         if (shouldDisplayFieldError && hasSmartScanFailed) {
             setFormError('iou.receiptScanningFailed');
-            return;
-        }
-        if (currentFormError === 'iou.error.invalidMerchant' && isMerchantFieldValid) {
-            setFormError('');
             return;
         }
         // Check 1: If formError does NOT start with "violations.", clear it and return
@@ -229,7 +232,7 @@ function useFormErrorManagement({
         if (isViolationFixed) {
             setFormError('');
         }
-    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isViolationFixed, isMerchantFieldValid, setFormError]);
+    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isViolationFixed, setFormError]);
 
     const computeErrorMessage = (): string | undefined => {
         if (routeError) {
