@@ -28,7 +28,6 @@ type RateFieldProps = {
     distanceRateName: string | undefined;
     distanceRateCurrency: string;
     unit: Unit | undefined;
-    rate: number | undefined;
     mileageRate: MileageRate;
     expenseDate: string | undefined;
     customUnitRateID: string | undefined;
@@ -51,7 +50,6 @@ function RateField({
     distanceRateName,
     distanceRateCurrency,
     unit,
-    rate,
     mileageRate,
     expenseDate,
     customUnitRateID,
@@ -94,6 +92,7 @@ function RateField({
         : '';
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const rate = mileageRate.rate;
     const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const {isSearchRouterDisplayed} = useSearchRouterState();

@@ -32,7 +32,7 @@ import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMa
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import {getActiveAdminWorkspaces, isGroupPolicy as isGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {isInvoiceRoom} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isInvoiceRoom} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -116,6 +116,12 @@ type ParticipantSearchResultsProps = {
 
     /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
     onCloseParticipantPicker?: () => void;
+
+    /**
+     * Called before committing a participant/workspace selection.
+     * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
+     */
+    shouldBlockParticipantSelection?: (policyID?: string) => boolean;
 };
 
 function ParticipantSearchResults({
@@ -137,6 +143,7 @@ function ParticipantSearchResults({
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
     onCloseParticipantPicker,
+    shouldBlockParticipantSelection,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -459,15 +466,20 @@ function ParticipantSearchResults({
         );
 
     const onSelectRow = (option: Participant) => {
-        const optionPolicy = option.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`] : undefined;
+        const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport(option.reportID)?.policyID : undefined);
+        if (shouldBlockParticipantSelection?.(optionPolicyID)) {
+            return;
+        }
+
+        const optionPolicy = optionPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${optionPolicyID}`] : undefined;
         if (
             option.isPolicyExpenseChat &&
-            option.policyID &&
+            optionPolicyID &&
             optionPolicy &&
             shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
         ) {
             onRestrictedParticipantSelected?.();
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(optionPolicyID));
             return;
         }
 

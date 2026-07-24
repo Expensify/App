@@ -10,18 +10,29 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
         getDefaultMileageRate: () => undefined,
         getRate: () => ({rate: 0.5, unit: 'mi', currency: 'USD'}),
         getDistanceRequestAmount: (distance: number, _unit: string, rate: number): number => Math.round(distance * rate * 100),
+        getCommuterExclusionDisplayData: (customUnit: {commuterExclusion?: number; reimbursableDistance?: number; distanceUnit?: string} | undefined, distanceUnit: string) => {
+            if (!customUnit?.commuterExclusion) {
+                return null;
+            }
+            return {
+                commuterExclusion: customUnit.commuterExclusion,
+                reimbursableDistance: customUnit.reimbursableDistance ?? 0,
+                distanceUnit: customUnit.distanceUnit ?? distanceUnit,
+            };
+        },
+        convertToDistanceInMeters: (distance: number): number => distance,
     },
 }));
 
 jest.mock('@libs/TransactionUtils', () => ({
-    getDistanceInMeters: (transaction: {comment?: {customUnit?: {distance?: number}}} | undefined): number => transaction?.comment?.customUnit?.distance ?? 0,
-    hasRoute: (transaction: {comment?: {customUnit?: {distance?: number}}} | undefined): boolean => !!transaction?.comment?.customUnit?.distance,
+    getDistanceInMeters: (transaction: {comment?: {customUnit?: {routeDistanceMeters?: number}}} | undefined): number => transaction?.comment?.customUnit?.routeDistanceMeters ?? 0,
+    hasRoute: (transaction: {comment?: {customUnit?: {routeDistanceMeters?: number}}} | undefined): boolean => !!transaction?.comment?.customUnit?.routeDistanceMeters,
 }));
 
 type Params = Parameters<typeof useDistanceRequestState>[0];
 
 const baseParams: Params = {
-    transaction: {transactionID: 'txn1', comment: {customUnit: {distance: 10}}} as unknown as OnyxTypes.Transaction,
+    transaction: {transactionID: 'txn1', comment: {customUnit: {routeDistanceMeters: 10}}} as unknown as OnyxTypes.Transaction,
     policy: undefined,
     policyID: 'policy1',
     policyForMovingExpenses: undefined,
@@ -37,6 +48,39 @@ describe('useDistanceRequestState', () => {
         expect(result.current.shouldCalculateDistanceAmount).toBe(true);
         expect(result.current.distance).toBe(10);
         expect(result.current.distanceRequestAmount).toBe(500); // 10 * 0.5 * 100
+    });
+
+    it('calculates the amount from the reimbursable distance when the custom unit has a commuter exclusion', () => {
+        const transaction = baseParams.transaction;
+        if (!transaction) {
+            throw new Error('Expected a transaction');
+        }
+
+        const {result} = renderHook(() =>
+            useDistanceRequestState({
+                ...baseParams,
+                transaction: {
+                    ...transaction,
+                    transactionID: 'txn1',
+                    comment: {
+                        ...transaction.comment,
+                        customUnit: {
+                            ...transaction.comment?.customUnit,
+                            routeDistanceMeters: 10,
+                            quantity: 10,
+                            distanceUnit: 'mi',
+                            commuterExclusion: 2,
+                            reimbursableDistance: 8,
+                        },
+                    },
+                },
+                iouAmount: 500,
+            }),
+        );
+
+        expect(result.current.distance).toBe(10);
+        expect(result.current.distanceRequestAmount).toBe(400);
+        expect(result.current.shouldCalculateDistanceAmount).toBe(true);
     });
 
     it('isDistanceRequestWithPendingRoute is true when transaction has no route', () => {

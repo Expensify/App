@@ -48,6 +48,12 @@ type ParticipantPickerProps = {
 
     /** Callback fired when the modal backdrop (the area outside the picker) is pressed. Falls back to onClose when omitted. */
     onBackdropPress?: () => void;
+
+    /**
+     * Called before committing a participant/workspace selection.
+     * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
+     */
+    shouldBlockParticipantSelection?: (policyID?: string) => boolean;
 };
 
 function ParticipantPicker({
@@ -63,6 +69,7 @@ function ParticipantPicker({
     isVisible = true,
     onClose,
     onBackdropPress,
+    shouldBlockParticipantSelection,
 }: ParticipantPickerProps) {
     const {translate} = useLocalize();
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
@@ -84,6 +91,7 @@ function ParticipantPicker({
             onCloseParticipantPicker={onClose}
             initiallySelectedReportID={selectedParticipant?.reportID}
             shouldMoveSelectedToTop
+            shouldBlockParticipantSelection={shouldBlockParticipantSelection}
         />
     );
 

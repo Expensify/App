@@ -372,6 +372,8 @@ function handleMoneyRequestStepDistanceNavigation({
                         existingTransaction: transaction,
                         transactionParams: {
                             amount,
+                            ...(typeof transaction?.modifiedAmount === 'number' && {modifiedAmount: transaction.modifiedAmount}),
+                            ...(transaction?.modifiedMerchant && {modifiedMerchant: transaction.modifiedMerchant}),
                             distance,
                             comment: '',
                             created: transaction?.created ?? '',

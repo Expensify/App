@@ -524,6 +524,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tryAgain: '再試行',
         tagGLCode: 'GL コードにタグを付ける',
         off: 'オフ',
+        commuter: '通勤者',
         noResultsFoundSubtitle: '結果がありません。フィルターや検索キーワードを調整してお試しください',
         unableToDisplayChart: 'グラフを表示できません',
         webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。有効にするか、別のブラウザに切り替えてください。',
@@ -8420,18 +8421,9 @@ ${reportName}`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
         commuterExclusions: {
             changedToFixedDistance: '通勤分の除外方法を、申請ごとの固定距離に変更しました',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'マイル' : 'マイル';
-                } else {
-                    unitLabel = isSingular ? 'キロメートル' : 'キロメートル';
-                }
-                return `1件の経費申請につき固定除外距離を${distance} ${unitLabel}に設定します`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `1件あたりの固定距離除外を${oldDistance} ${unit}から${newDistance} ${unit}に変更しました`,
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `1件の経費申請につき固定除外距離を${formattedDistance}に設定します`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `1件あたりの固定距離除外を${formattedOldDistance}から${formattedNewDistance}に変更しました`,
             disabled: '距離レートで通勤を除外する設定を無効にしました',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
@@ -9270,6 +9262,10 @@ ${reportName}`,
         },
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
+            mapOrGpsDistanceRequired: {
+                title: '地図または GPS の距離が必要です',
+                description: 'このワークスペースでは、地図ベースまたは GPS 追跡による距離経費のいずれかが必要です。',
+            },
         },
         odometer: {
             startReading: '読み始める',
@@ -9285,6 +9281,12 @@ ${reportName}`,
             cameraAccessRequired: '写真を撮影するにはカメラへのアクセス権限が必要です。',
             snapPhotoStart: '<muted-text-label>移動を<strong>開始</strong>するときに、走行距離計の写真を撮影してください。</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>走行の<strong>終了時</strong>に、オドメーターの写真を撮影してください。</muted-text-label>',
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `元の値：${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `通勤分の距離 ${distance} ${unit} を削除しました`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ワークスペースの通勤距離設定</a>` : 'ワークスペースの通勤距離設定'}に基づき、通勤分としての${unit}を${distance}削除しました。`,
         },
     },
     gps: {

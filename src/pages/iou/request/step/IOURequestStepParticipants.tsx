@@ -1,5 +1,6 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
@@ -9,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, isFromCreditCardImport, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
+import {getRequestType, isFromCreditCardImport, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 
@@ -79,6 +80,10 @@ function IOURequestStepParticipants({
         isSplitRequest,
         isMovingTransactionFromTrackExpense,
         isFocused,
+    });
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
+        isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
     });
 
     const hasEndedSpan = useRef(false);
@@ -163,6 +168,7 @@ function IOURequestStepParticipants({
                 shouldExcludeP2P={(initialTransaction?.amount ?? 0) < 0}
                 initiallySelectedReportID={selectedParticipant?.reportID}
                 shouldMoveSelectedToTop
+                shouldBlockParticipantSelection={blockManualOrOdometerDistanceRequestIfNeeded}
             />
         </StepScreenWrapper>
     );

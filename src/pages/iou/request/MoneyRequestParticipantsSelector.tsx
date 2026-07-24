@@ -55,6 +55,12 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
     onCloseParticipantPicker?: () => void;
 
+    /**
+     * Called before committing a participant/workspace selection.
+     * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
+     */
+    shouldBlockParticipantSelection?: (policyID?: string) => boolean;
+
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
 };
@@ -79,6 +85,7 @@ function MoneyRequestParticipantsSelector({
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
     onCloseParticipantPicker,
+    shouldBlockParticipantSelection,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const platform = getPlatform();
@@ -115,6 +122,7 @@ function MoneyRequestParticipantsSelector({
             shouldMoveSelectedToTop={shouldMoveSelectedToTop}
             onRestrictedParticipantSelected={onRestrictedParticipantSelected}
             onCloseParticipantPicker={onCloseParticipantPicker}
+            shouldBlockParticipantSelection={shouldBlockParticipantSelection}
         />
     );
 }
