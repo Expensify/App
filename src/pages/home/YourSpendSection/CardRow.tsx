@@ -84,6 +84,7 @@ function CardRow({cardRow, wrapperStyle}: CardRowProps) {
             onMouseLeave={onMouseLeave}
         >
             <MenuItemWithTopDescription
+                hoverBackgroundColor={theme.hoverComponentBG}
                 description={translate('homePage.yourSpend.recentTransactions', {lastFour: cardRow.lastFour})}
                 title={cardTotal}
                 titleStyle={styles.textBold}

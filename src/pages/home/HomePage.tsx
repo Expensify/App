@@ -63,7 +63,11 @@ function HomePage() {
                         contentContainerStyle={styles.homePageContentContainer}
                         addBottomSafeAreaPadding
                     >
-                        {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
+                        {!shouldUseNarrowLayout && (
+                            <View style={styles.centeredContentWidthLimiter}>
+                                <QuickCreationActionsBar />
+                            </View>
+                        )}
                         <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
                             {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
                             {shouldUseNarrowLayout ? (

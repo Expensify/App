@@ -35,7 +35,7 @@ import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {DisplayNameWithTooltip} from './DisplayNames/types';
@@ -53,6 +53,7 @@ import Hoverable from './Hoverable';
 import Icon from './Icon';
 import InlineIcon from './Icon/InlineIcon';
 import {useMenuItemGroupActions, useMenuItemGroupState} from './MenuItemGroup';
+import MenuItemHoverBackgroundContext from './MenuItemHoverBackgroundContext';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RadioButton from './RadioButton';
@@ -312,6 +313,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Should we remove the hover background color of the menu item */
         shouldRemoveHoverBackground?: boolean;
+
+        /** Overrides the hover background color; falls back to the default hover background when omitted */
+        hoverBackgroundColor?: string;
 
         rightIconAccountID?: number | string;
 
@@ -576,6 +580,7 @@ function MenuItem({
     shouldGreyOutWhenDisabled = true,
     shouldRemoveBackground = false,
     shouldRemoveHoverBackground = false,
+    hoverBackgroundColor,
     shouldUseDefaultCursorWhenDisabled = false,
     shouldShowLoadingSpinnerIcon = false,
     isAnonymousAction = false,
@@ -634,6 +639,8 @@ function MenuItem({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const cardHoverBackgroundColor = useContext(MenuItemHoverBackgroundContext);
+    const effectiveHoverBackgroundColor = hoverBackgroundColor ?? cardHoverBackgroundColor;
     const combinedStyle = [styles.popoverMenuItem, style];
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -896,7 +903,14 @@ function MenuItem({
                                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        focused && interactive && !pressed && !shouldRemoveBackground && styles.hoveredComponentBG,
+                                        isHovered &&
+                                            interactive &&
+                                            !focused &&
+                                            !pressed &&
+                                            !shouldRemoveBackground &&
+                                            !shouldRemoveHoverBackground &&
+                                            (effectiveHoverBackgroundColor ? StyleUtils.getBackgroundColorStyle(effectiveHoverBackgroundColor) : styles.highlightBG),
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}

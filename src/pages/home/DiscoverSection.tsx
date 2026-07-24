@@ -11,6 +11,7 @@ import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -32,6 +33,7 @@ function DiscoverSection() {
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {
         taskReport: viewTourTaskReport,
@@ -85,6 +87,7 @@ function DiscoverSection() {
                 </View>
             </PressableWithoutFeedback>
             <MenuItemWithTopDescription
+                hoverBackgroundColor={theme.hoverComponentBG}
                 shouldShowRightIcon
                 title={isCurrentUserPolicyAdmin ? translate('homePage.discoverSection.menuItemTitleAdmin') : translate('homePage.discoverSection.menuItemTitleNonAdmin')}
                 titleStyle={styles.textBold}

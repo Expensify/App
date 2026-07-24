@@ -19,7 +19,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -155,7 +155,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const illustrations = useMemoizedLazyIllustrations(['Workflows']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -953,7 +952,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         >
             <WorkspacePageWithSections
                 headerText={translate('workspace.common.workflows')}
-                icon={illustrations.Workflows}
                 route={route}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isGroupPolicy || !canReadWorkflows}
@@ -963,7 +961,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 shouldUseScrollView
                 addBottomSafeAreaPadding
             >
-                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered]}>
                     {optionItems.map(renderOptionItem)}
                     <ExpenseReportRulesSection
                         policyID={route.params.policyID}

@@ -8,7 +8,7 @@ import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -65,7 +65,6 @@ type MenuItem = WithSentryLabel & {
 
 function AboutPage() {
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug']);
-    const illustrations = useMemoizedLazyIllustrations(['PalmTree']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -175,11 +174,10 @@ function AboutPage() {
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
-                icon={illustrations.PalmTree}
                 shouldUseHeadlineHeader
             />
             <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered]}>
                     <Section
                         title={translate('footer.aboutExpensify')}
                         subtitle={translate('initialSettingsPage.aboutPage.description')}
@@ -199,7 +197,7 @@ function AboutPage() {
                         </View>
                     </Section>
                 </View>
-                <View style={[styles.renderHTML, styles.ph5, styles.mb5]}>
+                <View style={[styles.renderHTML, styles.ph5, styles.mb5, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered]}>
                     <RenderHTML html={`<muted-text-micro>${translate('initialSettingsPage.readTheTermsAndPrivacy')} ${translate('termsOfUse.license')}</muted-text-micro>`} />
                 </View>
             </ScrollView>

@@ -3001,8 +3001,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
@@ -4062,6 +4060,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         cardSectionIllustrationContainer: {
             height: variables.sectionIllustrationHeight,
+            width: 'auto',
+            alignSelf: 'stretch',
+            marginTop: 12,
+            marginHorizontal: 12,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
         },
 
         twoFAIllustration: {
@@ -5314,6 +5318,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         workspaceSection: {
             maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
+        },
+
+        workspaceSectionCentered: {
+            width: '100%',
+            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
+            alignSelf: 'center',
         },
 
         workspaceSectionMobile: {
@@ -6997,7 +7007,15 @@ const plainStyles = (theme: ThemeColors) =>
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
                 gap: 20,
                 width: '100%',
+                maxWidth: variables.centeredContentMaxWidth,
+                alignSelf: 'center',
             }) satisfies ViewStyle,
+
+        centeredContentWidthLimiter: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+        },
 
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 

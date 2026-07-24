@@ -49,7 +49,7 @@ type WorkspaceExpensifyCardPageEmptyStateProps = {
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
-    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'HandCard', 'ExpensifyCardIllustration']);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'ExpensifyCardIllustration']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -144,7 +144,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
-            icon={illustrations.HandCard}
             headerText={translate('workspace.common.expensifyCard')}
             route={route}
             showLoadingAsFirstRender={false}
@@ -152,7 +151,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
             addBottomSafeAreaPadding
         >
-            <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, {minHeight: windowHeight - variables.contentHeaderHeight}]}>
+            <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered, {minHeight: windowHeight - variables.contentHeaderHeight}]}>
                 <FeatureList
                     menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
                     title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
@@ -190,7 +189,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     buttonHoverStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
                 />
             </View>
-            <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered]}>
                 <Text style={[styles.textMicroSupporting, styles.m5]}>
                     {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
                 </Text>

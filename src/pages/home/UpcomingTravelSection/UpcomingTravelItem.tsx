@@ -112,6 +112,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
 
     return (
         <MenuItemWithTopDescription
+            hoverBackgroundColor={theme.hoverComponentBG}
             description={formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)}
             title={title}
             titleStyle={isCancelled ? [styles.textBold, styles.textSupporting] : styles.textBold}

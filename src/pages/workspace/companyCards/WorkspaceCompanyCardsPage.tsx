@@ -4,7 +4,6 @@ import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCards
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -33,7 +32,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const memoizedIllustrations = useMemoizedLazyIllustrations(['CompanyCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const policy = usePolicy(policyID);
@@ -104,7 +102,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
         >
             <WorkspacePageWithSections
-                icon={memoizedIllustrations.CompanyCard}
                 headerText={translate('workspace.common.companyCards')}
                 route={route}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}

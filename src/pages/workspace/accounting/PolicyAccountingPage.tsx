@@ -23,7 +23,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -119,7 +119,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'QuestionMark', 'Send', 'Sync', 'Trashcan']);
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare']);
-    const illustrations = useMemoizedLazyIllustrations(['Accounting']);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
 
@@ -803,7 +802,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 <HeaderWithBackButton
                     title={translate('workspace.common.accounting')}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    icon={illustrations.Accounting}
                     shouldUseHeadlineHeader
                     shouldDisplayHelpButton
                     onBackButtonPress={Navigation.goBack}
@@ -812,7 +810,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     contentContainerStyle={styles.pt3}
                     addBottomSafeAreaPadding
                 >
-                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered]}>
                         <Section
                             title={translate('workspace.accounting.title')}
                             subtitle={translate('workspace.accounting.subtitle')}

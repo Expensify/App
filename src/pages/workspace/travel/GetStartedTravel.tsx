@@ -1,16 +1,15 @@
 import BookTravelButton from '@components/BookTravelButton';
-import Button from '@components/Button';
-import FeatureList from '@components/FeatureList';
+import EmptyStateComponent from '@components/EmptyStateComponent';
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type GetStartedTravelProps = {
     policyID: string;
@@ -19,47 +18,39 @@ type GetStartedTravelProps = {
 };
 
 function GetStartedTravel({policyID, canWriteTravelFeature, showReadOnlyModal}: GetStartedTravelProps) {
-    const handleCtaPress = () => {};
-
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PendingTravel']);
 
+    const readOnlyButtons: EmptyStateButton[] = [
+        {
+            buttonText: translate('workspace.moreFeatures.travel.getStarted.ctaText'),
+            buttonAction: showReadOnlyModal,
+            success: true,
+            innerStyles: styles.buttonOpacityDisabled,
+            hoverStyles: styles.buttonOpacityDisabled,
+        },
+    ];
+
     return (
-        <FeatureList
-            menuItems={[]}
+        <EmptyStateComponent
+            headerMedia={illustrations.PendingTravel}
+            headerContentStyles={styles.travelCardIllustration}
             title={translate('workspace.moreFeatures.travel.getStarted.title')}
             subtitle={translate('workspace.moreFeatures.travel.getStarted.subtitle')}
-            onCtaPress={handleCtaPress}
-            illustrationBackgroundColor={colors.tangerine700}
-            illustration={illustrations.PendingTravel}
-            illustrationStyle={styles.travelCardIllustration}
-            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
-            titleStyles={styles.textHeadlineH1}
-            footer={
-                canWriteTravelFeature ? (
+            buttons={canWriteTravelFeature ? undefined : readOnlyButtons}
+        >
+            {canWriteTravelFeature && (
+                <View style={[styles.gap2, styles.mt6, styles.flexRow, styles.flexWrap, styles.justifyContentCenter]}>
                     <BookTravelButton
                         text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
                         activePolicyID={policyID}
                         shouldShowVerifyAccountModal={false}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
-                        large
                     />
-                ) : (
-                    <Button
-                        text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
-                        onPress={showReadOnlyModal}
-                        accessibilityLabel={translate('travel.bookTravel')}
-                        style={styles.w100}
-                        innerStyles={styles.buttonOpacityDisabled}
-                        hoverStyles={styles.buttonOpacityDisabled}
-                        success
-                        large
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
-                    />
-                )
-            }
-        />
+                </View>
+            )}
+        </EmptyStateComponent>
     );
 }
 

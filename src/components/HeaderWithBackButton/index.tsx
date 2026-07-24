@@ -49,6 +49,8 @@ function HeaderWithBackButton({
     onThreeDotsButtonPress = () => {},
     report,
     policyAvatar,
+    policyAvatarSize = CONST.AVATAR_SIZE.DEFAULT,
+    titleStyles,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
     shouldShowBackButton = true,
@@ -157,7 +159,7 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH1, titleStyles]}
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
                 isScreenHeader
@@ -177,10 +179,11 @@ function HeaderWithBackButton({
         styles.headerProgressBar,
         styles.headerProgressBarContainer,
         styles.headerProgressBarFill,
-        styles.textHeadlineH2,
+        styles.textHeadlineH1,
         subtitle,
         title,
         titleColor,
+        titleStyles,
         translate,
         openParentReportInCurrentTab,
         shouldDisplayStatus,
@@ -289,7 +292,8 @@ function HeaderWithBackButton({
                 )}
                 {!!policyAvatar && (
                     <Avatar
-                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
+                        size={policyAvatarSize}
                         source={policyAvatar?.source}
                         name={policyAvatar?.name}
                         avatarID={policyAvatar?.id}

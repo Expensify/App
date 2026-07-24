@@ -13,7 +13,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -86,7 +86,6 @@ function WorkspaceReportFieldsPage({
     const currentConnectionName = getCurrentConnectionName(policy);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
-    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const onDisabledOrganizeSwitchPress = () => {
@@ -223,7 +222,6 @@ function WorkspaceReportFieldsPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={illustrations.ReportReceipt}
                     title={translate('common.reports')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -238,7 +236,7 @@ function WorkspaceReportFieldsPage({
                     />
                 )}
                 {!isLoading && (
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered]}>
                         <Section
                             isCentralPane
                             renderTitle={renderReportTitle}

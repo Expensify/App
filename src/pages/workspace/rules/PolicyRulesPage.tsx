@@ -3,7 +3,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import SpendRulesSection from '@components/SpendRules/SpendRulesSection';
 
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -54,7 +54,6 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-    const illustrations = useMemoizedLazyIllustrations(['Rules']);
     const icons = useMemoizedLazyExpensifyIcons(['Table']);
     const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
@@ -108,7 +107,6 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
                 headerText={translate('workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
-                icon={illustrations.Rules}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
@@ -116,7 +114,7 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
                 headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered]}>
                     {isCustomAgentBetaEnabled && !isAgentsRulesBannerDismissed && (
                         <AgentPromotionalBanner
                             title={translate('workspace.rules.agentsPromoBanner.title')}

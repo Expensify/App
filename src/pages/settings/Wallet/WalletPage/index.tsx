@@ -112,7 +112,7 @@ function WalletPage() {
     const hasSinglePolicy = activeAdminPolicies.length === 1;
 
     const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table', 'Plus']);
-    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet', 'VerticalCreditCards']);
+    const illustrations = useMemoizedLazyIllustrations(['VerticalCreditCards']);
     const walletIllustration = useWalletSectionIllustration();
 
     const theme = useTheme();
@@ -438,7 +438,6 @@ function WalletPage() {
     const headerWithBackButton = (
         <HeaderWithBackButton
             title={translate('common.wallet')}
-            icon={illustrations.MoneyIntoWallet}
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
@@ -688,7 +687,7 @@ function WalletPage() {
         >
             {headerWithBackButton}
             <ScrollView style={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered]}>
                     <OfflineWithFeedback
                         style={styles.flex1}
                         contentContainerStyle={styles.flex1}

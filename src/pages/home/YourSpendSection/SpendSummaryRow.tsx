@@ -106,6 +106,7 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
     return (
         <View testID={`${testIDPrefix}-row`}>
             <MenuItemWithTopDescription
+                hoverBackgroundColor={theme.hoverComponentBG}
                 description={description}
                 title={totals.total !== undefined ? convertToDisplayString(totals.total, totals.currency) : undefined}
                 titleStyle={styles.textBold}

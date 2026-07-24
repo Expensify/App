@@ -100,8 +100,8 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('domain.saml')}
+                    shouldUseHeadlineHeader
                     onBackButtonPress={Navigation.goBack}
-                    icon={illustrations.LockClosed}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton
                 />
@@ -111,7 +111,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                     addBottomSafeAreaPadding
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                 >
-                    <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
+                    <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSectionCentered}>
                         {domain?.validated && domainName ? (
                             <>
                                 <Section

@@ -4,6 +4,7 @@ import WidgetContainer from '@components/WidgetContainer';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -25,6 +26,7 @@ function AnnouncementSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     return (
         <WidgetContainer
             title={translate('homePage.announcements')}
@@ -33,6 +35,7 @@ function AnnouncementSection() {
             {announcements.map((announcement) => (
                 <MenuItemWithTopDescription
                     key={announcement.title}
+                    hoverBackgroundColor={theme.hoverComponentBG}
                     description={announcement.subtitle}
                     title={announcement.title}
                     titleStyle={styles.textBold}
