@@ -95,6 +95,17 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
 
     const hasNoFilteredSuggestions = filteredSuggestions.length === 0;
 
+    const button = (
+        <Button
+            variant="success"
+            size={CONST.BUTTON_SIZE.LARGE}
+            onPress={goToEditWithSelection}
+            isDisabled={!selectedSuggestion}
+        >
+            <Button.Text>{translate('common.next')}</Button.Text>
+        </Button>
+    );
+
     return (
         <View style={styles.flex1}>
             <View style={[styles.ph5, styles.pb3, styles.pt1]}>
@@ -154,30 +165,10 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                     })
                 )}
 
-                {shouldUseFixedFooter && (
-                    <Button
-                        variant="success"
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={goToEditWithSelection}
-                        isDisabled={!selectedSuggestion}
-                    >
-                        <Button.Text>{translate('common.next')}</Button.Text>
-                    </Button>
-                )}
+                {shouldUseFixedFooter && button}
             </ScrollView>
 
-            {!shouldUseFixedFooter && (
-                <FixedFooter style={styles.pt5}>
-                    <Button
-                        variant="success"
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={goToEditWithSelection}
-                        isDisabled={!selectedSuggestion}
-                    >
-                        <Button.Text>{translate('common.next')}</Button.Text>
-                    </Button>
-                </FixedFooter>
-            )}
+            {!shouldUseFixedFooter && <FixedFooter style={styles.pt5}>{button}</FixedFooter>}
         </View>
     );
 }
