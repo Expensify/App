@@ -184,7 +184,7 @@ describe('queueExportSearchWithTemplate', () => {
 });
 
 describe('getExportTemplates', () => {
-    const translate = translateLocal;
+    const translateForTemplates = translateLocal;
     const localeCompare = (first: string, second: string) => first.localeCompare(second);
     const makeTemplate = (name: string): ExportTemplate => ({name, templateName: name, type: '', policyID: undefined, description: ''});
 
@@ -195,17 +195,17 @@ describe('getExportTemplates', () => {
             banana: makeTemplate('Banana layout'),
         };
 
-        const {customTemplates, defaultTemplates} = getExportTemplates(integrationsExportTemplates, csvExportLayouts, translate, localeCompare);
+        const {customTemplates, defaultTemplates} = getExportTemplates(integrationsExportTemplates, csvExportLayouts, translateForTemplates, localeCompare);
 
         // Custom group (custom integrations + in-app templates) is sorted alphabetically
         expect(customTemplates.map((template) => template.name)).toEqual(['Apple integration', 'Banana layout', 'Mango layout', 'Zebra integration']);
 
         // Default group (expense/report level) is sorted alphabetically
-        expect(defaultTemplates.map((template) => template.name)).toEqual([translate('export.expenseLevelExport'), translate('export.reportLevelExport')]);
+        expect(defaultTemplates.map((template) => template.name)).toEqual([translateForTemplates('export.expenseLevelExport'), translateForTemplates('export.reportLevelExport')]);
     });
 
     it('excludes the report level export template when includeReportLevelExport is false', () => {
-        const {defaultTemplates} = getExportTemplates([], {}, translate, localeCompare, undefined, false);
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, undefined, false);
         const templateNames = defaultTemplates.map((template) => template.templateName);
 
         expect(templateNames).toContain(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT);
@@ -213,17 +213,19 @@ describe('getExportTemplates', () => {
     });
 
     it('excludes the basic export template by default', () => {
-        const {defaultTemplates} = getExportTemplates([], {}, translate, localeCompare);
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare);
         const templateNames = defaultTemplates.map((template) => template.templateName);
 
         expect(templateNames).not.toContain(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
     });
 
     it('includes the basic export template in the default group (sorted alphabetically) when includeBasicExport is true', () => {
-        const {defaultTemplates} = getExportTemplates([], {}, translate, localeCompare, undefined, true, true);
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, undefined, true, true);
         const names = defaultTemplates.map((template) => template.name);
 
         // Basic export is sorted alphabetically alongside the other default templates, not pinned to the bottom
-        expect(names).toEqual([translate('export.expenseLevelExport'), translate('export.reportLevelExport'), translate('export.basicExport')].sort(localeCompare));
+        expect(names).toEqual(
+            [translateForTemplates('export.expenseLevelExport'), translateForTemplates('export.reportLevelExport'), translateForTemplates('export.basicExport')].sort(localeCompare),
+        );
     });
 });

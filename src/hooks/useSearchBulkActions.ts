@@ -563,7 +563,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {hash} = queryJSON ?? {};
     const isExpenseType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-    const excludedTransactionIDs = isExpenseType ? Object.keys(excludedTransactions) : [];
     const firstTransactionID = selectedTransactionsKeys.at(0);
     const firstTransaction =
         (firstTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`] : undefined) ??
@@ -738,7 +737,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
                     transactionIDList: selectedTransactionsKeys,
-                    ...(isExpenseType ? {excludedTransactionIDList: excludedTransactionIDs} : {}),
+                    ...(isExpenseType ? {excludedTransactionIDList: Object.keys(excludedTransactions)} : {}),
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
@@ -782,7 +781,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedTransactions,
             selectedTransactionsKeys,
             isExpenseType,
-            excludedTransactionIDs,
+            excludedTransactions,
             translate,
             clearSelectedTransactions,
             hash,

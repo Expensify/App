@@ -65,6 +65,8 @@ function makeSearchResults(count: number, total: number): OnyxEntry<SearchResult
             hash: 1,
             type: mockSearchType,
             offset: 0,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             hasMoreResults: true,
             hasResults: true,
             isLoading: false,
