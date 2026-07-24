@@ -27,7 +27,6 @@ function ReportPreviewHoldMenu() {
     return (
         <ProcessMoneyReportHoldMenu
             nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-            requestType={holdMenu.requestType}
             fullAmount={fullAmount}
             onClose={onHoldMenuClose}
             isVisible

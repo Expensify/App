@@ -23,7 +23,12 @@ function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, 
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE) {
-        return <ApprovePrimaryAction reportID={reportID} />;
+        return (
+            <ApprovePrimaryAction
+                reportID={reportID}
+                chatReportID={chatReportID}
+            />
+        );
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY) {

@@ -1,12 +1,11 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 
 import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -14,15 +13,12 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
-import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
@@ -30,14 +26,13 @@ type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | t
 type UseHoldMenuSubmitParams = {
     moneyRequestReport: OnyxEntry<OnyxTypes.Report>;
     chatReport: OnyxEntry<OnyxTypes.Report>;
-    requestType?: ActionHandledType;
     paymentType?: PaymentMethodType;
     methodID?: number;
     onClose: () => void;
     onConfirm?: (full: boolean) => void;
 };
 
-function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
+function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -48,22 +43,14 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const getChatReportActions = usePayChatReportActions(chatReport, undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
-    const {isBetaEnabled} = usePermissions();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const delegateAccountID = useDelegateAccountID();
-    const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-
-    const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
 
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
@@ -72,34 +59,13 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
         }
 
         const animationCallback = () => onConfirm?.(full);
-
-        // moneyRequestReport/chatReport can be lightweight versions of the report (the report list drops fields
-        // like the last message text/time so it doesn't re-render on every new message). The pay/approve actions
-        // restore the report on failure by merging it back in, so we grab the full reports here to make sure the
-        // chat's last message comes back correctly if the payment fails.
-        const currentMoneyRequestReport = getReportOrDraftReport(moneyRequestReport?.reportID) ?? moneyRequestReport;
-        const currentChatReport = getReportOrDraftReport(chatReport?.reportID) ?? chatReport;
-
-        if (isApprove) {
-            approveMoneyRequest({
-                expenseReport: currentMoneyRequestReport,
-                currentUserAccountIDParam: currentUserDetails.accountID,
-                currentUserEmailParam: currentUserDetails.email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
-                betas,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                ownerLogin,
-                full,
-                onApproved: animationCallback,
-                expenseReportPolicy: policy,
-                delegateEmail,
-                isTrackIntentUser,
-            });
-        } else if (currentChatReport && paymentType) {
+        if (chatReport && paymentType) {
+            // moneyRequestReport/chatReport can be lightweight versions of the report (the report list drops fields
+            // like the last message text/time so it doesn't re-render on every new message). The pay/approve actions
+            // restore the report on failure by merging it back in, so we grab the full reports here to make sure the
+            // chat's last message comes back correctly if the payment fails.
+            const currentMoneyRequestReport = getReportOrDraftReport(moneyRequestReport?.reportID) ?? moneyRequestReport;
+            const currentChatReport = getReportOrDraftReport(chatReport?.reportID) ?? chatReport;
             payMoneyRequest({
                 paymentType,
                 chatReport: currentChatReport,
@@ -127,7 +93,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
         onClose();
     };
 
-    return {onSubmit, isApprove};
+    return {onSubmit};
 }
 
 export default useHoldMenuSubmit;

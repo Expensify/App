@@ -28,12 +28,14 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
     return [value, {status: 'loaded'}];
 }
 
-// Capture the onPress (confirmApproval) handler the button passes to the underlying Button so approval can be triggered.
-const mockOnPressHolder: {current?: () => void} = {current: undefined};
-jest.mock('@components/Button', () => ({
+// ApproveActionButton delegates rendering to ExpenseHeaderApprovalButton, which decides between a plain approve button
+// and a partial/full approval dropdown based on isAnyTransactionOnHold. Capture the props it receives so approval can be
+// triggered and the held-expense handling can be asserted at that boundary.
+const mockApprovalButtonProps: {current?: {onApprove: (full: boolean) => void; isAnyTransactionOnHold: boolean}} = {current: undefined};
+jest.mock('@components/ExpenseHeaderApprovalButton', () => ({
     __esModule: true,
-    default: (props: {onPress?: () => void}) => {
-        mockOnPressHolder.current = props.onPress;
+    default: (props: {onApprove: (full: boolean) => void; isAnyTransactionOnHold: boolean}) => {
+        mockApprovalButtonProps.current = props;
         return null;
     },
 }));
@@ -57,12 +59,11 @@ jest.mock('@libs/ReportUtils', () => {
 
 // ApproveActionButton reads from context instead of props; these mock-prefixed objects back the mocked slice hooks.
 const mockStartApprovedAnimation = jest.fn();
-const mockOnHoldMenuOpen = jest.fn();
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
     useReportPreviewData: () => ({iouReportID: TEST_IOU_REPORT_ID}),
     useReportPreviewActionState: () => ({shouldShowPayButton: true}),
-    useReportPreviewActions: () => ({startApprovedAnimation: mockStartApprovedAnimation, onHoldMenuOpen: mockOnHoldMenuOpen}),
+    useReportPreviewActions: () => ({startApprovedAnimation: mockStartApprovedAnimation}),
 }));
 
 let mockIsDelegateAccessRestricted = false;
@@ -86,7 +87,7 @@ const mockedHasHeldExpenses = jest.mocked(hasHeldExpensesFromTransactions);
 describe('ApproveActionButton', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockOnPressHolder.current = undefined;
+        mockApprovalButtonProps.current = undefined;
         mockIsDelegateAccessRestricted = false;
         mockedHasHeldExpenses.mockReturnValue(false);
         mockedUseOnyx.mockImplementation((key) => {
@@ -101,7 +102,7 @@ describe('ApproveActionButton', () => {
         render(<ApproveActionButton />);
 
         act(() => {
-            mockOnPressHolder.current?.();
+            mockApprovalButtonProps.current?.onApprove(true);
         });
 
         expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(
@@ -113,15 +114,21 @@ describe('ApproveActionButton', () => {
         );
     });
 
-    it('opens the hold menu instead of approving when the report has held expenses', () => {
-        mockedHasHeldExpenses.mockReturnValue(true);
+    it('approves only the non-held amount when a partial approval is confirmed', () => {
         render(<ApproveActionButton />);
 
         act(() => {
-            mockOnPressHolder.current?.();
+            mockApprovalButtonProps.current?.onApprove(false);
         });
 
-        expect(mockOnHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.REPORT_ACTION_TYPE.APPROVE, undefined, true);
+        expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({full: false}));
+    });
+
+    it('surfaces held expenses to the approval button so it shows the approval options instead of approving directly', () => {
+        mockedHasHeldExpenses.mockReturnValue(true);
+        render(<ApproveActionButton />);
+
+        expect(mockApprovalButtonProps.current?.isAnyTransactionOnHold).toBe(true);
         expect(mockedApproveMoneyRequest).not.toHaveBeenCalled();
     });
 
@@ -130,7 +137,7 @@ describe('ApproveActionButton', () => {
         render(<ApproveActionButton />);
 
         act(() => {
-            mockOnPressHolder.current?.();
+            mockApprovalButtonProps.current?.onApprove(true);
         });
 
         expect(mockShowDelegateNoAccessModal).toHaveBeenCalled();

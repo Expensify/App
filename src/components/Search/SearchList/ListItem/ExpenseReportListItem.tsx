@@ -272,7 +272,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                     chatReportID: holdItem.parentReportID,
                     moneyRequestReport,
                     chatReport,
-                    requestType,
                     paymentType,
                     nonHeldAmount: hasNonHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
                     fullAmount,

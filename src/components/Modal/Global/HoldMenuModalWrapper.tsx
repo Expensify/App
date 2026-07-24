@@ -1,7 +1,6 @@
 import DecisionModal from '@components/DecisionModal';
 
 import useHoldMenuSubmit from '@hooks/useHoldMenuSubmit';
-import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,7 +18,6 @@ import type {ModalProps} from './ModalContext';
 type HoldMenuModalWrapperProps = ModalProps & {
     reportID: string | undefined;
     chatReportID: string | undefined;
-    requestType: ActionHandledType;
     paymentType?: PaymentMethodType;
     methodID?: number;
     nonHeldAmount?: string;
@@ -37,7 +35,6 @@ function HoldMenuModalWrapper({
     closeModal,
     reportID,
     chatReportID,
-    requestType,
     paymentType,
     methodID,
     nonHeldAmount = '0',
@@ -59,10 +56,9 @@ function HoldMenuModalWrapper({
     const moneyRequestReport = moneyRequestReportOverride ?? moneyRequestReportFromOnyx;
     const chatReport = chatReportOverride ?? chatReportFromOnyx;
 
-    const {onSubmit, isApprove} = useHoldMenuSubmit({
+    const {onSubmit} = useHoldMenuSubmit({
         moneyRequestReport,
         chatReport,
-        requestType,
         paymentType,
         methodID,
         onClose: () => setIsVisible(false),
@@ -71,16 +67,12 @@ function HoldMenuModalWrapper({
 
     return (
         <DecisionModal
-            title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
+            title={translate('iou.confirmPay')}
             onClose={() => setIsVisible(false)}
             isVisible={isVisible}
-            prompt={
-                hasNonHeldExpenses
-                    ? translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount')
-                    : translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount})
-            }
-            firstOptionText={hasNonHeldExpenses ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
-            secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
+            prompt={hasNonHeldExpenses ? translate('iou.confirmPayAmount') : translate('iou.confirmPayAllHoldAmount', {count: transactionCount})}
+            firstOptionText={hasNonHeldExpenses ? `${translate('iou.payOnly')} ${nonHeldAmount}` : undefined}
+            secondOptionText={`${translate('iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}
             isSmallScreenWidth={isSmallScreenWidth}
@@ -95,4 +87,4 @@ function HoldMenuModalWrapper({
 }
 
 export default HoldMenuModalWrapper;
-export type {ActionHandledType, HoldMenuModalWrapperProps};
+export type {HoldMenuModalWrapperProps};

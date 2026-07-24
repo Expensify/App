@@ -135,6 +135,9 @@ function mockLifecycleActionsReturn(overrides?: {shouldBlockSubmit?: boolean; is
         handleSubmitReport: mockLifecycleHandleSubmitReport,
         shouldBlockSubmit: overrides?.shouldBlockSubmit ?? false,
         isBlockSubmitDueToPreventSelfApproval: overrides?.isBlockSubmitDueToPreventSelfApproval ?? false,
+        approveSubMenuItems: undefined,
+        approveSubMenuHeaderText: '',
+        shouldShowApproveSubMenu: false,
     };
 }
 
