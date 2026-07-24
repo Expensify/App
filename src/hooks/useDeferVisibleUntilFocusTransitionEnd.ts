@@ -8,6 +8,11 @@ import {useEffect, useRef, useState} from 'react';
  * When the component first mounts already active, shows immediately without waiting. A ref seeded with
  * `isActive` skips transition scheduling on that mount; `visible` alone would not, and `true` would break
  * inactive-then-active deferral.
+ *
+ * Differs from `useIsFocusedUntilTransitionEnd` + `useRunAfterTransitions` (see `DeferredSearchAutocompleteList`):
+ * those hooks defer unmounting on blur and defer the first mount behind a skeleton, while this hook keeps the
+ * subtree mounted and toggles Activity mode - hiding immediately on blur, showing only after the transition on
+ * refocus, and skipping the entry defer on the initial mount when already active.
  */
 function useDeferVisibleUntilFocusTransitionEnd(isActive: boolean): boolean {
     const [visible, setVisible] = useState(isActive);
