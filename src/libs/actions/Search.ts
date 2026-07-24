@@ -1,6 +1,6 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -1541,23 +1541,41 @@ function queueExportSearchWithTemplate(
     return exportID;
 }
 
+/** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
+type ExportTemplateGroups = {
+    /** Custom templates (custom integrations + account/policy in-app templates) */
+    customTemplates: ExportTemplate[];
+    /** Default templates (expense/report level exports, and optionally the basic export) */
+    defaultTemplates: ExportTemplate[];
+};
+
 /**
- * Collates a list of export templates available to the user from their account, policy, and custom integrations templates
+ * Collates the export templates available to the user from their account, policy, and custom integrations templates
  * @param integrationsExportTemplates - The user's custom integrations export templates
  * @param csvExportLayouts - The user's custom account level export templates
+ * @param localeCompare - Locale-aware string comparison function used to sort each group alphabetically
  * @param policy - The user's policy
  * @param includeReportLevelExport - Whether to include the report level export template
- * @returns
+ * @param includeBasicExport - Whether to include the basic export (CSV download) template in the default group
+ * @returns The export templates pre-grouped into the custom group and the default group, each sorted alphabetically
  */
 function getExportTemplates(
     integrationsExportTemplates: ExportTemplate[],
     csvExportLayouts: Record<string, ExportTemplate>,
     translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
     policy?: Policy,
     includeReportLevelExport = true,
-): ExportTemplate[] {
+    includeBasicExport = false,
+): ExportTemplateGroups {
     // Helper function to normalize template data into consistent ExportTemplate format
-    const normalizeTemplate = (templateName: string, template: ExportTemplate, type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>, description = '', policyID?: string): ExportTemplate => ({
+    const normalizeTemplate = (
+        templateName: string,
+        template: Pick<ExportTemplate, 'name'> & Partial<ExportTemplate>,
+        type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>,
+        description = '',
+        policyID?: string,
+    ): ExportTemplate => ({
         ...template,
         templateName,
         description,
@@ -1567,14 +1585,17 @@ function getExportTemplates(
 
     // By default, we always include the expense level export template
     const exportTemplates: ExportTemplate[] = [
-        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
+        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
     ];
 
     // Conditionally include the report level export template
     if (includeReportLevelExport) {
-        exportTemplates.push(
-            normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
-        );
+        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
+    }
+
+    // Conditionally include the basic export (CSV download) template so it's sorted alphabetically alongside the other default templates
+    if (includeBasicExport) {
+        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, {name: translate('export.basicExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
     }
 
     // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
@@ -1590,7 +1611,13 @@ function getExportTemplates(
     // Update the integrations export templates to include the name, description, policyID, and type
     const integrationsTemplates = integrationsExportTemplates.map((template) => normalizeTemplate(template.name, template, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
 
-    return [...exportTemplates, ...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
+    // Custom templates (custom integrations + account/policy in-app templates), sorted alphabetically by name
+    const customTemplates = [...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates].sort((first, second) => localeCompare(first.name, second.name));
+
+    // Default templates (expense/report level and optionally basic export), sorted alphabetically by name
+    const defaultTemplates = [...exportTemplates].sort((first, second) => localeCompare(first.name, second.name));
+
+    return {customTemplates, defaultTemplates};
 }
 
 /**

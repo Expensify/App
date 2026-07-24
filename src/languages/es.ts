@@ -15,7 +15,13 @@ import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
+import type {
+    ConciergeBrokenCardConnectionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
+    PaidElsewhereParams,
+    RemoveCopilotAccessConfirmationParams,
+    UnsupportedFormulaValueErrorParams,
+} from './params';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     common: {
@@ -5800,7 +5806,6 @@ ${amount} para ${merchant} - ${date}`,
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben clasificar todos los gastos',
-            showCategoryGLCodes: 'Mostrar códigos GL al categorizar gastos',
             needCategoryForExportToIntegration: (connectionName) => `Todos los gastos deben estar categorizados para poder exportar a ${connectionName}.`,
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
@@ -8641,6 +8646,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 title: 'No hay gastos para mostrar',
                 subtitle: 'Sin resultados. Intenta ajustar tus filtros.',
             },
+            emptyViolationSnapshotResults: {
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
+                    `Las infracciones solo se registran a partir del ${formattedDate}. Intenta ajustar tus filtros de fecha.`,
+            },
             emptyUnapprovedResults: {
                 title: 'No hay gastos para aprobar',
                 subtitle: 'Cero gastos. Máxima relajación. ¡Bien hecho!',
@@ -8764,6 +8773,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturación consolidada de viajes',
             },
             is: 'Es',
+            has: {submittedViolation: 'Infracción enviada'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',
