@@ -336,6 +336,7 @@ const config = defineConfig([
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-useOnyx-dependencies-arg': 'error',
+            'rulesdir/no-raw-typography': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -653,6 +654,14 @@ const config = defineConfig([
         files: ['src/libs/ReportNameUtils.ts'],
         plugins: {'report-name-utils': reportNameUtilsPlugin},
         rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
+    },
+
+    // The typography token files are where raw font sizes and line heights are defined.
+    {
+        files: ['src/styles/typography.ts', 'src/styles/variables.ts'],
+        rules: {
+            'rulesdir/no-raw-typography': 'off',
+        },
     },
 
     // Restrict `computeReportName` imports everywhere except the one file that
