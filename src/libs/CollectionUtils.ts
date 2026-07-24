@@ -1,6 +1,16 @@
 import type {OnyxCollectionKey} from '@src/ONYXKEYS';
 
 /**
+ * Return the first item in a numbered collection
+ *
+ * e.g. {1: '1', 2: '2', 3: '3'} -> '1'
+ */
+function firstItem<T>(object: Record<string, T> = {}): T | undefined {
+    const firstKey = Object.keys(object).at(0);
+    return firstKey !== undefined ? object[firstKey] : undefined;
+}
+
+/**
  * Return the highest item in a numbered collection
  *
  * e.g. {1: '1', 2: '2', 3: '3'} -> '3'
@@ -20,4 +30,4 @@ function extractCollectionItemID(key: `${OnyxCollectionKey}${string}`): string {
     return key.split('_').at(1) ?? '';
 }
 
-export {lastItem, extractCollectionItemID};
+export {firstItem, lastItem, extractCollectionItemID};
