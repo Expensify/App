@@ -184,6 +184,7 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDateRangeForPreset,
     getFilterFromQuery,
+    getQueryHashes,
     isFilterNegatable,
     isFilterSupported,
     isSearchDatePreset,
@@ -4807,9 +4808,16 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    const isDataLoaded = (searchResults?.data != null || searchResults?.errors != null) && searchResults?.search?.type === queryJSON?.type && searchResults.search.hash === queryJSON?.hash;
-
-    return isDataLoaded;
+    return (
+        (searchResults?.data != null || searchResults?.errors != null) &&
+        searchResults.search.type === queryJSON?.type &&
+        searchResults.search.hash ===
+            getQueryHashes({
+                ...queryJSON,
+                sortBy: searchResults.search.sortBy,
+                sortOrder: searchResults.search.sortOrder,
+            }).primaryHash
+    );
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
@@ -4840,6 +4848,7 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
                 {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
                 {text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
                 {text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+                {text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
             ];
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
@@ -5450,9 +5459,21 @@ function getDisplayValue(
             .join(', ');
     }
 
-    if (key === FILTER_KEYS.IS || key === FILTER_KEYS.HAS) {
+    if (key === FILTER_KEYS.IS) {
         const formValue = form[key];
         return formValue?.map((option) => translate(`common.${option}`)).join(', ');
+    }
+
+    if (key === FILTER_KEYS.HAS) {
+        const hasValues = form[key];
+        if (!hasValues?.length) {
+            return;
+        }
+        const hasOptions = getHasOptions(translate, type);
+        return hasOptions
+            .filter((option) => hasValues.includes(option.value))
+            .map((option) => option.text)
+            .join(', ');
     }
 
     if (
@@ -6553,6 +6574,7 @@ export {
     getSelectedGroupFilterEntry,
     adjustTimeRangeToDateFilters,
     getDateDisplayValue,
+    getDisplayValue,
     getFilterNegatableValue,
     shouldShowFilter,
     mapFiltersFormToLabelValueList,
