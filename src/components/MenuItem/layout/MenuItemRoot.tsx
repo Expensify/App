@@ -139,6 +139,7 @@ function MenuItemRoot({
             return;
         }
 
+        // Prevent clicked menu items from retaining an unwanted focus outline on web, especially in Safari
         if (event?.type === 'click' && typeof HTMLElement !== 'undefined' && event.currentTarget instanceof HTMLElement) {
             event.currentTarget.blur();
         }
