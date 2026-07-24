@@ -4,6 +4,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import Text from '@components/Text';
 
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
@@ -206,10 +207,11 @@ describe('SearchAutocompleteList', () => {
         const navigationAction = jest.fn();
         mockUseNavigationSuggestions.mockReturnValue([
             {
-                text: 'Go to Inbox',
-                keyForList: 'topLevelInbox',
+                text: 'Go to Reports',
+                keyForList: 'spend_reports',
                 searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
                 action: navigationAction,
+                rightElement: <Text>Spend</Text>,
             },
         ]);
 
@@ -223,7 +225,8 @@ describe('SearchAutocompleteList', () => {
         render(<SearchRouterWrapper />);
         await flushAllUpdates();
 
-        fireEvent.press(await screen.findByText('Go to Inbox'));
+        expect(await screen.findByText('Spend')).toBeTruthy();
+        fireEvent.press(await screen.findByText('Go to Reports'));
 
         await waitFor(() => {
             expect(mockOnClose).toHaveBeenCalledWith(navigationAction);

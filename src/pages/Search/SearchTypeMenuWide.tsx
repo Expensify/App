@@ -14,13 +14,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 import type {TodoCounts} from '@hooks/useTodoCounts';
 
-import {setSearchContext} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
+import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 // eslint-disable-next-line no-restricted-imports
@@ -151,11 +149,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
     };
 
-    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
-        clearSelectedTransactions();
-        setSearchContext(false);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
-    });
+    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions));
 
     useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
