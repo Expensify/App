@@ -24,6 +24,17 @@ Example phrases for your agent's instructions:
 
 ---
 
+## How to write instructions that submit all outstanding expense reports at once
+
+Submits every one of the submitter's eligible outstanding (open/draft) expense reports across all of their workspaces in a single action.
+
+Example phrases for your agent's instructions:
+- Submit all my outstanding reports
+- Submit all my open reports
+- Auto-submit all of my pending reports at the end of the month
+
+---
+
 ## How to write instructions that approve expense reports
 
 Marks Outstanding (submitted) expense report as Approved, moving it to the reimbursement queue as **Ready to Pay** .
@@ -231,4 +242,4 @@ Example phrases for your agent's instructions:
 
 ---
 
-*This reference covers all 17 AI Agent capabilities.*
+*This reference covers all 18 AI Agent capabilities.*
