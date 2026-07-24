@@ -21,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -46,6 +47,7 @@ function AgentsPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const illustrations = useMemoizedLazyIllustrations(['AiBot']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
     const chatWithAgent = useChatWithAgent();
@@ -228,9 +230,9 @@ function AgentsPage() {
                 shouldDisplayHelpButton
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
             >
-                {!shouldUseNarrowLayout && headerButtons}
+                {!shouldDisplayButtonsInSeparateLine && headerButtons}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
+            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
             {hasAgents && (
                 <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
                     <RenderHTML html={translate('agentsPage.subtitle')} />
