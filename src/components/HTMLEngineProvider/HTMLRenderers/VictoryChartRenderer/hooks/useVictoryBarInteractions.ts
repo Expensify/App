@@ -53,7 +53,8 @@ function collectVerticalBarSeries(children: readonly TNode[]): BarSeriesConfig {
             config[getYKey(node)] = {barWidth: parseAttributeAsNumber(node.attributes.barwidth)};
             return;
         }
-        if (node.tagName === 'victorygroup' && !('horizontal' in node.attributes)) {
+        const isHorizontalGroup = 'horizontal' in node.attributes && node.attributes.horizontal !== 'false';
+        if (node.tagName === 'victorygroup' && !isHorizontalGroup) {
             const barChildren = node.children.filter((child) => child.tagName === 'victorybar');
             const groupYKeys = barChildren.map(getYKey);
             const firstBarChild = barChildren.at(0);
