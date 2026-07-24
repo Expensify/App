@@ -56,6 +56,7 @@ const TEST_NON_PUBLIC_DOMAIN_EMAIL = 'esh@example.com';
 const TEST_SMS_DOMAIN_EMAIL = 'esh@expensify.sms';
 
 type GuidedSetupTask = Extract<TaskForParameters, {type: 'task'}>;
+type GuidedSetupTaskFields = Pick<GuidedSetupTask, 'type' | 'task' | 'completedTaskReportActionID'>;
 
 function requireCallArgument(call: unknown, index: number): unknown {
     if (!Array.isArray(call) || !(index in call)) {
@@ -64,19 +65,12 @@ function requireCallArgument(call: unknown, index: number): unknown {
     return call.at(index);
 }
 
-function isGuidedSetupTask(value: unknown): value is GuidedSetupTask {
+function isGuidedSetupTask(value: unknown): value is GuidedSetupTaskFields {
     return (
         isRecord(value) &&
         value.type === 'task' &&
         typeof value.task === 'string' &&
-        typeof value.taskReportID === 'string' &&
-        typeof value.parentReportID === 'string' &&
-        typeof value.parentReportActionID === 'string' &&
-        (value.assigneeChatReportID === undefined || typeof value.assigneeChatReportID === 'string') &&
-        typeof value.createdTaskReportActionID === 'string' &&
-        (value.completedTaskReportActionID === undefined || typeof value.completedTaskReportActionID === 'string') &&
-        typeof value.title === 'string' &&
-        typeof value.description === 'string'
+        (value.completedTaskReportActionID === undefined || typeof value.completedTaskReportActionID === 'string')
     );
 }
 
