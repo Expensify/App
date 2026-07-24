@@ -131,7 +131,14 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData]);
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
-    const selectedAllMatchingItemsCount = typeof allMatchingItemsCount === 'number' ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : undefined;
+    const selectedAllMatchingItemsCount =
+        excludedItemsCount > 0
+            ? typeof allMatchingItemsCount === 'number'
+                ? Math.max(allMatchingItemsCount - excludedItemsCount, 0)
+                : isExpenseType && isOffline
+                  ? selectedItemsCount
+                  : undefined
+            : undefined;
     const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
     let selectionButtonText: string;
     if (areAllMatchingItemsSelected) {
