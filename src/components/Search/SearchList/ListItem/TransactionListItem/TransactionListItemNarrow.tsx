@@ -12,11 +12,13 @@ import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
+
 import CONST from '@src/CONST';
 
 import type {View} from 'react-native';
 
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {TransactionListItemNarrowProps} from './types';
 
@@ -83,7 +85,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    shouldShowFocusBackground && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
