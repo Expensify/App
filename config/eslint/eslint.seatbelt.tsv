@@ -573,7 +573,6 @@
 "../../src/hooks/useLazyAsset.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useLazyAsset.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useListKeyboardNav.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/hooks/useNativeCamera.ts"	"react-hooks/refs"	1
 "../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
 "../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/hooks/useOptimisticDraftTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

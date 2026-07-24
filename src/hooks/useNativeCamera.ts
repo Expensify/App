@@ -11,6 +11,7 @@ import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraP
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type React from 'react';
 import type {Camera, Point} from 'react-native-vision-camera';
 
 import {useFocusEffect} from '@react-navigation/core';
@@ -72,41 +73,7 @@ function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCamer
             });
     }, [translate]);
 
-    // Focus indicator animations
-    const focusIndicatorOpacity = useSharedValue(0);
-    const focusIndicatorScale = useSharedValue(2);
-    const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
-
-    const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: focusIndicatorOpacity.get(),
-        transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
-    }));
-
-    const focusCamera = useCallback((point: Point) => {
-        if (!camera.current) {
-            return;
-        }
-
-        camera.current.focus(point).catch((error: Record<string, unknown>) => {
-            if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
-                return;
-            }
-            Log.warn('Error focusing camera', error);
-        });
-    }, []);
-
-    const tapGesture = Gesture.Tap()
-        .enabled(device?.supportsFocus ?? false)
-        .onStart((ev: {x: number; y: number}) => {
-            const point = {x: ev.x, y: ev.y};
-
-            focusIndicatorOpacity.set(withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250}))));
-            focusIndicatorScale.set(2);
-            focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
-            focusIndicatorPosition.set(point);
-
-            scheduleOnRN(focusCamera, point);
-        });
+    const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(camera, device?.supportsFocus ?? false);
 
     // Refresh camera permission on screen focus and app state changes
     useFocusEffect(
@@ -166,4 +133,55 @@ function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCamer
     };
 }
 
+/**
+ * Focuses the camera at the given point. Kept as a module-level helper (outside any hook/component)
+ * so React Compiler does not analyze the `cameraRef.current` access -- reading a ref's `.current`
+ * inside a hook body trips the "no ref access during render" rule, which makes OXC bail on the whole
+ * file and diverge from Babel. The hook only ever passes the ref object through, never dereferences it.
+ */
+function focusCameraAtPoint(cameraRef: React.RefObject<Camera | null>, point: Point) {
+    if (!cameraRef.current) {
+        return;
+    }
+
+    cameraRef.current.focus(point).catch((error: Record<string, unknown>) => {
+        if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+            return;
+        }
+        Log.warn('Error focusing camera', error);
+    });
+}
+
+/**
+ * Encapsulates tap-to-focus gesture handling for VisionCamera.
+ */
+function useTapToFocusGesture(cameraRef: React.RefObject<Camera | null>, supportsFocus: boolean) {
+    const focusIndicatorOpacity = useSharedValue(0);
+    const focusIndicatorScale = useSharedValue(2);
+    const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
+
+    const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: focusIndicatorOpacity.get(),
+        transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
+    }));
+
+    const focusCamera = useCallback((point: Point) => focusCameraAtPoint(cameraRef, point), [cameraRef]);
+
+    const tapGesture = Gesture.Tap()
+        .enabled(supportsFocus)
+        .onStart((ev: {x: number; y: number}) => {
+            const point = {x: ev.x, y: ev.y};
+
+            focusIndicatorOpacity.set(withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250}))));
+            focusIndicatorScale.set(2);
+            focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
+            focusIndicatorPosition.set(point);
+
+            scheduleOnRN(focusCamera, point);
+        });
+
+    return {tapGesture, cameraFocusIndicatorAnimatedStyle};
+}
+
 export default useNativeCamera;
+export {useTapToFocusGesture};

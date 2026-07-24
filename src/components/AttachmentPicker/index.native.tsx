@@ -32,9 +32,10 @@ import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
 
+import type {CapturedPhoto} from './AttachmentCamera';
 import type AttachmentPickerProps from './types';
 
-import launchCamera from './launchCamera/launchCamera';
+import AttachmentCamera from './AttachmentCamera';
 
 const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
     pdf: String(types.pdf),
@@ -62,14 +63,23 @@ type LocalCopy = {
     type: string | null;
 };
 
-type Item = {
-    /** The icon associated with the item. */
-    icon: IconAsset;
-    /** The key in the translations file to use for the title */
-    textTranslationKey: TranslationPaths;
-    /** Function to call when the user clicks the item */
-    pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
-};
+type Item =
+    | {
+          /** The icon associated with the item. */
+          icon: IconAsset;
+          /** The key in the translations file to use for the title */
+          textTranslationKey: TranslationPaths;
+          /** Function to call when the user clicks the item */
+          pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
+      }
+    | {
+          /** The icon associated with the item. */
+          icon: IconAsset;
+          /** The key in the translations file to use for the title */
+          textTranslationKey: TranslationPaths;
+          /** Direct action that doesn't go through the promise-based selectItem flow */
+          onPress: () => void;
+      };
 
 /**
  * Ensures asset has proper fileName and type properties
@@ -168,6 +178,7 @@ function AttachmentPicker({
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
+    const [showAttachmentCamera, setShowAttachmentCamera] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -191,9 +202,19 @@ function AttachmentPicker({
     );
 
     /**
+     * Launch the in-app VisionCamera instead of the external system camera.
+     * Opens the camera modal directly — bypasses the promise-based selectItem flow.
+     * handleCameraCapture / handleCameraClose handle completion.
+     */
+    const launchInAppCamera = useCallback(() => {
+        onOpenPicker?.();
+        setShowAttachmentCamera(true);
+    }, [onOpenPicker]);
+
+    /**
      * Common image picker handling
      *
-     * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
+     * @param {function} imagePickerFunc - RNImagePicker.launchImageLibrary
      */
     const showImagePicker = useCallback(
         (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
@@ -359,12 +380,12 @@ function AttachmentPicker({
             data.unshift({
                 icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
-                pickAttachment: () => showImagePicker(launchCamera),
+                onPress: launchInAppCamera,
             });
         }
 
         return data;
-    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, launchInAppCamera, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -487,6 +508,31 @@ function AttachmentPicker({
         [handleImageProcessingError, shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
 
+    const handleCameraCapture = useCallback(
+        (photos: CapturedPhoto[]) => {
+            setShowAttachmentCamera(false);
+            const assets: Asset[] = photos.map((photo) => ({
+                uri: photo.uri,
+                fileName: photo.fileName,
+                type: photo.type,
+                width: photo.width,
+                height: photo.height,
+            }));
+            Promise.resolve(pickAttachment(assets)).finally(() => {
+                onClosed.current();
+                delete onModalHide.current;
+            });
+        },
+        [pickAttachment],
+    );
+
+    const handleCameraClose = useCallback(() => {
+        setShowAttachmentCamera(false);
+        onCanceled.current();
+        onClosed.current();
+        delete onModalHide.current;
+    }, []);
+
     /**
      * Opens the attachment modal, or directly launches the document picker when shouldSkipAttachmentTypeModal is true.
      */
@@ -522,6 +568,22 @@ function AttachmentPicker({
      */
     const selectItem = useCallback(
         (item: Item) => {
+            /* Items with onPress (e.g. the in-app camera) handle their own flow and don't go
+             * through the promise-based pickAttachment chain. Defer the launch to onModalHide so
+             * the camera modal only presents after the popover has fully dismissed — presenting a
+             * second modal while the first is still dismissing fails silently on iOS, which is what
+             * caused the "camera doesn't open"/"app loads infinitely" regressions. */
+            if ('onPress' in item) {
+                onModalHide.current = () => {
+                    setTimeout(() => {
+                        item.onPress();
+                        delete onModalHide.current;
+                    }, 200);
+                };
+                close();
+                return;
+            }
+
             onOpenPicker?.();
             /* setTimeout delays execution to the frame after the modal closes
              * without this on iOS closing the modal closes the gallery/camera as well */
@@ -598,6 +660,11 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
+            <AttachmentCamera
+                isVisible={showAttachmentCamera}
+                onCapture={handleCameraCapture}
+                onClose={handleCameraClose}
+            />
             {renderChildren()}
         </>
     );
