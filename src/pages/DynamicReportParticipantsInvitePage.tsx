@@ -1,3 +1,4 @@
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,6 +12,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
@@ -21,8 +23,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
-import {getGroupChatName} from '@libs/ReportNameUtils';
-import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
+import {getParticipantsAccountIDsForDisplay, isCurrentUserSubmitter, isGroupChat, isGroupChatAdmin, isMoneyRequestReport, isOpenExpenseReport, isPolicyAdmin} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,11 +34,12 @@ import {newAccountIDsAndLoginsSelector, personalDetailsLoginsSelector} from '@sr
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
+import getInvitedEmailsToAccountIDs from './InviteReportParticipantsPageUtils';
 
 type DynamicReportParticipantsInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
@@ -50,6 +54,11 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     });
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserAccountID = Number(session?.accountID);
+    const policy = usePolicy(report.policyID);
+    const isReportSubmitterOrAdmin = isCurrentUserSubmitter(report) || isPolicyAdmin(policy) || (isGroupChat(report) && isGroupChatAdmin(report, currentUserAccountID));
+    const shouldShowInvitePage = isReportSubmitterOrAdmin && (isGroupChat(report) || (isMoneyRequestReport(report) && isOpenExpenseReport(report)));
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -115,7 +124,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         toggleSelection(option);
     };
 
-    const reportName = getGroupChatName(formatPhoneNumber, translate, undefined, true, report);
+    const reportName = StringUtils.lineBreaksToSpaces(getReportName(report));
 
     const goBack = () => {
         Navigation.goBack(backPath);
@@ -133,9 +142,17 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         if (selectedOptions.length === 0) {
             return;
         }
+        const invitedEmailsToAccountIDs = getInvitedEmailsToAccountIDs(selectedOptions);
+        if (Object.keys(invitedEmailsToAccountIDs).length === 0) {
+            return;
+        }
         inviteToGroupChat(report, invitedEmailsToAccountIDs, newAccountIDsAndLogins?.newAccountIDs ?? [], newAccountIDsAndLogins?.newLogins ?? [], formatPhoneNumber);
         goBack();
     };
+
+    if (!shouldShowInvitePage) {
+        return <FullPageNotFoundView shouldShow />;
+    }
 
     const getHeaderMessageText = () => {
         if (sections.length > 0) {

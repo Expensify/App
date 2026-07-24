@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,16 +31,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isChatRoom,
     isChatThread,
+    isCurrentUserSubmitter,
     isGroupChatAdmin,
     isGroupChat as isGroupChatUtils,
     isMoneyRequestReport,
+    isOpenExpenseReport,
     isPolicyExpenseChat,
     isSelfDM,
     isTaskReport,
@@ -79,13 +83,15 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const tableRef = useRef<TableHandle<ReportParticipantRowData, ReportParticipantsTableColumnKey, string>>(null);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
-    const reportAttributes = useReportAttributes();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = isGroupChatUtils(report);
+    const policy = usePolicy(report.policyID);
+    const isReportSubmitterOrAdmin = isCurrentUserSubmitter(report) || isPolicyAdmin(policy) || (isGroupChat && isCurrentUserAdmin);
+    const shouldShowInviteButton = isReportSubmitterOrAdmin && (isGroupChat || (isMoneyRequestReport(report) && isOpenExpenseReport(report)));
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
@@ -104,8 +110,11 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     };
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, filterParticipants);
+    const shouldShowBulkActionsDropdown = isGroupChat && (isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0);
     const firstSelectedMember = selectedMembers?.at(0);
-    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(firstSelectedMember)});
+    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsSelector(firstSelectedMember),
+    });
 
     // The Table stores selection as string keys, while this page tracks accountIDs as numbers.
     const onRowSelectionChange = (keys: string[]) => setSelectedMembers(keys.map(Number));
@@ -141,7 +150,9 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
 
     const showRemoveMembersModal = async () => {
         const {action} = await showConfirmModal({
-            title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
+            title: translate('workspace.people.removeMembersTitle', {
+                count: selectedMembers.length,
+            }),
             prompt: translate('workspace.people.removeMembersPrompt', {
                 count: selectedMembers.length,
                 memberName: formatPhoneNumber(firstSelectedMemberDetails?.displayName ?? ''),
@@ -177,7 +188,12 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             keyForList: `${accountID}`,
             accountID,
             login: details?.login ?? '',
-            name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+            name: formatPhoneNumber(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: details,
+                    translate,
+                }),
+            ),
             email: formatPhoneNumber(details?.login ?? ''),
             isAdmin: role === CONST.REPORT.ROLE.ADMIN,
             isGroupChat,
@@ -195,7 +211,9 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
 
     const bulkActionsButtonOptions: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
         {
-            text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
+            text: translate('workspace.people.removeMembersTitle', {
+                count: selectedMembers.length,
+            }),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
             icon: icons.RemoveMembers,
             onSelected: showRemoveMembersModal,
@@ -204,7 +222,9 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
 
     if (isAtLeastOneAdminSelected) {
         bulkActionsButtonOptions.push({
-            text: translate('workspace.people.makeMember', {count: selectedMembers.length}),
+            text: translate('workspace.people.makeMember', {
+                count: selectedMembers.length,
+            }),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
             icon: icons.User,
             onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
@@ -213,7 +233,9 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
 
     if (isAtLeastOneMemberSelected) {
         bulkActionsButtonOptions.push({
-            text: translate('workspace.people.makeGroupAdmin', {count: selectedMembers.length}),
+            text: translate('workspace.people.makeGroupAdmin', {
+                count: selectedMembers.length,
+            }),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
             icon: icons.MakeAdmin,
             onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
@@ -247,12 +269,12 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                             navigateBackToReportDetails();
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(deprecatedGetReportName(report, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>
-                    {isGroupChat && (
+                    {shouldShowInviteButton && (
                         <View style={styles.w100}>
-                            {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
+                            {shouldShowBulkActionsDropdown ? (
                                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     shouldAlwaysShowDropdownMenu
@@ -278,7 +300,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                         </View>
                     )}
                 </View>
-                <View style={[styles.w100, styles.flex1]}>
+                <View style={[styles.w100, shouldShowInviteButton ? styles.mt3 : styles.mt0, styles.flex1]}>
                     <ReportParticipantsTable
                         ref={tableRef}
                         members={participants}
