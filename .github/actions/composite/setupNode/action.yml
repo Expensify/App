@@ -1,5 +1,6 @@
 name: Set up Node
-description: Set up Node
+description: |
+  Set up Node and restore dependencies, picking the strategy by runner OS: Blacksmith Sticky Disks on Linux, actions/cache on macOS.
 
 inputs:
   IS_HYBRID_BUILD:
@@ -10,7 +11,7 @@ inputs:
 outputs:
   cache-hit:
     description: Was there a cache hit on the main node_modules?
-    value: ${{ steps.cache-node-modules.outputs.cache-hit }}
+    value: ${{ steps.check-node-modules.outputs.cache-hit }}
 
 runs:
   using: composite
@@ -24,33 +25,106 @@ runs:
       uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
       with:
         node-version-file: '.nvmrc'
-        cache: 'npm'
-        cache-dependency-path: normalized-package-lock.json
+
+    - id: runner-info
+      shell: bash
+      run: echo "use-sticky-disk=${{ runner.os == 'Linux' && contains(runner.name, 'blacksmith') }}" >> "$GITHUB_OUTPUT"
+
+    - id: stickydisk-node-modules
+      if: steps.runner-info.outputs.use-sticky-disk == 'true'
+      uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
+      with:
+        key: ${{ format('{0}-{1}-{2}-node-modules-{3}', github.repository, runner.os, runner.arch, inputs.IS_HYBRID_BUILD == 'true' && hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('normalized-package-lock.json', 'patches/**')) }}
+        path: node_modules
+
+    - id: stickydisk-old-dot-node-modules
+      if: steps.runner-info.outputs.use-sticky-disk == 'true' && inputs.IS_HYBRID_BUILD == 'true'
+      uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
+      with:
+        key: ${{ format('{0}-{1}-{2}-old-dot-node-modules-{3}', github.repository, runner.os, runner.arch, hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**')) }}
+        path: Mobile-Expensify/node_modules
+
+    - id: stickydisk-npm
+      if: steps.runner-info.outputs.use-sticky-disk == 'true'
+      uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
+      with:
+        key: ${{ format('{0}-{1}-{2}-npm', github.repository, runner.os, runner.arch) }}
+        path: ~/.npm
 
     - id: cache-node-modules
+      if: steps.runner-info.outputs.use-sticky-disk != 'true'
       # v5.0.1
       uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
       with:
         path: node_modules
-        key: ${{ inputs.IS_HYBRID_BUILD == 'true' && format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**')) || format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**'))}}
+        key: ${{ format('{0}-node-modules-{1}', runner.os, inputs.IS_HYBRID_BUILD == 'true' && hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('package-lock.json', 'patches/**')) }}
 
     - id: cache-old-dot-node-modules
-      if: inputs.IS_HYBRID_BUILD == 'true'
+      if: steps.runner-info.outputs.use-sticky-disk != 'true' && inputs.IS_HYBRID_BUILD == 'true'
       # v5.0.1
       uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
       with:
         path: Mobile-Expensify/node_modules
         key: ${{ runner.os }}-node-modules-${{ hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**') }}
 
-    - name: Remove ND node_modules if needed for hybrid app build
-      if: inputs.IS_HYBRID_BUILD == 'true' && steps.cache-node-modules.outputs.cache-hit == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true'
+    - id: check-node-modules
       shell: bash
-      run: rm -rf node_modules
+      env:
+        USE_STICKY_DISK: ${{ steps.runner-info.outputs.use-sticky-disk }}
+        ACTIONS_CACHE_HIT: ${{ steps.cache-node-modules.outputs.cache-hit }}
+      run: |
+        if [[ "$USE_STICKY_DISK" == 'true' ]]; then
+          [[ -f node_modules/.stickydisk-installed ]] && CACHE_HIT='true' || CACHE_HIT='false'
+        else
+          CACHE_HIT="$ACTIONS_CACHE_HIT"
+        fi
+        echo "cache-hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
+
+    - id: check-old-dot-node-modules
+      if: inputs.IS_HYBRID_BUILD == 'true'
+      shell: bash
+      env:
+        USE_STICKY_DISK: ${{ steps.runner-info.outputs.use-sticky-disk }}
+        ACTIONS_CACHE_HIT: ${{ steps.cache-old-dot-node-modules.outputs.cache-hit }}
+      run: |
+        if [[ "$USE_STICKY_DISK" == 'true' ]]; then
+          [[ -f Mobile-Expensify/node_modules/.stickydisk-installed ]] && CACHE_HIT='true' || CACHE_HIT='false'
+        else
+          CACHE_HIT="$ACTIONS_CACHE_HIT"
+        fi
+        echo "cache-hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
+
+    - id: cache-npm
+      if: steps.runner-info.outputs.use-sticky-disk != 'true' && (steps.check-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.check-old-dot-node-modules.outputs.cache-hit != 'true'))
+      # v5.0.1
+      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-${{ runner.arch }}-npm-${{ hashFiles('normalized-package-lock.json') }}
+        restore-keys: ${{ runner.os }}-${{ runner.arch }}-npm-
+
+    - name: Clear ND node_modules if needed for hybrid app build
+      if: inputs.IS_HYBRID_BUILD == 'true' && steps.check-node-modules.outputs.cache-hit == 'true' && steps.check-old-dot-node-modules.outputs.cache-hit != 'true'
+      shell: bash
+      # Empty the contents instead of deleting node_modules itself: on Linux it is a sticky-disk mount
+      # point, so `rm -rf node_modules` would fail to remove the mount (Device or resource busy).
+      run: find node_modules -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
     - name: Install root project node packages
-      if: steps.cache-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.cache-old-dot-node-modules.outputs.cache-hit != 'true')
+      if: steps.check-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.check-old-dot-node-modules.outputs.cache-hit != 'true')
       uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
       with:
         timeout_minutes: 30
         max_attempts: 3
         command: npm ci
+
+    - name: Mark sticky disks as installed
+      if: steps.runner-info.outputs.use-sticky-disk == 'true'
+      shell: bash
+      env:
+        IS_HYBRID_BUILD: ${{ inputs.IS_HYBRID_BUILD }}
+      run: |
+        touch node_modules/.stickydisk-installed
+        if [[ "$IS_HYBRID_BUILD" == 'true' ]]; then
+          touch Mobile-Expensify/node_modules/.stickydisk-installed
+        fi
