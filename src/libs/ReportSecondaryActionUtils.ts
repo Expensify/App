@@ -2,7 +2,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
-    ExportTemplate,
     OutstandingReportsByPolicyIDDerivedValue,
     Policy,
     Report,
@@ -1113,28 +1112,24 @@ function getSecondaryReportActions({
     return options;
 }
 
-function getSecondaryExportReportActions(
+/**
+ * Returns the accounting export actions (export to integration / mark as exported) the user is allowed to perform on the report.
+ * The export template options are collated separately via getExportTemplates, which returns them pre-grouped and sorted.
+ */
+function getReportAccountingExportActions(
     currentUserAccountID: number,
     currentUserLogin: string,
     report: Report,
     bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
-    exportTemplates: ExportTemplate[] = [],
-): Array<ValueOf<string>> {
-    const options: Array<ValueOf<string>> = [];
+): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
+    const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
     if (isExportAction(currentUserLogin, report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
     if (isMarkAsExportedAction(currentUserAccountID, currentUserLogin, report, bankAccountList, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
-    }
-
-    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
-
-    // Add any custom IS templates that have been added to the user's account as export options
-    for (const template of exportTemplates) {
-        options.push(template.name);
     }
 
     return options;
@@ -1222,4 +1217,4 @@ function getSecondaryTransactionThreadActions({
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionForSelectedTransactions, getSecondaryExportReportActions, isSplitAction, isChangeWorkspaceAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionForSelectedTransactions, getReportAccountingExportActions, isSplitAction, isChangeWorkspaceAction};

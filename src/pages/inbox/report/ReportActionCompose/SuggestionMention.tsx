@@ -100,7 +100,7 @@ function SuggestionMention({
     );
 
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [mentionableReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: mentionableReportsSelector}, [policyID]);
+    const [mentionableReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: mentionableReportsSelector});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
@@ -418,7 +418,7 @@ function SuggestionMention({
             }) as Array<PersonalDetails & {weight: number}>;
 
             // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
-            const sortedPersonalDetails = getSortedPersonalDetails(filteredPersonalDetails, localeCompare);
+            const sortedPersonalDetails = getSortedPersonalDetails(filteredPersonalDetails, localeCompare, translate);
 
             for (const detail of sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length)) {
                 suggestions.push({
