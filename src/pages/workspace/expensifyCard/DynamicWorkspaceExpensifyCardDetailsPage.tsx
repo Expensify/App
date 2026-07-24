@@ -39,6 +39,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {arePolicyRulesEnabled, canMemberWrite, getConnectedIntegration} from '@libs/PolicyUtils';
+import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -99,7 +100,20 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FreezeCard', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'FreezeCard',
+        'MoneySearch',
+        'Trashcan',
+        'CreditCardLock',
+        'XeroSquare',
+        'QBOSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'GustoSquare',
+    ]);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -426,38 +440,6 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             interactive={canWriteExpensifyCard}
                         />
                     </OfflineWithFeedback>
-                    {exportMenuItem?.shouldShowMenuItem ? (
-                        <OfflineWithFeedback
-                            pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
-                            errorRowStyles={[styles.ph5, styles.mb3]}
-                            errors={exportMenuItem.exportType ? getLatestErrorField(card?.nameValuePairs ?? {}, exportMenuItem.exportType) : undefined}
-                            onClose={() => {
-                                if (!exportMenuItem.exportType) {
-                                    return;
-                                }
-                                clearCompanyCardErrorField(Number(card?.fundID ?? workspaceAccountID), cardID, CONST.EXPENSIFY_CARD.BANK, exportMenuItem.exportType);
-                            }}
-                        >
-                            <MenuItemWithTopDescription
-                                description={exportMenuItem.description}
-                                title={exportMenuItem.title}
-                                numberOfLinesTitle={2}
-                                shouldShowRightIcon={canWriteExpensifyCard}
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        createDynamicRoute(
-                                            DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(
-                                                getCardFeedWithDomainID(card.bank, card?.fundID ?? workspaceAccountID),
-                                                String(card.cardID),
-                                            ),
-                                        ),
-                                    )
-                                }
-                                interactive={canWriteExpensifyCard}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
-                            />
-                        </OfflineWithFeedback>
-                    ) : null}
                     <View style={styles.mt6}>
                         {canEditSpendRules && (
                             <MenuItem
@@ -475,6 +457,46 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             />
                         )}
                     </View>
+                    {exportMenuItem?.shouldShowMenuItem ? (
+                        <>
+                            <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
+                                <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.common.accounting')}</Text>
+                            </View>
+                            <OfflineWithFeedback
+                                pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
+                                errorRowStyles={[styles.ph5, styles.mb3]}
+                                errors={exportMenuItem.exportType ? getLatestErrorField(card?.nameValuePairs ?? {}, exportMenuItem.exportType) : undefined}
+                                onClose={() => {
+                                    if (!exportMenuItem.exportType) {
+                                        return;
+                                    }
+                                    clearCompanyCardErrorField(Number(card?.fundID ?? workspaceAccountID), cardID, CONST.EXPENSIFY_CARD.BANK, exportMenuItem.exportType);
+                                }}
+                            >
+                                <MenuItemWithTopDescription
+                                    description={exportMenuItem.shouldHideMenuItemDescription ? undefined : exportMenuItem.description}
+                                    title={exportMenuItem.title}
+                                    numberOfLinesTitle={2}
+                                    icon={exportMenuItem.shouldShowMenuItemIcon ? getIntegrationIcon(connectedIntegration, expensifyIcons) : undefined}
+                                    iconType={CONST.ICON_TYPE_AVATAR}
+                                    avatarSize={CONST.AVATAR_SIZE.SMALLER}
+                                    shouldShowRightIcon={canWriteExpensifyCard}
+                                    onPress={() =>
+                                        Navigation.navigate(
+                                            createDynamicRoute(
+                                                DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(
+                                                    getCardFeedWithDomainID(card.bank, card?.fundID ?? workspaceAccountID),
+                                                    String(card.cardID),
+                                                ),
+                                            ),
+                                        )
+                                    }
+                                    interactive={canWriteExpensifyCard}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
+                                />
+                            </OfflineWithFeedback>
+                        </>
+                    ) : null}
                     <DecisionModal
                         title={translate('common.youAppearToBeOffline')}
                         prompt={translate('common.offlinePrompt')}
