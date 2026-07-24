@@ -143,6 +143,68 @@ describe('AgentZeroStatusContext', () => {
             expect(mockSubscribeToReportReasoningEvents).not.toHaveBeenCalled();
         });
 
+        it('should render server-driven status for an expense report', async () => {
+            // Given a non-Concierge expense report with a server-written processing indicator
+            const serverLabel = 'Concierge is updating category...';
+            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: {[CONST.ACCOUNT_ID.CONCIERGE]: serverLabel},
+            });
+
+            // When the provider renders for that report, because the status gate must subscribe
+            const {result} = renderHook(
+                () => ({
+                    state: useAgentZeroStatus(),
+                    status: useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE),
+                }),
+                {wrapper},
+            );
+
+            // Then Concierge should become the only candidate and show the server label because
+            // App renders parent-report status from the NVP rather than local optimism.
+            await waitForBatchedUpdates();
+            expect(result.current.state.candidateAgentIDs).toEqual([CONST.ACCOUNT_ID.CONCIERGE]);
+            expect(result.current.status.isProcessing).toBe(true);
+            expect(result.current.status.statusLabel).toBe(serverLabel);
+            expect(mockSubscribeToReportReasoningEvents).toHaveBeenCalledWith(reportID);
+        });
+
+        it('should not optimistically kickoff for an expense report without server status', async () => {
+            // Given a non-Concierge expense report with no server-written processing indicator
+            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            });
+
+            const {result} = renderHook(
+                () => ({
+                    state: useAgentZeroStatus(),
+                    status: useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE),
+                    actions: useAgentZeroStatusActions(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            // When the composer tries to kickoff an indicator outside an AgentZero chat
+            act(() => {
+                result.current.actions.kickoffWaitingIndicator();
+            });
+
+            // Then no candidate or subscription should appear because server-driven expense
+            // reports should remain quiet until a real processing NVP arrives.
+            await waitForBatchedUpdates();
+            expect(result.current.state.candidateAgentIDs).toEqual([]);
+            expect(result.current.status.isProcessing).toBe(false);
+            expect(result.current.status.statusLabel).toBe('');
+            expect(mockSubscribeToReportReasoningEvents).not.toHaveBeenCalled();
+        });
+
         it('should return processing state when server label is present in Concierge chat', async () => {
             // Given a Concierge chat with a server status label
             const serverLabel = 'Concierge is looking up categories...';
