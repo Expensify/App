@@ -10,6 +10,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -165,6 +166,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(allTransactions);
@@ -238,6 +240,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                yourSpendPatchData: getYourSpendPatchData(),
                 onPaid: () => {
                     startAnimation();
                 },
@@ -451,6 +454,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             ownerBillingGracePeriodEnd,
             delegateEmail,
             isTrackIntentUser,
+            yourSpendPatchData: getYourSpendPatchData(),
             ownerLogin: submitterLogin,
         });
     };

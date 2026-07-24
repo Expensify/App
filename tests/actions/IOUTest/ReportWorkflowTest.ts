@@ -24,6 +24,9 @@ import {submitMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {isPayer} from '@libs/ReportUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
+import {buildAwaitingApprovalQuery} from '@libs/YourSpendQueryUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -33,7 +36,7 @@ import DateUtils from '@src/libs/DateUtils';
 import {generateAccountID} from '@src/libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportNameValuePairs, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs, ReportNextStepDeprecated, SearchResults} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -3681,6 +3684,120 @@ describe('actions/IOU/ReportWorkflow', () => {
                     });
                     expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
                 });
+        });
+    });
+
+    describe('approveMoneyRequest Your spend snapshot patching', () => {
+        const accountID = 1;
+        const email = 'user@test.com';
+        const policyID = 'paid-group-policy';
+        const reportID = 'your-spend-report';
+        const transactionID = 'your-spend-txn';
+
+        function buildPaidGroupPolicy(approvalMode: Policy['approvalMode']): Policy {
+            return {
+                id: policyID,
+                name: 'Paid Group Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: email,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode,
+                // Single approver who is also the report owner, so approving fully approves the report
+                // (SUBMITTED -> APPROVED) and it leaves the Awaiting approval bucket.
+                employeeList: {
+                    [email]: {email, role: CONST.POLICY.ROLE.ADMIN, submitsTo: '', forwardsTo: ''},
+                },
+            };
+        }
+
+        const submittedReport: Report = {
+            reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: accountID,
+            managerID: accountID,
+            policyID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: -10000,
+            currency: CONST.CURRENCY.USD,
+        };
+
+        function buildSnapshotSearch(): SearchResults['search'] {
+            return {
+                offset: 0,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                hash: 0,
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+                count: 1,
+                total: -10000,
+                currency: CONST.CURRENCY.USD,
+            };
+        }
+
+        // Approving a report whose sole approver is also its owner fully approves it (SUBMITTED -> APPROVED),
+        // so it leaves the Awaiting approval bucket and would patch the snapshot total — unless the guard skips DEW.
+        // Returns whether the API.write payload contained a Your spend snapshot update.
+        function seedAndApprove(policy: Policy): Promise<boolean> {
+            const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(accountID, [policyID]));
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}` as const;
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID,
+                amount: 10000,
+                modifiedAmount: 0,
+                currency: CONST.CURRENCY.USD,
+                reimbursable: true,
+            };
+            const yourSpendPatchData: YourSpendPatchData = {
+                paidPolicies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy},
+                snapshotSearches: {[snapshotKey]: buildSnapshotSearch()},
+            };
+
+            return Onyx.set(ONYXKEYS.SESSION, {email, accountID})
+                .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy))
+                .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, submittedReport))
+                .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction))
+                .then(() => {
+                    // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write to verify the Your spend snapshot patch is (or isn't) included.
+                    const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+                    approveMoneyRequest({
+                        expenseReport: submittedReport,
+                        expenseReportPolicy: policy,
+                        currentUserAccountIDParam: accountID,
+                        currentUserEmailParam: email,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        expenseReportCurrentNextStepDeprecated: undefined,
+                        betas: [CONST.BETAS.ALL],
+                        userBillingGracePeriodEnds: undefined,
+                        amountOwed: 0,
+                        ownerBillingGracePeriodEnd: undefined,
+                        delegateEmail: undefined,
+                        isTrackIntentUser: false,
+                        ownerLogin: undefined,
+                        yourSpendPatchData,
+                    });
+                    const onyxData = writeSpy.mock.calls.at(0)?.[2];
+                    const patched = !!onyxData?.optimisticData?.some((update) => update.key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT));
+                    return waitForBatchedUpdates().then(() => patched);
+                });
+        }
+
+        it('patches the Your spend snapshot for a non-DEW paid group policy', () => {
+            return seedAndApprove(buildPaidGroupPolicy(CONST.POLICY.APPROVAL_MODE.ADVANCED)).then((patched) => {
+                expect(patched).toBe(true);
+            });
+        });
+
+        it('does not patch the Your spend snapshot for a DEW policy', () => {
+            return seedAndApprove(buildPaidGroupPolicy(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL)).then((patched) => {
+                expect(patched).toBe(false);
+            });
         });
     });
 

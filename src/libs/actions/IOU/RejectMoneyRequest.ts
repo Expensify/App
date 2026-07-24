@@ -29,6 +29,7 @@ import {
 } from '@libs/ReportUtils';
 import {getAmount, getCurrency} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import {notifyNewAction} from '@userActions/Report';
 
@@ -45,7 +46,10 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import type {YourSpendSnapshotOnyxData} from './YourSpendSnapshotUpdate';
+
 import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
+import {getYourSpendSnapshotReportMoveUpdates, getYourSpendSnapshotTransactionRemovalUpdates} from './YourSpendSnapshotUpdate';
 
 type RejectMoneyRequestData = {
     optimisticData: Array<
@@ -57,6 +61,7 @@ type RejectMoneyRequestData = {
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     >;
     successData: Array<
@@ -71,6 +76,7 @@ type RejectMoneyRequestData = {
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     >;
     parameters: RejectMoneyRequestParams;
@@ -81,6 +87,9 @@ type RejectMoneyRequestOptions = {
     sharedRejectedToReportID?: string;
     existingRejectedReport?: OnyxEntry<OnyxTypes.Report>;
     setExistingRejectedReport?: (report: OnyxEntry<OnyxTypes.Report>) => void;
+    yourSpendPatchData?: YourSpendPatchData;
+    /** Precomputed batch snapshot updates; when rejecting several expenses in one action the caller aggregates them into a single update (attached to one request) instead of stacking per-transaction absolute totals. */
+    yourSpendSnapshotUpdates?: YourSpendSnapshotOnyxData;
 };
 
 function dismissRejectUseExplanation() {
@@ -184,6 +193,7 @@ function prepareRejectMoneyRequestData(
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
 
@@ -207,6 +217,7 @@ function prepareRejectMoneyRequestData(
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
 
@@ -909,6 +920,17 @@ function prepareRejectMoneyRequestData(
         expenseCreatedReportActionID,
     };
 
+    const yourSpendSnapshotUpdates =
+        options?.yourSpendSnapshotUpdates ??
+        getYourSpendSnapshotTransactionRemovalUpdates({
+            transaction,
+            iouReport: report,
+            currentUserAccountID: currentUserAccountIDParam,
+            context: options?.yourSpendPatchData,
+        });
+    optimisticData.push(...yourSpendSnapshotUpdates.optimisticData);
+    failureData.push(...yourSpendSnapshotUpdates.failureData);
+
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
 
@@ -922,7 +944,7 @@ function rejectMoneyRequest(
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     options?: RejectMoneyRequestOptions,
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, options);
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, options, undefined, undefined);
     if (!data) {
         return;
     }
@@ -1009,6 +1031,7 @@ function rejectExpenseReport(
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
     isTrackIntentUser: boolean | undefined,
+    yourSpendPatchData?: YourSpendPatchData,
 ) {
     const {reportID} = report;
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
@@ -1190,7 +1213,20 @@ function rejectExpenseReport(
         rejectedCommentReportActionID: optimisticCommentAction.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
+    const yourSpendSnapshotUpdates = getYourSpendSnapshotReportMoveUpdates({
+        iouReport: report,
+        reportTransactions: getReportTransactions(reportID),
+        fromStatus: {stateNum: report.stateNum, statusNum: report.statusNum},
+        toStatus: {stateNum: optimisticStateNum, statusNum: optimisticStatusNum},
+        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        context: yourSpendPatchData,
+    });
+
+    API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {
+        optimisticData: [...optimisticData, ...yourSpendSnapshotUpdates.optimisticData],
+        successData: [...successData, ...yourSpendSnapshotUpdates.successData],
+        failureData: [...failureData, ...yourSpendSnapshotUpdates.failureData],
+    });
 }
 
 export {dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};

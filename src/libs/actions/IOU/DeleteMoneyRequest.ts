@@ -23,6 +23,7 @@ import {
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
 import {getAmount, getCurrency, isOnHold, removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
@@ -40,8 +41,11 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
+import type {YourSpendSnapshotOnyxData} from './YourSpendSnapshotUpdate';
+
 import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
 import {getReportPreviewAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
+import {getYourSpendSnapshotTransactionRemovalUpdates} from './YourSpendSnapshotUpdate';
 
 type PrepareToCleanUpMoneyRequestResult = {
     shouldDeleteTransactionThread: boolean;
@@ -74,6 +78,9 @@ type DeleteMoneyRequestFunctionParams = {
     currentUserEmail: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    yourSpendPatchData?: YourSpendPatchData;
+    /** Precomputed batch snapshot updates; when deleting several expenses in one action the caller aggregates them into a single update (attached to one request) instead of stacking per-transaction absolute totals. */
+    yourSpendSnapshotUpdates?: YourSpendSnapshotOnyxData;
 };
 
 /** Builds the Onyx surface a delete needs to touch: updated report + preview action, thread/report deletion flags, sticky-total marker. */
@@ -737,6 +744,8 @@ function deleteMoneyRequest({
     currentUserAccountID,
     currentUserEmail,
     policy,
+    yourSpendPatchData,
+    yourSpendSnapshotUpdates,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -1035,8 +1044,21 @@ function deleteMoneyRequest({
         reportActionID: reportAction.reportActionID,
     };
 
+    const yourSpendUpdates =
+        yourSpendSnapshotUpdates ??
+        getYourSpendSnapshotTransactionRemovalUpdates({
+            transaction,
+            iouReport,
+            currentUserAccountID,
+            context: yourSpendPatchData,
+        });
+
     // STEP 3: Make the API request
-    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {
+        optimisticData: [...optimisticData, ...yourSpendUpdates.optimisticData],
+        successData: [...successData, ...yourSpendUpdates.successData],
+        failureData: [...failureData, ...yourSpendUpdates.failureData],
+    });
     clearPdfByOnyxKey(transactionID);
 
     return urlToNavigateBack;

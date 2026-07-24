@@ -57,6 +57,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -92,11 +93,13 @@ import Onyx from 'react-native-onyx';
 
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
+import type {YourSpendReportMoveItem, YourSpendSnapshotOnyxData} from './IOU/YourSpendSnapshotUpdate';
 
 import {getAllTransactionViolations} from './IOU';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
-import {approveMoneyRequest} from './IOU/ReportWorkflow';
+import {approveMoneyRequest, getSubmitYourSpendReportMoveItem} from './IOU/ReportWorkflow';
+import {getYourSpendSnapshotReportsMoveUpdates, getYourSpendSnapshotTransactionsRemovalUpdates} from './IOU/YourSpendSnapshotUpdate';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
@@ -228,6 +231,7 @@ type HandleActionButtonPressParams = {
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 function handleActionButtonPress({
@@ -266,6 +270,7 @@ function handleActionButtonPress({
     delegateEmail,
     delegateAccountID,
     isTrackIntentUser,
+    yourSpendPatchData,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -318,6 +323,7 @@ function handleActionButtonPress({
                 chatReportActions,
                 delegateAccountID,
                 isTrackIntentUser,
+                yourSpendPatchData,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -349,6 +355,7 @@ function handleActionButtonPress({
                 iouReportCurrentNextStepDeprecated,
                 delegateEmail,
                 isTrackIntentUser,
+                yourSpendPatchData,
                 ownerLogin: submitterLogin,
             });
             return;
@@ -365,15 +372,29 @@ function handleActionButtonPress({
                 return;
             }
             const policyForSubmit = policy ?? snapshotPolicy;
+            const submitYourSpendSnapshotUpdates = getYourSpendSnapshotReportsMoveUpdates({
+                reportItems: [getSubmitYourSpendReportMoveItem(snapshotReport, policyForSubmit)].filter((moveItem): moveItem is YourSpendReportMoveItem => !!moveItem),
+                currentUserAccountID,
+                context: yourSpendPatchData,
+            });
             if (isSubmitPolicy(policyForSubmit) && openReportSubmitToPopover) {
                 openReportSubmitToPopover({
                     onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
-                        submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], submitterLogin, currentSearchKey, managerEmail, managerAccountID);
+                        submitMoneyRequestOnSearch(
+                            hash,
+                            [snapshotReport],
+                            [policyForSubmit],
+                            submitterLogin,
+                            currentSearchKey,
+                            managerEmail,
+                            managerAccountID,
+                            submitYourSpendSnapshotUpdates,
+                        );
                     },
                 });
                 return;
             }
-            submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], submitterLogin, currentSearchKey);
+            submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], submitterLogin, currentSearchKey, undefined, undefined, submitYourSpendSnapshotUpdates);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -525,6 +546,7 @@ type GetPayActionCallbackParams = {
     chatReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 function getPayActionCallback({
@@ -553,6 +575,7 @@ function getPayActionCallback({
     chatReportActions,
     delegateAccountID,
     isTrackIntentUser,
+    yourSpendPatchData,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -602,6 +625,7 @@ function getPayActionCallback({
         chatReportActions,
         delegateAccountID,
         isTrackIntentUser,
+        yourSpendPatchData,
     });
 }
 
@@ -621,6 +645,7 @@ type GetApproveActionCallbackParams = {
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
     isTrackIntentUser: boolean | undefined;
+    yourSpendPatchData?: YourSpendPatchData;
     ownerLogin: string | undefined;
 };
 
@@ -640,6 +665,7 @@ function getApproveActionCallback({
     iouReportCurrentNextStepDeprecated,
     delegateEmail,
     isTrackIntentUser,
+    yourSpendPatchData,
     ownerLogin,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
@@ -668,6 +694,7 @@ function getApproveActionCallback({
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
+        yourSpendPatchData,
     });
 }
 
@@ -1068,15 +1095,17 @@ function submitMoneyRequestOnSearch(
     currentSearchKey?: SearchKey,
     managerEmail?: string,
     managerAccountID?: number,
+    yourSpendSnapshotUpdates?: YourSpendSnapshotOnyxData,
 ) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const firstPolicy = policy.at(0);
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.reportID}`, {isActionLoading: true}])),
         },
+        ...(yourSpendSnapshotUpdates?.optimisticData ?? []),
     ];
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -1085,6 +1114,7 @@ function submitMoneyRequestOnSearch(
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.reportID}`, {isActionLoading: false}])),
         },
+        ...(yourSpendSnapshotUpdates?.successData ?? []),
     ];
 
     // If we are on the 'Submit' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
@@ -1098,7 +1128,7 @@ function submitMoneyRequestOnSearch(
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
@@ -1116,6 +1146,7 @@ function submitMoneyRequestOnSearch(
                 ]),
             ),
         },
+        ...(yourSpendSnapshotUpdates?.failureData ?? []),
     ];
 
     const trimmedManagerEmail = managerEmail?.trim();
@@ -1257,10 +1288,11 @@ function rejectMoneyRequestInBulk(
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
     hash?: number,
+    yourSpendSnapshotUpdates?: YourSpendSnapshotOnyxData,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
-    const successData: RejectMoneyRequestData['successData'] = [];
+    const successData: Array<RejectMoneyRequestData['successData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const failureData: RejectMoneyRequestData['failureData'] = [];
 
     const loadingData = hash !== undefined ? getOnyxLoadingData(hash) : {optimisticData: undefined, finallyData: undefined};
@@ -1275,7 +1307,7 @@ function rejectMoneyRequestInBulk(
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, undefined, true);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, undefined, true, undefined);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -1286,6 +1318,11 @@ function rejectMoneyRequestInBulk(
             };
         }
     }
+
+    // The Your spend patch is aggregated over the whole batch; per-transaction updates would each write an absolute total from the same base, so only the last one would stick.
+    optimisticData.push(...(yourSpendSnapshotUpdates?.optimisticData ?? []));
+    successData.push(...(yourSpendSnapshotUpdates?.successData ?? []));
+    failureData.push(...(yourSpendSnapshotUpdates?.failureData ?? []));
 
     write(
         WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK,
@@ -1312,6 +1349,7 @@ function rejectMoneyRequestsOnSearch(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
+    yourSpendPatchData?: YourSpendPatchData,
 ) {
     const transactionIDs = Object.keys(selectedTransactions);
 
@@ -1333,6 +1371,21 @@ function rejectMoneyRequestsOnSearch(
 
     const isSingleReport = Object.keys(transactionsByReport).length === 1;
     let urlToNavigateBack;
+
+    // One aggregated Your spend update for the whole selection (across reports); per-transaction or per-report updates
+    // would each write an absolute total from the same base, so only the last one would stick.
+    let pendingYourSpendSnapshotUpdates: YourSpendSnapshotOnyxData | undefined = getYourSpendSnapshotTransactionsRemovalUpdates({
+        transactionItems: Object.entries(transactionsByReport).flatMap(([reportID, selectedTransactionIDs]) => {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const selectedTransactionIDsSet = new Set(selectedTransactionIDs);
+            return getReportTransactions(reportID)
+                .filter((transaction) => selectedTransactionIDsSet.has(transaction.transactionID))
+                .map((transaction) => ({transaction, iouReport: report}));
+        }),
+        currentUserAccountID: currentUserAccountIDParam,
+        context: yourSpendPatchData,
+    });
+
     for (const [reportID, selectedTransactionIDs] of Object.entries(transactionsByReport)) {
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const totalReportTransactions = report?.transactionCount ?? 0;
@@ -1343,8 +1396,11 @@ function rejectMoneyRequestsOnSearch(
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
+
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, hash);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, hash, pendingYourSpendSnapshotUpdates);
+            // The whole batch rides on the first request; attaching it to every request would re-apply the same absolute totals.
+            pendingYourSpendSnapshotUpdates = undefined;
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
@@ -1357,7 +1413,10 @@ function rejectMoneyRequestsOnSearch(
                     sharedRejectedToReportID,
                     existingRejectedReport,
                     setExistingRejectedReport,
+                    yourSpendSnapshotUpdates: pendingYourSpendSnapshotUpdates,
                 });
+                // The whole batch rides on the first request; attaching it to every request would re-apply the same absolute totals.
+                pendingYourSpendSnapshotUpdates = undefined;
             }
         }
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {

@@ -3,7 +3,7 @@
  */
 import {arePaymentsEnabled} from '@libs/PolicyUtils';
 
-import {getOutstandingReportsSignature, getYourSpendApplicability} from '@pages/home/YourSpendSection/useYourSpendData';
+import {getOutstandingReportsSignature, getRepaidReportsSignature, getYourSpendApplicability} from '@pages/home/YourSpendSection/useYourSpendData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -160,5 +160,51 @@ describe('getOutstandingReportsSignature', () => {
         const reports = reportsCollection([makeReport({reportID: 'r3'}), makeReport({reportID: 'r1'}), makeReport({reportID: 'r2'})]);
 
         expect(getOutstandingReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID)).toBe('r1,r2,r3');
+    });
+});
+
+describe('getRepaidReportsSignature', () => {
+    const ACCOUNT_ID = 12345;
+
+    function makeReimbursedReport(overrides: Partial<Report> = {}): Report {
+        return makeReport({
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            ...overrides,
+        });
+    }
+
+    it('returns an empty string when reports is undefined', () => {
+        expect(getRepaidReportsSignature(undefined, ACCOUNT_ID)).toBe('');
+    });
+
+    it('includes only reimbursed reports owned by the account', () => {
+        const reports = reportsCollection([makeReimbursedReport({reportID: 'r1'}), makeReimbursedReport({reportID: 'r2'})]);
+
+        expect(getRepaidReportsSignature(reports, ACCOUNT_ID)).toBe('r1,r2');
+    });
+
+    it('excludes reports owned by a different account', () => {
+        const reports = reportsCollection([makeReimbursedReport({reportID: 'r1'}), makeReimbursedReport({reportID: 'r2', ownerAccountID: 99999})]);
+
+        expect(getRepaidReportsSignature(reports, ACCOUNT_ID)).toBe('r1');
+    });
+
+    it('excludes reports whose statusNum is not REIMBURSED', () => {
+        const reports = reportsCollection([makeReimbursedReport({reportID: 'r1'}), makeReimbursedReport({reportID: 'r2', statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+
+        expect(getRepaidReportsSignature(reports, ACCOUNT_ID)).toBe('r1');
+    });
+
+    it('excludes reports whose stateNum is below APPROVED', () => {
+        const reports = reportsCollection([makeReimbursedReport({reportID: 'r1'}), makeReimbursedReport({reportID: 'r2', stateNum: CONST.REPORT.STATE_NUM.SUBMITTED})]);
+
+        expect(getRepaidReportsSignature(reports, ACCOUNT_ID)).toBe('r1');
+    });
+
+    it('returns report IDs sorted ascending regardless of input order', () => {
+        const reports = reportsCollection([makeReimbursedReport({reportID: 'r3'}), makeReimbursedReport({reportID: 'r1'}), makeReimbursedReport({reportID: 'r2'})]);
+
+        expect(getRepaidReportsSignature(reports, ACCOUNT_ID)).toBe('r1,r2,r3');
     });
 });

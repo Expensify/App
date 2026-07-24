@@ -1,4 +1,5 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
@@ -153,6 +154,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
 
     const {isOffline} = useNetwork();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     const personalPolicy = usePersonalPolicy();
 
     const permissions = getTransactionEditPermissions({
@@ -195,6 +197,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             personalDetailsList,
             delegateAccountID,
             isTrackIntentUser,
+            yourSpendPatchData: getYourSpendPatchData(),
         };
     };
 

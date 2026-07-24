@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import TabSelector from '@components/TabSelector/TabSelector';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -125,6 +126,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
     const allTransactions = useAllTransactions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
@@ -387,6 +389,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             isOffline,
             delegateAccountID,
             isTrackIntentUser,
+            yourSpendPatchData: getYourSpendPatchData(),
         });
     };
 

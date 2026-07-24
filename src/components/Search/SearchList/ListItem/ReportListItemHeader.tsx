@@ -12,6 +12,7 @@ import {
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -296,6 +297,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
 
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
@@ -332,6 +334,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            yourSpendPatchData: getYourSpendPatchData(),
         });
     };
     return !isLargeScreenWidth ? (

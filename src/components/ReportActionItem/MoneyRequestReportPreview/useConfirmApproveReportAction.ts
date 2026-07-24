@@ -3,6 +3,7 @@
  * handling delegate-access restrictions, held expenses, and the approveMoneyRequest call.
  */
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -31,6 +32,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const {startApprovedAnimation, onHoldMenuOpen} = useReportPreviewActions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, iouReportNextStep, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} = actionButtonData;
 
@@ -54,6 +56,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
                 ownerBillingGracePeriodEnd,
                 ownerLogin,
                 full: true,
+                yourSpendPatchData: getYourSpendPatchData(),
                 onApproved: startApprovedAnimation,
                 delegateEmail,
                 isTrackIntentUser,

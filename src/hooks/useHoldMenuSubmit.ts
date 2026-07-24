@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -57,6 +58,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     const delegateAccountID = useDelegateAccountID();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
@@ -98,6 +100,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 expenseReportPolicy: policy,
                 delegateEmail,
                 isTrackIntentUser,
+                yourSpendPatchData: getYourSpendPatchData(),
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
@@ -122,6 +125,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
+                yourSpendPatchData: getYourSpendPatchData(),
             });
         }
         onClose();

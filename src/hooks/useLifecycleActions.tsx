@@ -5,6 +5,7 @@ import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/ty
 import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
@@ -102,6 +103,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email} = currentUserPersonalDetails;
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {isBetaEnabled} = usePermissions();
@@ -190,6 +192,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             ownerBillingGracePeriodEnd,
             ownerLogin: submitterLogin,
             full: true,
+            yourSpendPatchData: getYourSpendPatchData(),
             onApproved: () => {
                 if (skipAnimation) {
                     return;
@@ -238,6 +241,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 expenseReportCurrentNextStepDeprecated: nextStep,
                 userBillingGracePeriodEnds,
                 amountOwed,
+                yourSpendPatchData: getYourSpendPatchData(),
                 onSubmitted: () => {
                     if (skipAnimation) {
                         return;
@@ -356,7 +360,18 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail, isTrackIntentUser);
+                unapproveExpenseReport(
+                    moneyRequestReport,
+                    policy,
+                    accountID,
+                    email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    nextStep,
+                    delegateEmail,
+                    isTrackIntentUser,
+                    getYourSpendPatchData(),
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -377,7 +392,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     return;
                 }
 
-                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, isTrackIntentUser);
+                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, isTrackIntentUser, getYourSpendPatchData());
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
@@ -411,7 +426,19 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail, isTrackIntentUser);
+                retractReport(
+                    moneyRequestReport,
+                    chatReport,
+                    policy,
+                    accountID,
+                    email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    nextStep,
+                    delegateEmail,
+                    isTrackIntentUser,
+                    getYourSpendPatchData(),
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {

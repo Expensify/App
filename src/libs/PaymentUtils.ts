@@ -23,6 +23,8 @@ import type {Merge, ValueOf} from 'type-fest';
 
 import isEmpty from 'lodash/isEmpty';
 
+import type {YourSpendPatchData} from './YourSpendPatchData';
+
 import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
@@ -54,6 +56,7 @@ type SelectPaymentTypeParams = {
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
     isTrackIntentUser: boolean | undefined;
+    yourSpendPatchData?: YourSpendPatchData;
     ownerLogin: string | undefined;
 };
 
@@ -229,6 +232,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         ownerBillingGracePeriodEnd,
         delegateEmail,
         isTrackIntentUser,
+        yourSpendPatchData,
         ownerLogin,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
@@ -266,6 +270,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 full: true,
                 delegateEmail,
                 isTrackIntentUser,
+                yourSpendPatchData,
             });
         }
         return;

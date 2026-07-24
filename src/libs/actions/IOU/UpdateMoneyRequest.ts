@@ -36,6 +36,7 @@ import {
     removeTransactionFromDuplicateTransactionViolation,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
@@ -58,6 +59,7 @@ import Onyx from 'react-native-onyx';
 
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
+import {getYourSpendSnapshotReimbursableUpdates, getYourSpendSnapshotTotalUpdates} from './YourSpendSnapshotUpdate';
 
 type UpdateMoneyRequestData<TKey extends OnyxKey> = {
     params: UpdateMoneyRequestParams;
@@ -411,6 +413,7 @@ function updateMoneyRequestReimbursable({
     delegateAccountID,
     reportPolicyTags,
     isTrackIntentUser,
+    yourSpendPatchData,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -428,6 +431,7 @@ function updateMoneyRequestReimbursable({
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    yourSpendPatchData?: YourSpendPatchData;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -452,6 +456,7 @@ function updateMoneyRequestReimbursable({
         isOffline,
         delegateAccountID,
         isTrackIntentUser,
+        yourSpendPatchData,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
 }
@@ -1396,6 +1401,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -1424,6 +1430,7 @@ function updateMoneyRequestAmountAndCurrency({
     delegateAccountID,
     reportPolicyTags,
     isTrackIntentUser,
+    yourSpendPatchData,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
@@ -1457,6 +1464,7 @@ function updateMoneyRequestAmountAndCurrency({
             hash,
             delegateAccountID,
             isTrackIntentUser,
+            yourSpendPatchData,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -1493,6 +1501,7 @@ type GetUpdateMoneyRequestParamsType = {
     delegateAccountID: number | undefined;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     isTrackIntentUser: boolean | undefined;
+    yourSpendPatchData?: YourSpendPatchData;
     personalPolicyOutputCurrency?: string;
 };
 
@@ -1538,6 +1547,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         delegateAccountID,
         distanceOriginalPolicy,
         isTrackIntentUser,
+        yourSpendPatchData,
         personalPolicyOutputCurrency,
     } = params;
     const optimisticData: Array<
@@ -2171,6 +2181,34 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
             value: transactionThreadReport,
         });
+    }
+
+    // Only amount edits can be patched offline; currency changes need server-side FX rates.
+    if (hasModifiedAmount && transaction && updatedTransaction && iouReport) {
+        const yourSpendSnapshotTotalUpdates = getYourSpendSnapshotTotalUpdates({
+            transaction,
+            updatedTransaction,
+            iouReport,
+            currentUserAccountID: currentUserAccountIDParam,
+            context: yourSpendPatchData,
+        });
+        optimisticData.push(...yourSpendSnapshotTotalUpdates.optimisticData);
+        successData.push(...yourSpendSnapshotTotalUpdates.successData);
+        failureData.push(...yourSpendSnapshotTotalUpdates.failureData);
+    }
+
+    // Toggling reimbursable adds/removes the expense from the reimbursable-only Your spend totals.
+    if (hasModifiedReimbursable && transaction && updatedTransaction && iouReport) {
+        const yourSpendSnapshotReimbursableUpdates = getYourSpendSnapshotReimbursableUpdates({
+            transaction,
+            updatedTransaction,
+            iouReport,
+            currentUserAccountID: currentUserAccountIDParam,
+            context: yourSpendPatchData,
+        });
+        optimisticData.push(...yourSpendSnapshotReimbursableUpdates.optimisticData);
+        successData.push(...yourSpendSnapshotReimbursableUpdates.successData);
+        failureData.push(...yourSpendSnapshotReimbursableUpdates.failureData);
     }
 
     return {

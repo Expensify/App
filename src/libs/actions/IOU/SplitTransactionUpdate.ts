@@ -45,6 +45,7 @@ import {
 } from '@libs/ReportUtils';
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {getChildTransactions, isDistanceRequest as isDistanceRequestTransactionUtils, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
@@ -76,6 +77,7 @@ import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequest
 import {addPendingNewTransactionIDs} from './PendingNewTransactions';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
+import {getYourSpendSnapshotSplitUpdates} from './YourSpendSnapshotUpdate';
 
 type UpdateSplitTransactionsParams = {
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
@@ -110,7 +112,32 @@ type UpdateSplitTransactionsParams = {
     isOffline: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    yourSpendPatchData?: YourSpendPatchData;
 };
+
+type GetReimbursableSplitDiffParams = {
+    splits: SplitTransactionSplitsParam;
+    originalTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    originalChildTransactions: Array<OnyxEntry<OnyxTypes.Transaction>>;
+    splitExpensesTotal: number;
+    isCreationOfSplits: boolean;
+};
+
+/**
+ * Returns the change to the reimbursable total from a split, signed with the snapshot `total` convention (spend is negative),
+ * so it can be applied to the Your spend aggregates directly. Your spend only counts reimbursable expenses, so
+ * non-reimbursable splits are excluded — otherwise splitting a reimbursable expense into reimbursable + non-reimbursable
+ * parts nets to 0 against the whole-report change and leaves Your spend stale.
+ */
+function getReimbursableSplitDiff({splits, originalTransaction, originalChildTransactions, splitExpensesTotal, isCreationOfSplits}: GetReimbursableSplitDiffParams): number {
+    const newReimbursableTotal = splits.reduce((total, split) => total + (split.reimbursable !== false ? split.amount : 0), 0);
+    const creationPreviousTotal = originalTransaction?.reimbursable !== false ? splitExpensesTotal : 0;
+    const previousReimbursableTotal = isCreationOfSplits
+        ? creationPreviousTotal
+        : originalChildTransactions.reduce((total, childTransaction) => total + (childTransaction?.reimbursable !== false ? Math.abs(childTransaction?.amount ?? 0) : 0), 0);
+    // The totals above are magnitudes; more reimbursable spend must push the (negative) snapshot total further from zero, hence the flip.
+    return previousReimbursableTotal - newReimbursableTotal;
+}
 
 function updateSplitTransactions({
     allTransactionsList,
@@ -140,6 +167,7 @@ function updateSplitTransactions({
     isOffline,
     delegateAccountID,
     isTrackIntentUser,
+    yourSpendPatchData,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -1821,6 +1849,32 @@ function updateSplitTransactions({
         }
     }
 
+    const reimbursableSplitsCount = splits.filter((split) => split.reimbursable !== false).length;
+    const previousReimbursableCount = isCreationOfSplits
+        ? Number(originalTransaction?.reimbursable !== false)
+        : originalChildTransactions.filter((childTransaction) => childTransaction?.reimbursable !== false).length;
+    const reimbursableCountDiff = reimbursableSplitsCount - previousReimbursableCount;
+
+    const reimbursableDiff = getReimbursableSplitDiff({
+        splits,
+        originalTransaction,
+        originalChildTransactions,
+        splitExpensesTotal,
+        isCreationOfSplits,
+    });
+
+    const yourSpendSplitUpdates = getYourSpendSnapshotSplitUpdates({
+        iouReport: expenseReport,
+        originalTransaction,
+        reimbursableDiff,
+        reimbursableCountDiff,
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+        context: yourSpendPatchData,
+    });
+    onyxData.optimisticData?.push(...yourSpendSplitUpdates.optimisticData);
+    onyxData.successData?.push(...yourSpendSplitUpdates.successData);
+    onyxData.failureData?.push(...yourSpendSplitUpdates.failureData);
+
     if (isReverseSplitOperation) {
         const parameters = {
             ...splits.at(0),
@@ -1993,4 +2047,4 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     });
 }
 
-export {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
+export {getReimbursableSplitDiff, updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};

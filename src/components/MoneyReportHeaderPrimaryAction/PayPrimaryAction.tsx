@@ -4,6 +4,7 @@ import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext'
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -124,6 +125,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
 
@@ -185,6 +187,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                yourSpendPatchData: getYourSpendPatchData(),
                 onPaid: startAnimation,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,

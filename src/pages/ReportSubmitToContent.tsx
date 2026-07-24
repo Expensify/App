@@ -5,6 +5,7 @@ import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -101,6 +102,7 @@ function ReportSubmitToContent({
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     const lazyIllustrations = useMemoizedLazyIllustrations(['PaperAirplane']);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
@@ -306,6 +308,7 @@ function ReportSubmitToContent({
             ownerBillingGracePeriodEnd,
             delegateEmail,
             submitterLogin,
+            yourSpendPatchData: getYourSpendPatchData(),
             managerEmail: trimmed,
             managerAccountID: resolvedManagerAccountID,
             isTrackIntentUser,
@@ -343,6 +346,7 @@ function ReportSubmitToContent({
         ownerBillingGracePeriodEnd,
         delegateEmail,
         submitterLogin,
+        getYourSpendPatchData,
         currentSearchQueryJSON,
         isOffline,
         currentSearchKey,

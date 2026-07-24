@@ -15,6 +15,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 
 import type {WriteOverrides} from './Navigation/helpers/submitWithDismissFirst';
+import type {YourSpendPatchData} from './YourSpendPatchData';
 
 import {
     getMoneyRequestParticipantsFromReport,
@@ -104,6 +105,7 @@ type SubmitAmountArgs = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     conciergeReportID: OnyxEntry<string>;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 /**
@@ -577,6 +579,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         allPersonalDetails,
         navigateBack,
         isTrackIntentUser,
+        yourSpendPatchData,
         reportPolicyTags,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
@@ -634,6 +637,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         delegateAccountID,
         reportPolicyTags,
         isTrackIntentUser,
+        yourSpendPatchData,
     });
     navigateBack();
 }

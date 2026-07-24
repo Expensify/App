@@ -6,13 +6,28 @@
  * - `cardID` uses the numeric card ID (not the card name)
  * - Date filter serializes as `date>YYYY-MM-DD` (not `dateAfter:`)
  */
-import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
+import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery, getPaidGroupPolicyIDs, selectPaidGroupPolicies} from '@libs/YourSpendQueryUtils';
 
 import CONST from '@src/CONST';
 import {buildSearchQueryJSON, getFilterFromQuery} from '@src/libs/SearchQueryUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import createRandomPolicy from '../../utils/collections/policies';
 
 const ACCOUNT_ID = 12345;
 const CARD_ID = 67890;
+
+/** Builds a POLICY collection keyed by `policy_<id>` from the given policies. */
+function buildPolicyCollection(policies: Policy[]): OnyxCollection<Policy> {
+    const collection: OnyxCollection<Policy> = {};
+    for (const policy of policies) {
+        collection[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
+    }
+    return collection;
+}
 
 // Helpers
 
@@ -212,5 +227,75 @@ describe('buildRecentCardTransactionsQuery', () => {
         const diffDays = (today.getTime() - parsedDate.getTime()) / (1000 * 60 * 60 * 24);
         expect(diffDays).toBeGreaterThanOrEqual(29);
         expect(diffDays).toBeLessThanOrEqual(31);
+    });
+});
+
+// selectPaidGroupPolicies
+
+describe('selectPaidGroupPolicies', () => {
+    it('returns an empty collection for undefined/empty input', () => {
+        expect(selectPaidGroupPolicies(undefined)).toEqual({});
+        expect(selectPaidGroupPolicies({})).toEqual({});
+    });
+
+    it('keeps only Team and Corporate policies', () => {
+        const team = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: '1'};
+        const corporate = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), id: '2'};
+        const personal = {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), id: '3'};
+        const submit = {...createRandomPolicy(4, CONST.POLICY.TYPE.SUBMIT), id: '4'};
+
+        const result = selectPaidGroupPolicies(buildPolicyCollection([team, corporate, personal, submit]));
+
+        expect(
+            Object.values(result ?? {})
+                .map((policy) => policy?.id)
+                .sort(),
+        ).toEqual(['1', '2']);
+    });
+
+    it('narrows kept policies to the fields the snapshot builders read', () => {
+        const team = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: '1', outputCurrency: CONST.CURRENCY.USD};
+
+        const result = selectPaidGroupPolicies(buildPolicyCollection([team]));
+
+        expect(result?.[`${ONYXKEYS.COLLECTION.POLICY}1`]).toEqual({id: '1', type: CONST.POLICY.TYPE.TEAM, outputCurrency: CONST.CURRENCY.USD});
+    });
+
+    it('drops policies without an id', () => {
+        const team = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: '1'};
+        const collection: OnyxCollection<Policy> = {
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: team,
+            [`${ONYXKEYS.COLLECTION.POLICY}missing`]: {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: ''},
+        };
+
+        const result = selectPaidGroupPolicies(collection);
+
+        expect(Object.values(result ?? {}).map((policy) => policy?.id)).toEqual(['1']);
+    });
+});
+
+// getPaidGroupPolicyIDs
+
+describe('getPaidGroupPolicyIDs', () => {
+    it('returns an empty array for undefined/empty input', () => {
+        expect(getPaidGroupPolicyIDs(undefined)).toEqual([]);
+        expect(getPaidGroupPolicyIDs({})).toEqual([]);
+    });
+
+    it('returns the ids of the provided policies', () => {
+        const team = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: '1'};
+        const corporate = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), id: '2'};
+
+        expect(getPaidGroupPolicyIDs(buildPolicyCollection([team, corporate])).sort()).toEqual(['1', '2']);
+    });
+
+    it('filters out entries with a falsy id', () => {
+        const collection: OnyxCollection<Policy> = {
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: '1'},
+            [`${ONYXKEYS.COLLECTION.POLICY}empty`]: {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: ''},
+            [`${ONYXKEYS.COLLECTION.POLICY}missing`]: undefined,
+        };
+
+        expect(getPaidGroupPolicyIDs(collection)).toEqual(['1']);
     });
 });

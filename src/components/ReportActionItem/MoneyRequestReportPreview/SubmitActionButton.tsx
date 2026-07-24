@@ -1,5 +1,6 @@
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
@@ -68,6 +69,7 @@ function SubmitActionButtonContent() {
     } = useReportPreviewActionButtonData(iouReportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
 
@@ -112,6 +114,7 @@ function SubmitActionButtonContent() {
                 expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 userBillingGracePeriodEnds,
                 amountOwed,
+                yourSpendPatchData: getYourSpendPatchData(),
                 onSubmitted: startSubmittingAnimation,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,

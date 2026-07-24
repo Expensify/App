@@ -5,8 +5,10 @@ import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
+// eslint-disable-next-line no-restricted-imports -- Your Spend scopes approval/payment workflows to paid (Collect/Control) group policies, so this is a genuine billing/paid-only check.
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@libs/YourSpendQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +23,6 @@ import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useMemo, useState} from 'react';
 
 import {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE} from './const';
-import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
 
 type YourSpendRowState = ValueOf<typeof YOUR_SPEND_ROW_STATE>;
 type YourSpendCardKind = ValueOf<typeof YOUR_SPEND_CARD_KIND>;
@@ -117,6 +118,19 @@ function getOutstandingReportsSignature(reports: OnyxCollection<Report> | undefi
     return ids.sort().join(',');
 }
 
+function getRepaidReportsSignature(reports: OnyxCollection<Report> | undefined, accountID: number): string {
+    if (!reports) {
+        return '';
+    }
+    const ids: string[] = [];
+    for (const report of Object.values(reports)) {
+        if (report?.ownerAccountID === accountID && (report.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) {
+            ids.push(report.reportID);
+        }
+    }
+    return ids.sort().join(',');
+}
+
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {
     if (!isApplicable) {
         return YOUR_SPEND_ROW_STATE.HIDDEN;
@@ -160,6 +174,10 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // leaves the OUTSTANDING state.
     const [outstandingReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => getOutstandingReportsSignature(reports, paidGroupPolicyIDs, accountID),
+    });
+
+    const [repaidReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getRepaidReportsSignature(reports, accountID),
     });
 
     // Destructure here so downstream memos depend only on the sub-records, not on
@@ -359,7 +377,14 @@ function useYourSpendData(): UseYourSpendDataReturn {
         cachedApprovalReady !== null &&
         cachedApprovalHash === approvalHash &&
         outstandingReportsSignature !== '';
-    const shouldUseCachedPayment = paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing && paymentSearchResults !== undefined && cachedPaymentReady !== null;
+    // Only bridge a wiped/missing count with the cached total while the user still owns a REPAID report,
+    // so the row hides immediately after cancelling the payment of the last repaid expense.
+    const shouldUseCachedPayment =
+        paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY &&
+        paymentCountIsMissing &&
+        paymentSearchResults !== undefined &&
+        cachedPaymentReady !== null &&
+        repaidReportsSignature !== '';
 
     const approvalRowState = shouldUseCachedApproval ? YOUR_SPEND_ROW_STATE.READY : approvalRowStateRaw;
     const paymentRowState = shouldUseCachedPayment ? YOUR_SPEND_ROW_STATE.READY : paymentRowStateRaw;
@@ -431,5 +456,5 @@ function useYourSpendData(): UseYourSpendDataReturn {
     };
 }
 
-export {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE, getOutstandingReportsSignature, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
+export {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE, getOutstandingReportsSignature, getRepaidReportsSignature, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
 export type {GetYourSpendRowStateParams, UseYourSpendDataReturn, YourSpendApplicability, YourSpendCardKind, YourSpendCardRow, YourSpendRowState, YourSpendRowTotals};

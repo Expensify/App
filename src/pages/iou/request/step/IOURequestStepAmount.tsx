@@ -1,5 +1,6 @@
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -74,6 +75,7 @@ function IOURequestStepAmount({
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
     const amountFormRef = useRef<MoneyRequestAmountFormHandle | null>(null);
@@ -241,6 +243,7 @@ function IOURequestStepAmount({
             paymentMethod,
             isTrackIntentUser,
             policyTags,
+            yourSpendPatchData: getYourSpendPatchData(),
             reportPolicyTags,
             ...submitData,
         });

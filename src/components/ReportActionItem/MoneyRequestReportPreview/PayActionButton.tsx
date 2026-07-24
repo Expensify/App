@@ -1,6 +1,7 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -73,6 +74,7 @@ function PayActionButton() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -141,6 +143,7 @@ function PayActionButton() {
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                    yourSpendPatchData: getYourSpendPatchData(),
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
                     delegateAccountID,

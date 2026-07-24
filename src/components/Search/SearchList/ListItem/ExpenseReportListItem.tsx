@@ -11,6 +11,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -218,6 +219,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
 
     // Recompute the violations badge from live data at the row, replacing the screen-level
@@ -300,6 +302,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            yourSpendPatchData: getYourSpendPatchData(),
         });
     }, [
         currentSearchHash,
@@ -340,6 +343,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         isTrackIntentUser,
+        getYourSpendPatchData,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

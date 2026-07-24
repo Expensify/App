@@ -27,6 +27,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
+import type {YourSpendPatchData} from '@libs/YourSpendPatchData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -199,6 +200,7 @@ type GetIouParamsInput = {
 type TransactionInlineEditParams = GetIouParamsInput & {
     hash: number | undefined;
     isOffline: boolean;
+    yourSpendPatchData?: YourSpendPatchData;
 };
 
 /**
@@ -385,6 +387,7 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
         transactionViolations: allTransactionViolations,
         policyRecentlyUsedCurrencies: [],
         hash: params.hash,
+        yourSpendPatchData: params.yourSpendPatchData,
     });
 }
 

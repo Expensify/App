@@ -5,6 +5,7 @@ import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsCon
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
@@ -127,6 +128,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'Document']);
 
@@ -165,6 +167,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 expenseReportCurrentNextStepDeprecated: nextStep,
                 userBillingGracePeriodEnds,
                 amountOwed,
+                yourSpendPatchData: getYourSpendPatchData(),
                 // Open the PDF download modal only once submitReport commits to running (it fires onSubmitted after its
                 // billing-restriction guard), so a restricted account that bails out early doesn't leave the modal stuck.
                 onSubmitted: () => {

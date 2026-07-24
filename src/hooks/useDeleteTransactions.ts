@@ -1,10 +1,13 @@
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
 import {initSplitExpenseItemData} from '@libs/actions/IOU/SplitExpenseItems';
 import {updateSplitTransactions} from '@libs/actions/IOU/SplitTransactionUpdate';
+import {getYourSpendSnapshotTransactionsRemovalUpdates} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
+import type {YourSpendSnapshotOnyxData} from '@libs/actions/IOU/YourSpendSnapshotUpdate';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
@@ -99,6 +102,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const getSplitExpenseEditTransactionOnDelete = useCallback(
         (transactionIDs: string[]): Transaction | undefined => {
@@ -326,17 +330,28 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     isOffline,
                     delegateAccountID,
                     isTrackIntentUser,
+                    yourSpendPatchData: getYourSpendPatchData(),
                 });
             }
 
-            for (const {transactionID, action} of nonSplitTransactions) {
-                if (!action) {
-                    continue;
-                }
-                const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
-                const candidateIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
-                // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.
-                const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) ? candidateIOUReport : undefined;
+            const deletionEntries = nonSplitTransactions
+                .filter((item): item is {transactionID: string; action: ReportAction; transaction?: Transaction} => !!item.action)
+                .map(({transactionID, action, transaction}) => {
+                    const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
+                    const candidateIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                    // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.
+                    const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) ? candidateIOUReport : undefined;
+                    return {transactionID, action, transaction, iouReport};
+                });
+
+            // One aggregated Your spend update per bulk delete; per-transaction updates would each write an absolute total from the same base, so only the last one would stick.
+            let pendingYourSpendSnapshotUpdates: YourSpendSnapshotOnyxData | undefined = getYourSpendSnapshotTransactionsRemovalUpdates({
+                transactionItems: deletionEntries.map(({transaction, iouReport}) => ({transaction, iouReport})),
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                context: getYourSpendPatchData(),
+            });
+
+            for (const {transactionID, action, iouReport} of deletionEntries) {
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
@@ -358,7 +373,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail: currentUserPersonalDetails.email ?? '',
                     policy: iouPolicy,
+                    yourSpendSnapshotUpdates: pendingYourSpendSnapshotUpdates,
                 });
+                // The whole batch rides on the first request; attaching it to every request would re-apply the same absolute totals.
+                pendingYourSpendSnapshotUpdates = undefined;
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
                     deletedTransactionThreadReportIDs.add(action.childReportID);
@@ -402,6 +420,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             personalPolicy?.outputCurrency,
             delegateAccountID,
             isTrackIntentUser,
+            getYourSpendPatchData,
         ],
     );
 

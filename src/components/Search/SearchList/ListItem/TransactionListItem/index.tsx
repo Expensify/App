@@ -9,6 +9,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLiveRowCapabilities';
 import type {ListItem} from '@components/SelectionList/types';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -198,6 +199,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
 
     const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
@@ -235,6 +237,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            yourSpendPatchData: getYourSpendPatchData(),
         });
     };
 

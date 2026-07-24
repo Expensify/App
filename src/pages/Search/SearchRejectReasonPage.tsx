@@ -1,6 +1,7 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useYourSpendPatchDataGetter} from '@components/YourSpendPatchDataProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -38,6 +39,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const getYourSpendPatchData = useYourSpendPatchDataGetter();
     // When coming from the report view, selectedTransactions is empty, build it from selectedTransactionIDs
     const selectedTransactionsForReject = useMemo(() => {
         if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS && reportID) {
@@ -67,6 +69,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 currentUserAccountID,
                 currentUserLogin ?? '',
                 betas,
+                getYourSpendPatchData(),
             );
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 clearSelectedTransactions(true);
@@ -90,6 +93,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             route.name,
             showDelegateNoAccessModal,
             clearSelectedTransactions,
+            getYourSpendPatchData,
         ],
     );
 
