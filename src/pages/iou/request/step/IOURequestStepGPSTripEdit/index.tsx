@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import Slider from './Slider';
@@ -58,10 +58,6 @@ function IOURequestStepGPSTripEdit({
         return trimmedCoords.map((seg): Coordinate[] => seg.map(({lat, long}) => [long, lat]));
     });
 
-    // Use refs so the animated-reaction callback is always fresh without re-creating the gesture
-    const gpsPointsRef = useRef(gpsPoints);
-    const totalDistanceMetersRef = useRef(totalDistanceMeters);
-
     useEffect(() => {
         initMapboxToken();
         return stopMapboxToken;
@@ -73,14 +69,14 @@ function IOURequestStepGPSTripEdit({
     };
 
     const updateTrimmedRoute = (ratio: number) => {
-        if (!gpsPointsRef.current || !totalDistanceMetersRef.current) {
+        if (!gpsPoints || !totalDistanceMeters) {
             return;
         }
 
-        const newTrimmedDistance = ratio * totalDistanceMetersRef.current;
+        const newTrimmedDistance = ratio * totalDistanceMeters;
         setTrimmedDistance(newTrimmedDistance);
 
-        const newTrimmedEndPoint = calculateTrimmedEndPoint(gpsPointsRef.current, newTrimmedDistance);
+        const newTrimmedEndPoint = calculateTrimmedEndPoint(gpsPoints, newTrimmedDistance);
 
         if (!newTrimmedEndPoint) {
             return;
@@ -88,7 +84,7 @@ function IOURequestStepGPSTripEdit({
 
         setTrimmedEndPoint(newTrimmedEndPoint);
 
-        const trimmedCoords = getTrimmedGpsTrip(gpsPointsRef.current, newTrimmedEndPoint);
+        const trimmedCoords = getTrimmedGpsTrip(gpsPoints, newTrimmedEndPoint);
         setTrimmedDirectionCoords(trimmedCoords.map((seg): Coordinate[] => seg.map(({lat, long}) => [long, lat])));
     };
 

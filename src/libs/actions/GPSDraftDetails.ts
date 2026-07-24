@@ -176,6 +176,7 @@ async function applyTrimmedTrip(gpsDraftDetails: GpsDraftDetails, targetDistance
     const trimmedEndPoint = calculateTrimmedEndPoint(gpsDraftDetails.gpsPoints, targetDistanceMeters);
 
     if (!trimmedEndPoint) {
+        resetTripTrim();
         return;
     }
 
