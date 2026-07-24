@@ -2676,19 +2676,28 @@ describe('SearchUIUtils', () => {
 
         it('should not crash when a task has no description or reportName (type TASK)', () => {
             const taskReportID = '987654321';
+            const taskReport = createMock<SearchTask>({
+                type: CONST.REPORT.TYPE.TASK,
+                accountID: adminAccountID,
+                managerID: adminAccountID,
+                created: '2024-01-01 00:00:00',
+                parentReportID: '123456789',
+                reportID: taskReportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                // description and reportName intentionally omitted: a task created without a description
+                // has `description === undefined`, which used to crash htmlToText.
+            });
             const taskData = createMock<OnyxTypes.SearchResults['data']>({
-                [`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`]: createMock<SearchTask>({
-                    type: CONST.REPORT.TYPE.TASK,
-                    accountID: adminAccountID,
-                    managerID: adminAccountID,
-                    created: '2024-01-01 00:00:00',
-                    parentReportID: '123456789',
-                    reportID: taskReportID,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                    // description and reportName intentionally omitted: a task created without a description
-                    // has `description === undefined`, which used to crash htmlToText.
-                }),
+                personalDetailsList: {
+                    [adminAccountID]: {
+                        accountID: adminAccountID,
+                        avatar: '',
+                        displayName: 'Task Admin',
+                        login: adminEmail,
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`]: taskReport,
             });
 
             const getTaskSectionsResult = () =>
