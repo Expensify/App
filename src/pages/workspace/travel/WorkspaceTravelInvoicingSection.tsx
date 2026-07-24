@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
@@ -71,6 +72,7 @@ type WorkspaceTravelInvoicingSectionProps = {
 function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSectionProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -329,7 +331,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     />
                 </View>
             )}
-            <View style={[styles.dFlex, styles.flexRow, styles.mt6, styles.gap4, styles.alignItemsCenter]}>
+            <View style={[styles.dFlex, styles.mt6, styles.gap4, shouldUseNarrowLayout ? styles.flexColumn : [styles.flexRow, styles.alignItemsCenter]]}>
                 <View style={styles.flex1}>
                     <MenuItemWithTopDescription
                         description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendLabel')}
@@ -346,7 +348,10 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     )}
                 </View>
                 <View style={[styles.dFlex, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                    <Button onPress={handleViewOnSpend}>
+                    <Button
+                        onPress={handleViewOnSpend}
+                        style={shouldUseNarrowLayout ? styles.flex1 : undefined}
+                    >
                         <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.viewOnSpend')}</Button.Text>
                     </Button>
                     {shouldShowPayButton && canWriteMoreFeatures && (
@@ -354,6 +359,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                             onPress={handlePayBalance}
                             isDisabled={isOffline}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            style={shouldUseNarrowLayout ? styles.flex1 : undefined}
                         >
                             <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}</Button.Text>
                         </Button>
