@@ -8112,6 +8112,7 @@ const translations = {
                 subtitle: 'Set rules for how AI agents handle expenses on this workspace.',
                 revampSubtitle: 'Describe flexible rules that run when you need.',
                 enforcedBy: 'Agent rules are enforced by',
+                notEnforced: 'These rules are not being enforced because no agent is assigned. Add a rule to assign one.',
                 ruleBotName: 'RuleBot',
                 addRule: 'Add agent rule',
                 findRule: 'Find agent rule',

@@ -36,6 +36,7 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
         policyID,
         subtitle: translate('workspace.rules.agentRules.subtitle'),
         isBadgeCondensed: true,
+        hasRules,
     });
 
     return (

@@ -17,9 +17,12 @@ type UseAgentRulesSectionHeaderProps = {
     policyID: string;
     subtitle: string;
     isBadgeCondensed?: boolean;
+
+    /** Whether the workspace has any Agent rules. Used to flag when rules exist but no RuleBot is enforcing them. */
+    hasRules?: boolean;
 };
 
-function useAgentRulesSectionHeader({policyID, subtitle, isBadgeCondensed = false}: UseAgentRulesSectionHeaderProps) {
+function useAgentRulesSectionHeader({policyID, subtitle, isBadgeCondensed = false, hasRules = false}: UseAgentRulesSectionHeaderProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -32,6 +35,9 @@ function useAgentRulesSectionHeader({policyID, subtitle, isBadgeCondensed = fals
 
     // ruleBotAccountID stays set on the policy after RuleBot is removed from the workspace, so also require it to still be an active member before showing the "enforced by" line.
     const isRuleBotActiveMember = isPolicyMemberWithoutPendingDelete(ruleBot?.login, policy);
+
+    // Rules exist but there is no live RuleBot enforcing them: either none is assigned, or the assigned one was deleted / removed from the workspace. Flag this so admins know the rules are not being enforced.
+    const isRuleBotMissing = hasRules && (!ruleBotAccountID || !isRuleBotActiveMember);
 
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter, !isBadgeCondensed && styles.gap2]}>
@@ -59,6 +65,7 @@ function useAgentRulesSectionHeader({policyID, subtitle, isBadgeCondensed = fals
                     />
                 </View>
             )}
+            {isRuleBotMissing && <Text style={[styles.textNormal, styles.textDanger]}>{translate('workspace.rules.agentRules.notEnforced')}</Text>}
         </View>
     );
 
