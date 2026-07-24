@@ -118,8 +118,8 @@ function isCertiniaDimensionParam(dimension: string): dimension is CertiniaDimen
     return (CERTINIA_DIMENSION_PARAMS as readonly string[]).includes(dimension);
 }
 
-function isCertiniaSRPConnection(config: FinancialForceConnectionConfig | undefined): boolean {
-    return !!config?.hasPSA && config?.hasPSAOnly === false;
+function isCertiniaFFAConnection(config: FinancialForceConnectionConfig | undefined): boolean {
+    return config?.hasPSAOnly === false;
 }
 
 export {
@@ -131,7 +131,7 @@ export {
     getDimensionLabel,
     getDisplayTypeLabel,
     getParentTagMappingLabel,
-    isCertiniaSRPConnection,
+    isCertiniaFFAConnection,
     isCertiniaDimensionParam,
     updateFinancialForceDimensionMapping,
 };
