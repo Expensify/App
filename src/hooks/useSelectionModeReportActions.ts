@@ -209,10 +209,11 @@ function useSelectionModeReportActions({
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
-                if (shouldBlockAction(iouPaymentType)) {
+                const resumePaymentSelect = () => invokePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+                if (shouldBlockAction(iouPaymentType, false, resumePaymentSelect)) {
                     return;
                 }
-                invokePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+                resumePaymentSelect();
             },
             waitForUpcomingTransition: true,
         });

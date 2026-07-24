@@ -333,10 +333,11 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                     iouReport={moneyRequestReport}
                     onPaymentSelect={onSelectionModePaymentSelect}
                     onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
-                        if (shouldBlockAction(undefined, true)) {
+                        const continueWithWorkspace = () => triggerKYCFlow({policy: selectedPolicy});
+                        if (shouldBlockAction(undefined, true, continueWithWorkspace)) {
                             return;
                         }
-                        triggerKYCFlow({policy: selectedPolicy});
+                        continueWithWorkspace();
                     }}
                     onSuccessfulKYC={selectionModeKYCSuccess}
                     primaryAction={primaryAction}
