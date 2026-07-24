@@ -5985,6 +5985,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             currentTravelSpendLabel: '現在の出張費支出',
                             currentTravelSpendPaymentQueued: (amount: string) => `${amount} の支払いはキューに登録されており、まもなく処理されます。`,
                             currentTravelSpendCta: '残高を支払う',
+                            viewOnSpend: '支出で表示',
                             currentTravelLimitLabel: '現在の出張上限',
                             settlementAccountLabel: '決済口座',
                             settlementFrequencyLabel: '清算頻度',

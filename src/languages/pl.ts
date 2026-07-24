@@ -6024,6 +6024,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                             currentTravelSpendLabel: 'Aktualne wydatki na podróże',
                             currentTravelSpendPaymentQueued: (amount: string) => `Płatność w wysokości ${amount} jest w kolejce i wkrótce zostanie przetworzona.`,
                             currentTravelSpendCta: 'Spłać saldo',
+                            viewOnSpend: 'Zobacz w Wydatkach',
                             currentTravelLimitLabel: 'Aktualny limit podróży',
                             settlementAccountLabel: 'Konto rozliczeniowe',
                             settlementFrequencyLabel: 'Częstotliwość rozliczeń',

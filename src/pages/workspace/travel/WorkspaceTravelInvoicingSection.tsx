@@ -32,6 +32,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
+import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import {
     getIsTravelInvoicingEnabled,
     getTravelInvoicingCardSettingsKey,
@@ -161,6 +162,19 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
      */
     const handlePayBalance = () => {
         setIsPayBalanceModalVisible(true);
+    };
+
+    /**
+     * Navigates to the Spend page pre-filtered on the Consolidated Travel Billing feed so admins
+     * can reconcile their travel spend. The feed ID mirrors the one built in getExpensifyCardFeedsForDisplay.
+     */
+    const handleViewOnSpend = () => {
+        const travelFeedID = `${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
+        const query = buildQueryStringFromFilterFormValues({
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            feed: [travelFeedID],
+        });
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
     };
 
     /**
@@ -331,15 +345,20 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                         </Text>
                     )}
                 </View>
-                {shouldShowPayButton && canWriteMoreFeatures && (
-                    <Button
-                        onPress={handlePayBalance}
-                        isDisabled={isOffline}
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    >
-                        <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}</Button.Text>
+                <View style={[styles.dFlex, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                    <Button onPress={handleViewOnSpend}>
+                        <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.viewOnSpend')}</Button.Text>
                     </Button>
-                )}
+                    {shouldShowPayButton && canWriteMoreFeatures && (
+                        <Button
+                            onPress={handlePayBalance}
+                            isDisabled={isOffline}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        >
+                            <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}</Button.Text>
+                        </Button>
+                    )}
+                </View>
             </View>
             <MenuItemWithTopDescription
                 description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelLimitLabel')}

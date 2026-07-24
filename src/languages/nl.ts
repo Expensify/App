@@ -6045,6 +6045,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             currentTravelSpendLabel: 'Huidige reiskosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Betaling van ${amount} staat in de wachtrij en wordt binnenkort verwerkt.`,
                             currentTravelSpendCta: 'Saldo betalen',
+                            viewOnSpend: 'Bekijken in Uitgaven',
                             currentTravelLimitLabel: 'Huidige reisl imiet',
                             settlementAccountLabel: 'Verrekeningsrekening',
                             settlementFrequencyLabel: 'Uitbetalingsfrequentie',
