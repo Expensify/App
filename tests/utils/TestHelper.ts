@@ -41,12 +41,13 @@ type ConnectionCallbackParams<TKey extends OnyxKey> = Parameters<ConnectionCallb
 type APIWriteOnyxData = OnyxData<OnyxKey>;
 type APIWriteDataType = keyof Pick<APIWriteOnyxData, 'failureData' | 'optimisticData' | 'successData'>;
 type ProductionAPIWriteOnyxUpdate = NonNullable<APIWriteOnyxData[APIWriteDataType]>[number];
-type APIWriteOnyxUpdate = {
-    key: ProductionAPIWriteOnyxUpdate['key'];
+type APIWriteOnyxKey = Extract<ProductionAPIWriteOnyxUpdate['key'], string>;
+type APIWriteOnyxUpdate<TKey extends string = APIWriteOnyxKey> = {
+    key: TKey;
     onyxMethod: ProductionAPIWriteOnyxUpdate['onyxMethod'];
     value?: unknown;
 };
-type APIWriteOnyxUpdateWithObjectValue = Omit<APIWriteOnyxUpdate, 'value'> & {value: Record<PropertyKey, unknown>};
+type APIWriteOnyxUpdateWithObjectValue<TKey extends string = APIWriteOnyxKey> = Omit<APIWriteOnyxUpdate<TKey>, 'value'> & {value: Record<PropertyKey, unknown>};
 
 type QueueItem = {
     resolve: (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
@@ -139,31 +140,31 @@ function getRequiredOnyxUpdates(onyxData: Record<PropertyKey, unknown>, dataType
     return updates;
 }
 
-function isMatchingOnyxUpdate(candidate: unknown, key: APIWriteOnyxUpdate['key'], onyxMethod: APIWriteOnyxUpdate['onyxMethod']): candidate is APIWriteOnyxUpdate {
+function isMatchingOnyxUpdate<TKey extends string>(candidate: unknown, key: TKey, onyxMethod: APIWriteOnyxUpdate['onyxMethod']): candidate is APIWriteOnyxUpdate<TKey> {
     return isObject(candidate) && candidate.key === key && candidate.onyxMethod === onyxMethod;
 }
 
-function getRequiredOnyxUpdate(
+function getRequiredOnyxUpdate<TKey extends string>(
     onyxData: Record<PropertyKey, unknown>,
     dataType: APIWriteDataType,
-    key: APIWriteOnyxUpdate['key'],
+    key: TKey,
     onyxMethod: APIWriteOnyxUpdate['onyxMethod'],
     requireObjectValue: true,
-): APIWriteOnyxUpdateWithObjectValue;
-function getRequiredOnyxUpdate(
+): APIWriteOnyxUpdateWithObjectValue<TKey>;
+function getRequiredOnyxUpdate<TKey extends string>(
     onyxData: Record<PropertyKey, unknown>,
     dataType: APIWriteDataType,
-    key: APIWriteOnyxUpdate['key'],
+    key: TKey,
     onyxMethod: APIWriteOnyxUpdate['onyxMethod'],
     requireObjectValue?: false,
-): APIWriteOnyxUpdate;
-function getRequiredOnyxUpdate(
+): APIWriteOnyxUpdate<TKey>;
+function getRequiredOnyxUpdate<TKey extends string>(
     onyxData: Record<PropertyKey, unknown>,
     dataType: APIWriteDataType,
-    key: APIWriteOnyxUpdate['key'],
+    key: TKey,
     onyxMethod: APIWriteOnyxUpdate['onyxMethod'],
     requireObjectValue = false,
-): APIWriteOnyxUpdate {
+): APIWriteOnyxUpdate<TKey> {
     const update = getRequiredOnyxUpdates(onyxData, dataType).find((candidate) => isMatchingOnyxUpdate(candidate, key, onyxMethod));
     if (!update) {
         throw new Error(`Expected API.write ${dataType} to include a ${onyxMethod} update for ${key}.`);
