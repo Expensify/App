@@ -5718,6 +5718,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             fromOtherWorkspaces: "D'autres espaces de travail",
             addWorkEmail: 'Ajoutez votre adresse e-mail professionnelle',
             addWorkEmailDescription: "Veuillez ajouter votre e-mail professionnel pour utiliser les flux existants d'autres espaces de travail.",
+            addWorkEmailButton: 'Ajouter une adresse e-mail professionnelle',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de cartes',
                 workspaceFeedsCouldNotBeLoadedMessage:
