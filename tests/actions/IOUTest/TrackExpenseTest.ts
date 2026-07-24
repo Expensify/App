@@ -344,7 +344,6 @@ describe('actions/IOU/TrackExpense', () => {
             const transaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         const trackedExpenseTransaction = Object.values(transactions ?? {}).at(0);
@@ -361,7 +360,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
                         resolve(reportActions);
@@ -402,7 +400,6 @@ describe('actions/IOU/TrackExpense', () => {
             let allTransactionsDraft: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     allTransactionsDraft = val;
                 },
@@ -454,7 +451,6 @@ describe('actions/IOU/TrackExpense', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         const categorizedTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
@@ -544,7 +540,6 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -602,7 +597,6 @@ describe('actions/IOU/TrackExpense', () => {
             const policyExpenseChatOnyx = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -612,7 +606,6 @@ describe('actions/IOU/TrackExpense', () => {
             const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -686,7 +679,6 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -744,7 +736,6 @@ describe('actions/IOU/TrackExpense', () => {
             const policyExpenseChatOnyx = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -754,7 +745,6 @@ describe('actions/IOU/TrackExpense', () => {
             const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -832,7 +822,6 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -890,7 +879,6 @@ describe('actions/IOU/TrackExpense', () => {
             const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -976,7 +964,6 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -1034,7 +1021,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -1139,7 +1125,6 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -1198,7 +1183,6 @@ describe('actions/IOU/TrackExpense', () => {
             const accountantChatNvpAfter = await new Promise<OnyxEntry<{private_isArchived?: string | null}>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${accountantExpenseChatID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -1208,7 +1192,6 @@ describe('actions/IOU/TrackExpense', () => {
             const expenseReportNvpAfter = await new Promise<OnyxEntry<{private_isArchived?: string | null}>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedExpenseReportID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
@@ -1321,7 +1304,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1374,7 +1356,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1402,7 +1383,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1450,7 +1430,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1481,7 +1460,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactionDrafts: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactionDrafts = val;
                 },
@@ -1530,7 +1508,6 @@ describe('actions/IOU/TrackExpense', () => {
             let finalTransactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     finalTransactions = val;
                 },
@@ -1560,7 +1537,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1641,7 +1617,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1667,7 +1642,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1697,7 +1671,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1718,7 +1691,6 @@ describe('actions/IOU/TrackExpense', () => {
             const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (val) => {
                         Onyx.disconnect(connection);
                         resolve(val);
@@ -1742,7 +1714,6 @@ describe('actions/IOU/TrackExpense', () => {
             const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (val) => {
                         Onyx.disconnect(connection);
                         resolve(val);
@@ -1766,7 +1737,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1793,7 +1763,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1823,7 +1792,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1852,7 +1820,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1880,7 +1847,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1913,7 +1879,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -1948,7 +1913,6 @@ describe('actions/IOU/TrackExpense', () => {
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (val) => {
                     transactions = val;
                 },
@@ -2339,7 +2303,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (reports) => {
                         Onyx.disconnect(connection);
                         resolve(reports);
@@ -2368,7 +2331,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2388,7 +2350,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         resolve(transactions);
@@ -2483,7 +2444,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2647,7 +2607,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2658,7 +2617,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);
@@ -2669,7 +2627,6 @@ describe('actions/IOU/TrackExpense', () => {
             const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (actions) => {
                         Onyx.disconnect(connection);
                         resolve(actions);

@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -32,6 +32,7 @@ import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -138,8 +139,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         ],
     );
 
-    // Handle continue
-    const handleContinue = useCallback(() => {
+    const validateAndContinue = () => {
         if (!mergeTransaction) {
             return;
         }
@@ -157,7 +157,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         if (isEmptyObject(newHasErrors)) {
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute(), isOnSearch));
         }
-    }, [mergeTransaction, conflictFields, transactionID, isOnSearch]);
+    };
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
@@ -238,13 +238,14 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                         />
                     )}
                     <Button
-                        large
-                        success
-                        text={translate('common.continue')}
-                        onPress={handleContinue}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={validateAndContinue}
                         isDisabled={!isEmptyObject(hasErrors)}
-                        pressOnEnter
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.continue')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </FullPageNotFoundView>
         </ScreenWrapper>

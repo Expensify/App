@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCalculatedTaxAmount, getTaxAmount, getTaxRateTitle} from '@libs/TransactionUtils';
 
@@ -20,7 +21,7 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -128,7 +129,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     return (
         <>
             <MenuItemWithTopDescription
-                key={`${taxRates?.name}${taxRateTitle}`}
+                key={`${taxRates?.name}_rate`}
+                pressableTestID={`${taxRates?.name}_rate`}
                 shouldShowRightIcon={canModifyTaxFields}
                 title={taxRateTitle}
                 description={taxRates?.name}
@@ -139,7 +141,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID)));
                 }}
                 disabled={didConfirm}
                 interactive={canModifyTaxFields}
@@ -167,7 +169,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 </View>
             ) : (
                 <MenuItemWithTopDescription
-                    key={`${taxRates?.name}${formattedTaxAmount}`}
+                    key={`${taxRates?.name}_amount`}
+                    pressableTestID={`${taxRates?.name}_amount`}
                     shouldShowRightIcon={canModifyTaxFields}
                     title={formattedTaxAmount}
                     description={translate('iou.taxAmount')}
@@ -178,7 +181,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID)));
                     }}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}

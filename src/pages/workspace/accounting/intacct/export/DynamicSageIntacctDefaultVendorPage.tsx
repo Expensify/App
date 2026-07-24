@@ -30,6 +30,9 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
+// Sage Intacct's default-vendor fields hold a raw vendor ID; sending this empty string clears the default.
+const CLEAR_DEFAULT_VENDOR = '';
+
 function DynamicSageIntacctDefaultVendorPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -75,14 +78,21 @@ function DynamicSageIntacctDefaultVendorPage() {
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
     );
 
+    // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only allow clearing when that setting is active.
+    const canClearByReSelecting = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
+
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
-            if (value !== defaultVendor) {
+            if (value === defaultVendor) {
+                if (canClearByReSelecting) {
+                    updateSageIntacctDefaultVendor(policyID, settingName, CLEAR_DEFAULT_VENDOR, defaultVendor);
+                }
+            } else {
                 updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
             }
             goBack();
         },
-        [defaultVendor, policyID, settingName, goBack],
+        [defaultVendor, policyID, settingName, goBack, canClearByReSelecting],
     );
 
     const listEmptyContent = useMemo(
