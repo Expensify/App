@@ -5471,7 +5471,11 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns true when the current user explicitly marks their own already-present message as unread and no marker exists yet', () => {
+        it('returns false for a self-authored already-present action on a cold open when no marker exists and it was not explicitly marked unread (Expensify/App#91940 guard)', () => {
+            // A persisted self-authored action (e.g. a reimbursable toggle) whose timestamp reads as unread must
+            // NOT anchor the marker on a cold open/re-entry, where prevUnreadMarkerReportActionID is null. The
+            // explicit mark-as-unread case is handled separately via manuallyMarkedUnreadReportActionID (covered
+            // by the tests below), so this guard prevents the #91940 regression without affecting it.
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
             const prevSortedVisibleReportActionsObjects = {
                 [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
@@ -5484,7 +5488,7 @@ describe('ReportActionsUtils', () => {
                     prevUnreadMarkerReportActionID: null,
                     isOffline: false,
                 }),
-            ).toBe(true);
+            ).toBe(false);
         });
 
         it('returns true when message is from current user, already present, and marker is being relocated after deletion', () => {
