@@ -98,7 +98,7 @@ describe('BaseModal', () => {
         expect(setModalCovering).toHaveBeenLastCalledWith(expect.any(Number), false);
     });
 
-    it('cleans up when a transient reopen is collapsed into the current close transition', () => {
+    it('clears the covering entry when a transient reopen collapses back into the close', () => {
         const setModalCovering = jest.fn<void, [number, boolean]>();
         const modalProps: ReanimatedModalProps[] = [];
         jest.doMock('react', () => React);
@@ -141,8 +141,8 @@ describe('BaseModal', () => {
                 {null}
             </BaseModal>,
         );
-        const firstCloseProps = modalProps.at(-1);
-        firstCloseProps?.onModalWillHide?.();
+        modalProps.at(-1)?.onModalWillHide?.();
+        // A transient reopen collapses back to hidden before the exit transition completes.
         rerender(
             <BaseModal
                 isVisible
@@ -160,14 +160,15 @@ describe('BaseModal', () => {
             </BaseModal>,
         );
 
-        firstCloseProps?.onModalHide?.();
+        // The exit completes; ReanimatedModal invokes the freshest onModalHide prop, which observes the hidden state.
+        modalProps.at(-1)?.onModalHide?.();
         expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, false);
 
         unmount();
         expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, false);
     });
 
-    it('does not let a stale hide callback clear a later close generation', () => {
+    it('keeps the covering entry when the interrupted close completes after a reopen', () => {
         const setModalCovering = jest.fn<void, [number, boolean]>();
         const modalProps: ReanimatedModalProps[] = [];
         jest.doMock('react', () => React);
@@ -210,8 +211,8 @@ describe('BaseModal', () => {
                 {null}
             </BaseModal>,
         );
-        const firstCloseProps = modalProps.at(-1);
-        firstCloseProps?.onModalWillHide?.();
+        modalProps.at(-1)?.onModalWillHide?.();
+        // The modal is asked to re-show while the exit transition is still running.
         rerender(
             <BaseModal
                 isVisible
@@ -220,7 +221,13 @@ describe('BaseModal', () => {
                 {null}
             </BaseModal>,
         );
-        modalProps.at(-1)?.onModalWillShow?.();
+
+        // The interrupted exit completes; the freshest onModalHide prop observes the visible state,
+        // so the covering entry must survive and the window must not appear over the reopened modal.
+        modalProps.at(-1)?.onModalHide?.();
+        expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, true);
+        expect(setModalCovering).not.toHaveBeenCalledWith(coveringModalID, false);
+
         rerender(
             <BaseModal
                 isVisible={false}
@@ -229,13 +236,8 @@ describe('BaseModal', () => {
                 {null}
             </BaseModal>,
         );
-        const secondCloseProps = modalProps.at(-1);
-        secondCloseProps?.onModalWillHide?.();
-
-        firstCloseProps?.onModalHide?.();
-        expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, true);
-
-        secondCloseProps?.onModalHide?.();
+        modalProps.at(-1)?.onModalWillHide?.();
+        modalProps.at(-1)?.onModalHide?.();
         expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, false);
 
         unmount();

@@ -5,6 +5,15 @@ import Onyx from 'react-native-onyx';
 
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
 const coveringModalIDs = new Set<number>();
+let nextCoveringModalID = 0;
+
+/**
+ * Returns a unique ID for a modal instance's covering-registry entry.
+ */
+function generateCoveringModalID() {
+    nextCoveringModalID += 1;
+    return nextCoveringModalID;
+}
 
 let onModalClose: null | (() => void | Promise<void>);
 let isNavigate: undefined | boolean;
@@ -122,4 +131,15 @@ function areAllModalsHidden() {
     return closeModals.length === 0;
 }
 
-export {setCloseModal, close, onModalDidClose, setModalVisibility, setModalCovering, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden};
+export {
+    setCloseModal,
+    close,
+    onModalDidClose,
+    setModalVisibility,
+    generateCoveringModalID,
+    setModalCovering,
+    willAlertModalBecomeVisible,
+    setDisableDismissOnEscape,
+    closeTop,
+    areAllModalsHidden,
+};

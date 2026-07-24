@@ -21,7 +21,7 @@ import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPa
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalCovering, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
+import {areAllModalsHidden, closeTop, generateCoveringModalID, onModalDidClose, setCloseModal, setModalCovering, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
@@ -110,11 +110,9 @@ function BaseModal({
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
-    const activeModalGenerationRef = useRef(0);
-    const pendingHideGenerationsRef = useRef<number[]>([]);
     const bottomDockedDismissButtonRef = useRef<View>(null);
     const fallbackModalIdRef = useRef<number | undefined>(undefined);
-    const [coveringModalID] = useState(() => ComposerFocusManager.getId());
+    const [coveringModalID] = useState(generateCoveringModalID);
     if (fallbackModalIdRef.current === undefined) {
         fallbackModalIdRef.current = ComposerFocusManager.getId();
     }
@@ -135,7 +133,6 @@ function BaseModal({
     const hideModal = useCallback(
         (callHideCallback = true) => {
             shouldCallHideModalOnUnmount.current = false;
-            setModalCovering(coveringModalID, false);
             willAlertModalBecomeVisible(false);
             if (areAllModalsHidden()) {
                 if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
@@ -148,16 +145,8 @@ function BaseModal({
             onModalDidClose();
             ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
         },
-        [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId, coveringModalID],
+        [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
     );
-
-    const handleModalHide = useCallback(() => {
-        const hiddenModalGeneration = pendingHideGenerationsRef.current.shift();
-        if (hiddenModalGeneration === undefined || hiddenModalGeneration !== activeModalGenerationRef.current || isVisible) {
-            return;
-        }
-        hideModal();
-    }, [hideModal, isVisible]);
 
     const handleDismissModal = useCallback(() => {
         ComposerFocusManager.setReadyToFocus(uniqueModalId);
@@ -191,6 +180,9 @@ function BaseModal({
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
     }, [hideModal]);
+
+    // The covering entry must not outlive the component, whatever path unmounts it.
+    useEffect(() => () => setModalCovering(coveringModalID, false), [coveringModalID]);
 
     useEffect(
         () => () => {
@@ -342,16 +334,22 @@ function BaseModal({
                         // Note: Escape key on web will trigger onBackButtonPress callback
                         onBackButtonPress={closeTop}
                         onModalShow={handleShowModal}
-                        onModalHide={handleModalHide}
+                        onModalHide={() => {
+                            // A hide callback can fire after this modal was already asked to re-show (the interrupted
+                            // close completes first); only a hide for a modal that is staying closed clears its
+                            // covering entry, so the marketing window cannot appear over a reopened modal.
+                            if (!isVisible) {
+                                setModalCovering(coveringModalID, false);
+                            }
+                            hideModal();
+                        }}
                         onModalWillShow={() => {
-                            activeModalGenerationRef.current += 1;
                             saveFocusState();
                             onModalWillShow?.();
                         }}
                         onModalWillHide={() => {
-                            pendingHideGenerationsRef.current.push(activeModalGenerationRef.current);
-                            // Clear the pre-show signal at the start of exit while preserving the semantic
-                            // covering state until hideModal runs after the animation completes.
+                            // Reset willAlertModalBecomeVisible when modal is about to hide
+                            // This ensures it's cleared before any other components check its value
                             if (areAllModalsHidden()) {
                                 willAlertModalBecomeVisible(false);
                             }
