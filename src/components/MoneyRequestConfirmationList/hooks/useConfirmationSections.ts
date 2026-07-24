@@ -18,6 +18,9 @@ type UseConfirmationSectionsParams = {
     /** Whether the current IOU type is split */
     isTypeSplit: boolean;
 
+    /** Whether the current IOU type is invoice (keeps the "To" header, which pairs with the invoice "Send from" field) */
+    isTypeInvoice?: boolean;
+
     /** Whether the "to" section should be hidden (used when adding directly to a report) */
     shouldHideToSection: boolean;
 
@@ -55,6 +58,7 @@ type UseConfirmationSectionsParams = {
  */
 function useConfirmationSections({
     isTypeSplit,
+    isTypeInvoice = false,
     shouldHideToSection,
     shouldForceTopEmptySections = false,
     participantRowErrors,
@@ -104,7 +108,7 @@ function useConfirmationSections({
                   ];
 
         options.push({
-            title: selectedParticipants.length > 0 ? translate('common.to') : undefined,
+            title: isTypeInvoice && selectedParticipants.length > 0 ? translate('common.to') : undefined,
             data: participantRows,
             sectionIndex: 0,
         });
