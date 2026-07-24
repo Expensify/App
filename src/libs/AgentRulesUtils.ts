@@ -44,5 +44,5 @@ function isRuleBotEnforcingRules(accountID: number | undefined, policy: OnyxEntr
     return !!accountID && policy?.ruleBotAccountID === accountID && hasAgentRules(policy);
 }
 
-export {getAgentRuleDisplayTitle, getVisibleAgentRules, hasAgentRules, isRuleBotEnforcingRules};
+export {getAgentRuleDisplayTitle, getVisibleAgentRules, isRuleBotEnforcingRules};
 export type {AgentRuleWithID};
