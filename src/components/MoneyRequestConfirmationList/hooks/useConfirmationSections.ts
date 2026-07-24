@@ -64,14 +64,14 @@ function useConfirmationSections({
     selectedParticipants,
     getSplitSectionHeader,
 }: UseConfirmationSectionsParams) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const options: Array<Section<MoneyRequestConfirmationListItem>> = [];
     if (isTypeSplit) {
         options.push(
             {
                 title: translate('moneyRequestConfirmationList.paidBy'),
-                data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, translate)],
+                data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, translate, formatPhoneNumber)],
                 sectionIndex: 0,
             },
             {
