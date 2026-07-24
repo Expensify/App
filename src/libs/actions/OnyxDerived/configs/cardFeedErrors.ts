@@ -53,7 +53,16 @@ export default createOnyxDerivedValueConfig({
         const personalCardsWithBrokenConnection: Record<string, Card> = {};
 
         function addErrorsForPersonalCard(card: Card) {
-            const hasCardErrors = !isEmptyObject(card.errors) || !isEmptyObject(card.errorFields);
+            // Once the broken connection is unresolved past the grace period we stop leading the user to it: the
+            // time-sensitive task and the RBR are removed. A broken connection is surfaced both as `errorFields.lastScrape`
+            // and as a server-set `card.errors` entry (the latter is what lights the Account button via
+            // `hasPaymentMethodError`), so past the threshold neither should light the RBR. Any actionable error kept in a
+            // separate `errorFields` entry (a failed reimbursable/start-date update) still surfaces. The error itself stays
+            // on the card so it's fixable.
+            const isPastDismissThreshold = isBrokenConnectionPastDismissThreshold(card);
+            const errorFieldsForRBR =
+                isPastDismissThreshold && card.errorFields ? Object.fromEntries(Object.entries(card.errorFields).filter(([field]) => field !== 'lastScrape')) : card.errorFields;
+            const hasCardErrors = (!isPastDismissThreshold && !isEmptyObject(card.errors)) || !isEmptyObject(errorFieldsForRBR);
             const cardErrors = {
                 ...(hasCardErrors
                     ? {
@@ -66,9 +75,7 @@ export default createOnyxDerivedValueConfig({
                     : {}),
             } as Record<string, CardErrors>;
 
-            // Stop surfacing the broken connection (task + RBR) once it has been unresolved past the
-            // grace period; the underlying error on the card is kept so the user can still fix it.
-            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
+            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isPastDismissThreshold;
             // Track personal cards with broken feed connection
             if (isFeedConnectionBroken) {
                 personalCardsWithBrokenConnection[card.cardID] = card;
