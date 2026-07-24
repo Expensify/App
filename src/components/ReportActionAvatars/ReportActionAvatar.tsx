@@ -258,7 +258,7 @@ function ReportActionAvatarSubscript({
                             iconAdditionalStyles={[
                                 // The medium subscript on a xxxx-large avatar keeps the small border width (as before the size migration) — the default border width for its size is 1px thicker and would shrink the visible avatar.
                                 size === CONST.AVATAR_SIZE.XXXX_LARGE
-                                    ? {borderWidth: variables.avatarBorderWidthSmall}
+                                    ? StyleUtils.getAvatarBorderWidth(CONST.AVATAR_SIZE.SMALL)
                                     : StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.XXXX_SMALL : subscriptAvatarSize),
                                 StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG),
                             ]}
