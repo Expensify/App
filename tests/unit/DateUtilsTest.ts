@@ -796,8 +796,7 @@ describe('DateUtils', () => {
         });
 
         it('should return empty string when violationSnapshotStartedAt is empty', () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            expect(DateUtils.formatViolationSnapshotStartedAtDate('', UTC as SelectedTimezone)).toBe('');
+            expect(DateUtils.formatViolationSnapshotStartedAtDate('', UTC)).toBe('');
         });
 
         it('should return empty string when timeZone is undefined', () => {
@@ -805,14 +804,12 @@ describe('DateUtils', () => {
         });
 
         it('should format a date-only value in the target timezone', () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', UTC as SelectedTimezone);
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', UTC);
             expect(result).toBe('June 20th, 2026');
         });
 
         it('should format a UTC datetime value in the target timezone', () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 00:00:00', UTC as SelectedTimezone);
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 00:00:00', UTC);
             expect(result).toBe('June 20th, 2026');
         });
 
@@ -823,8 +820,7 @@ describe('DateUtils', () => {
         });
 
         it('should return empty string for invalid date', () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const result = DateUtils.formatViolationSnapshotStartedAtDate('invalid-date', UTC as SelectedTimezone);
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('invalid-date', UTC);
             expect(result).toBe('');
         });
     });
