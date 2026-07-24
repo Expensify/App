@@ -85,7 +85,7 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
 
     const handleSave = () => {
         onCategoriesChange(selectedCategories);
-        goBack();
+        Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
     };
 
     return (

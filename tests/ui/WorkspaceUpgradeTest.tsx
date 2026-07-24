@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 
@@ -16,6 +17,7 @@ import WorkspaceUpgradePage from '@pages/workspace/upgrade/WorkspaceUpgradePage'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
@@ -217,6 +219,39 @@ describe('WorkspaceUpgrade', () => {
         );
         expect(await screen.findByText(corporatePrice, {exact: false})).toBeTruthy();
 
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should return to the backTo route after upgrading company cards instead of opening a new add-card flow', async () => {
+        // Given an already-upgraded (Corporate) policy so the confirmation screen is shown
+        const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.CORPORATE};
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // And the company cards upgrade page is opened with the Select cards page as backTo
+        const backTo = ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id);
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {
+            policyID: policy.id,
+            featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias,
+            backTo,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user acknowledges the upgrade by tapping "Got it, thanks"
+        fireEvent.press(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.completed.gotIt')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it goes back to the provided backTo route and does not push a new add-card flow
+        expect(goBackSpy).toHaveBeenCalledWith(backTo);
+        expect(navigateSpy).not.toHaveBeenCalled();
+
+        goBackSpy.mockRestore();
+        navigateSpy.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });

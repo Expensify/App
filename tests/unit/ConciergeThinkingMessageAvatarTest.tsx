@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,7 +10,7 @@ import Onyx from 'react-native-onyx';
 import {createAdminRoom, createAnnounceRoom} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Capture props passed to ReportActionAvatars
+// Capture props passed to ReportActionAvatars (only rendered for non-Concierge agents).
 let mockCapturedAvatarProps: Record<string, unknown> = {};
 
 jest.mock('@components/ReportActionAvatars', () => {
@@ -22,15 +22,24 @@ jest.mock('@components/ReportActionAvatars', () => {
     };
 });
 
-// Admin and announce rooms surface Concierge as the only candidate agent, so the mock returns
-// Concierge's accountID here. `mock` prefix lets jest's hoist plugin reference this from inside
-// the factory below.
-const mockPersonaAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+// Concierge renders a branded Lottie animation instead of ReportActionAvatars; stub it so the test
+// doesn't pull in Lottie and so we can assert it rendered.
+jest.mock('@pages/home/report/ConciergeAnimatedAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return () => <View testID="MockedConciergeAnimatedAvatar" />;
+});
 
-// Mock the AgentZero context to render one bubble for Concierge.
+// The candidate agent set the room is processing for. Mutable so individual tests can switch between
+// Concierge and a custom agent. `mock` prefix lets jest's hoist plugin reference it from the factory.
+const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+const customAgentAccountID = 424242;
+let mockCandidateAgentIDs: number[] = [conciergeAccountID];
+
+// Mock the AgentZero context to render one bubble per candidate agent.
 jest.mock('@pages/inbox/AgentZeroStatusContext', () => ({
     useAgentZeroStatus: () => ({
-        candidateAgentIDs: [mockPersonaAccountID],
+        candidateAgentIDs: mockCandidateAgentIDs,
     }),
 }));
 
@@ -62,7 +71,6 @@ jest.mock('@pages/inbox/report/ReportActionItemMessageHeaderSender', () => {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const ConciergeThinkingMessage = require('@pages/home/report/ConciergeThinkingMessage').default;
 
-const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
 const conciergeAvatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/icons/concierge_2022.png';
 const adminPolicyID = '7777';
 const adminRoomReportID = 9001;
@@ -71,12 +79,17 @@ const announceRoomReportID = 9003;
 const mockAdminRoom = {...createAdminRoom(adminRoomReportID), policyID: adminPolicyID};
 const mockAnnounceRoom = {...createAnnounceRoom(announceRoomReportID), policyID: adminPolicyID};
 
-const conciergePersonalDetails: PersonalDetailsList = {
+const personalDetails: PersonalDetailsList = {
     [conciergeAccountID]: {
         accountID: conciergeAccountID,
         displayName: 'Concierge',
         login: 'concierge@expensify.com',
         avatar: conciergeAvatarURL,
+    },
+    [customAgentAccountID]: {
+        accountID: customAgentAccountID,
+        displayName: 'Custom Agent',
+        login: 'agent@expensify.com',
     },
 };
 
@@ -86,7 +99,8 @@ beforeAll(() => {
 
 beforeEach(async () => {
     mockCapturedAvatarProps = {};
-    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, conciergePersonalDetails);
+    mockCandidateAgentIDs = [conciergeAccountID];
+    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
     await waitForBatchedUpdates();
 });
 
@@ -95,36 +109,59 @@ afterEach(() => {
 });
 
 describe('ConciergeThinkingMessage avatar prop integration', () => {
-    test('should pass accountIDs=[CONCIERGE] to ReportActionAvatars in admin room', () => {
-        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+    describe('Concierge bubble', () => {
+        test('should render the animated avatar (not ReportActionAvatars) in admin room', () => {
+            render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
-        expect(mockCapturedAvatarProps.accountIDs).toEqual([conciergeAccountID]);
+            expect(screen.getByTestId('MockedConciergeAnimatedAvatar')).toBeTruthy();
+            expect(screen.queryByTestId('MockedReportActionAvatars')).toBeNull();
+        });
+
+        test('should render the animated avatar (not ReportActionAvatars) in announce room', () => {
+            render(<ConciergeThinkingMessage reportID={mockAnnounceRoom.reportID} />);
+
+            expect(screen.getByTestId('MockedConciergeAnimatedAvatar')).toBeTruthy();
+            expect(screen.queryByTestId('MockedReportActionAvatars')).toBeNull();
+        });
     });
 
-    test('should pass accountIDs=[CONCIERGE] to ReportActionAvatars in announce room', () => {
-        render(<ConciergeThinkingMessage reportID={mockAnnounceRoom.reportID} />);
+    describe('Custom agent bubble', () => {
+        beforeEach(() => {
+            mockCandidateAgentIDs = [customAgentAccountID];
+        });
 
-        expect(mockCapturedAvatarProps.accountIDs).toEqual([conciergeAccountID]);
-    });
+        test('should render ReportActionAvatars (not the Concierge animation)', () => {
+            render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
-    test('should pass exactly CONCIERGE account ID, not an empty array', () => {
-        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+            expect(screen.getByTestId('MockedReportActionAvatars')).toBeTruthy();
+            expect(screen.queryByTestId('MockedConciergeAnimatedAvatar')).toBeNull();
+        });
 
-        expect(mockCapturedAvatarProps.accountIDs).toBeDefined();
-        expect((mockCapturedAvatarProps.accountIDs as number[]).length).toBe(1);
-        expect((mockCapturedAvatarProps.accountIDs as number[]).at(0)).toBe(conciergeAccountID);
-    });
+        test('should pass accountIDs=[agentAccountID] to ReportActionAvatars', () => {
+            render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
-    test('should not pass policyID to ReportActionAvatars (would force workspace avatar)', () => {
-        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+            expect(mockCapturedAvatarProps.accountIDs).toEqual([customAgentAccountID]);
+        });
 
-        expect(mockCapturedAvatarProps.policyID).toBeUndefined();
-    });
+        test('should pass exactly the agent account ID, not an empty array', () => {
+            render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
 
-    test('should not pass reportID/chatReportID to ReportActionAvatars (report context would override the agent avatar with the report-preview sender)', () => {
-        render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+            expect(mockCapturedAvatarProps.accountIDs).toBeDefined();
+            expect((mockCapturedAvatarProps.accountIDs as number[]).length).toBe(1);
+            expect((mockCapturedAvatarProps.accountIDs as number[]).at(0)).toBe(customAgentAccountID);
+        });
 
-        expect(mockCapturedAvatarProps.reportID).toBeUndefined();
-        expect(mockCapturedAvatarProps.chatReportID).toBeUndefined();
+        test('should not pass policyID to ReportActionAvatars (would force workspace avatar)', () => {
+            render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+
+            expect(mockCapturedAvatarProps.policyID).toBeUndefined();
+        });
+
+        test('should not pass reportID/chatReportID to ReportActionAvatars (report context would override the agent avatar with the report-preview sender)', () => {
+            render(<ConciergeThinkingMessage reportID={mockAdminRoom.reportID} />);
+
+            expect(mockCapturedAvatarProps.reportID).toBeUndefined();
+            expect(mockCapturedAvatarProps.chatReportID).toBeUndefined();
+        });
     });
 });
