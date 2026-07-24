@@ -13,6 +13,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchOverlay from '@hooks/useSearchOverlay';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
+import useSeedMyExpensesSearch from '@hooks/useSeedMyExpensesSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchInServer} from '@libs/actions/Report';
@@ -49,6 +50,7 @@ function SearchPage({route}: SearchPageProps) {
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
     useSearchPageSetup(currentSearchQueryJSON);
+    useSeedMyExpensesSearch();
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
     // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would
