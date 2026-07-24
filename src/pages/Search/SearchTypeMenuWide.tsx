@@ -14,13 +14,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 import type {TodoCounts} from '@hooks/useTodoCounts';
 
-import {setSearchContext} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
-import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
+import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
+import {getItemBadgeText, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 // eslint-disable-next-line no-restricted-imports
@@ -52,22 +50,7 @@ type SectionParams = {
 
 function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, areAllSectionsExpanded, onItemPress, onCollapsed}: SectionParams) {
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Basket',
-        'CalendarSolid',
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Document',
-        'Pencil',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(SEARCH_TYPE_MENU_ICON_NAMES);
 
     const [isExpanded, setIsExpanded] = useState(true);
 
@@ -151,11 +134,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
     };
 
-    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
-        clearSelectedTransactions();
-        setSearchContext(false);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
-    });
+    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions));
 
     useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
