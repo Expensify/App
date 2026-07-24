@@ -52,5 +52,4 @@ function MenuItemTitle({children, numberOfLines = 1, variant = CONST.MENU_ITEM.T
     );
 }
 
-export type {MenuItemTitleProps, MenuItemTitleVariant};
 export default MenuItemTitle;

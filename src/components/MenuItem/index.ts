@@ -136,5 +136,4 @@ const MenuItem: MenuItemType = Object.assign(LegacyMenuItem, {
 export default MenuItem;
 export {useMenuItemState};
 export type {MenuItemBaseProps, MenuItemProps} from './MenuItem';
-export type {MenuItemRootProps} from './layout/MenuItemRoot';
 export type {MenuItemState} from './MenuItemContext';

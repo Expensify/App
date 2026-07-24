@@ -26,5 +26,4 @@ function MenuItemTrailing({children, style}: MenuItemTrailingProps) {
     return <View style={[styles.flexRow, styles.mlAuto, styles.alignItemsCenter, styles.gap2, StyleUtils.getMenuItemTextContainerStyle(isCompact), style]}>{children}</View>;
 }
 
-export type {MenuItemTrailingProps};
 export default MenuItemTrailing;

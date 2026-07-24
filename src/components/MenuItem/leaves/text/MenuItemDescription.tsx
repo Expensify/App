@@ -46,5 +46,4 @@ function MenuItemDescription({children, numberOfLines = 2, variant = CONST.MENU_
     );
 }
 
-export type {MenuItemDescriptionProps, MenuItemDescriptionVariant};
 export default MenuItemDescription;

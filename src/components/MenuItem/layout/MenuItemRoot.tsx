@@ -216,5 +216,4 @@ function MenuItemRoot({
     );
 }
 
-export type {MenuItemRootProps, MenuItemVariant};
 export default MenuItemRoot;

@@ -59,5 +59,4 @@ function MenuItemChevron({src, style}: MenuItemChevronProps) {
     );
 }
 
-export type {MenuItemChevronProps};
 export default MenuItemChevron;

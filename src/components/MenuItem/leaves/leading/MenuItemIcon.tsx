@@ -92,5 +92,4 @@ function MenuItemIcon({
     );
 }
 
-export type {MenuItemIconProps};
 export default MenuItemIcon;

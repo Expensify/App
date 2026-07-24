@@ -41,5 +41,4 @@ function MenuItemCopyButton({value}: MenuItemCopyButtonProps) {
     );
 }
 
-export type {MenuItemCopyButtonProps};
 export default MenuItemCopyButton;

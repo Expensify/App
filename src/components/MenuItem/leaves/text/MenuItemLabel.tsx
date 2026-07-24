@@ -27,5 +27,4 @@ function MenuItemLabel({children, style}: MenuItemLabelProps) {
     );
 }
 
-export type {MenuItemLabelProps};
 export default MenuItemLabel;
