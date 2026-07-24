@@ -14,6 +14,7 @@ import {clearRilletErrorField, updateRilletCardProgramAccount} from '@libs/actio
 import {findMatchingCards} from '@libs/CardFeedUtils';
 import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {sortDefaultToTop} from '@libs/ListUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -76,7 +77,8 @@ function RilletCardProgramAccountSelector({
                 keyForList: accountItem.code,
                 isSelected: cardProgramAccountCode === accountItem.code,
             })) ?? [];
-    const {filteredData, textInputOptions} = useSelectionListSearch(data);
+    const {filteredData: filteredUnprocessedData, textInputOptions} = useSelectionListSearch(data);
+    const filteredData = sortDefaultToTop(filteredUnprocessedData, (accountItem) => creditCardAccountCode === accountItem.keyForList, styles);
 
     const headerContent = (
         <View>

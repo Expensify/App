@@ -111,7 +111,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
 
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardholder, translate});
-    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
+    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, styles, policy, card);
 
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
