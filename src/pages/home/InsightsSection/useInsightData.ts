@@ -7,7 +7,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
-import {getSections, getSortedSections, getSuggestedSearches, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import {getSections, getSortedSections, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,7 +20,7 @@ import type {ValueOf} from 'type-fest';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent} from 'react';
 
-const SPEND_OVER_TIME_STATE = {
+const INSIGHT_STATE = {
     OFFLINE: 'offline',
     ERROR: 'error',
     LOADING: 'loading',
@@ -27,35 +28,39 @@ const SPEND_OVER_TIME_STATE = {
     READY: 'ready',
 } as const;
 
-type SpendOverTimeState = ValueOf<typeof SPEND_OVER_TIME_STATE>;
+const CHART_VIEWS = new Set<ValueOf<typeof CONST.SEARCH.VIEW>>([CONST.SEARCH.VIEW.BAR, CONST.SEARCH.VIEW.LINE, CONST.SEARCH.VIEW.PIE]);
 
-function getSpendOverTimeState(
+const MIN_INSIGHT_DATA_POINTS = 2;
+
+function getInsightState(
     isOffline: boolean,
     searchResults: OnyxEntry<SearchResults>,
     queryJSON: SearchQueryJSON | undefined,
     sortedData: GroupedItem[] | undefined,
-): SpendOverTimeState {
+): ValueOf<typeof INSIGHT_STATE> {
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
 
     if (isOffline && !isDataLoaded) {
-        return SPEND_OVER_TIME_STATE.OFFLINE;
+        return INSIGHT_STATE.OFFLINE;
     }
     if (!isOffline && Object.keys(searchResults?.errors ?? {}).length > 0) {
-        return SPEND_OVER_TIME_STATE.ERROR;
+        return INSIGHT_STATE.ERROR;
     }
     if (!isDataLoaded) {
-        return SPEND_OVER_TIME_STATE.LOADING;
+        return INSIGHT_STATE.LOADING;
     }
-    if ((sortedData?.length ?? 0) < 2) {
-        return SPEND_OVER_TIME_STATE.HIDDEN;
+    if ((sortedData?.length ?? 0) < MIN_INSIGHT_DATA_POINTS) {
+        return INSIGHT_STATE.HIDDEN;
     }
-    return SPEND_OVER_TIME_STATE.READY;
+    return INSIGHT_STATE.READY;
 }
 
-function useSpendOverTimeData() {
-    const config = getSuggestedSearches()[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
-    const {searchQueryJSON: queryJSON, searchQuery: query, key: searchKey} = config;
-    const {groupBy, view} = queryJSON ?? {};
+function useInsightData(config: SearchTypeMenuItem | undefined) {
+    const queryJSON = config?.searchQueryJSON;
+    const query = config?.searchQuery;
+    const searchKey = config?.key;
+    const {groupBy} = queryJSON ?? {};
+    const view = queryJSON?.view && CHART_VIEWS.has(queryJSON.view) ? queryJSON.view : CONST.SEARCH.VIEW.BAR;
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -86,7 +91,7 @@ function useSpendOverTimeData() {
             return;
         }
         onConfigChanged();
-    }, [config.hash, isOffline, isFocused]);
+    }, [queryJSON?.hash, isOffline, isFocused]);
 
     const sortedData =
         searchResults?.data && queryJSON && groupBy && login
@@ -114,9 +119,10 @@ function useSpendOverTimeData() {
               ) as GroupedItem[])
             : undefined;
 
-    const state = getSpendOverTimeState(isOffline, searchResults, queryJSON, sortedData);
+    const state = config ? getInsightState(isOffline, searchResults, queryJSON, sortedData) : INSIGHT_STATE.HIDDEN;
 
     return {
+        config,
         query,
         queryJSON,
         groupBy,
@@ -126,5 +132,5 @@ function useSpendOverTimeData() {
     };
 }
 
-export {SPEND_OVER_TIME_STATE, getSpendOverTimeState};
-export default useSpendOverTimeData;
+export {INSIGHT_STATE, getInsightState};
+export default useInsightData;

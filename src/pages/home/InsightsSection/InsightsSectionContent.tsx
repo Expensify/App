@@ -21,9 +21,11 @@ import ROUTES from '@src/ROUTES';
 import React from 'react';
 import {View} from 'react-native';
 
-import useSpendOverTimeData, {SPEND_OVER_TIME_STATE} from './useSpendOverTimeData';
+import InsightTitleDropdown from './InsightTitleDropdown';
+import useHomeInsights from './useHomeInsights';
+import {INSIGHT_STATE} from './useInsightData';
 
-function SpendOverTimeSectionContent() {
+function InsightsSectionContent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -31,20 +33,27 @@ function SpendOverTimeSectionContent() {
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {query, queryJSON, groupBy, view, sortedData, state} = useSpendOverTimeData();
+    const {displayed, state, dropdownConfigs, onSelectInsight} = useHomeInsights();
+    const {config, query, queryJSON, groupBy, view, sortedData} = displayed ?? {};
 
-    if (!queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE || state === SPEND_OVER_TIME_STATE.HIDDEN) {
+    if (!config || !query || !queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE || state === INSIGHT_STATE.HIDDEN) {
         return null;
     }
 
     return (
         <WidgetContainer
-            title={translate('search.spendOverTime')}
+            titleContent={
+                <InsightTitleDropdown
+                    configs={dropdownConfigs}
+                    selectedKey={config.key}
+                    onSelect={onSelectInsight}
+                />
+            }
             titleRightContent={
-                state === SPEND_OVER_TIME_STATE.READY ? (
+                state === INSIGHT_STATE.READY ? (
                     <WidgetHeaderMenu
-                        testID="spendOverTimeOverflowMenu"
-                        sentryLabel="SpendOverTimeOverflowMenu"
+                        testID="insightsOverflowMenu"
+                        sentryLabel="InsightsOverflowMenu"
                         menuItems={[
                             {
                                 text: translate('common.view'),
@@ -57,7 +66,7 @@ function SpendOverTimeSectionContent() {
                 ) : null
             }
         >
-            {state === SPEND_OVER_TIME_STATE.OFFLINE && (
+            {state === INSIGHT_STATE.OFFLINE && (
                 <BlockingView
                     icon={icons.OfflineCloud}
                     iconColor={theme.offline}
@@ -69,7 +78,7 @@ function SpendOverTimeSectionContent() {
                     containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
                 />
             )}
-            {state === SPEND_OVER_TIME_STATE.ERROR && (
+            {state === INSIGHT_STATE.ERROR && (
                 <BlockingView
                     icon={illustrations.BrokenMagnifyingGlass}
                     iconHeight={variables.iconSizeMegaLarge}
@@ -83,14 +92,14 @@ function SpendOverTimeSectionContent() {
                     contentFitImage="contain"
                 />
             )}
-            {(state === SPEND_OVER_TIME_STATE.LOADING || state === SPEND_OVER_TIME_STATE.READY) && (
-                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3]]}>
+            {(state === INSIGHT_STATE.LOADING || state === INSIGHT_STATE.READY) && (
+                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
                         groupBy={groupBy}
                         data={sortedData ?? []}
-                        isLoading={state === SPEND_OVER_TIME_STATE.LOADING}
+                        isLoading={state === INSIGHT_STATE.LOADING}
                     />
                 </View>
             )}
@@ -98,4 +107,4 @@ function SpendOverTimeSectionContent() {
     );
 }
 
-export default SpendOverTimeSectionContent;
+export default InsightsSectionContent;
