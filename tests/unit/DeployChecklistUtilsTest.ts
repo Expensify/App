@@ -1,77 +1,44 @@
+import CONST from '@github/libs/CONST';
 import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
-import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
-
-import type {Writable} from 'type-fest';
 
 /**
  * @jest-environment node
  */
 /* eslint-disable @typescript-eslint/naming-convention */
-import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
 
-const mockGetInput = jest.fn();
-const mockListIssues = jest.fn();
+import createMock from '../utils/createMock';
 
-type Label = {
-    id: number;
-    number?: number;
-    isChecked?: boolean;
-    node_id: string;
-    url: string;
-    name: string;
-    color: string;
-    default: boolean;
-    description: string;
-};
+type Octokit = typeof GithubUtils.octokit;
+type OctokitListForRepo = Octokit['issues']['listForRepo'];
+type ListForRepoResponse = Awaited<ReturnType<OctokitListForRepo>>;
+type OctokitIssue = ListForRepoResponse['data'][number];
+type PullRequest = Exclude<Awaited<ReturnType<typeof GithubUtils.fetchAllPullRequests>>, void>[number];
 
-type Issue = {
-    url: string;
-    title: string;
-    labels: Label[];
-    body: string;
-};
+const createListForRepoResponse = (data: OctokitIssue[]): ListForRepoResponse => createMock<ListForRepoResponse>({data});
 
-type ObjectMethodData<T> = {
-    data: T;
-};
-
-type OctokitCreateIssue = InternalOctokit['rest']['issues']['create'];
-
-const asMutable = <T>(value: T): Writable<T> => value as Writable<T>;
+const mockListIssues = jest.fn<ReturnType<OctokitListForRepo>, Parameters<OctokitListForRepo>>();
+let listForRepoSpy: jest.SpiedFunction<OctokitListForRepo>;
 
 beforeAll(() => {
-    asMutable(core).getInput = mockGetInput;
+    GithubUtils.initOctokitWithToken('fake_token');
+    const internalOctokit = GithubUtils.internalOctokit;
+    if (!internalOctokit) {
+        throw new Error('Expected GithubUtils to initialize an Octokit client.');
+    }
 
-    const mockOctokit = {
-        rest: {
-            issues: {
-                create: jest.fn().mockImplementation((arg: Parameters<OctokitCreateIssue>[0]) =>
-                    Promise.resolve({
-                        data: {
-                            ...arg,
-                            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-                        },
-                    }),
-                ),
-                listForRepo: mockListIssues,
-            },
-        },
-        paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
-    } as unknown as InternalOctokit;
-
-    GithubUtils.internalOctokit = mockOctokit;
+    listForRepoSpy = jest.spyOn(internalOctokit.rest.issues, 'listForRepo').mockImplementation(mockListIssues);
 });
 
 afterEach(() => {
-    mockGetInput.mockClear();
-    mockListIssues.mockClear();
+    listForRepoSpy.mockClear();
+    mockListIssues.mockReset();
 });
 
 describe('DeployChecklistUtils', () => {
     describe('getDeployChecklist', () => {
-        const baseIssue: Issue = {
+        const baseIssue = createMock<OctokitIssue>({
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             title: 'Andrew Test Issue',
             labels: [
@@ -88,7 +55,7 @@ describe('DeployChecklistUtils', () => {
             ],
 
             body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/21\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/22\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/23\r\n\r\n`,
-        };
+        });
         const issueWithDeployBlockers = {...baseIssue};
 
         issueWithDeployBlockers.body += `\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/2\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234\r\n`;
@@ -154,11 +121,11 @@ describe('DeployChecklistUtils', () => {
         ];
 
         test('Test finding an open issue with no PRs successfully', () => {
-            const bareIssue: Issue = {
+            const bareIssue = createMock<OctokitIssue>({
                 ...baseIssue,
 
                 body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n`,
-            };
+            });
 
             const bareExpectedResponse: Partial<Awaited<ReturnType<typeof getDeployChecklist>>> = {
                 ...baseExpectedResponse,
@@ -166,40 +133,48 @@ describe('DeployChecklistUtils', () => {
                 PRListMobileExpensify: [],
             };
 
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]}) as unknown as ListForRepoMethod;
+            mockListIssues.mockResolvedValue(createListForRepoResponse([bareIssue]));
             return getDeployChecklist().then((data) => expect(data).toStrictEqual(bareExpectedResponse));
         });
 
         test('Test finding an open issue successfully', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [baseIssue]}) as unknown as ListForRepoMethod;
+            mockListIssues.mockResolvedValue(createListForRepoResponse([baseIssue]));
             return getDeployChecklist().then((data) => expect(data).toStrictEqual(baseExpectedResponse));
         });
 
         test('Test finding an open issue successfully and parsing with deploy blockers', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]}) as unknown as ListForRepoMethod;
+            mockListIssues.mockResolvedValue(createListForRepoResponse([issueWithDeployBlockers]));
             return getDeployChecklist().then((data) => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
         test('Test finding an open issue successfully and parsing with blockers w/o carriage returns', () => {
             const modifiedIssueWithDeployBlockers = {...issueWithDeployBlockers};
-            modifiedIssueWithDeployBlockers.body = modifiedIssueWithDeployBlockers.body.replaceAll('\r', '');
+            modifiedIssueWithDeployBlockers.body = (modifiedIssueWithDeployBlockers.body ?? '').replaceAll('\r', '');
 
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({
-                data: [modifiedIssueWithDeployBlockers],
-            }) as unknown as ListForRepoMethod;
+            mockListIssues.mockResolvedValue(createListForRepoResponse([modifiedIssueWithDeployBlockers]));
             return getDeployChecklist().then((data) => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
         test('Test finding an open issue without a body', () => {
-            const noBodyIssue = baseIssue;
-            noBodyIssue.body = '';
+            const noBodyIssue = {...baseIssue, body: ''};
 
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [noBodyIssue]}) as unknown as ListForRepoMethod;
-            return getDeployChecklist().catch((e) => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue with correct data.')));
+            mockListIssues.mockResolvedValue(createListForRepoResponse([noBodyIssue]));
+            return getDeployChecklist().then((data) =>
+                expect(data).toMatchObject({
+                    PRList: [],
+                    PRListMobileExpensify: [],
+                    deployBlockers: [],
+                    internalQAPRList: [],
+                    isSentryChecked: false,
+                    isGHStatusChecked: false,
+                    version: '',
+                    tag: '-staging',
+                }),
+            );
         });
 
         test('Test finding more than one issue', async () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{number: 1}, {number: 2}]}) as unknown as ListForRepoMethod;
+            mockListIssues.mockResolvedValue(createListForRepoResponse([createMock<OctokitIssue>({number: 1}), createMock<OctokitIssue>({number: 2})]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
@@ -209,42 +184,45 @@ describe('DeployChecklistUtils', () => {
         });
 
         test('state:open empty + state:all returns closed issue → NoOpenDeployChecklistError', async () => {
-            GithubUtils.octokit.issues.listForRepo = jest
-                .fn()
-                .mockResolvedValueOnce({data: []})
-                .mockResolvedValueOnce({data: [{number: 100, state: 'closed'}]}) as unknown as ListForRepoMethod;
+            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssue>({number: 100, state: 'closed'})]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
             } catch (e: unknown) {
                 expect(e).toBeInstanceOf(NoOpenDeployChecklistError);
-                expect((e as Error).message).toEqual(expect.stringContaining('#100'));
+                if (!(e instanceof Error)) {
+                    throw e;
+                }
+                expect(e.message).toEqual(expect.stringContaining('#100'));
             }
         });
 
         test('state:open empty + state:all returns open issue → fails closed (inconsistency)', async () => {
-            GithubUtils.octokit.issues.listForRepo = jest
-                .fn()
-                .mockResolvedValueOnce({data: []})
-                .mockResolvedValueOnce({data: [{number: 500, state: 'open'}]}) as unknown as ListForRepoMethod;
+            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssue>({number: 500, state: 'open'})]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
             } catch (e: unknown) {
                 expect(e).not.toBeInstanceOf(NoOpenDeployChecklistError);
-                expect((e as Error).message).toEqual(expect.stringContaining('Inconsistent GitHub response'));
-                expect((e as Error).message).toEqual(expect.stringContaining('#500'));
+                if (!(e instanceof Error)) {
+                    throw e;
+                }
+                expect(e.message).toEqual(expect.stringContaining('Inconsistent GitHub response'));
+                expect(e.message).toEqual(expect.stringContaining('#500'));
             }
         });
 
         test('state:open empty + state:all empty → fails closed (pathological)', async () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []}) as unknown as ListForRepoMethod;
+            mockListIssues.mockResolvedValue(createListForRepoResponse([]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
             } catch (e: unknown) {
                 expect(e).not.toBeInstanceOf(NoOpenDeployChecklistError);
-                expect((e as Error).message).toEqual(expect.stringContaining(`No StagingDeployCash issues found at all`));
+                if (!(e instanceof Error)) {
+                    throw e;
+                }
+                expect(e.message).toEqual(expect.stringContaining(`No StagingDeployCash issues found at all`));
             }
         });
     });
@@ -254,43 +232,47 @@ describe('DeployChecklistUtils', () => {
             const err503 = new RequestError('Service Unavailable', 503, {
                 request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
             });
-            GithubUtils.octokit.issues.listForRepo = jest
-                .fn()
+            mockListIssues
                 .mockRejectedValueOnce(err503)
-                .mockResolvedValueOnce({data: [{number: 88, url: 'https://api.github.com/repos/o/i/issues/88', title: 't', labels: [], body: ''}]}) as unknown as ListForRepoMethod;
+                .mockResolvedValueOnce(
+                    createListForRepoResponse([createMock<OctokitIssue>({number: 88, url: 'https://api.github.com/repos/o/i/issues/88', title: 't', labels: [], body: ''})]),
+                );
 
             jest.useFakeTimers();
-            const pending = getDeployChecklist();
-            await jest.advanceTimersByTimeAsync(2000);
-            const data = await pending;
-            jest.useRealTimers();
+            try {
+                const pending = getDeployChecklist();
+                await jest.advanceTimersByTimeAsync(2000);
+                const data = await pending;
 
-            expect(data.number).toBe(88);
-            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
+                expect(data.number).toBe(88);
+                expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
+            } finally {
+                jest.useRealTimers();
+            }
         });
 
         test('re-throws after all retry attempts fail', async () => {
             const err503 = new RequestError('Service Unavailable', 503, {
                 request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
             });
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockRejectedValue(err503) as unknown as ListForRepoMethod;
+            mockListIssues.mockRejectedValue(err503);
 
             jest.useFakeTimers();
-            const pending = getDeployChecklist();
-            const assertion = expect(pending).rejects.toThrow(RequestError);
-            await jest.advanceTimersByTimeAsync(2000);
-            await jest.advanceTimersByTimeAsync(5000);
-            await assertion;
-            jest.useRealTimers();
+            try {
+                const pending = getDeployChecklist();
+                const assertion = expect(pending).rejects.toThrow(RequestError);
+                await jest.advanceTimersByTimeAsync(2000);
+                await jest.advanceTimersByTimeAsync(5000);
+                await assertion;
 
-            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(3);
+                expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(3);
+            } finally {
+                jest.useRealTimers();
+            }
         });
 
         test('does not retry on empty result; falls through to state:all cross-check', async () => {
-            GithubUtils.octokit.issues.listForRepo = jest
-                .fn()
-                .mockResolvedValueOnce({data: []})
-                .mockResolvedValueOnce({data: [{number: 200, state: 'closed'}]}) as unknown as ListForRepoMethod;
+            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssue>({number: 200, state: 'closed'})]));
             await expect(getDeployChecklist()).rejects.toBeInstanceOf(NoOpenDeployChecklistError);
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
@@ -299,7 +281,7 @@ describe('DeployChecklistUtils', () => {
             const err404 = new RequestError('Not Found', 404, {
                 request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
             });
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockRejectedValue(err404) as unknown as ListForRepoMethod;
+            mockListIssues.mockRejectedValue(err404);
 
             await expect(getDeployChecklist()).rejects.toBeInstanceOf(RequestError);
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(1);
@@ -309,137 +291,80 @@ describe('DeployChecklistUtils', () => {
             const err403 = new RequestError('Secondary rate limit', 403, {
                 request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
             });
-            GithubUtils.octokit.issues.listForRepo = jest
-                .fn()
+            mockListIssues
                 .mockRejectedValueOnce(err403)
-                .mockResolvedValueOnce({data: [{number: 77, url: 'https://api.github.com/repos/o/i/issues/77', title: 't', labels: [], body: ''}]}) as unknown as ListForRepoMethod;
+                .mockResolvedValueOnce(
+                    createListForRepoResponse([createMock<OctokitIssue>({number: 77, url: 'https://api.github.com/repos/o/i/issues/77', title: 't', labels: [], body: ''})]),
+                );
 
             jest.useFakeTimers();
-            const pending = getDeployChecklist();
-            await jest.advanceTimersByTimeAsync(2000);
-            const data = await pending;
-            jest.useRealTimers();
+            try {
+                const pending = getDeployChecklist();
+                await jest.advanceTimersByTimeAsync(2000);
+                const data = await pending;
 
-            expect(data.number).toBe(77);
-            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
+                expect(data.number).toBe(77);
+                expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
+            } finally {
+                jest.useRealTimers();
+            }
         });
 
         test('state:all reports a non-first open issue → fails closed with that number', async () => {
-            GithubUtils.octokit.issues.listForRepo = jest
-                .fn()
-                .mockResolvedValueOnce({data: []})
-                .mockResolvedValueOnce({
-                    data: [
-                        {number: 900, state: 'closed'},
-                        {number: 800, state: 'open'},
-                        {number: 700, state: 'closed'},
-                    ],
-                }) as unknown as ListForRepoMethod;
+            mockListIssues
+                .mockResolvedValueOnce(createListForRepoResponse([]))
+                .mockResolvedValueOnce(
+                    createListForRepoResponse([
+                        createMock<OctokitIssue>({number: 900, state: 'closed'}),
+                        createMock<OctokitIssue>({number: 800, state: 'open'}),
+                        createMock<OctokitIssue>({number: 700, state: 'closed'}),
+                    ]),
+                );
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
             } catch (e: unknown) {
                 expect(e).not.toBeInstanceOf(NoOpenDeployChecklistError);
-                expect((e as Error).message).toEqual(expect.stringContaining('Inconsistent GitHub response'));
-                expect((e as Error).message).toEqual(expect.stringContaining('#800'));
+                if (!(e instanceof Error)) {
+                    throw e;
+                }
+                expect(e.message).toEqual(expect.stringContaining('Inconsistent GitHub response'));
+                expect(e.message).toEqual(expect.stringContaining('#800'));
             }
         });
     });
 
     describe('generateDeployChecklistBody', () => {
         const mockPRs = [
-            {
-                number: 1,
-                title: 'Test PR 1',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1`,
-                user: {login: 'username'},
-                labels: [],
-            },
-            {
-                number: 2,
-                title: 'Test PR 2',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/2`,
-                user: {login: 'username'},
-                labels: [],
-            },
-            {
-                number: 3,
-                title: 'Test PR 3',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`,
-                user: {login: 'username'},
-                labels: [],
-            },
-            {
-                number: 4,
-                title: '[NO QA] Test No QA PR uppercase',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/4`,
-                user: {login: 'username'},
-                labels: [],
-            },
-            {
-                number: 5,
-                title: '[NoQa] Test No QA PR Title Case',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/5`,
-                user: {login: 'username'},
-                labels: [],
-            },
-            {
-                number: 6,
-                title: '[Internal QA] Another Test Internal QA PR',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`,
-                user: {login: 'username'},
-                labels: [
-                    {
-                        id: 1234,
-                        node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
-                        url: `https://api.github.com/${process.env.GITHUB_REPOSITORY}/labels/InternalQA`,
-                        name: 'InternalQA',
-                        description: 'An Expensifier needs to test this.',
-                        color: 'f29513',
-                    },
-                ],
-                assignees: [],
-            },
-            {
-                number: 7,
-                title: '[Internal QA] Another Test Internal QA PR',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/7`,
-                user: {login: 'username'},
-                labels: [
-                    {
-                        id: 1234,
-                        node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
-                        url: `https://api.github.com/${process.env.GITHUB_REPOSITORY}/labels/InternalQA`,
-                        name: 'InternalQA',
-                        description: 'An Expensifier needs to test this.',
-                        color: 'f29513',
-                    },
-                ],
-                assignees: [],
-            },
+            createMock<PullRequest>({number: 1, title: 'Test PR 1', labels: []}),
+            createMock<PullRequest>({number: 2, title: 'Test PR 2', labels: []}),
+            createMock<PullRequest>({number: 3, title: 'Test PR 3', labels: []}),
+            createMock<PullRequest>({number: 4, title: '[NO QA] Test No QA PR uppercase', labels: []}),
+            createMock<PullRequest>({number: 5, title: '[NoQa] Test No QA PR Title Case', labels: []}),
+            createMock<PullRequest>({number: 6, title: '[Internal QA] Another Test Internal QA PR', labels: [{name: 'InternalQA'}]}),
+            createMock<PullRequest>({number: 7, title: '[Internal QA] Another Test Internal QA PR', labels: [{name: 'InternalQA'}]}),
         ];
-        const mockInternalQaPR = {
-            merged_by: {login: 'octocat'},
+        const mockPullRequestsByRepo: Record<string, PullRequest[]> = {
+            [CONST.APP_REPO]: mockPRs,
+            [CONST.MOBILE_EXPENSIFY_REPO]: mockPRs,
         };
-        const mockGithub = jest.fn(() => ({
-            getOctokit: () => ({
-                rest: {
-                    repos: {
-                        listTags: jest.fn().mockResolvedValue({data: [{name: '1.0.2-0'}, {name: '1.0.2-12'}]}),
-                    },
-                    pulls: {
-                        list: jest.fn().mockResolvedValue({data: mockPRs}),
-                        get: jest.fn().mockResolvedValue({data: mockInternalQaPR}),
-                    },
-                },
-                paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
-            }),
-        }));
-
-        const octokit = mockGithub().getOctokit();
+        const mockFetchAllPullRequests = jest.spyOn(GithubUtils, 'fetchAllPullRequests');
+        const mockGetPullRequestMergerLogin = jest.spyOn(GithubUtils, 'getPullRequestMergerLogin');
 
         beforeEach(() => {
-            GithubUtils.internalOctokit = octokit as unknown as InternalOctokit;
+            mockFetchAllPullRequests.mockImplementation(async (pullRequestNumbers, repo = CONST.APP_REPO) => {
+                const pullRequests = mockPullRequestsByRepo[repo] ?? [];
+                return pullRequests.filter(({number}) => pullRequestNumbers.includes(number));
+            });
+            mockGetPullRequestMergerLogin.mockImplementation(async (pullRequestNumber) => {
+                const pullRequest = mockPRs.find(({number, labels}) => number === pullRequestNumber && labels.some(({name}) => name === CONST.LABELS.INTERNAL_QA));
+                return pullRequest ? 'octocat' : undefined;
+            });
+        });
+
+        afterEach(() => {
+            mockFetchAllPullRequests.mockReset();
+            mockGetPullRequestMergerLogin.mockReset();
         });
 
         const tag = '1.0.2-12';
@@ -503,6 +428,7 @@ describe('DeployChecklistUtils', () => {
             const issue = await generateDeployChecklistBodyAndAssignees({tag, PRList: basePRList, PRListMobileExpensify});
             expect(issue.issueBody).toContain('**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging');
             expect(issue.issueBody).toContain('**Mobile-Expensify PRs:**');
+            expect(mockFetchAllPullRequests).toHaveBeenCalledWith(PRListMobileExpensify, CONST.MOBILE_EXPENSIFY_REPO);
         });
 
         test('Test no Mobile-Expensify compare link without Mobile-Expensify PRs', async () => {
