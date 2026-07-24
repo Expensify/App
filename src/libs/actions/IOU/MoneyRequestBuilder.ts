@@ -8,7 +8,7 @@ import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -1322,6 +1322,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         rate,
         unit,
         customUnit,
+        customUnitRateID,
         waypoints,
         odometerStart,
         odometerEnd,
@@ -1500,6 +1501,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             rate,
             unit,
             customUnit,
+            customUnitRateID,
             waypoints,
             odometerStart,
             odometerEnd,
@@ -1535,6 +1537,21 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         } else {
             optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
         }
+    }
+
+    if (isDistanceRequest) {
+        const workspaceDistanceUnit = getDistanceRateCustomUnit(policy)?.attributes?.unit;
+        optimisticTransaction.comment = {
+            ...optimisticTransaction.comment,
+            customUnit: {
+                ...optimisticTransaction.comment?.customUnit,
+                ...(getDistanceRateCustomUnit(policy)?.customUnitID && {customUnitID: getDistanceRateCustomUnit(policy)?.customUnitID}),
+                ...(customUnitRateID && {customUnitRateID}),
+                ...(workspaceDistanceUnit && {distanceUnit: workspaceDistanceUnit}),
+                ...(distance !== undefined && {quantity: distance}),
+                name: optimisticTransaction.comment?.customUnit?.name ?? existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            },
+        };
     }
 
     if (isSplitExpense && existingTransaction) {
