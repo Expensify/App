@@ -1417,8 +1417,17 @@ function submitReport({
     const managerID = trimmedManagerEmail ? (resolvedManagerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID) : submitReportManagerAccountID;
     const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
+
+    // Held expenses split onto a new Draft report on submit (mirroring the backend), so only the unheld amount is
+    // actually submitted. Hold maintains unheldTotal optimistically in the same sign convention as total, so use it
+    // for the submitted action amount when there are held expenses.
+    const reportTransactions = getReportTransactions(expenseReport.reportID);
+    const heldTransactions = reportTransactions.filter((transaction) => isOnHold(transaction));
+    const hasHeldExpenses = heldTransactions.length > 0;
+    const submittedTotal = hasHeldExpenses ? (expenseReport.unheldTotal ?? expenseReport.total ?? 0) : (expenseReport.total ?? 0);
+
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
-        expenseReport?.total ?? 0,
+        submittedTotal,
         expenseReport.currency ?? '',
         expenseReport.reportID,
         adminAccountID,
@@ -1464,6 +1473,7 @@ function submitReport({
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.NEXT_STEP
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME
         >
     > = [];
@@ -1562,7 +1572,9 @@ function submitReport({
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [];
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.TRANSACTION>
+    > = [];
     if (!isDEWPolicy) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1602,6 +1614,7 @@ function submitReport({
             | typeof ONYXKEYS.COLLECTION.NEXT_STEP
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME
         >
     > = [
@@ -1675,6 +1688,39 @@ function submitReport({
         });
     }
 
+    // Mirror the backend held-transaction split so offline/optimistic state matches: held expenses move to a new
+    // report (Draft on non-instant policies) while only the unheld expenses stay on the submitted report. Reuses the
+    // same helper and param convention as ApproveMoneyRequest. Holds split on every submit path; RTER-7-day is
+    // automated-only (server-side) and pending/scanning already split server-side, so neither needs an equivalent here.
+    let optimisticHoldReportID: string | undefined;
+    let optimisticHoldActionID: string | undefined;
+    let optimisticHoldReportExpenseActionIDs: string | undefined;
+
+    // Only split when at least one unheld expense remains — an all-held report can't be submitted (the backend throws
+    // 401 and the submit action is already gated), so there's nothing to submit.
+    if (hasHeldExpenses && heldTransactions.length < reportTransactions.length && !isSubmitAndClosePolicy && !isDEWPolicy && parentReport?.reportID) {
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
+            chatReport: parentReport,
+            iouReport: expenseReport,
+            recipient: {accountID: expenseReport.ownerAccountID},
+            policy,
+            createdTimestamp: getReportOriginalCreationTimestamp(expenseReport),
+            // Not the approval flow: don't copy workflow actions or add the "unapproved transactions" message.
+            isApprovalFlow: false,
+            // Only ASAP_SUBMIT changes the new report's initial state, and getExpenseReportStateAndStatus mirrors the
+            // backend's getInitialReportStateAndStatus, so the split report gets the correct state with no override.
+            betas: isASAPSubmitBetaEnabled ? [CONST.BETAS.ASAP_SUBMIT] : [],
+        });
+
+        optimisticData.push(...holdReportOnyxData.optimisticData);
+        successData.push(...holdReportOnyxData.successData);
+        failureData.push(...holdReportOnyxData.failureData);
+
+        optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
+        optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
+        optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+    }
+
     // Submit via PDF: on a Submit workspace where the submitter submits to themselves, the backend generates the
     // report PDF and writes its filename into nvp_expensify_report_PDFFilename_{reportID}. Prime that NVP the same way
     // exportReportToPDF does so the ReportPDFDownloadModal shows progress and auto-downloads once the filename arrives.
@@ -1698,6 +1744,13 @@ function submitReport({
         ...(trimmedManagerEmail
             ? {
                   managerEmail: trimmedManagerEmail,
+              }
+            : {}),
+        ...(optimisticHoldReportID
+            ? {
+                  optimisticHoldReportID,
+                  optimisticHoldActionID,
+                  optimisticHoldReportExpenseActionIDs,
               }
             : {}),
     };
