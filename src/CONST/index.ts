@@ -3534,6 +3534,18 @@ const CONST = {
         },
     },
 
+    ADD_PERSONAL_BANK_ACCOUNT: {
+        SUB_PAGE_NAMES: {
+            PLAID_BANK_ACCOUNT: 'plaid',
+            MANUAL_BANK_ACCOUNT_DETAILS: 'manual',
+            LEGAL_NAME: 'legal-name',
+            ADDRESS: 'address',
+            PHONE_NUMBER: 'phone-number',
+            CONFIRMATION: 'confirmation',
+            SUCCESS: 'success',
+        },
+    },
+
     MISSING_PERSONAL_DETAILS: {
         STEP_INDEX_LIST: ['1', '2', '3', '4'],
         STEP_INDEX_LIST_WITH_PIN: ['1', '2', '3', '4', '5'],

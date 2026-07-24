@@ -237,7 +237,13 @@ type SettingsNavigatorParamList = {
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
+        /** Name of the currently displayed sub page */
+        subPage?: string;
+
+        /** Whether the user is editing one of the sub pages */
+        action?: 'edit';
+    };
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: undefined;
     [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: {
         subPage?: string;
@@ -2445,7 +2451,13 @@ type SplitDetailsNavigatorParamList = {
 };
 
 type AddPersonalBankAccountNavigatorParamList = {
-    [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: undefined;
+    [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: {
+        /** Name of the currently displayed sub page */
+        subPage?: string;
+
+        /** Whether the user is editing one of the sub pages */
+        action?: 'edit';
+    };
 };
 
 type ReimbursementAccountNavigatorParamList = {

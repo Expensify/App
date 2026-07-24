@@ -324,7 +324,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
+                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: {
@@ -1897,7 +1897,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.ADD_PERSONAL_BANK_ACCOUNT]: {
                     screens: {
-                        [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: ROUTES.BANK_ACCOUNT_PERSONAL,
+                        [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: ROUTES.BANK_ACCOUNT_PERSONAL.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS]: {

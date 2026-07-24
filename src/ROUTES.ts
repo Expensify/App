@@ -1262,7 +1262,14 @@ const ROUTES = {
 
         getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`bank-account/${VERIFY_ACCOUNT}?policyID=${policyID}`, backTo),
     },
-    BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
+    BANK_ACCOUNT_PERSONAL: {
+        route: 'bank-account/personal/:subPage?/:action?',
+        getRoute: (subPage?: string, action?: 'edit') => {
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `bank-account/personal${subPagePart}${actionPart}` as const;
+        },
+    },
     // TODO: rename the route as no longer accepts step
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/new',
@@ -1470,7 +1477,14 @@ const ROUTES = {
             return getUrlWithBackToParam(`settings/wallet/add-bank-account/${subPage}${action ? `/${action}` : ''}`, backTo);
         },
     },
-    SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
+    SETTINGS_ADD_US_BANK_ACCOUNT: {
+        route: 'settings/wallet/add-us-bank-account/:subPage?/:action?',
+        getRoute: (subPage?: string, action?: 'edit') => {
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `settings/wallet/add-us-bank-account${subPagePart}${actionPart}` as const;
+        },
+    },
     SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'settings/wallet/add-us-bank-account/entry-point',
     SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT: {
         route: 'settings/wallet/update-personal-bank-account/:subPage?',
