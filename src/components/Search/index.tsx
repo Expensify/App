@@ -942,6 +942,20 @@ function Search({
                         isBreakLine: shouldUseNarrowLayout,
                     })}
                     subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
+                    buttonTranslationKey={isInvalidQuery ? undefined : 'common.tryAgain'}
+                    onButtonPress={
+                        isInvalidQuery
+                            ? undefined
+                            : () =>
+                                  handleSearch({
+                                      queryJSON,
+                                      searchKey: currentSearchKey,
+                                      offset,
+                                      shouldCalculateTotals,
+                                      prevReportsLength: filteredDataLength,
+                                      isLoading: !!searchResults?.search?.isLoading,
+                                  })
+                    }
                 />
             </View>
         );

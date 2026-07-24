@@ -31,7 +31,7 @@ function SpendOverTimeSectionContent() {
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {query, queryJSON, groupBy, view, sortedData, state} = useSpendOverTimeData();
+    const {query, queryJSON, groupBy, view, sortedData, state, retry} = useSpendOverTimeData();
 
     if (!queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE || state === SPEND_OVER_TIME_STATE.HIDDEN) {
         return null;
@@ -81,6 +81,8 @@ function SpendOverTimeSectionContent() {
                     subtitleStyle={styles.textSupporting}
                     containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
                     contentFitImage="contain"
+                    buttonTranslationKey="common.tryAgain"
+                    onButtonPress={retry}
                 />
             )}
             {(state === SPEND_OVER_TIME_STATE.LOADING || state === SPEND_OVER_TIME_STATE.READY) && (

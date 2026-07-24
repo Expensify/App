@@ -66,7 +66,7 @@ function useSpendOverTimeData() {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
-    const onConfigChanged = useEffectEvent(() => {
+    const retry = () => {
         if (!queryJSON || isSearchLoading || isOffline) {
             return;
         }
@@ -79,6 +79,10 @@ function useSpendOverTimeData() {
             isLoading: false,
             shouldUpdateLastSearchParams: false,
         });
+    };
+
+    const onConfigChanged = useEffectEvent(() => {
+        retry();
     });
 
     useEffect(() => {
@@ -123,6 +127,7 @@ function useSpendOverTimeData() {
         view,
         sortedData,
         state,
+        retry,
     };
 }
 
