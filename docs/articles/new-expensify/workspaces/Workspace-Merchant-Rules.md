@@ -1,8 +1,8 @@
 ---
 title: Merchant Rules
 description: Learn how to enable and use Merchant Rules to automatically apply consistent expense coding based on the expense merchant name.
-keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings]
-internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and using Merchant Rules to apply consistent expense coding based on merchant name. Does not cover personal expense rules, Category Rules, Tag Rules, or troubleshooting rule conflicts.
+keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet]
+internalScope: Audience is Workspace Admins on the Control plan. Covers enabling, using, and bulk-importing Merchant Rules to apply consistent expense coding based on merchant name. Does not cover personal expense rules, Category Rules, Tag Rules, or troubleshooting rule conflicts.
 ---
 
 # Merchant Rules
@@ -26,6 +26,38 @@ To create a Merchant Rule:
 7. Select **Save Rule**
 
 **Note:** Merchant Rules are only available after **Rules** are enabled for the workspace. [Learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules#enable-workspace-rules).
+
+---
+
+## How to import Merchant Rules using a spreadsheet
+
+Instead of adding rules one at a time, you can bulk-import Merchant Rules from a spreadsheet.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
+2. Click **Rules**.
+3. Click **More**, then select **Import merchant rules**.
+4. Select **Choose file** and upload your spreadsheet.
+5. Map each column in your spreadsheet to a Merchant Rule field:
+   - **Merchant is** — match expenses whose merchant exactly matches the value.
+   - **Merchant contains** — match expenses whose merchant contains the value.
+   - **Updated merchant** — the merchant name to apply.
+   - **Updated category** — the category to apply.
+   - **Updated tag** — the tag to apply.
+   - **Updated description** — the description to apply.
+   - **Reimbursable** — set reimbursable status (`true`/`yes` or `false`/`no`).
+   - **Billable** — set billable status (`true`/`yes` or `false`/`no`).
+6. Leave **File contains column headers** enabled if your spreadsheet's first row contains column titles.
+7. Click **Import**.
+
+Each row must map at least one **Merchant is** or **Merchant contains** column, plus at least one field to update. If a row fills both **Merchant is** and **Merchant contains**, **Merchant is** takes precedence. Rows without a merchant match value are skipped.
+
+<!-- SCREENSHOT:
+Suggestion: The column-mapping screen with each spreadsheet column mapped to a Merchant Rule field and the "File contains column headers" toggle enabled
+Location: After the import steps
+Purpose: Show admins how spreadsheet columns map to Merchant Rule fields before importing
+-->
+
+**Note:** Importing rules that already exist won't create duplicates — existing Merchant Rules are skipped.
 
 ---
 
