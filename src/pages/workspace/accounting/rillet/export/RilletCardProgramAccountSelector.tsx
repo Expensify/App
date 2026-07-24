@@ -7,6 +7,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletCardProgramAccount} from '@libs/actions/connections/Rillet';
@@ -75,6 +76,7 @@ function RilletCardProgramAccountSelector({
                 keyForList: accountItem.code,
                 isSelected: cardProgramAccountCode === accountItem.code,
             })) ?? [];
+    const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
         <View>
@@ -110,7 +112,8 @@ function RilletCardProgramAccountSelector({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="RilletCardProgramAccountSelector"
             headerTitleAlreadyTranslated={title}
-            data={data}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             shouldBeBlocked={!hasActiveCards}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}

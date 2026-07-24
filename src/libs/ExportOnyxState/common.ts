@@ -50,6 +50,12 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['email', 'accountID', 'loading', 'creationDate', 'errors'],
         maskList: [],
     },
+    // Holds a full Session (authToken, encryptedAuthToken, supportAuthToken) preserved across imported
+    // state, so it must be masked exactly like SESSION - otherwise the tokens leak into the export.
+    [ONYXKEYS.PRESERVED_USER_SESSION]: {
+        allowList: ['email', 'accountID', 'loading', 'creationDate', 'errors'],
+        maskList: [],
+    },
     [ONYXKEYS.CREDENTIALS]: {
         allowList: ['login', 'accountID'],
         maskList: [],
@@ -59,6 +65,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         maskList: [],
     },
     [ONYXKEYS.ACCOUNT]: {
+        allowList: ['validated', 'isFromPublicDomain', 'isUsingExpensifyCard'],
+        maskList: ['primaryLogin'],
+    },
+    // Holds a full Account preserved across imported state, so it must be masked exactly like ACCOUNT.
+    [ONYXKEYS.PRESERVED_ACCOUNT]: {
         allowList: ['validated', 'isFromPublicDomain', 'isUsingExpensifyCard'],
         maskList: ['primaryLogin'],
     },
@@ -419,8 +430,6 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     ONYXKEYS.PERSONAL_DETAILS_METADATA,
     ONYXKEYS.PLAID_DATA,
-    ONYXKEYS.PRESERVED_ACCOUNT,
-    ONYXKEYS.PRESERVED_USER_SESSION,
     ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     ONYXKEYS.PURCHASE_LIST,
     ONYXKEYS.QUEUE_FLUSHED_DATA,
