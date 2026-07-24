@@ -32,10 +32,11 @@ function InternationalBankAccountDetails({isEditing, onNext, formValues}: Custom
         shouldSaveDraft: true,
     });
 
-    // For IBAN countries the account number entered in the account details step is the IBAN, so pre-fill the IBAN
-    // field with it until the user edits this step directly.
+    // Pre-fill from what the account details step already captured, until the user edits this step directly: the
+    // account number is the IBAN for IBAN countries, and Corpay's SWIFT/BIC field (swiftBicCode) is the SWIFT code.
     const accountNumber = formValues.accountNumber;
     const ibanDefaultValue = formValues[IBAN] || (accountNumber && CONST.BANK_ACCOUNT.REGEX.IBAN.test(String(accountNumber).trim()) ? accountNumber : '');
+    const swiftCodeDefaultValue = formValues[SWIFT_CODE] || formValues.swiftBicCode || '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
@@ -80,7 +81,7 @@ function InternationalBankAccountDetails({isEditing, onNext, formValues}: Custom
                     label={translate('bankAccount.swiftBicCode')}
                     aria-label={translate('bankAccount.swiftBicCode')}
                     role={CONST.ROLE.PRESENTATION}
-                    defaultValue={formValues[SWIFT_CODE]}
+                    defaultValue={swiftCodeDefaultValue}
                     containerStyles={[styles.pv2]}
                     shouldSaveDraft={!isEditing}
                 />

@@ -16,7 +16,10 @@ function useShouldCollectInternationalDepositDetails(bankCountry: string): boole
     const selector = useCallback(
         (policies: OnyxCollection<Policy>) =>
             Object.values(policies ?? {}).some((policy) => {
-                const countries = Object.keys(policy?.reimbursement?.countries ?? {});
+                if (!policy?.reimbursement?.enabled) {
+                    return false;
+                }
+                const countries = Object.keys(policy.reimbursement.countries ?? {});
                 return countries.length > 0 && !countries.includes(bankCountry);
             }),
         [bankCountry],

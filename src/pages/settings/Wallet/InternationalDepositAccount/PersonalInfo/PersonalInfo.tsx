@@ -89,7 +89,9 @@ function PersonalInfoPage() {
         addPersonalBankAccount(accountData, personalPolicyID);
     };
 
-    const shouldSkipInternationalBankAccountDetails = !shouldCollectInternationalDepositDetails || (!!personalBankAccount?.iban && !!personalBankAccount?.swiftCode);
+    // Skip when the details are already available: the account number is an IBAN and a SWIFT/BIC code is set.
+    const isAccountNumberIBAN = CONST.BANK_ACCOUNT.REGEX.IBAN.test((personalBankAccount?.accountNumber ?? '').trim());
+    const shouldSkipInternationalBankAccountDetails = !shouldCollectInternationalDepositDetails || (isAccountNumberIBAN && !!personalBankAccount?.swiftCode);
 
     const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails, shouldSkipInternationalBankAccountDetails);
 

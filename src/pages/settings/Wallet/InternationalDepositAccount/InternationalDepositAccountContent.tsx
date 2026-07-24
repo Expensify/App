@@ -105,8 +105,9 @@ function InternationalDepositAccountContent({
     const skipAccountHolderInformationStep = testValidation(initialAccountHolderDetailsValues, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]);
 
     // Skip the international bank account details step when no collecting policy needs international details for the
-    // selected bank country, or once we already have both the IBAN and SWIFT/BIC code.
-    const skipInternationalBankAccountDetailsStep = !shouldCollectInternationalDepositDetails || (!!values.iban && !!values.swiftCode);
+    // selected bank country, or when we already have them: the account number is an IBAN and a SWIFT/BIC code is set.
+    const isAccountNumberIBAN = CONST.BANK_ACCOUNT.REGEX.IBAN.test((values.accountNumber ?? '').trim());
+    const skipInternationalBankAccountDetailsStep = !shouldCollectInternationalDepositDetails || (isAccountNumberIBAN && (!!values.swiftCode || !!values.swiftBicCode));
 
     const skippedPages = getSkippedPages(skipAccountTypeStep, skipAccountHolderInformationStep, skipInternationalBankAccountDetailsStep);
 
