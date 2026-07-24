@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -66,13 +66,14 @@ function UnlinkLoginForm() {
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
                 <Button
-                    success
-                    text={translate('unlinkLoginForm.unlink')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     isLoading={account?.isLoading && account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
                     onPress={() => requestUnlinkValidationLink()}
                     isDisabled={!!isOffline || !!account?.message}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.UNLINK}
-                />
+                >
+                    <Button.Text>{translate('unlinkLoginForm.unlink')}</Button.Text>
+                </Button>
             </View>
         </>
     );
