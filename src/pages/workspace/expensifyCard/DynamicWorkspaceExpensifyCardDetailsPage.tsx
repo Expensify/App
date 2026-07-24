@@ -29,14 +29,16 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearCompanyCardErrorField} from '@libs/actions/CompanyCards';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {getAllCardsForWorkspace, getCardFeedTextColor, getCardHintText, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {arePolicyRulesEnabled, canMemberWrite} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, canMemberWrite, getConnectedIntegration} from '@libs/PolicyUtils';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -61,6 +63,8 @@ import {useNavigation} from '@react-navigation/native';
 import {cardByIdSelector} from '@selectors/Card';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+
+import {getExportMenuItem} from '../companyCards/utils';
 
 type DynamicWorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
@@ -117,6 +121,12 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const [allFeedsCards, allFeedsCardsResult] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const workspaceCards = getAllCardsForWorkspace(defaultFundID, allFeedsCards, cardFeeds, expensifyCardSettings, /* includeDeactivated */ true);
 
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((integration) => integration === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES) ?? syncingAccountingIntegration;
+
     const workspaceCard = workspaceCards?.[cardID];
     const card = workspaceCard ?? cardFromCardList;
     const currency = useCurrencyForExpensifyCard({
@@ -131,6 +141,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
         passedPersonalDetails: cardholder,
         translate,
     });
+    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, styles, policy, card);
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
     const remainingLimitHintTranslationKey = getLimitHintTranslationKey(card?.nameValuePairs?.limitType);
     const remainingLimitHint = remainingLimitHintTranslationKey ? translate(remainingLimitHintTranslationKey, formattedAvailableSpendAmount) : undefined;
@@ -415,6 +426,29 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             interactive={canWriteExpensifyCard}
                         />
                     </OfflineWithFeedback>
+                    {exportMenuItem?.shouldShowMenuItem ? (
+                        <OfflineWithFeedback
+                            pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
+                            errorRowStyles={[styles.ph5, styles.mb3]}
+                            errors={exportMenuItem.exportType ? getLatestErrorField(card?.nameValuePairs ?? {}, exportMenuItem.exportType) : undefined}
+                            onClose={() => {
+                                if (!exportMenuItem.exportType) {
+                                    return;
+                                }
+                                clearCompanyCardErrorField(Number(card?.fundID ?? workspaceAccountID), cardID, CONST.EXPENSIFY_CARD.BANK, exportMenuItem.exportType);
+                            }}
+                        >
+                            <MenuItemWithTopDescription
+                                description={exportMenuItem.description}
+                                title={exportMenuItem.title}
+                                numberOfLinesTitle={2}
+                                shouldShowRightIcon={canWriteExpensifyCard}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute()))}
+                                interactive={canWriteExpensifyCard}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
+                            />
+                        </OfflineWithFeedback>
+                    ) : null}
 
                     <View style={styles.mt6}>
                         {canEditSpendRules && (
