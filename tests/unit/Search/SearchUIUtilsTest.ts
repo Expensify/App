@@ -6038,6 +6038,53 @@ describe('SearchUIUtils', () => {
                 expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
             });
 
+            it('should exclude the tracked optimistic item from a terminal status filter it can never match (DELETED)', () => {
+                // A just-created draft expense (OPEN report, not in the trash report) is the tracked optimistic item.
+                // It must not leak into the "Deleted" tab.
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DELETED]),
+                    optimisticTransactionID: filterTestTxID,
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+            });
+
+            it('should exclude the tracked optimistic item from other terminal status filters (APPROVED)', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.APPROVED]),
+                    optimisticTransactionID: filterTestTxID,
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+            });
+
+            it('should keep the tracked optimistic item visible under a compatible status filter (DRAFTS)', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS]),
+                    optimisticTransactionID: filterTestTxID,
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should keep the tracked optimistic item visible when there is no status filter', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON(undefined),
+                    optimisticTransactionID: filterTestTxID,
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should keep the tracked optimistic item visible under a negated terminal status filter (not DELETED)', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DELETED], true),
+                    optimisticTransactionID: filterTestTxID,
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
             it('should exclude transactions with missing transactionID', () => {
                 const data = makeFilterTestData({}, {transactionID: ''});
                 const [sections] = callGetTransactionsSections(data);
