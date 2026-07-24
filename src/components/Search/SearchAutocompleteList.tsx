@@ -50,6 +50,7 @@ import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListI
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
 
+import getAutocompleteInitialFocus from './getAutocompleteInitialFocus';
 import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 
@@ -642,48 +643,21 @@ function SearchAutocompleteList({
     const shouldAnnounceNoResults = !isLoading && suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldAnnounceNoResults, autocompleteQueryValue);
 
-    // Locate the first recent report row in the order it is actually rendered. The two-section switcher sorts the
-    // local "Recent chats" rows by a frozen rank, so the rendered order can differ from styledRecentReports (the
-    // unsorted combined local + server list). Walking sections keeps the focused row, its reference text, and the
-    // initially focused key all pointing at the first row the user actually sees.
     const recentReportKeys = new Set(styledRecentReports.map((report) => report.keyForList));
-    let firstRecentReportKey: string | undefined;
-    let firstRecentReportText = '';
-    let firstRecentReportFlatIndex = -1;
-    let flatIndex = 0;
-    for (const section of sections) {
-        const hasData = (section.data?.length ?? 0) > 0;
-        const hasHeader = hasData && (section.title !== undefined || ('customHeader' in section && section.customHeader !== undefined));
-        if (hasHeader) {
-            flatIndex++;
-        }
-        for (const item of section.data ?? []) {
-            if (item.keyForList && recentReportKeys.has(item.keyForList)) {
-                firstRecentReportKey = item.keyForList;
-                firstRecentReportText = item.text ?? '';
-                firstRecentReportFlatIndex = flatIndex;
-                break;
-            }
-            flatIndex++;
-        }
-        if (firstRecentReportFlatIndex !== -1) {
-            break;
-        }
-    }
-
+    const {firstRecentReportText, firstRecentReportFlatIndex, defaultFocusedKey, defaultFocusedFlatIndex} = getAutocompleteInitialFocus(sections, recentReportKeys);
     const normalizedReferenceText = firstRecentReportText.toLowerCase();
 
     // When options initialize after the list is already mounted, initiallyFocusedItemKey has no effect
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
-    // Imperatively focus the first recent report once options become available (desktop only).
+    // Imperatively focus the default row once options become available (desktop only).
     useEffect(() => {
-        if (shouldUseNarrowLayout || isLoadingOptions || hasSetInitialFocusRef.current || firstRecentReportFlatIndex === -1) {
+        if (shouldUseNarrowLayout || isLoadingOptions || hasSetInitialFocusRef.current || defaultFocusedFlatIndex === -1) {
             return;
         }
         hasSetInitialFocusRef.current = true;
 
-        innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, false);
-    }, [isLoadingOptions, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
+        innerListRef.current?.updateAndScrollToFocusedIndex(defaultFocusedFlatIndex, false);
+    }, [isLoadingOptions, defaultFocusedFlatIndex, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
@@ -723,7 +697,7 @@ function SearchAutocompleteList({
             shouldSingleExecuteRowSelect
             ref={setListRef}
             initialScrollIndex={0}
-            initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
+            initiallyFocusedItemKey={!shouldUseNarrowLayout ? defaultFocusedKey : undefined}
             shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
