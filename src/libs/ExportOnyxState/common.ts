@@ -30,10 +30,11 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
     ONYXKEYS.ONFIDO_APPLICANT_ID,
     // maskFragileData won't catch this one, since the secret sits in a field named "token"
     ONYXKEYS.MAPBOX_ACCESS_TOKEN,
-    // Both hold the picked image itself in "uri", as a base64 data URL on web. Masking it would only
+    // All three hold the picked image itself in "uri", as a base64 data URL on web. Masking it would only
     // trade a copy of the user's photo for an equally large blob of random characters.
     ONYXKEYS.AVATAR_CROP_DRAFT,
     ONYXKEYS.AVATAR_CROP_RESULT,
+    ONYXKEYS.AGENT_NEW_AVATAR_DRAFT,
     ...Object.values(ONYXKEYS.DERIVED),
 ]);
 
@@ -49,6 +50,12 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['email', 'accountID', 'loading', 'creationDate', 'errors'],
         maskList: [],
     },
+    // Holds a full Session (authToken, encryptedAuthToken, supportAuthToken) preserved across imported
+    // state, so it must be masked exactly like SESSION - otherwise the tokens leak into the export.
+    [ONYXKEYS.PRESERVED_USER_SESSION]: {
+        allowList: ['email', 'accountID', 'loading', 'creationDate', 'errors'],
+        maskList: [],
+    },
     [ONYXKEYS.CREDENTIALS]: {
         allowList: ['login', 'accountID'],
         maskList: [],
@@ -58,6 +65,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         maskList: [],
     },
     [ONYXKEYS.ACCOUNT]: {
+        allowList: ['validated', 'isFromPublicDomain', 'isUsingExpensifyCard'],
+        maskList: ['primaryLogin'],
+    },
+    // Holds a full Account preserved across imported state, so it must be masked exactly like ACCOUNT.
+    [ONYXKEYS.PRESERVED_ACCOUNT]: {
         allowList: ['validated', 'isFromPublicDomain', 'isUsingExpensifyCard'],
         maskList: ['primaryLogin'],
     },
@@ -129,11 +141,13 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
 const safeOnyxKeys = new Set<string>([
     ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
     ONYXKEYS.ACTIVE_CLIENTS,
+    ONYXKEYS.AGENT_RULE_SUGGESTIONS,
     ONYXKEYS.ARE_AGENTS_LOADED,
     ONYXKEYS.ARE_POLICY_ROOMS_LOADED,
     ONYXKEYS.BETAS,
     ONYXKEYS.BETA_CONFIGURATION,
     ONYXKEYS.CACHED_PDF_PATHS,
+    ONYXKEYS.CARD_SUPPORTED_COUNTRIES,
     ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
     ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS,
@@ -146,6 +160,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED,
     ONYXKEYS.COLLECTION.LAST_SELECTED_FEED,
     ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME,
+    ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD,
     ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED,
     ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN,
     ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING,
@@ -178,9 +193,11 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE,
     ONYXKEYS.INPUT_FOCUSED,
     ONYXKEYS.IS_BETA,
+    ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT,
     ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
     ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN,
+    ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS,
     ONYXKEYS.IS_LOADING_APP,
     ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE,
     ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE,
@@ -413,8 +430,6 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     ONYXKEYS.PERSONAL_DETAILS_METADATA,
     ONYXKEYS.PLAID_DATA,
-    ONYXKEYS.PRESERVED_ACCOUNT,
-    ONYXKEYS.PRESERVED_USER_SESSION,
     ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     ONYXKEYS.PURCHASE_LIST,
     ONYXKEYS.QUEUE_FLUSHED_DATA,
@@ -432,6 +447,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.SAVED_SEARCHES,
     ONYXKEYS.SCHEDULE_CALL_DRAFT,
     ONYXKEYS.SCREEN_SHARE_REQUEST,
+    ONYXKEYS.SEARCH_QUERY_BY_HASH,
     ONYXKEYS.SHARE_BANK_ACCOUNT,
     ONYXKEYS.SHARE_TEMP_FILE,
     ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS,
