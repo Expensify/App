@@ -3,6 +3,7 @@ import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWith
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 
+import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
 import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
@@ -31,12 +32,14 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
+import {useEffect, useRef} from 'react';
 
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 
 import {useCurrencyListState} from './useCurrencyList';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
 import useLocalize from './useLocalize';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useSortedActions from './useSortedActions';
 
@@ -116,7 +119,9 @@ function useAutocompleteSuggestions({
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
     const {localeCompare} = useLocalize();
+    const {isOffline} = useNetwork();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [areCategoriesLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -130,6 +135,7 @@ function useAutocompleteSuggestions({
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
+    const hasRequestedCategoryDataRef = useRef(false);
 
     let autocompleteKey = autocomplete?.key;
     let autocompleteValue = autocomplete?.value ?? '';
@@ -146,6 +152,18 @@ function useAutocompleteSuggestions({
             }
         }
     }
+
+    const shouldLoadCategoryData = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && !areCategoriesLoaded && !isOffline;
+    useEffect(() => {
+        if (areCategoriesLoaded) {
+            hasRequestedCategoryDataRef.current = false;
+        }
+        if (!shouldLoadCategoryData || hasRequestedCategoryDataRef.current) {
+            return;
+        }
+        hasRequestedCategoryDataRef.current = true;
+        openSearchCategoryFiltersPage();
+    }, [areCategoriesLoaded, shouldLoadCategoryData]);
 
     if (!autocompleteKey) {
         return [];

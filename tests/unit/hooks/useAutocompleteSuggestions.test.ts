@@ -1,8 +1,12 @@
-import {renderHook} from '@testing-library/react-native';
+import {renderHook, waitFor} from '@testing-library/react-native';
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
+import useNetwork from '@hooks/useNetwork';
+
+import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -13,6 +17,9 @@ jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string) => [onyxData[key]],
 }));
+
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+jest.mock('@libs/actions/Search', () => ({openSearchCategoryFiltersPage: jest.fn()}));
 
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListState: () => ({
@@ -98,6 +105,8 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
 const {getSearchOptions} = jest.requireMock<{getSearchOptions: jest.Mock}>('@libs/OptionsListUtils');
 const {getExpensifyTeamExclusions} = jest.requireMock<{getExpensifyTeamExclusions: jest.Mock}>('@libs/PolicyUtils');
+const mockedUseNetwork = jest.mocked(useNetwork);
+const mockedOpenSearchCategoryFiltersPage = jest.mocked(openSearchCategoryFiltersPage);
 
 const defaultParams = {
     autocompleteQueryValue: '',
@@ -121,6 +130,10 @@ const defaultParams = {
 describe('useAutocompleteSuggestions', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockedUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+        for (const key of Object.keys(onyxData)) {
+            delete onyxData[key];
+        }
     });
 
     it('returns empty array when autocompleteKey is undefined (empty query)', () => {
@@ -173,6 +186,65 @@ describe('useAutocompleteSuggestions', () => {
 
         expect(result.current.length).toBeGreaterThan(0);
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CATEGORY);
+    });
+
+    it('loads category data when category autocomplete becomes active online', async () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = false;
+        parseForAutocomplete.mockImplementation((query: string) => ({
+            autocomplete: {
+                key: query.startsWith('category:') ? CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY : CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                value: 'tra',
+            },
+            ranges: [],
+        }));
+
+        const {rerender} = renderHook(({query}) => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: query}), {
+            initialProps: {query: 'category:t'},
+        });
+
+        await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1));
+
+        rerender({query: 'tag:t'});
+        rerender({query: 'category:tr'});
+
+        expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not load category data when it is already loaded', () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = true;
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'tra'},
+            ranges: [],
+        });
+
+        renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'category:tra'}));
+
+        expect(mockedOpenSearchCategoryFiltersPage).not.toHaveBeenCalled();
+    });
+
+    it('does not load category data while offline', () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = false;
+        mockedUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'tra'},
+            ranges: [],
+        });
+
+        renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'category:tra'}));
+
+        expect(mockedOpenSearchCategoryFiltersPage).not.toHaveBeenCalled();
+    });
+
+    it('keeps showing only recent categories when autocomplete value is empty', () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = true;
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: ''},
+            ranges: [],
+        });
+
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'category:'}));
+
+        expect(result.current.map((item) => item.text)).toEqual(['Meals', 'Travel']);
     });
 
     it('returns currency suggestions when autocomplete key is currency', () => {
