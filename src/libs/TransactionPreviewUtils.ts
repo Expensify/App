@@ -123,8 +123,6 @@ type TranslationPathOrText = {
     text?: string;
 };
 
-const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
-
 /**
  * Normalize the last four digits to always return 4 characters.
  * If the number is shorter than 4 digits, it will be padded with X's.
@@ -303,12 +301,12 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    let previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
+    let previewTypeText: TranslationPathOrText = {translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))};
 
     if (isTransactionScanning) {
-        previewHeaderText = [{translationPath: 'common.receipt'}];
+        previewTypeText = {translationPath: 'common.receipt'};
     } else if (isBillSplit) {
-        previewHeaderText = [{translationPath: 'iou.split'}];
+        previewTypeText = {translationPath: 'iou.split'};
     }
 
     if (RBRMessage?.text === CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR) {
@@ -317,36 +315,42 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     RBRMessage ??= {text: ''};
 
+    let previewDateText: TranslationPathOrText | undefined;
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
         const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        previewHeaderText.unshift({text: date}, dotSeparator);
+        previewDateText = {text: date};
     }
 
+    const previewStatusText: TranslationPathOrText[] = [];
+    const addPreviewStatusText = (statusText: TranslationPathOrText) => {
+        previewStatusText.push(statusText);
+    };
+
     if (isPending(transaction)) {
-        previewHeaderText.push(dotSeparator, {translationPath: 'iou.pending'});
+        previewTypeText = {translationPath: 'iou.pending'};
     }
 
     if (hasPendingRTERViolation(violations)) {
-        previewHeaderText.push(dotSeparator, {translationPath: 'iou.pendingMatch'});
+        addPreviewStatusText({translationPath: 'iou.pendingMatch'});
     }
 
     let isPreviewHeaderTextComplete = false;
 
     if (isMoneyRequestSettled && !iouReport?.isCancelledIOU && !isPartialHold && !hasActionWithErrors) {
-        previewHeaderText.push(dotSeparator, {translationPath: isTransactionMadeWithCard ? 'common.done' : 'iou.settledExpensify'});
+        addPreviewStatusText({translationPath: isTransactionMadeWithCard ? 'common.done' : 'iou.settledExpensify'});
         isPreviewHeaderTextComplete = true;
     }
 
     if (!isPreviewHeaderTextComplete) {
         if (hasViolationsOfTypeNotice && transaction && !isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID)) {
-            previewHeaderText.push(dotSeparator, {translationPath: 'violations.reviewRequired'});
+            addPreviewStatusText({translationPath: 'violations.reviewRequired'});
         } else if (isExpenseReport(iouReport) && isGroupPolicyUtil(policy) && isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID) && !isPartialHold) {
-            previewHeaderText.push(dotSeparator, {translationPath: 'iou.approved'});
+            addPreviewStatusText({translationPath: 'iou.approved'});
         } else if (iouReport?.isCancelledIOU) {
-            previewHeaderText.push(dotSeparator, {translationPath: 'iou.canceled'});
+            addPreviewStatusText({translationPath: 'iou.canceled'});
         } else if (shouldShowHoldMessage) {
-            previewHeaderText.push(dotSeparator, {translationPath: 'violations.hold'});
+            addPreviewStatusText({translationPath: 'violations.hold'});
         }
     }
 
@@ -363,7 +367,9 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage,
         displayAmountText,
         displayDeleteAmountText,
-        previewHeaderText,
+        previewDateText,
+        previewStatusText,
+        previewTypeText,
     };
 }
 
