@@ -1,8 +1,8 @@
 /**
  * Verifies the NitroFetch routing predicate: local-resource URIs (file/content/blob/data) must be
  * treated as local so the polyfill sends them to the platform's native fetch, while network URLs are
- * left for NitroFetch. NitroFetch is an HTTP(S) client that cannot read local URIs, so misrouting a
- * local URI breaks features like the spreadsheet/tag importer that read a picked file with a bare
+ * left for NitroFetch. NitroFetch is an HTTP(S) client that cannot read local URIs, so routing a
+ * local URI to NitroFetch breaks features like the spreadsheet/tag importer that read a picked file with a bare
  * `fetch(fileURI)`.
  */
 import isLocalFetchUri from '@src/polyfills/isLocalFetchUri';
