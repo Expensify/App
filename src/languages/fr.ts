@@ -7820,6 +7820,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 title: 'Règles d’agent',
                 subtitle: 'Définissez des règles pour déterminer comment les agents IA gèrent les dépenses dans cet espace de travail.',
                 enforcedBy: 'Les règles des agents sont appliquées par',
+                notEnforced: 'Ces règles ne sont pas appliquées car aucun agent n’est assigné. Ajoutez une règle pour en assigner un.',
                 ruleBotName: 'RuleBot',
                 addRule: 'Ajouter une règle d’agent',
                 findRule: 'Rechercher une règle d’agent',

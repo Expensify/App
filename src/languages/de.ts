@@ -7792,6 +7792,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 title: 'Agentenregeln',
                 subtitle: 'Legen Sie Regeln fest, wie KI-Agenten mit Ausgaben in diesem Workspace umgehen.',
                 enforcedBy: 'Agentregeln werden erzwungen durch',
+                notEnforced: 'Diese Regeln werden nicht durchgesetzt, da kein Agent zugewiesen ist. Füge eine Regel hinzu, um einen zuzuweisen.',
                 ruleBotName: 'RuleBot',
                 addRule: 'Agentenregel hinzufügen',
                 findRule: 'Agentenregel finden',
