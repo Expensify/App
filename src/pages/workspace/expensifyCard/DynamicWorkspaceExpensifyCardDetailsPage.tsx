@@ -32,7 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCompanyCardErrorField} from '@libs/actions/CompanyCards';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getAllCardsForWorkspace, getCardFeedTextColor, getCardHintText, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getCardFeedTextColor, getCardHintText, getCardFeedWithDomainID, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -443,7 +443,16 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                                 title={exportMenuItem.title}
                                 numberOfLinesTitle={2}
                                 shouldShowRightIcon={canWriteExpensifyCard}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute()))}
+                                onPress={() =>
+                                    Navigation.navigate(
+                                        createDynamicRoute(
+                                            DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(
+                                                getCardFeedWithDomainID(card.bank, card?.fundID ?? workspaceAccountID),
+                                                String(card.cardID),
+                                            ),
+                                        ),
+                                    )
+                                }
                                 interactive={canWriteExpensifyCard}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_EXPORT}
                             />
