@@ -46,4 +46,14 @@ function hasKey<T extends Record<string, unknown>>(obj: T, key: PropertyKey): ke
     return key in obj;
 }
 
-export {shallowCompare, getObjectValues, filterObject, isRecord, getObjectKeys, hasKey};
+function deepCompact<T extends Record<string, unknown>>(obj: T): Partial<T> {
+    return Object.keys(obj).reduce<Partial<T>>((acc, key) => {
+        const val = obj[key];
+        if (val !== undefined && val !== null) {
+            acc[key as keyof T] = val as T[keyof T];
+        }
+        return acc;
+    }, {});
+}
+
+export {shallowCompare, getObjectValues, filterObject, isRecord, getObjectKeys, hasKey, deepCompact};
