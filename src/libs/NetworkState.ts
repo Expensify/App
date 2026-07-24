@@ -38,6 +38,10 @@ function getIsOffline(): boolean {
     return !hasRadio || internetUnreachable || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
 }
 
+function getShouldFailAllRequests(): boolean {
+    return failAllRequests;
+}
+
 function getLastOfflineAt(): string | undefined {
     return lastOfflineAt;
 }
@@ -424,6 +428,7 @@ function refresh() {
 
 export {
     getIsOffline,
+    getShouldFailAllRequests,
     getLastOfflineAt,
     subscribe,
     onReachabilityConfirmed,
