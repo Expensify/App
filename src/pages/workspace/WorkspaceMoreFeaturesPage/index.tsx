@@ -103,6 +103,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'PerDiem',
         'HandCard',
         'Coins',
+        'Briefcase',
         'Luggage',
         'Car',
         'Gears',
@@ -337,7 +338,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                         />
                         {isVendorMatchingEnabled && (
                             <MoreFeatureToggle
-                                icon={illustrations.Luggage}
+                                icon={illustrations.Briefcase}
                                 title={translate('workspace.moreFeatures.vendors.title')}
                                 subtitle={translate('workspace.moreFeatures.vendors.subtitle')}
                                 isActive={hasVendorFeature(policy, isVendorMatchingEnabled)}
