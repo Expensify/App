@@ -1,23 +1,29 @@
-import lodashSortBy from 'lodash/sortBy';
-import React from 'react';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import DiagonalAvatars from '@components/Avatars/Primitives/DiagonalAvatars';
 import HorizontalAvatars from '@components/Avatars/Primitives/HorizontalAvatars';
 import type {HorizontalStackingOptions} from '@components/Avatars/Primitives/HorizontalAvatars';
 import SingleAvatar from '@components/Avatars/Primitives/SingleAvatar';
 import SubscriptAvatar from '@components/Avatars/Primitives/SubscriptAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {sortIconsByName} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import lodashSortBy from 'lodash/sortBy';
+import React from 'react';
+
 import useReportActionAvatars from './useReportActionAvatars';
 
 type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;

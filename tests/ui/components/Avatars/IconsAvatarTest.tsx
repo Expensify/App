@@ -23,9 +23,9 @@ import {actionR14932} from '../../../../__mocks__/reportData/actions';
 import personalDetails from '../../../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../../../__mocks__/reportData/policies';
 import {chatReportR14932, iouReportR14932} from '../../../../__mocks__/reportData/reports';
+import {translateLocal} from '../../../utils/TestHelper';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
-import {translateLocal} from '../utils/TestHelper';
 
 type AvatarData = {
     uri: string;
@@ -388,7 +388,7 @@ describe('SearchReportAvatar', () => {
     });
 
     describe('infers the layout from icon count when avatarType is omitted', () => {
-        const expenseIcons = getIcons(expenseReport, formatPhoneNumber, personalDetails, null, '', -1, policy);
+        const expenseIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
 
         it('infers a single avatar from a single icon', async () => {
             const {images} = await retrieveAvatarData({primaryAvatar: expenseIcons.at(0), reportID: expenseReport.reportID});

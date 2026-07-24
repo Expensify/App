@@ -1,13 +1,20 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useStyleUtils from '@hooks/useStyleUtils';
+
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
-import ProfileAvatar from './ProfileAvatar';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {BaseAvatarProps} from './types';
+
+import ProfileAvatar from './ProfileAvatar';
 
 type SingleAvatarProps = BaseAvatarProps & {
     /** The resolved avatar icon to render */

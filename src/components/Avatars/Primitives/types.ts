@@ -1,6 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+
+import type {ValueOf} from 'type-fest';
 
 /** Props shared by every avatar layout primitive */
 type BaseAvatarProps = {

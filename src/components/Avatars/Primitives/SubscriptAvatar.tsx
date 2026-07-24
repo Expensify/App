@@ -1,20 +1,28 @@
-import React from 'react';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCardFeedIcon} from '@libs/CardUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
-import ProfileAvatar from './ProfileAvatar';
+
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {BaseAvatarProps} from './types';
+
+import ProfileAvatar from './ProfileAvatar';
 
 type SubscriptAvatarProps = BaseAvatarProps & {
     /** The primary (main) avatar icon */

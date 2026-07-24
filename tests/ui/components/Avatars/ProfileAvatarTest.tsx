@@ -1,9 +1,13 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import {View as MockedAvatarData} from 'react-native';
+
 import ProfileAvatar from '@components/Avatars/Primitives/ProfileAvatar';
+
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import {View as MockedAvatarData} from 'react-native';
 
 jest.mock('@src/components/Avatar', () => {
     return ({testID = 'Avatar'}: {testID?: string}) => {
