@@ -1,5 +1,5 @@
 import SidePanelActions from '@libs/actions/SidePanel';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import getCentralPaneReportID from '@libs/Navigation/helpers/getCentralPaneReportID';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -67,7 +67,7 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
 const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride) => {
     const variant = variantOverride ?? onboardingRHPVariant;
     if (variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        const shouldPreserveRevealedReport = isReportTopmostSplitNavigator();
+        const shouldPreserveRevealedReport = !!getCentralPaneReportID();
         if (!shouldPreserveRevealedReport) {
             Navigation.navigate(ROUTES.HOME);
         }
@@ -78,7 +78,7 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
     const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
     if (isRHPHomePage) {
-        const shouldPreserveRevealedReport = isReportTopmostSplitNavigator();
+        const shouldPreserveRevealedReport = !!getCentralPaneReportID();
         if (!shouldPreserveRevealedReport) {
             Navigation.navigate(ROUTES.HOME);
         }
