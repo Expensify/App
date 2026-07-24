@@ -31,7 +31,7 @@ import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions'
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
-import {createRandomReport} from '../utils/collections/reports';
+import {createAdminRoom, createRandomReport} from '../utils/collections/reports';
 import {createSidebarReportsCollection, createSidebarTestData} from '../utils/collections/sidebarReports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -838,6 +838,67 @@ describe('SidebarUtils', () => {
     });
 
     describe('shouldDisplayReportInLHN', () => {
+        const getAdminRoomDisplayResult = async (reportOverrides: Partial<Report>, isReportArchived = false, currentReportId?: string, isTrackOnboardingAdminRoom = false) => {
+            const report: Report = {
+                ...createAdminRoom(92431),
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+                isPinned: false,
+                lastMessageText: '',
+                ...reportOverrides,
+            };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {isTrackOnboardingAdminRoom});
+            });
+
+            return SidebarUtils.shouldDisplayReportInLHN({
+                report,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report},
+                currentReportId,
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+                isReportArchived,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+        };
+
+        it('shows an active hidden and empty Track onboarding admins room without pinning it', async () => {
+            const result = await getAdminRoomDisplayResult({}, false, undefined, true);
+
+            expect(result).toStrictEqual({shouldDisplay: true});
+        });
+
+        it.each([
+            ['unpinned and empty', {isPinned: false}],
+            ['pinned', {isPinned: true}],
+            ['non-empty', {lastMessageText: 'Message'}],
+        ])('hides an archived Track onboarding admins room when it is %s', async (_description, reportOverrides) => {
+            const result = await getAdminRoomDisplayResult(reportOverrides, true, undefined, true);
+
+            expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        it('hides an archived Track onboarding admins room even when it is focused', async () => {
+            const report = createAdminRoom(92431);
+            const result = await getAdminRoomDisplayResult({reportID: report.reportID}, true, report.reportID, true);
+
+            expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        it('does not change visibility for an unmarked hidden and empty admins room', async () => {
+            const result = await getAdminRoomDisplayResult({});
+
+            expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
         it('returns shouldDisplay as true if a one transaction thread expense report has receipt upload error', async () => {
             const MOCK_REPORT: Report = {
                 reportID: '1',

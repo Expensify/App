@@ -9994,6 +9994,7 @@ function reasonForReportToBeInOptionList({
         !isConciergeChatReport(report, conciergeReportID) &&
         !isSystemChatReport &&
         !isSelfDMWithVisiblePreference &&
+        !(getReportMetadata(report.reportID)?.isTrackOnboardingAdminRoom && isAdminRoom(report) && !isReportArchived) &&
         canHideReport
     ) {
         return null;

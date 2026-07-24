@@ -23,6 +23,9 @@ type ReportMetadata = {
     /** Whether the current report is optimistic */
     isOptimisticReport?: boolean;
 
+    /** Whether this is the admins room created during Track workspace onboarding and should remain visible in the LHN while active */
+    isTrackOnboardingAdminRoom?: boolean;
+
     /** Pending members of the report */
     pendingChatMembers?: PendingChatMember[];
 

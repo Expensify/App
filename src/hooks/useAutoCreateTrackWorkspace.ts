@@ -95,6 +95,7 @@ function useAutoCreateTrackWorkspace() {
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
                       personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
+                      shouldShowTrackAdminRoomInLHN: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 

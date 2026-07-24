@@ -273,6 +273,7 @@ type BuildPolicyDataOptions = {
     hasActiveAdminPolicies: boolean | undefined;
     betas?: OnyxEntry<Beta[]>;
     personalTrackGoal?: string;
+    shouldShowTrackAdminRoomInLHN?: boolean;
 };
 
 // TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -2651,6 +2652,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         isSelfTourViewed,
         hasActiveAdminPolicies,
         personalTrackGoal,
+        shouldShowTrackAdminRoomInLHN,
     } = options;
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
@@ -2844,6 +2846,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                         addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                     ...adminsChatData,
+                    ...(shouldShowTrackAdminRoomInLHN && {isPinned: false}),
                 },
             },
             {
@@ -2851,6 +2854,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
                 value: {
                     pendingChatMembers,
+                    ...(shouldShowTrackAdminRoomInLHN && {isTrackOnboardingAdminRoom: true}),
                 },
             },
             {
