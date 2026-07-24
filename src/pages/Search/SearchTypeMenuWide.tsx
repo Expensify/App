@@ -4,7 +4,6 @@ import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -52,22 +51,6 @@ type SectionParams = {
 
 function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, areAllSectionsExpanded, onItemPress, onCollapsed}: SectionParams) {
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Basket',
-        'CalendarSolid',
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Document',
-        'Pencil',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
 
     const [isExpanded, setIsExpanded] = useState(true);
 
@@ -108,13 +91,12 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
                 section.menuItems.map((item, itemIndex) => {
                     const flattenedIndex = sectionStartIndex + itemIndex;
                     const focused = activeItemIndex === flattenedIndex;
-                    const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                     return (
                         <SearchTypeMenuItem
                             key={item.key}
                             title={translate(item.translationPath)}
-                            icon={icon}
+                            icon={undefined}
                             badgeText={getItemBadgeText(item.key, reportCounts)}
                             focused={focused}
                             onPress={() => onItemPress(item.searchQuery)}
