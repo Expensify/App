@@ -2014,6 +2014,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                     const exportID = exportReportsToPDF(selectedReportIDs);
                     trackExport(exportID);
+                    clearSelectedTransactions();
                 },
             });
         }
