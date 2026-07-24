@@ -24,6 +24,7 @@ export default function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPagePr
     const merchantNames = issueNewCardForm?.data.spendRuleValue?.merchantNames ?? [];
     const merchantMatchTypes = issueNewCardForm?.data.spendRuleValue?.merchantMatchTypes ?? [];
     const restrictionAction = issueNewCardForm?.data.spendRuleValue?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
+    const merchants = merchantNames.map((name, index) => ({name, matchType: merchantMatchTypes.at(index)}));
 
     return (
         <AccessOrNotFoundWrapper
@@ -35,8 +36,7 @@ export default function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPagePr
             <SpendRuleMerchantsBase
                 policyID={policyID}
                 action={restrictionAction}
-                merchantNames={merchantNames}
-                merchantMatchTypes={merchantMatchTypes}
+                merchants={merchants}
                 getEditMerchantRoute={(merchantIndex) => createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT.getRoute(merchantIndex))}
             />
         </AccessOrNotFoundWrapper>
