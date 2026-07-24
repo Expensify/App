@@ -1,9 +1,12 @@
 import claimInitialFocus, {claimDialogFocus} from '@libs/claimInitialFocus';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
+import getOperatingSystem from '@libs/getOperatingSystem';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import isHTMLElement from '@libs/isHTMLElement';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
+import CONST from '@src/CONST';
 
 import {useEffect} from 'react';
 
@@ -15,9 +18,10 @@ import type UseDialogContainerFocus from './types';
  * Dialog title/role are announced via aria-live (see Header) — not by focusing the heading — so JAWS/NVDA
  * get a clean "{title}, dialog" without nested "group / and N more items" chrome.
  *
- * Still steals focus from the activator into the first interactive control (APG modal). claimInitialFocus's
- * body-only gate would leave JAWS on the trigger and skip the panel entirely. If the user already moved
- * focus into the dialog (click/Tab), leave it alone.
+ * Still steals focus from the activator into the first interactive control (APG modal) for JAWS/Windows.
+ * On Mac without prior Tab, skip the steal: mouse-open was focusing Back so a later Enter closed the RHP
+ * (Chrome, VoiceOver off). Web cannot detect JAWS, so we must not gate Windows the same way.
+ * If the user already moved focus into the dialog, leave it alone.
  */
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!container) {
@@ -33,6 +37,10 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     const target = Array.from(targets).find(hasFocusableAttributes);
 
     if (container.getAttribute('role') === 'dialog') {
+        // Mac + mouse (no Tab): do not land on Back — Enter would activate it and close the RHP.
+        if (getOperatingSystem() === CONST.OS.MAC_OS && !getHadTabNavigation()) {
+            return false;
+        }
         const focusTarget = target ?? container;
         // No ring unless the user is already keyboard-navigating (WCAG 2.4.7).
         return claimDialogFocus(focusTarget, {focusVisible: getHadTabNavigation()});
