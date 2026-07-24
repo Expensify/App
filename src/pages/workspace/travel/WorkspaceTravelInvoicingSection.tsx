@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -73,6 +74,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const defaultFundID = useDefaultFundID(policyID);
 
     const {showConfirmModal, closeModal} = useConfirmModal();
     const [isDisableConfirmModalVisible, setIsDisableConfirmModalVisible] = useState(false);
@@ -84,9 +86,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     // Ref to track if we should auto-resume the toggle flow after returning from TravelLegalNamePage
     const shouldResumeToggleRef = useRef(false);
 
-    // For Travel Invoicing, we use a travel-specific card settings key
-    // Uses the same key pattern as Expensify Card: private_expensifyCardSettings_{workspaceAccountID}
-    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    // Read the travel feed from the resolved fund so a shared domain feed shows feed-wide spend and limit.
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(defaultFundID));
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
