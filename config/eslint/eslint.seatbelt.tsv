@@ -789,7 +789,7 @@
 "../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	5
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	27
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	9
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	8
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	34
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -879,10 +879,8 @@
 "../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/TrackExpense.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
-"../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/IOU/index.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
 "../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	12
 "../../src/libs/actions/ImportTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/ImportTransactions.ts"	"no-restricted-syntax"	1
@@ -1941,12 +1939,10 @@
 "../../tests/unit/ContactMethodDetailsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ContextMenuActionsCopyMessageTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/CountryUtils.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
-"../../tests/unit/DateUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	22
 "../../tests/unit/DebugUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
 "../../tests/unit/DeeplinkRouteNormalizationTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/unit/DeployChecklistUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	24
 "../../tests/unit/DistanceRateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/DomainSelectorsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	56
 "../../tests/unit/EmojiReactionsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/ErrorUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/ExpenseRuleUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
