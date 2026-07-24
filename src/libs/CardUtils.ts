@@ -1353,10 +1353,14 @@ function isBrokenConnectionPastDismissThreshold(card: Card): boolean {
     if (!isCardConnectionBroken(card) || !card.lastScrape) {
         return false;
     }
-    // `card.lastScrape` uses the Expensify DB datetime format (e.g. "2024-11-27 11:00:53"). Parse it explicitly with the
-    // matching format instead of relying on `new Date()`, whose handling of this non-ISO string is not portable across JS
-    // engines — an invalid parse would make the difference NaN, so the comparison would always be false and never dismiss.
-    const lastScrapeDate = parse(card.lastScrape, 'yyyy-MM-dd HH:mm:ss', new Date());
+    // `card.lastScrape` is usually the Expensify DB datetime format ("2024-11-27 11:00:53"), but a personal card's value can
+    // arrive as ISO 8601 ("2024-11-27T11:00:53Z"). Try the DB format explicitly first (its `new Date()` handling isn't
+    // portable across JS engines), then fall back to `new Date()`, which parses ISO 8601 reliably. Without the fallback an
+    // ISO value fails the DB parse, the difference is NaN, and the connection is never dismissed (the RBR stays forever).
+    let lastScrapeDate = parse(card.lastScrape, 'yyyy-MM-dd HH:mm:ss', new Date());
+    if (Number.isNaN(lastScrapeDate.getTime())) {
+        lastScrapeDate = new Date(card.lastScrape);
+    }
     if (Number.isNaN(lastScrapeDate.getTime())) {
         return false;
     }

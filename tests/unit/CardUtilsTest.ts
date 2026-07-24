@@ -4291,6 +4291,24 @@ describe('CardUtils', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01 00:00:00'};
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
         });
+
+        // Regression: a personal card's lastScrape can arrive as ISO 8601 instead of the DB format. The strict DB-format
+        // parse returns NaN on it, so without the new Date() fallback the connection would never dismiss and the RBR would
+        // linger forever (the reported bug). Uses the real DateUtils to prove the ISO string is parsed and dismissed.
+        it('parses an ISO 8601 lastScrape and dismisses a long-broken connection without mocking', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01T00:00:00Z'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
+        });
+
+        it('parses an ISO 8601 lastScrape without a Z suffix and dismisses a long-broken connection', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: '2020-01-01T00:00:00'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(true);
+        });
+
+        it('returns false when lastScrape is not a parseable date in any supported format', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, lastScrape: 'not-a-date'};
+            expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
     });
 
     describe('getCardHintText', () => {
