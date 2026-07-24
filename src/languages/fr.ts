@@ -8997,6 +8997,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Payer',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
+            filterType: {label: 'Type de filtre', has: {positive: 'a', negative: 'n’a pas'}, is: {positive: 'est', negative: 'n’est pas'}},
         },
         display: {
             label: 'Affichage',

@@ -2,7 +2,8 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import type {FilterComponentsProps} from '@components/Search/FilterComponents';
+import type {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {
@@ -30,6 +31,7 @@ import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import type {
     GroupedItem,
     QueryFilters,
+    ReportFieldKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
     SearchColumnType,
@@ -185,9 +187,10 @@ import {
     getDateRangeForPreset,
     getFilterFromQuery,
     getQueryHashes,
-    isFilterNegatable,
     isFilterSupported,
+    isFilterNegated,
     isSearchDatePreset,
+    removeNegation,
     sortOptionsWithEmptyValue,
 } from './SearchQueryUtils';
 import StringUtils from './StringUtils';
@@ -639,7 +642,7 @@ type GetSectionsParams = {
  */
 const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS]);
 
-const SKIPPED_SEARCH_FILTERS = new Set<SearchAdvancedFiltersKey>([
+const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.GROUP_BY,
     FILTER_KEYS.GROUP_CURRENCY,
     FILTER_KEYS.LIMIT,
@@ -5060,7 +5063,7 @@ function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, d
     };
 }
 
-const FILTER_TO_SYNTAX_KEY: Partial<Record<SearchAdvancedFiltersKey, Exclude<SearchDateFilterKeys, ReportFieldTextKey> | SearchAmountFilterKeys>> = {
+const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.DATE_ON]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
     [FILTER_KEYS.DATE_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
     [FILTER_KEYS.DATE_BEFORE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -5108,6 +5111,10 @@ const FILTER_TO_SYNTAX_KEY: Partial<Record<SearchAdvancedFiltersKey, Exclude<Sea
     [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
     [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
 };
+
+function isGroupedFilterKey(key: SearchAdvancedFiltersKey): key is keyof typeof FILTER_TO_SYNTAX_KEY {
+    return key in FILTER_TO_SYNTAX_KEY;
+}
 
 type FilterView = {
     labelKey: TranslationPaths;
@@ -5425,7 +5432,7 @@ function getDisplayValue(
             .join(', ');
     }
 
-    if (key === FILTER_KEYS.CURRENCY || key === FILTER_KEYS.PURCHASE_CURRENCY) {
+    if (key === FILTER_KEYS.CURRENCY || key === FILTER_KEYS.CURRENCY_NOT || key === FILTER_KEYS.PURCHASE_CURRENCY || key === FILTER_KEYS.PURCHASE_CURRENCY_NOT) {
         return form[key]?.sort(localeCompare).join(', ');
     }
 
@@ -5447,7 +5454,7 @@ function getDisplayValue(
         return getPaidStatusDisplayText(form[key], translate);
     }
 
-    if (key === FILTER_KEYS.STATUS) {
+    if (key === FILTER_KEYS.STATUS || key === FILTER_KEYS.STATUS_NOT) {
         const status = form[key];
         if (!status?.length) {
             return;
@@ -5464,7 +5471,7 @@ function getDisplayValue(
         return formValue?.map((option) => translate(`common.${option}`)).join(', ');
     }
 
-    if (key === FILTER_KEYS.HAS) {
+    if (key === FILTER_KEYS.HAS || key === FILTER_KEYS.HAS_NOT) {
         const hasValues = form[key];
         if (!hasValues?.length) {
             return;
@@ -5478,7 +5485,9 @@ function getDisplayValue(
 
     if (
         key === FILTER_KEYS.FROM ||
+        key === FILTER_KEYS.FROM_NOT ||
         key === FILTER_KEYS.TO ||
+        key === FILTER_KEYS.TO_NOT ||
         key === FILTER_KEYS.ATTENDEE ||
         key === FILTER_KEYS.ASSIGNEE ||
         key === FILTER_KEYS.TAX_RATE ||
@@ -5502,19 +5511,25 @@ function getDisplayValue(
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
 
-function getFilterNegatableValue<K extends FilterComponentsProps['filterKey']>(
-    filterKey: K,
+function getFilterNegatableValue<K extends ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
+    baseFilterKey: K,
     values: (Partial<SearchAdvancedFiltersForm> & Partial<Record<`${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>>) | undefined,
 ): {
     isNegated: boolean;
     value: SearchAdvancedFiltersForm[K] | undefined;
 } {
-    const negatedFilterKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const;
-    if (!isFilterNegatable(filterKey) || !values || !hasKey(values, negatedFilterKey)) {
-        return {isNegated: false, value: values?.[filterKey]};
+    const negatedFilterKey = `${baseFilterKey}${CONST.SEARCH.NOT_MODIFIER}` as const;
+    const negatedValue = values?.[negatedFilterKey];
+    return {isNegated: !!negatedValue, value: negatedValue ?? values?.[baseFilterKey]};
+}
+
+function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths | undefined, translate: LocalizedTranslate) {
+    if (!labelKey) {
+        return undefined;
     }
 
-    return {isNegated: true, value: values[negatedFilterKey]};
+    const prefix = isFilterNegated(key) ? CONST.SEARCH.NOT_PREFIX : '';
+    return `${prefix}${translate(labelKey)}`;
 }
 
 function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined, key: SearchAdvancedFiltersKey, value: ValueOf<SearchAdvancedFiltersForm>, type: SearchDataTypes) {
@@ -5525,13 +5540,17 @@ function isTextFilterKey(key: string): key is SearchTextFilterKeys {
     return (TEXT_FILTER_KEYS as Set<string>).has(key);
 }
 
-const isAmountFilterKey = (key: SearchFilter['key']): key is SearchAmountFilterKeys => {
+function isAmountFilterKey(key: string): key is SearchAmountFilterKeys {
     return AMOUNT_FILTER_KEYS.includes(key as SearchAmountFilterKeys);
-};
+}
 
-const isDateFilterKey = (key: SearchFilter['key']): key is Exclude<SearchDateFilterKeys, ReportFieldTextKey> => {
+function isDateFilterKey(key: string): key is Exclude<SearchDateFilterKeys, ReportFieldTextKey> {
     return DATE_FILTER_KEYS.includes(key as SearchDateFilterKeys);
-};
+}
+
+function isReportFieldKey(key: string): key is ReportFieldKey {
+    return key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
+}
 
 type SearchFilter = {
     key: keyof typeof FILTER_VIEW_MAP;
@@ -5539,15 +5558,36 @@ type SearchFilter = {
     value: string | string[];
 };
 
+type MappedFilterKey = SearchFilter['key'] | Extract<SearchAdvancedFiltersKey, `${SearchFilter['key']}${typeof CONST.SEARCH.NOT_MODIFIER}`>;
+
+function isMappedFilterKey(key: string): key is MappedFilterKey {
+    return hasKey(FILTER_VIEW_MAP, removeNegation(key));
+}
+
+function mapFiltersFormToLabelValueList(
+    searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
+    translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+): SearchFilter[];
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
-    mapper?: (filterKey: SearchFilter['key']) => T,
-): Array<SearchFilter & T> {
-    const filters: Array<SearchFilter & T> = [];
+    mapper: (filterKey: MappedFilterKey) => T,
+): Array<SearchFilter & T>;
+function mapFiltersFormToLabelValueList(
+    searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
+    translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+    mapper?: (filterKey: MappedFilterKey) => Record<string, unknown>,
+): SearchFilter[] {
+    const filters: SearchFilter[] = [];
     const addedGroups = new Set<SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX>();
     const type = searchAdvancedFiltersForm.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -5558,8 +5598,8 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
         }
 
         // Handle grouped filters (date, amount) - only add once per group
-        const syntax = FILTER_TO_SYNTAX_KEY[key];
-        if (syntax) {
+        if (isGroupedFilterKey(key)) {
+            const syntax = FILTER_TO_SYNTAX_KEY[key];
             if (addedGroups.has(syntax)) {
                 continue;
             }
@@ -5571,8 +5611,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
 
             if (displayValue && label) {
                 addedGroups.add(syntax);
-                const extra = mapper?.(syntax) ?? ({} as T);
-                filters.push({key: syntax, label: translate(label), value: displayValue, ...extra});
+                filters.push({key: syntax, label: translate(label), value: displayValue, ...mapper?.(syntax)});
             }
             continue;
         }
@@ -5586,20 +5625,24 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
             const value = getReportFieldDisplayValue(searchAdvancedFiltersForm, translate);
             if (value) {
                 addedGroups.add(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
-                const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) ?? ({} as T);
+                const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);
                 filters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, label: translate('workspace.common.reportField'), value, ...extra});
             }
             continue;
         }
 
         // Handle regular filters
-        const label = key in FILTER_VIEW_MAP ? FILTER_VIEW_MAP[key as keyof typeof FILTER_VIEW_MAP].labelKey : undefined;
+        if (!isMappedFilterKey(key)) {
+            continue;
+        }
+
+        const baseKey = removeNegation(key);
+        const labelKey = FILTER_VIEW_MAP[baseKey].labelKey;
         const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare);
+        const label = getLabelValue(key, labelKey, translate);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
-            const filterLabelMapKey = key as keyof typeof FILTER_VIEW_MAP;
-            const extra = mapper?.(filterLabelMapKey) ?? ({} as T);
-            filters.push({key: filterLabelMapKey, label: translate(label), value, ...extra});
+            filters.push({key: baseKey, label, value, ...mapper?.(key)});
         }
     }
 
@@ -6581,6 +6624,7 @@ export {
     isTextFilterKey,
     isAmountFilterKey,
     isDateFilterKey,
+    isReportFieldKey,
     getSingleSelectFilterOptions,
     getMultiSelectFilterOptions,
     TODO_SEARCH_KEYS,

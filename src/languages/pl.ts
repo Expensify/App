@@ -8893,6 +8893,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Zapłać',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
             },
+            filterType: {label: 'Typ filtra', has: {positive: 'ma', negative: 'nie ma'}, is: {positive: 'jest', negative: 'nie jest'}},
         },
         display: {
             label: 'Wyświetl',

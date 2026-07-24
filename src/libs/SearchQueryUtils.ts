@@ -1,4 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
 import type {
     ASTNode,
     Filter,
@@ -356,7 +358,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-            filterValueString += ` -${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE) {
             const rangeBoundaries = parseRangeQueryValue(queryFilter.value.toString());
             if (rangeBoundaries.from) {
@@ -545,13 +547,13 @@ function getQueryHashes(query: SearchQueryJSON) {
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
 
     const status = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
-    orderedQuery += ` ${status.isNegated ? '-' : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
+    orderedQuery += ` ${status.isNegated ? CONST.SEARCH.NOT_PREFIX : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
 
     const policyID = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     if (policyID.value) {
-        orderedQuery += ` ${policyID.isNegated ? '-' : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${policyID.value.join(',')} `;
+        orderedQuery += ` ${policyID.isNegated ? CONST.SEARCH.NOT_PREFIX : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${policyID.value.join(',')} `;
     }
 
     const filterSet = new Set<string>(orderedQuery);
@@ -891,7 +893,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 filterKey = filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
             }
 
-            const prefix = isNegated ? '-' : '';
+            const prefix = isNegated ? CONST.SEARCH.NOT_PREFIX : '';
 
             if (
                 (filterKey === FILTER_KEYS.MERCHANT ||
@@ -2524,12 +2526,31 @@ function addNegation<T extends string>(filterKey: T, isNegated: boolean): T | `$
     return isNegated ? `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` : filterKey;
 }
 
-function removeNegation(filterKey: string) {
-    return filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
+type RemoveNegation<T extends string> = T extends `${infer S}${typeof CONST.SEARCH.NOT_MODIFIER}` ? S : T;
+
+function removeNegation<T extends string>(filterKey: T): RemoveNegation<T>;
+function removeNegation(filterKey: string): string {
+    return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER) ? filterKey.slice(0, -CONST.SEARCH.NOT_MODIFIER.length) : filterKey;
 }
 
 function isFilterNegatable(key: SearchAdvancedFiltersKey) {
     return NEGATABLE_FILTERS.has(removeNegation(key) as SearchNegatableFilterKeys);
+}
+
+function isFilterNegated(filterKey: SearchAdvancedFiltersKey) {
+    return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
+}
+
+function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
+    baseFilterKey: K,
+    value: SearchAdvancedFiltersForm[K] | undefined,
+    isNegated: boolean,
+): Partial<SearchAdvancedFiltersForm> {
+    const update: Partial<Record<K | `${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>> = {};
+    const negatedFilterKey = addNegation(baseFilterKey, true);
+    update[negatedFilterKey] = isNegated ? value : undefined;
+    update[baseFilterKey] = isNegated ? undefined : value;
+    return update;
 }
 
 export {
@@ -2580,8 +2601,11 @@ export {
     getParamsState,
     getRoutes,
     isSearchRootParams,
-    getFilterFromQuery,
+    isFilterNegated,
     isFilterNegatable,
+    removeNegation,
+    getFilterFormValues,
+    getFilterFromQuery,
 };
 
 export type {BuildUserReadableQueryStringParams};

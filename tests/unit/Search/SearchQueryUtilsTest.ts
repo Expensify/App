@@ -22,6 +22,7 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
+    getFilterFormValues,
     getFilterFromQuery,
     getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
@@ -30,6 +31,7 @@ import {
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
+    isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
     isSearchBeforeViolationsSnapshotStarted,
@@ -3600,6 +3602,43 @@ describe('SearchQueryUtils', () => {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 merchant: undefined,
                 columns: undefined,
+            });
+        });
+    });
+
+    describe('isNegated', () => {
+        it('returns true for negated filter keys (ending with the NOT modifier)', () => {
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+        });
+
+        it('returns false for base (non-negated) filter keys', () => {
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY)).toBe(false);
+        });
+    });
+
+    describe('getFilterFormValues', () => {
+        it('sets the base key and clears the negated key when not negated', () => {
+            const result = getFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, 'coffee', false);
+
+            expect(result).toEqual({
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: 'coffee',
+                [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`]: undefined,
+            });
+        });
+
+        it('sets the negated key and clears the base key when negated', () => {
+            const result = getFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, 'coffee', true);
+
+            expect(result).toEqual({
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: undefined,
+                [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`]: 'coffee',
             });
         });
     });

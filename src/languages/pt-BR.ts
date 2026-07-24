@@ -8901,6 +8901,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagar',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
+            filterType: {label: 'Tipo de filtro', has: {positive: 'tem', negative: 'não tem'}, is: {positive: 'é', negative: 'não é'}},
         },
         display: {
             label: 'Exibir',
