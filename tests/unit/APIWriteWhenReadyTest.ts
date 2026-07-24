@@ -57,26 +57,36 @@ async function flushMicrotasks(until: () => boolean = () => false, maxIterations
 // The awaited effect these tests key off is the push to the SequentialQueue.
 const pushHappened = () => mockPush.mock.calls.length > 0;
 
-// A cancelable barrier (promise-like + `cancel`) that stays pending until `release()` is called, so a
-// test can control exactly when (or whether) it settles and assert on its cancel handle.
-function makeCancelableBarrier() {
+// A barrier that stays pending until `release()` is called, and records whether the `AbortSignal` passed
+// to it was aborted - so a test can control exactly when (or whether) it settles and assert on abort.
+function makeAbortableBarrier() {
     let release: () => void = () => {};
+    // Create the promise eagerly so `release` points at the real resolver before this helper returns
+    // (the barrier factory only runs once writeWhenReady invokes it, which is after destructuring).
     const promise = new Promise<void>((resolve) => {
         release = resolve;
     });
-    const cancel = jest.fn();
-    const barrier: WriteReadyBarrier = {then: promise.then.bind(promise), cancel};
-    return {barrier, release, cancel};
+    const onAbort = jest.fn();
+    const barrier: WriteReadyBarrier = (signal: AbortSignal) => {
+        signal.addEventListener('abort', onAbort);
+        return promise;
+    };
+    return {barrier, release, onAbort};
 }
 
-// A never-settling cancelable barrier whose cancel() throws, to exercise the throw-safe execute path.
-function makeThrowingCancelBarrier() {
-    const promise = new Promise<void>(() => {});
-    const cancel = jest.fn(() => {
-        throw new Error('cancel boom');
+// A never-settling barrier whose abort listener throws, to prove a throwing listener can't drop the write
+// or break the background flush loop. That guarantee comes from AbortSignal's event dispatch (which
+// reports listener errors out of band rather than propagating them out of abort()) plus the flush loop's
+// own isolation, not from writeWhenReady catching the throw - but since we depend on it, pin it here.
+function makeThrowingAbortBarrier() {
+    const onAbort = jest.fn(() => {
+        throw new Error('abort boom');
     });
-    const barrier: WriteReadyBarrier = {then: promise.then.bind(promise), cancel};
-    return {barrier, cancel};
+    const barrier: WriteReadyBarrier = (signal: AbortSignal) => {
+        signal.addEventListener('abort', onAbort);
+        return new Promise<void>(() => {});
+    };
+    return {barrier, onAbort};
 }
 
 describe('API.writeWhenReady', () => {
@@ -126,22 +136,6 @@ describe('API.writeWhenReady', () => {
         expect(mockPush).not.toHaveBeenCalled();
 
         transitionCallback();
-        await flushMicrotasks(pushHappened);
-
-        expect(mockPush).toHaveBeenCalledTimes(1);
-    });
-
-    it('accepts a promise-like barrier directly, not only a thunk', async () => {
-        let releaseBarrier: () => void = () => {};
-        const barrierPromise = new Promise<void>((resolve) => {
-            releaseBarrier = resolve;
-        });
-
-        deferWrite(barrierPromise);
-        await flushMicrotasks();
-        expect(mockPush).not.toHaveBeenCalled();
-
-        releaseBarrier();
         await flushMicrotasks(pushHappened);
 
         expect(mockPush).toHaveBeenCalledTimes(1);
@@ -206,6 +200,41 @@ describe('API.writeWhenReady', () => {
         expect(mockPush).toHaveBeenCalledTimes(1);
     });
 
+    it('executes anyway when the barrier thunk throws synchronously', async () => {
+        const barrier = () => {
+            throw new Error('thunk boom');
+        };
+
+        deferWrite(barrier);
+        await flushMicrotasks(pushHappened);
+
+        expect(mockPush).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects the returned promise when the write throws synchronously', async () => {
+        // prepareRequest applies optimisticData synchronously via Onyx.update, so making that throw is the
+        // cleanest way to exercise write() throwing synchronously inside execute()'s try/catch.
+        const updateSpy = jest.spyOn(Onyx, 'update').mockImplementationOnce(() => {
+            throw new Error('write boom');
+        });
+        try {
+            const onyxData: DeferWriteOnyxData = {
+                optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_PREFERRED_LOCALE, value: CONST.LOCALES.EN}],
+            };
+
+            const outcome = deferWrite(() => Promise.resolve(), undefined, onyxData).then(
+                () => 'resolved',
+                () => 'rejected',
+            );
+            await flushMicrotasks(() => updateSpy.mock.calls.length > 0);
+
+            await expect(outcome).resolves.toBe('rejected');
+            expect(mockPush).not.toHaveBeenCalled();
+        } finally {
+            updateSpy.mockRestore();
+        }
+    });
+
     it('executes the write exactly once even if the safety timeout also elapses', async () => {
         jest.useFakeTimers();
         try {
@@ -231,41 +260,41 @@ describe('API.writeWhenReady', () => {
         }
     });
 
-    it('cancels a still-pending cancelable barrier when released early via the safety timeout', async () => {
+    it("aborts a still-pending barrier's signal when released early via the safety timeout", async () => {
         jest.useFakeTimers();
         try {
-            const {barrier, cancel} = makeCancelableBarrier(); // never released
+            const {barrier, onAbort} = makeAbortableBarrier(); // never released
 
             deferWrite(barrier);
             await flushMicrotasks();
-            expect(cancel).not.toHaveBeenCalled();
+            expect(onAbort).not.toHaveBeenCalled();
 
             await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS);
             await flushMicrotasks(pushHappened);
 
             expect(mockPush).toHaveBeenCalledTimes(1);
-            expect(cancel).toHaveBeenCalledTimes(1);
+            expect(onAbort).toHaveBeenCalledTimes(1);
         } finally {
             jest.useRealTimers();
         }
     });
 
-    it('cancels a still-pending cancelable barrier when flushed on background', async () => {
-        const {barrier, cancel} = makeCancelableBarrier(); // never released
+    it("aborts a still-pending barrier's signal when flushed on background", async () => {
+        const {barrier, onAbort} = makeAbortableBarrier(); // never released
 
         deferWrite(barrier);
         await flushMicrotasks();
-        expect(cancel).not.toHaveBeenCalled();
+        expect(onAbort).not.toHaveBeenCalled();
 
         emitAppState('background');
         await flushMicrotasks(pushHappened);
 
         expect(mockPush).toHaveBeenCalledTimes(1);
-        expect(cancel).toHaveBeenCalledTimes(1);
+        expect(onAbort).toHaveBeenCalledTimes(1);
     });
 
-    it('does not cancel a cancelable barrier that resolves normally', async () => {
-        const {barrier, release, cancel} = makeCancelableBarrier();
+    it("does not abort a barrier's signal that resolves normally", async () => {
+        const {barrier, release, onAbort} = makeAbortableBarrier();
 
         deferWrite(barrier);
         await flushMicrotasks();
@@ -275,8 +304,8 @@ describe('API.writeWhenReady', () => {
         await flushMicrotasks(pushHappened);
 
         expect(mockPush).toHaveBeenCalledTimes(1);
-        // The barrier itself released the write, so it has already settled - there is nothing to cancel.
-        expect(cancel).not.toHaveBeenCalled();
+        // The barrier itself released the write, so it has already settled - there is nothing to abort.
+        expect(onAbort).not.toHaveBeenCalled();
     });
 
     it('honors a custom safetyTimeoutMs', async () => {
@@ -313,8 +342,8 @@ describe('API.writeWhenReady', () => {
         expect(mockPush).toHaveBeenCalledTimes(3);
     });
 
-    it('does not drop a write whose barrier cancel() throws during background flush, and still flushes the others', async () => {
-        const {barrier: throwingBarrier, cancel} = makeThrowingCancelBarrier();
+    it('does not drop a write whose barrier abort listener throws during background flush, and still flushes the others', async () => {
+        const {barrier: throwingBarrier, onAbort} = makeThrowingAbortBarrier();
         // Track that the throwing write settles (does not hang) - and, per the isolation, resolves.
         const throwingOutcome = deferWrite(throwingBarrier).then(
             () => 'resolved',
@@ -324,20 +353,20 @@ describe('API.writeWhenReady', () => {
         deferWrite(neverSettlingBarrier());
         await flushMicrotasks();
 
-        // A throwing cancel() is best-effort cleanup on the forced-release path: it must neither abort the
-        // loop flushing the other two, nor drop its own write. All three writes should flush.
+        // A throwing abort listener is reported out of band by AbortSignal's dispatch: it must neither
+        // abort the loop flushing the other two, nor drop its own write. All three writes should flush.
         expect(() => emitAppState('background')).not.toThrow();
         await flushMicrotasks(() => mockPush.mock.calls.length >= 3);
 
         expect(mockPush).toHaveBeenCalledTimes(3);
-        expect(cancel).toHaveBeenCalledTimes(1);
+        expect(onAbort).toHaveBeenCalledTimes(1);
         await expect(throwingOutcome).resolves.toBe('resolved');
     });
 
-    it('does not drop the write when the barrier cancel() throws on the safety timeout path', async () => {
+    it('does not drop the write when the barrier abort listener throws on the safety timeout path', async () => {
         jest.useFakeTimers();
         try {
-            const {barrier: throwingBarrier, cancel} = makeThrowingCancelBarrier(); // never settles
+            const {barrier: throwingBarrier, onAbort} = makeThrowingAbortBarrier(); // never settles
             const outcome = deferWrite(throwingBarrier).then(
                 () => 'resolved',
                 () => 'rejected',
@@ -347,9 +376,9 @@ describe('API.writeWhenReady', () => {
             await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS);
             await flushMicrotasks(pushHappened);
 
-            // The safety timeout must force the write through even though cancel() threw during cleanup.
+            // The safety timeout must force the write through even though the abort listener threw.
             expect(mockPush).toHaveBeenCalledTimes(1);
-            expect(cancel).toHaveBeenCalledTimes(1);
+            expect(onAbort).toHaveBeenCalledTimes(1);
             await expect(outcome).resolves.toBe('resolved');
         } finally {
             jest.useRealTimers();

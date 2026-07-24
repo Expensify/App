@@ -202,26 +202,14 @@ function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
 }
 
 /**
- * A barrier that also exposes a `cancel` to release whatever it is waiting on. `writeWhenReady` calls
- * this only when it executes the write before the barrier has settled (released early via the safety
- * timeout, or because the app backgrounds), so a still-pending barrier doesn't leave a dangling
- * registration. When the barrier itself releases the write, it has already settled and `cancel` is not
- * called. Exposing `cancel` is optional - a plain promise-like works too.
+ * A readiness signal for `writeWhenReady`: a function, invoked when the write is queued, that returns a
+ * promise-like resolving once it is safe to apply the write's optimistic data (e.g. after a navigation
+ * transition finishes). It is given an `AbortSignal` that fires if the write executes before the barrier
+ * settles (released early via the safety timeout, or because the app backgrounds), so a barrier waiting on
+ * something cancelable can stop waiting instead of leaving a dangling registration. A rejection is treated
+ * the same as resolving - the write executes anyway.
  */
-type CancelableBarrier = PromiseLike<unknown> & {cancel: () => void};
-
-/**
- * A readiness signal for `writeWhenReady`: a promise-like that resolves once it is safe to apply the
- * write's optimistic data (e.g. after a navigation transition finishes), or a function returning one
- * (invoked when the write is queued). Either form may instead be a `CancelableBarrier`, whose `cancel`
- * is invoked if the write fires before the barrier settles. A rejection is treated the same as
- * resolving - the write executes anyway.
- */
-type WriteReadyBarrier = PromiseLike<unknown> | CancelableBarrier | (() => PromiseLike<unknown> | CancelableBarrier);
-
-function isCancelableBarrier(value: unknown): value is CancelableBarrier {
-    return typeof value === 'object' && value !== null && 'cancel' in value && typeof value.cancel === 'function';
-}
+type WriteReadyBarrier = (signal: AbortSignal) => PromiseLike<unknown>;
 
 /**
  * Why a deferred write was released. `barrier` is the happy path (the barrier resolved); the others all
@@ -287,23 +275,20 @@ function registerBackgroundFlushListener() {
  * Default `writeWhenReady` barrier: resolves once the current or upcoming navigation transition
  * completes. Bounded by TransitionTracker (it stops waiting for an upcoming transition after
  * CONST.MAX_TRANSITION_START_WAIT_MS and auto-ends transitions after CONST.MAX_TRANSITION_DURATION_MS),
- * so it always resolves. Exposes `cancel` so `writeWhenReady` can drop the TransitionTracker
- * registration if the write is released before the transition finishes.
+ * so it always resolves. Drops the TransitionTracker registration via `signal` if the write is released
+ * before the transition finishes.
  */
-function waitForNavigationTransition(): CancelableBarrier {
-    let handle: {cancel: () => void} | undefined;
-    const promise = new Promise<void>((resolve) => {
-        // The executor runs synchronously, so `handle` is assigned before this function returns.
-        handle = TransitionTracker.runAfterTransitions({
+function waitForNavigationTransition(signal: AbortSignal): Promise<void> {
+    return new Promise((resolve) => {
+        const handle = TransitionTracker.runAfterTransitions({
             callback: () => resolve(),
             waitForUpcomingTransition: true,
         });
+        // On abort, drop the TransitionTracker registration. The promise is intentionally left pending (its
+        // `resolve` is never called on this path): writeWhenReady's `hasExecuted` guard makes any late
+        // resolution a no-op, and the chain is GC-eligible once the writeWhenReady promise settles.
+        signal.addEventListener('abort', () => handle.cancel());
     });
-    // Return a thin thenable rather than mutating the native Promise with a `cancel` property.
-    return {
-        then: (onFulfilled, onRejected) => promise.then(onFulfilled, onRejected),
-        cancel: () => handle?.cancel(),
-    };
 }
 
 function writeWhenReady<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): Promise<void | Response<never>>;
@@ -320,8 +305,8 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
  * Like `write()`, but defers the entire write - including its optimistic Onyx updates - until a
  * readiness signal fires. By default it waits for the navigation transition to complete, so the
  * expensive optimistic re-render doesn't compete with the transition animation for the main thread.
- * Pass a custom `barrier` (a promise-like, or a function returning one) to wait for a different
- * signal instead.
+ * Pass a custom `barrier` (a function taking an `AbortSignal` and returning a promise-like) to wait for a
+ * different signal instead.
  *
  * Once ready, it delegates to the normal `write()` pipeline, so optimistic/success/failure handling,
  * retries, and queue ordering are all unchanged. (Request de-duplication via `write()`'s
@@ -330,6 +315,12 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
  * rapidly double-triggered while deferred; migrate such commands only with a plan for that.) Note that
  * deferring necessarily moves this write later in the queue relative to writes dispatched immediately
  * after it - that is the intended trade-off.
+ *
+ * Call order is NOT preserved across multiple deferred writes: each call races its own independent
+ * barrier, so a later `writeWhenReady` with a fast barrier can reach `write()` (and thus the queue)
+ * before an earlier one with a slow barrier. Do not rely on call order when firing two deferred writes
+ * with a data dependency (e.g. an optimistic parent then child) - gate the dependent one on the first's
+ * barrier, or don't defer it.
  *
  * Because the optimistic data is *also* deferred, the user sees no optimistic feedback until the
  * barrier fires. That is invisible when the barrier is a navigate-away (the user is watching the
@@ -366,11 +357,11 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
 
     return new Promise((resolve, reject) => {
         let hasExecuted = false;
-        // These three are read by `execute` but assigned below it; `let` closures capture the binding, not
-        // the value, so the placeholders are safe until the real values are wired up on the next lines.
+        // Read by `execute` but assigned below it; `let` closures capture the binding, not the value, so
+        // this placeholder is safe until the real value is wired up on the next line.
         let flushOnBackground: () => void = () => {};
         let safetyTimeoutId: ReturnType<typeof setTimeout> | undefined;
-        let cancelBarrier: () => void = () => {};
+        const abortController = new AbortController();
         let barrierError: unknown;
 
         const execute = (reason: WriteWhenReadyReleaseReason) => {
@@ -379,25 +370,21 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
             }
             hasExecuted = true;
 
-            // Everything here runs defensively: a synchronous throw (from write() or prepareRequest) must
-            // settle the returned promise via reject rather than leave it pending forever - and, on the
-            // background path, must not escape into the flush loop and strand the other pending writes. (A
-            // throw from cancelBarrier() is handled separately below so it never drops the write.)
+            // A synchronous throw (from write() or prepareRequest) must settle the returned promise via
+            // reject rather than leave it pending forever - and, on the background path, must not escape
+            // into the flush loop and strand the other pending writes.
             try {
                 clearTimeout(safetyTimeoutId);
                 pendingWriteWhenReadyFlushes.delete(flushOnBackground);
-                // Release the barrier only on the early-release paths (safety timeout / app background),
-                // where the barrier may still be pending and would otherwise leave a dangling registration.
-                // On the 'barrier'/'barrierRejected' paths the barrier has already settled, so there is
-                // nothing to cancel. cancel() is best-effort cleanup and these paths are meant to force the
-                // write through, so isolate a throwing cancel() here - letting it reject would drop the very
-                // write this path exists to guarantee.
+                // Abort only on the early-release paths (safety timeout / app background), where the barrier
+                // may still be pending and would otherwise leave a dangling registration - e.g. the default
+                // barrier's TransitionTracker registration. On the 'barrier'/'barrierRejected' paths the
+                // barrier has already settled, so there is nothing to release. A throwing abort listener
+                // can't drop the write or escape here: AbortSignal dispatch reports listener errors out of
+                // band rather than propagating them out of abort(), so this stays throw-safe. Barriers whose
+                // cleanup can throw should handle it in their own listener if they want it logged.
                 if (reason === 'safetyTimeout' || reason === 'appBackground') {
-                    try {
-                        cancelBarrier();
-                    } catch (error) {
-                        Log.warn('[API] writeWhenReady barrier cancel() threw during forced release - proceeding with the write', {command, error});
-                    }
+                    abortController.abort();
                 }
 
                 if (reason !== 'barrier') {
@@ -419,18 +406,13 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
 
         safetyTimeoutId = setTimeout(() => execute('safetyTimeout'), Math.max(0, safetyTimeoutMs));
 
-        // Resolve the barrier to its value once - invoking a thunk inside a try/catch so a synchronously-
-        // thrown error is funneled into the rejection path instead of escaping - then capture its `cancel`
-        // handle (if any) so a still-pending barrier can be released once the write has executed.
-        let barrierValue: unknown;
+        // Invoke the barrier inside a try/catch so a synchronously-thrown error is funneled into the
+        // rejection path instead of escaping.
+        let barrierValue: PromiseLike<unknown>;
         try {
-            barrierValue = typeof barrier === 'function' ? barrier() : barrier;
+            barrierValue = barrier(abortController.signal);
         } catch (error) {
             barrierValue = Promise.reject(error);
-        }
-        if (isCancelableBarrier(barrierValue)) {
-            const cancelableBarrier = barrierValue;
-            cancelBarrier = () => cancelableBarrier.cancel();
         }
         Promise.resolve(barrierValue).then(
             () => execute('barrier'),
