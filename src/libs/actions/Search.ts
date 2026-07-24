@@ -898,10 +898,15 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
     write(WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList}, {optimisticData, successData});
 }
 
-// Tracks in-flight search requests by hash+offset to prevent duplicate API calls
-// when both page-level (useSearchPageSetup) and Search-internal (handleSearch) effects
-// fire for the same query. Cleared when the request completes.
-const inFlightSearchRequests = new Set<string>();
+type InFlightSearchRequest = {
+    shouldCalculateTotals: boolean;
+    pendingTotalsRequest?: () => Promise<string | number | undefined> | undefined;
+};
+
+// Tracks in-flight search requests by hash+offset to prevent duplicate API calls when both page-level
+// and Search-internal effects fire for the same query. A totals request is not equivalent to the
+// non-totals request already in flight, so preserve one such request to run immediately afterward.
+const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
 
 let shouldPreventSearchAPI = false;
 function handlePreventSearchAPI(hash: number | undefined) {
@@ -952,16 +957,32 @@ function search({
      * optimistic write data.
      */
     skipWaitForWrites?: boolean;
-}) {
+}): Promise<string | number | undefined> | undefined {
     if (isLoading || shouldPreventSearchAPI) {
         return;
     }
 
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
-    if (inFlightSearchRequests.has(dedupeKey)) {
+    const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
+    if (inFlightRequest) {
+        if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals) {
+            inFlightRequest.pendingTotalsRequest = () =>
+                search({
+                    queryJSON,
+                    searchKey,
+                    offset,
+                    shouldCalculateTotals: true,
+                    prevReportsLength,
+                    isOffline,
+                    isLoading: false,
+                    shouldUpdateLastSearchParams,
+                    skipWaitForWrites,
+                });
+        }
         return;
     }
-    inFlightSearchRequests.add(dedupeKey);
+    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals};
+    inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     const {optimisticData, successData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
@@ -1041,6 +1062,7 @@ function search({
             })
             .finally(() => {
                 inFlightSearchRequests.delete(dedupeKey);
+                return inFlightRequestState.pendingTotalsRequest?.();
             });
 
     // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
@@ -1390,7 +1412,7 @@ function rejectMoneyRequestsOnSearch(
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams,
+    {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
 ) {
@@ -1423,6 +1445,7 @@ function exportSearchItemsToCSV(
         jsonQuery,
         reportIDList: Array.from(reportIDSet),
         transactionIDList,
+        ...(excludedTransactionIDList?.length ? {excludedTransactionIDList} : {}),
         isBasicExport,
         exportColumnLabels,
     }) as Params;
@@ -1450,7 +1473,15 @@ function exportSearchItemsToCSV(
     );
 }
 
-function queueExportSearchItemsToCSV({jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams): string {
+function queueExportSearchItemsToCSV({
+    jsonQuery,
+    reportIDList,
+    transactionIDList,
+    excludedTransactionIDList,
+    isBasicExport,
+    exportColumnLabels,
+    exportName,
+}: ExportSearchItemsToCSVParams): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -1479,6 +1510,7 @@ function queueExportSearchItemsToCSV({jsonQuery, reportIDList, transactionIDList
         jsonQuery,
         reportIDList,
         transactionIDList,
+        ...(excludedTransactionIDList?.length ? {excludedTransactionIDList} : {}),
         isBasicExport,
         exportColumnLabels,
         exportName,

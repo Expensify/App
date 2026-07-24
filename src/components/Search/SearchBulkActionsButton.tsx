@@ -26,12 +26,13 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useContext, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
-import type {BulkPaySelectionData, SearchQueryJSON} from './types';
+import type {BulkPaySelectionData, SearchQueryJSON, SelectedTransactions} from './types';
 
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
@@ -48,7 +49,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
@@ -99,38 +100,50 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const pendingPaymentAdditionalDataRef = useRef<BulkPaySelectionData | undefined>(undefined);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const popoverUseScrollView = shouldPopoverUseScrollView(headerButtonsOptions);
-    const selectedItemsCount = useMemo(() => {
-        if (!selectedTransactions) {
-            return 0;
-        }
-
-        if (isExpenseReportType) {
-            const reportIDs = new Set(
-                Object.values(selectedTransactions)
-                    .map((transaction) => transaction?.reportID)
-                    .filter((reportID): reportID is string => !!reportID),
-            );
-            return reportIDs.size;
-        }
-
-        return selectedTransactionsKeys.reduce((count, key) => {
-            if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-                const group = searchData?.[key as keyof typeof searchData] as {count?: number} | undefined;
-                return count + (group?.count ?? 0);
+    const {selectedItemsCount, excludedItemsCount} = useMemo(() => {
+        const getItemsCount = (transactionsToCount: typeof selectedTransactions) => {
+            if (isExpenseReportType) {
+                const reportIDs = new Set(
+                    Object.values(transactionsToCount)
+                        .map((transaction) => transaction?.reportID)
+                        .filter((reportID): reportID is string => !!reportID),
+                );
+                return reportIDs.size;
             }
-            return count + 1;
-        }, 0);
-    }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType, searchData]);
+
+            return Object.keys(transactionsToCount).reduce((count, key) => {
+                if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+                    const group = searchData?.[key as keyof typeof searchData] as {count?: number} | undefined;
+                    return count + (group?.count ?? 0);
+                }
+                return count + 1;
+            }, 0);
+        };
+
+        return {
+            selectedItemsCount: getItemsCount(selectedTransactions),
+            excludedItemsCount: getItemsCount(excludedTransactions),
+        };
+    }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData]);
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
+    let selectedAllMatchingItemsCount: number | undefined;
+    if (excludedItemsCount > 0) {
+        if (typeof allMatchingItemsCount === 'number') {
+            selectedAllMatchingItemsCount = Math.max(allMatchingItemsCount - excludedItemsCount, 0);
+        } else if (isExpenseType && isOffline) {
+            selectedAllMatchingItemsCount = selectedItemsCount;
+        }
+    }
     const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
     let selectionButtonText: string;
     if (areAllMatchingItemsSelected) {
-        selectionButtonText =
-            typeof allMatchingItemsCount !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: allMatchingItemsCount});
+        const count = isExpenseType ? selectedAllMatchingItemsCount : allMatchingItemsCount;
+        selectionButtonText = typeof count !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count});
     } else {
         selectionButtonText = translate('workspace.common.selected', {count: selectedItemsCount});
     }

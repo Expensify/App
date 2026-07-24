@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,9 +83,23 @@ describe('useSearchShouldCalculateTotals', () => {
         expect(result.current).toBe(true);
     });
 
-    it('returns true when all matching items are selected even when the hook is disabled (select-all bypasses the offset gate)', () => {
+    it('returns false for an all-matching selection when the caller has already obtained totals for pagination', () => {
         const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, false, true));
 
-        expect(result.current).toBe(true);
+        expect(result.current).toBe(false);
+    });
+});
+
+describe('getSearchRequestOffsetForMissingAllMatchingCount', () => {
+    it('uses the server-confirmed offset when the local offset advanced without loading another page', () => {
+        expect(getSearchRequestOffsetForMissingAllMatchingCount(50, 0, true)).toBe(0);
+    });
+
+    it('keeps the offset when the page was genuinely loaded', () => {
+        expect(getSearchRequestOffsetForMissingAllMatchingCount(50, 50, true)).toBe(50);
+    });
+
+    it('keeps the pagination offset after the matching count is available', () => {
+        expect(getSearchRequestOffsetForMissingAllMatchingCount(100, 50, false)).toBe(100);
     });
 });
