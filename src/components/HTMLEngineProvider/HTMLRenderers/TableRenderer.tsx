@@ -1,16 +1,13 @@
-import useThemeStyles from '@hooks/useThemeStyles';
-
 import variables from '@styles/variables';
 
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 
 import {useContext, useMemo} from 'react';
-import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
 import {useContentWidth} from 'react-native-render-html';
 
 import type {CellHorizontalAlignment} from './TableColumnAlignmentContext';
 
+import HTMLTableScroll from './HTMLTableScroll';
 import TableChildrenRenderer, {getElementChildren} from './TableChildrenRenderer';
 import TableColumnAlignmentContext from './TableColumnAlignmentContext';
 import TableContentWidthContext from './TableContentWidthContext';
@@ -33,11 +30,10 @@ function getColumnAlignments(tableNode: TNode): CellHorizontalAlignment[] {
 }
 
 function TableRenderer({tnode}: CustomRendererProps<TBlock>) {
-    const styles = useThemeStyles();
     const columnAlignments = useMemo(() => getColumnAlignments(tnode), [tnode]);
 
     // The comment-level width fills the message exactly; fall back to the HTML content width when the table is rendered
-    // outside a comment. A concrete number is required because a percentage does not resolve inside a horizontal ScrollView.
+    // outside a comment. A concrete number is required because the scroller needs a fixed viewport and content width.
     const measuredContentWidth = useContext(TableContentWidthContext);
     const fallbackContentWidth = useContentWidth();
     const viewportWidth = measuredContentWidth || fallbackContentWidth;
@@ -46,17 +42,12 @@ function TableRenderer({tnode}: CustomRendererProps<TBlock>) {
 
     return (
         <TableColumnAlignmentContext.Provider value={columnAlignments}>
-            <ScrollView
-                horizontal
-                shouldActivateOnStart
-                showsHorizontalScrollIndicator={false}
-                style={{width: viewportWidth}}
-                contentContainerStyle={{width: contentWidth}}
+            <HTMLTableScroll
+                viewportWidth={viewportWidth}
+                contentWidth={contentWidth}
             >
-                <View style={styles.htmlTable}>
-                    <TableChildrenRenderer tnode={tnode} />
-                </View>
-            </ScrollView>
+                <TableChildrenRenderer tnode={tnode} />
+            </HTMLTableScroll>
         </TableColumnAlignmentContext.Provider>
     );
 }

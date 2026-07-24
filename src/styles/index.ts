@@ -2726,10 +2726,9 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         htmlTableCell: {
-            // A definite flexBasis (not flex: 1 / basis 0) keeps columns aligned across rows inside the horizontal
-            // ScrollView, where the indefinite main-axis width otherwise collapses each cell to its content width.
-            // flexShrink: 0 stops columns from shrinking to fit the viewport, so a wide table overflows and can be
-            // scrolled horizontally; flexGrow: 1 still lets columns expand to fill the message width when it is wider.
+            // A definite flexBasis with flexShrink: 0 gives every column a fixed width so a wide table keeps its size
+            // and can be scrolled horizontally, and columns stay aligned across rows; flexGrow: 1 still lets columns
+            // expand to fill the message width when the table is narrower than it.
             flexGrow: 1,
             flexShrink: 0,
             flexBasis: variables.htmlTableColumnMaxWidth,
