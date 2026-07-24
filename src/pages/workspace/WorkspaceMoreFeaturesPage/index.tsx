@@ -336,28 +336,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
                             }}
                         />
-                        {isVendorMatchingEnabled && (
-                            <MoreFeatureToggle
-                                icon={illustrations.Briefcase}
-                                title={translate('workspace.moreFeatures.vendors.title')}
-                                subtitle={translate('workspace.moreFeatures.vendors.subtitle')}
-                                isActive={hasVendorFeature(policy, isVendorMatchingEnabled)}
-                                // The Vendors switch is locked for everyone until the EnablePolicyVendors backend command exists.
-                                // Its active state is derived from policy.connections (via hasVendorFeature), so there's nothing
-                                // to toggle yet; locking it avoids shipping a switch that silently no-ops. Read-only users still
-                                // get the read-only modal via withReadOnlyFallback(). Row-body navigation stays active when the
-                                // feature is available. This will be unlocked in the follow-up PR that wires up the toggle.
-                                disabled
-                                disabledAction={withReadOnlyFallback()}
-                                onToggle={() => {}}
-                                onPress={() => {
-                                    if (!policyID) {
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.WORKSPACE_VENDORS.getRoute(policyID));
-                                }}
-                            />
-                        )}
                         <MoreFeatureToggle
                             icon={illustrations.Members}
                             title={translate('workspace.hr.title')}
@@ -480,6 +458,28 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID));
                             }}
                         />
+                        {isVendorMatchingEnabled && (
+                            <MoreFeatureToggle
+                                icon={illustrations.Briefcase}
+                                title={translate('workspace.moreFeatures.vendors.title')}
+                                subtitle={translate('workspace.moreFeatures.vendors.subtitle')}
+                                isActive={hasVendorFeature(policy, isVendorMatchingEnabled)}
+                                // The Vendors switch is locked for everyone until the EnablePolicyVendors backend command exists.
+                                // Its active state is derived from policy.connections (via hasVendorFeature), so there's nothing
+                                // to toggle yet; locking it avoids shipping a switch that silently no-ops. Read-only users still
+                                // get the read-only modal via withReadOnlyFallback(). Row-body navigation stays active when the
+                                // feature is available. This will be unlocked in the follow-up PR that wires up the toggle.
+                                disabled
+                                disabledAction={withReadOnlyFallback()}
+                                onToggle={() => {}}
+                                onPress={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_VENDORS.getRoute(policyID));
+                                }}
+                            />
+                        )}
                     </MoreFeaturesSection>
 
                     <MoreFeaturesSection title={translate('workspace.moreFeatures.manageSection.title')}>
