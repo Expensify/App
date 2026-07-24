@@ -10,6 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -36,8 +38,11 @@ function useAgentRulesSectionHeader({policyID, subtitle, isBadgeCondensed = fals
     // ruleBotAccountID stays set on the policy after RuleBot is removed from the workspace, so also require it to still be an active member before showing the "enforced by" line.
     const isRuleBotActiveMember = isPolicyMemberWithoutPendingDelete(ruleBot?.login, policy);
 
+    // The server assigns a RuleBot when it processes a rule creation, so a rule that is still optimistically pending its add can't have one yet. Only rules confirmed by the server count when deciding whether enforcement is missing.
+    const hasSyncedRule = Object.values(policy?.rules?.agentRules ?? {}).some((rule) => rule?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
     // Rules exist but there is no live RuleBot enforcing them: either none is assigned, or the assigned one was deleted / removed from the workspace. Flag this so admins know the rules are not being enforced.
-    const isRuleBotMissing = hasRules && (!ruleBotAccountID || !isRuleBotActiveMember);
+    const isRuleBotMissing = hasRules && hasSyncedRule && (!ruleBotAccountID || !isRuleBotActiveMember);
 
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter, !isBadgeCondensed && styles.gap2]}>
