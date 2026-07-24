@@ -224,6 +224,7 @@ const MFA_STATE = {
     DECIDING_REGISTRATION: 'decidingRegistration',
     CHECKING_SOFT_PROMPT_ACCEPTANCE: 'checkingSoftPromptAcceptance',
     REQUESTING_VALIDATE_CODE: 'requestingValidateCode',
+    REQUESTING_REGISTRATION_CHALLENGE: 'requestingRegistrationChallenge',
     PROMPT: 'prompt',
     AWAITING_SOFT_PROMPT: 'awaitingSoftPrompt',
     OUTCOME: 'outcome',

@@ -2,7 +2,7 @@ import type createActors from '@components/MultifactorAuthentication/machine/mfa
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 
-import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import CONST from '@src/CONST';
 
@@ -11,9 +11,30 @@ import type {OutputFrom, SnapshotFrom} from 'xstate';
 import {matchesState} from 'xstate';
 import {getShortestPaths, TestModel} from 'xstate/graph';
 
-import createInitEvent, {MFA_TEST_VALIDATE_CODE} from './flowFixtures';
+import createInitEvent, {MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR, MFA_TEST_INVALID_CODE_ERROR, MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_VALIDATE_CODE} from './flowFixtures';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
+
+const DELAYED_EVENT_PREFIX = 'xstate.after';
+const ACTOR_DONE_EVENT_PREFIX = 'xstate.done.actor.';
+const ACTOR_ERROR_EVENT_PREFIX = 'xstate.error.actor.';
+const VALIDATE_DEVICE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}validateDevice`;
+const VALIDATE_DEVICE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}validateDevice`;
+const READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
+const READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
+const CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}checkLocalCredentials`;
+const CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}checkLocalCredentials`;
+const REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}requestRegistrationChallenge`;
+const REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}requestRegistrationChallenge`;
+
+/**
+ * Framework actor events are not part of the application's event union, but TestModel accepts them
+ * in explicit journeys and forwards their output to the invoked actor transition.
+ */
+function createActorDoneEvent(type: string, output: unknown): MfaEvent {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return {type, output} as MfaEvent;
+}
 
 type DrivingJourney = {
     /** Names the journey in test titles. */
@@ -48,6 +69,20 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [createInitEvent(), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}, createInitEvent()],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.VALIDATING_DEVICE}`,
     },
+    {
+        description: 'the invalid-code journey clears the inline error and accepts a corrected code',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent(VALIDATE_DEVICE_DONE_EVENT_TYPE, {success: true}),
+            createActorDoneEvent(CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, false),
+            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
+            createActorDoneEvent(REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, {success: false, error: MFA_TEST_INVALID_CODE_ERROR}),
+            {type: 'CLEAR_CONTINUABLE_ERROR'},
+            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
+            createActorDoneEvent(REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`,
+    },
 ];
 
 type MfaEventFixtures = {
@@ -65,18 +100,6 @@ const MFA_GRAPH_EVENT_FIXTURES = {
     MODAL_CLOSED: [{type: 'MODAL_CLOSED'}],
     SOFT_PROMPT_APPROVED: [{type: 'SOFT_PROMPT_APPROVED'}],
     VALIDATE_CODE_ENTERED: [{type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE}],
-    // The rejection routes on the error reason, so the traversal needs the continuable variant and a
-    // fatal one to reach both branches.
-    VALIDATE_CODE_REJECTED: [
-        {
-            type: 'VALIDATE_CODE_REJECTED',
-            error: createMFAErrorFromApiResponse(400, CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE, 'Graph-traversal invalid code'),
-        },
-        {
-            type: 'VALIDATE_CODE_REJECTED',
-            error: createMFAErrorFromApiResponse(400, CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED, 'Graph-traversal fatal code rejection'),
-        },
-    ],
     CLEAR_CONTINUABLE_ERROR: [{type: 'CLEAR_CONTINUABLE_ERROR'}],
 } satisfies MfaEventFixtures;
 
@@ -110,21 +133,16 @@ const MFA_ACTOR_DONE_OUTPUT_FIXTURES = {
     ],
     readHasAcceptedSoftPrompt: [false, true],
     checkLocalCredentials: [false, true],
+    requestRegistrationChallenge: [
+        {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE},
+        {success: false, error: MFA_TEST_INVALID_CODE_ERROR},
+        {success: false, error: MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR},
+    ],
 } satisfies MfaActorDoneOutputFixtures;
 
 function hasActorDoneOutputFixtures(actorId: string): actorId is keyof typeof MFA_ACTOR_DONE_OUTPUT_FIXTURES {
     return Object.hasOwn(MFA_ACTOR_DONE_OUTPUT_FIXTURES, actorId);
 }
-
-const DELAYED_EVENT_PREFIX = 'xstate.after';
-const ACTOR_DONE_EVENT_PREFIX = 'xstate.done.actor.';
-const ACTOR_ERROR_EVENT_PREFIX = 'xstate.error.actor.';
-const VALIDATE_DEVICE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}validateDevice`;
-const VALIDATE_DEVICE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}validateDevice`;
-const READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
-const READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
-const CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}checkLocalCredentials`;
-const CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}checkLocalCredentials`;
 
 type PathSteps = ReadonlyArray<{event: {type: string}}>;
 
@@ -142,12 +160,10 @@ function isAutoDrivenEvent(eventType: string): boolean {
 /**
  * A path is UI-drivable when the walk can produce every step. A delayed transition would need real
  * timers, so a path containing one is not drivable. Actor completion events stay in the path so their
- * executors can settle the controlled actor mocks at the correct transition. A code rejection has no
- * UI affordance until the registration slice wires the backend call that produces it, so paths
- * containing one are covered by the machine-only suites instead.
+ * executors can settle the controlled actor mocks at the correct transition.
  */
 function isUiDrivablePath(path: {steps: PathSteps}): boolean {
-    return path.steps.every((step) => !step.event.type.startsWith(DELAYED_EVENT_PREFIX) && step.event.type !== 'VALIDATE_CODE_REJECTED');
+    return path.steps.every((step) => !step.event.type.startsWith(DELAYED_EVENT_PREFIX));
 }
 
 /**
@@ -228,6 +244,8 @@ export {
     isAutoDrivenEvent,
     READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE,
     READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE,
+    REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE,
+    REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE,
     VALIDATE_DEVICE_DONE_EVENT_TYPE,
     VALIDATE_DEVICE_ERROR_EVENT_TYPE,
 };

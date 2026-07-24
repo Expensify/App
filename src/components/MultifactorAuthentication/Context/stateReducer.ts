@@ -7,8 +7,6 @@ import {DEFAULT_STATE} from './state';
  */
 function stateReducer(state: MultifactorAuthenticationState, action: Action): MultifactorAuthenticationState {
     switch (action.type) {
-        case 'SET_REGISTRATION_CHALLENGE':
-            return {...state, registrationChallenge: action.payload};
         case 'SET_AUTHORIZATION_CHALLENGE':
             return {...state, authorizationChallenge: action.payload};
         case 'SET_REGISTRATION_COMPLETE':

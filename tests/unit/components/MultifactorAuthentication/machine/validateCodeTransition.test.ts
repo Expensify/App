@@ -2,15 +2,16 @@ import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine
 import type {CheckLocalCredentialsInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
 
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import {createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
+import {requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
+import type * as MultifactorAuthenticationActions from '@userActions/MultifactorAuthentication';
 import {requestValidateCodeAction} from '@userActions/User';
 import type * as UserActions from '@userActions/User';
 
 import CONST from '@src/CONST';
 
 import {createActorAtState, sendCheckLocalCredentialsDone} from 'tests/utils/mfa/flowActors';
-import createInitEvent, {MFA_TEST_VALIDATE_CODE} from 'tests/utils/mfa/flowFixtures';
+import createInitEvent, {MFA_TEST_INVALID_CODE_ERROR, MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_VALIDATE_CODE} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {createActor, fromPromise} from 'xstate';
 
@@ -19,14 +20,45 @@ jest.mock('@userActions/User', () => ({
     ...jest.requireActual<typeof UserActions>('@userActions/User'),
     requestValidateCodeAction: jest.fn(),
 }));
+jest.mock('@userActions/MultifactorAuthentication', () => ({
+    ...jest.requireActual<typeof MultifactorAuthenticationActions>('@userActions/MultifactorAuthentication'),
+    requestRegistrationChallenge: jest.fn(),
+}));
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const REASON = CONST.MULTIFACTOR_AUTHENTICATION.REASON;
 
 const requestValidateCodeActionMock = jest.mocked(requestValidateCodeAction);
-
-const INVALID_CODE_ERROR = createMFAErrorFromApiResponse(400, REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE, 'Invalid code for the transition spec');
-const FATAL_CODE_ERROR = createMFAErrorFromApiResponse(400, REASON.CLIENT_ERRORS.UNRECOGNIZED, 'Fatal rejection for the transition spec');
+const requestRegistrationChallengeMock = jest.mocked(requestRegistrationChallenge);
+type RegistrationChallengeResponse = Awaited<ReturnType<typeof requestRegistrationChallenge>>;
+const VALID_REGISTRATION_CHALLENGE_RESPONSE = {
+    httpStatusCode: 200,
+    reason: undefined,
+    message: undefined,
+    challenge: MFA_TEST_REGISTRATION_CHALLENGE,
+    publicKeys: [],
+} satisfies RegistrationChallengeResponse;
+const INVALID_CODE_RESPONSE = {
+    httpStatusCode: 400,
+    reason: REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
+    message: 'Invalid code for the transition spec',
+    challenge: undefined,
+    publicKeys: undefined,
+} satisfies RegistrationChallengeResponse;
+const MISSING_REGISTRATION_CHALLENGE_RESPONSE = {
+    httpStatusCode: 200,
+    reason: undefined,
+    message: undefined,
+    challenge: undefined,
+    publicKeys: [],
+} satisfies RegistrationChallengeResponse;
+const FATAL_REGISTRATION_CHALLENGE_RESPONSE = {
+    httpStatusCode: 500,
+    reason: REASON.SERVER_ERRORS.UNRECOGNIZED,
+    message: 'Fatal registration challenge rejection',
+    challenge: undefined,
+    publicKeys: undefined,
+} satisfies RegistrationChallengeResponse;
 
 // The graph-traversal suites generate their expectations from the machine, so a transition pointed at
 // a wrong target adjusts those expectations and still passes. This suite pins the registration
@@ -36,6 +68,13 @@ const FATAL_CODE_ERROR = createMFAErrorFromApiResponse(400, REASON.CLIENT_ERRORS
 describe('MFA magic code and registration decision', () => {
     beforeEach(() => {
         requestValidateCodeActionMock.mockClear();
+        requestRegistrationChallengeMock.mockReset();
+        requestRegistrationChallengeMock.mockImplementation(
+            () =>
+                new Promise(() => {
+                    // Keep the actor pending so the test can assert the challenge-request gate.
+                }),
+        );
     });
 
     it('requests a validate code exactly once when a fresh registration reaches the magic-code screen', () => {
@@ -62,65 +101,108 @@ describe('MFA magic code and registration decision', () => {
         actor.stop();
     });
 
-    it('stores the submitted code and continues the flow', () => {
+    it('stores the submitted code and waits for a registration challenge before continuing', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE});
 
         actor.start();
         actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE})).toBe(true);
         expect(result.context.validateCode).toBe(MFA_TEST_VALIDATE_CODE);
+        expect(result.context.registrationChallenge).toBeUndefined();
+        expect(requestRegistrationChallengeMock).toHaveBeenCalledWith(MFA_TEST_VALIDATE_CODE);
 
         actor.stop();
     });
 
-    it('stays on the magic-code screen with an inline error and no new email when the code is invalid', () => {
+    it('stores a valid registration challenge before continuing the flow', async () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE});
+        requestRegistrationChallengeMock.mockResolvedValue(VALID_REGISTRATION_CHALLENGE_RESPONSE);
 
         actor.start();
-        actor.send({type: 'VALIDATE_CODE_REJECTED', error: INVALID_CODE_ERROR});
+        actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
+        await waitForBatchedUpdates();
+
+        const result = actor.getSnapshot();
+        expect(result.matches({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE})).toBe(false);
+        expect(result.context.registrationChallenge).toBe(MFA_TEST_REGISTRATION_CHALLENGE);
+        expect(result.context.error).toBeUndefined();
+
+        actor.stop();
+    });
+
+    it('stays on the magic-code screen with an inline error and no new email when the code is invalid', async () => {
+        const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE});
+        requestRegistrationChallengeMock.mockResolvedValue(INVALID_CODE_RESPONSE);
+
+        actor.start();
+        actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
+        await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE})).toBe(true);
-        expect(result.context.continuableError).toBe(INVALID_CODE_ERROR);
+        expect(result.context.continuableError?.reason).toBe(REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE);
+        expect(result.context.registrationChallenge).toBeUndefined();
         expect(result.context.error).toBeUndefined();
         expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
 
         actor.stop();
     });
 
-    it('clears the inline error when the rejected code is submitted again without editing', () => {
+    it('clears the inline error when the rejected code is submitted again without editing', async () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE});
+        requestRegistrationChallengeMock.mockResolvedValueOnce(INVALID_CODE_RESPONSE).mockResolvedValueOnce(VALID_REGISTRATION_CHALLENGE_RESPONSE);
 
         actor.start();
-        actor.send({type: 'VALIDATE_CODE_REJECTED', error: INVALID_CODE_ERROR});
         actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
+        await waitForBatchedUpdates();
+        actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
+        await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}})).toBe(true);
+        expect(result.context.registrationChallenge).toBe(MFA_TEST_REGISTRATION_CHALLENGE);
         expect(result.context.validateCode).toBe(MFA_TEST_VALIDATE_CODE);
         expect(result.context.continuableError).toBeUndefined();
 
         actor.stop();
     });
 
-    it('ends the flow with the failure outcome when the code rejection is not continuable', () => {
+    it('ends the flow with the failure outcome when the challenge request fails fatally', async () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE});
+        requestRegistrationChallengeMock.mockResolvedValue(FATAL_REGISTRATION_CHALLENGE_RESPONSE);
 
         actor.start();
-        actor.send({type: 'VALIDATE_CODE_REJECTED', error: FATAL_CODE_ERROR});
+        actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
+        await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
-        expect(result.context.error).toBe(FATAL_CODE_ERROR);
+        expect(result.context.error?.reason).toBe(REASON.SERVER_ERRORS.UNRECOGNIZED);
+        expect(result.context.registrationChallenge).toBeUndefined();
         expect(result.context.continuableError).toBeUndefined();
 
         actor.stop();
     });
 
+    it('does not continue when a successful response has no valid registration challenge', async () => {
+        const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE});
+        requestRegistrationChallengeMock.mockResolvedValue(MISSING_REGISTRATION_CHALLENGE_RESPONSE);
+
+        actor.start();
+        actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
+        await waitForBatchedUpdates();
+
+        const result = actor.getSnapshot();
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+        expect(result.context.error?.reason).toBe(REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE);
+        expect(result.context.registrationChallenge).toBeUndefined();
+
+        actor.stop();
+    });
+
     it('clears the inline error when the user starts typing again', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE}, {continuableError: INVALID_CODE_ERROR});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE}, {continuableError: MFA_TEST_INVALID_CODE_ERROR});
 
         actor.start();
         actor.send({type: 'CLEAR_CONTINUABLE_ERROR'});

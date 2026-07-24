@@ -1,6 +1,12 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
-import type {CheckLocalCredentialsInput, ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
+import type {
+    CheckLocalCredentialsInput,
+    ReadHasAcceptedSoftPromptInput,
+    RequestRegistrationChallengeInput,
+    RequestRegistrationChallengeOutput,
+    ValidateDeviceInput,
+} from '@components/MultifactorAuthentication/machine/types';
 
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -85,12 +91,14 @@ function createControlledActor<TOutput, TInput>(actorID: string) {
 const validateDeviceControl = createControlledActor<MFAResult, ValidateDeviceInput>('validateDevice');
 const readHasAcceptedSoftPromptControl = createControlledActor<boolean, ReadHasAcceptedSoftPromptInput>('readHasAcceptedSoftPrompt');
 const checkLocalCredentialsControl = createControlledActor<boolean, CheckLocalCredentialsInput>('checkLocalCredentials');
+const requestRegistrationChallengeControl = createControlledActor<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>('requestRegistrationChallenge');
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
     validateDeviceControl.reset();
     readHasAcceptedSoftPromptControl.reset();
     checkLocalCredentialsControl.reset();
+    requestRegistrationChallengeControl.reset();
 }
 
 /** Replaces the machine's side-effect actors with controlled test implementations. */
@@ -99,6 +107,7 @@ function mfaActorsMock() {
         validateDevice: validateDeviceControl.actor,
         readHasAcceptedSoftPrompt: readHasAcceptedSoftPromptControl.actor,
         checkLocalCredentials: checkLocalCredentialsControl.actor,
+        requestRegistrationChallenge: requestRegistrationChallengeControl.actor,
     } satisfies ReturnType<typeof createActors>;
 
     return {
@@ -172,6 +181,7 @@ export {
     validateDeviceControl,
     readHasAcceptedSoftPromptControl,
     checkLocalCredentialsControl,
+    requestRegistrationChallengeControl,
     resetMfaUiMocks,
     mfaActorsMock,
     userActionsMock,

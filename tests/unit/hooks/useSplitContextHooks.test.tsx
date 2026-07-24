@@ -229,7 +229,6 @@ describe('Split context hooks', () => {
             const {result} = renderHook(() => useMultifactorAuthenticationState(), {wrapper});
 
             expect(result.current).toEqual(DEFAULT_STATE);
-            expect(result.current.registrationChallenge).toBeUndefined();
             expect(result.current.isFlowComplete).toBe(false);
         });
 

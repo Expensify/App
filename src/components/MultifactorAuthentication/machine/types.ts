@@ -6,7 +6,8 @@ import type {
     MultifactorAuthenticationScenarioParams,
 } from '@components/MultifactorAuthentication/config/types';
 
-import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import type {MFAError, MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import type CONST from '@src/CONST';
 
@@ -37,6 +38,9 @@ type MfaContext = {
 
     /** Error the validate-code screen shows inline while the flow stays on it, as opposed to `error`, which ends the flow */
     continuableError: MFAError | undefined;
+
+    /** Registration challenge returned after the backend accepts the magic code */
+    registrationChallenge: RegistrationChallenge | undefined;
 
     /** Whether the user approved the soft prompt during this flow. The durable acceptance lives in Onyx under the device-biometrics key. */
     softPromptApproved: boolean;
@@ -70,7 +74,6 @@ type MfaEvent =
     | {type: 'MODAL_CLOSED'}
     | {type: 'SOFT_PROMPT_APPROVED'}
     | {type: 'VALIDATE_CODE_ENTERED'; validateCode: string}
-    | {type: 'VALIDATE_CODE_REJECTED'; error: MFAError}
     | {type: 'CLEAR_CONTINUABLE_ERROR'};
 
 /** Describes the input the machine passes to the device-check actor. */
@@ -82,4 +85,20 @@ type ReadHasAcceptedSoftPromptInput = {accountID: number};
 /** Identifies the account whose local credentials the registration-decision actor checks. */
 type CheckLocalCredentialsInput = {accountID: number};
 
-export type {CheckLocalCredentialsInput, MfaContext, MfaEvent, MfaModalState, MultifactorAuthenticationInitEvent, ReadHasAcceptedSoftPromptInput, ValidateDeviceInput};
+/** Magic code sent to the backend to obtain a registration challenge. */
+type RequestRegistrationChallengeInput = {validateCode: string};
+
+/** A successful response must carry the validated registration challenge. */
+type RequestRegistrationChallengeOutput = MFAResult<{challenge: RegistrationChallenge}>;
+
+export type {
+    CheckLocalCredentialsInput,
+    MfaContext,
+    MfaEvent,
+    MfaModalState,
+    MultifactorAuthenticationInitEvent,
+    ReadHasAcceptedSoftPromptInput,
+    RequestRegistrationChallengeInput,
+    RequestRegistrationChallengeOutput,
+    ValidateDeviceInput,
+};

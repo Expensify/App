@@ -1,14 +1,16 @@
 import checkDeviceEligibility from '@components/MultifactorAuthentication/biometrics/checkDeviceEligibility';
 import {areLocalCredentialsKnownToServer} from '@components/MultifactorAuthentication/biometrics/operations';
 
+import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import {createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
 
-import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
+import {getDeviceBiometricsOnyxKey, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 
 import {fromPromise} from 'xstate';
 
-import type {CheckLocalCredentialsInput, ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from './types';
+import type {CheckLocalCredentialsInput, ReadHasAcceptedSoftPromptInput, RequestRegistrationChallengeInput, RequestRegistrationChallengeOutput, ValidateDeviceInput} from './types';
 
 /**
  * A refused device resolves as a failed MFAResult, so the machine's onError transition for this
@@ -32,11 +34,23 @@ const readHasAcceptedSoftPrompt = fromPromise<boolean, ReadHasAcceptedSoftPrompt
 const checkLocalCredentials = fromPromise<boolean, CheckLocalCredentialsInput>(({input}) => areLocalCredentialsKnownToServer(input.accountID));
 
 /**
+ * Exchanges the submitted magic code for a validated registration challenge. The action normalizes
+ * backend failures into a reason; the actor exposes them as failed MFA results for machine routing.
+ */
+const requestRegistrationChallengeActor = fromPromise<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>(async ({input}) => {
+    const {challenge, httpStatusCode, reason, message} = await requestRegistrationChallenge(input.validateCode);
+    if (!isHttpSuccess(httpStatusCode) || !challenge) {
+        return {success: false, error: createMFAErrorFromApiResponse(httpStatusCode, reason, message)};
+    }
+    return {success: true, challenge};
+});
+
+/**
  * Builds the side-effect actors that the machine states invoke. The machine is always created with
  * these working implementations, so no caller needs to provide stubs or overrides.
  */
 function createActors() {
-    return {validateDevice, readHasAcceptedSoftPrompt, checkLocalCredentials};
+    return {validateDevice, readHasAcceptedSoftPrompt, checkLocalCredentials, requestRegistrationChallenge: requestRegistrationChallengeActor};
 }
 
 export default createActors;

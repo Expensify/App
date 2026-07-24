@@ -1,12 +1,11 @@
 import type {MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
 
-import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 import type {MultifactorAuthenticationState} from './state';
 
 type Action =
-    | {type: 'SET_REGISTRATION_CHALLENGE'; payload: RegistrationChallenge | undefined}
     | {type: 'SET_AUTHORIZATION_CHALLENGE'; payload: AuthenticationChallenge | undefined}
     | {type: 'SET_REGISTRATION_COMPLETE'; payload: boolean}
     | {type: 'SET_AUTHORIZATION_COMPLETE'; payload: boolean}
