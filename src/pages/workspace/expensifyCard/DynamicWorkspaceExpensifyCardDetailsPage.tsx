@@ -134,8 +134,6 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const [allFeedsCards, allFeedsCardsResult] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const workspaceCards = getAllCardsForWorkspace(defaultFundID, allFeedsCards, cardFeeds, expensifyCardSettings, /* includeDeactivated */ true);
 
-    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
-
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES) ?? syncingAccountingIntegration;
@@ -469,7 +467,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                                     if (!exportMenuItem.exportType) {
                                         return;
                                     }
-                                    clearCompanyCardErrorField(Number(card?.fundID ?? workspaceAccountID), cardID, CONST.EXPENSIFY_CARD.BANK, exportMenuItem.exportType);
+                                    clearCompanyCardErrorField(Number(card?.fundID ?? defaultFundID), cardID, CONST.EXPENSIFY_CARD.BANK, exportMenuItem.exportType);
                                 }}
                             >
                                 <MenuItemWithTopDescription
@@ -483,10 +481,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                                     onPress={() =>
                                         Navigation.navigate(
                                             createDynamicRoute(
-                                                DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(
-                                                    getCardFeedWithDomainID(card.bank, card?.fundID ?? workspaceAccountID),
-                                                    String(card.cardID),
-                                                ),
+                                                DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(getCardFeedWithDomainID(card.bank, card?.fundID ?? defaultFundID), String(card.cardID)),
                                             ),
                                         )
                                     }
