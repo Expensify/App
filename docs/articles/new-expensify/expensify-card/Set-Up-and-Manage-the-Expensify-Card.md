@@ -125,12 +125,6 @@ The **Current balance** on the workspace **Expensify Card** page is the sum of a
 
 The **View transactions** link appears only under **Current balance**, not under **Remaining limit** or **Cash back**.
 
-<!-- SCREENSHOT:
-Suggestion: The workspace Expensify Card page with the View transactions link highlighted under the Current balance amount
-Location: After the steps in "How to view the transactions in your Expensify Card current balance"
-Purpose: Show admins exactly where the View transactions link appears
--->
-
 ---
 
 ## How to apply Expensify Card cash back to your Expensify bill
