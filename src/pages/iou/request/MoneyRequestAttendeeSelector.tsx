@@ -269,7 +269,15 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              personalDetails,
+                              userToInviteExpenseReport,
+                              userToInviteExpenseReportPolicy,
+                              translate,
+                              reportAttributesDerived,
+                          )
                         : getParticipantsOption(participant, personalDetails, translate);
                 }) as OptionData[],
                 sectionIndex: 3,
