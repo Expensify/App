@@ -6021,7 +6021,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         subsections: {
                             currentTravelSpendLabel: 'Aktualne wydatki na podróże',
                             currentTravelSpendPaymentQueued: (amount: string) => `Płatność w wysokości ${amount} jest w kolejce i wkrótce zostanie przetworzona.`,
-                            currentTravelSpendInvoiceQueued: 'Wkrótce zostanie utworzona i wysłana do Ciebie nowa faktura za wydatki podróżne.',
                             currentTravelSpendInvoicePending: (amount: string) => `Faktura na kwotę ${amount} została wysłana i oczekuje na płatność.`,
                             currentTravelSpendCta: 'Spłać saldo',
                             currentTravelLimitLabel: 'Aktualny limit podróży',

@@ -5904,7 +5904,6 @@ ${amount} para ${merchant} - ${date}`,
                         subsections: {
                             currentTravelSpendLabel: 'Gasto actual en viajes',
                             currentTravelSpendPaymentQueued: (amount: string) => `El pago de ${amount} está en cola y se procesará pronto.`,
-                            currentTravelSpendInvoiceQueued: 'Se creará y enviará pronto una nueva factura por tu gasto de viaje.',
                             currentTravelSpendInvoicePending: (amount: string) => `Se ha enviado una factura por ${amount} y está a la espera de pago.`,
                             currentTravelSpendCta: 'Pagar saldo',
                             sendInvoiceNowCta: 'Enviar factura ahora',

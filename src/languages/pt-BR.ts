@@ -6034,7 +6034,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         subsections: {
                             currentTravelSpendLabel: 'Gasto atual com viagens',
                             currentTravelSpendPaymentQueued: (amount: string) => `O pagamento de ${amount} está na fila e será processado em breve.`,
-                            currentTravelSpendInvoiceQueued: 'Uma nova fatura para o seu gasto de viagem será criada e enviada a você em breve.',
                             currentTravelSpendInvoicePending: (amount: string) => `Uma fatura de ${amount} foi enviada e está aguardando pagamento.`,
                             currentTravelSpendCta: 'Pagar saldo',
                             currentTravelLimitLabel: 'Limite de viagem atual',

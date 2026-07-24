@@ -6042,7 +6042,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         subsections: {
                             currentTravelSpendLabel: 'Huidige reiskosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Betaling van ${amount} staat in de wachtrij en wordt binnenkort verwerkt.`,
-                            currentTravelSpendInvoiceQueued: 'Er wordt binnenkort een nieuwe factuur voor uw reisuitgaven aangemaakt en naar u verzonden.',
                             currentTravelSpendInvoicePending: (amount: string) => `Er is een factuur voor ${amount} verzonden en deze wacht op betaling.`,
                             currentTravelSpendCta: 'Saldo betalen',
                             currentTravelLimitLabel: 'Huidige reisl imiet',
