@@ -168,6 +168,7 @@ describe('GoogleTagManagerTest', () => {
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
         createWorkspace({
+            conciergeChat: undefined,
             policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
@@ -180,6 +181,7 @@ describe('GoogleTagManagerTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            conciergeChat: undefined,
             policyName: '',
             currentUserAccountIDParam: 123456,
             activePolicy: undefined,
@@ -192,6 +194,7 @@ describe('GoogleTagManagerTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            conciergeChat: undefined,
             policyName: '',
             currentUserAccountIDParam: 123456,
             activePolicy: undefined,
@@ -212,6 +215,7 @@ describe('GoogleTagManagerTest', () => {
     test('workspace_created_sales_eligible', async () => {
         // When we create a first workspace with the "Manage my team" intent, a company of 5+ employees, and a private email domain
         createWorkspace({
+            conciergeChat: undefined,
             policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
@@ -234,6 +238,7 @@ describe('GoogleTagManagerTest', () => {
     test('workspace_created - public email domain is not sales eligible', async () => {
         // When we create a first workspace that meets the intent and company size criteria but uses a public email domain
         createWorkspace({
+            conciergeChat: undefined,
             policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
@@ -261,6 +266,7 @@ describe('GoogleTagManagerTest', () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
         trackExpense({
+            conciergeChat: undefined,
             report: {reportID: '123'},
             isDraftPolicy: true,
             action: CONST.IOU.ACTION.CATEGORIZE,

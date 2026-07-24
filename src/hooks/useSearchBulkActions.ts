@@ -365,8 +365,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
-    const {introSelected, betas, isSelfTourViewed, activePolicyID, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} =
-        usePaymentContext();
+    const {
+        introSelected,
+        betas,
+        isSelfTourViewed,
+        activePolicyID,
+        activePolicy,
+        conciergeChat,
+        defaultWorkspaceName,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        delegateEmail,
+    } = usePaymentContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
@@ -1223,6 +1234,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         methodID: paymentItem.bankAccountID ?? paymentItem.fundID,
                         paymentMethod: paymentItem.fundID ? CONST.PAYMENT_METHODS.DEBIT_CARD : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                         activePolicy,
+                        conciergeChat,
                         betas,
                         isSelfTourViewed,
                         defaultWorkspaceName,
