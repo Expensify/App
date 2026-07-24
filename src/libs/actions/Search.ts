@@ -957,7 +957,7 @@ function search({
         return;
     }
 
-    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}_${shouldCalculateTotals}`;
     if (inFlightSearchRequests.has(dedupeKey)) {
         return;
     }
