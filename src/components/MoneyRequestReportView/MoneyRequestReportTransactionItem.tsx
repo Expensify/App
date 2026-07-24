@@ -249,7 +249,7 @@ function MoneyRequestReportTransactionItemBody({
                         onCheckboxPress={toggleTransaction}
                         columns={columns}
                         isDisabled={isPendingDelete}
-                        style={!shouldUseNarrowLayout ? [styles.p3, styles.pv2, styles.noBorderRadius] : [styles.p4, styles.noBorderRadius]}
+                        style={!shouldUseNarrowLayout ? [styles.ph3, styles.noBorderRadius] : [styles.p4, styles.noBorderRadius]}
                         onButtonPress={() => {
                             handleOnPress(transaction.transactionID);
                         }}

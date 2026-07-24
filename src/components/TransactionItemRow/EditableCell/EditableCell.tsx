@@ -133,7 +133,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     // Tooltip / Hoverable / BoundsObserver subtree during the initial skeleton render,
     // unblocking the main thread so the network response can be processed sooner.
     if (!canEdit || !isInteractive) {
-        return <View style={[styles.editableCell]}>{children}</View>;
+        return <View style={styles.editableCell}>{children}</View>;
     }
 
     return (
@@ -142,8 +142,8 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                 const shouldShowEditIcon = isEditIconFocused || isCellHovered;
 
                 return (
-                    <View style={styles.editableCell}>
-                        {children}
+                    <View style={[styles.flex1, styles.w100, styles.justifyContentCenter]}>
+                        <View style={styles.editableCell}>{children}</View>
                         <View
                             pointerEvents={shouldShowEditIcon ? 'box-none' : 'none'}
                             style={[
