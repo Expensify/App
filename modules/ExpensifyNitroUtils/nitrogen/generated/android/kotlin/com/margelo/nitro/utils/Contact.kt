@@ -9,6 +9,7 @@ package com.margelo.nitro.utils
 
 import androidx.annotation.Keep
 import com.facebook.proguard.annotations.DoNotStrip
+import java.util.Objects
 
 
 /**
@@ -34,6 +35,26 @@ data class Contact(
   val imageData: String?
 ) {
   /* primary constructor */
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other !is Contact) return false
+    return Objects.deepEquals(this.firstName, other.firstName)
+      && Objects.deepEquals(this.lastName, other.lastName)
+      && Objects.deepEquals(this.phoneNumbers, other.phoneNumbers)
+      && Objects.deepEquals(this.emailAddresses, other.emailAddresses)
+      && Objects.deepEquals(this.imageData, other.imageData)
+  }
+
+  override fun hashCode(): Int {
+    return arrayOf(
+      firstName,
+      lastName,
+      phoneNumbers,
+      emailAddresses,
+      imageData
+    ).contentDeepHashCode()
+  }
 
   companion object {
     /**

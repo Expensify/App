@@ -31,7 +31,18 @@ import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {
+    CardList,
+    MergeTransaction,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    Report,
+    ReportActions,
+    ReportNextStepDeprecated,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 
@@ -354,6 +365,7 @@ type MergeTransactionRequestParams = {
     isASAPSubmitBetaEnabled: boolean;
     delegateAccountID: number | undefined;
     selfDMReport: OnyxEntry<Report>;
+    selfDMReportActions: OnyxEntry<ReportActions>;
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
 };
@@ -384,6 +396,7 @@ function mergeTransactionRequest({
     isASAPSubmitBetaEnabled,
     delegateAccountID,
     selfDMReport,
+    selfDMReportActions,
     reportPolicyTags,
     isTrackIntentUser,
 }: MergeTransactionRequestParams) {
@@ -570,7 +583,7 @@ function mergeTransactionRequest({
         // Success data
         sourceTransactionSuccessData.push(...successSourceReportActionData);
     } else {
-        const whisperAction = getTrackExpenseActionableWhisper(sourceTransaction.transactionID, selfDMReportID);
+        const whisperAction = getTrackExpenseActionableWhisper(sourceTransaction.transactionID, selfDMReportID, selfDMReportActions);
         const sourceIouAction = getIOUActionForReportID(selfDMReportID, sourceTransaction.transactionID);
         const actionableWhisperReportActionID = whisperAction?.reportActionID;
 

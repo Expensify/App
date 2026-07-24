@@ -113,6 +113,10 @@ function getDefineValues(file: string): DefinePluginOptions {
     /* eslint-disable @typescript-eslint/naming-convention */
     return {
         process: {env: {}},
+        // react-native-worklets (and other RN libs) reference the Node.js `global` identifier,
+        // which is undefined in the browser. Map it to `globalThis` so the web bundle doesn't throw
+        // "global is not defined". Rspack (unlike webpack 4) does not auto-provide `global`.
+        global: 'globalThis',
         // Define EXPO_OS for web platform to fix expo-modules-core warning
         'process.env.EXPO_OS': JSON.stringify('web'),
         __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
@@ -277,10 +281,21 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                     },
                     // Included node_modules: Same OXC + React Compiler pass as app source above,
                     // minus the Fullstory pass, which only makes sense for our own components.
+                    //
+                    // `type: 'javascript/auto'` is required: some of these packages (e.g.
+                    // react-native-reanimated's `webUtils.web.js`) mix ESM `export` with guarded
+                    // CommonJS `require()` calls in the same file. Without this, rspack classifies
+                    // the file as `javascript/esm` (because of the `export`s) and leaves `require()`
+                    // as an unresolved free variable, so `require('react-native-web/...')` throws at
+                    // runtime, gets swallowed by the surrounding try/catch, and leaves
+                    // `createReactDOMStyle` undefined. That in turn makes reanimated's `_updatePropsJS`
+                    // crash with "Cannot convert undefined or null to object", breaking every
+                    // animated component on web (text input labels, tooltips, popovers, modals).
                     {
                         test: /\.(js|ts)x?$/,
                         include: [includedNodeModulesRegex],
                         exclude: [/\.native\.(js|jsx|ts|tsx)$/],
+                        type: 'javascript/auto',
                         use: getOxcAndWorkletsLoaders(isDevServer),
                     },
                 ]);

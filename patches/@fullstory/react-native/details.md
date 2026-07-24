@@ -1,6 +1,6 @@
 # `@fullstory/react-native` patches
 
-### [@fullstory+react-native+1.9.0.patch](@fullstory+react-native+1.9.0.patch)
+### [@fullstory+react-native+1.10.1.patch](@fullstory+react-native+1.10.1.patch)
 
 - Reason:
 
