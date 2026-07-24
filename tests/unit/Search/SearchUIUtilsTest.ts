@@ -11151,6 +11151,59 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getHasOptions', () => {
+        test('returns expense has options including submitted violation', () => {
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE);
+
+            expect(result).toEqual([
+                {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+                {text: translateLocal('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+            ]);
+        });
+
+        test('returns chat has options without submitted violation', () => {
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.CHAT);
+
+            expect(result).toEqual([
+                {text: translateLocal('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+            ]);
+        });
+
+        test('returns empty array for unsupported search types', () => {
+            expect(SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual([]);
+        });
+    });
+
+    describe('getDisplayValue', () => {
+        test('returns translated has option labels from getHasOptions', () => {
+            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(translateLocal('search.filters.has.submittedViolation'));
+        });
+
+        test('returns multiple has option labels joined by comma', () => {
+            const result = SearchUIUtils.getDisplayValue(
+                'has',
+                {has: [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+            );
+
+            expect(result).toBe(`${translateLocal('common.receipt')}, ${translateLocal('search.filters.has.submittedViolation')}`);
+        });
+
+        test('continues to use common translations for is filter values', () => {
+            const result = SearchUIUtils.getDisplayValue('is', {is: [CONST.SEARCH.IS_VALUES.READ]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(translateLocal('common.read'));
+        });
+    });
+
     describe('filterValidHasValues', () => {
         test('should return undefined when hasValues or type is undefined', () => {
             expect(SearchUIUtils.filterValidHasValues(undefined, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal)).toBeUndefined();
@@ -11158,12 +11211,12 @@ describe('SearchUIUtils', () => {
         });
 
         test('should filter and return only valid hasValues', () => {
-            // Valid values for EXPENSE: receipt, attachment, tag, category
+            // Valid values for EXPENSE: receipt, attachment, tag, category, submitted-violation
             // Invalid value: link (only valid for CHAT)
-            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK];
+            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION];
             const result = SearchUIUtils.filterValidHasValues(hasValues, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
 
-            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG]);
+            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]);
         });
     });
 

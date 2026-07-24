@@ -2760,6 +2760,18 @@ describe('actions/Report', () => {
         });
     });
 
+    it('should pass managed card transaction context when creating a new report', () => {
+        const managedCardTransactionID = '123456789';
+        const policy = {
+            ...createRandomPolicy(5678),
+            type: CONST.POLICY.TYPE.TEAM,
+        };
+
+        Report.createNewReport({accountID: 1234}, true, false, policy, [CONST.BETAS.ALL], false, false, undefined, {managedCardTransactionID});
+
+        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_APP_REPORT, expect.objectContaining({managedCardTransactionID}), expect.anything());
+    });
+
     it('should set hasOnceLoadedReportActions for parent report metadata when creating a new report', async () => {
         const accountID = 1234;
         const policyID = '5678';
