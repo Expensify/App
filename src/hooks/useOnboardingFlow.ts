@@ -87,7 +87,13 @@ function useOnboardingFlowRouter() {
                     // Make sure hybrid app onboarding is completed and will not start startOnboardingFlow for users that switched from OldDot.
                     if (isHybridAppOnboardingCompleted === false) {
                         completeHybridAppOnboarding();
-                        return;
+
+                        // Only skip startOnboardingFlow for genuine OldDot-switch users, whose NewDot guided setup is already complete.
+                        // A fresh organic user who force-closed mid-onboarding also has isHybridAppOnboardingCompleted === false while
+                        // NewDot onboarding is still incomplete, so fall through to startOnboardingFlow to resume the flow on app reopen.
+                        if (isOnboardingCompleted !== false) {
+                            return;
+                        }
                     }
                 }
 
