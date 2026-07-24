@@ -1162,3 +1162,21 @@ describe('isParticipantP2P', () => {
         expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
     });
 });
+
+describe('reportHasRealPolicy', () => {
+    it('should return false for the placeholder self-DM policy', () => {
+        expect(IOUUtils.reportHasRealPolicy({policyID: CONST.POLICY.ID_FAKE} as Report)).toBe(false);
+    });
+
+    it('should return false when the report has no policyID', () => {
+        expect(IOUUtils.reportHasRealPolicy({} as Report)).toBe(false);
+    });
+
+    it('should return false when the report is undefined', () => {
+        expect(IOUUtils.reportHasRealPolicy(undefined)).toBe(false);
+    });
+
+    it('should return true for a real workspace policy', () => {
+        expect(IOUUtils.reportHasRealPolicy({policyID: 'ABC123'} as Report)).toBe(true);
+    });
+});
