@@ -1,7 +1,7 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, Getting started, onboarding checklist, track and budget my expenses]
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
 internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
@@ -106,11 +106,14 @@ The **Getting started** section shows a checklist of key setup steps to help Wor
 This section appears only if:
 
  - The workspace is on a free trial
- - The workspace owner selected **manage my team** or **track and budget my expenses** during setup
+ - The workspace owner selected **manage my team**, **track and budget my expenses**, or **Organize my personal spending** during setup
 
 If these conditions aren’t met, the section won’t appear.
 
-The checklist items vary based on the intent selected during onboarding. Users who chose **track and budget my expenses** see tasks for creating a workspace, customizing accounting categories, and inviting an accountant.
+The checklist items vary based on the intent selected during onboarding:
+
+- Users who chose **track and budget my expenses** see tasks for creating a workspace, customizing accounting categories, and inviting an accountant.
+- Users who chose **Organize my personal spending** see tasks for **Create a workspace**, **Customize spend categories**, **Create an expense**, and **Link personal card**. The **Customize spend categories** task appears only while the Categories feature is enabled on the workspace, and the whole section disappears once every task is complete.
 
 ---
 
@@ -192,7 +195,7 @@ The **Discover** section only appears until you’ve watched the demo. Once you�
 
 ## Why don’t I see the Getting started section?
 
-The **Getting started** section only appears if you selected the **manage my team** or **track and budget my expenses** intent during onboarding, you are within 60 days of your free trial start date, and you have an active paid workspace. If any of these conditions are not met, the section won’t be visible.
+The **Getting started** section only appears if you selected the **manage my team**, **track and budget my expenses**, or **Organize my personal spending** intent during onboarding and you are within 60 days of your free trial start date. If any of these conditions are not met, the section won’t be visible.
 
 ## Why don’t I see the Your spend section?
 
