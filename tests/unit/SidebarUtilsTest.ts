@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 
