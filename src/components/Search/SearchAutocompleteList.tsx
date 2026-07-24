@@ -734,8 +734,23 @@ function SearchAutocompleteList({
             return;
         }
 
-        // Otherwise the debounce is still pending for this query: focus the search query item (index 0) and
-        // scroll to top. The highlight effect below switches focus to the first result once a good match settles.
+        // The debounce hasn't caught up yet for this keystroke. If focus is already resting on the match from a
+        // previous, already-settled keystroke, and the freshly typed text still matches that same row, keep focus
+        // there instead of bouncing to the query row and waiting out a fresh debounce window -- this is what
+        // prevents a visible flicker when continuing to type past an already-highlighted match (production has no
+        // debounce gap here, so it never loses the highlight in this case either).
+        if (
+            shouldHighlightFirstItem &&
+            firstRecentReportFlatIndex !== -1 &&
+            lastProgrammaticFocusKeyRef.current === firstRecentReportKey &&
+            shouldHighlight(normalizedReferenceText, effectiveInputQueryValue)
+        ) {
+            return;
+        }
+
+        // Otherwise the debounce is still pending and the match is no longer valid for this keystroke: focus the
+        // search query item (index 0) and scroll to top. The highlight effect below switches focus to the first
+        // result once a good match settles.
         lastProgrammaticFocusKeyRef.current = searchQueryRowKey;
         innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
     }, [
@@ -763,9 +778,7 @@ function SearchAutocompleteList({
     }, [isLoadingOptions, firstRecentReportFlatIndex, firstRecentReportKey, shouldUseNarrowLayout]);
 
     useEffect(() => {
-        const targetText = autocompleteQueryValue;
-
-        if (!shouldHighlightFirstItem || firstRecentReportFlatIndex === -1 || !shouldHighlight(normalizedReferenceText, targetText)) {
+        if (!shouldHighlightFirstItem || firstRecentReportFlatIndex === -1 || !shouldHighlight(normalizedReferenceText, autocompleteQueryValue)) {
             return;
         }
 
