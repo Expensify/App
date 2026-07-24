@@ -244,6 +244,12 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Currency the creditedAmount is denominated in (the employee's deposit currency, which can differ from the report currency) */
         creditedCurrency?: string;
 
+        /** Last 4 of the employee deposit account credited by the latest cross-border FX reimbursement */
+        creditBankAccountLast4?: string;
+
+        /** Last 4 of the company withdrawal (VBA) account debited by the latest cross-border FX reimbursement */
+        debitBankAccountLast4?: string;
+
         /** Collection of errors that exist in report fields */
         errorFields?: OnyxCommon.ErrorFields;
 

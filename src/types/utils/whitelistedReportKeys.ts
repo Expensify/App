@@ -57,6 +57,8 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         creditedAmount: unknown;
         debitedAmount: unknown;
         creditedCurrency: unknown;
+        creditBankAccountLast4: unknown;
+        debitBankAccountLast4: unknown;
         errorFields: unknown;
         errors: unknown;
         isWaitingOnBankAccount: unknown;

@@ -186,6 +186,8 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         creditedAmount: report.creditedAmount,
         debitedAmount: report.debitedAmount,
         creditedCurrency: report.creditedCurrency,
+        creditBankAccountLast4: report.creditBankAccountLast4,
+        debitBankAccountLast4: report.debitBankAccountLast4,
         errorFields: report.errorFields,
         errors: report.errors,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,

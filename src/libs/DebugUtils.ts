@@ -453,6 +453,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'lastMessageHtml':
         case 'currency':
         case 'creditedCurrency':
+        case 'creditBankAccountLast4':
+        case 'debitBankAccountLast4':
         case 'iouReportID':
         case 'preexistingReportID':
         case 'private_isArchived':
@@ -602,6 +604,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 debitedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                creditBankAccountLast4: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                debitBankAccountLast4: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 policyID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
