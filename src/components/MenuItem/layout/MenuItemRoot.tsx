@@ -19,7 +19,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ReactNode, Ref} from 'react';
+import type {PropsWithChildren, Ref} from 'react';
 import type {GestureResponderEvent, Role, StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
@@ -29,69 +29,66 @@ import {View} from 'react-native';
 
 type MenuItemVariant = ValueOf<typeof CONST.MENU_ITEM.VARIANT>;
 
-type MenuItemRootProps = WithSentryLabel & {
-    /** Sub-components composing the row. Children stack vertically: place a `MenuItem.Row` for the main
-     * line, and full-width blocks (`MenuItem.Label`, `MenuItem.Error`, `MenuItem.Hint`) before/after it. */
-    children: ReactNode;
+type MenuItemRootProps = PropsWithChildren &
+    WithSentryLabel & {
+        /** Reference to the pressable element */
+        ref?: PressableRef | Ref<View>;
 
-    /** Reference to the pressable element */
-    ref?: PressableRef | Ref<View>;
+        /** Function to fire when the row is pressed */
+        onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
-    /** Function to fire when the row is pressed */
-    onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+        /** The function that should be called when the row is long-pressed or right-clicked */
+        onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
-    /** The function that should be called when the row is long-pressed or right-clicked */
-    onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
+        /** Handles what to do when the row is focused */
+        onFocus?: () => void;
 
-    /** Handles what to do when the row is focused */
-    onFocus?: () => void;
+        /** Handles what to do when the row loses focus */
+        onBlur?: () => void;
 
-    /** Handles what to do when the row loses focus */
-    onBlur?: () => void;
+        /** Should we disable this row? */
+        disabled?: boolean;
 
-    /** Should we disable this row? */
-    disabled?: boolean;
+        /** Whether the row is focused or active (selected-row styling) */
+        focused?: boolean;
 
-    /** Whether the row is focused or active (selected-row styling) */
-    focused?: boolean;
+        /** A boolean flag that gives the row (and its icon) a green fill if true */
+        success?: boolean;
 
-    /** A boolean flag that gives the row (and its icon) a green fill if true */
-    success?: boolean;
+        /** Whether the screen containing the row is focused (forwarded to Hoverable) */
+        isScreenFocused?: boolean;
 
-    /** Whether the screen containing the row is focused (forwarded to Hoverable) */
-    isScreenFocused?: boolean;
+        /** Style variant. `section` gives the row the full-bleed hover look used inside a `Section`
+         * (horizontal padding + negative margins), replacing the classic `wrapperStyle={styles.sectionMenuItemTopDescription}`. */
+        variant?: MenuItemVariant;
 
-    /** Style variant. `section` gives the row the full-bleed hover look used inside a `Section`
-     * (horizontal padding + negative margins), replacing the classic `wrapperStyle={styles.sectionMenuItemTopDescription}`. */
-    variant?: MenuItemVariant;
+        /**
+         * Any additional styles to apply on the pressable element.
+         */
+        style?: StyleProp<ViewStyle>;
 
-    /**
-     * Any additional styles to apply on the pressable element.
-     */
-    style?: StyleProp<ViewStyle>;
+        /** Wrapper styles */
+        wrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
-    /** Wrapper styles */
-    wrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
+        /** Accessibility label for the row. Required: unlike the classic MenuItem, the chassis cannot derive it from composed children. */
+        accessibilityLabel: string;
 
-    /** Accessibility label for the row. Required: unlike the classic MenuItem, the chassis cannot derive it from composed children. */
-    accessibilityLabel: string;
+        /** Accessibility hint for the row */
+        accessibilityHint?: string;
 
-    /** Accessibility hint for the row */
-    accessibilityHint?: string;
+        /** The accessibility role to use for the row */
+        role?: Role;
 
-    /** The accessibility role to use for the row */
-    role?: Role;
+        /** Whether the row is exposed to assistive tech as a single accessibility element. Set `false` to un-group the row
+         * so screen readers can reach nested interactive children (e.g. a trailing button) as their own elements. */
+        isAccessible?: boolean;
 
-    /** Whether the row is exposed to assistive tech as a single accessibility element. Set `false` to un-group the row
-     * so screen readers can reach nested interactive children (e.g. a trailing button) as their own elements. */
-    isAccessible?: boolean;
+        /** Whether the row should be focusable with keyboard */
+        tabIndex?: 0 | -1;
 
-    /** Whether the row should be focusable with keyboard */
-    tabIndex?: 0 | -1;
-
-    /** Pressable component Test ID. Used to locate the component in tests. */
-    testID?: string;
-};
+        /** Pressable component Test ID. Used to locate the component in tests. */
+        testID?: string;
+    };
 
 function MenuItemRoot({
     children,

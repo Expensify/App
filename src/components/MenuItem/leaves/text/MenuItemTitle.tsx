@@ -7,17 +7,14 @@ import convertToLTR from '@libs/convertToLTR';
 
 import CONST from '@src/CONST';
 
-import type {ReactNode} from 'react';
+import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 
 import React from 'react';
 
 type MenuItemTitleVariant = (typeof CONST.MENU_ITEM.TITLE_VARIANT)[keyof typeof CONST.MENU_ITEM.TITLE_VARIANT];
 
-type MenuItemTitleProps = {
-    /** The title text. Strings are converted to LTR; custom nodes are rendered as-is. */
-    children?: ReactNode;
-
+type MenuItemTitleProps = PropsWithChildren & {
     /** Used to truncate the text with an ellipsis after computing the text layout */
     numberOfLines?: number;
 

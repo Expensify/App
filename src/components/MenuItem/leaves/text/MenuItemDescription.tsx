@@ -4,17 +4,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import type {ReactNode} from 'react';
+import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 
 import React from 'react';
 
 type MenuItemDescriptionVariant = (typeof CONST.MENU_ITEM.DESCRIPTION_VARIANT)[keyof typeof CONST.MENU_ITEM.DESCRIPTION_VARIANT];
 
-type MenuItemDescriptionProps = {
-    /** The description text */
-    children?: ReactNode;
-
+type MenuItemDescriptionProps = PropsWithChildren & {
     /** Used to truncate the description with an ellipsis after computing the text layout */
     numberOfLines?: number;
 

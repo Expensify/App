@@ -4,16 +4,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
+import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 
 import React from 'react';
 
 type MenuItemRightLabelVariant = (typeof CONST.MENU_ITEM.RIGHT_LABEL_VARIANT)[keyof typeof CONST.MENU_ITEM.RIGHT_LABEL_VARIANT];
 
-type MenuItemRightLabelProps = {
-    /** The label text. Numbers are allowed so that 0 renders too (e.g. counters). */
-    children?: string | number;
-
+type MenuItemRightLabelProps = PropsWithChildren & {
     /** Style variant. `label` (default) is the classic `rightLabel` look; `subtitle` is the classic `subtitle` look. */
     variant?: MenuItemRightLabelVariant;
 

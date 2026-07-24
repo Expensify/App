@@ -3,17 +3,13 @@ import {useMenuItemState} from '@components/MenuItem/MenuItemContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {ReactNode} from 'react';
+import type {PropsWithChildren} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
 
-type MenuItemTrailingProps = {
-    /** The right-aligned cells (`MenuItem.Badge`, `MenuItem.RightLabel`, `MenuItem.BrickRoadIndicator`,
-     * `MenuItem.Chevron`, `MenuItem.CopyButton`, or any custom content), laid out horizontally */
-    children: ReactNode;
-
+type MenuItemTrailingProps = PropsWithChildren & {
     /** Any additional styles to apply to the trailing container */
     style?: StyleProp<ViewStyle>;
 };
