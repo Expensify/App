@@ -53,6 +53,7 @@ function DynamicNewTaskPage() {
         false,
         localeCompare,
         formatPhoneNumber,
+        translate,
     );
     const shareDestination = task?.shareDestination ? getShareDestination(parentReport, personalDetails, localeCompare, policy, conciergeReportID, translate, reportAttributes) : undefined;
     const ancestors = useAncestors(parentReport);
