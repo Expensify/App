@@ -8913,6 +8913,7 @@ ${reportName}`,
             topCategories: '上位カテゴリ',
             topMerchants: '上位加盟店',
         },
+        mergeReports: {title: 'レポートを統合', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',

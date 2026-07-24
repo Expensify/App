@@ -9005,6 +9005,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             topCategories: 'Topcategorieën',
             topMerchants: 'Topverkopers',
         },
+        mergeReports: {
+            title: 'Rapporten samenvoegen',
+            description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden ernaartoe verplaatst en de andere rapporten worden verwijderd.',
+        },
     },
     genericErrorPage: {
         title: 'Oeps, er is iets misgegaan!',
