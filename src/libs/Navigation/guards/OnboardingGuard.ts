@@ -185,6 +185,15 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
+        // Test builds must never enter the onboarding UI. REPLACE into onboarding is normally
+        // admitted (real users advance between onboarding steps with forceReplace), but with
+        // SKIP_ONBOARDING there is no legitimate way to be mid-onboarding — bounce those too.
+        // Scoped to the flag so completed users' REPLACE behaviour is unchanged.
+        if (CONFIG.SKIP_ONBOARDING && isNavigatingToOnboardingFlowWithReplaceAction(action)) {
+            Log.info('[OnboardingGuard] SKIP_ONBOARDING: redirecting REPLACE into onboarding to home');
+            return {type: 'REDIRECT', route: ROUTES.HOME};
+        }
+
         const skipOnboardingConfig = CONFIG.SKIP_ONBOARDING;
         const isLoading = context.isLoading;
         const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
