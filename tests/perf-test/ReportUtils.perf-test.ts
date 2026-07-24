@@ -203,7 +203,7 @@ describe('ReportUtils', () => {
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getWorkspaceIcon(report, policy));
+        await measureFunction(() => getWorkspaceIcon(report, translateLocal, policy));
     });
 
     test('[ReportUtils] getMoneyRequestOptions on 1k participants', async () => {

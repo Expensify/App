@@ -216,10 +216,12 @@ const buildReportNameFromParticipantNames = ({
     report,
     personalDetailsList: personalDetailsData,
     currentUserAccountID,
+    translate,
 }: {
     report: OnyxEntry<Report>;
     personalDetailsList?: Partial<PersonalDetailsList>;
     currentUserAccountID?: number;
+    translate: LocalizedTranslate;
 }) =>
     Object.keys(report?.participants ?? {})
         .map(Number)
@@ -232,6 +234,7 @@ const buildReportNameFromParticipantNames = ({
                 shouldUseShortForm: true,
                 personalDetailsData,
                 formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                translate,
             }),
         }))
         .filter((participant) => participant.name)
@@ -242,6 +245,7 @@ const buildReportNameFromParticipantNames = ({
                     accountID,
                     personalDetailsData,
                     formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                    translate,
                 });
             }
             return formattedNames ? `${formattedNames}, ${name}` : name;
@@ -260,6 +264,7 @@ const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'var
  */
 function getGroupChatName(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocalizedTranslate,
     participants?: SelectedParticipant[],
     shouldApplyLimit = false,
     report?: OnyxEntry<Report>,
@@ -290,7 +295,7 @@ function getGroupChatName(
         return participantAccountIDs
             .map(
                 (participantAccountID, index) =>
-                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber}) ||
+                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber, translate}) ||
                     formatPhoneNumber(participants?.[index]?.login ?? ''),
             )
             .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
@@ -299,21 +304,29 @@ function getGroupChatName(
             .slice(0, CONST.REPORT_NAME_LIMIT)
             .concat(shouldAddEllipsis ? '...' : '');
     }
-    return translateLocal('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber}));
+    return translate('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber, translate}));
 }
 
 /**
  * Get the title for a policy expense chat
  */
-function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEntry<Report>; personalDetailsList?: Partial<PersonalDetailsList>}): string | undefined {
+function getPolicyExpenseChatName({
+    report,
+    personalDetailsList,
+    translate,
+}: {
+    report: OnyxEntry<Report>;
+    personalDetailsList?: Partial<PersonalDetailsList>;
+    translate: LocalizedTranslate;
+}): string | undefined {
     const ownerAccountID = report?.ownerAccountID;
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
 
-    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) || login;
+    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) || login;
 
     if (reportOwnerDisplayName) {
-        return translateLocal('workspace.common.policyExpenseChatName', reportOwnerDisplayName);
+        return translate('workspace.common.policyExpenseChatName', reportOwnerDisplayName);
     }
 
     return report?.reportName;
@@ -1033,7 +1046,7 @@ function computeReportName({
     }
 
     if (isGroupChat(report)) {
-        return getGroupChatName(formatPhoneNumberPhoneUtils, undefined, true, report) ?? '';
+        return getGroupChatName(formatPhoneNumberPhoneUtils, translate, undefined, true, report) ?? '';
     }
 
     let formattedName: string | undefined;
@@ -1043,7 +1056,7 @@ function computeReportName({
     }
 
     if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName({report, personalDetailsList});
+        formattedName = getPolicyExpenseChatName({report, personalDetailsList, translate});
     }
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -1093,7 +1106,7 @@ function computeReportName({
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID, translate});
 
     const finalName = formattedName ?? report?.reportName ?? '';
 
