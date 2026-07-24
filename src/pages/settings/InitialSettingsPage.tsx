@@ -395,7 +395,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * Return a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
      */
-    const signOutTranslationKey = isSupportAuthToken() && hasStashedSession(stashedSession, stashedCredentials) ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
+    const signOutTranslationKey = isSupportAuthToken(session) && hasStashedSession(stashedSession, stashedCredentials) ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
     const generalMenuItemsData: Menu = {
         sectionStyle: {
             ...styles.pt4,
