@@ -235,6 +235,15 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** For expense reports, this is the currency of the expense */
         currency?: string;
 
+        /** Cents credited to the employee on the latest cross-border FX reimbursement, in the employee's deposit currency */
+        creditedAmount?: number;
+
+        /** Cents debited from the company on the latest cross-border FX reimbursement, in the report (settlement) currency */
+        debitedAmount?: number;
+
+        /** Currency the creditedAmount is denominated in (the employee's deposit currency, which can differ from the report currency) */
+        creditedCurrency?: string;
+
         /** Collection of errors that exist in report fields */
         errorFields?: OnyxCommon.ErrorFields;
 

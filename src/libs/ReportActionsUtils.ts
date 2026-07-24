@@ -518,6 +518,21 @@ function getReimbursedMessage(
 
     const isAutomation = !!reportAction?.delegateAccountID;
 
+    // Cross-border FX reimbursements report the credited amount (in the employee's deposit currency) instead of the
+    // report total, since the company and employee move different currencies.
+    const {creditedAmount, creditedCurrency} = originalMessage;
+    if (creditedAmount) {
+        let crossBorderMessage = translate('iou.reimbursedCrossBorder', {
+            amount: convertToDisplayString(creditedAmount, creditedCurrency),
+            debitBankAccount: effectiveDebitBankAccountLast4 ?? '',
+            creditBankAccount: creditBankAccountLast4 ?? '',
+        });
+        if (isAutomation) {
+            crossBorderMessage += ` ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}`;
+        }
+        return crossBorderMessage;
+    }
+
     let paymentSuffix = '';
     if (effectivePaymentMethod === 'Fast_ACH' && expectedDate && expectedDate !== '???') {
         const formattedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);

@@ -1444,6 +1444,8 @@ const translations: TranslationDeepObject<typeof en> = {
         paidThisBill: 'この請求書を支払いました',
         reimbursedOnBehalfOf: (actor: string) => `${actor}に代わって`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `末尾が ${debitBankAccount} の銀行口座から`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `口座 ${debitBankAccount} から口座 ${creditBankAccount} に ${amount} を支払いました`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} さんが銀行口座を追加し、レポートの保留を解除しました。払い戻しを開始しました。`,
         reimbursedWithFastACH: ({
             isCurrentUser,

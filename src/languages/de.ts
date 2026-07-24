@@ -1463,6 +1463,8 @@ const translations: TranslationDeepObject<typeof en> = {
         paidThisBill: 'diese Rechnung bezahlt',
         reimbursedOnBehalfOf: (actor: string) => `im Namen von ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `vom Bankkonto mit der Endung ${debitBankAccount}`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `zahlte ${amount} von Konto ${debitBankAccount} an Konto ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) =>
             `${submitter} hat ein Bankkonto hinzugefügt und den Bericht aus der Warteschleife genommen. Die Erstattung wurde eingeleitet`,
         reimbursedWithFastACH: ({

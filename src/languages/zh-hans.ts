@@ -1407,6 +1407,8 @@ const translations: TranslationDeepObject<typeof en> = {
         paidThisBill: '已支付此账单',
         reimbursedOnBehalfOf: (actor: string) => `代表 ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `从尾号为 ${debitBankAccount} 的银行账户`,
+        reimbursedCrossBorder: ({amount, debitBankAccount, creditBankAccount}: {amount: string; debitBankAccount: string; creditBankAccount: string}) =>
+            `已支付 ${amount}，从账户 ${debitBankAccount} 到账户 ${creditBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} 已添加银行账户，报告已解除挂起。已发起报销`,
         reimbursedWithFastACH: ({
             isCurrentUser,
