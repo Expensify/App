@@ -147,6 +147,7 @@ function OptionRow({
         shouldUseShortFormInTooltip,
         localeCompare,
         formatPhoneNumber,
+        translate,
     );
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {

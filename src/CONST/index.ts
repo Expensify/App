@@ -894,7 +894,7 @@ const CONST = {
                 PROOF_OF_OWNERSHIP: 'proofOfBeneficialOwner',
                 COPY_OF_ID: 'copyOfIDForBeneficialOwner',
                 ADDRESS_PROOF: 'addressProofForBeneficialOwner',
-                CODICE_FISCALE: 'codiceFisclaleTaxID',
+                CODICE_FISCALE: 'codiceFiscaleTaxID',
                 FULL_NAME: 'fullName',
                 RESIDENTIAL_ADDRESS: 'residentialAddress',
             },
@@ -936,7 +936,7 @@ const CONST = {
                 PROOF_OF_DIRECTORS: 'proofOfDirectors',
                 COPY_OF_ID: 'signerCopyOfID',
                 ADDRESS_PROOF: 'signerAddressProof',
-                CODICE_FISCALE: 'signerCodiceFiscale',
+                CODICE_FISCALE: 'signerCodiceFiscaleTaxID',
                 DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             },
         },
@@ -1778,6 +1778,7 @@ const CONST = {
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                     COPY_OVERVIEW: 'POLICYCHANGELOG_COPY_OVERVIEW',
+                    COPY_CURRENCY: 'POLICYCHANGELOG_COPY_CURRENCY',
                     COPY_EMPLOYEES: 'POLICYCHANGELOG_COPY_EMPLOYEES',
                     COPY_REPORT_FIELDS: 'POLICYCHANGELOG_COPY_REPORT_FIELDS',
                     COPY_ACCOUNTING: 'POLICYCHANGELOG_COPY_ACCOUNTING',
@@ -2228,6 +2229,8 @@ const CONST = {
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
         ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
+        ATTRIBUTE_REPORT_ACTION_COUNT: 'report_action_count',
+        ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT: 'money_request_preview_count',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
@@ -2478,6 +2481,9 @@ const CONST = {
         BAD_GATEWAY: 502,
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
+    },
+    HTTP_HEADER_NAMES: {
+        AUTH_TOKEN: 'authToken',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
@@ -4915,6 +4921,10 @@ const CONST = {
         REQUIRE_RECEIPTS_OVER: 'requireReceiptsOver',
         REQUIRE_ITEMIZED_RECEIPTS_OVER: 'requireItemizedReceiptsOver',
     },
+    FIELD_REQUIREMENTS_DIRECTION: {
+        REQUIRE: 'require',
+        DO_NOT_REQUIRE: 'doNotRequire',
+    },
     SPEND_RULES: {
         BADGE_VARIANTS: {
             SUCCESS: 'success',
@@ -5291,6 +5301,8 @@ const CONST = {
         ERROR: 'error',
         TRACK: {
             SUBMIT: 'submit',
+            SUBMIT_TO_FRIEND: 'submitToFriend',
+            SUBMIT_TO_EMPLOYER: 'submitToEmployer',
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
@@ -6668,6 +6680,7 @@ const CONST = {
             LINK: 'link',
             CATEGORY: 'category',
             TAG: 'tag',
+            SUBMITTED_VIOLATION: 'submitted-violation',
         },
         BULK_ACTION_TYPES: {
             EDIT: 'edit',
@@ -8443,6 +8456,7 @@ const CONST = {
             REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON: 'Report-ReportActionItemMessageEditCancelButton',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON: 'Report-ReportActionItemMessageEditSaveButton',
             REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON: 'Report-ReportActionItemSingleAvatarButton',
+            CONCIERGE_THINKING_AVATAR_BUTTON: 'Report-ConciergeThinkingAvatarButton',
             REPORT_ACTION_ITEM_SINGLE_ACTOR_BUTTON: 'Report-ReportActionItemSingleActorButton',
             REPORT_ACTION_ITEM_THREAD: 'Report-ReportActionItemThread',
             THREAD_DIVIDER: 'Report-ThreadDivider',
@@ -8848,6 +8862,7 @@ const CONST = {
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_CATEGORY: 'WorkspaceRules-RequireFieldsRuleCategory',
                 REQUIRE_FIELDS_RULE_FIELD_TOGGLE: 'WorkspaceRules-RequireFieldsRuleFieldToggle',
+                REQUIRE_FIELDS_RULE_DIRECTION_TOGGLE: 'WorkspaceRules-RequireFieldsRuleDirectionToggle',
                 FLAG_FOR_REVIEW_RULE_ITEM: 'WorkspaceRules-FlagForReviewRuleItem',
                 FLAG_FOR_REVIEW_RULE_SAVE: 'WorkspaceRules-FlagForReviewRuleSave',
                 FLAG_FOR_REVIEW_RULE_CATEGORY: 'WorkspaceRules-FlagForReviewRuleCategory',
