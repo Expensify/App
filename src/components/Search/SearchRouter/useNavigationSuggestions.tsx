@@ -38,6 +38,9 @@ import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Gear', IconAsset>;
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
 
+// Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
+const SAVED_SEARCHES_SECTION_PATH = 'search.savedSearchesMenuItemTitle';
+
 type RightSideLabelProps = {
     /** Text label shown to the right of the suggestion row */
     label: string;
@@ -127,7 +130,7 @@ function buildTopLevelNavigationItems({labels, icons, getSpendRoute, getDestinat
 
 function buildSpendNavigationItems({sections, icons, rightElement, getItemText, getDestinationText, onSelect}: BuildSpendNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return sections
-        .filter((section) => section.translationPath !== 'search.savedSearchesMenuItemTitle')
+        .filter((section) => section.translationPath !== SAVED_SEARCHES_SECTION_PATH)
         .flatMap((section) =>
             section.menuItems.map((item) => {
                 const itemText = getItemText(item);
