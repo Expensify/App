@@ -14,9 +14,9 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {configureTravelInvoicingForPolicy, setTravelInvoicingSettlementAccount} from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getCardSettings, getEligibleBankAccountsForTravelInvoicing, isDepositOnlyBankAccount} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {getIsTravelBillingPayByInvoice, getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -48,7 +48,8 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
     const isSuccess = !!cardSettings?.isSuccess;
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
     const paymentBankAccountID = travelSettings?.paymentBankAccountID;
-    const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList);
+    const canUseDepositOnlyAccounts = getIsTravelBillingPayByInvoice(travelSettings);
+    const eligibleBankAccounts = getEligibleBankAccountsForTravelInvoicing(bankAccountsList, canUseDepositOnlyAccounts);
 
     const getVerificationState = () => {
         if (cardOnWaitlist) {
@@ -69,12 +70,15 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
         const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
         const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
         const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
+        const accountEndingIn = `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`;
 
         return {
             value: bankAccountID,
             text: bankAccount.title,
             leftElement: <BankAccountListItemLeftElement bankName={bankName} />,
-            alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
+            alternateText: isDepositOnlyBankAccount(bankAccount)
+                ? `${accountEndingIn} ${CONST.DOT_SEPARATOR} ${translate('workspace.moreFeatures.travel.travelInvoicing.depositOnly')}`
+                : accountEndingIn,
             keyForList: bankAccountID?.toString() ?? '',
             isSelected: bankAccountID === paymentBankAccountID,
         };
