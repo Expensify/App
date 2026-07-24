@@ -22,7 +22,13 @@ function ValueSelectionList({
     const initialSelectedValue = useInitialSelection(selectedItem?.value ? selectedItem.value : undefined, isVisible === undefined ? {resetOnFocus: true} : {isVisible});
 
     const options = useMemo(() => {
-        const mappedOptions = items.map((item) => ({value: item.value ?? '', alternateText: item.description, text: item.label ?? '', keyForList: item.value ?? ''}));
+        const mappedOptions = items.map((item) => ({
+            value: item.value ?? '',
+            alternateText: item.description,
+            text: item.label ?? '',
+            keyForList: item.value ?? '',
+            isDisabled: item.isDisabled,
+        }));
         const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : []);
 
         return orderedOptions.map((item) => ({...item, isSelected: item.value === selectedItem?.value}));

@@ -13,6 +13,7 @@ type ValuePickerItem = {
     label?: string;
     value?: string;
     description?: string;
+    isDisabled?: boolean | null;
 };
 
 type ValueSelectorModalProps = {
