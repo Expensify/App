@@ -62,15 +62,13 @@ type MenuItemRootProps = PropsWithChildren &
          * (horizontal padding + negative margins), replacing the classic `wrapperStyle={styles.sectionMenuItemTopDescription}`. */
         variant?: MenuItemVariant;
 
-        /**
-         * Any additional styles to apply on the pressable element.
-         */
+        /** Any additional styles to apply on the pressable element */
         style?: StyleProp<ViewStyle>;
 
         /** Wrapper styles */
         wrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
-        /** Accessibility label for the row. Required: unlike the classic MenuItem, the chassis cannot derive it from composed children. */
+        /** Accessibility label for the row */
         accessibilityLabel: string;
 
         /** Accessibility hint for the row */

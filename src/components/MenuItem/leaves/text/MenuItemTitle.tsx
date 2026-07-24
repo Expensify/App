@@ -22,7 +22,7 @@ type MenuItemTitleProps = PropsWithChildren & {
     /** Font weight. `strong` (default) is bold; `normal` uses the default weight. */
     weight?: MenuItemTitleWeight;
 
-    /** Any additional styles to apply to the title (e.g. pass a non-bold text style for a basic title) */
+    /** Any additional styles to apply to the title */
     style?: StyleProp<TextStyle>;
 };
 

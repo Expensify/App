@@ -16,7 +16,8 @@ type MenuItemCopyButtonProps = {
 };
 
 /**
- * A hover-revealed copy-to-clipboard button for `MenuItem.Trailing` on devices with hover support.
+ * A hover-revealed copy-to-clipboard button for `MenuItem.Trailing`. Renders only on non-interactive
+ * rows on devices with hover support (on an interactive row the press action takes precedence).
  * On touch devices, wire copying through `onSecondaryInteraction` on the Root instead.
  */
 function MenuItemCopyButton({value}: MenuItemCopyButtonProps) {

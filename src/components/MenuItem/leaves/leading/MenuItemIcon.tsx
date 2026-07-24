@@ -24,7 +24,7 @@ type MenuItemIconProps = {
     src: IconAsset;
 
     /** The fill color to pass into the icon. When omitted, the fill follows the row's interaction state
-     * (hovered/pressed/focused/disabled), matching the classic MenuItem behavior. */
+     * (hovered/pressed/active/disabled) */
     fill?: string | ((state: MenuItemState) => string);
 
     /** Icon width */
@@ -51,7 +51,7 @@ type MenuItemIconProps = {
 };
 
 /**
- * The leading icon cell of a `MenuItem.Row`. Reads hover/press/focus state from the menu item
+ * The leading icon cell of a `MenuItem.Row`. Reads hover/press/active state from the menu item
  * context to derive its fill color, exactly like the classic MenuItem left icon.
  */
 function MenuItemIcon({

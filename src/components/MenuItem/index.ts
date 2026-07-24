@@ -28,7 +28,7 @@
  * </MenuItem.Root>
  * ```
  *
- * @example Field row with a description on top, an error below, and helper text outside the pressable
+ * @example Field row with a description above the title and an attention indicator
  * ```tsx
  * <MenuItem.Root onPress={onEdit} accessibilityLabel={`${description}, ${title}`}>
  *     <MenuItem.Row>
@@ -41,12 +41,8 @@
  *             <MenuItem.Chevron />
  *         </MenuItem.Trailing>
  *     </MenuItem.Row>
- *     <MenuItem.Error>{errorText}</MenuItem.Error>
  * </MenuItem.Root>
- * <MenuItem.HelperText>{helperText}</MenuItem.HelperText>
  * ```
- *
- * See README.md in this directory for the full design notes and the legacy-prop → composition mapping.
  */
 import MenuItemContent from './layout/MenuItemContent';
 import MenuItemRoot from './layout/MenuItemRoot';

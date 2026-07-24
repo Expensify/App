@@ -1,7 +1,7 @@
 import {createContext, useContext} from 'react';
 
 /**
- * Interaction state of the menu item row, provided by `<MenuItem>` (the Root) and consumed by leaf
+ * Interaction state of the menu item row, provided by `MenuItem.Root` and consumed by leaf
  * sub-components (e.g. `MenuItem.Icon` derives its fill color, `MenuItem.CopyButton` reveals itself on hover).
  */
 type MenuItemState = {
@@ -32,7 +32,7 @@ const MenuItemContext = createContext<MenuItemState | undefined>(undefined);
 function useMenuItemState(): MenuItemState {
     const state = useContext(MenuItemContext);
     if (!state) {
-        throw new Error('MenuItem sub-components must be rendered inside <MenuItem>');
+        throw new Error('MenuItem sub-components must be rendered inside <MenuItem.Root>');
     }
     return state;
 }
