@@ -33,7 +33,7 @@ const SCREENS = {
         DYNAMIC_TCS: 'Dynamic_Travel_TCS',
         DYNAMIC_UPGRADE: 'Dynamic_Travel_Upgrade',
         DYNAMIC_DOMAIN_PERMISSION_INFO: 'Dynamic_Travel_DomainPermissionInfo',
-        TRIP_SUMMARY: 'Travel_TripSummary',
+        DYNAMIC_TRIP_SUMMARY: 'Dynamic_Travel_TripSummary',
         TRIP_DETAILS: 'Travel_TripDetails',
         DYNAMIC_DOMAIN_SELECTOR: 'Dynamic_Travel_DomainSelector',
         DYNAMIC_PUBLIC_DOMAIN_ERROR: 'Dynamic_Travel_PublicDomainError',
