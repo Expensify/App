@@ -164,23 +164,13 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   const savedSearchKey = savedSearchIDToSearchKey(key);
                   queryMap.set(savedSearchKey, {query: item.query ?? '', name: item.name});
-                  savedSearchesPopoverMenuItems[savedSearchKey] = getOverflowMenu(
-                      expensifyIcons,
-                      title,
-                      key,
-                      item.query,
-                      translate,
-                      showDeleteModal,
-                      true,
-                      () => setSavedSearchToModifyKey(null),
-                      {
-                          onShare: () => {
-                              handleShare(key, item.query);
-                              setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
-                          },
-                          isCopied: copiedID === key,
+                  savedSearchesPopoverMenuItems[savedSearchKey] = getOverflowMenu(expensifyIcons, key, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null), {
+                      onShare: () => {
+                          handleShare(key, item.query);
+                          setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
                       },
-                  );
+                      isCopied: copiedID === key,
+                  });
 
                   return {
                       key: savedSearchKey,

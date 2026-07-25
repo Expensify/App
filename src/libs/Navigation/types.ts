@@ -2,7 +2,6 @@ import type {MultifactorAuthenticationPromptType} from '@components/MultifactorA
 import type {SearchQueryString} from '@components/Search/types';
 
 import type {ReplacementReason} from '@libs/actions/Card';
-import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
@@ -3266,7 +3265,9 @@ type SearchAdvancedFiltersParamList = {
 };
 
 type SearchSavedSearchParamList = {
-    [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: SaveSearchParams;
+    [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: {
+        id: string;
+    };
 };
 
 type SearchColumnsParamList = {

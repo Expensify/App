@@ -43,7 +43,7 @@ type SavedSearchMenuItemBuilderParams = {
     currentSearchKey: SearchKey | undefined;
     title: string;
     onPress: (searchKey: SearchKey) => void;
-    getOverflowMenu: (itemName: string, itemSavedSearchID: string, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
+    getOverflowMenu: (itemSavedSearchID: string, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
     itemStyle: SavedSearchMenuItem['style'];
     isCopied: boolean;
 };
@@ -75,7 +75,7 @@ function buildSavedSearchMenuItem({
         },
         rightComponent: (
             <SavedSearchItemThreeDotMenu
-                menuItems={getOverflowMenu(title, key, item.query)}
+                menuItems={getOverflowMenu(key, item.query)}
                 isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                 isCopied={isCopied}
             />
@@ -128,8 +128,8 @@ function SavedSearchList() {
         bankAccountList,
     });
 
-    const getOverflowMenu = (itemName: string, itemID: string, itemQuery: string) =>
-        getOverflowMenuUtil(expensifyIcons, itemName, itemID, itemQuery, translate, showDeleteModal, false, undefined, {
+    const getOverflowMenu = (itemID: string, itemQuery: string) =>
+        getOverflowMenuUtil(expensifyIcons, itemID, translate, showDeleteModal, false, undefined, {
             onShare: () => handleShare(itemID, itemQuery),
             isCopied: copiedID === itemID,
         });

@@ -1,3 +1,4 @@
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,6 +8,7 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {saveSearch} from '@libs/actions/Search';
@@ -21,11 +23,13 @@ import INPUT_IDS from '@src/types/form/SearchSavedSearchRenameForm';
 
 import React, {useState} from 'react';
 
-function SavedSearchRenamePage({route}: {route: {params: {q: string; name: string}}}) {
+function SavedSearchRenamePage({route}: {route: {params: {id: string}}}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {q, name} = route.params;
-    const [newName, setNewName] = useState(name);
+    const {id} = route.params;
+    const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {selector: (savedSearches) => savedSearches?.[id]});
+    const q = savedSearch?.query;
+    const [newName, setNewName] = useState(savedSearch?.name);
     const {inputCallbackRef} = useAutoFocusInput();
 
     const applyFiltersAndNavigate = () => {
@@ -33,7 +37,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(
                 ROUTES.SEARCH_ROOT.getRoute({
-                    query: q,
+                    query: q ?? '',
                     name: newName?.trim(),
                 }),
             );
@@ -44,7 +48,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
         const queryJSON = buildSearchQueryJSON(q || buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
 
         saveSearch({
-            id: rand64(),
+            id,
             queryJSON,
             newName: newName?.trim() || q,
         });
@@ -59,26 +63,28 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('common.rename')} />
-            <FormProvider
-                formID={ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM}
-                submitButtonText={translate('common.save')}
-                onSubmit={onSaveSearch}
-                style={[styles.mh5, styles.flex1]}
-                enabledWhenOffline
-                shouldHideFixErrorsAlert
-            >
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.NAME}
-                    label={translate('search.searchName')}
-                    accessibilityLabel={translate('search.searchName')}
-                    role={CONST.ROLE.PRESENTATION}
-                    onChangeText={(renamedName) => setNewName(renamedName)}
-                    ref={inputCallbackRef}
-                    defaultValue={name}
-                />
-            </FormProvider>
+            <FullPageNotFoundView>
+                <HeaderWithBackButton title={translate('common.rename')} />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM}
+                    submitButtonText={translate('common.save')}
+                    onSubmit={onSaveSearch}
+                    style={[styles.mh5, styles.flex1]}
+                    enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                >
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.NAME}
+                        label={translate('search.searchName')}
+                        accessibilityLabel={translate('search.searchName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        onChangeText={(renamedName) => setNewName(renamedName)}
+                        ref={inputCallbackRef}
+                        defaultValue={newName}
+                    />
+                </FormProvider>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
