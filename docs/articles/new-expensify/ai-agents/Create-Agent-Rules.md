@@ -7,7 +7,7 @@ internalScope: Audience is Workspace Admins. Covers creating, managing, and unde
 
 # Create Agent Rules 
 
-Agent rules are AI-powered rules that let Workspace Admins automate report reviews, routing, approvals, and other workspace actions using natural-language instructions.
+Agent rules are AI-powered rules that let Workspace Admins automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. You can use one of Expensify's suggested Agent rules, or create your own custom rules. 
 
 When you create your first Agent rule, Expensify automatically creates RuleBot, an AI-powered workspace agent that evaluates reports and enforces your Agent rules.
 
@@ -15,32 +15,39 @@ When you create your first Agent rule, Expensify automatically creates RuleBot, 
 
 ## Who can use Agent rules
 
-Agent Rules are currently available through an open beta program. If you'd like to try Agent rules and provide feedback, contact Concierge to request access.
+Agent Rules are currently available through an open beta program. 
 
 To create an Agent rule: 
 
  - You must be a Workspace Admin.
- - The workspace must have access to the Agent Rules beta.
  - **Rules** must be enabled for the workspace.
 
 ---
 
-## How to create an Agent rule
+## How to create an Agent rule from Expensify's Suggested rules 
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**
-2. Click **Rules**.
-3. In the **Agent rules** section, click **Add agent rule**. The **Suggested** tab opens with a list of recommended rules.
-4. Do one of the following:
-   - Select a suggested rule, then click **Next** to open it in the **Edit** tab. Use **Find a rule** to search the suggestions.
-   - Open the **Edit** tab to write your own rule from scratch.
-5. On the **Edit** tab, review or edit the natural-language description of the behavior you want.
-6. Click **Save**.
+You can use a pre-defined **Suggested** Agent rule as a starting point for your own Agent rule. Review and edit the natural-language instructions before saving it.
 
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**
+2. Select **Rules**.
+3. In the **Agent rules** section, select **Add agent rule**.
+4. Select **Suggested**.
+5. Choose a rule from the list and select **Next**.
+6. On the **Edit** tab, review or edit the natural-language description of the behavior you want.
+7. Select **Save**.
+   
 ---
 
-## How to write Agent rules
+## How to an Agent rule from a custom natural-language description 
 
-Agent rules are written in natural language. Describe the behavior you want, and RuleBot will monitor reports and take action when the rule applies.
+If none of the Suggested Agent rules match your workflow, you can create your own by writing natural-language instructions.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**
+2. Select **Rules**.
+3. In the **Agent rules** section, select **Add agent rule**.
+4. Select **Edit**.
+5. Enter a natural-language description of the behavior you want to enforce.
+6. Select **Save**.
 
 For guidance, examples, and prompt-writing best practices, [learn how to write Agent rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules).
 
