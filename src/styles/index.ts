@@ -147,8 +147,9 @@ const link = (theme: ThemeColors) =>
         textDecorationColor: theme.link,
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
-        // We do not want to have underline on links
-        textDecorationLine: 'none',
+        // In high-contrast themes, underline links so they are distinguishable by more than color (WCAG 1.4.1).
+        // Otherwise we do not want an underline on links.
+        textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const emailLink = (theme: ThemeColors) =>
@@ -158,6 +159,9 @@ const emailLink = (theme: ThemeColors) =>
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
         fontWeight: FontUtils.fontWeight.bold,
+        // In high-contrast themes, underline links so they are distinguishable by more than color (WCAG 1.4.1).
+        // Otherwise we do not want an underline on links.
+        textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const baseCodeTagStyles = (theme: ThemeColors) =>
