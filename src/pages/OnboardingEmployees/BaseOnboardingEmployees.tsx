@@ -97,11 +97,11 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 if (size === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
                     return false;
                 }
-                // For VSB-qualified users (1-9 from landing page), only show 1-4 and 5-10.
+                // For VSB-qualified users (1-9 from landing page), only show 1-4 and 5-9.
                 if (isVsb) {
                     return size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
                 }
-                // For SMB-qualified users, hide 1-4 and 5-10 since they already indicated 10+.
+                // For SMB-qualified users, hide 1-4 and 5-9 since they already indicated 10+.
                 if (isSmb) {
                     return size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL && size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
                 }

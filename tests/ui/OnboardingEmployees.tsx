@@ -81,7 +81,7 @@ describe('OnboardingEmployees Page', () => {
         jest.clearAllMocks();
     });
 
-    it('should display 1-4 and 5-10 options and hide legacy 1-10 when the signupQualifier is not smb', async () => {
+    it('should display 1-4 and 5-9 options and hide legacy 1-10 when the signupQualifier is not smb', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -105,7 +105,7 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should display only 1-4 and 5-10 options when the signupQualifier is vsb', async () => {
+    it('should display only 1-4 and 5-9 options when the signupQualifier is vsb', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -210,7 +210,7 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should hide 1-4, 5-10, and legacy 1-10 options when the signupQualifier is smb', async () => {
+    it('should hide 1-4, 5-9, and legacy 1-10 options when the signupQualifier is smb', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
