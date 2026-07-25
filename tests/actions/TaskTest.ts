@@ -1809,17 +1809,20 @@ describe('actions/Task', () => {
 
         it('does not treat a task that inherited a policy room chatType as a chat room', () => {
             // Given a task report carrying a user-created policy room's chatType
+            const viewerAccountID = 1;
             const roomTask = {
                 reportID: 'task_room_1',
                 type: CONST.REPORT.TYPE.TASK,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 parentReportID: 'room_parent_1',
                 parentReportActionID: 'room_parent_action_1',
+                // A visible participant so the canLeaveChat assertion discriminates on the classification, not on hidden-membership
+                participants: {[viewerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
             } as Report;
 
             // Then it is not classified as a chat room, so room-only actions (like Leave) stay hidden
             expect(ReportUtils.isChatRoom(roomTask)).toBe(false);
-            expect(ReportUtils.canLeaveChat(roomTask, undefined, 1)).toBe(false);
+            expect(ReportUtils.canLeaveChat(roomTask, undefined, viewerAccountID)).toBe(false);
         });
 
         it('keeps the intentional #admins chatType inheritance for tasks', () => {
