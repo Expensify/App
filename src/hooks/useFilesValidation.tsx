@@ -165,6 +165,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
         // Handle MAX_FILE_LIMIT_EXCEEDED separately
         if (error.error === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+            // showErrorModal and validateAndResizeFiles call each other (mutual recursion), so one of the two
+            // will always be referenced before its `const` declaration — safe since neither runs until later.
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             validateAndResizeFiles(filesToValidate.current, dataTransferItemList.current, currentValidationState.current);
             return;
         }
