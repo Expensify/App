@@ -103,7 +103,12 @@ function reportMatchesTodoBucket(
 ): boolean {
     switch (searchKey) {
         case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
-            return isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld;
+            // isSubmitAction also allows workflow approvers to submit on the owner's behalf; the to-do only nudges the owner.
+            return (
+                report.ownerAccountID === currentUserAccountID &&
+                isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePair, undefined, login, currentUserAccountID) &&
+                !allExpensesHeld
+            );
         case CONST.SEARCH.SEARCH_KEYS.APPROVE:
             return isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld;
         case CONST.SEARCH.SEARCH_KEYS.PAY:
