@@ -6,6 +6,7 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/acti
 import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -119,6 +120,14 @@ function useCompleteOnboarding() {
             });
             const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
 
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    setOnboardingAdminsChatReportID();
+                    setOnboardingPolicyID();
+                },
+                waitForUpcomingTransition: true,
+            });
+
             navigateAfterOnboardingWithMicrotaskQueue(
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
@@ -129,10 +138,6 @@ function useCompleteOnboarding() {
                 (session?.email ?? '').includes('+'),
                 {
                     variantOverride: rhpVariant,
-                    afterTransition: () => {
-                        setOnboardingAdminsChatReportID();
-                        setOnboardingPolicyID();
-                    },
                 },
             );
         } catch (error) {
