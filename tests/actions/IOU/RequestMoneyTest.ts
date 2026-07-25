@@ -47,7 +47,7 @@ import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {expectAPICommandToHaveBeenCalled, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
+import {expectAPICommandToHaveBeenCalled, formatPhoneNumber, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -1335,6 +1335,7 @@ describe('actions/IOU', () => {
                     accountant,
                     newAccountIDs: [],
                     newLogins: [],
+                    formatPhoneNumber,
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
@@ -2729,7 +2730,8 @@ describe('actions/IOU', () => {
                     },
                     linkedTrackedExpenseReportID: '1',
                 },
-                accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: []} : undefined,
+                accountantParams:
+                    action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
