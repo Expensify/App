@@ -88,7 +88,13 @@ function SignInModal() {
                     signinPageRef.current?.navigateBack();
                 }}
             />
-            <SignInPageBase ref={signinPageRef} />
+            {/* Do not reset the browser tab title here: this modal can open over an anonymous-accessible report,
+                and resetting would wrongly clear that report's tab title. The title reset only applies to the
+                public root sign-in screen. */}
+            <SignInPageBase
+                ref={signinPageRef}
+                shouldResetTabTitle={false}
+            />
         </ScreenWrapper>
     );
 }
