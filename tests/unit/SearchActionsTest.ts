@@ -2,6 +2,7 @@ import {deleteSavedSearch, getExportTemplates, queueExportSearchItemsToCSV, queu
 import {makeRequestWithSideEffects, waitForWrites, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -103,7 +104,10 @@ describe('SearchActions', () => {
                 {
                     optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SAVED_SEARCHES, value: {[savedSearchID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}}],
                     failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SAVED_SEARCHES, value: {[savedSearchID]: {pendingAction: null}}}],
-                    successData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SAVED_SEARCHES, value: {[savedSearchID]: null}}],
+                    successData: [
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SAVED_SEARCHES, value: {[savedSearchID]: null}},
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FILTERS, value: {[savedSearchIDToSearchKey(savedSearchID)]: null}},
+                    ],
                 },
             );
         });
