@@ -80,12 +80,8 @@ After the section has appeared, if there’s nothing that needs action, the **Fo
 
 The **Recently added** section shows your most recently added expenses, so you can quickly get back to what you just created or imported.
 
-It lists up to five expenses, sorted by when each expense was added to Expensify (most recent first), regardless of the expense date. For example, an expense added today but dated months ago still appears at the top. Each row shows the receipt thumbnail, expense date, merchant, and amount.
-
 - Select any expense to open it.
 - To see your full list of expenses, select the three dots **(⋮)** in the **Recently added** section, then select **View all expenses**.
-
-The **Recently added** section always appears on Home. If you haven’t added any expenses yet, it shows an empty state inviting you to create one or drag a receipt to add it.
 
 ---
 
@@ -101,19 +97,9 @@ If you don't hold one of these roles, or your workspace doesn't have expenses ac
 
 ## How the Getting started section works on Home
 
-The **Getting started** section shows a checklist of key setup steps to help Workspace Admins configure their workspace during onboarding.
+The **Getting started** section shows a checklist of key setup steps to help Workspace Admins configure their workspace during setup. 
 
-This section appears only if:
-
- - The workspace is on a free trial
- - The workspace owner selected **manage my team**, **track and budget my expenses**, or **Organize my personal spending** during setup
-
-If these conditions aren’t met, the section won’t appear.
-
-The checklist items vary based on the intent selected during onboarding:
-
-- Users who chose **track and budget my expenses** see tasks for creating a workspace, customizing accounting categories, and inviting an accountant.
-- Users who chose **Organize my personal spending** see tasks for **Create a workspace**, **Customize spend categories**, **Create an expense**, and **Link personal card**. The **Customize spend categories** task appears only while the Categories feature is enabled on the workspace, and the whole section disappears once every task is complete.
+This section appears only if you own a workspace on a free trial or have setup tasks to complete. 
 
 ---
 
