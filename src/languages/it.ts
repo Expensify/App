@@ -5778,6 +5778,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 },
                 csvColumns: {
                     cardNumber: 'Numero di carta',
+                    cardName: 'Nome carta',
                     postedDate: 'Data',
                     merchant: 'Esercente',
                     amount: 'Importo',
@@ -5793,6 +5794,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Assegna una colonna a ciascuno degli attributi: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `Ops! Hai associato un singolo campo ("${duplicateColumn}") a più colonne. Controlla e riprova.`,
+                    cardIdentityColumn: 'Abbina un numero di carta o un nome della carta così le transazioni potranno essere associate a una carta.',
                 },
                 fileImportDescription: "Un'opzione manuale se la tua banca non può inviare un feed.",
                 duplicateFeedModal: {title: 'Feed carta già collegato', prompt: 'Non puoi aggiungere due volte lo stesso feed della carta allo stesso spazio di lavoro.'},
@@ -7618,7 +7620,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             },
             customRules: {
                 title: 'Politica di spesa',
-                cardSubtitle: 'Qui trovi il regolamento spese del tuo team, così tutti sono allineati su cosa è coperto.',
+                cardSubtitle: 'Carica la tua policy spese per assicurarti che tutti sappiano cosa possono e non possono mettere a rimborso.',
                 policyDocument: 'Documento di politica',
                 policyText: 'Testo della politica',
             },
@@ -8836,6 +8838,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
         searchName: 'Cerca nome',
         savedSearchesMenuItemTitle: 'Salvato',
+        mySavedSearch: 'Le mie spese',
         urlCopied: 'URL copiato',
         groupedExpenses: 'spese raggruppate',
         bulkActions: {
@@ -10178,7 +10181,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',
-        saveSearchTooltip: '<tooltip><strong>Rinomina qui le ricerche salvate</strong>!</tooltip>',
         accountSwitcher: '<tooltip>Accedi ai tuoi <strong>account Copilot</strong> qui</tooltip>',
         outstandingFilter: '<tooltip>Filtra per le spese\nche <strong>necessitano di approvazione</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Invia questa ricevuta per\n<strong>completare il test drive!</strong></tooltip>',

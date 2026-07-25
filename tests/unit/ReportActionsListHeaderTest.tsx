@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
-import ReportActionsListTailIndicator from '@pages/inbox/report/ReportActionsListTailIndicator';
+import ReportActionsListHeader from '@pages/inbox/report/ReportActionsListHeader';
 
 import React from 'react';
 
@@ -15,19 +15,19 @@ jest.mock('@pages/home/report/ConciergeThinkingMessage', () => {
     };
 });
 
-describe('ReportActionsListTailIndicator', () => {
+describe('ReportActionsListHeader', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
     it('renders ConciergeThinkingMessage when no draft is pending completion', () => {
-        render(<ReportActionsListTailIndicator reportID={REPORT_ID} />);
+        render(<ReportActionsListHeader reportID={REPORT_ID} />);
         expect(screen.getByTestId('ConciergeThinkingMessage')).toBeTruthy();
     });
 
     it('renders nothing while a draft is still streaming in (pending completion)', () => {
         render(
-            <ReportActionsListTailIndicator
+            <ReportActionsListHeader
                 reportID={REPORT_ID}
                 isDraftPendingCompletion
             />,
