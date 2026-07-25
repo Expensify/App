@@ -14,6 +14,9 @@ type ExtendedMenuItemWithSubscribedSettings = MenuItemToRender | ToggleItemWithK
 type MenuItemToRender = MenuItemWithSubscribedSettings & {
     /** Optional hint text passed to the MenuItemWithTopDescription */
     hintText?: string;
+
+    /** Optional muted helper text rendered below the MenuItemWithTopDescription */
+    helperText?: string;
 };
 
 type MenuItem = MenuItemProps & {
