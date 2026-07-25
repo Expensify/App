@@ -1,7 +1,7 @@
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 
 import * as AppUpdate from '@libs/actions/AppUpdate';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToDisplayString as convertToDisplayStringCurrencyUtils} from '@libs/CurrencyUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
@@ -161,6 +161,7 @@ export default {
         policy,
         currentUserLogin,
         reportAttributes,
+        convertToDisplayString = convertToDisplayStringCurrencyUtils,
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
