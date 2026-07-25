@@ -86,6 +86,10 @@ function WorkspaceAddressStep({policy, policyID, onNext}: EnableTravelSubPagePro
                 formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
                 onSubmit={handleSubmit}
                 submitButtonText={translate('common.next')}
+                // EnableTravelContent's ScreenWrapper already applies the legacy (non-edge-to-edge) bottom
+                // safe-area padding for the whole stepper, so this form must not also add its own, otherwise
+                // the inset is padded twice, visible as extra bottom padding on iOS.
+                addBottomSafeAreaPadding={false}
                 city={city}
                 country={getCountryCode(currentCountry)}
                 onAddressChanged={handleAddressChange}
