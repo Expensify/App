@@ -84,6 +84,16 @@ describe('useDiscardChangesConfirmation (native)', () => {
         });
     };
 
+    // The hook defers its preventRemove recompute past the commit (setTimeout 0), so tests that
+    // assert on the armed flag must let that timer fire first.
+    const flushDeferredRecheck = async () => {
+        await act(async () => {
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
+        });
+    };
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockPreventRemoveFlag = undefined;
@@ -157,9 +167,23 @@ describe('useDiscardChangesConfirmation (native)', () => {
 
             pressHardwareBack();
             await resolveModalWith('CONFIRM');
+            await flushDeferredRecheck();
 
             expect(mockNavigationGoBack).toHaveBeenCalledTimes(1);
             expect(mockNavigationDispatch).not.toHaveBeenCalled();
+            expect(mockPreventRemoveFlag).toBe(true);
+        });
+
+        it('arms prevention once a recheck sees unsaved changes', async () => {
+            let hasChanges = false;
+            const {result} = renderDiscardHook(() => hasChanges);
+
+            await flushDeferredRecheck();
+            expect(mockPreventRemoveFlag).toBe(false);
+
+            hasChanges = true;
+            act(() => result.current.recheckUnsavedChanges());
+            await flushDeferredRecheck();
             expect(mockPreventRemoveFlag).toBe(true);
         });
 

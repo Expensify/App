@@ -199,7 +199,7 @@ function IOURequestStepDistance({
         [distanceInMeters, distanceUnit],
     );
 
-    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+    const {suppressDiscardPrompt, recheckUnsavedChanges} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
             // Manual distance sits in `manualNumberFormRef` until Save — gate on the mounted ref so a cleared (empty) value still counts as dirty against a committed distance.
             const manualForm = manualNumberFormRef.current;
@@ -708,11 +708,14 @@ function IOURequestStepDistance({
 
     const handleManualInputChange = useCallback(() => {
         isManuallyEditing.current = true;
+        // The typed distance lives in a child input ref and this screen does not re-render on typing,
+        // so the discard guard has to be re-armed here.
+        recheckUnsavedChanges();
         if (!manualFormError) {
             return;
         }
         setManualFormError('');
-    }, [manualFormError]);
+    }, [manualFormError, recheckUnsavedChanges]);
 
     const errorState = useMemo(
         () => ({

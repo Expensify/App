@@ -11,7 +11,7 @@ import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext'
 import type {NavigationAction} from '@react-navigation/native';
 
 import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useReducer, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
@@ -25,6 +25,10 @@ import runDiscardConfirmation from './runDiscardConfirmation';
  * = the back happened over the open prompt.
  */
 type RestoreState = {phase: 'idle'} | {phase: 'awaitingRestore'; dismissModalOnRestore: boolean} | {phase: 'restoring'};
+
+// Web reads `hasUnsavedChanges()` at navigation time in `useBeforeRemove`, so there is no cached flag to recompute.
+// A stable module-level no-op keeps the shared return type without re-rendering consumers on every input event.
+function recheckUnsavedChangesNoop() {}
 
 function useDiscardChangesConfirmation({
     getHasUnsavedChanges,
@@ -51,9 +55,6 @@ function useDiscardChangesConfirmation({
     const shouldNavigateBack = useRef(false);
     const isDiscardModalOpen = useRef(false);
     const restoreState = useRef<RestoreState>({phase: 'idle'});
-
-    // Kept symmetric with the native hook: web reads `hasUnsavedChanges()` lazily in `useBeforeRemove`, so this is a harmless no-op re-render trigger here.
-    const [, recheckUnsavedChanges] = useReducer((count: number) => count + 1, 0);
 
     const navigateBack = () => {
         if (!blockedNavigationAction.current) {
@@ -169,7 +170,7 @@ function useDiscardChangesConfirmation({
         isSavingRef.current = shouldSuppress;
     };
 
-    return {suppressDiscardPrompt, recheckUnsavedChanges};
+    return {suppressDiscardPrompt, recheckUnsavedChanges: recheckUnsavedChangesNoop};
 }
 
 export default useDiscardChangesConfirmation;

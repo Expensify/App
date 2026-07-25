@@ -157,7 +157,10 @@ function MoneyRequestAmountForm({
 
     const toggleNegative = useCallback(() => {
         setIsNegative(!isNegative);
-    }, [isNegative]);
+        // The sign flip changes the effective amount without going through the input's change handler,
+        // so notify the parent the same way a keystroke would (e.g. to re-arm the discard guard).
+        onAmountChange?.(moneyRequestAmountInputRef.current?.getNumber() ?? '');
+    }, [isNegative, onAmountChange]);
 
     const clearNegative = useCallback(() => {
         setIsNegative(false);
