@@ -26,8 +26,7 @@ import runDiscardConfirmation from './runDiscardConfirmation';
  */
 type RestoreState = {phase: 'idle'} | {phase: 'awaitingRestore'; dismissModalOnRestore: boolean} | {phase: 'restoring'};
 
-// Web reads `hasUnsavedChanges()` at navigation time in `useBeforeRemove`, so there is no cached flag to recompute.
-// A stable module-level no-op keeps the shared return type without re-rendering consumers on every input event.
+// Web reads dirtiness at navigation time in `useBeforeRemove`; a stable no-op just keeps the shared return type
 function recheckUnsavedChangesNoop() {}
 
 function useDiscardChangesConfirmation({

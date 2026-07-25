@@ -708,8 +708,7 @@ function IOURequestStepDistance({
 
     const handleManualInputChange = useCallback(() => {
         isManuallyEditing.current = true;
-        // The typed distance lives in a child input ref and this screen does not re-render on typing,
-        // so the discard guard has to be re-armed here.
+        // Typed distance lives in a child ref and typing never re-renders this screen, so re-arm the guard here
         recheckUnsavedChanges();
         if (!manualFormError) {
             return;

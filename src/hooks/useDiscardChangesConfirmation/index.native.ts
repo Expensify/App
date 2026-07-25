@@ -40,19 +40,15 @@ function useDiscardChangesConfirmation({
     });
     const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
 
-    // `usePreventRemove` reads this during render, so the block signal must be state (never a ref) to stay React Compiler-safe.
-    // The save ref and the screen's dirtiness callback are read inside this callback/effect, not during render.
+    // `usePreventRemove` reads this during render, so the signal must be state, never a ref (React Compiler)
     const [shouldPreventRemove, setShouldPreventRemove] = useState(false);
-    // The recompute is deferred past the commit: ref-backed inputs update their child's state in the same event that
-    // calls this, so a synchronous read would see the previous render's value and lag one input event behind.
+    // Deferred past the commit so ref-backed inputs are read after their child state settles, not one event behind
     const recheckUnsavedChanges = useCallback(() => {
         setTimeout(() => {
             setShouldPreventRemove(isFocused && !isSavingRef.current && getHasUnsavedChanges());
         }, 0);
     }, [isFocused, getHasUnsavedChanges]);
-    // No dependency array on purpose: dirtiness often lives in refs the compiler cannot track through
-    // `getHasUnsavedChanges`, so re-evaluate after every commit (the set bails out when the boolean is unchanged).
-    // Screens that go dirty without re-rendering at all call `recheckUnsavedChanges` from their change handlers.
+    // Runs every commit since dirtiness often lives in refs; screens that never re-render on input call `recheckUnsavedChanges` themselves
     useEffect(recheckUnsavedChanges);
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);

@@ -84,8 +84,7 @@ describe('useDiscardChangesConfirmation (native)', () => {
         });
     };
 
-    // The hook defers its preventRemove recompute past the commit (setTimeout 0), so tests that
-    // assert on the armed flag must let that timer fire first.
+    // The armed flag updates a tick after the commit (setTimeout 0), so flush that timer before asserting on it
     const flushDeferredRecheck = async () => {
         await act(async () => {
             await new Promise((resolve) => {
