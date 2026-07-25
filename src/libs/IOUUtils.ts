@@ -517,7 +517,7 @@ function resolveReportForMoneyRequest({
     transactionReport: OnyxEntry<Report>;
     routeReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
-    reportNameValuePair?: OnyxInputOrEntry<ReportNameValuePairs>;
+    reportNameValuePair: OnyxInputOrEntry<ReportNameValuePairs>;
 }): OnyxEntry<Report> {
     if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return undefined;

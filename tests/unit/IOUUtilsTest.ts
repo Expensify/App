@@ -910,6 +910,7 @@ describe('getExistingTransactionID', () => {
 
     describe('resolveReportForMoneyRequest', () => {
         const policyForResolve: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Resolve Test Policy'), id: 'resolve-policy'};
+        const nonArchivedReportNameValuePair: ReportNameValuePairs = {};
 
         const makeOutstandingReport = (reportID: string): Report => ({
             ...createRandomReport(Number(reportID), undefined),
@@ -933,14 +934,30 @@ describe('getExistingTransactionID', () => {
             const transaction = makeTransaction(CONST.REPORT.UNREPORTED_REPORT_ID);
             const transactionReport = makeOutstandingReport('500');
             const routeReport = makeRouteReport('100');
-            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})).toBeUndefined();
+            expect(
+                IOUUtils.resolveReportForMoneyRequest({
+                    transaction,
+                    transactionReport,
+                    routeReport,
+                    policy: policyForResolve,
+                    reportNameValuePair: nonArchivedReportNameValuePair,
+                }),
+            ).toBeUndefined();
         });
 
         it('returns the picked report when it is outstanding (user-selected report wins)', () => {
             const transaction = makeTransaction('500');
             const transactionReport = makeOutstandingReport('500');
             const routeReport = makeRouteReport('100');
-            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})?.reportID).toBe('500');
+            expect(
+                IOUUtils.resolveReportForMoneyRequest({
+                    transaction,
+                    transactionReport,
+                    routeReport,
+                    policy: policyForResolve,
+                    reportNameValuePair: nonArchivedReportNameValuePair,
+                })?.reportID,
+            ).toBe('500');
         });
 
         it('returns undefined when the picked report is archived', () => {
@@ -959,20 +976,44 @@ describe('getExistingTransactionID', () => {
                 policyID: 'someOtherPolicy',
             };
             const routeReport = makeRouteReport('100');
-            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: nonOutstandingPick, routeReport, policy: policyForResolve})).toBeUndefined();
+            expect(
+                IOUUtils.resolveReportForMoneyRequest({
+                    transaction,
+                    transactionReport: nonOutstandingPick,
+                    routeReport,
+                    policy: policyForResolve,
+                    reportNameValuePair: nonArchivedReportNameValuePair,
+                }),
+            ).toBeUndefined();
         });
 
         it('returns the route report when no different transaction report has been picked', () => {
             const transaction = makeTransaction('100');
             const transactionReport = makeRouteReport('100');
             const routeReport = makeRouteReport('100');
-            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})?.reportID).toBe('100');
+            expect(
+                IOUUtils.resolveReportForMoneyRequest({
+                    transaction,
+                    transactionReport,
+                    routeReport,
+                    policy: policyForResolve,
+                    reportNameValuePair: nonArchivedReportNameValuePair,
+                })?.reportID,
+            ).toBe('100');
         });
 
         it('falls back to the transaction report when no route report exists (the !routeReport branch)', () => {
             const transaction = makeTransaction('500');
             const transactionReport = makeOutstandingReport('500');
-            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport: undefined, policy: policyForResolve})?.reportID).toBe('500');
+            expect(
+                IOUUtils.resolveReportForMoneyRequest({
+                    transaction,
+                    transactionReport,
+                    routeReport: undefined,
+                    policy: policyForResolve,
+                    reportNameValuePair: nonArchivedReportNameValuePair,
+                })?.reportID,
+            ).toBe('500');
         });
 
         it('returns undefined when the picked report is processing and policy harvesting is disabled', () => {
@@ -984,7 +1025,15 @@ describe('getExistingTransactionID', () => {
             };
             const routeReport = makeRouteReport('100');
             const harvestingDisabledPolicy: Policy = {...policyForResolve, harvesting: {enabled: false}};
-            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: processingPick, routeReport, policy: harvestingDisabledPolicy})).toBeUndefined();
+            expect(
+                IOUUtils.resolveReportForMoneyRequest({
+                    transaction,
+                    transactionReport: processingPick,
+                    routeReport,
+                    policy: harvestingDisabledPolicy,
+                    reportNameValuePair: nonArchivedReportNameValuePair,
+                }),
+            ).toBeUndefined();
         });
     });
 
