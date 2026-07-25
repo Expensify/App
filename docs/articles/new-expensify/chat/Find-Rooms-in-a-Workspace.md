@@ -21,7 +21,7 @@ The rooms you see depend on your permissions and the room's visibility settings.
 2. Click **Rooms**.
 3. Select a room from the list.
 
-The Rooms directory displays the rooms you can access in that workspace. What happens when you select a room depends on your role, as described below.
+The Rooms directory displays the rooms you can access in that workspace. 
 
 <!-- SCREENSHOT:
 Suggestion: The Rooms directory showing multiple rooms with icon, room name, creator, and member count columns.
