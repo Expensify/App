@@ -7,6 +7,7 @@ import usePolicy from '@hooks/usePolicy';
 
 import {setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
@@ -19,7 +20,7 @@ import {updateAddress} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {isUserValidatedSelector} from '@selectors/Account';
@@ -43,7 +44,7 @@ function DynamicWorkspaceAddressForTravelPage({route}: DynamicWorkspaceAddressFo
         if (!isUserValidated) {
             // After OTP validation, redirect back to this address page
             setTravelProvisioningNextStep(Navigation.getActiveRoute() as Route);
-            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain, policyID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain, policyID)));
             return;
         }
 

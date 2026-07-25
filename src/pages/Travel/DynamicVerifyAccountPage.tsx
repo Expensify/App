@@ -1,3 +1,4 @@
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -11,16 +12,18 @@ import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import type {StackScreenProps} from '@react-navigation/stack';
 
 import React, {useCallback, useEffect} from 'react';
 
-type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
+type DynamicVerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT>;
 
-function VerifyAccountPage({route}: VerifyAccountPageProps) {
-    const {domain, backTo, policyID} = route.params;
+function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
+    const {domain, policyID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.path);
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
     const policy = usePolicy(policyID);
     const {isBetaEnabled} = usePermissions();
@@ -42,12 +45,12 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     }, []);
 
     const handleClose = useCallback(() => {
-        Navigation.goBack(backTo);
-    }, [backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     return (
         <VerifyAccountPageBase
-            navigateBackTo={backTo}
+            navigateBackTo={backPath}
             navigateForwardTo={navigateForwardTo}
             handleClose={!isTravelVerifiedBetaEnabled ? handleClose : undefined}
             onValidationSuccess={!isTravelVerifiedBetaEnabled ? handleValidationSuccess : undefined}
@@ -55,4 +58,4 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     );
 }
 
-export default VerifyAccountPage;
+export default DynamicVerifyAccountPage;

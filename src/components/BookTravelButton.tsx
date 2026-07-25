@@ -61,7 +61,7 @@ const navigateToAcceptTerms = (acceptTermsRoute: Route, domain: string, isUserVa
         Navigation.navigate(acceptTermsRoute);
         return;
     }
-    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID, Navigation.getActiveRoute()));
+    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID)));
 };
 
 const hasPolicyIDInActiveRoute = () => getSearchParamFromPath(Navigation.getActiveRoute(), CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) !== null;
@@ -172,13 +172,13 @@ function BookTravelButton({
             // Send the default so the Travel-access check runs against the workspace owner's domain, not the acting admin's.
             if (!isUserValidated) {
                 setTravelProvisioningNextStep(getTravelAcceptTermsRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, policy));
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID)));
                 return;
             }
             navigateToAcceptTerms(getTravelAcceptTermsRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, policy), CONST.TRAVEL.DEFAULT_DOMAIN, true, activePolicyID ?? undefined);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             if (!isUserValidated) {
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID)));
                 return;
             }
             if (shouldShowVerifyAccountModal) {
@@ -211,7 +211,7 @@ function BookTravelButton({
                     ? createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID))
                     : getTravelAcceptTermsRoute(domain, activePolicyID, policy);
                 setTravelProvisioningNextStep(nextStep);
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID)));
                 return;
             }
             if (isEmptyObject(policy?.address)) {

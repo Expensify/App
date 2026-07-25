@@ -91,7 +91,7 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: {
         animation: Animations.NONE,
     },
-    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
+    [SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT]: {
         animationTypeForReplace: 'push',
     },
     [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS]: {
@@ -243,7 +243,7 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
     [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicWorkspaceConfirmationForTravelPage').default,
     [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicWorkspaceAddressForTravelPage').default,
     [SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID]: () => require<ReactComponentModule>('../../../../pages/Travel/TravelLegalEntityTaxIDPage').default,
-    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/VerifyAccountPage').default,
+    [SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicVerifyAccountPage').default,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
