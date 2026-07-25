@@ -1237,6 +1237,82 @@ describe('actions/Duplicate', () => {
             expect(updatedDuplicate?.comment?.hold).toBeDefined();
         });
 
+        it('should restore the pre-existing comment.hold value in failureData', async () => {
+            // Given: A duplicate transaction that already carries a hold before it is resolved again
+            const reportID = 'report123';
+            const mainTransactionID = 'main123';
+            const duplicate1ID = 'dup456';
+            const childReportID1 = 'child456';
+            const mainChildReportID = 'mainChild123';
+            const preExistingHoldID = 'preExistingHold789';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
+            const duplicateTransaction: Transaction = {
+                ...createMockTransaction(duplicate1ID, reportID, 100),
+                comment: {comment: 'Updated comment', hold: preExistingHoldID},
+            };
+            const mainViolations = createMockViolations();
+            const duplicateViolations = createMockViolations();
+
+            const mainIouAction = createMockIouAction(mainTransactionID, 'mainAction123', mainChildReportID);
+            const duplicateIouAction = createMockIouAction(duplicate1ID, 'action456', childReportID1);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicateViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                mainAction123: mainIouAction,
+                action456: duplicateIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID1}`, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mainChildReportID}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID,
+                transactionThreadReportIDMap: {
+                    [duplicate1ID]: childReportID1,
+                },
+            };
+
+            // When: Call resolveDuplicates
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then: failureData restores the duplicate's original comment.hold instead of clearing it
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({transactionID: mainTransactionID, transactionIDList: [duplicate1ID]}),
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`,
+                            value: {comment: {hold: preExistingHoldID}},
+                        }),
+                    ]),
+                }),
+            );
+        });
+
         it('should not write a report action to an undefined thread when the kept transaction thread is missing', async () => {
             // Given: The kept (selected) transaction has no IOU action/thread, while the duplicate has both
             const reportID = 'report123';
