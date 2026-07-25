@@ -87,6 +87,15 @@ type ConnectionNameParams = {
     connectionName: AllConnectionName;
 };
 
+type ConnectionDisplayNameParams = {
+    connectionName: string;
+};
+
+type ConnectionDefaultVendorHelperTextParams = {
+    connectionName: string;
+    isSet: boolean;
+};
+
 type ExportAgainModalDescriptionParams = {
     reportName: string;
     connectionName: ConnectionName;
@@ -175,6 +184,8 @@ export type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     ConnectionNameParams,
+    ConnectionDisplayNameParams,
+    ConnectionDefaultVendorHelperTextParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
     OptionalParam,

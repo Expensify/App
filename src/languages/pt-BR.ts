@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDefaultVendorHelperTextParams,
+    ConnectionDisplayNameParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -6926,6 +6928,11 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             exportCompanyCard: 'Exportar despesas de cartão corporativo como',
             exportDate: 'Data de exportação',
             defaultVendor: 'Fornecedor padrão',
+            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this ${connectionName} vendor.`
+                    : `Expenses that don't auto-match will default to this ${connectionName} vendor. Otherwise, they'll export as Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
             defaultAccount: 'Conta padrão',
             autoSync: 'Sincronização automática',
             autoSyncDescription: 'Sincronize NetSuite e Expensify automaticamente, todos os dias. Exporte relatórios finalizados em tempo real',

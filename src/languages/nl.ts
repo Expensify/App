@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDefaultVendorHelperTextParams,
+    ConnectionDisplayNameParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -6933,6 +6935,11 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             exportCompanyCard: 'Bedrijfspaskosten exporteren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standaardleverancier',
+            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this ${connectionName} vendor.`
+                    : `Expenses that don't auto-match will default to this ${connectionName} vendor. Otherwise, they'll export as Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
             defaultAccount: 'Standaardrekening',
             autoSync: 'Automatisch synchroniseren',
             autoSyncDescription: 'Synchroniseer NetSuite en Expensify automatisch, elke dag. Exporteer een afgerond rapport in realtime',

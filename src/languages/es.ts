@@ -17,6 +17,8 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import type en from './en';
 import type {
     ConciergeBrokenCardConnectionParams,
+    ConnectionDefaultVendorHelperTextParams,
+    ConnectionDisplayNameParams,
     EmptyViolationSnapshotResultsSubtitleParams,
     PaidElsewhereParams,
     RemoveCopilotAccessConfirmationParams,
@@ -6752,6 +6754,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             exportDate: 'Fecha de exportación',
             defaultVendor: 'Proveedor predeterminado',
+            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this ${connectionName} vendor.`
+                    : `Expenses that don't auto-match will default to this ${connectionName} vendor. Otherwise, they'll export as Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
             defaultAccount: 'Cuenta predeterminada',
             autoSync: 'Autosincronización',
             autoSyncDescription: 'Sincroniza NetSuite y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',

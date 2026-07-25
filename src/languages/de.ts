@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDefaultVendorHelperTextParams,
+    ConnectionDisplayNameParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -6966,6 +6968,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             exportCompanyCard: 'Firmenkartenausgaben exportieren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standardanbieter',
+            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this ${connectionName} vendor.`
+                    : `Expenses that don't auto-match will default to this ${connectionName} vendor. Otherwise, they'll export as Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
             defaultAccount: 'Standardkonto',
             autoSync: 'Automatische Synchronisierung',
             autoSyncDescription: 'NetSuite und Expensify automatisch jeden Tag synchronisieren. Finalisierte Berichte in Echtzeit exportieren',

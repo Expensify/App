@@ -14,6 +14,8 @@ import startCase from 'lodash/startCase';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDefaultVendorHelperTextParams,
+    ConnectionDisplayNameParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -7069,6 +7071,11 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
+            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this ${connectionName} vendor.`
+                    : `Expenses that don't auto-match will default to this ${connectionName} vendor. Otherwise, they'll export as Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
             defaultAccount: 'Default account',
             autoSync: 'Auto-sync',
             autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day. Export finalized report in realtime',
