@@ -1245,6 +1245,11 @@ function getCurrentUserDisplayNameOrEmail(): string | undefined {
 }
 
 function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
+    // Tasks only support the #admins chatType inheritance (see buildOptimisticTaskReport). The backend can also
+    // inherit other parent chat types (e.g. `group`), which would misclassify the task as that chat type.
+    if (report && 'type' in report && report.type === CONST.REPORT.TYPE.TASK && report.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_ADMINS) {
+        return undefined;
+    }
     return report?.chatType;
 }
 

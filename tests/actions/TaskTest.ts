@@ -1789,4 +1789,49 @@ describe('actions/Task', () => {
             expect(assignee?.displayName).toBe('HiddenMarker');
         });
     });
+
+    describe('task chatType classification (#96421)', () => {
+        it('does not treat a task that inherited a non-admins chatType as a group chat', () => {
+            // Given a task report the backend returned carrying the parent group chat's chatType
+            const groupTask = {
+                reportID: 'task_group_1',
+                type: CONST.REPORT.TYPE.TASK,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                parentReportID: 'group_parent_1',
+                parentReportActionID: 'group_parent_action_1',
+            } as Report;
+
+            // Then it is not classified as a group chat or a root group chat, so the destructive leave path is never offered
+            expect(ReportUtils.isGroupChat(groupTask)).toBe(false);
+            expect(ReportUtils.isRootGroupChat(groupTask)).toBe(false);
+        });
+
+        it('keeps the intentional #admins chatType inheritance for tasks', () => {
+            // Given a task created under an #admins room (the one inheritance the client supports)
+            const adminsTask = {
+                reportID: 'task_admins_1',
+                type: CONST.REPORT.TYPE.TASK,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                parentReportID: 'admins_parent_1',
+                parentReportActionID: 'admins_parent_action_1',
+            } as Report;
+
+            // Then the admins chatType is preserved: it still reads as an admin room, never as a group chat
+            expect(ReportUtils.isAdminRoom(adminsTask)).toBe(true);
+            expect(ReportUtils.isGroupChat(adminsTask)).toBe(false);
+        });
+
+        it('still classifies a real group chat as a group chat', () => {
+            // Given an actual group chat (type CHAT), which the sanitization must not affect
+            const groupChat = {
+                reportID: 'group_chat_1',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            } as Report;
+
+            // Then it is still classified as a group chat and a root group chat
+            expect(ReportUtils.isGroupChat(groupChat)).toBe(true);
+            expect(ReportUtils.isRootGroupChat(groupChat)).toBe(true);
+        });
+    });
 });
