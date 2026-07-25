@@ -104,7 +104,7 @@ A virtual card is a secure, flexible way to manage online spending:
 2. Click your Expensify Card.
 3. Click **Reveal** to view the card number, expiration date, CVV, and billing address.
 
-If any of your personal details are missing, you'll be prompted to add them before your card details can be revealed. Click **Add details**, then enter your legal name, date of birth, address, and phone number. After you confirm these details, authenticate to reveal your card. US cardholders confirm with a magic code sent to their email, while UK and EU cardholders confirm with biometrics or a passkey.
+If any of your personal details are missing, you'll be prompted to add them before your card details can be revealed. Click **Add details**, then enter your legal name, date of birth, address, and phone number. After you confirm these details, authenticate to reveal your card. US cardholders confirm with a security code sent to their email, while UK and EU cardholders confirm with biometrics or a passkey.
 
 ---
 
