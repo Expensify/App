@@ -18,7 +18,7 @@ import type {ReportActions, Transaction} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {convertToDisplayStringLocal} from '../utils/TestHelper';
+import {convertToDisplayString} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
@@ -56,7 +56,7 @@ const basicProps = {
     currentUserEmail: '',
     currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
     reportViolations: undefined,
-    convertToDisplayString: convertToDisplayStringLocal,
+    convertToDisplayString,
 };
 
 describe('TransactionPreviewUtils', () => {

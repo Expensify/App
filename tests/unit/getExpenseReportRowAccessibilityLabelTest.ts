@@ -3,9 +3,9 @@ import getExpenseReportRowAccessibilityLabel from '@components/Search/SearchList
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
-import {convertToDisplayStringLocal, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 
-const deps = {translate: translateLocal, convertToDisplayString: convertToDisplayStringLocal};
+const deps = {translate: translateLocal, convertToDisplayString};
 
 describe('getExpenseReportRowAccessibilityLabel', () => {
     beforeAll(() => {

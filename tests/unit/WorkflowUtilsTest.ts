@@ -21,7 +21,7 @@ import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {buildPersonalDetails, convertToDisplayStringLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {buildPersonalDetails, convertToDisplayString, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const personalDetails: PersonalDetailsList = {};
@@ -1421,7 +1421,7 @@ describe('WorkflowUtils', () => {
                 approver: undefined,
                 currency: 'USD',
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBeUndefined();
@@ -1434,7 +1434,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBeUndefined();
@@ -1447,7 +1447,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBeUndefined();
@@ -1460,7 +1460,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBeUndefined();
@@ -1473,7 +1473,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBe('Reports above $500.00 forward to 2@example.com');
@@ -1490,7 +1490,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBe('Reports above $1,000.00 forward to John Doe');

@@ -262,7 +262,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {convertToDisplayStringLocal, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -14342,7 +14342,7 @@ describe('ReportUtils', () => {
             const total = 100;
             const currency = CONST.CURRENCY.USD;
             const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID: undefined, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
-            expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayStringLocal(-total, currency)}`);
+            expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
 
         it('should set reportName to "New Report" when policy field list is empty', async () => {

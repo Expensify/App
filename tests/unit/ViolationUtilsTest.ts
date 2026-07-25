@@ -13,7 +13,7 @@ import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
-import {convertToDisplayStringLocal, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock getCurrentUserEmail from Report actions
@@ -3413,7 +3413,7 @@ describe('getViolationTranslation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
         const brokenCardConnectionViolationExpected = translateLocal('violations.rter', true, true, false, undefined, CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION, companyCardPageURL);
-        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnectionViolation, translate: translateLocal, convertToDisplayString: convertToDisplayStringLocal})).toBe(
+        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnectionViolation, translate: translateLocal, convertToDisplayString})).toBe(
             brokenCardConnectionViolationExpected,
         );
         const brokenCardConnection530ViolationExpected = translateLocal(
@@ -3425,7 +3425,7 @@ describe('getViolationTranslation', () => {
             CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
             companyCardPageURL,
         );
-        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString: convertToDisplayStringLocal})).toBe(
+        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString})).toBe(
             brokenCardConnection530ViolationExpected,
         );
     });
@@ -3451,7 +3451,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
@@ -3463,7 +3463,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
@@ -3475,7 +3475,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters: 0,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
@@ -3487,7 +3487,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
                 canEdit: true,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
             });
@@ -3498,7 +3498,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters,
             });
@@ -3518,7 +3518,7 @@ describe('getViolationTranslation', () => {
                     },
                 },
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBe('Rate is only valid from January 1, 2025 to December 31, 2025');
@@ -3534,7 +3534,7 @@ describe('getViolationTranslation', () => {
                     },
                 },
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBe('Rate is only valid from January 1, 2025');
@@ -3550,7 +3550,7 @@ describe('getViolationTranslation', () => {
                     },
                 },
                 translate: translateLocal,
-                convertToDisplayString: convertToDisplayStringLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBe('Rate is only valid until December 31, 2025');
@@ -3585,7 +3585,7 @@ describe('getRBRMessages', () => {
             transaction: mockTransaction,
             transactionViolations: mockViolations,
             translate: translateLocal,
-            convertToDisplayString: convertToDisplayStringLocal,
+            convertToDisplayString,
             missingFieldError,
             transactionThreadActions: [],
         });
@@ -3599,7 +3599,7 @@ describe('getRBRMessages', () => {
             transaction: mockTransaction,
             transactionViolations: mockViolations,
             translate: translateLocal,
-            convertToDisplayString: convertToDisplayStringLocal,
+            convertToDisplayString,
             transactionThreadActions: [],
         });
         const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;

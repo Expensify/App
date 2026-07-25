@@ -464,7 +464,7 @@ function getCurrencyDecimalsLocal(): number {
  * functions directly and need to inject the currency formatter without the full app context.
  * Mirrors the implementation in CurrencyListContextProvider, pinned to the `en` locale.
  */
-function convertToDisplayStringLocal(amountInCents: number | undefined, currencyCode: string | undefined): string {
+function convertToDisplayString(amountInCents: number | undefined, currencyCode: string | undefined): string {
     const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
     const decimals = getCurrencyDecimalsLocal();
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
@@ -503,7 +503,7 @@ function localeCompare(a: string, b: string): number {
 export type {MockFetch, FormData};
 export {
     translateLocal,
-    convertToDisplayStringLocal,
+    convertToDisplayString,
     getCurrencyDecimalsLocal,
     assertFormDataMatchesObject,
     buildPersonalDetails,
