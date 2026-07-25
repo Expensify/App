@@ -93,8 +93,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
             .filter((size) => {
-                // Always hide the deprecated 1-10 option.
-                if (size === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                // Always hide deprecated options.
+                if (size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM || size === CONST.ONBOARDING_COMPANY_SIZE.MICRO || size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL) {
                     return false;
                 }
                 // For VSB-qualified users (1-9 from landing page), only show 1-4 and 5-9.
