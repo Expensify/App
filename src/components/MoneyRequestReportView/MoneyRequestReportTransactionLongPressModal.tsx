@@ -50,6 +50,7 @@ function MoneyRequestReportTransactionLongPressModal({isMobileSelectionModeEnabl
             type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={() => setIsVisible(false)}
             shouldPreventScrollOnFocus
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View style={bottomSafeAreaPaddingStyle}>
                 <MenuItem
