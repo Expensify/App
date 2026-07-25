@@ -26,6 +26,8 @@ import {
 
 import createMock from '../utils/createMock';
 
+const prefixedKey = <TPrefix extends string>(prefix: TPrefix, suffix: string): `${TPrefix}${string}` => `${prefix}${suffix}`;
+
 describe('domainSelectors', () => {
     const userID1 = 123;
     const userID2 = 456;
@@ -36,8 +38,8 @@ describe('domainSelectors', () => {
 
         it('Should return an array of admin IDs when keys start with the admin access prefix', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 321,
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}321`]: 123,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '123')]: 321,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '321')]: 123,
             });
 
             expect(adminAccountIDsSelector(domain)).toEqual([321, 123]);
@@ -45,7 +47,7 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys that do not start with the admin access prefix', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 321,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '123')]: 321,
                 email: 'test@example.com',
             });
 
@@ -54,10 +56,10 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys with falsy values even if they have the correct prefix', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 123,
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: undefined,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '123')]: 123,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '0')]: undefined,
                 // @ts-expect-error -- a null admin value is a deliberately malformed runtime entry.
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}999`]: null,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '999')]: null,
             });
 
             expect(adminAccountIDsSelector(domain)).toEqual([123]);
@@ -203,7 +205,7 @@ describe('domainSelectors', () => {
 
         it('Should return member IDs when keys start with the security group prefix', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '100': 'read',
@@ -211,7 +213,7 @@ describe('domainSelectors', () => {
                         '200': 'read',
                     },
                 },
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '2')]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '300': 'read',
@@ -224,13 +226,13 @@ describe('domainSelectors', () => {
 
         it('Should return unique member IDs if they appear in multiple security groups', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '123': 'read',
                     },
                 },
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '2')]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '123': 'read',
@@ -243,13 +245,19 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys that do not start with the security group prefix', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '456': 'read',
                     },
                 },
-                email: 'test@example.com',
+                // @ts-expect-error -- a non-prefix group-shaped entry is deliberately malformed runtime input.
+                someOtherKey: {
+                    shared: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '789': 'read',
+                    },
+                },
             });
 
             expect(memberAccountIDsSelector(domain)).toEqual([456]);
@@ -257,10 +265,10 @@ describe('domainSelectors', () => {
 
         it('Should ignore groups that do not have a shared property', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {},
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {},
                 // @ts-expect-error -- a null shared value is a deliberately malformed runtime entry.
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {shared: null},
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}3`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '2')]: {shared: null},
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '3')]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '111': 'read',
@@ -273,7 +281,7 @@ describe('domainSelectors', () => {
 
         it('Should filter out members with null or undefined permission values', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '100': 'read',
@@ -292,7 +300,7 @@ describe('domainSelectors', () => {
 
         it('Should filter out non-numeric shared keys', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '123': 'read',
@@ -360,7 +368,7 @@ describe('domainSelectors', () => {
                 email: 'test@example.com',
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 domain_defaultSecurityGroupID: '1',
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: securityGroup,
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: securityGroup,
             });
 
             const result = selectSecurityGroupForAccount(123)(domain);
@@ -373,8 +381,8 @@ describe('domainSelectors', () => {
             const group1 = createMock<DomainSecurityGroup>({shared: {'123': 'read', '456': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true});
             const group2 = createMock<DomainSecurityGroup>({shared: {'789': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true});
 
-            const key1 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`;
-            const key2 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`;
+            const key1 = prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1');
+            const key2 = prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '2');
 
             const domain = createMock<Domain>({
                 validated: true,
@@ -398,8 +406,8 @@ describe('domainSelectors', () => {
             // After changeDomainSecurityGroup fires optimistically, the old group gets
             // shared[accountID] = null while the new group gets shared[accountID] = 'read'.
             // The selector must skip the tombstone and return the new (active) group.
-            const key1 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`;
-            const key2 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`;
+            const key1 = prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1');
+            const key2 = prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '2');
 
             const domain = createMock<Domain>({
                 validated: true,
@@ -415,7 +423,7 @@ describe('domainSelectors', () => {
         });
 
         it('Should return undefined when the only matching shared entry is a null tombstone', () => {
-            const key1 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`;
+            const key1 = prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1');
 
             const domain = createMock<Domain>({
                 validated: true,
@@ -430,7 +438,7 @@ describe('domainSelectors', () => {
 
     describe('isSecurityGroupEntry', () => {
         it('should return true for a valid security group entry', () => {
-            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, {shared: {}}];
+            const entry: [string, unknown] = [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '123'), {shared: {}}];
             expect(isSecurityGroupEntry(entry)).toBe(true);
         });
 
@@ -440,17 +448,17 @@ describe('domainSelectors', () => {
         });
 
         it('should return false if the value is not an object', () => {
-            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, 'not an object'];
+            const entry: [string, unknown] = [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '123'), 'not an object'];
             expect(isSecurityGroupEntry(entry)).toBe(false);
         });
 
         it('should return false if the value is null', () => {
-            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, null];
+            const entry: [string, unknown] = [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '123'), null];
             expect(isSecurityGroupEntry(entry)).toBe(false);
         });
 
         it('should return false if the value does not have a "shared" property', () => {
-            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, {other: {}}];
+            const entry: [string, unknown] = [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '123'), {other: {}}];
             expect(isSecurityGroupEntry(entry)).toBe(false);
         });
     });
@@ -467,7 +475,7 @@ describe('domainSelectors', () => {
 
         it('Should return undefined when groupID is undefined', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
@@ -476,7 +484,7 @@ describe('domainSelectors', () => {
 
         it('Should return undefined when the group key does not exist in domainPendingActions', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
@@ -485,7 +493,7 @@ describe('domainSelectors', () => {
 
         it('Should return the pending action for the given groupID', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}42`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '42')]: {
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
@@ -494,10 +502,10 @@ describe('domainSelectors', () => {
 
         it('Should return the correct pending action when multiple groups are present', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '2')]: {
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             });
@@ -518,7 +526,7 @@ describe('domainSelectors', () => {
 
         it('Should return undefined when groupID is undefined', () => {
             const domainErrors = createMock<OnyxEntry<DomainErrors>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     nameErrors: {errorMessage: 'some error'},
                 },
             });
@@ -527,7 +535,7 @@ describe('domainSelectors', () => {
 
         it('Should return undefined when the group key does not exist in domainErrors', () => {
             const domainErrors = createMock<OnyxEntry<DomainErrors>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     nameErrors: {errorMessage: 'some error'},
                 },
             });
@@ -537,7 +545,7 @@ describe('domainSelectors', () => {
         it('Should return the errors for the given groupID', () => {
             const errors = {errorMessage: 'failed to update'};
             const domainErrors = createMock<OnyxEntry<DomainErrors>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}42`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '42')]: {
                     nameErrors: errors,
                 },
             });
@@ -548,10 +556,10 @@ describe('domainSelectors', () => {
             const errors1 = {errorMessage: 'error for group 1'};
             const errors2 = {errorMessage: 'error for group 2'};
             const domainErrors = createMock<OnyxEntry<DomainErrors>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     nameErrors: errors1,
                 },
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '2')]: {
                     nameErrors: errors2,
                 },
             });
@@ -572,7 +580,7 @@ describe('domainSelectors', () => {
 
         it('Should return false when groupID is undefined', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             });
@@ -581,7 +589,7 @@ describe('domainSelectors', () => {
 
         it('Should return false when the group key does not exist in domainPendingActions', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             });
@@ -590,9 +598,9 @@ describe('domainSelectors', () => {
 
         it('Should return false when the group has only non-delete pending actions', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    deleteGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             });
             expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(false);
@@ -600,8 +608,8 @@ describe('domainSelectors', () => {
 
         it('Should return true when the group has a top-level delete pending action', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
+                    deleteGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             });
             expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(true);
@@ -609,9 +617,9 @@ describe('domainSelectors', () => {
 
         it('Should return true when at least one field-level pending action is delete', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
-                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    enableRestrictedPrimaryPolicy: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
             expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(true);
@@ -619,11 +627,11 @@ describe('domainSelectors', () => {
 
         it('Should distinguish between groups when multiple are present', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '2')]: {
+                    deleteGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             });
             expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(false);
@@ -643,8 +651,8 @@ describe('domainSelectors', () => {
 
         it('Should return an array of groups when keys start with the security group prefix', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1', shared: {}},
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2', shared: {}},
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '123')]: {name: 'Group 1', shared: {}},
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '456')]: {name: 'Group 2', shared: {}},
             });
 
             const expectedGroups = [
@@ -657,10 +665,10 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys that do not start with the security group prefix', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1', shared: {}},
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '123')]: {name: 'Group 1', shared: {}},
                 // @ts-expect-error -- a null shared value is a deliberately malformed runtime entry.
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2', shared: null},
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}789`]: {name: 'Group 3'},
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '456')]: {name: 'Group 2', shared: null},
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '789')]: {name: 'Group 3'},
                 email: 'other@example.com',
             });
 
@@ -682,7 +690,7 @@ describe('domainSelectors', () => {
             };
 
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID1}`]: vacationDelegate,
+                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, String(userID1))]: vacationDelegate,
             });
 
             const selector = vacationDelegateSelector(userID1);
@@ -691,7 +699,7 @@ describe('domainSelectors', () => {
 
         it('Should return undefined if the vacation delegate for a specific accountID does not exist', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID2}`]: {
+                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, String(userID2))]: {
                     delegate: 'other@example.com',
                 },
             });
@@ -702,7 +710,7 @@ describe('domainSelectors', () => {
 
         it('Should return the vacation delegate when it exists but has no properties', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID1}`]: {},
+                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, String(userID1))]: {},
             });
 
             const selector = vacationDelegateSelector(userID1);
@@ -711,7 +719,7 @@ describe('domainSelectors', () => {
 
         it('Should return the vacation delegate when only some fields are present', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID1}`]: {
+                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, String(userID1))]: {
                     delegate: 'delegate@example.com',
                 },
             });
@@ -731,7 +739,7 @@ describe('domainSelectors', () => {
 
         it('Should not be affected by other vacation delegate entries with different accountIDs', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID2}`]: {
+                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, String(userID2))]: {
                     delegate: 'delegate@example.com',
                 },
             });
@@ -748,15 +756,15 @@ describe('domainSelectors', () => {
 
         it('Should return false if accountID is 0', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: userID1,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '123456')]: userID1,
             });
             expect(isAdminSelector(0)(domain)).toBe(false);
         });
 
         it('Should return true if the accountID is found in admin permission entries', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: userID1,
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}789101`]: userID2,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '123456')]: userID1,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '789101')]: userID2,
             });
 
             expect(isAdminSelector(userID1)(domain)).toBe(true);
@@ -765,7 +773,7 @@ describe('domainSelectors', () => {
 
         it('Should return false if the accountID is not in any admin permission entries', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: userID1,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '123456')]: userID1,
             });
 
             expect(isAdminSelector(999)(domain)).toBe(false);
@@ -774,8 +782,8 @@ describe('domainSelectors', () => {
         it('Should ignore null/undefined admin permission values', () => {
             const domain = createMock<OnyxEntry<Domain>>({
                 // @ts-expect-error -- a null admin value is a deliberately malformed runtime entry.
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: null,
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}789101`]: undefined,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '123456')]: null,
+                [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '789101')]: undefined,
             });
 
             expect(isAdminSelector(userID1)(domain)).toBe(false);
@@ -791,7 +799,7 @@ describe('domainSelectors', () => {
         it('Should return lock state for the given account ID', () => {
             const accountID = 123;
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`]: true,
+                [prefixedKey(CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX, String(accountID))]: true,
             });
 
             expect(accountLockSelector(accountID)(domain)).toBe(true);
@@ -800,7 +808,7 @@ describe('domainSelectors', () => {
         it('Should return false when the lock state is false', () => {
             const accountID = 123;
             const domain = createMock<OnyxEntry<Domain>>({
-                [`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`]: false,
+                [prefixedKey(CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX, String(accountID))]: false,
             });
 
             expect(accountLockSelector(accountID)(domain)).toBe(false);
@@ -820,7 +828,11 @@ describe('domainSelectors', () => {
             createMock<DomainSecurityGroup>({enableRestrictedPrimaryPolicy, restrictedPrimaryPolicyID, shared: {}});
 
         const makeDomain = (groups: Record<string, DomainSecurityGroup>): OnyxEntry<Domain> => {
-            const entries = Object.fromEntries(Object.entries(groups).map(([id, g]) => [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${id}`, g]));
+            const entries: Partial<Domain> = {};
+            for (const [id, group] of Object.entries(groups)) {
+                const key: `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}` = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${id}`;
+                entries[key] = group;
+            }
             return createMock<Domain>(entries);
         };
 
