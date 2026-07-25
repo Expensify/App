@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -121,7 +121,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         setOnboardingPolicyID(groupPolicy.id);
     }, [groupPolicy, onboardingPolicyID]);
 
-    const handleContinue = useCallback(async () => {
+    const submitInterestedFeatures = useCallback(async () => {
         const featuresMap: OnboardingFeatureMapItem[] = features.map((feature) => ({
             id: feature.id,
             enabled: selectedFeatures.includes(feature.id),
@@ -263,15 +263,16 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 <Button
-                    success
-                    large
-                    text={translate('common.continue')}
-                    onPress={handleContinue}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    onPress={submitInterestedFeatures}
                     isDisabled={isOffline && !isAccountingEnabled}
                     isLoading={isLoading}
-                    pressOnEnter
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.continue')}</Button.Text>
+                </Button>
             </FixedFooter>
         </ScreenWrapper>
     );

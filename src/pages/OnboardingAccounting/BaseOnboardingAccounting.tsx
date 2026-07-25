@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -183,7 +183,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
     const accountingOptions: OnboardingListItem[] = [...integrations.map(createAccountingOption), othersAccountingOption];
 
-    const handleContinue = async () => {
+    const submitAccounting = async () => {
         if (!selectedIntegration) {
             setError(translate('onboarding.errorSelection'));
             return;
@@ -266,15 +266,16 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 )}
 
                 <Button
-                    success
-                    large
-                    text={translate('common.continue')}
-                    onPress={handleContinue}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    onPress={submitAccounting}
                     isDisabled={isOffline}
                     isLoading={isCompletingOnboarding}
-                    pressOnEnter
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.continue')}</Button.Text>
+                </Button>
             </FixedFooter>
         </ScreenWrapper>
     );
