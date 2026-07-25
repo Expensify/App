@@ -1,6 +1,7 @@
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -60,6 +61,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const triggerRef = useRef<View | null>(null);
@@ -141,8 +143,9 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
                     shouldSkipRemeasurement
                     shouldDisplayBelowModals
                     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                 >
-                    {popoverContent}
+                    <View style={bottomSafeAreaPaddingStyle}>{popoverContent}</View>
                 </PopoverWithMeasuredContent>
             )}
         </View>

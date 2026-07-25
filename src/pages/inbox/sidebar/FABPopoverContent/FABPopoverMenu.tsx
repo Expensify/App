@@ -3,6 +3,7 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -45,6 +46,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const anchorPosition = styles.createMenuPositionSidebar(windowHeight);
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: shouldUseNarrowLayout ? styles.pv4 : styles.pv2});
     const [contentActivityMode, setContentActivityMode] = useState<ActivityProps['mode']>(isVisible ? 'visible' : 'hidden');
 
     const [registeredSet, setRegisteredSet] = useState<ReadonlySet<string>>(new Set());
@@ -128,6 +130,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                 disableAnimation={false}
                 shouldHandleNavigationBack
                 innerContainerStyle={styles.pv0}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <FocusTrapForModal
                     active={isVisible}
@@ -136,7 +139,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                     <CompactMenuContext.Provider value>
                         <Activity mode={contentActivityMode}>
                             <View style={shouldUseNarrowLayout ? styles.flexGrow1 : [styles.createMenuContainer, styles.pv0, styles.flex1]}>
-                                <View style={shouldUseNarrowLayout ? styles.pv4 : styles.pv2}>{children}</View>
+                                <View style={bottomSafeAreaPaddingStyle}>{children}</View>
                             </View>
                         </Activity>
                     </CompactMenuContext.Provider>

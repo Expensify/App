@@ -54,6 +54,9 @@ type TagPickerProps = {
      * split-edit where the active workspace no longer carries the original tag value.
      */
     additionalTagsToInclude?: string[];
+
+    /** Whether to add bottom safe area padding to the list (for edge-to-edge bottom-docked modals) */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
@@ -80,6 +83,7 @@ function TagPicker({
     shouldOrderListByTagName = false,
     onSubmit,
     additionalTagsToInclude,
+    addBottomSafeAreaPadding = false,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
@@ -177,6 +181,7 @@ function TagPicker({
             shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             isRowMultilineSupported
             titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
