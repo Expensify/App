@@ -1037,6 +1037,28 @@ const DYNAMIC_ROUTES = {
         getRoute: (domain?: string, policyID?: string) => getUrlWithParams(policyID ? `verify-account/${policyID}` : 'verify-account', {domain}),
         queryParams: ['domain'],
     },
+    TRAVEL_TRIP_DETAILS: {
+        path: 'trip/:transactionID/:pnr/:sequenceIndex',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.HOME,
+            SCREENS.TRAVEL.DYNAMIC_TRIP_SUMMARY,
+        ],
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, sequenceIndex: number) => {
+            if (!reportID || !transactionID || !pnr) {
+                Log.warn('Invalid reportID, transactionID or pnr is used to build the TRAVEL_TRIP_DETAILS route');
+            }
+
+            // `reportID` is carried as a distinct query param (`detailsReportID`) rather than `reportID` so it never
+            // collides with the `reportID` query param already used by DYNAMIC_ROUTES.TRAVEL_TRIP_SUMMARY when this
+            // route is layered on top of it (multi-reservation flow pushes TRIP_SUMMARY then TRIP_DETAILS).
+            return getUrlWithParams(`trip/${transactionID}/${pnr}/${sequenceIndex}`, {detailsReportID: reportID});
+        },
+        queryParams: ['detailsReportID'],
+    },
     TRAVEL_TRIP_SUMMARY: {
         path: 'trip/:transactionID',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
@@ -3460,16 +3482,6 @@ const ROUTES = {
         },
     },
     TRACK_TRAINING_MODAL: 'track-training',
-    TRAVEL_TRIP_DETAILS: {
-        route: 'r/:reportID/trip/:transactionID/:pnr/:sequenceIndex',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, sequenceIndex: number, backTo?: string) => {
-            if (!reportID || !transactionID || !pnr) {
-                Log.warn('Invalid reportID, transactionID or pnr is used to build the TRAVEL_TRIP_DETAILS route');
-            }
-
-            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
-        },
-    },
     TRAVEL_LEGAL_ENTITY_TAX_ID: {
         route: 'travel/:domain/legal-entity-tax-id',
 

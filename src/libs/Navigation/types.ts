@@ -2721,13 +2721,11 @@ type TravelNavigatorParamList = {
         reportID: string;
         transactionID: string;
     };
-    [SCREENS.TRAVEL.TRIP_DETAILS]: {
-        reportID: string;
+    [SCREENS.TRAVEL.DYNAMIC_TRIP_DETAILS]: {
+        detailsReportID: string;
         transactionID: string;
         sequenceIndex: number;
         pnr: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
     };
     [SCREENS.TRAVEL.DYNAMIC_TCS]: {
         domain?: string;

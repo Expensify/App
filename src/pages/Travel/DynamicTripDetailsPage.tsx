@@ -4,6 +4,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -14,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getTripIDFromTransactionParentReportID} from '@libs/ReportUtils';
 import {formatCancelledDescription, getReservationDetailsFromSequence, getReservationsFromTripReport} from '@libs/TripReservationUtils';
@@ -23,6 +25,7 @@ import {openTravelDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -41,9 +44,9 @@ function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsL
     return Object.values(personalDetails ?? {})?.find((personalDetail) => personalDetail?.login === reservation?.travelerPersonalInfo?.email);
 }
 
-type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
+type DynamicTripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_TRIP_DETAILS>;
 
-function TripDetailsPage({route}: TripDetailsPageProps) {
+function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons([
         'NewWindow',
         'Plane',
@@ -69,7 +72,8 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const [isModifyTripLoading, setIsModifyTripLoading] = useState(false);
     const [isTripSupportLoading, setIsTripSupportLoading] = useState(false);
 
-    const {transactionID, sequenceIndex, pnr, reportID} = route.params;
+    const {transactionID, sequenceIndex, pnr, detailsReportID: reportID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.path);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -90,7 +94,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
             includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID="TripDetailsPage"
+            testID="DynamicTripDetailsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
@@ -104,6 +108,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                         isCancelled,
                     )}
                     shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                     icon={reservationIcon}
                     iconHeight={20}
                     iconWidth={20}
@@ -171,4 +176,4 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     );
 }
 
-export default TripDetailsPage;
+export default DynamicTripDetailsPage;

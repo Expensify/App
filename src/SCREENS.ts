@@ -34,7 +34,7 @@ const SCREENS = {
         DYNAMIC_UPGRADE: 'Dynamic_Travel_Upgrade',
         DYNAMIC_DOMAIN_PERMISSION_INFO: 'Dynamic_Travel_DomainPermissionInfo',
         DYNAMIC_TRIP_SUMMARY: 'Dynamic_Travel_TripSummary',
-        TRIP_DETAILS: 'Travel_TripDetails',
+        DYNAMIC_TRIP_DETAILS: 'Dynamic_Travel_TripDetails',
         DYNAMIC_DOMAIN_SELECTOR: 'Dynamic_Travel_DomainSelector',
         DYNAMIC_PUBLIC_DOMAIN_ERROR: 'Dynamic_Travel_PublicDomainError',
         DYNAMIC_WORKSPACE_CONFIRMATION: 'Dynamic_Travel_WorkspaceConfirmation',
