@@ -5003,6 +5003,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingDescription: '旅費は、以下で指定した Sage Intacct アカウントにクレジットカード請求としてエクスポートされます。',
             creditCardAccount: 'クレジットカード口座',
             defaultVendor: 'デフォルトのベンダー',
+            defaultVendorNotSet: '未設定',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 `Sage Intacct で対応する仕入先がない ${isReimbursable ? '' : '非'}立替精算費用に適用されるデフォルトの仕入先を設定します。`,
             exportDescription: 'Expensify のデータを Sage Intacct へエクスポートする方法を設定します。',

@@ -5046,6 +5046,7 @@ ${amount} per ${merchant} - ${date}`,
             travelInvoicingDescription: 'Le spese di viaggio verranno esportate come addebiti su carta di credito nel conto Sage Intacct specificato di seguito.',
             creditCardAccount: 'Conto della carta di credito',
             defaultVendor: 'Fornitore predefinito',
+            defaultVendorNotSet: 'Non impostato',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 `Imposta un fornitore predefinito che verrà applicato alle spese rimborsabili ${isReimbursable ? '' : 'non-'} che non hanno un fornitore corrispondente in Sage Intacct.`,
             exportDescription: 'Configura come i dati di Expensify vengono esportati in Sage Intacct.',

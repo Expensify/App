@@ -5077,6 +5077,7 @@ ${amount} pour ${merchant} - ${date}`,
             travelInvoicingDescription: 'Les frais de voyage seront exportés comme des débits de carte de crédit vers le compte Sage Intacct indiqué ci-dessous.',
             creditCardAccount: 'Compte de carte de crédit',
             defaultVendor: 'Fournisseur par défaut',
+            defaultVendorNotSet: 'Non défini',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 `Définissez un fournisseur par défaut qui s’appliquera aux ${isReimbursable ? '' : 'non-'}dépenses remboursables qui n’ont pas de fournisseur correspondant dans Sage Intacct.`,
             exportDescription: 'Configurez comment les données Expensify sont exportées vers Sage Intacct.',
