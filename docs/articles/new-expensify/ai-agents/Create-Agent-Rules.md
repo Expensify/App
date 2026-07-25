@@ -36,8 +36,6 @@ To create an Agent rule:
 5. On the **Edit** tab, review or edit the natural-language description of the behavior you want.
 6. Click **Save**.
 
-If no suggestions are available (for example, when you're offline), the **Suggested** tab shows **No suggestions available**. Open the **Edit** tab to write your own rule instead.
-
 ---
 
 ## How to write Agent rules
