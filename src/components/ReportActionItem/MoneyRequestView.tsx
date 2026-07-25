@@ -851,7 +851,6 @@ function MoneyRequestView({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
-                getCurrencyDecimals,
             });
         });
     };
