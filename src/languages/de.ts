@@ -5069,7 +5069,6 @@ ${amount} für ${merchant} – ${date}`,
             travelInvoicingDescription: 'Reisekosten werden als Kreditkartenbelastungen in das unten angegebene Sage Intacct-Konto exportiert.',
             creditCardAccount: 'Kreditkartenkonto',
             defaultVendor: 'Standardanbieter',
-            defaultVendorNotSet: 'Nicht festgelegt',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
                     ? `Legen Sie einen Standardlieferanten fest, der auf erstattungsfähige Ausgaben angewendet wird, für die kein übereinstimmender Lieferant in Sage Intacct vorhanden ist.`

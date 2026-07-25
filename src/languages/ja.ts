@@ -5005,7 +5005,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingDescription: '旅費は、以下で指定した Sage Intacct アカウントにクレジットカード請求としてエクスポートされます。',
             creditCardAccount: 'クレジットカード口座',
             defaultVendor: 'デフォルトのベンダー',
-            defaultVendorNotSet: '未設定',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
                     ? `Sage Intacct で一致する取引先がない経費精算対象の経費に適用する、デフォルトの取引先を設定します。`

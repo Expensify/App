@@ -4963,7 +4963,6 @@ ${amount} para ${merchant} - ${date}`,
             travelInvoicingDescription: 'Los gastos de viaje se exportarán como cargos de tarjeta de crédito a la cuenta de Sage Intacct especificada a continuación.',
             creditCardAccount: 'Cuenta de tarjeta de crédito',
             defaultVendor: 'Proveedor por defecto',
-            defaultVendorNotSet: 'No establecido',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
                     ? `Establece un proveedor predeterminado que se aplicará a los gastos reembolsables que no tengan un proveedor coincidente en Sage Intacct.`

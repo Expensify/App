@@ -5042,7 +5042,6 @@ ${amount} voor ${merchant} - ${date}`,
             travelInvoicingDescription: 'Reiskosten worden als creditcardkosten geëxporteerd naar het hieronder opgegeven Sage Intacct-account.',
             creditCardAccount: 'Creditcardrekening',
             defaultVendor: 'Standaardleverancier',
-            defaultVendorNotSet: 'Niet ingesteld',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
                     ? `Stel een standaardleverancier in die wordt toegepast op vergoedbare uitgaven waarvoor geen overeenkomende leverancier in Sage Intacct bestaat.`

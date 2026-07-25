@@ -4890,7 +4890,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingDescription: '差旅费用将作为信用卡费用导出到下面指定的 Sage Intacct 账户。',
             creditCardAccount: '信用卡账户',
             defaultVendor: '默认供应商',
-            defaultVendorNotSet: '未设置',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable ? `为报销费用设置一个默认供应商，用于在 Sage Intacct 中找不到匹配供应商的情况。` : `无法与 Sage Intacct 供应商匹配的报销将默认归到此供应商名下。`,
             exportDescription: '配置 Expensify 数据导出到 Sage Intacct 的方式。',

@@ -5181,7 +5181,6 @@ const translations = {
             travelInvoicingDescription: 'Travel expenses will export as credit card charges to the Sage Intacct account specified below.',
             creditCardAccount: 'Credit card account',
             defaultVendor: 'Default vendor',
-            defaultVendorNotSet: 'Not set',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
                     ? `Set a default vendor that will apply to reimbursable expenses that don't have a matching vendor in Sage Intacct.`

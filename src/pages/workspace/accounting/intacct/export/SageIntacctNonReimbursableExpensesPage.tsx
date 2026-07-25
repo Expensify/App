@@ -83,11 +83,14 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
         },
         {
             type: 'menuitem',
-            title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : translate('workspace.sageIntacct.defaultVendorNotSet'),
+            title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : undefined,
             description: translate('workspace.sageIntacct.defaultVendor'),
             helperText:
                 config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
-                    ? translate('workspace.sageIntacct.defaultVendorDescription', false)
+                    ? translate('workspace.accounting.defaultVendorHelperText', {
+                          connectionName: translate('workspace.accounting.connectionName', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}),
+                          isSet: !!(defaultVendorName && defaultVendorName !== ''),
+                      })
                     : undefined,
             onPress: () => {
                 if (!policyID) {

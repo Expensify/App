@@ -5028,7 +5028,6 @@ ${amount} dla ${merchant} - ${date}`,
             travelInvoicingDescription: 'Wydatki na podróże zostaną wyeksportowane jako obciążenia karty kredytowej na konto Sage Intacct wskazane poniżej.',
             creditCardAccount: 'Konto karty kredytowej',
             defaultVendor: 'Domyślny dostawca',
-            defaultVendorNotSet: 'Nie ustawiono',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
                     ? `Ustaw domyślnego kontrahenta, który będzie stosowany do wydatków podlegających zwrotowi, nieposiadających pasującego kontrahenta w Sage Intacct.`
