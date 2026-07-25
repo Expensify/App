@@ -1,5 +1,8 @@
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
@@ -58,12 +61,17 @@ type DeleteTransactionsResult =
           deletedTransactionThreadReportIDs: string[];
       };
 
-function redistributeRemainingPerDiemSplitExpenses(splitExpenses: SplitExpense[], total: number, currency: string): SplitExpense[] {
+function redistributeRemainingPerDiemSplitExpenses(
+    splitExpenses: SplitExpense[],
+    total: number,
+    currency: string,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+): SplitExpense[] {
     const lastSplitIndex = splitExpenses.length - 1;
 
     return splitExpenses.map((splitExpense, index) => ({
         ...splitExpense,
-        amount: calculateIOUAmount(lastSplitIndex, total, currency, index === lastSplitIndex, true),
+        amount: calculateIOUAmount(lastSplitIndex, total, currency, index === lastSplitIndex, true, getCurrencyDecimals),
     }));
 }
 
@@ -72,6 +80,7 @@ function redistributeRemainingPerDiemSplitExpenses(splitExpenses: SplitExpense[]
  * All data must be provided through function parameters
  */
 function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransactionsParams) {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -191,6 +200,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         navigateToEditSplitExpense: true,
                         isProduction,
                     },
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 );
                 return {
                     action: 'redirected',
@@ -283,7 +294,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const remainingSplitExpensesTotal = remainingSplitExpenses.reduce((total, splitExpense) => total + splitExpense.amount, 0);
                 const updatedRemainingSplitExpenses =
                     originalTransaction && isPerDiemRequestTransactionUtils(originalTransaction) && remainingSplitExpenses.length > 0 && remainingSplitExpensesTotal !== splitExpensesTotal
-                        ? redistributeRemainingPerDiemSplitExpenses(remainingSplitExpenses, splitExpensesTotal, originalTransaction.currency ?? CONST.CURRENCY.USD)
+                        ? redistributeRemainingPerDiemSplitExpenses(remainingSplitExpenses, splitExpensesTotal, originalTransaction.currency ?? CONST.CURRENCY.USD, getCurrencyDecimals)
                         : remainingSplitExpenses;
 
                 const parentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
@@ -402,6 +413,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             personalPolicy?.outputCurrency,
             delegateAccountID,
             isTrackIntentUser,
+            getCurrencyDecimals,
         ],
     );
 

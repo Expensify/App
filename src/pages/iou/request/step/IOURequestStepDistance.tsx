@@ -5,6 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -91,6 +92,7 @@ function IOURequestStepDistance({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceProps) {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -489,6 +491,8 @@ function IOURequestStepDistance({
                     },
                     policy,
                     personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 );
                 navigateBackAfterSave();
                 return;
@@ -530,6 +534,8 @@ function IOURequestStepDistance({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
             }
             transactionWasSaved.current = true;
@@ -607,7 +613,15 @@ function IOURequestStepDistance({
 
         if (isEditingSplit && transaction) {
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
-            setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, splitDraftTransaction, {distance: distanceAsFloat}, policy, personalPolicy?.outputCurrency);
+            setDraftSplitTransaction(
+                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                splitDraftTransaction,
+                {distance: distanceAsFloat},
+                policy,
+                personalPolicy?.outputCurrency,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            );
             navigateBackAfterSave();
             return;
         }
@@ -649,6 +663,8 @@ function IOURequestStepDistance({
             reportPolicyTags,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction

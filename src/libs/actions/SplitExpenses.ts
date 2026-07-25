@@ -1,3 +1,6 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
+import {getCurrencyDecimals as getLegacyCurrencyDecimals, getCurrencySymbol as getLegacyCurrencySymbol} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -57,6 +60,8 @@ function initSplitExpense(
     restrictedActionPolicyID: string | undefined,
     personalPolicyOutputCurrency: string | undefined,
     {navigateToEditSplitExpense = false, isProduction = false}: {navigateToEditSplitExpense?: boolean; isProduction?: boolean} = {},
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'] = getLegacyCurrencyDecimals,
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'] = getLegacyCurrencySymbol,
 ): void {
     if (!transaction) {
         return;
@@ -142,8 +147,8 @@ function initSplitExpense(
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
     const splitAmounts = [
-        calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
-        calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
+        calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false, false, getCurrencyDecimals),
+        calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true, false, getCurrencyDecimals),
     ];
     const splitCustomUnits: Array<TransactionCustomUnit | undefined> = [undefined, undefined];
     const splitMerchants: Array<string | undefined> = [undefined, undefined];
@@ -164,6 +169,7 @@ function initSplitExpense(
                         unit,
                         transaction.comment.customUnit,
                         {currency},
+                        getCurrencySymbol,
                         transactionDetails?.currency,
                     );
 

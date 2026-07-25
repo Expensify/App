@@ -2,6 +2,8 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -1282,6 +1284,8 @@ function setDraftSplitTransaction(
     transactionChanges: TransactionChanges = {},
     policy?: OnyxEntry<OnyxTypes.Policy>,
     personalPolicyOutputCurrency?: string,
+    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'],
+    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'],
 ) {
     if (!transactionID) {
         return undefined;
@@ -1301,6 +1305,8 @@ function setDraftSplitTransaction(
               policy,
               isSplitTransaction: true,
               personalPolicyOutputCurrency,
+              getCurrencyDecimals,
+              getCurrencySymbol,
           })
         : null;
 

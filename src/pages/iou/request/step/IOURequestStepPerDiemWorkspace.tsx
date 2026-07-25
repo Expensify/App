@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useOnyx from '@hooks/useOnyx';
@@ -26,6 +27,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 type IOURequestStepPerDiemWorkspaceProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
 
 function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOURequestStepPerDiemWorkspaceProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {
         params: {action, iouType, transactionID},
     } = route;
@@ -73,7 +75,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
                     ]);
                 }
                 setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-                setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
+                setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, targetIouType, transactionID, targetReport.reportID));
             }}
         />

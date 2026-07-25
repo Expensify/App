@@ -1,5 +1,7 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
-import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 
@@ -16,6 +18,7 @@ export default function useExpensifyCardRules(policyID: string) {
     const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const {translate, localeCompare} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);

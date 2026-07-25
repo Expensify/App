@@ -1,6 +1,8 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, getCurrencyDecimals as getLegacyCurrencyDecimals, getCurrencySymbol as getLegacyCurrencySymbol} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -100,6 +102,8 @@ type UpdateMultipleMoneyRequestsParams = {
     delegateAccountID: number | undefined;
     personalPolicyOutputCurrency?: string;
     personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 function updateMultipleMoneyRequests({
@@ -119,7 +123,11 @@ function updateMultipleMoneyRequests({
     delegateAccountID,
     personalPolicyOutputCurrency,
     personalDetailsList,
+    getCurrencyDecimals,
+    getCurrencySymbol,
 }: UpdateMultipleMoneyRequestsParams) {
+    const currencyDecimals = getCurrencyDecimals ?? getLegacyCurrencyDecimals;
+    const currencySymbol = getCurrencySymbol ?? getLegacyCurrencySymbol;
     // Per-report running state so iterations in the same report see earlier edits (totals, transactions, snapshot).
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
     const optimisticTransactionsByReportID: Record<string, Record<string, OnyxTypes.Transaction>> = {};
@@ -218,7 +226,7 @@ function updateMultipleMoneyRequests({
         if (changes.amount !== undefined && !isSplitChild && !changes.taxCode && transaction.taxCode && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
             const taxValue = getTaxValue(transactionPolicy, transaction, transaction.taxCode);
             if (taxValue) {
-                const decimals = getCurrencyDecimals(getCurrency(transaction));
+                const decimals = currencyDecimals(getCurrency(transaction));
                 const taxAmount = calculateTaxAmount(taxValue, Math.abs(changes.amount), decimals);
                 transactionChanges.taxAmount = convertToBackendAmount(taxAmount);
             }
@@ -239,7 +247,7 @@ function updateMultipleMoneyRequests({
             transactionChanges.taxCode = changes.taxCode;
             const taxValue = getTaxValue(transactionPolicy, transaction, changes.taxCode);
             transactionChanges.taxValue = taxValue;
-            const decimals = getCurrencyDecimals(getCurrency(transaction));
+            const decimals = currencyDecimals(getCurrency(transaction));
             const effectiveAmount = transactionChanges.amount !== undefined ? Math.abs(transactionChanges.amount) : Math.abs(getAmount(transaction));
             const taxAmount = calculateTaxAmount(taxValue, effectiveAmount, decimals);
             transactionChanges.taxAmount = convertToBackendAmount(taxAmount);
@@ -364,6 +372,8 @@ function updateMultipleMoneyRequests({
             isFromExpenseReport,
             policy: transactionPolicy,
             personalPolicyOutputCurrency,
+            getCurrencyDecimals: currencyDecimals,
+            getCurrencySymbol: currencySymbol,
         });
         const isTransactionOnHold = isOnHold(transaction);
 
