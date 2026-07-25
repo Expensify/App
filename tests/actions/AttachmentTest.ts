@@ -74,7 +74,15 @@ describe('AttachmentStorage', () => {
         };
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: fileData,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -113,6 +121,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -167,6 +176,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -230,7 +240,15 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: fileData,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -292,6 +310,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -361,8 +380,17 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: attachmentFiles, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: attachmentFiles,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 

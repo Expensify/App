@@ -31,34 +31,48 @@ type ComponentWithPolicyAndFullscreenLoading<TProps extends WithPolicyAndFullscr
     Omit<Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>, keyof WithPolicyOnyxProps>
 >;
 
+type WithPolicyAndFullscreenLoadingImplProps<TProps extends WithPolicyAndFullscreenLoadingProps> = {
+    WrappedComponent: ComponentType<TProps>;
+} & Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>;
+
+function WithPolicyAndFullscreenLoadingImpl<TProps extends WithPolicyAndFullscreenLoadingProps>({
+    WrappedComponent,
+    policy = policyDefaultProps.policy,
+    policyDraft = policyDefaultProps.policyDraft,
+    isLoadingPolicy = policyDefaultProps.isLoadingPolicy,
+    ...rest
+}: WithPolicyAndFullscreenLoadingImplProps<TProps>) {
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'withPolicyAndFullscreenLoading',
+            isLoadingPolicy: !!isLoadingPolicy,
+            isLoadingReportData: !!isLoadingReportData,
+        };
+        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+
+    return (
+        <WrappedComponent
+            {...(rest as unknown as TProps)}
+            isLoadingReportData={isLoadingReportData}
+            personalDetails={personalDetails}
+            policy={policy}
+            policyDraft={policyDraft}
+        />
+    );
+}
+
 export default function withPolicyAndFullscreenLoading<TProps extends WithPolicyAndFullscreenLoadingProps>(
     WrappedComponent: ComponentType<TProps>,
 ): ComponentWithPolicyAndFullscreenLoading<TProps> {
-    function WithPolicyAndFullscreenLoading({
-        policy = policyDefaultProps.policy,
-        policyDraft = policyDefaultProps.policyDraft,
-        isLoadingPolicy = policyDefaultProps.isLoadingPolicy,
-        ...rest
-    }: Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>) {
-        const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-        const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-
-        if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'withPolicyAndFullscreenLoading',
-                isLoadingPolicy: !!isLoadingPolicy,
-                isLoadingReportData: !!isLoadingReportData,
-            };
-            return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
-        }
-
+    function WithPolicyAndFullscreenLoading(props: Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>) {
         return (
-            <WrappedComponent
-                {...(rest as TProps)}
-                isLoadingReportData={isLoadingReportData}
-                personalDetails={personalDetails}
-                policy={policy}
-                policyDraft={policyDraft}
+            <WithPolicyAndFullscreenLoadingImpl
+                WrappedComponent={WrappedComponent}
+                {...props}
             />
         );
     }

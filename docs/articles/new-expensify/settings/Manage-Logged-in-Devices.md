@@ -28,6 +28,8 @@ All Expensify members can view and revoke device access on web or mobile for the
 
 Each listed device represents an active login session on your account. Devices may appear multiple times if you signed in using different browsers, apps, or devices.
 
+The list is ordered by most recent activity, so the device you most recently used or added appears at the top.
+
 ---
 
 <!-- SCREENSHOT:

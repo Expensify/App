@@ -1,19 +1,23 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import Navigation from '@libs/Navigation/Navigation';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
-
-import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyStateComponent';
 
 import variables from '@styles/variables';
 
 import type CONST from '@src/CONST';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -61,6 +65,8 @@ type WorkspaceListTableProps = {
 export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {isRestrictedPolicyCreation} = usePreferredPolicy();
+    const illustrations = useMemoizedLazyIllustrations(['PlanetWithMobileApp']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -123,6 +129,16 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
         );
     };
 
+    const emptyStateButtons = !isRestrictedPolicyCreation
+        ? [
+              {
+                  success: true,
+                  buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route))),
+                  buttonText: translate('workspace.new.newWorkspace'),
+              },
+          ]
+        : undefined;
+
     return (
         <Table
             ref={ref}
@@ -133,10 +149,21 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
             isItemInSearch={isTableItemInSearch}
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
-            ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
             <Table.FilterBar label={translate('workspace.common.findWorkspace')} />
+            <Table.NoResultsState />
+            <Table.EmptyState
+                titleStyles={styles.pt2}
+                containerStyles={styles.mb10}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                headerContentStyles={styles.emptyWorkspaceListStaticIllustrationStyle}
+                headerMedia={illustrations.PlanetWithMobileApp}
+                title={translate('workspace.emptyWorkspace.title')}
+                subtitle={translate('workspace.emptyWorkspace.subtitle')}
+                buttons={emptyStateButtons}
+            />
+
             <Table.Header />
             <Table.Body />
         </Table>

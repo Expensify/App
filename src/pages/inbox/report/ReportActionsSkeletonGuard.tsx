@@ -1,16 +1,17 @@
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsListModel from '@hooks/useReportActionsListModel';
 import useStartConciergeSession from '@hooks/useStartConciergeSession';
 
+import CONST from '@src/CONST';
+
 import type {ReactNode} from 'react';
 
 import React from 'react';
 
 import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
+import ReportActionsLoadingSkeleton from './ReportActionsLoadingSkeleton';
 
 type ReportActionsSkeletonGuardProps = {
     /** The ID of the report to display actions for */
@@ -49,11 +50,22 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
     useMarkOpenReportEndOnSkeleton(report, shouldShowInitialSkeleton);
 
     if (shouldShowLoadingSkeleton) {
-        return <ReportActionsSkeletonView />;
+        return (
+            <ReportActionsLoadingSkeleton
+                reportID={reportID}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_LOADING}
+            />
+        );
     }
 
     if (shouldShowDerivedTimingSkeleton) {
-        return <ReportActionsSkeletonView shouldAnimate={false} />;
+        return (
+            <ReportActionsLoadingSkeleton
+                reportID={reportID}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_DERIVED_TIMING}
+                shouldAnimate={false}
+            />
+        );
     }
 
     return (

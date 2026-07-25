@@ -64,6 +64,10 @@ jest.mock('@src/CONFIG', () => ({
     IS_TEST_ENV: false,
 }));
 
+// QueuedOnyxUpdates now imports Log, which transitively pulls in the network stack that reads
+// the (mocked, partial) CONFIG at load time. Mock Log so that chain never loads.
+jest.mock('@libs/Log');
+
 function getOnyxUpdateValue<T>(key: string): T | undefined {
     return queuedOnyxUpdates.find((item) => item.key === key)?.value as T | undefined;
 }
