@@ -5,16 +5,18 @@ import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalU
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {UseOnyxResult} from 'react-native-onyx';
+
 // The SESSION/ACCOUNT selector mapping is covered by tests/unit/selectors/SessionTest.ts and AccountTest.ts,
 // so here we mock useOnyx to exercise the hook's own logic: combining the two booleans and failing closed while loading.
 jest.mock('@hooks/useOnyx', () => jest.fn());
 
 const mockedUseOnyx = jest.mocked(useOnyx);
 
-type MockedResult = [boolean, {status: 'loading' | 'loaded'}];
+type MockedResult = UseOnyxResult<boolean>;
 
 function mockUseOnyx(session: MockedResult, account: MockedResult) {
-    mockedUseOnyx.mockImplementation(((key: string) => (key === ONYXKEYS.SESSION ? session : account)) as typeof useOnyx);
+    mockedUseOnyx.mockImplementation((key) => (key === ONYXKEYS.SESSION ? session : account));
 }
 
 describe('useShouldSuppressPromotionalUI', () => {
