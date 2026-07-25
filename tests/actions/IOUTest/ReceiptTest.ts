@@ -126,7 +126,6 @@ describe('actions/IOU/Receipt', () => {
             return new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
                         resolve(transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);

@@ -21,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -46,6 +47,7 @@ function AgentsPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const illustrations = useMemoizedLazyIllustrations(['AiBot']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
     const chatWithAgent = useChatWithAgent();
@@ -79,9 +81,6 @@ function AgentsPage() {
         }
     };
 
-    const shouldShowErrors = (pendingAction: PendingAction | null | undefined) =>
-        pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
     const agents: AgentRowData[] = Object.entries(agentPrompts ?? {}).flatMap(([key, agentPrompt]) => {
         const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
         const details = personalDetailsList?.[accountID];
@@ -96,7 +95,7 @@ function AgentsPage() {
         }
 
         const mergedErrors = {
-            ...(shouldShowErrors(pendingAction) ? getLatestError(agentPrompt?.errors ?? undefined) : {}),
+            ...getLatestError(agentPrompt?.errors ?? undefined),
             ...getLatestError(agentPrompt?.nameErrors ?? undefined),
             ...getLatestError(agentPrompt?.promptErrors ?? undefined),
             ...getLatestError(agentPrompt?.avatarErrors ?? undefined),
@@ -231,9 +230,9 @@ function AgentsPage() {
                 shouldDisplayHelpButton
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
             >
-                {!shouldUseNarrowLayout && headerButtons}
+                {!shouldDisplayButtonsInSeparateLine && headerButtons}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
+            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
             {hasAgents && (
                 <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
                     <RenderHTML html={translate('agentsPage.subtitle')} />

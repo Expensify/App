@@ -1,19 +1,21 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
-import useShortMentionsList from '@hooks/useShortMentionsList';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {addAttachmentWithComment, addComment, clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
-import {isConciergeChatReport} from '@libs/ReportUtils';
+import {getAllPersonalDetailLogins, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getAllReportActions} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction, isConciergeChatReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import getSendMessageListWeight from '@libs/telemetry/getSendMessageListWeight';
+import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
 import {generateAccountID} from '@libs/UserUtils';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
@@ -26,6 +28,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 
 import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState} from './ComposerContext';
@@ -34,10 +37,9 @@ import useSidePanelContext from './useSidePanelContext';
 
 function useComposerSubmit(reportID: string) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
-    const {availableLoginsList} = useShortMentionsList();
     const isInSidePanel = useIsInSidePanel();
     const sidePanelContext = useSidePanelContext(reportID);
+    const route = useRoute();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
@@ -52,6 +54,7 @@ function useComposerSubmit(reportID: string) {
 
     const {report, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
+    const isReportArchived = useReportIsArchived(reportID);
 
     const reportAncestors = useAncestors(report);
     const targetReportAncestors = useAncestors(targetReport);
@@ -107,15 +110,15 @@ function useComposerSubmit(reportID: string) {
             if (taskTitle) {
                 const mention = taskMatch[1] ? taskMatch[1].trim() : '';
                 const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail) ? '' : Str.extractEmailDomain(currentUserEmail);
-                const mentionWithDomain = addDomainToShortMention(mention, availableLoginsList, currentUserPrivateDomain) ?? mention;
+                const mentionWithDomain = addDomainToShortMention(mention, getAllPersonalDetailLogins(), currentUserPrivateDomain) ?? mention;
                 const isValidMention = Str.isValidEmail(mentionWithDomain);
 
                 let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
                 let assigneeChatReport;
                 if (mentionWithDomain) {
                     if (isValidMention) {
-                        assignee = Object.values(personalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
-                        if (!Object.keys(assignee ?? {}).length) {
+                        assignee = getPersonalDetailByEmail(mentionWithDomain);
+                        if (!assignee) {
                             const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
                                 accountID: generateAccountID(mentionWithDomain),
                                 login: mentionWithDomain,
@@ -157,12 +160,17 @@ function useComposerSubmit(reportID: string) {
         const optimisticReportActionID = rand64();
         const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         if (isScrolledToBottom) {
-            startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`, {
+            const spanID = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`;
+            const {reportActionCount, moneyRequestPreviewCount} = getSendMessageListWeight(getAllReportActions(reportID), reportID, canUserPerformWriteAction(report, isReportArchived));
+            startSpan(spanID, {
                 name: 'send-message',
                 op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
                 attributes: {
                     [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
                     [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
+                    [CONST.TELEMETRY.ATTRIBUTE_SEND_MESSAGE_SOURCE]: getSendMessageSource({report, conciergeReportID, isInSidePanel, routeName: route.name}),
+                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActionCount,
+                    [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
                 },
             });
         }

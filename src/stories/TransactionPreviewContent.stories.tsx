@@ -108,6 +108,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
         chatReport: chatReportR14932,
         personalDetails,
         report: iouReportR14932,
+        policy: undefined,
         transaction: transactionR14932,
         violations: [],
         offlineWithFeedbackOnClose(): void {},

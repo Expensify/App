@@ -143,6 +143,7 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
             chatReport={chatReportR14932}
             personalDetails={personalDetails}
             report={iouReportR14932}
+            policy={undefined}
             transaction={item}
             transactionRawAmount={item.amount}
             violations={item.errors ? violationsR14932 : []}
