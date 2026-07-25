@@ -5081,8 +5081,8 @@ ${amount} pour ${merchant} - ${date}`,
             defaultVendor: 'Fournisseur par défaut',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
-                    ? `Définissez un fournisseur par défaut qui sera appliqué aux dépenses remboursables n’ayant pas de fournisseur correspondant dans Sage Intacct.`
-                    : `Les dépenses qui ne peuvent pas être rapprochées avec vos fournisseurs Sage Intacct seront, par défaut, associées à ce fournisseur.`,
+                    ? `Définissez un fournisseur par défaut qui s’appliquera aux dépenses remboursables qui n’ont pas de fournisseur correspondant dans Sage Intacct.`
+                    : `Les dépenses qui ne peuvent pas être rapprochées de vos fournisseurs Sage Intacct seront par défaut associées à ce fournisseur.`,
             exportDescription: 'Configurez comment les données Expensify sont exportées vers Sage Intacct.',
             exportPreferredExporterNote:
                 'L’exportateur préféré peut être n’importe quel administrateur d’espace de travail, mais doit également être un administrateur de domaine si vous définissez des comptes d’exportation différents pour chaque carte d’entreprise individuelle dans les paramètres de domaine.',
@@ -6996,9 +6996,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             defaultVendor: 'Fournisseur par défaut',
             defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
                 isSet
-                    ? `Expenses that don't auto-match will default to this ${connectionName} vendor.`
-                    : `Expenses that don't auto-match will default to this ${connectionName} vendor. Otherwise, they'll export as Credit Card Misc.`,
-            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
+                    ? `Les dépenses qui ne sont pas associées automatiquement seront par défaut rattachées à ce fournisseur ${connectionName}.`
+                    : `Les dépenses qui ne sont pas appariées automatiquement seront par défaut associées à ce fournisseur ${connectionName}. Sinon, elles seront exportées en tant que « Credit Card Misc ».`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Choisissez un fournisseur ${connectionName} par défaut pour les dépenses qui ne correspondent pas automatiquement.`,
             defaultAccount: 'Compte par défaut',
             autoSync: 'Synchronisation automatique',
             autoSyncDescription: 'Synchronisez automatiquement NetSuite et Expensify, chaque jour. Exportez les notes de frais finalisées en temps réel',

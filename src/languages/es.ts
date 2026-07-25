@@ -4966,7 +4966,7 @@ ${amount} para ${merchant} - ${date}`,
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
                     ? `Establece un proveedor predeterminado que se aplicará a los gastos reembolsables que no tengan un proveedor coincidente en Sage Intacct.`
-                    : `Los gastos que no se puedan asociar con tus proveedores de Sage Intacct se asignarán a este proveedor de forma predeterminada.`,
+                    : `Los gastos que no se puedan asignar a tus proveedores de Sage Intacct se asociarán por defecto a este proveedor.`,
             exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Intacct.',
             exportPreferredExporterNote:
                 'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
@@ -6755,9 +6755,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             defaultVendor: 'Proveedor predeterminado',
             defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
                 isSet
-                    ? `Expenses that don't auto-match will default to this ${connectionName} vendor.`
-                    : `Expenses that don't auto-match will default to this ${connectionName} vendor. Otherwise, they'll export as Credit Card Misc.`,
-            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
+                    ? `Los gastos que no se asignen automáticamente se asociarán por defecto a este proveedor de ${connectionName}.`
+                    : `Los gastos que no se concilien automáticamente se asignarán por defecto a este proveedor de ${connectionName}. De lo contrario, se exportarán como Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Elige un proveedor predeterminado de ${connectionName} para los gastos que no se asignen automáticamente.`,
             defaultAccount: 'Cuenta predeterminada',
             autoSync: 'Autosincronización',
             autoSyncDescription: 'Sincroniza NetSuite y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',

@@ -5007,7 +5007,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
-                    ? `Sage Intacct で一致する取引先がない経費精算対象の経費に適用する、デフォルトの取引先を設定します。`
+                    ? `Sage Intacct で一致する取引先がない立替経費に適用する、デフォルトの取引先を設定します。`
                     : `Sage Intacct のベンダーに照合できない経費は、デフォルトでこのベンダーに割り当てられます。`,
             exportDescription: 'Expensify のデータを Sage Intacct へエクスポートする方法を設定します。',
             exportPreferredExporterNote:
@@ -6872,9 +6872,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
                 isSet
-                    ? `Expenses that don't auto-match will default to this ${connectionName} vendor.`
-                    : `Expenses that don't auto-match will default to this ${connectionName} vendor. Otherwise, they'll export as Credit Card Misc.`,
-            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
+                    ? `自動照合されない経費は、デフォルトでこの ${connectionName} のベンダーに紐づきます。`
+                    : `自動照合されない経費は、デフォルトでこの ${connectionName} の仕入先として処理されます。照合される場合は、「Credit Card Misc」としてエクスポートされます。`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `自動的に照合されない経費に対して使用する、デフォルトの ${connectionName} 仕入先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
             autoSyncDescription: 'NetSuite と Expensify を毎日自動で同期。確定したレポートをリアルタイムでエクスポート',

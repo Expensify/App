@@ -5030,8 +5030,8 @@ ${amount} dla ${merchant} - ${date}`,
             defaultVendor: 'Domyślny dostawca',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
-                    ? `Ustaw domyślnego kontrahenta, który będzie stosowany do wydatków podlegających zwrotowi, nieposiadających pasującego kontrahenta w Sage Intacct.`
-                    : `Wydatki, których nie da się dopasować do Twoich dostawców Sage Intacct, zostaną domyślnie przypisane do tego dostawcy.`,
+                    ? `Ustaw domyślnego dostawcę, który zostanie zastosowany do wydatków podlegających zwrotowi, nieposiadających pasującego dostawcy w Sage Intacct.`
+                    : `Wydatki, których nie da się dopasować do twoich dostawców w Sage Intacct, zostaną domyślnie przypisane do tego dostawcy.`,
             exportDescription: 'Skonfiguruj sposób eksportu danych z Expensify do Sage Intacct.',
             exportPreferredExporterNote:
                 'Preferowanym eksporterem może być dowolny administrator przestrzeni roboczej, ale musi on również być administratorem domeny, jeśli w Ustawieniach domeny ustawisz różne konta eksportu dla poszczególnych kart firmowych.',
@@ -6917,9 +6917,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             defaultVendor: 'Domyślny dostawca',
             defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
                 isSet
-                    ? `Expenses that don't auto-match will default to this ${connectionName} vendor.`
-                    : `Expenses that don't auto-match will default to this ${connectionName} vendor. Otherwise, they'll export as Credit Card Misc.`,
-            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
+                    ? `Wydatki, które nie zostaną automatycznie dopasowane, domyślnie trafią do tego dostawcy ${connectionName}.`
+                    : `Wydatki, które nie zostaną automatycznie dopasowane, domyślnie trafią do tego dostawcy ${connectionName}. W przeciwnym razie zostaną wyeksportowane jako Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Wybierz domyślnego dostawcę ${connectionName} dla wydatków, które nie zostaną dopasowane automatycznie.`,
             defaultAccount: 'Domyślne konto',
             autoSync: 'Automatyczna synchronizacja',
             autoSyncDescription: 'Synchronizuj NetSuite i Expensify automatycznie, każdego dnia. Eksportuj sfinalizowany raport w czasie rzeczywistym',

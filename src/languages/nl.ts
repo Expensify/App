@@ -5044,8 +5044,8 @@ ${amount} voor ${merchant} - ${date}`,
             defaultVendor: 'Standaardleverancier',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
-                    ? `Stel een standaardleverancier in die wordt toegepast op vergoedbare uitgaven waarvoor geen overeenkomende leverancier in Sage Intacct bestaat.`
-                    : `Declaraties die niet gekoppeld kunnen worden aan je Sage Intacct-leveranciers, worden standaard aan deze leverancier toegewezen.`,
+                    ? `Stel een standaardleverancier in die wordt toegepast op declarabele uitgaven waarvoor geen overeenkomende leverancier in Sage Intacct is.`
+                    : `Uitgaven die niet kunnen worden gekoppeld aan je Sage Intacct-leveranciers, worden standaard aan deze leverancier toegewezen.`,
             exportDescription: 'Configureer hoe Expensify-gegevens worden geëxporteerd naar Sage Intacct.',
             exportPreferredExporterNote:
                 'De voorkeurs-exporteur kan elke werkruimtebeheerder zijn, maar moet ook een domeinbeheerder zijn als je in Domeininstellingen verschillende exportrekeningen instelt voor individuele bedrijfskaarten.',
@@ -6936,9 +6936,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             defaultVendor: 'Standaardleverancier',
             defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
                 isSet
-                    ? `Expenses that don't auto-match will default to this ${connectionName} vendor.`
-                    : `Expenses that don't auto-match will default to this ${connectionName} vendor. Otherwise, they'll export as Credit Card Misc.`,
-            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
+                    ? `Declaraties die niet automatisch worden gematcht, worden standaard aan deze ${connectionName}-leverancier gekoppeld.`
+                    : `Declaraties die niet automatisch worden gekoppeld, worden standaard aan deze ${connectionName}-leverancier toegewezen. Anders worden ze geëxporteerd als Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Kies een standaard ${connectionName}-leverancier voor onkosten die niet automatisch worden gekoppeld.`,
             defaultAccount: 'Standaardrekening',
             autoSync: 'Automatisch synchroniseren',
             autoSyncDescription: 'Synchroniseer NetSuite en Expensify automatisch, elke dag. Exporteer een afgerond rapport in realtime',
