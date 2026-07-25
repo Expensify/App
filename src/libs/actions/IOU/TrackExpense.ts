@@ -1738,6 +1738,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     } = getMoneyRequestInformation({
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
+        reportTotalsOverride: requestMoneyInformation.reportTotalsOverride,
         participantParams,
         policyParams,
         transactionParams,

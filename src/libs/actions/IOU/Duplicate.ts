@@ -24,6 +24,8 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
+    getAmount,
+    getConvertedAmount,
     getDistanceRequestType,
     getReimbursable,
     getRequestType,
@@ -33,6 +35,7 @@ import {
     isExpenseSplit,
     isFromCreditCardImport,
     isOdometerDistanceRequest,
+    isOnHold,
     isPartialTransaction,
     isPerDiemRequest,
     isScanning,
@@ -54,7 +57,7 @@ import type {PartialDeep} from 'type-fest';
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
-import type {RequestMoneyInformation} from './MoneyRequestBuilder';
+import type {ReportTotalsOverride, RequestMoneyInformation} from './MoneyRequestBuilder';
 import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
@@ -998,6 +1001,47 @@ function duplicateReport({
           }
         : undefined;
 
+    // Seed the optimistic report totals from the eligible transactions expressed in the report currency.
+    // The per-transaction accumulation in getMoneyRequestInformation only runs when a transaction's currency
+    // matches the report currency, so a duplicate whose transactions are in a different currency than the
+    // (pre-created, policy-currency) report would otherwise keep a total of 0 and show the wrong amount in the
+    // preview and details page. We only seed same-workspace duplicates whose source report currency matches the
+    // new report currency, because that guarantees each transaction's stored convertedAmount is expressed in the
+    // report currency; cross-currency duplicates are left for the server response to reconcile.
+    // Note: these are optimistic values only; the server response remains the source of truth.
+    const reportCurrency = newReport.currency;
+    let reportTotalsOverride: ReportTotalsOverride | undefined;
+    if (!isCrossWorkspace && !!sourceReport?.currency && !!reportCurrency && sourceReport.currency === reportCurrency && eligibleTransactions.length > 0) {
+        reportTotalsOverride = eligibleTransactions.reduce<Required<ReportTotalsOverride>>(
+            (acc, transaction) => {
+                // getAmount / getConvertedAmount without isFromExpenseReport return the absolute request amount.
+                // Expense report totals are stored as negative values and accumulated by subtracting the request
+                // amount (see buildOptimisticExpenseReport / getMoneyRequestInformation), so we subtract here too.
+                // Use the raw amount when the transaction already shares the report currency, otherwise its stored
+                // converted value (expressed in the report currency).
+                const amountInReportCurrency = transaction.currency === reportCurrency ? getAmount(transaction) : getConvertedAmount(transaction);
+                const reimbursable = getReimbursable(transaction);
+                const onHold = isOnHold(transaction);
+                acc.total -= amountInReportCurrency;
+                if (reimbursable) {
+                    acc.reimbursableTotal -= amountInReportCurrency;
+                } else {
+                    acc.nonReimbursableTotal -= amountInReportCurrency;
+                }
+                if (!onHold) {
+                    acc.unheldTotal -= amountInReportCurrency;
+                    if (reimbursable) {
+                        acc.unheldReimbursableTotal -= amountInReportCurrency;
+                    } else {
+                        acc.unheldNonReimbursableTotal -= amountInReportCurrency;
+                    }
+                }
+                return acc;
+            },
+            {total: 0, reimbursableTotal: 0, nonReimbursableTotal: 0, unheldTotal: 0, unheldReimbursableTotal: 0, unheldNonReimbursableTotal: 0},
+        );
+    }
+
     let currentIOUReport = newReport as OnyxEntry<OnyxTypes.Report>;
 
     for (let i = 0; i < eligibleTransactions.length; i++) {
@@ -1016,6 +1060,7 @@ function duplicateReport({
         const params: RequestMoneyInformation = {
             report: parentChatReport,
             existingIOUReport: currentIOUReport,
+            reportTotalsOverride,
             optimisticReportPreviewActionID: reportPreviewReportActionID,
             participantParams: {
                 payeeAccountID: currentUserAccountID,
