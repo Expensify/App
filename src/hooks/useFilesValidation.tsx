@@ -156,49 +156,50 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             return;
         }
 
-        if (result.action === ModalActions.CONFIRM) {
-            // Handle MAX_FILE_LIMIT_EXCEEDED separately
-            if (error.error === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
-                validateAndResizeFiles(filesToValidate.current, dataTransferItemList.current, currentValidationState.current);
-                return;
-            }
-
-            // Show next error if available
-            if (currentIndex < allErrors.length - 1) {
-                const nextIndex = currentIndex + 1;
-                const nextError = allErrors.at(nextIndex);
-                if (nextError) {
-                    if (currentValidationState.current.isValidatingMultipleFiles && currentIndex === allErrors.length - 2 && validFilesToUploadRef.current.length === 0) {
-                        currentValidationState.current.isValidatingMultipleFiles = false;
-                    }
-                    showErrorModal(nextError, nextIndex, allErrors);
-                    return;
-                }
-            }
-
-            // No more errors, proceed with valid files
-            const sortedFiles = sortFilesByOriginalOrder(validFilesToUploadRef.current, originalFileOrder.current);
-            // If we're validating attachments we need to wait for the error modal close
-            // transition to finish before opening the attachment modal
-            if (currentValidationState.current.isValidatingReceipts === false) {
-                pendingAfterHide.current = () => {
-                    if (sortedFiles.length !== 0) {
-                        onFilesValidated(sortedFiles, dataTransferItemList.current);
-                    }
-                    reset();
-                };
-                runPendingAfterHide();
-            } else {
-                if (sortedFiles.length !== 0) {
-                    onFilesValidated(sortedFiles, dataTransferItemList.current);
-                }
-                reset();
-            }
-        } else {
-            // User cancelled
+        // User cancelled
+        if (result.action !== ModalActions.CONFIRM) {
             pendingAfterHide.current = reset;
             runPendingAfterHide();
+            return;
         }
+
+        // Handle MAX_FILE_LIMIT_EXCEEDED separately
+        if (error.error === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+            validateAndResizeFiles(filesToValidate.current, dataTransferItemList.current, currentValidationState.current);
+            return;
+        }
+
+        // Show next error if available
+        if (currentIndex < allErrors.length - 1) {
+            const nextIndex = currentIndex + 1;
+            const nextError = allErrors.at(nextIndex);
+            if (nextError) {
+                if (currentValidationState.current.isValidatingMultipleFiles && currentIndex === allErrors.length - 2 && validFilesToUploadRef.current.length === 0) {
+                    currentValidationState.current.isValidatingMultipleFiles = false;
+                }
+                showErrorModal(nextError, nextIndex, allErrors);
+                return;
+            }
+        }
+
+        // No more errors, proceed with valid files
+        const sortedFiles = sortFilesByOriginalOrder(validFilesToUploadRef.current, originalFileOrder.current);
+        const proceedWithValidFiles = () => {
+            if (sortedFiles.length !== 0) {
+                onFilesValidated(sortedFiles, dataTransferItemList.current);
+            }
+            reset();
+        };
+
+        // If we're validating attachments we need to wait for the error modal close
+        // transition to finish before opening the attachment modal
+        if (currentValidationState.current.isValidatingReceipts === false) {
+            pendingAfterHide.current = proceedWithValidFiles;
+            runPendingAfterHide();
+            return;
+        }
+
+        proceedWithValidFiles();
     };
 
     const checkIfAllValidatedAndProceed = () => {
