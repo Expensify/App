@@ -29,6 +29,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import {generateReportID} from '@src/libs/ReportUtils';
