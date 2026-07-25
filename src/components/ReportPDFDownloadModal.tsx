@@ -1,3 +1,4 @@
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -91,6 +92,8 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
         onClose();
     };
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.flexRow, styles.m5]});
+
     return (
         <Modal
             onClose={handleDismiss}
@@ -98,8 +101,9 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[styles.flexRow, styles.m5]}>
+            <View style={bottomSafeAreaPaddingStyle}>
                 <View style={[styles.flex1]}>
                     <View style={[styles.flexRow, styles.mb4]}>
                         <View style={[styles.flex1]}>

@@ -86,8 +86,12 @@ function DecisionModal({
             onModalHide={onModalHide}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <ScrollView contentContainerStyle={styles.p5}>
+            <ScrollView
+                contentContainerStyle={styles.p5}
+                addBottomSafeAreaPadding
+            >
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
                         <Header

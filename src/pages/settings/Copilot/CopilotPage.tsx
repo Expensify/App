@@ -489,6 +489,7 @@ function CopilotPage() {
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                                 }}
                                 menuItems={delegatePopoverMenuItems}
+                                enableEdgeToEdgeBottomSafeAreaPadding
                                 onClose={() => {
                                     setShouldShowDelegatePopoverMenu(false);
                                     setSelectedEmail(undefined);
@@ -503,6 +504,7 @@ function CopilotPage() {
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                                 }}
                                 menuItems={delegatorPopoverMenuItems}
+                                enableEdgeToEdgeBottomSafeAreaPadding
                                 onClose={() => {
                                     setShouldShowDelegatorPopoverMenu(false);
                                     setSelectedEmail(undefined);
