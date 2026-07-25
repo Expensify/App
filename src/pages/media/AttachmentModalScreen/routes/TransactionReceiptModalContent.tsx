@@ -319,7 +319,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 }
             });
         },
-        [transaction, isOdometerImage, isDraftTransaction, imageType, isEditingConfirmation, fileType, policyCategories, policy, policyTagList, transactionViolations, transactionReport],
+        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations, transactionReport],
     );
 
     const rotateReceipt = useCallback(() => {
