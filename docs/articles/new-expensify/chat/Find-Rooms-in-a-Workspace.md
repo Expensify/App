@@ -33,8 +33,8 @@ Purpose: Help members identify the Rooms directory and understand the informatio
 
 What happens when you select a room depends on your role:
 
-- **Workspace admins** open the room details page, where they can click **Go to room** to open the conversation, or manage room settings and membership.
-- **Workspace members** open the room conversation directly.
+- Workspace admins open the room details page, where they can click **Go to room** to open the conversation, or manage room settings and membership.
+- Workspace members open the room conversation directly.
 
 Opening a room from the Rooms directory does not automatically join you to the room.
 
