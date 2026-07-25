@@ -662,6 +662,9 @@ const ONYXKEYS = {
     /** Stores the information about the saved searches */
     SAVED_SEARCHES: 'nvp_savedSearches',
 
+    /** Tracks whether the "My expenses" saved search has been seeded for this account */
+    NVP_HAS_SEEDED_MY_EXPENSES_SEARCH: 'nvp_hasSeededMyExpensesSearch',
+
     /** Stores the information about the recent searches */
     RECENT_SEARCHES: 'nvp_recentSearches',
 
@@ -1501,6 +1504,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRY_NEW_DOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
+    [ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH]: boolean;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
     [ONYXKEYS.SEARCH_QUERY_BY_HASH]: Record<string, string>;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
