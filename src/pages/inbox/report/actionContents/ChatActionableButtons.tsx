@@ -123,6 +123,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                         personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                         personalDetail.accountID,
                         delegateAccountID,
+                        conciergeReportID,
                     );
                 },
             }));
@@ -154,6 +155,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                         personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                         personalDetail.accountID,
                         delegateAccountID,
+                        conciergeReportID,
                     );
                 },
             }));

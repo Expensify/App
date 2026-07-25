@@ -673,8 +673,7 @@ function getLastMessageTextForReport({
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin?: string;
-    // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
     isTrackIntentUser?: boolean;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
@@ -1079,8 +1078,7 @@ type CreateOptionParams = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     translate?: LocalizedTranslate;
     isTrackIntentUser?: boolean;
-    // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
@@ -1330,6 +1328,7 @@ function getReportDisplayOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
+    conciergeReportID: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1342,6 +1341,7 @@ function getReportDisplayOption(
         report: !isEmptyObject(report) ? report : undefined,
         policy,
         privateIsArchived,
+        conciergeReportID,
         config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
@@ -1394,6 +1394,8 @@ function getPolicyExpenseReportOption(
         report: !isEmptyObject(expenseReport) ? expenseReport : null,
         policy,
         privateIsArchived,
+        // Safe: a policy expense chat is never the Concierge chat.
+        conciergeReportID: undefined,
         config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
@@ -1511,6 +1513,7 @@ function processReport(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
+    conciergeReportID: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1546,6 +1549,7 @@ function processReport(
                 report,
                 privateIsArchived,
                 policy,
+                conciergeReportID,
                 reportAttributesDerived,
                 policyTags,
                 visibleReportActionsData,
@@ -1659,6 +1663,7 @@ function createFilteredOptionList(
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     privateIsArchivedMap: PrivateIsArchivedMap,
     policiesCollection: OnyxCollection<Policy>,
+    conciergeReportID: string | undefined,
     options: {
         maxRecentReports?: number;
         includeP2P?: boolean;
@@ -1763,6 +1768,7 @@ function createFilteredOptionList(
             personalDetails,
             privateIsArchived,
             policy,
+            conciergeReportID,
             reportAttributesDerived,
             reportPolicyTags,
             visibleReportActionsData,
@@ -1807,6 +1813,7 @@ function createFilteredOptionList(
                       report: reportMapForAccountIDs[accountID],
                       policy,
                       privateIsArchived,
+                      conciergeReportID,
                       config: {showPersonalDetails: true},
                       reportAttributesDerived,
                       policyTags: reportPolicyTags,
@@ -1848,6 +1855,7 @@ function createOptionFromReport(
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
     sortedActions: Record<string, ReportAction[]> | undefined,
+    conciergeReportID: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     config?: PreviewConfig,
     policyTags?: OnyxEntry<PolicyTagLists>,
@@ -1864,6 +1872,7 @@ function createOptionFromReport(
             report,
             privateIsArchived,
             policy,
+            conciergeReportID,
             config,
             reportAttributesDerived,
             policyTags,
@@ -2204,6 +2213,8 @@ function getUserToInviteOption({
         personalDetails: personalDetailsExtended,
         report: null,
         privateIsArchived: undefined,
+        // Safe: the invite option is built without a report, so it can never be the Concierge chat.
+        conciergeReportID: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
     });

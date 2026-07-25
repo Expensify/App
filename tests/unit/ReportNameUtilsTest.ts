@@ -45,6 +45,7 @@ describe('ReportNameUtils', () => {
         currentUserID = currentUserAccountID,
     ) =>
         computeReportNameOriginal({
+            conciergeReportID: undefined,
             report,
             reports,
             policies,
@@ -294,6 +295,7 @@ describe('ReportNameUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
             const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'You Marker' : translateLocal(path, ...parameters));
             const name = computeReportNameOriginal({
+                conciergeReportID: undefined,
                 report,
                 reports: emptyCollections.reports,
                 policies: emptyCollections.policies,
@@ -581,6 +583,7 @@ describe('ReportNameUtils', () => {
             } as OnyxCollection<PolicyTagLists>;
 
             const name = computeReportNameOriginal({
+                conciergeReportID: undefined,
                 report: thread,
                 reports: emptyCollections.reports,
                 policies: emptyCollections.policies,
@@ -1657,6 +1660,36 @@ describe('ReportNameUtils', () => {
             );
 
             expect(name).toBe(translate(CONST.LOCALES.EN, 'iou.expense'));
+        });
+    });
+    describe('concierge chat name', () => {
+        it('names the chat Concierge only when the threaded conciergeReportID matches the report', () => {
+            const report: Report = {
+                ...createRegularChat(1, [currentUserAccountID, 1]),
+                reportID: 'concierge-name-1',
+            };
+
+            // When the threaded conciergeReportID matches the report
+            const nameWithMatchingID = computeReportNameOriginal({
+                conciergeReportID: 'concierge-name-1',
+                report,
+                currentUserAccountID,
+                currentUserLogin,
+                translate: translateLocal,
+                isTrackIntentUser: false,
+            });
+            expect(nameWithMatchingID).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+
+            // And an identical report with a non-matching conciergeReportID keeps its regular name
+            const nameWithDifferentID = computeReportNameOriginal({
+                conciergeReportID: 'a-different-report-id',
+                report,
+                currentUserAccountID,
+                currentUserLogin,
+                translate: translateLocal,
+                isTrackIntentUser: false,
+            });
+            expect(nameWithDifferentID).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
     });
 });

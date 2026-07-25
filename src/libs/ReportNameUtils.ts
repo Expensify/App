@@ -187,8 +187,7 @@ type ComputeReportName = {
     currentUserAccountID?: number;
     currentUserLogin: string;
     translate: LocalizedTranslate;
-    // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     isTrackIntentUser: boolean | undefined;
 };

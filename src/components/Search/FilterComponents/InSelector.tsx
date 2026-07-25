@@ -87,6 +87,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     privateIsArchived,
                     reportPolicy,
                     sortedActions,
+                    conciergeReportID,
                     reportAttributesDerived,
                     undefined,
                     undefined,
