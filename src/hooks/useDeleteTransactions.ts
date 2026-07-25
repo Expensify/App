@@ -1,8 +1,5 @@
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
@@ -32,6 +29,9 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 
+import type {CurrencyListActionsContextType} from './useCurrencyList';
+
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useEnvironment from './useEnvironment';
@@ -414,6 +414,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             delegateAccountID,
             isTrackIntentUser,
             getCurrencyDecimals,
+            getCurrencySymbol,
         ],
     );
 

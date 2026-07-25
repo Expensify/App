@@ -13,6 +13,7 @@ import {
 } from '@libs/actions/IOU/MoneyRequest';
 import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
+import {getCurrencySymbol as getLegacyCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -109,7 +110,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     delegateAccountID: number | undefined;
     policyTagList: PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -212,6 +213,7 @@ function handleMoneyRequestStepDistanceNavigation({
     formatPhoneNumber,
     getCurrencySymbol,
 }: MoneyRequestStepDistanceNavigationParams): void {
+    const currencySymbol = getCurrencySymbol ?? getLegacyCurrencySymbol;
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
@@ -278,7 +280,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 policy,
                 translate,
                 personalPolicyOutputCurrency: personalOutputCurrency,
-                getCurrencySymbol,
+                getCurrencySymbol: currencySymbol,
             });
             setMoneyRequestMerchant(transactionID, merchant, false);
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);

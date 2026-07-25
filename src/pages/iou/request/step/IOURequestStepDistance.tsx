@@ -99,7 +99,8 @@ function IOURequestStepDistance({
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const iouReportOwnerLoginSelector = useMemo(() => personalDetailsLoginSelector(parentReport?.ownerAccountID), [parentReport?.ownerAccountID]);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: iouReportOwnerLoginSelector});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
@@ -584,6 +585,8 @@ function IOURequestStepDistance({
         reportPolicyTags,
         isTrackIntentUser,
         personalPolicy?.outputCurrency,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -705,6 +708,8 @@ function IOURequestStepDistance({
         reportPolicyTags,
         isTrackIntentUser,
         personalPolicy?.outputCurrency,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     ]);
 
     const renderItem = useCallback(

@@ -65,7 +65,10 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
         ? DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT)
         : '';
     const headerText = [formattedDate, translate('common.card')].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
-    const displayAmount = amount === undefined ? '' : currency ? convertToDisplayString(amount, currency) : convertToDisplayStringWithoutCurrency(amount);
+    let displayAmount = '';
+    if (amount !== undefined) {
+        displayAmount = currency ? convertToDisplayString(amount, currency) : convertToDisplayStringWithoutCurrency(amount);
+    }
 
     const formattedLastFourPAN = formatLastFourPAN(lastFourPAN);
     const shouldShowCardEnding = formattedLastFourPAN.length > 0;

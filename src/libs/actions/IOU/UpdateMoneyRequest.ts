@@ -1046,9 +1046,7 @@ function updateMoneyRequestDistance({
             undefined,
             distanceOriginalPolicy,
             undefined,
-            personalPolicyOutputCurrency,
-            getCurrencyDecimals,
-            getCurrencySymbol,
+            {personalPolicyOutputCurrency, getCurrencyDecimals, getCurrencySymbol},
         );
     } else {
         data = getUpdateMoneyRequestParams({
@@ -1359,9 +1357,7 @@ function updateMoneyRequestDistanceRate({
             shouldBuildOptimisticModifiedExpenseReportAction,
             distanceOriginalPolicy,
             currentTransactionViolations,
-            personalPolicyOutputCurrency,
-            getCurrencyDecimals,
-            getCurrencySymbol,
+            {personalPolicyOutputCurrency, getCurrencyDecimals, getCurrencySymbol},
         );
     } else {
         data = getUpdateMoneyRequestParams({
@@ -2222,6 +2218,12 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
  * @param policy  May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  * @param [shouldBuildOptimisticModifiedExpenseReportAction=true] When true, build an optimistic MODIFIED_EXPENSE report action.
  */
+type TrackExpenseCurrencyContext = {
+    personalPolicyOutputCurrency?: string;
+    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
+};
+
 function getUpdateTrackExpenseParams(
     transactionID: string | undefined,
     transactionThreadReportID: string | undefined,
@@ -2232,9 +2234,7 @@ function getUpdateTrackExpenseParams(
     shouldBuildOptimisticModifiedExpenseReportAction = true,
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>,
     currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>,
-    personalPolicyOutputCurrency?: string,
-    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'],
-    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'],
+    currencyContext?: TrackExpenseCurrencyContext,
 ): UpdateMoneyRequestData<
     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
@@ -2243,6 +2243,7 @@ function getUpdateTrackExpenseParams(
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
 > {
+    const {personalPolicyOutputCurrency, getCurrencyDecimals, getCurrencySymbol} = currencyContext ?? {};
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS

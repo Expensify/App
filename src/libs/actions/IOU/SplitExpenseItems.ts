@@ -583,7 +583,6 @@ function updateSplitExpenseField(
     policy: OnyxEntry<OnyxTypes.Policy>,
     isSelfDMSplit: boolean,
     personalPolicyOutputCurrency: string | undefined,
-    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
 ) {
     if (!splitExpenseDraftTransaction || !splitExpenseTransactionID || !originalTransactionDraft) {
         return;

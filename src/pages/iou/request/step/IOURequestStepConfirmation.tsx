@@ -420,6 +420,7 @@ function IOURequestStepConfirmation({
             lastSelectedDistanceRates,
             transaction,
             personalPolicy?.outputCurrency,
+            getCurrencyDecimals,
         ],
     );
 
