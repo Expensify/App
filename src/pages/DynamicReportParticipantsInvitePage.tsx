@@ -142,7 +142,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         if (selectedOptions.length === 0) {
             return;
         }
-        const invitedEmailsToAccountIDs = getInvitedEmailsToAccountIDs(selectedOptions);
+
         if (Object.keys(invitedEmailsToAccountIDs).length === 0) {
             return;
         }
