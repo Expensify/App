@@ -232,7 +232,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         }
     };
 
-    async function validateAndResizeFiles(files: FileObject[], items: DataTransferItem[], validationState: ValidationState) {
+    const validateAndResizeFiles = async (files: FileObject[], items: DataTransferItem[], validationState: ValidationState) => {
         if (files.length === 0) {
             return;
         }
@@ -420,7 +420,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         };
 
         extendLoaderIfNeeded();
-    }
+    };
 
     const validateFiles = (files: FileObject[], items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
         if (isValidatingFiles) {
