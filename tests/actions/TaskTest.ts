@@ -1817,7 +1817,7 @@ describe('actions/Task', () => {
                 parentReportActionID: 'room_parent_action_1',
             } as Report;
 
-            // Then it is not classified as a chat room, so room-only affordances (like Leave) stay hidden
+            // Then it is not classified as a chat room, so room-only actions (like Leave) stay hidden
             expect(ReportUtils.isChatRoom(roomTask)).toBe(false);
             expect(ReportUtils.canLeaveChat(roomTask, undefined, 1)).toBe(false);
         });
