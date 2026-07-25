@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {rand64} from '@libs/NumberUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -45,11 +44,13 @@ function SavedSearchRenamePage({route}: {route: {params: {id: string}}}) {
     };
 
     const onSaveSearch = () => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const queryJSON = buildSearchQueryJSON(q || buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
 
         saveSearch({
             id,
             queryJSON,
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             newName: newName?.trim() || q,
         });
 
