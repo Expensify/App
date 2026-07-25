@@ -52,7 +52,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.path);
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -125,6 +125,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
             policyRecentlyUsedTags,
             isFromGlobalCreate,
             senderPolicyTags: policyTags ?? {},
+            formatPhoneNumber,
             delegateAccountID,
         });
         cleanupAndNavigateAfterExpenseCreate({
