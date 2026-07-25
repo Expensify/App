@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import type {Ref} from 'react';
 
 import React, {useImperativeHandle, useState} from 'react';
+import {View} from 'react-native';
 
 type MoneyRequestReportTransactionLongPressModalHandle = {
     /** Opens the modal for the given transaction */
