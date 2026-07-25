@@ -8,6 +8,7 @@ import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -66,9 +67,13 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
+const mockRootNavigationState = jest.fn((): {contextualReportID: string | undefined; isSearchRouterScreen: boolean} => ({
+    contextualReportID: undefined,
+    isSearchRouterScreen: false,
+}));
 jest.mock('@src/hooks/useRootNavigationState', () => ({
     __esModule: true,
-    default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
+    default: () => mockRootNavigationState(),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
@@ -139,7 +144,7 @@ const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, undefined, {isSearching: true});
 
 const mockOnClose = jest.fn((afterClose?: () => void) => {
     afterClose?.();
@@ -200,6 +205,7 @@ describe('SearchAutocompleteList', () => {
         });
         jest.clearAllMocks();
         mockUseNavigationSuggestions.mockReturnValue([]);
+        mockRootNavigationState.mockReturnValue({contextualReportID: undefined, isSearchRouterScreen: false});
     });
 
     it('should display and select navigation suggestion rows', async () => {
@@ -262,14 +268,46 @@ describe('SearchAutocompleteList', () => {
         expect(screen.getByText('type:chat')).toBeTruthy();
     });
 
+    it('builds the contextual search option with the threaded conciergeReportID', async () => {
+        // A report that exists in Onyx but is NOT part of the recent-report options, so the contextual
+        // search suggestion has to build its option through createOptionFromReport
+        const contextualReportID = 'contextual-99';
+        const currentUserAccountID = 1;
+        const contextualReport = {
+            ...createRandomReport(99, undefined),
+            reportID: contextualReportID,
+            participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+        };
+        mockRootNavigationState.mockReturnValue({contextualReportID, isSearchRouterScreen: true});
+        const createOptionFromReportSpy = jest.spyOn(OptionsListUtils, 'createOptionFromReport');
+
+        await waitForBatchedUpdates();
+        await Onyx.multiSet({
+            ...mockedReports,
+            [ONYXKEYS.BETAS]: mockedBetas,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`, contextualReport);
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-router-1');
+
+        render(<SearchRouterWrapper />);
+        await flushAllUpdates();
+
+        // Then the contextual report (not part of recent reports) is built through createOptionFromReport
+        // with the conciergeReportID threaded from Onyx (#66411)
+        expect(createOptionFromReportSpy).toHaveBeenCalled();
+        expect(createOptionFromReportSpy.mock.calls.at(0)?.at(5)).toBe('concierge-router-1');
+    });
+
     describe('two-section chat switcher', () => {
         // These tests use a controlled getSearchOptions mock to verify the section splitting logic
         // introduced for stable two-section chat switcher results (local + server).
         let getSearchOptionsSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            const OptionsListUtils = jest.requireActual<typeof OptionsListUtilsModule>('@libs/OptionsListUtils');
-            getSearchOptionsSpy = jest.spyOn(OptionsListUtils, 'getSearchOptions').mockReturnValue({
+            const actualOptionsListUtils = jest.requireActual<typeof OptionsListUtilsModule>('@libs/OptionsListUtils');
+            getSearchOptionsSpy = jest.spyOn(actualOptionsListUtils, 'getSearchOptions').mockReturnValue({
                 options: {
                     recentReports: fakeRecentReports,
                     personalDetails: [],

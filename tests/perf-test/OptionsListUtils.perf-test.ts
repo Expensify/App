@@ -98,7 +98,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, undefined, {isSearching: true});
 
 const ValidOptionsConfig = {
     betas: mockedBetas,
@@ -283,7 +283,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() => {
             // Inputs are referentially identical across measured runs, so clear the cache to measure the build path.
             clearFilteredOptionListCache();
-            return createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+            return createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, undefined, {
                 maxRecentReports: 500,
                 isSearching: false,
             });
@@ -293,7 +293,7 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] createFilteredOptionList with isSearching is true', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+            createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, undefined, {
                 maxRecentReports: 500,
                 isSearching: true,
             }),
@@ -302,7 +302,7 @@ describe('OptionsListUtils', () => {
 
     test('[OptionsListUtils] getSearchOptions with isSearching is true', async () => {
         await waitForBatchedUpdates();
-        const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+        const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, undefined, {
             maxRecentReports: 500,
             isSearching: true,
         });

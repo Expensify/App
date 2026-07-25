@@ -1673,6 +1673,7 @@ describe('ReportNameUtils', () => {
             const nameWithMatchingID = computeReportNameOriginal({
                 conciergeReportID: 'concierge-name-1',
                 report,
+                transactions: undefined,
                 currentUserAccountID,
                 currentUserLogin,
                 translate: translateLocal,
@@ -1684,6 +1685,7 @@ describe('ReportNameUtils', () => {
             const nameWithDifferentID = computeReportNameOriginal({
                 conciergeReportID: 'a-different-report-id',
                 report,
+                transactions: undefined,
                 currentUserAccountID,
                 currentUserLogin,
                 translate: translateLocal,
