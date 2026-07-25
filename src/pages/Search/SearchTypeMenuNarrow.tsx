@@ -281,6 +281,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                 anchorRef={menuAnchorRef}
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
+                enableEdgeToEdgeBottomSafeAreaPadding
             />
         </SearchTypeMenuNarrowContent>
     );
