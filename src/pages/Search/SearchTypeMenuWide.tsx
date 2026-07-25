@@ -27,7 +27,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useContext, useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
+import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import SavedSearchList from './SavedSearchList';
@@ -38,12 +38,10 @@ import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 type SectionParams = {
     section: SearchTypeMenuSection;
     reportCounts: TodoCounts;
-    areAllSectionsExpanded: boolean;
     onItemPress: (key: SearchKey, query: string) => void;
-    onCollapsed: (isCollapsed: boolean) => void;
 };
 
-function Section({section, reportCounts, areAllSectionsExpanded, onItemPress, onCollapsed}: SectionParams) {
+function Section({section, reportCounts, onItemPress}: SectionParams) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
@@ -66,34 +64,18 @@ function Section({section, reportCounts, areAllSectionsExpanded, onItemPress, on
 
     const [isExpanded, setIsExpanded] = useState(true);
 
-    const onUnmount = useEffectEvent(() => {
-        if (isExpanded) {
-            return;
-        }
-        // When the section is removed/unmounted while collapsed,
-        // notify the parent that the section is no longer collapsed.
-        onCollapsed(false);
-    });
-
-    useEffect(() => {
-        return () => onUnmount();
-    }, []);
-
     const isSavedSearchesSection = section.translationPath === 'search.savedSearchesMenuItemTitle';
 
     return (
         <SearchTypeMenuAccordion
             isExpanded={isExpanded}
             onSectionHeaderPress={() => {
-                setIsExpanded((prevIsExpanded) => {
-                    onCollapsed(prevIsExpanded);
-                    return !prevIsExpanded;
-                });
+                setIsExpanded((prevIsExpanded) => !prevIsExpanded);
             }}
             title={translate(section.translationPath)}
             badgeText={getSectionBadgeText(section.translationPath, reportCounts)}
         >
-            {isSavedSearchesSection && <SavedSearchList areAllSectionsExpanded={areAllSectionsExpanded} />}
+            {isSavedSearchesSection && <SavedSearchList />}
             {!isSavedSearchesSection &&
                 section.menuItems.map((item) => {
                     const focused = item.key === currentSearchKey;
@@ -162,13 +144,6 @@ function SearchTypeMenuWide() {
 
     const areSuggestedSearchesLoading = !isOffline && !isSearchDataLoaded && !isLoadingOnyxValue(isSearchDataLoadedResult);
 
-    const [collapsedSectionCount, setCollapsedSectionCount] = useState(0);
-    const areAllSectionsExpanded = collapsedSectionCount === 0;
-
-    const updateCollapsedCount = (isCollapsed: boolean) => {
-        setCollapsedSectionCount((prevCollapsedCount) => prevCollapsedCount + (isCollapsed ? 1 : -1));
-    };
-
     return (
         <ScrollView
             onScroll={onScroll}
@@ -180,9 +155,7 @@ function SearchTypeMenuWide() {
                     <Section
                         section={expenseReportsSection}
                         onItemPress={handleTypeMenuItemPress}
-                        onCollapsed={updateCollapsedCount}
                         reportCounts={reportCounts}
-                        areAllSectionsExpanded={areAllSectionsExpanded}
                     />
                 )}
 
@@ -197,9 +170,7 @@ function SearchTypeMenuWide() {
                             key={section.translationPath}
                             section={section}
                             onItemPress={handleTypeMenuItemPress}
-                            onCollapsed={updateCollapsedCount}
                             reportCounts={reportCounts}
-                            areAllSectionsExpanded={areAllSectionsExpanded}
                         />
                     ))
                 )}

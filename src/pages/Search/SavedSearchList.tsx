@@ -1,7 +1,6 @@
 import MenuItemList from '@components/MenuItemList';
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
@@ -29,17 +28,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 
-import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuItem from './SearchTypeMenuItem';
-
-type SavedSearchListProps = {
-    areAllSectionsExpanded: boolean;
-};
 
 type SavedSearchMenuItemBuilderParams = {
     item: SaveSearchItem;
@@ -50,11 +44,7 @@ type SavedSearchMenuItemBuilderParams = {
     title: string;
     onPress: (searchKey: SearchKey) => void;
     getOverflowMenu: (itemName: string, itemSavedSearchID: string, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
-    shouldShowSavedSearchTooltip: boolean;
-    hideSavedSearchTooltip: (() => void) | undefined;
-    renderSavedSearchTooltip: () => React.JSX.Element;
     itemStyle: SavedSearchMenuItem['style'];
-    tooltipWrapperStyle: SavedSearchMenuItem['tooltipWrapperStyle'];
     isCopied: boolean;
 };
 
@@ -67,11 +57,7 @@ function buildSavedSearchMenuItem({
     title,
     onPress,
     getOverflowMenu,
-    shouldShowSavedSearchTooltip,
-    hideSavedSearchTooltip,
-    renderSavedSearchTooltip,
     itemStyle,
-    tooltipWrapperStyle,
     isCopied,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
     const savedSearchKey = savedSearchIDToSearchKey(key);
@@ -91,30 +77,18 @@ function buildSavedSearchMenuItem({
             <SavedSearchItemThreeDotMenu
                 menuItems={getOverflowMenu(title, key, item.query)}
                 isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
-                shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
-                renderTooltipContent={renderSavedSearchTooltip}
                 isCopied={isCopied}
             />
         ),
         style: itemStyle,
-        tooltipAnchorAlignment: {
-            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-        },
-        tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
-        tooltipShiftVertical: variables.savedSearchShiftVertical,
-        tooltipWrapperStyle,
-        renderTooltipContent: renderSavedSearchTooltip,
     };
 }
 
-function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
+function SavedSearchList() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
-    const isFocused = useIsFocused();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
@@ -132,11 +106,6 @@ function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
     const {setCurrentSearchKey} = useSearchQueryActions();
 
     const {showDeleteModal} = useDeleteSavedSearch();
-    const {
-        shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
-        renderProductTrainingTooltip: renderSavedSearchTooltip,
-        hideProductTrainingTooltip: hideSavedSearchTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused && areAllSectionsExpanded);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
     const {copiedID, handleShare} = useShareSavedSearch();
@@ -166,7 +135,6 @@ function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
         });
 
     const itemStyle = [styles.alignItemsCenter];
-    const tooltipWrapperStyle = [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper];
 
     const savedSearchesMenuItems = savedSearches
         ? Object.entries(savedSearches)
@@ -181,11 +149,7 @@ function SavedSearchList({areAllSectionsExpanded}: SavedSearchListProps) {
                       title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
                       onPress: (savedSearchKey) => setCurrentSearchKey(savedSearchKey, buildSearchQueryJSON(itemQuery)?.hash !== currentSearchHash),
                       getOverflowMenu,
-                      shouldShowSavedSearchTooltip,
-                      hideSavedSearchTooltip,
-                      renderSavedSearchTooltip,
                       itemStyle,
-                      tooltipWrapperStyle,
                       isCopied: copiedID === key,
                   });
               })
