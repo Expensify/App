@@ -8392,6 +8392,9 @@ const CONST = {
             CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
         },
+        BLOCKING_VIEW: {
+            RETRY_BUTTON: 'BlockingView-RetryButton',
+        },
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
             TRANSACTION_GROUP_LIST_ITEM: 'Search-TransactionGroupListItem',

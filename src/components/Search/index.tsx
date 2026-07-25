@@ -942,20 +942,19 @@ function Search({
                         isBreakLine: shouldUseNarrowLayout,
                     })}
                     subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
-                    buttonTranslationKey={isInvalidQuery ? undefined : 'common.tryAgain'}
-                    onButtonPress={
-                        isInvalidQuery
-                            ? undefined
-                            : () =>
-                                  handleSearch({
-                                      queryJSON,
-                                      searchKey: currentSearchKey,
-                                      offset,
-                                      shouldCalculateTotals,
-                                      prevReportsLength: filteredDataLength,
-                                      isLoading: !!searchResults?.search?.isLoading,
-                                  })
-                    }
+                    // Retrying an invalid query won't help, so the retry button is only offered for other errors.
+                    {...(!isInvalidQuery && {
+                        buttonTranslationKey: 'common.tryAgain',
+                        onButtonPress: () =>
+                            handleSearch({
+                                queryJSON,
+                                searchKey: currentSearchKey,
+                                offset,
+                                shouldCalculateTotals,
+                                prevReportsLength: filteredDataLength,
+                                isLoading: !!searchResults?.search?.isLoading,
+                            }),
+                    })}
                 />
             </View>
         );

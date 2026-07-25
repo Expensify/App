@@ -14,6 +14,7 @@ import useAbsentPageSpan from '@libs/telemetry/useAbsentPageSpan';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import type {ImageContentFit} from 'expo-image';
@@ -200,7 +201,7 @@ function BlockingView({
                 <Button
                     style={styles.mt4}
                     onPress={onButtonPress}
-                    sentryLabel="BlockingViewRetryButton"
+                    sentryLabel={CONST.SENTRY_LABEL.BLOCKING_VIEW.RETRY_BUTTON}
                 >
                     <Button.Text>{translate(buttonTranslationKey)}</Button.Text>
                 </Button>
