@@ -17,7 +17,7 @@ import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
-import type {Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
+import type {CurrencyList, Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
@@ -26,6 +26,7 @@ import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import currencyListFixture from '../unit/currencyList.json';
 import {isObject} from './typeGuards';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
@@ -450,13 +451,16 @@ function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parame
     return translate(currentLocale, phrase, ...parameters);
 }
 
+// Static currency list fixture — the same one initCurrencyListContext seeds into Onyx — so the
+// local helpers below resolve real per-currency decimals without depending on Onyx state.
+const testCurrencyList = currencyListFixture as CurrencyList;
+
 /**
- * A local version of useCurrencyListActions().getCurrencyDecimals for tests. Tests don't populate
- * the currency list, so this mirrors the provider's behavior with an empty list and always returns
- * the default number of decimals.
+ * A local version of useCurrencyListActions().getCurrencyDecimals for tests that call lib
+ * functions directly and need to inject the decimals resolver without the full app context.
  */
-function getCurrencyDecimalsLocal(): number {
-    return CONST.DEFAULT_CURRENCY_DECIMALS;
+function getCurrencyDecimalsLocal(currencyCode: string | undefined): number {
+    return testCurrencyList?.[currencyCode ?? '']?.decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
 }
 
 /**
@@ -466,7 +470,7 @@ function getCurrencyDecimalsLocal(): number {
  */
 function convertToDisplayString(amountInCents: number | undefined, currencyCode: string | undefined): string {
     const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
-    const decimals = getCurrencyDecimalsLocal();
+    const decimals = getCurrencyDecimalsLocal(sanitizedCurrency);
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
     return formatNumber(CONST.LOCALES.EN, convertedAmount, {
         style: 'currency',
@@ -504,7 +508,6 @@ export type {MockFetch, FormData};
 export {
     translateLocal,
     convertToDisplayString,
-    getCurrencyDecimalsLocal,
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,

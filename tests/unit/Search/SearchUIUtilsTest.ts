@@ -1432,7 +1432,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         policyID: 'A1B2C3',
         private_isArchived: '',
         reportID: '99999',
-        reportName: 'Approver owes ₫44.00',
+        reportName: 'Approver owes ₫44',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
