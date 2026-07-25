@@ -3163,7 +3163,7 @@ ${amount} voor ${merchant} - ${date}`,
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1.000 werknemers',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Meer dan 1.000 medewerkers',
             [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5-10 medewerkers',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 medewerkers',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1-10 medewerkers',
             [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11-50 medewerkers',
         },
         accounting: {

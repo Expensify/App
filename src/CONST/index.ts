@@ -168,7 +168,7 @@ const onboardingCompanySize = {
 
     // These ranges are deprecated, but the constants are kept to compare against saved data for backwards compatibility.
     LEGACY_MICRO_MEDIUM: '5-10',
-    MICRO: '1-10',
+    LEGACY_MICRO: '1-10',
     LEGACY_SMALL: '11-50',
 } as const;
 

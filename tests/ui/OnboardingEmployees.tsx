@@ -97,7 +97,7 @@ describe('OnboardingEmployees Page', () => {
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL}`))).toBeOnTheScreen();
             expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM}`))).toBeOnTheScreen();
-            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO}`))).not.toBeOnTheScreen();
         });
 
         unmount();
@@ -122,7 +122,7 @@ describe('OnboardingEmployees Page', () => {
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL}`))).toBeOnTheScreen();
             expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM}`))).toBeOnTheScreen();
-            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO}`))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.SMALL}`))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL}`))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MEDIUM}`))).not.toBeOnTheScreen();
@@ -227,7 +227,7 @@ describe('OnboardingEmployees Page', () => {
         await waitFor(() => {
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL}`))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM}`))).not.toBeOnTheScreen();
-            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO}`))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO}`))).not.toBeOnTheScreen();
         });
 
         unmount();

@@ -3149,7 +3149,7 @@ ${amount} dla ${merchant} - ${date}`,
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101–1 000 pracowników',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Ponad 1000 pracowników',
             [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5–10 pracowników',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 pracowników',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1–10 pracowników',
             [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11–50 pracowników',
         },
         accounting: {

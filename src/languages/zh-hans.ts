@@ -3056,7 +3056,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101–1,000 名员工',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '超过 1,000 名员工',
             [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5–10 名员工',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1-10 名员工',
             [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11–50 名员工',
         },
         accounting: {

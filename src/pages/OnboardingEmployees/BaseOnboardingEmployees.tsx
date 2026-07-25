@@ -94,7 +94,11 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
             .filter((size) => {
                 // Always hide deprecated options.
-                if (size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM || size === CONST.ONBOARDING_COMPANY_SIZE.MICRO || size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL) {
+                if (
+                    size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM ||
+                    size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO ||
+                    size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL
+                ) {
                     return false;
                 }
                 // For VSB-qualified users (1-9 from landing page), only show 1-4 and 5-9.

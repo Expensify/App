@@ -3134,7 +3134,7 @@ ${date} の ${merchant} への ${amount}`,
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101～1,000人の従業員',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '1,000人超の従業員',
             [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5～10人の従業員',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '従業員数 1～10 人',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '従業員数 1～10 人',
             [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11～50名の従業員',
         },
         accounting: {
