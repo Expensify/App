@@ -10,6 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
@@ -62,8 +64,9 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
             accessibilityLabel={label}
             role={CONST.ROLE.PRESENTATION}
             containerStyles={[styles.ph5]}
-            autoGrowHeight={shouldFillAvailableHeight && !!value}
-            maxAutoGrowHeight={maxAutoGrowHeight}
+            textInputContainerStyles={shouldFillAvailableHeight ? [styles.pt3] : undefined}
+            autoGrowHeight={shouldFillAvailableHeight}
+            maxAutoGrowHeight={!value && shouldFillAvailableHeight ? variables.componentSizeLarge : maxAutoGrowHeight}
         />
     );
 
