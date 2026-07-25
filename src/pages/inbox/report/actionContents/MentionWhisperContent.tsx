@@ -41,7 +41,7 @@ type MentionWhisperContentProps = {
 };
 
 function MentionWhisperContent({action, actionOwnerReportStable, parentReport, originalReportID, policyID}: MentionWhisperContentProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -85,7 +85,7 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
 
     return (
         <ReportActionItemBasicMessage>
-            <RenderHTML html={getActionableMentionWhisperMessage(translate, action, targetAccountDetails)} />
+            <RenderHTML html={getActionableMentionWhisperMessage(translate, formatPhoneNumber, action, targetAccountDetails)} />
             {buttons.length > 0 && (
                 <ActionableItemButtons
                     items={buttons}

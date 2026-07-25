@@ -335,6 +335,7 @@ type ContextMenuActionPayload = {
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
@@ -930,6 +931,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 childReport,
                 policy,
                 getLocalDateFromDatetime,
+                formatPhoneNumber,
                 policyTags,
                 translate,
                 harvestReport,
@@ -1134,7 +1136,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                     );
                 } else if (isActionableMentionWhisper(reportAction)) {
                     const targetAccountIDs = getOriginalMessage(reportAction)?.inviteeAccountIDs;
-                    const mentionWhisperMessage = getActionableMentionWhisperMessage(translate, reportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails));
+                    const mentionWhisperMessage = getActionableMentionWhisperMessage(
+                        translate,
+                        formatPhoneNumber,
+                        reportAction,
+                        getPersonalDetailsListByIDs(targetAccountIDs, personalDetails),
+                    );
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);

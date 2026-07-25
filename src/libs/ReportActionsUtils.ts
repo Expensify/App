@@ -2496,6 +2496,7 @@ function hasRequestFromCurrentAccount(report: OnyxEntry<Report>, currentAccountI
  */
 function getActionableMentionWhisperMessage(
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>,
     targetAccountDetails: OnyxEntry<PersonalDetailsList>,
 ): string {
