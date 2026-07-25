@@ -19814,6 +19814,94 @@ describe('ReportUtils', () => {
 
             expect(result).toBe('Invoice #42');
         });
+
+        describe('NewDot invoice reports', () => {
+            const invoiceRoomID = 'invoice-room-500';
+            // An invoice report without transactions has a total of zero, so its name resolves to the
+            // "payer owes" message, which must come from the translate function passed by the caller.
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
+
+            beforeEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, {
+                    reportID: invoiceRoomID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            it('should use chatReportID when it is set, instead of falling back to parentReportID', () => {
+                const invoiceReport: Report = {
+                    reportID: 'invoice-report-791',
+                    type: CONST.REPORT.TYPE.INVOICE,
+                    chatReportID: invoiceRoomID,
+                    // A parentReportID that is not the invoice room must not override the valid chatReportID,
+                    // otherwise the report is no longer detected as a NewDot invoice.
+                    parentReportID: 'not-an-invoice-room-501',
+                    reportName: 'Invoice #43',
+                    currency: 'USD',
+                };
+
+                const action = {...createRandomReportAction(7)};
+                const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker);
+
+                expect(result).toBe('PayerOwesMarker');
+            });
+
+            it('should fall back to parentReportID when chatReportID is missing', () => {
+                const invoiceReport: Report = {
+                    reportID: 'invoice-report-792',
+                    type: CONST.REPORT.TYPE.INVOICE,
+                    parentReportID: invoiceRoomID,
+                    reportName: 'Invoice #44',
+                    currency: 'USD',
+                };
+
+                const action = {...createRandomReportAction(8)};
+                const result = getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker);
+
+                expect(result).toBe('PayerOwesMarker');
+            });
+
+            it('should not mutate the passed invoice report when falling back to parentReportID', () => {
+                const invoiceReport: Report = {
+                    reportID: 'invoice-report-793',
+                    type: CONST.REPORT.TYPE.INVOICE,
+                    parentReportID: invoiceRoomID,
+                    currency: 'USD',
+                };
+
+                const action = {...createRandomReportAction(9)};
+                getChatListItemReportName(action, invoiceReport, undefined, translateWithMarker);
+
+                expect(invoiceReport.chatReportID).toBeUndefined();
+            });
+
+            it('should use the parent invoice report name for a chat thread inside an invoice report', async () => {
+                const invoiceReportID = 'invoice-report-794';
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {
+                    reportID: invoiceReportID,
+                    type: CONST.REPORT.TYPE.INVOICE,
+                    chatReportID: invoiceRoomID,
+                    reportName: 'Invoice #45',
+                    currency: 'USD',
+                });
+                await waitForBatchedUpdates();
+
+                const invoiceThread: Report = {
+                    reportID: 'invoice-thread-795',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: invoiceReportID,
+                    parentReportActionID: 'parent-action-795',
+                    reportName: 'Thread name',
+                };
+
+                const action = {...createRandomReportAction(10)};
+                const result = getChatListItemReportName(action, invoiceThread, undefined, translateWithMarker);
+
+                expect(result).toBe('PayerOwesMarker');
+            });
+        });
     });
     describe('buildOptimisticApprovedReportAction', () => {
         it('should set actorAccountID to the provided currentUserAccountID', () => {
