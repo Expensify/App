@@ -92,13 +92,17 @@ function getExportMenuItem(
             const type = typeNonReimbursable ?? typeReimbursable;
             const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
             let data: Account[];
-            let shouldShowMenuItem = nonReimbursableExpensesExportDestination !== CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
+            // A company card exported as a vendor bill has no per-card export account (there is no vendor-bill NVP, only credit/debit card).
+            // The reimbursable and non-reimbursable vendor-bill constants share the value 'bill', so without this guard the destination would
+            // match the credit-card case below and surface the credit-card account list under a vendor-bill export.
+            const isNonReimbursableVendorBill = nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
+            let shouldShowMenuItem = !isNonReimbursableVendorBill;
             let selectedAccount: Account | undefined;
             const defaultExportAccount = nonReimbursableExpensesAccount?.name ?? reimbursableExpensesAccount?.name;
             let isDefaultTitle = false;
             let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
             const qboConfig = nonReimbursableExpensesExportDestination ?? reimbursableExpensesExportDestination;
-            switch (qboConfig) {
+            switch (isNonReimbursableVendorBill ? undefined : qboConfig) {
                 case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
                 case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
                 case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
