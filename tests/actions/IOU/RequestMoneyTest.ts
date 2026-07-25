@@ -2800,7 +2800,7 @@ describe('actions/IOU', () => {
             await signInWithTestUser(CREATE_TRANSACTION_USER_ACCOUNT_ID, CREATE_TRANSACTION_USER_LOGIN);
             const selfDMReport: Report = {
                 ...createRandomReport(90, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                reportID: 'create-transaction-selfdm',
+                reportID: 'create-transaction-self-direct-message',
             };
 
             createTransaction(buildCreateTransactionParams(CONST.IOU.TYPE.TRACK, selfDMReport));
