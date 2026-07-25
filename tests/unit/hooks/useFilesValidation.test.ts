@@ -136,7 +136,8 @@ describe('useFilesValidation', () => {
             await waitFor(() => expect(onFilesValidated).toHaveBeenCalledTimes(1));
         });
 
-        it('[gap] gets permanently stuck when validateFiles is called with an empty array', () => {
+        // TODO: bug — an empty list should be a no-op, not brick the hook. Out of scope for this refactor.
+        it('an empty file list blocks all future validation calls', () => {
             const {result, onFilesValidated} = setup();
             triggerValidation(result, []);
 
