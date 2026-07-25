@@ -544,7 +544,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
-            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS,
             SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
         ],
         getRoute: (country = '') => `country?country=${country}`,
@@ -1007,7 +1007,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.TRAVEL,
             SCREENS.SEARCH.ROOT,
             SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR,
-            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.DYNAMIC_WORKSPACE_ADDRESS,
             SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID,
             SCREENS.TRAVEL.VERIFY_ACCOUNT,
         ],
@@ -1025,6 +1025,11 @@ const DYNAMIC_ROUTES = {
     TRAVEL_UPGRADE: {
         path: 'travel-upgrade',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
+    },
+    TRAVEL_WORKSPACE_ADDRESS: {
+        path: 'workspace-address/:domain/:policyID?',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT, SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR],
+        getRoute: (domain: string, policyID?: string) => `workspace-address/${encodeURIComponent(domain)}${policyID ? `/${policyID}` : ''}` as const,
     },
     TRAVEL_WORKSPACE_CONFIRMATION: {
         path: 'workspace-confirmation',
@@ -3456,11 +3461,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
         },
-    },
-    TRAVEL_WORKSPACE_ADDRESS: {
-        route: 'travel/:domain/workspace-address',
-
-        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_LEGAL_ENTITY_TAX_ID: {
         route: 'travel/:domain/legal-entity-tax-id',

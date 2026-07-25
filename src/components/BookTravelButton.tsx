@@ -208,7 +208,7 @@ function BookTravelButton({
             if (!isUserValidated) {
                 // Determine where to redirect after OTP validation
                 const nextStep = isEmptyObject(policy?.address)
-                    ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute())
+                    ? createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID))
                     : getTravelAcceptTermsRoute(domain, activePolicyID, policy);
                 setTravelProvisioningNextStep(nextStep);
                 Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
@@ -216,7 +216,7 @@ function BookTravelButton({
             }
             if (isEmptyObject(policy?.address)) {
                 // Spotnana requires an address anytime an entity is created for a policy
-                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID)));
             } else {
                 navigateToAcceptTerms(getTravelAcceptTermsRoute(domain, activePolicyID, policy), domain, !!isUserValidated, activePolicyID ?? undefined);
             }

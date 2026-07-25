@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
@@ -71,7 +72,7 @@ function DynamicDomainSelectorPage({route}: DomainSelectorPageProps) {
         if (!isUserValidated) {
             // Determine where to redirect after OTP validation
             const nextStep = isEmptyObject(policy?.address)
-                ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute())
+                ? createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID))
                 : getTravelAcceptTermsRoute(domain, policyID, policy);
             setTravelProvisioningNextStep(nextStep);
             Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID));
@@ -79,7 +80,7 @@ function DynamicDomainSelectorPage({route}: DomainSelectorPageProps) {
         }
         if (isEmptyObject(policy?.address)) {
             // Spotnana requires an address anytime an entity is created for a policy
-            Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID)));
         } else {
             cleanupTravelProvisioningSession();
             Navigation.navigate(getTravelAcceptTermsRoute(domain, policyID, policy));

@@ -38,7 +38,7 @@ const SCREENS = {
         DYNAMIC_DOMAIN_SELECTOR: 'Dynamic_Travel_DomainSelector',
         DYNAMIC_PUBLIC_DOMAIN_ERROR: 'Dynamic_Travel_PublicDomainError',
         DYNAMIC_WORKSPACE_CONFIRMATION: 'Dynamic_Travel_WorkspaceConfirmation',
-        WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
+        DYNAMIC_WORKSPACE_ADDRESS: 'Dynamic_Travel_WorkspaceAddress',
         LEGAL_ENTITY_TAX_ID: 'Travel_LegalEntityTaxID',
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
         VERIFY_ACCOUNT: 'Travel_VerifyAccount',
