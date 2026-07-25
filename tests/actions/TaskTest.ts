@@ -1804,6 +1804,22 @@ describe('actions/Task', () => {
             // Then it is not classified as a group chat or a root group chat, so the destructive leave path is never offered
             expect(ReportUtils.isGroupChat(groupTask)).toBe(false);
             expect(ReportUtils.isRootGroupChat(groupTask)).toBe(false);
+            expect(ReportUtils.canLeaveChat(groupTask, undefined, 1)).toBe(false);
+        });
+
+        it('does not treat a task that inherited a policy room chatType as a chat room', () => {
+            // Given a task report carrying a user-created policy room's chatType
+            const roomTask = {
+                reportID: 'task_room_1',
+                type: CONST.REPORT.TYPE.TASK,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                parentReportID: 'room_parent_1',
+                parentReportActionID: 'room_parent_action_1',
+            } as Report;
+
+            // Then it is not classified as a chat room, so room-only affordances (like Leave) stay hidden
+            expect(ReportUtils.isChatRoom(roomTask)).toBe(false);
+            expect(ReportUtils.canLeaveChat(roomTask, undefined, 1)).toBe(false);
         });
 
         it('keeps the intentional #admins chatType inheritance for tasks', () => {
