@@ -50,7 +50,6 @@ type ApproverSelectionListPageProps = {
     onSearchChange?: (searchTerm: string) => void;
     shouldUpdateFocusedIndex?: boolean;
     shouldRequirePolicyAdmin?: boolean;
-    shouldCaptureInitialSelection?: boolean;
 };
 
 type SelectionListApprover = ListItem & {
@@ -78,7 +77,6 @@ function ApproverSelectionList({
     onSearchChange,
     shouldUpdateFocusedIndex = true,
     shouldRequirePolicyAdmin = true,
-    shouldCaptureInitialSelection = true,
 }: ApproverSelectionListPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -99,7 +97,7 @@ function ApproverSelectionList({
 
     const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
     const selectedApproverKeys = useMemo(() => selectedMembers.map((approver) => approver.value?.toString() ?? '').filter(Boolean), [selectedMembers]);
-    const initialSelectedApproverKeys = useInitialSelection(selectedApproverKeys, {isVisible: shouldCaptureInitialSelection && allApprovers.length > 0, resetOnFocus: true});
+    const initialSelectedApproverKeys = useInitialSelection(selectedApproverKeys, {isVisible: !shouldShowLoadingPlaceholder && allApprovers.length > 0, resetOnFocus: true});
     const initiallyFocusedApproverKey = allApprovers.find((approver) => initialSelectedApproverKeys.includes(String(approver.value)))?.keyForList;
     const selectionListKey = initialSelectedApproverKeys.join(',');
 

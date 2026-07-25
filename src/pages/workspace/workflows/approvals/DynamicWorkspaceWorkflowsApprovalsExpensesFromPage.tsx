@@ -119,7 +119,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     })();
 
     const selectedMembers = ((): SelectionListApprover[] => {
-        if (isLoadingApprovalWorkflow || !approvalWorkflow?.members) {
+        if (!approvalWorkflow?.members) {
             return [];
         }
 
@@ -532,7 +532,6 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 onSearchChange={setSearchSelectorTerm}
                 shouldUpdateFocusedIndex={false}
                 shouldRequirePolicyAdmin={false}
-                shouldCaptureInitialSelection={!isLoadingApprovalWorkflow}
             />
         </AccessOrNotFoundWrapper>
     );

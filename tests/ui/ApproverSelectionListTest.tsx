@@ -97,13 +97,13 @@ function buildApprovers(selectedLogin: string | null = selectedApprover) {
     });
 }
 
-function renderApproverSelectionList(allApprovers = buildApprovers(), shouldCaptureInitialSelection = true) {
+function renderApproverSelectionList(allApprovers = buildApprovers(), shouldShowLoadingPlaceholder = false) {
     return render(
         <ApproverSelectionList
             testID="ApproverSelectionList"
             headerTitle="Approver"
             allApprovers={allApprovers}
-            shouldCaptureInitialSelection={shouldCaptureInitialSelection}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             onBackButtonPress={jest.fn()}
             onSelectApprover={jest.fn()}
         />,
@@ -163,14 +163,14 @@ describe('ApproverSelectionList', () => {
     });
 
     it('pins the selected approver when selection data arrives after list data', () => {
-        const {rerender} = renderApproverSelectionList(buildApprovers(null), false);
+        const {rerender} = renderApproverSelectionList(buildApprovers(null), true);
 
         rerender(
             <ApproverSelectionList
                 testID="ApproverSelectionList"
                 headerTitle="Approver"
                 allApprovers={buildApprovers(selectedApprover)}
-                shouldCaptureInitialSelection
+                shouldShowLoadingPlaceholder={false}
                 onBackButtonPress={jest.fn()}
                 onSelectApprover={jest.fn()}
             />,
