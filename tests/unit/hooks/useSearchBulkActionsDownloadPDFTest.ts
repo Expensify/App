@@ -208,6 +208,8 @@ function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup
             hasMoreResults: false,
             hasResults: true,
             isLoading: false,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
         },
     };
 }
