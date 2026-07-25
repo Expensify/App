@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -36,11 +36,12 @@ function ApproveActionButton() {
 
     return (
         <Button
-            text={translate('iou.approve')}
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={confirmApproval}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
-        />
+        >
+            <Button.Text>{translate('iou.approve')}</Button.Text>
+        </Button>
     );
 }
 
