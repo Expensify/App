@@ -1520,7 +1520,19 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'common.delete',
         icon: 'Trashcan',
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID: reportIDParam, moneyRequestAction, iouTransaction, transactions, childReportActions, isProduction}) => {
+        shouldShow: ({
+            type,
+            reportAction,
+            isArchivedRoom,
+            isChronosReport,
+            reportID: reportIDParam,
+            moneyRequestAction,
+            iouTransaction,
+            transactions,
+            childReportActions,
+            isProduction,
+            currentUserAccountID,
+        }) => {
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             let reportID = reportIDParam;
 
@@ -1545,7 +1557,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             return (
                 !!reportIDParam &&
                 type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-                canDeleteReportAction(moneyRequestAction ?? reportAction, reportID, iouTransaction, transactions, childReportActions) &&
+                canDeleteReportAction(moneyRequestAction ?? reportAction, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID) &&
                 !isArchivedRoom &&
                 !isChronosReport &&
                 !isMessageDeleted(reportAction)
