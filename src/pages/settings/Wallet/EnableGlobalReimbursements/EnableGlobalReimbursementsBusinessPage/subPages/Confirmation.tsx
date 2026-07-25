@@ -45,6 +45,7 @@ function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
     const summaryItems = useMemo(
         () => [
             {
+                id: 'registration-number',
                 title: enableGlobalReimbursementsDraft?.[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] ?? '',
                 description: translate('businessInfoStep.registrationNumber'),
                 shouldShowRightIcon: true,
@@ -53,6 +54,7 @@ function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
                 },
             },
             {
+                id: 'business-type',
                 title: businessType,
                 description: translate('businessInfoStep.businessType'),
                 shouldShowRightIcon: true,
@@ -61,6 +63,7 @@ function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
                 },
             },
             {
+                id: 'business-category',
                 title: businessCategory,
                 description: translate('businessInfoStep.businessCategory'),
                 shouldShowRightIcon: true,
@@ -69,6 +72,7 @@ function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
                 },
             },
             {
+                id: 'annual-payment-volume',
                 title: paymentVolume,
                 description: translate('businessInfoStep.annualPaymentVolume'),
                 shouldShowRightIcon: true,
@@ -77,6 +81,7 @@ function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
                 },
             },
             {
+                id: 'trade-volume-range',
                 title: tradeVolumeRange,
                 description: translate('businessInfoStep.averageReimbursementAmount'),
                 shouldShowRightIcon: true,

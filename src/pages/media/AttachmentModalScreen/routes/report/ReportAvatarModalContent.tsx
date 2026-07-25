@@ -44,7 +44,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         }
 
         return {
-            source: getFullSizeAvatar({avatarSource: getWorkspaceIcon(report, policy).source, defaultAvatars}),
+            source: getFullSizeAvatar({avatarSource: getWorkspaceIcon(report, translate, policy).source, defaultAvatars}),
             headerTitle: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
             // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,

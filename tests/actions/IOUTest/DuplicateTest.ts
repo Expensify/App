@@ -37,7 +37,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {formatPhoneNumber, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -612,7 +612,6 @@ describe('actions/Duplicate', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -624,7 +623,6 @@ describe('actions/Duplicate', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -1335,7 +1333,6 @@ describe('actions/Duplicate', () => {
             recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-                waitForCollectionCallback: true,
                 callback: (value) => {
                     targetPolicyTags = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${mockPolicy.id}`] ?? {};
                 },
@@ -1382,6 +1379,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1390,7 +1388,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1449,6 +1446,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1457,7 +1455,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
                     expect(transactions).toHaveLength(1);
@@ -1508,6 +1505,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1515,7 +1513,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1560,6 +1557,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1567,7 +1565,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1612,6 +1609,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1620,7 +1618,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1667,6 +1664,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1675,7 +1673,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -1732,6 +1729,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1740,7 +1738,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transactions = Object.values(allTransactions ?? {}).filter((t) => !!t);
                     expect(transactions).toHaveLength(1);
@@ -1782,6 +1779,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1825,6 +1823,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1871,6 +1870,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1923,6 +1923,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1930,7 +1931,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== transactionID);
                 },
@@ -1991,6 +1991,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2059,6 +2060,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2110,6 +2112,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2126,7 +2129,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -2173,6 +2175,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2182,7 +2185,6 @@ describe('actions/Duplicate', () => {
 
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
@@ -2350,6 +2352,7 @@ describe('actions/Duplicate', () => {
             recentWaypoints: [],
             isTrackIntentUser: false,
             delegateAccountID: undefined,
+            formatPhoneNumber,
             ...overrides,
         });
 
@@ -2505,7 +2508,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransaction: OnyxEntry<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== scanExpenseTx.transactionID);
                 },
@@ -2786,7 +2788,6 @@ describe('actions/Duplicate', () => {
             let duplicatedTransactions: Transaction[] = [];
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     duplicatedTransactions = Object.values(allTransactions ?? {}).filter((tx): tx is Transaction => !!tx && tx.transactionID !== splitDistanceTx.transactionID);
                 },
@@ -2922,6 +2923,7 @@ describe('actions/Duplicate', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -3034,6 +3036,7 @@ describe('actions/Duplicate', () => {
             recentWaypoints: [],
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
             ...overrides,
         });
 
