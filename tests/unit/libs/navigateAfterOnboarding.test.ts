@@ -1,5 +1,6 @@
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import {clearPendingConciergeDeepLink, setPendingConciergeDeepLink, updatePendingConciergeDeepLinkForRoute} from '@libs/PendingConciergeDeepLink';
 
 import ROUTES from '@src/ROUTES';
 
@@ -30,6 +31,7 @@ const navigationMock = Navigation as jest.Mocked<typeof Navigation>;
 describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        clearPendingConciergeDeepLink();
     });
 
     it('navigates to HOME when policyID is missing', () => {
@@ -56,5 +58,26 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
         expect(navigationMock.navigate).toHaveBeenCalledWith(
             `${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACE_INITIAL.getRoute('test-policy-id'))}`,
         );
+    });
+
+    it('navigates to pending Concierge before Workspace Categories', () => {
+        setPendingConciergeDeepLink();
+
+        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id', false, 'concierge-report-id');
+
+        expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
+        expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
+        expect(navigationMock.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('concierge-report-id'));
+    });
+
+    it('navigates to Home before Workspace Categories when root replaced pending Concierge', () => {
+        setPendingConciergeDeepLink();
+        updatePendingConciergeDeepLinkForRoute('', false);
+
+        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id', false, 'concierge-report-id');
+
+        expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
+        expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
+        expect(navigationMock.navigate).toHaveBeenCalledWith(ROUTES.HOME);
     });
 });

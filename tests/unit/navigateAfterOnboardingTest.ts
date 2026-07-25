@@ -30,6 +30,7 @@ const ONBOARDING_ADMINS_CHAT_REPORT_ID = '1';
 const ONBOARDING_POLICY_ID = '2';
 const REPORT_ID = '3';
 const USER_ID = '4';
+const PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY = 'PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN';
 const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
 const mockShouldOpenOnAdminRoom = jest.fn();
 const mockIsReportTopmostSplitNavigator = jest.fn(() => false);
@@ -143,6 +144,7 @@ describe('navigateAfterOnboarding', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        window.localStorage.removeItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY);
         clearPendingConciergeDeepLink();
         mockIsReportTopmostSplitNavigator.mockReturnValue(false);
         return Onyx.clear();
@@ -344,6 +346,45 @@ describe('navigateAfterOnboarding', () => {
         expect(consumePendingConciergeDeepLink()).toBe(false);
     });
 
+    it('should treat an authenticated root route before onboarding finishes as an explicit Home intent', () => {
+        setPendingConciergeDeepLink();
+
+        updatePendingConciergeDeepLinkForRoute('', true);
+
+        expect(consumePendingHomeDeepLink()).toBe(true);
+        expect(consumePendingConciergeDeepLink()).toBe(false);
+    });
+
+    it('should preserve pending Concierge intent when an authenticated onboarding route is replayed after refresh', () => {
+        setPendingConciergeDeepLink();
+
+        updatePendingConciergeDeepLinkForRoute(ROUTES.ONBOARDING_PURPOSE.route, true);
+
+        expect(consumePendingConciergeDeepLink()).toBe(true);
+        expect(consumePendingHomeDeepLink()).toBe(false);
+    });
+
+    it('should publish a cross-tab cancellation token for unauthenticated internal routes', () => {
+        updatePendingConciergeDeepLinkForRoute(`${ROUTES.REPORT}/123`, false);
+
+        expect(window.localStorage.getItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY)).toEqual(expect.any(String));
+    });
+
+    it('should publish a cross-tab cancellation token for authenticated internal routes before onboarding finishes', () => {
+        updatePendingConciergeDeepLinkForRoute(`${ROUTES.REPORT}/123`, true);
+
+        expect(window.localStorage.getItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY)).toEqual(expect.any(String));
+    });
+
+    it('should preserve pending Concierge intent when authenticated Concierge is reprocessed', () => {
+        setPendingConciergeDeepLink();
+
+        updatePendingConciergeDeepLinkForRoute(ROUTES.CONCIERGE, true);
+
+        expect(consumePendingConciergeDeepLink()).toBe(true);
+        expect(consumePendingHomeDeepLink()).toBe(false);
+    });
+
     it('should preserve a pending Concierge intent for generated Home routes', () => {
         setPendingConciergeDeepLink();
 
@@ -364,6 +405,28 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
         expect(openSidePanel).not.toHaveBeenCalled();
+    });
+
+    it('should block stale Concierge intent in another tab after an explicit non-Concierge deep link', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        const openSidePanel = jest.mocked(SidePanelActions.openSidePanel);
+        setPendingConciergeDeepLink();
+
+        window.localStorage.setItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY, 'non-concierge-opened-in-another-tab');
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
+
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+        expect(openSidePanel).not.toHaveBeenCalled();
+    });
+
+    it('should allow a new Concierge intent after an older cross-tab Home cancellation', () => {
+        window.localStorage.setItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY, 'older-cancel');
+
+        setPendingConciergeDeepLink();
+
+        expect(consumePendingConciergeDeepLink()).toBe(true);
+        expect(consumePendingHomeDeepLink()).toBe(false);
     });
 
     it('should block the Concierge RHP variant after an explicit Home deep link', async () => {
@@ -427,14 +490,15 @@ describe('navigateAfterOnboarding', () => {
         }
     });
 
-    it('should let the normal onboarding destination win after root clears a stale pending Concierge deep link', () => {
+    it('should let an explicit root route win after clearing a stale pending Concierge deep link', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         setPendingConciergeDeepLink();
 
         openReportFromDeepLink(`${CONST.NEW_EXPENSIFY_URL}/`, {}, false, REPORT_ID, undefined, undefined, undefined);
         navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
 
-        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 });

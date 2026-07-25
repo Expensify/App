@@ -28,6 +28,25 @@ Onyx.connectWithoutView({
     },
 });
 
+function navigateToPendingDeepLinkAfterOnboarding(conciergeReportID?: string) {
+    const shouldNavigateHomeFromDeepLink = consumePendingHomeDeepLink();
+    const shouldNavigateToConciergeFromDeepLink = consumePendingConciergeDeepLink();
+
+    if (shouldNavigateHomeFromDeepLink) {
+        // The latest explicit non-Concierge route should win before onboarding variants can open Concierge, an admin room, or a workspace.
+        Navigation.navigate(ROUTES.HOME);
+        return true;
+    }
+
+    if (shouldNavigateToConciergeFromDeepLink) {
+        // The report ID can still be unavailable immediately after signup refresh, so fall back to the Concierge route.
+        Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
+        return true;
+    }
+
+    return false;
+}
+
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
  * On large screens, navigates to the admins chat if available. On small screens, finds the last
@@ -64,11 +83,6 @@ function getReportIDAfterOnboarding(
     return undefined;
 }
 
-function isConciergeOnboardingVariant(variant: OnboardingRHPVariant | null | undefined) {
-    // These onboarding variants can open Concierge even after the pending /concierge deep-link flag has been cleared.
-    return variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE || variant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
-}
-
 function navigateAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
@@ -82,10 +96,7 @@ function navigateAfterOnboarding(
     setDisableDismissOnEscape(false);
 
     // Resolve signup deep-link intents before onboarding variants, so /concierge wins unless the user explicitly replaced it with /.
-    const shouldNavigateHomeFromDeepLink = consumePendingHomeDeepLink();
-    const shouldNavigateToConciergeFromDeepLink = consumePendingConciergeDeepLink();
-    if (!shouldNavigateHomeFromDeepLink && shouldNavigateToConciergeFromDeepLink) {
-        Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
+    if (navigateToPendingDeepLinkAfterOnboarding(conciergeReportID)) {
         return;
     }
 
@@ -94,14 +105,12 @@ function navigateAfterOnboarding(
     // This check is outside shouldOpenRHPVariant because that function returns false on native
     // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
     const variant = variantOverride ?? onboardingRHPVariant;
-    // If the user opened / after /concierge, keep that latest Home intent from being overridden by Concierge-specific onboarding variants.
-    const shouldBlockConciergeOnboardingVariant = shouldNavigateHomeFromDeepLink && isConciergeOnboardingVariant(variant);
-    if (!shouldBlockConciergeOnboardingVariant && isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
+    if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
         return;
     }
 
-    if (!shouldBlockConciergeOnboardingVariant && shouldOpenRHPVariant(variantOverride)) {
+    if (shouldOpenRHPVariant(variantOverride)) {
         handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
         return;
     }
@@ -117,8 +126,6 @@ function navigateAfterOnboarding(
     );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    } else if (shouldNavigateHomeFromDeepLink) {
-        Navigation.navigate(ROUTES.HOME);
     } else if (!isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
         Navigation.navigate(ROUTES.HOME);
@@ -155,8 +162,13 @@ function navigateAfterOnboardingWithMicrotaskQueue(
  * navigate to Workspace > Categories with the side panel open so
  * the #admins room is visible in Concierge Anywhere.
  */
-function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
+function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false, conciergeReportID?: string) {
     setDisableDismissOnEscape(false);
+
+    // Submit workspace onboarding bypasses navigateAfterOnboarding(), so honor the same pending deep-link intent here.
+    if (navigateToPendingDeepLinkAfterOnboarding(conciergeReportID)) {
+        return;
+    }
 
     if (!policyID) {
         Navigation.navigate(ROUTES.HOME);
@@ -172,10 +184,10 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
     SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
 }
 
-function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
+function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false, conciergeReportID?: string) {
     dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
+        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout, conciergeReportID);
     });
 }
 

@@ -6,16 +6,19 @@ import normalizePath from './Navigation/helpers/normalizePath';
 /**
  * Tracks whether a logged-out user opened a /concierge deep link so the app can
  * route them to Concierge after sign-up/onboarding. sessionStorage keeps the
- * tab-scoped intent across page reloads, while an explicit root deep link can
- * replace it with a Home fallback when the user cancels the Concierge intent.
+ * tab-scoped intent across page reloads, while localStorage lets any explicit
+ * non-Concierge deep link in another tab cancel older Concierge intents for the same browser.
  */
 const PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY = 'PENDING_CONCIERGE_DEEP_LINK';
+const PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_AT_SET_STORAGE_KEY = 'PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_AT_SET';
+const PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY = 'PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN';
 const PENDING_HOME_DEEP_LINK_STORAGE_KEY = 'PENDING_HOME_DEEP_LINK';
 const LEGACY_PERFORMANCE_NAVIGATION_KEY = 'navigation';
 const LEGACY_PERFORMANCE_NAVIGATION_TYPE_KEY = 'type';
 const LEGACY_PERFORMANCE_NAVIGATION_TYPE_RELOAD = 1;
 let hasPendingConciergeDeepLink = false;
 let hasPendingHomeDeepLink = false;
+let pendingConciergeCancelTokenAtSet = '';
 
 function getSessionStorage() {
     try {
@@ -25,32 +28,83 @@ function getSessionStorage() {
     }
 }
 
-function hasStoredFlag(key: string) {
+function getLocalStorage() {
     try {
-        return getSessionStorage()?.getItem(key) === 'true';
+        return typeof window === 'undefined' ? undefined : window.localStorage;
     } catch {
-        return false;
+        return undefined;
     }
 }
 
-function setStoredFlag(key: string) {
+function getStoredValue(key: string, getStorage: () => Storage | undefined) {
     try {
-        getSessionStorage()?.setItem(key, 'true');
+        return getStorage()?.getItem(key);
+    } catch {
+        return undefined;
+    }
+}
+
+function setStoredValue(key: string, value: string, getStorage: () => Storage | undefined) {
+    try {
+        getStorage()?.setItem(key, value);
     } catch {
         // Ignore storage failures and keep the in-memory intent for the current page lifecycle.
     }
 }
 
-function clearStoredFlag(key: string) {
+function clearStoredValue(key: string, getStorage: () => Storage | undefined) {
     try {
-        getSessionStorage()?.removeItem(key);
+        getStorage()?.removeItem(key);
     } catch {
         // Ignore storage failures since clearing the in-memory flag is still enough for this page lifecycle.
     }
 }
 
-function hasPendingConciergeDeepLinkIntent() {
+function hasStoredFlag(key: string) {
+    return getStoredValue(key, getSessionStorage) === 'true';
+}
+
+function setStoredFlag(key: string) {
+    setStoredValue(key, 'true', getSessionStorage);
+}
+
+function clearStoredFlag(key: string) {
+    clearStoredValue(key, getSessionStorage);
+}
+
+function getCancelToken() {
+    return getStoredValue(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY, getLocalStorage) ?? '';
+}
+
+function setCancelToken() {
+    setStoredValue(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY, `${Date.now()}-${Math.random()}`, getLocalStorage);
+}
+
+function setPendingConciergeCancelTokenAtSet() {
+    pendingConciergeCancelTokenAtSet = getCancelToken();
+    setStoredValue(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_AT_SET_STORAGE_KEY, pendingConciergeCancelTokenAtSet, getSessionStorage);
+}
+
+function clearPendingConciergeCancelTokenAtSet() {
+    pendingConciergeCancelTokenAtSet = '';
+    clearStoredValue(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_AT_SET_STORAGE_KEY, getSessionStorage);
+}
+
+function hasPendingConciergeDeepLinkFlag() {
     return hasPendingConciergeDeepLink || hasStoredFlag(PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY);
+}
+
+function hasCancelTokenChangedSinceConciergeWasSet() {
+    if (!hasPendingConciergeDeepLinkFlag()) {
+        return false;
+    }
+
+    // A newer cancel token means another tab opened a non-Concierge route after this tab stored /concierge.
+    return getCancelToken() !== (getStoredValue(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_AT_SET_STORAGE_KEY, getSessionStorage) ?? pendingConciergeCancelTokenAtSet);
+}
+
+function hasPendingConciergeDeepLinkIntent() {
+    return hasPendingConciergeDeepLinkFlag() && !hasCancelTokenChangedSinceConciergeWasSet();
 }
 
 function hasPendingHomeDeepLinkIntent() {
@@ -66,6 +120,7 @@ function clearPendingConciergeDeepLink() {
     hasPendingConciergeDeepLink = false;
     clearPendingHomeDeepLink();
     clearStoredFlag(PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY);
+    clearPendingConciergeCancelTokenAtSet();
 }
 
 function setPendingHomeDeepLink() {
@@ -109,6 +164,7 @@ function setPendingHomeDeepLinkForRoot() {
         setPendingHomeDeepLinkIfNoPendingConcierge();
         return;
     }
+    setCancelToken();
     setPendingHomeDeepLink();
 }
 
@@ -116,6 +172,13 @@ function setPendingConciergeDeepLink() {
     clearPendingHomeDeepLink();
     hasPendingConciergeDeepLink = true;
     setStoredFlag(PENDING_CONCIERGE_DEEP_LINK_STORAGE_KEY);
+    setPendingConciergeCancelTokenAtSet();
+}
+
+function cancelPendingConciergeDeepLinkFromExplicitRoute() {
+    // Share explicit non-Concierge route intent across tabs so stale /concierge signup flows are canceled everywhere.
+    setCancelToken();
+    clearPendingConciergeDeepLink();
 }
 
 function getNormalizedRouteWithoutParams(route: string) {
@@ -123,14 +186,28 @@ function getNormalizedRouteWithoutParams(route: string) {
     return routeWithoutParams.replace(/\/$/, '') || '/';
 }
 
+function isOnboardingRoute(normalizedRoute: string) {
+    // Onboarding URLs are generated by the guided setup flow, so they should not replace the original signup deep-link intent.
+    return normalizedRoute === normalizePath(ROUTES.ONBOARDING_ROOT.route) || normalizedRoute.startsWith(`${normalizePath(ROUTES.ONBOARDING_ROOT.route)}/`);
+}
+
 // Keep pending signup deep-link intent consistent across initial URL handling and later Linking URL events.
 function updatePendingConciergeDeepLinkForRoute(route: string, isAuthenticated: boolean) {
-    if (isAuthenticated) {
-        return;
-    }
-
     const normalizedRoute = getNormalizedRouteWithoutParams(route);
     const routeForPublicScreen = normalizedRoute === '/' ? '' : normalizedRoute.slice(1);
+    if (isAuthenticated) {
+        // Authenticated URL events can arrive after signup but before onboarding consumes the pending route intent.
+        if (normalizedRoute === '/') {
+            // Root can be opened after signup but before onboarding finishes, so keep it as an explicit Home intent.
+            setPendingHomeDeepLinkForRoot();
+        } else if (isOnboardingRoute(normalizedRoute)) {
+            // Refreshing during onboarding should not replace the original signup deep-link intent.
+            return;
+        } else if (normalizedRoute !== normalizePath(ROUTES.CONCIERGE) && normalizedRoute !== normalizePath(ROUTES.HOME) && !isPublicScreenRoute(routeForPublicScreen)) {
+            cancelPendingConciergeDeepLinkFromExplicitRoute();
+        }
+        return;
+    }
 
     if (normalizedRoute === normalizePath(ROUTES.CONCIERGE)) {
         setPendingConciergeDeepLink();
@@ -142,13 +219,16 @@ function updatePendingConciergeDeepLinkForRoute(route: string, isAuthenticated: 
         setPendingHomeDeepLinkIfNoPendingConcierge();
     } else if (!isPublicScreenRoute(routeForPublicScreen)) {
         // A different protected/internal deep link should not inherit an older Concierge redirect.
-        clearPendingConciergeDeepLink();
+        cancelPendingConciergeDeepLinkFromExplicitRoute();
     }
 }
 
 function consumePendingHomeDeepLink() {
-    const shouldNavigateHome = hasPendingHomeDeepLinkIntent();
+    const shouldNavigateHome = hasPendingHomeDeepLinkIntent() || hasCancelTokenChangedSinceConciergeWasSet();
     clearPendingHomeDeepLink();
+    if (shouldNavigateHome) {
+        clearPendingConciergeDeepLink();
+    }
     return shouldNavigateHome;
 }
 
