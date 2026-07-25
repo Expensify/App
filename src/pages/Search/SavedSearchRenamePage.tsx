@@ -63,7 +63,7 @@ function SavedSearchRenamePage({route}: {route: {params: {id: string}}}) {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <FullPageNotFoundView>
+            <FullPageNotFoundView shouldShow={!savedSearch}>
                 <HeaderWithBackButton title={translate('common.rename')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM}
