@@ -95,6 +95,24 @@ describe('Card Feed Utils', () => {
         });
     });
 
+    it('returns numbered commercial card feed names for search display', () => {
+        const cardFeedsWithNumberedCommercialFeeds: OnyxCollection<CardFeeds> = {
+            sharedNVP_private_domain_member_1234: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards: {
+                        [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`]: {},
+                    },
+                },
+            },
+        };
+
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsWithNumberedCommercialFeeds, {}, translateLocal);
+        expect(cardFeedsForDisplay).toEqual({
+            '1234_vcf2': {id: '1234_vcf2', fundID: '1234', feed: 'vcf2', name: 'Visa 2'},
+        });
+    });
+
     it('returns card feeds grouped per policy', () => {
         const cardFeedsForDisplayPerPolicy = getCardFeedsForDisplayPerPolicy(cardFeedsMock, translateLocal, undefined, undefined);
         expect(cardFeedsForDisplayPerPolicy).toEqual({

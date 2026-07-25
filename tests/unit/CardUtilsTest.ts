@@ -37,6 +37,7 @@ import {
     getCSVFeedType,
     getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
+    getDefaultCommercialFeedDisplayName,
     getDefaultExpensifyCardLimitType,
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
@@ -1438,6 +1439,58 @@ describe('CardUtils', () => {
             );
             expect(feedName).toBe(unknownFeed);
         });
+
+        const commercialFeedCases: Array<[Parameters<typeof getCustomOrFormattedFeedName>[1], string]> = [
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, 'Visa cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`, 'Visa cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'Visa 2 cards'],
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 'Mastercard cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}1`, 'Mastercard cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}2`, 'Mastercard 2 cards'],
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, 'American Express cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}1`, 'American Express cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2`, 'American Express 2 cards'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}12345`, 'Visa 2 cards'],
+        ];
+
+        it.each(commercialFeedCases)('Should format commercial feed %s as %s', (feed, expectedFeedName) => {
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed);
+            expect(feedName).toBe(expectedFeedName);
+        });
+
+        const commercialFeedWithoutSuffixCases: Array<[Parameters<typeof getCustomOrFormattedFeedName>[1], string]> = [[`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'Visa 2']];
+
+        it.each(commercialFeedWithoutSuffixCases)('Should format commercial feed %s without cards suffix as %s', (feed, expectedFeedName) => {
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed, undefined, false);
+            expect(feedName).toBe(expectedFeedName);
+        });
+
+        it('Should return custom name for numbered feed if custom name exists', () => {
+            const numberedVisaFeedForCustomName: Parameters<typeof getCustomOrFormattedFeedName>[1] = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`;
+            const feedName = getCustomOrFormattedFeedName(translateLocal, numberedVisaFeedForCustomName, customFeedName);
+            expect(feedName).toBe(customFeedName);
+        });
+    });
+
+    describe('getDefaultCommercialFeedDisplayName', () => {
+        it.each([
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, 'Visa'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`, 'Visa'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'Visa 2'],
+            ['vcfanzfav1', 'ANZ NZ 1'],
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 'Mastercard'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}1`, 'Mastercard'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}2`, 'Mastercard 2'],
+            [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, 'American Express'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}1`, 'American Express'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2`, 'American Express 2'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}bmo`, 'Mastercard'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}citibank2`, 'Visa'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}12345`, 'Visa 2'],
+        ])('Should derive default display name for commercial feed %s as %s', (feed, expectedFeedName) => {
+            const feedName = getDefaultCommercialFeedDisplayName(feed);
+            expect(feedName).toBe(expectedFeedName);
+        });
     });
 
     describe('doesCardFeedExist', () => {
@@ -1677,6 +1730,16 @@ describe('CardUtils', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Runtime feed suffixes are accepted but are not modeled by the production parameter type.
             const feedName = getBankName(feedWithAmex1205Prefix as Parameters<typeof getBankName>[0]);
             expect(feedName).toBe('American Express');
+        });
+
+        const canonicalDisplayFeedCases: Array<[Parameters<typeof getBankName>[0], string]> = [
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'Visa'],
+            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2`, 'American Express'],
+        ];
+
+        it.each(canonicalDisplayFeedCases)('Should keep canonical bank name for display feed variant %s', (feed, expectedFeedName) => {
+            const feedName = getBankName(feed);
+            expect(feedName).toBe(expectedFeedName);
         });
     });
 
