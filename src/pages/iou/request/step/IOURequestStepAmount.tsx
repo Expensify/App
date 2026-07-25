@@ -131,7 +131,7 @@ function IOURequestStepAmount({
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
     const isAmountCreateEntry = !backTo && !isEditing;
-    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+    const {suppressDiscardPrompt, recheckUnsavedChanges} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
                 typedAmount: amountFormRef.current?.getNumber() ?? '',
@@ -313,6 +313,7 @@ function IOURequestStepAmount({
                 shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={handleSubmit}
+                onAmountChange={recheckUnsavedChanges}
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}

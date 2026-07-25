@@ -106,6 +106,7 @@ function MoneyRequestAmountForm({
     policyID = '',
     onCurrencyButtonPress,
     onSubmitButtonPress,
+    onAmountChange,
     selectedTab = CONST.TAB_REQUEST.MANUAL,
     shouldKeepUserInput = false,
     chatReportID,
@@ -299,7 +300,8 @@ function MoneyRequestAmountForm({
                 isCurrencyPressable={isCurrencyPressable}
                 onCurrencyButtonPress={onCurrencyButtonPress}
                 onFormatAmount={onFormatAmount}
-                onAmountChange={() => {
+                onAmountChange={(newAmount) => {
+                    onAmountChange?.(newAmount);
                     if (!formError) {
                         return;
                     }

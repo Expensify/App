@@ -89,7 +89,7 @@ function IOURequestStepHours({
         moneyRequestTimeInputRef.current?.updateNumber(`${transaction?.comment?.units?.count ?? ''}`);
     }, [selectedTab, transaction?.comment?.units?.count]);
 
-    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+    const {suppressDiscardPrompt, recheckUnsavedChanges} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
             const typedCount = moneyRequestTimeInputRef.current?.getNumber() ?? '';
             return getStringFieldHasUnsavedChanges(typedCount, `${transaction?.comment?.units?.count ?? ''}`, isEmbeddedInStartPage);
@@ -177,6 +177,7 @@ function IOURequestStepHours({
                 errorText={formError}
                 touchableInputWrapperStyle={styles.heightUndefined}
                 onInputChange={() => {
+                    recheckUnsavedChanges();
                     if (!formError) {
                         return;
                     }

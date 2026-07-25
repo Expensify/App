@@ -9,7 +9,7 @@ import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext'
 import type {NavigationAction} from '@react-navigation/native';
 
 import {useFocusEffect, useIsFocused, usePreventRemove, useRoute} from '@react-navigation/native';
-import {useRef} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {BackHandler} from 'react-native';
 
 import type {DiscardChangesConfirmation} from './types';
@@ -39,6 +39,15 @@ function useDiscardChangesConfirmation({
         isSavingRef.current = false;
     });
     const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
+
+    // `usePreventRemove` reads this during render, so the block signal must be state (never a ref) to stay React Compiler-safe.
+    // The save ref and the screen's dirtiness callback are read inside this callback/effect, not during render.
+    // Ref-based input screens (which only re-render to clear a form error) call `recheckUnsavedChanges` after each keystroke.
+    const [shouldPreventRemove, setShouldPreventRemove] = useState(false);
+    const recheckUnsavedChanges = useCallback(() => {
+        setShouldPreventRemove(isFocused && !isSavingRef.current && getHasUnsavedChanges());
+    }, [isFocused, getHasUnsavedChanges]);
+    useEffect(recheckUnsavedChanges, [recheckUnsavedChanges]);
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
@@ -70,7 +79,7 @@ function useDiscardChangesConfirmation({
         });
     };
 
-    usePreventRemove(true, ({data}: {data: {action: NavigationAction}}) => {
+    usePreventRemove(shouldPreventRemove, ({data}: {data: {action: NavigationAction}}) => {
         // The action delivered here carries react-navigation's visited-routes marker, so re-dispatching it skips this screen's prevention
         if (isReplayingBlockedNavigation.current || !hasUnsavedChanges()) {
             navigationRef.current?.dispatch(data.action);
@@ -102,7 +111,7 @@ function useDiscardChangesConfirmation({
         isSavingRef.current = shouldSuppress;
     };
 
-    return {suppressDiscardPrompt};
+    return {suppressDiscardPrompt, recheckUnsavedChanges};
 }
 
 export default useDiscardChangesConfirmation;
