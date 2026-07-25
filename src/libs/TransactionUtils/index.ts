@@ -32,8 +32,8 @@ import {
     isCurrentUserSubmitter,
     isInvoiceReport,
     isOpenExpenseReport,
+    isOpenReport,
     isProcessingReport,
-    isReportIDApproved,
     isSelfDM,
     isSettled,
     isThread,
@@ -2589,8 +2589,19 @@ function removeTransactionFromDuplicateTransactionViolation(
     }
 }
 
+/**
+ * Keeps only transactions that Auth's MergeTransactions command would accept, i.e. those whose report is still
+ * open or awaiting first-level approval. Anything approved, closed (Submit & Close), or reimbursed is rejected
+ * server-side, so filtering here prevents sending a merge request that would fail.
+ */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && !isSettled(transaction?.reportID) && !isReportIDApproved(transaction?.reportID)) as Transaction[];
+    return transactions.filter((transaction) => {
+        if (!transaction) {
+            return false;
+        }
+        const report = getReportOrDraftReport(transaction.reportID);
+        return isOpenReport(report) || isProcessingReport(report);
+    }) as Transaction[];
 }
 
 /**

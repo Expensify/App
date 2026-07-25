@@ -9843,6 +9843,7 @@ const translations = {
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicates you don't keep will be held for the submitter to delete.`,
+        cannotMergeDuplicates: 'You can only merge expenses on reports that are open or pending first approval. You may need to retract the report, merge the expenses, then resubmit.',
         hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
         companyCardRequired: 'Company card purchases required',
