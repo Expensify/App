@@ -2,13 +2,13 @@ import {filterAmexDirectParentCard, getCompanyCardFeed, getCompanyFeeds, getSele
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, CardList} from '@src/types/onyx';
+import type {CardList} from '@src/types/onyx';
 import type Card from '@src/types/onyx/Card';
-import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
+import type {AssignableCardsList} from '@src/types/onyx/Card';
 import type {CardFeedsStatusByDomainID, CombinedCardFeeds, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxCollection, OnyxEntry, ResultMetadata} from 'react-native-onyx';
+import type {ResultMetadata} from 'react-native-onyx';
 
 import type {CombinedCardFeed} from './useCardFeeds';
 
@@ -45,9 +45,9 @@ type UseCompanyCardsResult = Partial<{
     isFeedAdded: boolean;
 
     onyxMetadata: {
-        cardListMetadata: ResultMetadata<WorkspaceCardsList>;
-        allCardFeedsMetadata: ResultMetadata<OnyxCollection<CardFeeds>>;
-        lastSelectedFeedMetadata: ResultMetadata<OnyxEntry<CompanyCardFeedWithDomainID>>;
+        cardListMetadata: ResultMetadata;
+        allCardFeedsMetadata: ResultMetadata;
+        lastSelectedFeedMetadata: ResultMetadata;
     };
 };
 

@@ -47,7 +47,7 @@ function DynamicNewTaskPage() {
     });
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
-    const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails, translate);
+    const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails, translate, formatPhoneNumber);
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(
         getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
         false,
@@ -55,7 +55,9 @@ function DynamicNewTaskPage() {
         formatPhoneNumber,
         translate,
     );
-    const shareDestination = task?.shareDestination ? getShareDestination(parentReport, personalDetails, localeCompare, policy, conciergeReportID, translate, reportAttributes) : undefined;
+    const shareDestination = task?.shareDestination
+        ? getShareDestination(parentReport, personalDetails, localeCompare, formatPhoneNumber, policy, conciergeReportID, translate, reportAttributes)
+        : undefined;
     const ancestors = useAncestors(parentReport);
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
     const [error, setError] = useState<{message: string; taskKey: string}>({

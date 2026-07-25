@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -214,8 +214,7 @@ function DynamicConfirmationPage() {
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
                         <Button
-                            text={translate('common.confirm')}
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => {
                                 isDismissingRef.current = true;
                                 if (!isReportOwner) {
@@ -224,8 +223,10 @@ function DynamicConfirmationPage() {
                                 }
                                 handleMergeDuplicates();
                             }}
-                            large
-                        />
+                            size={CONST.BUTTON_SIZE.LARGE}
+                        >
+                            <Button.Text>{translate('common.confirm')}</Button.Text>
+                        </Button>
                     </FixedFooter>
                 </View>
             </FullPageNotFoundView>
