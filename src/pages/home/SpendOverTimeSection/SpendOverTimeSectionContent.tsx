@@ -79,7 +79,7 @@ function SpendOverTimeSectionContent() {
                     titleStyles={[styles.mt0, styles.mb2]}
                     subtitle={translate('errorPage.subtitle')}
                     subtitleStyle={styles.textSupporting}
-                    containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
+                    containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5, styles.pb5]}
                     contentFitImage="contain"
                     buttonTranslationKey="common.tryAgain"
                     onButtonPress={retry}
