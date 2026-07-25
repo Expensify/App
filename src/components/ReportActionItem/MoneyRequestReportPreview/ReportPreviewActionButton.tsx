@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,10 +47,11 @@ function ReportPreviewActionButton() {
 
         return (
             <Button
-                text={translate('common.view')}
                 onPress={openReportFromPreview}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
-            />
+            >
+                <Button.Text>{translate('common.view')}</Button.Text>
+            </Button>
         );
     };
 

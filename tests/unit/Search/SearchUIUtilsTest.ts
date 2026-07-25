@@ -32,7 +32,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
-import {buildSearchQueryJSON, getDateRangeForPreset, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -552,6 +552,8 @@ const searchResults: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         isLoading: false,
         type: 'expense',
     },
@@ -609,6 +611,8 @@ const searchResultsGroupByFrom: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 100,
         isLoading: false,
         type: 'expense',
@@ -659,6 +663,8 @@ const searchResultsGroupByCard: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 60,
         isLoading: false,
         type: 'expense',
@@ -696,6 +702,8 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 60,
         isLoading: false,
         type: 'expense',
@@ -728,6 +736,8 @@ const searchResultsGroupByCategory: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -1957,6 +1967,8 @@ const searchResultsGroupByMerchant: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 470,
         isLoading: false,
         type: 'expense',
@@ -2014,6 +2026,8 @@ const searchResultsGroupByTag: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2095,6 +2109,8 @@ const searchResultsGroupByMonth: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2124,6 +2140,8 @@ const searchResultsGroupByYear: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2155,6 +2173,8 @@ const searchResultsGroupByQuarter: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -2184,6 +2204,8 @@ const searchResultsGroupByWeek: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
         total: 325,
         isLoading: false,
         type: 'expense',
@@ -8340,6 +8362,8 @@ describe('SearchUIUtils', () => {
                     hash: queryJSON?.hash ?? 0,
                     isLoading: false,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: queryJSON?.sortBy ?? 'date',
+                    sortOrder: queryJSON?.sortOrder ?? 'desc',
                 },
                 ...overrides,
             };
@@ -8361,16 +8385,44 @@ describe('SearchUIUtils', () => {
 
         it('should return false when the search type does not match the query type', () => {
             const results = makeSearchResults({
-                search: {hasMoreResults: false, hasResults: true, offset: 0, hash: queryJSON?.hash ?? 0, isLoading: false, type: CONST.SEARCH.DATA_TYPES.CHAT},
+                search: {
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    sortBy: 'date',
+                    sortOrder: 'desc',
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                },
             });
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
         });
 
         it('should return false when the search hash does not match the query hash', () => {
             const results = makeSearchResults({
-                search: {hasMoreResults: false, hasResults: true, offset: 0, hash: (queryJSON?.hash ?? 0) + 1, isLoading: false, type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+                search: {
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    hash: (queryJSON?.hash ?? 0) + 1,
+                    sortBy: 'date',
+                    sortOrder: 'desc',
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                },
             });
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
+        it('should return true even when the search sortBy/sortOrder is different from the query', () => {
+            const sortBy = CONST.SEARCH.TABLE_COLUMNS.MERCHANT;
+            const sortOrder = CONST.SEARCH.SORT_ORDER.ASC;
+            const expectedHash = queryJSON ? getQueryHashes({...queryJSON, sortBy, sortOrder}).primaryHash : 0;
+            const results = makeSearchResults({
+                search: {hasMoreResults: false, hasResults: true, offset: 0, hash: expectedHash, isLoading: false, type: CONST.SEARCH.DATA_TYPES.EXPENSE, sortBy, sortOrder},
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
         });
 
         it('should return false when searchResults is undefined', () => {
@@ -8379,6 +8431,11 @@ describe('SearchUIUtils', () => {
 
         it('should return false when queryJSON is undefined but searchResults has a concrete type and hash', () => {
             expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), undefined)).toBe(false);
+        });
+
+        it('should return false when searchResults.search is undefined', () => {
+            const results = makeSearchResults({search: undefined});
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
         });
     });
 
@@ -8419,6 +8476,8 @@ describe('SearchUIUtils', () => {
                     type: 'expense',
                     hash: 0,
                     offset: 0,
+                    sortBy: 'date',
+                    sortOrder: 'desc',
                     hasMoreResults: false,
                     hasResults: true,
                     isLoading: false,
@@ -8551,6 +8610,8 @@ describe('SearchUIUtils', () => {
                 type: 'expense',
                 hash: 0,
                 offset: 0,
+                sortBy: 'date',
+                sortOrder: 'desc',
                 hasMoreResults: false,
                 hasResults: true,
                 isLoading: false,
@@ -10676,7 +10737,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -10862,7 +10923,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID)).toBe(true);
         });
     });
     describe('getToFieldValueForTransaction', () => {
@@ -11095,6 +11156,59 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getHasOptions', () => {
+        test('returns expense has options including submitted violation', () => {
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE);
+
+            expect(result).toEqual([
+                {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+                {text: translateLocal('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+            ]);
+        });
+
+        test('returns chat has options without submitted violation', () => {
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.CHAT);
+
+            expect(result).toEqual([
+                {text: translateLocal('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+            ]);
+        });
+
+        test('returns empty array for unsupported search types', () => {
+            expect(SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual([]);
+        });
+    });
+
+    describe('getDisplayValue', () => {
+        test('returns translated has option labels from getHasOptions', () => {
+            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(translateLocal('search.filters.has.submittedViolation'));
+        });
+
+        test('returns multiple has option labels joined by comma', () => {
+            const result = SearchUIUtils.getDisplayValue(
+                'has',
+                {has: [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+            );
+
+            expect(result).toBe(`${translateLocal('common.receipt')}, ${translateLocal('search.filters.has.submittedViolation')}`);
+        });
+
+        test('continues to use common translations for is filter values', () => {
+            const result = SearchUIUtils.getDisplayValue('is', {is: [CONST.SEARCH.IS_VALUES.READ]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(translateLocal('common.read'));
+        });
+    });
+
     describe('filterValidHasValues', () => {
         test('should return undefined when hasValues or type is undefined', () => {
             expect(SearchUIUtils.filterValidHasValues(undefined, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal)).toBeUndefined();
@@ -11102,12 +11216,12 @@ describe('SearchUIUtils', () => {
         });
 
         test('should filter and return only valid hasValues', () => {
-            // Valid values for EXPENSE: receipt, attachment, tag, category
+            // Valid values for EXPENSE: receipt, attachment, tag, category, submitted-violation
             // Invalid value: link (only valid for CHAT)
-            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK];
+            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION];
             const result = SearchUIUtils.filterValidHasValues(hasValues, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
 
-            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG]);
+            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]);
         });
     });
 
