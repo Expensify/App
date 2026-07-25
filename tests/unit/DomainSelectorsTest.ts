@@ -26,7 +26,7 @@ import {
 
 import createMock from '../utils/createMock';
 
-const prefixedKey = <TPrefix extends string>(prefix: TPrefix, suffix: string): `${TPrefix}${string}` => `${prefix}${suffix}`;
+const prefixedKey = <TPrefix extends string, TSuffix extends string | number>(prefix: TPrefix, suffix: TSuffix): `${TPrefix}${TSuffix}` => `${prefix}${suffix}`;
 
 describe('domainSelectors', () => {
     const userID1 = 123;
@@ -690,7 +690,7 @@ describe('domainSelectors', () => {
             };
 
             const domain = createMock<OnyxEntry<Domain>>({
-                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, String(userID1))]: vacationDelegate,
+                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, userID1)]: vacationDelegate,
             });
 
             const selector = vacationDelegateSelector(userID1);
@@ -699,7 +699,7 @@ describe('domainSelectors', () => {
 
         it('Should return undefined if the vacation delegate for a specific accountID does not exist', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, String(userID2))]: {
+                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, userID2)]: {
                     delegate: 'other@example.com',
                 },
             });
@@ -710,7 +710,7 @@ describe('domainSelectors', () => {
 
         it('Should return the vacation delegate when it exists but has no properties', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, String(userID1))]: {},
+                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, userID1)]: {},
             });
 
             const selector = vacationDelegateSelector(userID1);
@@ -719,7 +719,7 @@ describe('domainSelectors', () => {
 
         it('Should return the vacation delegate when only some fields are present', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, String(userID1))]: {
+                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, userID1)]: {
                     delegate: 'delegate@example.com',
                 },
             });
@@ -739,7 +739,7 @@ describe('domainSelectors', () => {
 
         it('Should not be affected by other vacation delegate entries with different accountIDs', () => {
             const domain = createMock<OnyxEntry<Domain>>({
-                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, String(userID2))]: {
+                [prefixedKey(CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, userID2)]: {
                     delegate: 'delegate@example.com',
                 },
             });
@@ -799,7 +799,7 @@ describe('domainSelectors', () => {
         it('Should return lock state for the given account ID', () => {
             const accountID = 123;
             const domain = createMock<OnyxEntry<Domain>>({
-                [prefixedKey(CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX, String(accountID))]: true,
+                [prefixedKey(CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX, accountID)]: true,
             });
 
             expect(accountLockSelector(accountID)(domain)).toBe(true);
@@ -808,7 +808,7 @@ describe('domainSelectors', () => {
         it('Should return false when the lock state is false', () => {
             const accountID = 123;
             const domain = createMock<OnyxEntry<Domain>>({
-                [prefixedKey(CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX, String(accountID))]: false,
+                [prefixedKey(CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX, accountID)]: false,
             });
 
             expect(accountLockSelector(accountID)(domain)).toBe(false);
