@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectedReports} from '@components/Search/types';
 
 import * as API from '@libs/API';
@@ -59,7 +59,7 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReportActionsFromIOU, getAllReports, getAllTransactions} from '.';
+import {buildParticipantsPolicyTags, getAllReportActionsFromIOU, getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
@@ -658,6 +658,7 @@ function createExpenseByType({
     personalDetails,
     recentWaypoints,
     isTrackIntentUser,
+    formatPhoneNumber,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -671,6 +672,7 @@ function createExpenseByType({
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -707,6 +709,10 @@ function createExpenseByType({
                 customUnitPolicyID,
                 personalDetails,
                 recentWaypoints,
+                formatPhoneNumber,
+                // buildParticipantsPolicyTags is deprecated but still needed here until this call site is migrated to useOnyx (https://github.com/Expensify/App/issues/72721)
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                participantsPolicyTags: buildParticipantsPolicyTags(participants),
             };
             return createDistanceRequest(distanceParams);
         }
@@ -721,6 +727,7 @@ function createExpenseByType({
                 hasViolations: false,
                 customUnitPolicyID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -758,6 +765,7 @@ type DuplicateExpenseTransactionParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function duplicateExpenseTransaction({
@@ -786,6 +794,7 @@ function duplicateExpenseTransaction({
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
+    formatPhoneNumber,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -899,6 +908,7 @@ function duplicateExpenseTransaction({
         personalDetails,
         recentWaypoints,
         isTrackIntentUser,
+        formatPhoneNumber,
     });
 }
 
@@ -925,6 +935,7 @@ type DuplicateReportParams = {
     shouldPlaySound?: boolean;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function duplicateReport({
@@ -950,23 +961,16 @@ function duplicateReport({
     shouldPlaySound = true,
     isTrackIntentUser,
     delegateAccountID,
+    formatPhoneNumber,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
     }
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(
-        ownerPersonalDetails,
-        false,
-        isASAPSubmitBetaEnabled,
-        targetPolicy,
-        betas,
-        isTrackIntentUser,
-        false,
-        undefined,
-        newReportName,
-    );
+    const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, isTrackIntentUser, false, undefined, {
+        reportName: newReportName,
+    });
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 
@@ -1067,6 +1071,7 @@ function duplicateReport({
             personalDetails,
             recentWaypoints,
             isTrackIntentUser,
+            formatPhoneNumber,
         });
 
         if (result?.iouReport) {
@@ -1101,6 +1106,7 @@ type BulkDuplicateExpensesParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function bulkDuplicateExpenses({
@@ -1125,6 +1131,7 @@ function bulkDuplicateExpenses({
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
+    formatPhoneNumber,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1223,6 +1230,7 @@ function bulkDuplicateExpenses({
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            formatPhoneNumber,
         });
 
         if (result?.iouReport) {
@@ -1260,6 +1268,7 @@ type BulkDuplicateReportsParams = {
     currentUserAccountID: number;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function bulkDuplicateReports({
@@ -1285,6 +1294,7 @@ function bulkDuplicateReports({
     currentUserAccountID,
     isTrackIntentUser,
     delegateAccountID,
+    formatPhoneNumber,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1361,11 +1371,12 @@ function bulkDuplicateReports({
             currentUserLogin,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
         });
     }
 
     playSound(SOUNDS.DONE);
 }
 
-export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport, bulkDuplicateReports};
+export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport, bulkDuplicateReports, createExpenseByType};
 export type {DuplicateReportParams, BulkDuplicateReportsParams};
