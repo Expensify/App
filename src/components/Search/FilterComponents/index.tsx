@@ -70,7 +70,7 @@ function SingleSelectFilterComponents({filterKey, value, selectionListTextInputS
 
 function MultiSelectFilterComponents({filterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectFilterComponentsProps) {
     const {translate} = useLocalize();
-    const items = getMultiSelectFilterOptions(filterKey, type, translate);
+    const items = getMultiSelectFilterOptions(filterKey, type, translate, value as string[]);
     const multiSelectValues = items.filter((item) => (value as string[]).includes(item.value));
 
     return (

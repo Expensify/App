@@ -5597,7 +5597,7 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
     return [];
 }
 
-function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: SearchDataTypes, translate: LocalizedTranslate) {
+function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: SearchDataTypes, translate: LocalizedTranslate, currentValues?: string[]) {
     if (filterKey === FILTER_KEYS.HAS) {
         return getHasOptions(translate, type);
     }
@@ -5614,7 +5614,12 @@ function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: 
     }
 
     if (filterKey === FILTER_KEYS.RECEIPT_TYPE) {
-        return CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((receiptType) => {
+        // SELECTABLE_RECEIPT_TYPES controls what is offered as a new selection (autocomplete
+        // and default options). Values already applied (e.g. receipt-type:hotel typed manually)
+        // must still resolve a display label in the filter list.
+        const selectedValues = (currentValues ?? []) as string[];
+        const allValues = [...new Set([...CONST.SEARCH.SELECTABLE_RECEIPT_TYPES, ...selectedValues])] as Array<ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>>;
+        return allValues.map((receiptType) => {
             const receiptTypeName = translate(getReceiptTypeTranslationKey(receiptType));
             return {text: receiptTypeName, value: receiptType};
         });

@@ -11319,6 +11319,36 @@ describe('getMultiSelectFilterOptions', () => {
         ]);
         expect(options).not.toContainEqual(expect.objectContaining({value: CONST.SEARCH.RECEIPT_TYPE.HOTEL}));
     });
+
+    it('includes hotel in receipt type options when it is a current value (manually typed filter)', () => {
+        // Regression test for https://github.com/Expensify/App/issues/96724
+        // PR #96553 hid hotel from SELECTABLE_RECEIPT_TYPES (autocomplete + new selections),
+        // but a manually typed receipt-type:hotel filter must still render its "Hotel" label.
+        const options = SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.RECEIPT_TYPE, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, [CONST.SEARCH.RECEIPT_TYPE.HOTEL]);
+        expect(options).toEqual([
+            {value: CONST.SEARCH.RECEIPT_TYPE.ERECEIPT, text: 'eReceipt'},
+            {value: CONST.SEARCH.RECEIPT_TYPE.ITEMIZED, text: 'Itemized'},
+            {value: CONST.SEARCH.RECEIPT_TYPE.HOTEL, text: 'Hotel'},
+        ]);
+    });
+
+    it('does not duplicate receipt types when current values overlap with selectable types', () => {
+        const options = SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.RECEIPT_TYPE, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, [
+            CONST.SEARCH.RECEIPT_TYPE.ERECEIPT,
+            CONST.SEARCH.RECEIPT_TYPE.HOTEL,
+        ]);
+        expect(options).toEqual([
+            {value: CONST.SEARCH.RECEIPT_TYPE.ERECEIPT, text: 'eReceipt'},
+            {value: CONST.SEARCH.RECEIPT_TYPE.ITEMIZED, text: 'Itemized'},
+            {value: CONST.SEARCH.RECEIPT_TYPE.HOTEL, text: 'Hotel'},
+        ]);
+    });
+
+    it('does not offer hotel as a new selection when no current values are passed', () => {
+        // Autocomplete and fresh filter selection must still exclude hotel (intent of #96553).
+        const options = SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.RECEIPT_TYPE, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
+        expect(options).not.toContainEqual(expect.objectContaining({value: CONST.SEARCH.RECEIPT_TYPE.HOTEL}));
+    });
 });
 
 describe('getWithdrawalStatusOptions', () => {
