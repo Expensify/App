@@ -481,6 +481,7 @@ function MoneyRequestConfirmationList({
         isDistanceRequest,
         isDistanceRequestWithPendingRoute,
         isPerDiemRequest,
+        isMovingTransactionFromTrackExpense,
         isTimeRequest,
         routeError,
         isNewManualExpenseFlowEnabled,

@@ -45,7 +45,9 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const existingReportName = report ? getGroupChatName(formatPhoneNumber, undefined, false, report) : getGroupChatName(formatPhoneNumber, groupChatDraft?.participants);
+    const existingReportName = report
+        ? getGroupChatName(formatPhoneNumber, translate, undefined, false, report)
+        : getGroupChatName(formatPhoneNumber, translate, groupChatDraft?.participants);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 
