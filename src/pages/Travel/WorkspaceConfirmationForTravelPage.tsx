@@ -28,6 +28,8 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -55,6 +57,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
             file: params.avatarFile as File,
             introSelected,
             activePolicy,
+            conciergeChat,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             betas,

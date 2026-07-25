@@ -215,6 +215,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                       featuresMap,
                       introSelected,
                       activePolicy,
+                      conciergeChat,
                       currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                       currentUserEmailParam: email,
                       shouldAddGuideWelcomeMessage: false,

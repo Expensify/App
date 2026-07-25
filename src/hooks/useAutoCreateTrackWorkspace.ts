@@ -87,6 +87,7 @@ function useAutoCreateTrackWorkspace() {
                       shouldAddOnboardingTasks: false,
                       introSelected,
                       activePolicy,
+                      conciergeChat,
                       currentUserAccountIDParam: currentUserAccountID,
                       currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,

@@ -332,6 +332,8 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 currentUser: {accountID: currentUserAccountID, email: currentUserEmail},
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 introSelected,
+                // Deferred: thread the real conciergeChat when this cascade is migrated (#66411).
+                conciergeChat: undefined,
                 quickAction,
                 recentWaypoints,
                 betas,

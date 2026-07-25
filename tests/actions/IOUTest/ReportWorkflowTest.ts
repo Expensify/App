@@ -147,6 +147,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(async () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
+                        conciergeChat: undefined,
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
@@ -297,6 +298,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(async () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
+                        conciergeChat: undefined,
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
@@ -380,6 +382,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 waitForBatchedUpdates()
                     .then(() => {
                         createWorkspace({
+                            conciergeChat: undefined,
                             policyOwnerEmail: CARLOS_EMAIL,
                             makeMeAdmin: true,
                             policyName: "Carlos's Workspace",
@@ -653,6 +656,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 waitForBatchedUpdates()
                     .then(() => {
                         createWorkspace({
+                            conciergeChat: undefined,
                             policyOwnerEmail: CARLOS_EMAIL,
                             makeMeAdmin: true,
                             policyName: "Carlos's Workspace",
@@ -875,6 +879,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             let nextStepBeforeSubmit: Report['nextStep'];
             const policyID = generatePolicyID();
             createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: CARLOS_EMAIL,
                 makeMeAdmin: true,
                 policyName: 'Test Workspace with Dynamic External Workflow',
@@ -1108,6 +1113,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
 
             createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: CARLOS_EMAIL,
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
