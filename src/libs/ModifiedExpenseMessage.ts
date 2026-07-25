@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -12,7 +14,6 @@ import type {Entries, ValueOf} from 'type-fest';
 import isEmpty from 'lodash/isEmpty';
 
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
-import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import {formatList} from './Localize';
@@ -277,6 +278,7 @@ function getForReportAction({
     policyCategories,
     currentUserLogin,
     reportAttributes,
+    convertToDisplayString,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -290,6 +292,7 @@ function getForReportAction({
     policyCategories?: OnyxEntry<PolicyCategories>;
     currentUserLogin: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';

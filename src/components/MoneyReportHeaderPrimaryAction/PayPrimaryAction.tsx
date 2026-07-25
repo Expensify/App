@@ -165,6 +165,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
         } else {
             startAnimation();
@@ -189,6 +190,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

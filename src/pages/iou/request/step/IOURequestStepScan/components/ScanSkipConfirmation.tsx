@@ -2,6 +2,7 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -77,6 +78,7 @@ type ScanSkipConfirmationProps = WithCurrentUserPersonalDetailsProps & {
  * Most complex variant with the most Onyx subscriptions.
  */
 function ScanSkipConfirmation({report, action, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanSkipConfirmationProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const policy = usePolicy(report?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isArchived = useReportIsArchived(report?.reportID);
@@ -230,6 +232,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 participantsPolicyTags,
                 delegateAccountID,
                 formatPhoneNumber,
+                convertToDisplayString,
             };
 
             submitWithDismissFirst({
@@ -304,6 +307,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             isTrackIntentUser,
             delegateAccountID,
+            convertToDisplayString,
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;

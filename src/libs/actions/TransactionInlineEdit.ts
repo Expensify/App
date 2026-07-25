@@ -1,5 +1,7 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
@@ -194,11 +196,15 @@ type GetIouParamsInput = {
     personalDetailsList: OnyxEntry<PersonalDetailsList>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
     hash: number | undefined;
     isOffline: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 /**
@@ -226,6 +232,9 @@ function getIouParamsForTransaction({
     personalDetailsList,
     delegateAccountID,
     isTrackIntentUser,
+    convertToDisplayString,
+    getCurrencyDecimals,
+    getCurrencySymbol,
 }: GetIouParamsInput) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -273,6 +282,7 @@ function getIouParamsForTransaction({
             transactionViolations: transactionViolations ?? undefined,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            convertToDisplayString,
         });
     }
 
@@ -290,6 +300,8 @@ function getIouParamsForTransaction({
         isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas),
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
+        getCurrencySymbol,
         reportPolicyTags,
         // Field-specific extras
         transaction,
@@ -371,7 +383,7 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
     // Recalculate tax from the existing tax code and the new amount
     const taxCode = iouParams.transaction?.taxCode ?? '';
     const taxPercentage = getTaxValue(iouParams.policy, iouParams.transaction, taxCode) ?? '';
-    const decimals = getCurrencyDecimals(getCurrency(iouParams.transaction));
+    const decimals = params.getCurrencyDecimals(getCurrency(iouParams.transaction));
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
     updateMoneyRequestAmountAndCurrency({
         ...iouParams,

@@ -1,4 +1,5 @@
 import useActivePolicy from '@hooks/useActivePolicy';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
@@ -15,7 +16,6 @@ import useTransactionsByID from '@hooks/useTransactionsByID';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
@@ -166,6 +166,7 @@ type SendMoneyOptions = {
 };
 
 function useExpenseSubmission(params: UseExpenseSubmissionParams) {
+    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const {
         transaction,
         transactions,
@@ -530,6 +531,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 isTrackIntentUser,
                 delegateAccountID,
+                convertToDisplayString,
             });
             existingIOUReport = iouReport;
             if (!iouReport) {
@@ -582,6 +584,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 quickAction,
                 optimisticChatReportID,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
             if (shouldHandleNavigation) {
                 dismissModalAndOpenReportInInboxTabHelper(optimisticChatReportID, false, false);
@@ -640,6 +643,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticChatReportID,
                 formatPhoneNumber,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
             const targetReportID = backToReport ?? activeReportID;
             // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
@@ -763,6 +767,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 reportActionsList: policyExpenseChatReportActions,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 delegateAccountID,
+                convertToDisplayString,
             });
         }
         performPostBatchCleanup({
@@ -848,6 +853,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             delegateAccountID,
             formatPhoneNumber,
             participantsPolicyTags,
+            convertToDisplayString,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -923,6 +929,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         quickAction,
                         policyRecentlyUsedCurrencies,
                         participantsPolicyTags,
+                        convertToDisplayString,
                         shouldHandleNavigation,
                         shouldDeferForSearch: shouldDeferSplitForSearch,
                         delegateAccountID,
@@ -971,6 +978,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isTrackIntentUser,
                     formatPhoneNumber,
                     participantsPolicyTags,
+                    convertToDisplayString,
                 });
             }
             markSubmitExpenseEnd();
@@ -1147,6 +1155,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             shouldStartTracking,
             shouldDeferForSearch,
             delegateAccountID,
+            convertToDisplayString,
         };
 
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {

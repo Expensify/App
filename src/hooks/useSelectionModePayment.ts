@@ -33,6 +33,7 @@ import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef} from 'react';
 
 import useActiveAdminPolicies from './useActiveAdminPolicies';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
@@ -80,6 +81,7 @@ function useSelectionModePayment({
     onPaid,
     confirmApproval,
 }: UseSelectionModePaymentParams) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
@@ -196,6 +198,7 @@ function useSelectionModePayment({
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
         } else {
             payMoneyRequest({
@@ -219,6 +222,7 @@ function useSelectionModePayment({
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -314,6 +318,7 @@ function useSelectionModePayment({
             expenseReportPolicy: policy,
             isTrackIntentUser,
             ownerLogin,
+            convertToDisplayString,
         });
     };
 

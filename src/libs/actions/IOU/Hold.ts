@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {HoldMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -715,6 +717,7 @@ function getReportFromHoldRequestsOnyxData({
     betas,
     isApprovalFlow = false,
     delegateAccountID,
+    convertToDisplayString,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -725,6 +728,7 @@ function getReportFromHoldRequestsOnyxData({
     isApprovalFlow?: boolean;
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -773,6 +777,7 @@ function getReportFromHoldRequestsOnyxData({
               holdAmount,
               chatReport.reportID,
               iouReport?.currency ?? '',
+              convertToDisplayString,
               false,
               newParentReportActionID,
               undefined,
@@ -782,6 +787,7 @@ function getReportFromHoldRequestsOnyxData({
     const optimisticExpenseReportPreview = buildOptimisticReportPreview(
         chatReport,
         optimisticExpenseReport,
+        convertToDisplayString,
         '',
         firstHoldTransaction,
         optimisticExpenseReport.reportID,

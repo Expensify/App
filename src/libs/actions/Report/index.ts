@@ -1,5 +1,7 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
@@ -372,6 +374,9 @@ type OpenReportActionParams = {
 
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
+
+    /** Currency formatter required when recovering legacy transaction data */
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type PregeneratedResponseParams = {
@@ -1551,6 +1556,7 @@ function openReport(params: OpenReportActionParams) {
         hasCompletedGuidedSetupFlow,
         hasReportActions,
         shouldMarkAsRead = true,
+        convertToDisplayString,
     } = params;
     if (!reportID) {
         return;
@@ -1693,6 +1699,9 @@ function openReport(params: OpenReportActionParams) {
     // We log at the end of this block to track how often this path gets hit.
     // https://github.com/Expensify/App/issues/80180 - remove once all old transactions are migrated
     if (transaction && !parentReportActionID) {
+        if (!convertToDisplayString) {
+            throw new Error('convertToDisplayString is required when opening a legacy transaction thread');
+        }
         const transactionParentReportID = parentReportID ?? transaction?.reportID;
         const iouReportActionID = rand64();
 
@@ -1716,6 +1725,7 @@ function openReport(params: OpenReportActionParams) {
             iouReportID: transactionParentReportID,
             // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             delegateAccountIDParam: undefined,
+            convertToDisplayString,
         });
 
         // Override actor fields to show the submitter instead of current user.
@@ -2245,6 +2255,8 @@ type CreateTransactionThreadReportParams = {
     /** Whether the user has completed the guided setup flow */
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
+
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2260,7 +2272,11 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         personalDetails,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
+        convertToDisplayString,
     } = params;
+    if (transaction && !convertToDisplayString) {
+        throw new Error('convertToDisplayString is required when creating a transaction thread');
+    }
 
     // Determine if we need selfDM report (for track expenses or unreported transactions)
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
@@ -2323,6 +2339,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         betas,
+        convertToDisplayString,
     });
     return optimisticTransactionThread;
 }
@@ -4758,6 +4775,7 @@ function showReportActionNotification(
     topmostOneTransactionThreadReportID: string | undefined,
     currentUserAccountID: number,
     currentUserLogin: string,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     if (!shouldShowReportActionNotification(reportID, topmostOneTransactionThreadReportID, currentUserAccountID, reportAction)) {
@@ -4778,7 +4796,16 @@ function showReportActionNotification(
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserLogin, reportAttributes});
+        LocalNotification.showModifiedExpenseNotification({
+            report,
+            reportAction,
+            onClick,
+            movedFromReport,
+            movedToReport,
+            currentUserLogin,
+            reportAttributes,
+            convertToDisplayString,
+        });
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick, reportAttributes);
     }

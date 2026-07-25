@@ -18,6 +18,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
@@ -38,6 +39,7 @@ type UseHoldMenuSubmitParams = {
 };
 
 function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -98,6 +100,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 expenseReportPolicy: policy,
                 delegateEmail,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
@@ -122,6 +125,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
         }
         onClose();

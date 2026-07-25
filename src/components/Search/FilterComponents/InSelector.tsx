@@ -4,6 +4,7 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {TextInputOptions} from '@components/SelectionList/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
@@ -49,6 +50,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {options, isLoading} = useFilteredOptions({
@@ -87,6 +89,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     privateIsArchived,
                     reportPolicy,
                     sortedActions,
+                    {convertToDisplayString, convertToDisplayStringWithoutCurrency},
                     reportAttributesDerived,
                     undefined,
                     undefined,
@@ -102,7 +105,17 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         const alternateText = getAlternateText(
             report,
             {},
-            {isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
+            {
+                isReportArchived,
+                personalDetails,
+                policy,
+                reportAttributesDerived,
+                policyTags: reportPolicyTags,
+                conciergeReportID,
+                isTrackIntentUser,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+            },
         );
         return {...report, alternateText};
     };
@@ -131,6 +144,8 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   sortedActions,
                   conciergeReportID,
                   isTrackIntentUser,
+                  convertToDisplayString,
+                  convertToDisplayStringWithoutCurrency,
               }).options;
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {

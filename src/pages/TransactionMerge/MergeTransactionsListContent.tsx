@@ -138,6 +138,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
               reportAction: undefined,
               linkedTransaction: targetTransaction,
               report: getReportOrDraftReport(targetTransaction?.reportID, targetTransactionReport ? [targetTransactionReport] : [], undefined, undefined, targetTransactionReport),
+              convertToDisplayString,
           })
         : '';
 

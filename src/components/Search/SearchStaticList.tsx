@@ -151,6 +151,7 @@ function SearchStaticList({
                 hasCompletedGuidedSetupFlow,
                 IOUTransactionID: item.reportAction?.childReportID,
                 shouldNavigate: shouldOpenTransactionThread,
+                convertToDisplayString,
             });
             if (shouldOpenTransactionThread) {
                 return;

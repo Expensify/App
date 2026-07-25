@@ -11,6 +11,7 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -118,6 +119,7 @@ function IOURequestStepConfirmation({
     shouldHideHeader = false,
     navigation,
 }: IOURequestStepConfirmationProps) {
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} = useCurrencyListActions();
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
     const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
@@ -290,6 +292,7 @@ function IOURequestStepConfirmation({
                           participantReportDraft,
                           currentUserPersonalDetails.accountID,
                           translate,
+                          {convertToDisplayString, convertToDisplayStringWithoutCurrency},
                       );
             }) ?? [],
         [
@@ -304,6 +307,8 @@ function IOURequestStepConfirmation({
             reportDrafts,
             translate,
             currentUserPersonalDetails.accountID,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
         ],
     );
 
@@ -398,7 +403,7 @@ function IOURequestStepConfirmation({
                             });
                             setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
                         }
-                        setMoneyRequestCategory(activeTransactionID, '', undefined);
+                        setMoneyRequestCategory(activeTransactionID, '', undefined, getCurrencyDecimals);
                     }
                 }
             }

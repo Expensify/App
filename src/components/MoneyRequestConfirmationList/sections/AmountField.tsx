@@ -198,7 +198,7 @@ function AmountField({
 
                 const isPayer = splitShareAccountID === accountID;
                 acc[splitShareAccountID] = {
-                    amount: calculateAmount(participantsLength, updatedAmount, updatedCurrency, isPayer),
+                    amount: calculateAmount(participantsLength, updatedAmount, updatedCurrency, getCurrencyDecimals, isPayer),
                     isModified: false,
                 };
                 return acc;

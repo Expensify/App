@@ -454,7 +454,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Workflows',
     ]);
 
-    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
 
     const selectedTransactionReportIDs = useMemo(
         () => [
@@ -843,6 +843,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: nextStep,
                 betas,
+                convertToDisplayString,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
@@ -1231,6 +1232,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${payChatReportID}`],
                         delegateAccountID,
                         isTrackIntentUser,
+                        convertToDisplayString,
                     });
                     paidReportCount += 1;
                     continue;
@@ -1260,6 +1262,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
                     delegateAccountID,
                     isTrackIntentUser,
+                    convertToDisplayString,
                 });
                 paidReportCount += 1;
             }
@@ -2117,9 +2120,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, firstTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {
-                        isProduction,
-                    });
+                    initSplitExpense(
+                        firstTransaction,
+                        firstTransactionReport,
+                        splitEffectivePolicy,
+                        selfDMReportID,
+                        restrictedActionPolicyID,
+                        personalPolicy?.outputCurrency,
+                        getCurrencyDecimals,
+                        getCurrencySymbol,
+                        {isProduction},
+                    );
                 },
             });
         }

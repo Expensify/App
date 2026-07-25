@@ -2,6 +2,8 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -146,6 +148,7 @@ type CreateDistanceRequestInformation = {
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
@@ -175,6 +178,7 @@ type CreateSplitsAndOnyxDataParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type StartSplitBilActionParams = {
@@ -202,6 +206,7 @@ type StartSplitBilActionParams = {
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type CompleteSplitBillActionParams = {
@@ -218,6 +223,7 @@ type CompleteSplitBillActionParams = {
     isTrackIntentUser: boolean | undefined;
     sessionEmail?: string;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type SplitBillActionsParams = {
@@ -254,6 +260,7 @@ type SplitBillActionsParams = {
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 /**
@@ -293,6 +300,7 @@ function splitBill({
     isTrackIntentUser,
     formatPhoneNumber,
     participantsPolicyTags,
+    convertToDisplayString,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -325,6 +333,7 @@ function splitBill({
         betas,
         personalDetails,
         participantsPolicyTags,
+        convertToDisplayString,
         delegateAccountID,
         isTrackIntentUser,
         formatPhoneNumber,
@@ -409,6 +418,7 @@ function splitBillAndOpenReport({
     isTrackIntentUser,
     formatPhoneNumber,
     participantsPolicyTags,
+    convertToDisplayString,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -444,6 +454,7 @@ function splitBillAndOpenReport({
         isTrackIntentUser,
         formatPhoneNumber,
         participantsPolicyTags,
+        convertToDisplayString,
     });
 
     const parameters: SplitBillParams = {
@@ -518,6 +529,7 @@ function startSplitBill({
     shouldDeferForSearch = false,
     delegateAccountID,
     formatPhoneNumber,
+    convertToDisplayString,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -560,6 +572,7 @@ function startSplitBill({
         isOwnPolicyExpenseChat,
         iouReportID: splitChatReport.reportID,
         delegateAccountIDParam: delegateAccountID,
+        convertToDisplayString,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -910,6 +923,7 @@ function completeSplitBill({
     delegateAccountID,
     isTrackIntentUser,
     sessionEmail,
+    convertToDisplayString,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
@@ -1057,7 +1071,14 @@ function completeSplitBill({
                       reportTransactions,
                       betas,
                   })
-                : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
+                : buildOptimisticIOUReport(
+                      sessionAccountID,
+                      participant.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                      splitAmount,
+                      oneOnOneChatReport?.reportID,
+                      currency ?? '',
+                      convertToDisplayString,
+                  );
         } else if (isPolicyExpenseChat) {
             if (oneOnOneIOUReport) {
                 // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
@@ -1114,13 +1135,23 @@ function completeSplitBill({
                 transactionID: oneOnOneTransaction.transactionID,
                 currentUserAccountID: sessionAccountID,
                 delegateAccountIDParam: delegateAccountID,
+                convertToDisplayString,
             });
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, convertToDisplayString);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
+                oneOnOneChatReport,
+                oneOnOneIOUReport,
+                convertToDisplayString,
+                '',
+                oneOnOneTransaction,
+                undefined,
+                undefined,
+                delegateAccountID,
+            );
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -1158,6 +1189,7 @@ function completeSplitBill({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            convertToDisplayString,
         });
 
         splits.push({
@@ -1282,6 +1314,8 @@ function setDraftSplitTransaction(
     transactionChanges: TransactionChanges = {},
     policy?: OnyxEntry<OnyxTypes.Policy>,
     personalPolicyOutputCurrency?: string,
+    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'],
+    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'],
 ) {
     if (!transactionID) {
         return undefined;
@@ -1301,6 +1335,8 @@ function setDraftSplitTransaction(
               policy,
               isSplitTransaction: true,
               personalPolicyOutputCurrency,
+              getCurrencyDecimals,
+              getCurrencySymbol,
           })
         : null;
 
@@ -1442,6 +1478,7 @@ function createSplitsAndOnyxData({
     delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
+    convertToDisplayString,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1494,6 +1531,7 @@ function createSplitsAndOnyxData({
         isOwnPolicyExpenseChat,
         iouReportID: splitChatReport.reportID,
         delegateAccountIDParam: delegateAccountID,
+        convertToDisplayString,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -1748,7 +1786,7 @@ function createSplitsAndOnyxData({
                       reportTransactions,
                       betas,
                   })
-                : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
+                : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency, convertToDisplayString);
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             if (oneOnOneIOUReport?.currency === currency) {
@@ -1815,6 +1853,7 @@ function createSplitsAndOnyxData({
                 transactionID: oneOnOneTransaction.transactionID,
                 currentUserAccountID,
                 delegateAccountIDParam: delegateAccountID,
+                convertToDisplayString,
             });
 
         // Add optimistic personal details for new participants
@@ -1838,9 +1877,18 @@ function createSplitsAndOnyxData({
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, convertToDisplayString);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
+                oneOnOneChatReport,
+                oneOnOneIOUReport,
+                convertToDisplayString,
+                '',
+                oneOnOneTransaction,
+                undefined,
+                undefined,
+                delegateAccountID,
+            );
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
@@ -1896,6 +1944,7 @@ function createSplitsAndOnyxData({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            convertToDisplayString,
         });
 
         const individualSplit = {
@@ -1979,6 +2028,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         formatPhoneNumber,
         participantsPolicyTags,
         optimisticChatReportID,
+        convertToDisplayString,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2068,6 +2118,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             betas,
             personalDetails,
             participantsPolicyTags,
+            convertToDisplayString,
             delegateAccountID,
             isTrackIntentUser,
             formatPhoneNumber,

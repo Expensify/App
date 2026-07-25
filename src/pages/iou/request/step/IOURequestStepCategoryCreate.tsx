@@ -1,6 +1,7 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
@@ -48,6 +49,7 @@ function IOURequestStepCategoryCreate({
     },
     transaction,
 }: IOURequestStepCategoryCreateProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -138,7 +140,7 @@ function IOURequestStepCategoryCreate({
         };
 
         if (isEditingSplit && transaction) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, policy);
+            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, policy, undefined, getCurrencyDecimals);
         } else if (isEditing && report) {
             updateMoneyRequestCategory({
                 transactionID: transaction?.transactionID ?? transactionID,
@@ -158,9 +160,10 @@ function IOURequestStepCategoryCreate({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
             });
         } else {
-            setMoneyRequestCategory(transactionID, categoryName, policy);
+            setMoneyRequestCategory(transactionID, categoryName, policy, getCurrencyDecimals);
         }
 
         if (!isEditing && action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {

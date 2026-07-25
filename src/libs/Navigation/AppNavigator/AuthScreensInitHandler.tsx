@@ -2,6 +2,8 @@ import {useInitialURLActions, useInitialURLState} from '@components/InitialURLCo
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -46,13 +48,20 @@ function initializePusher(
     currentUserEmail: string | undefined,
     getTopmostOneTransactionThreadReportID: () => string | undefined,
     getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined,
+    getConvertToDisplayString: () => CurrencyListActionsContextType['convertToDisplayString'],
 ) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, getReportAttributes);
+        User.subscribeToUserEvents(
+            currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            currentUserEmail ?? '',
+            getTopmostOneTransactionThreadReportID,
+            getConvertToDisplayString,
+            getReportAttributes,
+        );
     });
 }
 
@@ -70,6 +79,7 @@ function AuthScreensInitHandler() {
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
     const ownerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail');
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
@@ -89,6 +99,8 @@ function AuthScreensInitHandler() {
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const reportAttributesRef = useRef(reportAttributes);
     reportAttributesRef.current = reportAttributes;
+    const convertToDisplayStringRef = useRef(convertToDisplayString);
+    convertToDisplayStringRef.current = convertToDisplayString;
 
     useReconcileHighContrastIntent();
     useAIFeaturesPromoModal(session);
@@ -116,6 +128,7 @@ function AuthScreensInitHandler() {
                 currentEmail,
                 () => topmostOneTransactionThreadReportIDRef.current,
                 () => reportAttributesRef.current,
+                () => convertToDisplayStringRef.current,
             );
         });
 
@@ -129,7 +142,13 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            () => reportAttributesRef.current,
+            () => convertToDisplayStringRef.current,
+        );
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -152,7 +171,13 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            () => reportAttributesRef.current,
+            () => convertToDisplayStringRef.current,
+        ).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 

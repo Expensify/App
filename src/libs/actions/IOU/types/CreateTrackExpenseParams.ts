@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {CurrencyListActionsContextType} from '@components/OnyxListItemProvider';
 
 import type {CurrentUser} from '@userActions/Policy/Policy';
 
@@ -51,6 +52,7 @@ type CreateTrackExpenseParams = {
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     isDraftChatReport?: boolean;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

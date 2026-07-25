@@ -4749,6 +4749,8 @@ describe('ReportUtils', () => {
                 comment: '',
                 participants: [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
                 transactionID: NumberUtils.rand64(),
+
+                convertToDisplayString,
             }) as ReportAction;
             expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
@@ -5127,6 +5129,8 @@ describe('ReportUtils', () => {
                 participants: [],
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport, currentUserAccountID);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
@@ -5232,6 +5236,8 @@ describe('ReportUtils', () => {
                 participants: [],
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             });
             expenseCreatedAction.actorAccountID = 99997;
             const adminPolicy = createMock<Policy>({
@@ -5268,6 +5274,8 @@ describe('ReportUtils', () => {
                 participants: [],
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             });
 
             expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID)).toEqual({
@@ -5299,6 +5307,8 @@ describe('ReportUtils', () => {
                 participants: [],
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             });
             expenseCreatedAction.actorAccountID = 99996;
 
@@ -5376,6 +5386,8 @@ describe('ReportUtils', () => {
                 participants: [],
                 transactionID,
                 iouReportID: moneyRequestReport.reportID,
+
+                convertToDisplayString,
             });
             reportAction.childReportID = childReportID;
 
@@ -5434,6 +5446,8 @@ describe('ReportUtils', () => {
                 participants: [],
                 transactionID,
                 iouReportID: moneyRequestReport.reportID,
+
+                convertToDisplayString,
             });
             reportAction.childReportID = childReportID;
 
@@ -5481,6 +5495,8 @@ describe('ReportUtils', () => {
                 participants: [],
                 transactionID,
                 iouReportID: 'report-1',
+
+                convertToDisplayString,
             });
 
             const result = getLinkedIOUTransaction(reportAction, [otherTransaction, transaction]);
@@ -5496,6 +5512,8 @@ describe('ReportUtils', () => {
                 participants: [],
                 transactionID: 'txn-missing',
                 iouReportID: 'report-1',
+
+                convertToDisplayString,
             });
 
             const result = getLinkedIOUTransaction(reportAction, []);
@@ -7182,6 +7200,8 @@ describe('ReportUtils', () => {
                 transactionID: expenseTransaction.transactionID,
 
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             });
             const expenseCreatedAction2 = buildOptimisticIOUReportAction({
                 type: 'create',
@@ -7192,6 +7212,8 @@ describe('ReportUtils', () => {
                 transactionID: expenseTransaction.transactionID,
 
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction1, expenseReport, currentUserAccountID);
             const currentReportId = '1';
@@ -7508,6 +7530,8 @@ describe('ReportUtils', () => {
                 transactionID: expenseTransaction.transactionID,
 
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport, currentUserAccountID);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
@@ -8123,6 +8147,8 @@ describe('ReportUtils', () => {
                 participants: [],
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             });
             const expenseCreatedAction2 = buildOptimisticIOUReportAction({
                 type: 'create',
@@ -8132,6 +8158,8 @@ describe('ReportUtils', () => {
                 participants: [],
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             });
             const transactionThreadReport: Report = {
                 ...buildTransactionThread(expenseCreatedAction1, expenseReport, currentUserAccountID),
@@ -8491,6 +8519,8 @@ describe('ReportUtils', () => {
                 transactionID: '8749701985416635400',
                 iouReportID: '8698041594589716',
                 isPersonalTrackingExpense: true,
+
+                convertToDisplayString,
             });
             expect((iouAction as ReportAction<'IOU'>)?.reportID).toBe('8698041594589716');
         });
@@ -12652,7 +12682,7 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, convertToDisplayString);
 
             expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
@@ -12674,7 +12704,7 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, convertToDisplayString);
             const updatedPreviewAction = updateReportPreview(
                 iouReport,
                 reportPreviewAction,
@@ -15777,7 +15807,15 @@ describe('ReportUtils', () => {
         const mockReceiverName = 'John Doe';
         const mockTotal = 100;
         const mockCurrency = 'USD';
-        const optimisticInvoiceReport = buildOptimisticInvoiceReport(mockChatReportID, mockPolicyID, mockReceiverAccountID, mockReceiverName, mockTotal, mockCurrency);
+        const optimisticInvoiceReport = buildOptimisticInvoiceReport(
+            mockChatReportID,
+            mockPolicyID,
+            mockReceiverAccountID,
+            mockReceiverName,
+            mockTotal,
+            mockCurrency,
+            convertToDisplayString,
+        );
 
         expect(optimisticInvoiceReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         expect(optimisticInvoiceReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
@@ -19818,13 +19856,13 @@ describe('ReportUtils', () => {
     describe('buildOptimisticApprovedReportAction', () => {
         it('should set actorAccountID to the provided currentUserAccountID', () => {
             const customAccountID = 99;
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', customAccountID, undefined);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', customAccountID, undefined, convertToDisplayString);
 
             expect(action.actorAccountID).toBe(customAccountID);
         });
 
         it('should set actionName to APPROVED', () => {
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined, convertToDisplayString);
 
             expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.APPROVED);
         });
@@ -19833,19 +19871,19 @@ describe('ReportUtils', () => {
             const amount = 1200;
             const currency = 'EUR';
             const expenseReportID = 'report42';
-            const action = buildOptimisticApprovedReportAction(amount, currency, expenseReportID, currentUserAccountID, undefined);
+            const action = buildOptimisticApprovedReportAction(amount, currency, expenseReportID, currentUserAccountID, undefined, convertToDisplayString);
 
             expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>)).toMatchObject({amount, currency, expenseReportID});
         });
 
         it('should set pendingAction to ADD', () => {
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined, convertToDisplayString);
 
             expect(action.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
         });
 
         it('should generate a non-empty reportActionID', () => {
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined, convertToDisplayString);
 
             expect(action.reportActionID).toBeTruthy();
         });
@@ -20377,6 +20415,8 @@ describe('ReportUtils', () => {
                     participants: [],
                     transactionID: '9001',
                     iouReportID: expenseReportID,
+
+                    convertToDisplayString,
                 }),
                 actorAccountID,
                 ...overrides,
@@ -20474,6 +20514,8 @@ describe('ReportUtils', () => {
                 participants: [{accountID: otherActorAccountID}],
                 transactionID: '8501',
                 currentUserAccountID,
+
+                convertToDisplayString,
             });
 
             expect(transactionThread).toBeDefined();
@@ -20509,6 +20551,8 @@ describe('ReportUtils', () => {
                 transactionID: '8601',
                 shouldGenerateTransactionThreadReport: false,
                 currentUserAccountID,
+
+                convertToDisplayString,
             });
 
             expect(transactionThread).toBeUndefined();

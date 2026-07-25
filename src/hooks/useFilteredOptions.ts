@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useMemo, useState} from 'react';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
@@ -78,6 +79,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, isSearching = false, deferContactsUntilSearch = false} = config;
 
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -106,6 +108,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                       reportAttributesDerived,
                       privateIsArchivedMap,
                       allPolicies,
+                      {convertToDisplayString, convertToDisplayStringWithoutCurrency},
                       {
                           maxRecentReports: reportsLimit,
                           includeP2P,
@@ -126,6 +129,8 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             reportAttributesDerived,
             privateIsArchivedMap,
             allPolicies,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             reportsLimit,
             includeP2P,
             isSearching,

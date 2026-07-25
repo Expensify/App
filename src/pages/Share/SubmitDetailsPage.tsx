@@ -4,6 +4,7 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
@@ -78,6 +79,7 @@ function SubmitDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
@@ -222,6 +224,7 @@ function SubmitDetailsPage({
                   reportDraft,
                   currentUserPersonalDetails.accountID,
                   translate,
+                  {convertToDisplayString, convertToDisplayStringWithoutCurrency},
               );
     });
 
@@ -329,6 +332,7 @@ function SubmitDetailsPage({
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 delegateAccountID,
                 reportActionsList: undefined,
+                convertToDisplayString,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -375,6 +379,7 @@ function SubmitDetailsPage({
                 optimisticTransactionID,
                 isTrackIntentUser,
                 delegateAccountID,
+                convertToDisplayString,
             });
         }
         cleanupAndNavigateAfterExpenseCreate({

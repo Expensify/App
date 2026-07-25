@@ -1,7 +1,8 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {DeleteMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
@@ -74,6 +75,7 @@ type DeleteMoneyRequestFunctionParams = {
     currentUserEmail: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 /** Builds the Onyx surface a delete needs to touch: updated report + preview action, thread/report deletion flags, sticky-total marker. */
@@ -88,6 +90,7 @@ function prepareToCleanUpMoneyRequest(
     transactionIDsPendingDeletion?: string[],
     selectedTransactionIDs?: string[],
     policy?: OnyxEntry<OnyxTypes.Policy>,
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'],
 ): PrepareToCleanUpMoneyRequestResult {
     const allTransactions = getAllTransactions();
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -268,7 +271,7 @@ function prepareToCleanUpMoneyRequest(
     const previewAmount = getReimbursableTotal(updatedIOUReport) + (updatedIOUReport?.nonReimbursableTotal ?? 0);
     const messageText = Localize.translateLocal(
         hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount',
-        convertToDisplayString(previewAmount, updatedIOUReport?.currency),
+        convertToDisplayString?.(previewAmount, updatedIOUReport?.currency) ?? '',
         getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? CONST.DEFAULT_NUMBER_ID).login ?? '',
     );
 
@@ -321,6 +324,7 @@ function getNavigationUrlOnMoneyRequestDelete(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
     isSingleTransactionView = false,
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'],
 ): Route | undefined {
     if (!transactionID) {
         return undefined;
@@ -332,6 +336,11 @@ function getNavigationUrlOnMoneyRequestDelete(
         iouReport,
         chatReport,
         isChatReportArchived,
+        true,
+        undefined,
+        undefined,
+        undefined,
+        convertToDisplayString,
     );
 
     // Determine which report to navigate back to
@@ -372,9 +381,22 @@ function cleanUpMoneyRequest(
     originalReportID: string | undefined,
     isSingleTransactionView = false,
     policy?: OnyxEntry<OnyxTypes.Policy>,
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'],
 ) {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
-        prepareToCleanUpMoneyRequest(transactionID, reportAction, transactionThreadReport, iouReport, chatReport, isChatIOUReportArchived, false, undefined, undefined, policy);
+        prepareToCleanUpMoneyRequest(
+            transactionID,
+            reportAction,
+            transactionThreadReport,
+            iouReport,
+            chatReport,
+            isChatIOUReportArchived,
+            false,
+            undefined,
+            undefined,
+            policy,
+            convertToDisplayString,
+        );
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
         transactionID,
@@ -384,6 +406,7 @@ function cleanUpMoneyRequest(
         chatReport,
         isChatIOUReportArchived,
         isSingleTransactionView,
+        convertToDisplayString,
     );
     // build Onyx data
 
@@ -737,6 +760,7 @@ function deleteMoneyRequest({
     currentUserAccountID,
     currentUserEmail,
     policy,
+    convertToDisplayString,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -766,6 +790,7 @@ function deleteMoneyRequest({
         transactionIDsPendingDeletion,
         selectedTransactionIDs,
         policy,
+        convertToDisplayString,
     );
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
@@ -776,6 +801,7 @@ function deleteMoneyRequest({
         chatReport,
         isChatIOUReportArchived,
         isSingleTransactionView,
+        convertToDisplayString,
     );
 
     // STEP 2: Build Onyx data

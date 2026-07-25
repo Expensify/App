@@ -8,6 +8,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import useContactImport from '@hooks/useContactImport';
 import useContactPermissionModal from '@hooks/useContactPermissionModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -138,6 +139,7 @@ function ParticipantSearchResults({
     onRestrictedParticipantSelected,
     onCloseParticipantPicker,
 }: ParticipantSearchResultsProps) {
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE;
@@ -302,6 +304,7 @@ function ParticipantSearchResults({
             currentUserAccountID,
             allPolicies,
             translate,
+            {convertToDisplayString, convertToDisplayStringWithoutCurrency},
             personalDetails,
             true,
             undefined,
@@ -376,6 +379,7 @@ function ParticipantSearchResults({
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
                               translate,
+                              {convertToDisplayString, convertToDisplayStringWithoutCurrency},
                               reportAttributesDerived,
                           )
                         : getParticipantsOption(participant, personalDetails, translate);

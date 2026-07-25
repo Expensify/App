@@ -1,6 +1,7 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -20,6 +21,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 
 function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -58,6 +60,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             approveMoneyRequest({
                 expenseReport: moneyRequestReport,
                 expenseReportPolicy: policy,
+                convertToDisplayString,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
                 hasViolations,

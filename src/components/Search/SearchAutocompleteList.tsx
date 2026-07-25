@@ -7,6 +7,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -184,6 +185,7 @@ function SearchAutocompleteList({
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -272,6 +274,8 @@ function SearchAutocompleteList({
             sortedActions,
             conciergeReportID,
             isTrackIntentUser,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
         }).options;
     }, [
         listOptions,
@@ -288,6 +292,8 @@ function SearchAutocompleteList({
         sortedActions,
         conciergeReportID,
         isTrackIntentUser,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);

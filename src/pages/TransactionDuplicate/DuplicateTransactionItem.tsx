@@ -7,6 +7,7 @@ import type {ExpenseReportListItemType, TransactionListItemType} from '@componen
 import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/UserInfoAndActionButtonRow';
 import TransactionItemRow from '@components/TransactionItemRow';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +37,7 @@ type DuplicateTransactionItemProps = {
 };
 
 function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldShowSelection = true, onSelectTransaction, onPreviewPressed}: DuplicateTransactionItemProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -77,6 +79,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
             iouReport: report,
             iouReportAction: action,
             transaction,
+            convertToDisplayString,
         });
         if (!transactionThreadReport?.reportID) {
             return;

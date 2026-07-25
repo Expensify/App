@@ -4,10 +4,12 @@ import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -609,6 +611,8 @@ function getUpdatedTransaction({
     policy = undefined,
     isSplitTransaction = false,
     personalPolicyOutputCurrency,
+    getCurrencyDecimals,
+    getCurrencySymbol,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
@@ -617,7 +621,21 @@ function getUpdatedTransaction({
     policy?: OnyxEntry<Policy>;
     isSplitTransaction?: boolean;
     personalPolicyOutputCurrency: string | undefined;
+    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
 }): Transaction {
+    const requireCurrencyDecimals = () => {
+        if (!getCurrencyDecimals) {
+            throw new Error('getCurrencyDecimals is required for currency-dependent transaction updates');
+        }
+        return getCurrencyDecimals;
+    };
+    const requireCurrencySymbol = () => {
+        if (!getCurrencySymbol) {
+            throw new Error('getCurrencySymbol is required for currency-dependent transaction updates');
+        }
+        return getCurrencySymbol;
+    };
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Only changing the first level fields so no need for deep clone now
@@ -686,7 +704,7 @@ function getUpdatedTransaction({
                 updatedCurrency,
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-                getCurrencySymbol,
+                requireCurrencySymbol(),
                 isManualDistanceRequest(transaction),
             );
 
@@ -752,7 +770,7 @@ function getUpdatedTransaction({
                 updatedCurrency,
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-                getCurrencySymbol,
+                requireCurrencySymbol(),
                 isManualDistanceRequest(transaction),
             );
 
@@ -785,7 +803,7 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
-        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy);
+        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, requireCurrencyDecimals());
         if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
             updatedTransaction.taxCode = categoryTaxCode;
             updatedTransaction.taxAmount = categoryTaxAmount;
@@ -848,7 +866,7 @@ function getUpdatedTransaction({
             updatedCurrency,
             translateLocal,
             (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-            getCurrencySymbol,
+            requireCurrencySymbol(),
             isManualDistanceRequest(transaction),
         );
 
@@ -2324,6 +2342,7 @@ function getDistanceRateTaxUpdates(
     policy: OnyxEntry<Policy>,
     transaction: OnyxEntry<Transaction>,
     customUnitRateID: string,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     distanceUnit?: Unit,
 ): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
     const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
@@ -2827,7 +2846,7 @@ function buildMergeDuplicatesParams(
     };
 }
 
-function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
+function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
     if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};

@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAncestors from '@hooks/useAncestors';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -59,6 +60,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
@@ -82,8 +84,18 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, personalDetails, privateIsArchived, policy, translate, reportAttributesDerived),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, policy, translate],
+        () =>
+            getReportDisplayOption(
+                report,
+                unknownUserDetails,
+                personalDetails,
+                privateIsArchived,
+                policy,
+                translate,
+                {convertToDisplayString, convertToDisplayStringWithoutCurrency},
+                reportAttributesDerived,
+            ),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, policy, translate, convertToDisplayString, convertToDisplayStringWithoutCurrency],
     );
 
     const shouldShowAttachment = !isTextShared;

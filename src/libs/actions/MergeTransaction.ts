@@ -261,6 +261,7 @@ function getOnyxTargetTransactionData({
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 }) {
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -399,6 +400,7 @@ function mergeTransactionRequest({
     selfDMReportActions,
     reportPolicyTags,
     isTrackIntentUser,
+    convertToDisplayString,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -665,6 +667,7 @@ function mergeTransactionRequest({
             iouReportID: mergeTransaction.reportID,
             // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             delegateAccountIDParam: undefined,
+            convertToDisplayString,
         });
 
         // IOU action for the surviving expense on its original report (not on mergeTransaction.reportID yet).

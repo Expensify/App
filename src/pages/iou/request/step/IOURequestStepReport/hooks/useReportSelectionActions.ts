@@ -1,6 +1,7 @@
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
@@ -104,6 +105,7 @@ function useReportSelectionActions({
     backTo,
     handleGoBack,
 }: UseReportSelectionActionsParams): UseReportSelectionActionsResult {
+    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -219,6 +221,8 @@ function useReportSelectionActions({
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                         selfDMReportActions,
+                        convertToDisplayString,
+                        getCurrencySymbol,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -246,6 +250,8 @@ function useReportSelectionActions({
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                     selfDMReportActions,
+                    convertToDisplayString,
+                    getCurrencySymbol,
                 });
                 removeTransaction(transaction.transactionID);
             },

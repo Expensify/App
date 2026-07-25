@@ -10,6 +10,7 @@ import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs
 import {addComment, notifyNewAction} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getOriginalMessage, isActionOfType, isAddCommentAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -1264,6 +1265,8 @@ describe('split expense', () => {
                 participants: [],
                 transactionID: originalTransactionID,
                 iouReportID: reportID,
+
+                convertToDisplayString,
             }),
             childReportID: transactionThread.reportID,
         };
@@ -1804,6 +1807,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 participants: [],
                 transactionID: transaction.transactionID,
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             }),
             childReportID: transactionThread.reportID,
         };
@@ -1921,6 +1926,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 participants: [],
                 transactionID: transaction.transactionID,
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             }),
             childReportID: transactionThread.reportID,
         };
@@ -2046,6 +2053,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 participants: [],
                 transactionID: transaction.transactionID,
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             }),
             childReportID: transactionThread.reportID,
         };

@@ -6,6 +6,7 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissOnMoneyRequestReportRemoval from '@hooks/useDismissOnMoneyRequestReportRemoval';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -68,6 +69,7 @@ const defaultReportLoadingState = {
 };
 
 function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -284,6 +286,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             iouReport: report,
             transaction,
             transactionViolations: violations,
+            convertToDisplayString,
         });
     }, [
         allReportTransactions,

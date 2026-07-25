@@ -1,5 +1,7 @@
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -13,6 +15,7 @@ import {useReportPreviewActions, useReportPreviewData, useReportPreviewHoldMenu}
  * provider so sibling components communicate through context actions instead of imperative refs.
  */
 function ReportPreviewHoldMenu() {
+    const {convertToDisplayString} = useCurrencyListActions();
     const holdMenu = useReportPreviewHoldMenu();
     const {iouReport, chatReport, transactions} = useReportPreviewData();
     const {startAnimation, startApprovedAnimation, onHoldMenuClose} = useReportPreviewActions();
@@ -22,7 +25,7 @@ function ReportPreviewHoldMenu() {
     }
 
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, holdMenu.canPay, transactions);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, holdMenu.canPay, transactions, convertToDisplayString);
 
     return (
         <ProcessMoneyReportHoldMenu

@@ -6,6 +6,7 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -76,6 +77,7 @@ function ReportSubmitToContent({
     onSubmitWithManagerEmail,
     canSubmitRef,
 }: ReportSubmitToContentProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
@@ -309,6 +311,7 @@ function ReportSubmitToContent({
             managerEmail: trimmed,
             managerAccountID: resolvedManagerAccountID,
             isTrackIntentUser,
+            convertToDisplayString,
             onSubmitted: () => {
                 if (currentSearchQueryJSON && !isOffline) {
                     search({

@@ -122,6 +122,7 @@ function PayActionButton() {
                     chatReportActions: getChatReportActions(payAsBusiness),
                     delegateAccountID,
                     isTrackIntentUser,
+                    convertToDisplayString,
                 });
             } else {
                 payMoneyRequest({
@@ -145,6 +146,7 @@ function PayActionButton() {
                     chatReportActions: getChatReportActions(false),
                     delegateAccountID,
                     isTrackIntentUser,
+                    convertToDisplayString,
                 });
             }
         }

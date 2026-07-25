@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -80,6 +81,7 @@ const defaultReportLoadingState = {
  * Self-subscribes to route params via useRoute().
  */
 function ReportFetchHandler() {
+    const {convertToDisplayString} = useCurrencyListActions();
     const route = useRoute<ReportScreenRoute>();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
@@ -195,6 +197,7 @@ function ReportFetchHandler() {
             iouReport: report,
             iouReportAction: iouAction,
             transaction: currentReportTransactions.at(0),
+            convertToDisplayString,
         });
     });
 
@@ -471,6 +474,7 @@ function ReportFetchHandler() {
             betas,
             iouReport: report,
             transaction,
+            convertToDisplayString,
         });
     }, [
         introSelected,

@@ -133,6 +133,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 chatReportActions,
                 delegateAccountID,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
             return;
         }
@@ -158,6 +159,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`],
             delegateAccountID,
             isTrackIntentUser,
+            convertToDisplayString,
         });
     };
 

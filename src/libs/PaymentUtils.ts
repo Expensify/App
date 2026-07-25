@@ -2,6 +2,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {ContinueActionParams} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {CurrencyListActionsContextType} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -55,6 +56,7 @@ type SelectPaymentTypeParams = {
     delegateEmail: string | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type BusinessBankAccountOption = {
@@ -230,6 +232,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         delegateEmail,
         isTrackIntentUser,
         ownerLogin,
+        convertToDisplayString,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -266,6 +269,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 full: true,
                 delegateEmail,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
         }
         return;

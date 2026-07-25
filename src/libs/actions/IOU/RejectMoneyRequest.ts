@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {MarkTransactionViolationAsResolvedParams, RejectExpenseReportParams, RejectMoneyRequestParams, SetNameValuePairParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -119,6 +121,7 @@ function prepareRejectMoneyRequestData(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     options?: RejectMoneyRequestOptions,
     shouldUseBulkAction?: boolean,
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
@@ -400,6 +403,7 @@ function prepareRejectMoneyRequestData(
                 shouldGenerateTransactionThreadReport: false,
                 currentUserAccountID: currentUserAccountIDParam,
                 delegateAccountIDParam: delegateAccountID,
+                convertToDisplayString,
             });
             createdIOUReportActionID = iouAction.reportActionID;
 
@@ -495,9 +499,10 @@ function prepareRejectMoneyRequestData(
                 shouldGenerateTransactionThreadReport: false,
                 currentUserAccountID: currentUserAccountIDParam,
                 delegateAccountIDParam: delegateAccountID,
+                convertToDisplayString,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, convertToDisplayString, '', transaction, undefined, undefined, delegateAccountID);
             movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
             createdIOUReportActionID = iouAction.reportActionID;
             expenseMovedReportActionID = movedTransactionAction.reportActionID;
@@ -920,9 +925,10 @@ function rejectMoneyRequest(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     options?: RejectMoneyRequestOptions,
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, options);
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, convertToDisplayString, options);
     if (!data) {
         return;
     }

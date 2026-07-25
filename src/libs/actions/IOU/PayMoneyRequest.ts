@@ -1,4 +1,5 @@
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {CurrencyListActionsContextType} from '@components/OnyxListItemProvider';
 
 import * as API from '@libs/API';
 import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
@@ -75,6 +76,7 @@ type PayInvoiceArgs = {
     shouldPlaySuccessSound?: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type PayMoneyRequestData = {
@@ -170,6 +172,7 @@ function getPayMoneyRequestParams({
     delegateAccountID,
     chatReportActions,
     isTrackIntentUser,
+    convertToDisplayString,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -196,6 +199,7 @@ function getPayMoneyRequestParams({
     delegateAccountID: number | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isTrackIntentUser: boolean | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -288,6 +292,7 @@ function getPayMoneyRequestParams({
         payAsBusiness,
         bankAccountID,
         delegateAccountIDParam: delegateAccountID,
+        convertToDisplayString,
     });
 
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
@@ -295,7 +300,7 @@ function getPayMoneyRequestParams({
     let optimisticReportPreviewAction = null;
     const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport?.reportID, chatReportActions);
     if (reportPreviewAction) {
-        optimisticReportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, true);
+        optimisticReportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, convertToDisplayString, true);
     }
     let currentNextStepDeprecated = null;
     let optimisticNextStepDeprecated = null;
@@ -829,6 +834,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         delegateAccountID,
         chatReportActions,
         isTrackIntentUser,
+        convertToDisplayString,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -865,6 +871,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         delegateAccountID,
         chatReportActions,
         isTrackIntentUser,
+        convertToDisplayString,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -888,6 +895,7 @@ function markReportPaymentReceived(
     currentUserEmail: string,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
     isTrackIntentUser: boolean | undefined,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) {
     if (!chatReport || !iouReport) {
         return;
@@ -908,6 +916,7 @@ function markReportPaymentReceived(
         iouReportID: iouReport.reportID,
         isSettlingUp: true,
         isSubmitterMarkedPaymentReceived: true,
+        convertToDisplayString,
     });
 
     // buildOptimisticIOUReportAction formats the action's `message` as "paid ... elsewhere", so override it with
@@ -919,7 +928,7 @@ function markReportPaymentReceived(
     optimisticIOUReportAction.message = [{html: receivedPaymentMessage, text: receivedPaymentMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}];
 
     const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport.reportID, chatReportActions);
-    const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, true) : null;
+    const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, convertToDisplayString, true) : null;
     const optimisticNextStepDeprecated =
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated

@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
@@ -46,6 +47,7 @@ type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorP
 function ConfirmationPage({route}: ConfirmationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
     const {transactionID, isOnSearch, backTo} = route.params;
@@ -106,6 +108,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             selfDMReport,
             selfDMReportActions,
             reportPolicyTags,
+            convertToDisplayString,
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;

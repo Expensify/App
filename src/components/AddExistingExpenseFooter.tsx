@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +48,7 @@ type AddExistingExpenseFooterProps = {
 };
 
 function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
+    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
@@ -112,6 +114,8 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                         selfDMReportActions,
+                        convertToDisplayString,
+                        getCurrencySymbol,
                     });
                 }
             },

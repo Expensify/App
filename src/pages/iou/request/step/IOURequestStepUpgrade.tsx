@@ -9,6 +9,7 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCreateNewReport from '@hooks/useCreateNewReport';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -56,6 +57,7 @@ function IOURequestStepUpgrade({
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
+    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -158,6 +160,8 @@ function IOURequestStepUpgrade({
                 isTrackIntentUser,
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
                 personalPolicyOutputCurrency: undefined,
+                convertToDisplayString,
+                getCurrencySymbol,
             });
 
             clearSelectedTransactions();

@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import DateUtils from '@libs/DateUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -16,6 +18,7 @@ function getReportActionsToDisplay(
     reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<'REPORTPREVIEW'>> | undefined,
     transactionThreadReport: OnyxTypes.Report | undefined,
     shouldAddCreatedAction: boolean,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) {
     const actions = [...(allReportActions ?? [])];
 
@@ -56,6 +59,7 @@ function getReportActionsToDisplay(
             created: DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
             // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             delegateAccountIDParam: undefined,
+            convertToDisplayString,
         }) as OnyxTypes.ReportAction;
         moneyRequestActions.push(optimisticIOUAction);
         actions.splice(actions.length - 1, 0, optimisticIOUAction);

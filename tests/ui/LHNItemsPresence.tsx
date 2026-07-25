@@ -3,6 +3,7 @@ import {act, screen} from '@testing-library/react-native';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
@@ -632,6 +633,8 @@ describe('SidebarLinksData', () => {
                 participants: [],
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
+
+                convertToDisplayString,
             });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport, TEST_USER_ACCOUNT_ID);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;

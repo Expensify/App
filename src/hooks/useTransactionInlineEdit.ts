@@ -1,5 +1,7 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+
 import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
     editTransactionAmountInline,
@@ -81,6 +83,7 @@ type UseTransactionInlineEditReturn = {
 };
 
 function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
+    const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
@@ -176,6 +179,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const getEditParams = (): TransactionInlineEditParams => {
         return {
             hash,
+            getCurrencyDecimals,
             transactionID,
             parentReport: effectiveParentReport,
             parentReportAction,
@@ -195,6 +199,9 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             personalDetailsList,
             delegateAccountID,
             isTrackIntentUser,
+            convertToDisplayString,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         };
     };
 

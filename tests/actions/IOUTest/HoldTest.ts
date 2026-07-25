@@ -1,5 +1,6 @@
 import {getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getReportActionMessage, getSortedReportActions} from '@libs/ReportActionsUtils';
@@ -98,7 +99,7 @@ describe('actions/IOU/Hold', () => {
 
     describe('putOnHold', () => {
         test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added hold comment report action created timestamp", () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', convertToDisplayString);
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -117,6 +118,8 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+
+                convertToDisplayString,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -161,7 +164,7 @@ describe('actions/IOU/Hold', () => {
         });
 
         test('should create transaction thread optimistically when initialReportID is undefined', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', convertToDisplayString);
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -179,6 +182,8 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+
+                convertToDisplayString,
             });
             const actions: OnyxInputValue<ReportActions> = {[iouAction.reportActionID]: iouAction};
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -215,7 +220,7 @@ describe('actions/IOU/Hold', () => {
 
     describe('putTransactionsOnHold', () => {
         test('should call putOnHold for each transaction ID', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD', convertToDisplayString);
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -238,6 +243,8 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction1.transactionID,
+
+                convertToDisplayString,
             });
             const iouAction2: ReportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -246,6 +253,8 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction2.transactionID,
+
+                convertToDisplayString,
             });
             const transactionThread1 = buildTransactionThread(iouAction1, iouReport, RORY_ACCOUNT_ID);
             const transactionThread2 = buildTransactionThread(iouAction2, iouReport, RORY_ACCOUNT_ID);
@@ -307,7 +316,7 @@ describe('actions/IOU/Hold', () => {
         });
 
         test('should invoke navigation for each transaction when isOffline is true', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD', convertToDisplayString);
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -329,6 +338,8 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction1.transactionID,
+
+                convertToDisplayString,
             });
             const iouAction2: ReportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -337,6 +348,8 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction2.transactionID,
+
+                convertToDisplayString,
             });
             const transactionThread1 = buildTransactionThread(iouAction1, iouReport, RORY_ACCOUNT_ID);
             const transactionThread2 = buildTransactionThread(iouAction2, iouReport, RORY_ACCOUNT_ID);
@@ -376,7 +389,7 @@ describe('actions/IOU/Hold', () => {
 
     describe('putOnHold with isOffline', () => {
         test('should pass isOffline to getDisplayedReportID affecting which reportID is used for navigation', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', convertToDisplayString);
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -391,6 +404,8 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+
+                convertToDisplayString,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -433,7 +448,7 @@ describe('actions/IOU/Hold', () => {
                 ...createRandomPolicy(Number(policyID)),
             };
             const iouReport: Report = {
-                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD'),
+                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', convertToDisplayString),
                 policyID,
             };
             const transaction = buildOptimisticTransaction({
@@ -454,6 +469,8 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+
+                convertToDisplayString,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -515,7 +532,7 @@ describe('actions/IOU/Hold', () => {
                 ...createRandomPolicy(Number(policyID)),
             };
             const iouReport: Report = {
-                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD'),
+                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', convertToDisplayString),
                 policyID,
             };
             const transaction = buildOptimisticTransaction({
@@ -536,6 +553,8 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+
+                convertToDisplayString,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -608,7 +627,7 @@ describe('actions/IOU/Hold', () => {
             unheldReimbursableTotal?: number;
             heldAmount?: number;
         }) => {
-            const baseIouReport = buildOptimisticIOUReport(1, 2, overrides.total, '99', 'USD');
+            const baseIouReport = buildOptimisticIOUReport(1, 2, overrides.total, '99', 'USD', convertToDisplayString);
             const iouReport: Report = {
                 ...baseIouReport,
                 total: overrides.total,
@@ -634,6 +653,8 @@ describe('actions/IOU/Hold', () => {
                       comment: '',
                       participants: [],
                       transactionID: heldTransaction.transactionID,
+
+                      convertToDisplayString,
                   })
                 : undefined;
 

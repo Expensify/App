@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {Beta, IntroSelected, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -32,6 +34,7 @@ type ResolveReportContext = {
     betas: OnyxEntry<Beta[]>;
     currentUserEmail: string | undefined;
     currentUserAccountID: number;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 /**
@@ -76,6 +79,7 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
         iouReport: getReportOrDraftReport(reportID) ?? expense.report,
         iouReportAction: iouAction,
         transaction,
+        convertToDisplayString: context.convertToDisplayString,
     });
     return transactionThreadReport?.reportID ?? reportID;
 }

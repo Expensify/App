@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCreateNewReport from '@hooks/useCreateNewReport';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -62,6 +63,7 @@ type WorkspaceListItem = {
 type NewReportWorkspaceSelectionPageProps = PlatformStackScreenProps<NewReportWorkspaceSelectionNavigatorParamList, typeof SCREENS.NEW_REPORT_WORKSPACE_SELECTION.DYNAMIC_ROOT>;
 
 function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPageProps) {
+    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const {isMovingExpenses} = route.params ?? {};
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path);
     const {isOffline} = useNetwork();
@@ -146,6 +148,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     selfDMReportActions,
+                    convertToDisplayString,
+                    getCurrencySymbol,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

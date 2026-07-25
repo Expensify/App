@@ -34,7 +34,7 @@ import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 
-import {useCurrencyListState} from './useCurrencyList';
+import {useCurrencyListActions, useCurrencyListState} from './useCurrencyList';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -116,6 +116,7 @@ function useAutocompleteSuggestions({
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
     const {localeCompare} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -259,6 +260,8 @@ function useAutocompleteSuggestions({
                 conciergeReportID,
                 excludeFromSuggestionsOnly: memberExclusions,
                 isTrackIntentUser,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
@@ -297,6 +300,8 @@ function useAutocompleteSuggestions({
                 sortedActions,
                 conciergeReportID,
                 isTrackIntentUser,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;

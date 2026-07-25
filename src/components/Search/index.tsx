@@ -5,6 +5,7 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
@@ -137,6 +138,7 @@ function Search({
     onContentReady,
     onDestinationVisible,
 }: SearchProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {type, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
@@ -528,6 +530,7 @@ function Search({
                     hasCompletedGuidedSetupFlow,
                     IOUTransactionID: item?.reportAction?.childReportID,
                     shouldNavigate: shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab,
+                    convertToDisplayString,
                 });
                 if (shouldOpenTransactionThreadInNewTab && targetReportID) {
                     openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}), event);
@@ -590,9 +593,10 @@ function Search({
                             IOUTransactionID: firstTransaction?.reportAction?.childReportID,
                             transactionPreviewData,
                             shouldNavigate: false,
+                            convertToDisplayString,
                         });
                     } else {
-                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
+                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, convertToDisplayString, firstTransaction?.reportAction?.childReportID);
                     }
                 }
 
@@ -647,7 +651,7 @@ function Search({
             markReportRHPWidth(reportID, 'wide');
 
             if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
+                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, convertToDisplayString, transactionItem?.reportAction?.childReportID);
             }
 
             const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});

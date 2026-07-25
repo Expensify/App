@@ -4,6 +4,7 @@ import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {notifyNewAction} from '@libs/actions/Report';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -802,7 +803,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
         it('calls notifyNewAction for the top most report', () => {
             // Given two expenses in an iou report where one of them held
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', convertToDisplayString);
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -831,6 +832,8 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         comment: '',
                         participants: [],
                         transactionID: transaction.transactionID,
+
+                        convertToDisplayString,
                     }),
                 );
             }

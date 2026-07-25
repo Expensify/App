@@ -1,5 +1,7 @@
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {AddTrackedExpenseToPolicyParams, CreateWorkspaceParams, DeleteMoneyRequestParams, RequestMoneyParams, ShareTrackedExpenseParams, TrackExpenseParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -197,6 +199,7 @@ type GetTrackExpenseInformationParams = {
     policyType?: CreatableWorkspaceType;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     isDraftChatReport?: boolean;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type DeleteTrackExpenseParams = {
@@ -216,6 +219,7 @@ type DeleteTrackExpenseParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type BuildOnyxDataForTrackExpenseParams = {
@@ -862,6 +866,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         isDraftChatReport,
         currentUserLocalCurrency,
         policyType,
+        convertToDisplayString,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy} = policyParams;
@@ -1140,6 +1145,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         linkedTrackedExpenseReportAction,
         currentUserAccountID: currentUserAccountIDParam,
         delegateAccountIDParam: delegateAccountID,
+        convertToDisplayString,
     });
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
@@ -1147,9 +1153,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
         if (reportPreviewAction) {
-            reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+            reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, convertToDisplayString, false, comment, optimisticTransaction);
         } else {
-            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, convertToDisplayString, comment, optimisticTransaction, undefined, undefined, delegateAccountID);
             // Generated ReportPreview action is a parent report action of the iou report.
             // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
             iouReport.parentReportActionID = reportPreviewAction.reportActionID;
@@ -1653,6 +1659,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         shouldDeferAutoSubmit,
         delegateAccountID,
         isTrackIntentUser,
+        convertToDisplayString,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1763,6 +1770,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
+        convertToDisplayString,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -2090,6 +2098,7 @@ function convertBulkTrackedExpensesToIOU({
             },
             delegateAccountID,
             isTrackIntentUser,
+            convertToDisplayString,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -2422,6 +2431,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         reportActionsList,
         isDraftChatReport,
         currentUserLocalCurrency,
+        convertToDisplayString,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2584,6 +2594,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         delegateAccountID,
         isDraftChatReport,
         currentUserLocalCurrency,
+        convertToDisplayString,
         // Only "Submit to my employer" creates a Submit (submit2026) workspace from a draft; everything else keeps the default (team) type.
         policyType: action === CONST.IOU.ACTION.SUBMIT && policy?.type === CONST.POLICY.TYPE.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
     }) ?? {};
@@ -2885,6 +2896,7 @@ function getNavigationUrlAfterTrackExpenseDelete(
     chatIOUReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
     isSingleTransactionView = false,
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'],
 ): Route | undefined {
     if (!chatReportID || !transactionID) {
         return undefined;
@@ -2894,7 +2906,16 @@ function getNavigationUrlAfterTrackExpenseDelete(
     if (!isSelfDM(chatReport)) {
         const allReports = getAllReports();
         const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, transactionThreadReport, iouReport, chatIOUReport, isChatReportArchived, isSingleTransactionView);
+        return getNavigationUrlOnMoneyRequestDelete(
+            transactionID,
+            reportAction,
+            transactionThreadReport,
+            iouReport,
+            chatIOUReport,
+            isChatReportArchived,
+            isSingleTransactionView,
+            convertToDisplayString,
+        );
     }
 
     // Only navigate if in single transaction view and the thread will be deleted
@@ -2923,6 +2944,7 @@ function deleteTrackExpense({
     currentUserAccountID,
     currentUserEmail,
     policy,
+    convertToDisplayString,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -2937,6 +2959,7 @@ function deleteTrackExpense({
         chatIOUReport,
         isChatIOUReportArchived,
         isSingleTransactionView,
+        convertToDisplayString,
     );
 
     // STEP 1: Get all collections we're updating
@@ -2958,6 +2981,7 @@ function deleteTrackExpense({
             currentUserAccountID,
             currentUserEmail,
             policy,
+            convertToDisplayString,
         });
         return urlToNavigateBack;
     }

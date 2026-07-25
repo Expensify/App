@@ -9,6 +9,7 @@ import type {Section} from '@components/SelectionList/SelectionListWithSections/
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/types';
 
 import useContactImport from '@hooks/useContactImport';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
@@ -61,6 +62,7 @@ const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value
 const PAGINATION_SIZE = CONST.MAX_SELECTION_LIST_PAGE_LENGTH;
 
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -132,6 +134,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         currentUserAccountID,
         currentUserEmail,
         conciergeReportID,
+        {convertToDisplayString, convertToDisplayStringWithoutCurrency},
         {
             betas: betas ?? [],
             includeSelfDM: true,

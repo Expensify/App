@@ -3,6 +3,7 @@ import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import WidgetContainer from '@components/WidgetContainer';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -41,6 +42,7 @@ import {useRecentlyAddedData} from './useRecentlyAddedData';
 const HEADER_RECEIPT_ICON_SIZE = 16;
 
 function RecentlyAddedSection() {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {transactions} = useRecentlyAddedData();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -69,7 +71,7 @@ function RecentlyAddedSection() {
         // resolving every sibling up front would create a thread for each multi-expense sibling on a single tap.
         // Instead, seed the cheap snapshot-derived descriptors and let the carousel resolve each sibling lazily,
         // one at a time, only when the user actually navigates to it.
-        const resolveContext = {introSelected, betas, currentUserEmail, currentUserAccountID};
+        const resolveContext = {introSelected, betas, currentUserEmail, currentUserAccountID, convertToDisplayString};
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);

@@ -8,6 +8,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -66,6 +67,7 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
 }
 
 function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -118,6 +120,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         policy,
         report: moneyRequestReport,
         isTrackIntentUser,
+        convertToDisplayString,
     });
 
     // Submit via PDF is offered for any draft report the current user submits on a Submit workspace (behind the
@@ -200,6 +203,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 // Submit via PDF submits the report to the submitter (self); the backend keys off this to generate the PDF.
                 managerEmail: shouldExportToPDF ? email : undefined,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

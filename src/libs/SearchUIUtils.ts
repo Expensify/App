@@ -2658,6 +2658,8 @@ type CreateAndOpenSearchTransactionThreadParams = {
 
     /** Whether to navigate to the transaction thread after creating it */
     shouldNavigate?: boolean;
+
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 /** Creates transaction thread report and navigates to it from the search page */
@@ -2673,6 +2675,7 @@ function createAndOpenSearchTransactionThread({
     IOUTransactionID,
     transactionPreviewData,
     shouldNavigate = true,
+    convertToDisplayString,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
@@ -2681,7 +2684,7 @@ function createAndOpenSearchTransactionThread({
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData, IOUTransactionID);
+    setOptimisticDataForTransactionThreadPreview(item, previewData, convertToDisplayString, IOUTransactionID);
 
     const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
     let transactionThreadReport;
@@ -2711,6 +2714,7 @@ function createAndOpenSearchTransactionThread({
             transactionViolations,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            convertToDisplayString,
         });
     }
 

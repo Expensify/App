@@ -1,4 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {CurrencyListActionsContextType} from '@components/OnyxListItemProvider';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -78,6 +79,8 @@ type SubmitAmountArgs = {
     amount: string;
     paymentMethod?: PaymentMethodType;
     translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
 
     // Submit-time Onyx data — supplied by the screen via AmountSubmitDataSync so this module owns no subscriptions.
     allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -236,7 +239,19 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
 }
 
 function buildReportParticipants(args: SubmitAmountArgs) {
-    const {report, policy, currentUserPersonalDetails, reportAttributesDerivedValue, allReportDrafts, allReportNVPs, allPersonalDetails, conciergeReportID, translate} = args;
+    const {
+        report,
+        policy,
+        currentUserPersonalDetails,
+        reportAttributesDerivedValue,
+        allReportDrafts,
+        allReportNVPs,
+        allPersonalDetails,
+        conciergeReportID,
+        translate,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
+    } = args;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const reportAttributesReports = reportAttributesDerivedValue?.reports;
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
@@ -256,6 +271,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
                   reportDraft,
                   currentUserPersonalDetails.accountID,
                   translate,
+                  {convertToDisplayString, convertToDisplayStringWithoutCurrency},
               );
     });
 }
@@ -325,6 +341,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         action,
         currentUserPersonalDetails,
         isTrackIntentUser,
+        convertToDisplayString,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
 
@@ -369,6 +386,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 optimisticTransactionID,
                 delegateAccountID,
                 reportActionsList: undefined,
+                convertToDisplayString,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -406,6 +424,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 optimisticTransactionID,
                 delegateAccountID,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {

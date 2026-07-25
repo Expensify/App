@@ -218,6 +218,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
         } else {
             startAnimation();
@@ -244,6 +245,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
+                convertToDisplayString,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -448,6 +450,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             betas,
             userBillingGracePeriodEnds,
             amountOwed,
+            convertToDisplayString,
             ownerBillingGracePeriodEnd,
             delegateEmail,
             isTrackIntentUser,

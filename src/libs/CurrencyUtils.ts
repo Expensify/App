@@ -1,32 +1,9 @@
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {OnyxValues} from '@src/ONYXKEYS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList, Locale} from '@src/types/onyx';
-
-import Onyx from 'react-native-onyx';
 
 import Log from './Log';
 import {format, formatToParts} from './NumberFormatUtils';
-
-// Temporary fallback for callers that have not been migrated to pass currencyList yet.
-// This will be removed in the final Onyx.connect migration for CurrencyUtils.
-let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
-
-Onyx.connect({
-    key: ONYXKEYS.CURRENCY_LIST,
-    callback: (val) => {
-        if (!val || Object.keys(val).length === 0) {
-            return;
-        }
-
-        currencyList = val;
-    },
-});
-
-function getCurrencyList(currencies?: CurrencyList): CurrencyList {
-    return currencies ?? currencyList;
-}
 
 /**
  * Returns true when the provided value is a syntactically valid ISO 4217 currency code
@@ -76,7 +53,7 @@ function sanitizeCurrencyCode(currencyCode: unknown): string {
  * @param currency - IOU currency
  */
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList): number {
-    const decimals = getCurrencyList(currencies)?.[currency]?.decimals;
+    const decimals = currencies?.[currency]?.decimals;
     return decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
 }
 
@@ -105,7 +82,7 @@ function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: st
  * Get the currency symbol for a currency(ISO 4217) Code
  */
 function getCurrencySymbol(currencyCode: string, currencies?: CurrencyList): string | undefined {
-    return getCurrencyList(currencies)?.[currencyCode]?.symbol;
+    return currencies?.[currencyCode]?.symbol;
 }
 
 /**

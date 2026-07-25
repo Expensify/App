@@ -12,6 +12,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useMemo, useState} from 'react';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
@@ -35,6 +36,7 @@ type UseReportActionsPaginationResult = {
 };
 
 function useReportActionsPagination(reportID: string | undefined, reportActionIDFromRoute: string | undefined): UseReportActionsPaginationResult {
+    const {convertToDisplayString} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
     const parentReportAction = useParentReportAction(report);
@@ -77,8 +79,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(
-        () => getReportActionsToDisplay(allReportActions, lastAction, report, reportPreviewAction, thread.transactionThreadReport, shouldAddCreatedAction),
-        [allReportActions, lastAction, report, reportPreviewAction, shouldAddCreatedAction, thread.transactionThreadReport],
+        () => getReportActionsToDisplay(allReportActions, lastAction, report, reportPreviewAction, thread.transactionThreadReport, shouldAddCreatedAction, convertToDisplayString),
+        [allReportActions, lastAction, report, reportPreviewAction, shouldAddCreatedAction, thread.transactionThreadReport, convertToDisplayString],
     );
 
     const reportActions = useMemo(

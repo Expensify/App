@@ -487,6 +487,7 @@ function MoneyRequestReceiptView({
                     originalReportID,
                     true,
                     policy,
+                    convertToDisplayString,
                 );
                 return;
             }

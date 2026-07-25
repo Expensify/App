@@ -2,9 +2,10 @@ import type {RenderAPI} from '@testing-library/react-native';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import * as CurrencyUtils from '@src/libs/CurrencyUtils';
+import * as RawCurrencyUtils from '@src/libs/CurrencyUtils';
 import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CurrencyList} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -17,6 +18,18 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // - copy the value and format it to valid json using some external tool
 // - update currencyList.json
 import currencyList from './currencyList.json';
+
+const currencies = currencyList as CurrencyList;
+const CurrencyUtils = {
+    ...RawCurrencyUtils,
+    getCurrencyDecimals: (currency?: string) => RawCurrencyUtils.getCurrencyDecimals(currency, currencies),
+    getCurrencyUnit: (currency?: string) => RawCurrencyUtils.getCurrencyUnit(currency, currencies),
+    getCurrencySymbol: (currency: string) => RawCurrencyUtils.getCurrencySymbol(currency, currencies),
+    convertToDisplayString: (amount = 0, currency: string = CONST.CURRENCY.USD, shouldUseLocalCurrencySymbol = false) =>
+        RawCurrencyUtils.convertToDisplayString(amount, currency, shouldUseLocalCurrencySymbol, currencies),
+    convertToDisplayStringWithExplicitCurrency: (amount: number, currency: string | undefined) => RawCurrencyUtils.convertToDisplayStringWithExplicitCurrency(amount, currency, currencies),
+    convertToDisplayStringWithoutCurrency: (amount: number, currency: string = CONST.CURRENCY.USD) => RawCurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency, currencies),
+};
 
 const currencyCodeList = Object.keys(currencyList);
 const AVAILABLE_LOCALES = [CONST.LOCALES.EN, CONST.LOCALES.ES];

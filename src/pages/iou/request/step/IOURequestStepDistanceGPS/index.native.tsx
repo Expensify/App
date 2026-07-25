@@ -3,6 +3,7 @@ import GPSMapView from '@components/MapView/GPSMapView';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -61,6 +62,7 @@ function IOURequestStepDistanceGPS({
     const delegateAccountID = useDelegateAccountID();
 
     const {translate, formatPhoneNumber} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isInLandscapeMode = useIsInLandscapeMode();
 
@@ -175,6 +177,7 @@ function IOURequestStepDistanceGPS({
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,
+            getCurrencySymbol,
         });
     };
 

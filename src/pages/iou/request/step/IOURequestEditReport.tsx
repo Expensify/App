@@ -3,6 +3,7 @@ import {useSearchSelectionActions, useSearchSelectionContext} from '@components/
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +48,7 @@ type TransactionGroupListItem = ListItem & {
 type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.EDIT_REPORT>;
 
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
+    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const {backTo, reportID, action, shouldTurnOffSelectionMode, transactionID: transactionIDFromParams} = route.params;
     const {selectedTransactionIDs} = useSearchSelectionContext();
     const transactionIDs = transactionIDFromParams ? [transactionIDFromParams] : selectedTransactionIDs;
@@ -116,6 +118,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
+                convertToDisplayString,
+                getCurrencySymbol,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -142,6 +146,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            convertToDisplayString,
+            getCurrencySymbol,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();

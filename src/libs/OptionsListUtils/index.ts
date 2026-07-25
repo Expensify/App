@@ -2,10 +2,10 @@ import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
@@ -467,7 +467,11 @@ type GetAlternateTextConfig = {
     isTrackIntentUser?: boolean;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
 };
+
+type CurrencyFormatters = Pick<CurrencyListActionsContextType, 'convertToDisplayString' | 'convertToDisplayStringWithoutCurrency'>;
 
 /**
  * Update alternate text for the option when applicable
@@ -488,6 +492,8 @@ function getAlternateText(
         sortedActions,
         isTrackIntentUser,
         currentUserAccountID,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
     }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
@@ -512,6 +518,8 @@ function getAlternateText(
             sortedActions,
             isTrackIntentUser,
             currentUserAccountID,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -582,6 +590,7 @@ function getExpenseReportPreviewText(
     moneyRequestAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>,
     translate: LocalizedTranslate,
     transactions: Transaction[] = [],
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ): string {
     const originalMessage = moneyRequestAction ? getOriginalMessage(moneyRequestAction) : undefined;
     const linkedTransaction = transactions.find((transaction) => transaction.transactionID === originalMessage?.IOUTransactionID);
@@ -656,6 +665,8 @@ function getLastMessageTextForReport({
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     sortedActions = deprecatedAllSortedReportActions,
     currentUserAccountID,
+    convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
@@ -679,6 +690,8 @@ function getLastMessageTextForReport({
     sortedActions?: Record<string, ReportAction[]>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -741,6 +754,7 @@ function getLastMessageTextForReport({
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, {
+            convertToDisplayString,
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -764,6 +778,7 @@ function getLastMessageTextForReport({
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
             const reportPreviewMessage = getReportPreviewMessage(translate, {
+                convertToDisplayString,
                 reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -777,7 +792,7 @@ function getLastMessageTextForReport({
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID);
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID, convertToDisplayString);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -804,6 +819,7 @@ function getLastMessageTextForReport({
             movedToReport,
             policyTags,
             currentUserLogin: currentUserLogin ?? '',
+            convertToDisplayString,
         });
         // Strip HTML tags for plain text display in options list
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
@@ -904,7 +920,7 @@ function getLastMessageTextForReport({
     } else if (isRenamedAction(lastReportAction)) {
         lastMessageTextFromReport = getRenamedAction(translate, lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
-        lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction);
+        lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction, convertToDisplayString);
     } else if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
@@ -922,7 +938,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getDynamicExternalWorkflowRoutedMessage(lastReportAction, translate);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
-        lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastReportAction);
+        lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastReportAction, convertToDisplayString);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE)) {
         lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAgeMessage(translate, lastReportAction);
@@ -943,7 +959,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getRequireCompanyCardsEnabledMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
-        lastMessageTextFromReport = getAutoReimbursementMessage(translate, lastReportAction);
+        lastMessageTextFromReport = getAutoReimbursementMessage(translate, lastReportAction, convertToDisplayString);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE)) {
         lastMessageTextFromReport = getCategoryTaxRateMessage(translate, lastReportAction);
@@ -1024,7 +1040,7 @@ function getLastMessageTextForReport({
         } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
             const latestVisibleMoneyRequestAction = getLatestVisibleMoneyRequestAction(reportID, canUserPerformWrite, sortedActions?.[reportID], visibleReportActionsDataParam);
             if (isExpenseReport(report) && latestVisibleMoneyRequestAction) {
-                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions);
+                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions, convertToDisplayString);
             } else if (!isExpenseReport(report)) {
                 lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
             } else if (!isCreatedAction(lastReportAction)) {
@@ -1032,6 +1048,7 @@ function getLastMessageTextForReport({
                     formatReportLastMessageText(
                         Parser.htmlToText(
                             getReportPreviewMessage(translate, {
+                                convertToDisplayString,
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -1084,6 +1101,8 @@ type CreateOptionParams = {
     sortedActions?: Record<string, ReportAction[]>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
 };
 
 /**
@@ -1104,6 +1123,8 @@ function createOption({
     conciergeReportID,
     sortedActions,
     currentUserAccountID,
+    convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const translateFn = translate ?? translateLocal;
@@ -1191,6 +1212,8 @@ function createOption({
             sortedActions,
             isTrackIntentUser,
             currentUserAccountID,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
@@ -1209,6 +1232,8 @@ function createOption({
                           policyTags,
                           conciergeReportID,
                           currentUserAccountID,
+                          convertToDisplayString,
+                          convertToDisplayStringWithoutCurrency,
                       },
                   );
 
@@ -1270,6 +1295,7 @@ function getReportOption(
     reportDraft: OnyxEntry<Report>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    currencyFormatters: CurrencyFormatters,
     policyTags?: OnyxCollection<PolicyTagLists>,
 ): OptionData {
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
@@ -1291,6 +1317,7 @@ function getReportOption(
         visibleReportActionsData: {},
         conciergeReportID,
         currentUserAccountID,
+        ...currencyFormatters,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1330,6 +1357,7 @@ function getReportDisplayOption(
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
     translate: LocalizedTranslate,
+    currencyFormatters: CurrencyFormatters,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1349,6 +1377,7 @@ function getReportDisplayOption(
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
+        ...currencyFormatters,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1381,6 +1410,7 @@ function getPolicyExpenseReportOption(
     expenseReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     translate: LocalizedTranslate,
+    currencyFormatters: CurrencyFormatters,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1402,6 +1432,7 @@ function getPolicyExpenseReportOption(
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
+        ...currencyFormatters,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1512,6 +1543,7 @@ function processReport(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
+    currencyFormatters: CurrencyFormatters,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1552,6 +1584,7 @@ function processReport(
                 visibleReportActionsData,
                 isTrackIntentUser,
                 sortedActions,
+                ...currencyFormatters,
             }),
         },
     };
@@ -1660,6 +1693,7 @@ function createFilteredOptionList(
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     privateIsArchivedMap: PrivateIsArchivedMap,
     policiesCollection: OnyxCollection<Policy>,
+    currencyFormatters: CurrencyFormatters,
     options: {
         maxRecentReports?: number;
         includeP2P?: boolean;
@@ -1701,6 +1735,8 @@ function createFilteredOptionList(
         policyTags,
         visibleReportActionsData,
         isTrackIntentUser,
+        currencyFormatters.convertToDisplayString,
+        currencyFormatters.convertToDisplayStringWithoutCurrency,
         // Option building translates strings imperatively (translateLocal), so the active locale is part of the output.
         locale ?? IntlStore.getCurrentLocale(),
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
@@ -1764,6 +1800,7 @@ function createFilteredOptionList(
             personalDetails,
             privateIsArchived,
             policy,
+            currencyFormatters,
             reportAttributesDerived,
             reportPolicyTags,
             visibleReportActionsData,
@@ -1812,6 +1849,7 @@ function createFilteredOptionList(
                       reportAttributesDerived,
                       policyTags: reportPolicyTags,
                       visibleReportActionsData,
+                      ...currencyFormatters,
                   }),
               };
           })
@@ -1849,6 +1887,7 @@ function createOptionFromReport(
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
     sortedActions: Record<string, ReportAction[]> | undefined,
+    currencyFormatters: CurrencyFormatters,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     config?: PreviewConfig,
     policyTags?: OnyxEntry<PolicyTagLists>,
@@ -1871,6 +1910,7 @@ function createOptionFromReport(
             visibleReportActionsData,
             sortedActions,
             isTrackIntentUser,
+            ...currencyFormatters,
         }),
     };
 }
@@ -2163,13 +2203,11 @@ function getUserToInviteOption({
     searchInputValue,
     loginsToExclude = {},
     selectedOptions = [],
-    showChatPreviewLine = false,
     shouldAcceptName = false,
     countryCode = CONST.DEFAULT_COUNTRY_CODE,
     loginList = {},
     currentUserEmail,
-    visibleReportActionsData = {},
-}: GetUserToInviteConfig & {visibleReportActionsData?: VisibleReportActionsDerivedValue}): SearchOptionData | null {
+}: GetUserToInviteConfig): SearchOptionData | null {
     if (!searchValue) {
         return null;
     }
@@ -2200,14 +2238,7 @@ function getUserToInviteOption({
             login: searchValue,
         },
     };
-    const userToInvite = createOption({
-        accountIDs: [optimisticAccountID],
-        personalDetails: personalDetailsExtended,
-        report: null,
-        privateIsArchived: undefined,
-        config: {showChatPreviewLine},
-        visibleReportActionsData,
-    });
+    const userToInvite = getParticipantsOption({accountID: optimisticAccountID, selected: false}, personalDetailsExtended, translateLocal);
     userToInvite.isOptimisticAccount = true;
     userToInvite.login = searchValue;
 
@@ -2395,6 +2426,7 @@ function prepareReportOptionsForDisplay(
     config: GetValidReportsConfig,
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
+    currencyFormatters: CurrencyFormatters,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxCollection<PolicyTagLists>,
@@ -2445,6 +2477,7 @@ function prepareReportOptionsForDisplay(
                 conciergeReportID,
                 sortedActions,
                 isTrackIntentUser,
+                ...currencyFormatters,
             },
         );
         const isSelected = isReportSelected(option, selectedOptions);
@@ -2530,6 +2563,7 @@ function getValidOptions(
     currentUserAccountID: number,
     currentUserEmail: string,
     conciergeReportID: string | undefined,
+    currencyFormatters: CurrencyFormatters,
     {
         excludeLogins = {},
         excludeFromSuggestionsOnly = {},
@@ -2691,6 +2725,7 @@ function getValidOptions(
                 },
                 conciergeReportID,
                 sortedActions,
+                currencyFormatters,
                 visibleReportActionsData,
                 reportAttributesDerived,
                 allPolicyTags,
@@ -2716,6 +2751,7 @@ function getValidOptions(
             },
             conciergeReportID,
             sortedActions,
+            currencyFormatters,
             visibleReportActionsData,
             reportAttributesDerived,
             allPolicyTags,
@@ -2737,6 +2773,7 @@ function getValidOptions(
             },
             conciergeReportID,
             sortedActions,
+            currencyFormatters,
             visibleReportActionsData,
             reportAttributesDerived,
             allPolicyTags,
@@ -2899,6 +2936,8 @@ type SearchOptionsConfig = {
     conciergeReportID: string | undefined;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
 };
 
 /**
@@ -2930,36 +2969,48 @@ function getSearchOptions({
     conciergeReportID,
     excludeFromSuggestionsOnly = {},
     isTrackIntentUser,
+    convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
 }: SearchOptionsConfig): OptionsResult {
-    const optionList = getValidOptions(options, policyCollection, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
-        betas,
-        includeRecentReports,
-        includeMultipleParticipantReports: true,
-        showChatPreviewLine: isUsedInChatFinder,
-        includeP2P: true,
-        includeOwnedWorkspaceChats: true,
-        includeThreads: true,
-        includeMoneyRequests: true,
-        includeTasks: true,
-        includeReadOnly,
-        includeSelfDM: true,
-        shouldBoldTitleByDefault: !isUsedInChatFinder,
-        excludeHidden: true,
-        maxElements: maxResults,
-        includeCurrentUser,
-        searchString: searchQuery,
-        includeUserToInvite,
-        shouldShowGBR,
-        shouldUnreadBeBold,
-        personalDetails,
-        countryCode,
-        visibleReportActionsData,
-        reportAttributesDerived,
-        allPolicyTags,
-        sortedActions,
-        excludeFromSuggestionsOnly,
-        isTrackIntentUser,
-    });
+    const optionList = getValidOptions(
+        options,
+        policyCollection,
+        draftComments,
+        loginList,
+        currentUserAccountID,
+        currentUserEmail,
+        conciergeReportID,
+        {convertToDisplayString, convertToDisplayStringWithoutCurrency},
+        {
+            betas,
+            includeRecentReports,
+            includeMultipleParticipantReports: true,
+            showChatPreviewLine: isUsedInChatFinder,
+            includeP2P: true,
+            includeOwnedWorkspaceChats: true,
+            includeThreads: true,
+            includeMoneyRequests: true,
+            includeTasks: true,
+            includeReadOnly,
+            includeSelfDM: true,
+            shouldBoldTitleByDefault: !isUsedInChatFinder,
+            excludeHidden: true,
+            maxElements: maxResults,
+            includeCurrentUser,
+            searchString: searchQuery,
+            includeUserToInvite,
+            shouldShowGBR,
+            shouldUnreadBeBold,
+            personalDetails,
+            countryCode,
+            visibleReportActionsData,
+            reportAttributesDerived,
+            allPolicyTags,
+            sortedActions,
+            excludeFromSuggestionsOnly,
+            isTrackIntentUser,
+        },
+    );
 
     return optionList;
 }
@@ -3093,6 +3144,7 @@ function formatSectionsFromSearchTerm(
     currentUserAccountID: number,
     allPolicies: OnyxCollection<Policy>,
     translate: LocalizedTranslate,
+    currencyFormatters: CurrencyFormatters,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
@@ -3116,7 +3168,16 @@ function formatSectionsFromSearchTerm(
                               const expenseReport = getReportByID(participant.reportID);
                               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                               const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                              return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, translate, reportAttributesDerived);
+                              return getPolicyExpenseReportOption(
+                                  participant,
+                                  privateIsArchived,
+                                  personalDetails,
+                                  expenseReport,
+                                  expenseReportPolicy,
+                                  translate,
+                                  currencyFormatters,
+                                  reportAttributesDerived,
+                              );
                           }
                           return getParticipantsOption(participant, personalDetails, translate);
                       })
@@ -3148,7 +3209,16 @@ function formatSectionsFromSearchTerm(
                           const expenseReport = getReportByID(participant.reportID);
                           const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                           const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                          return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, translate, reportAttributesDerived);
+                          return getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              personalDetails,
+                              expenseReport,
+                              expenseReportPolicy,
+                              translate,
+                              currencyFormatters,
+                              reportAttributesDerived,
+                          );
                       }
                       return getParticipantsOption(participant, personalDetails, translate);
                   })

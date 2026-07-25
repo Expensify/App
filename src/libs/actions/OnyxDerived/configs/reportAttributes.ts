@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {convertToDisplayString as convertToDisplayStringCurrencyUtils, convertToDisplayStringWithoutCurrency as convertToDisplayStringWithoutCurrencyUtils} from '@libs/CurrencyUtils';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -204,6 +205,7 @@ export default createOnyxDerivedValueConfig({
     dependencies: [
         ONYXKEYS.COLLECTION.REPORT,
         ONYXKEYS.NVP_PREFERRED_LOCALE,
+        ONYXKEYS.CURRENCY_LIST,
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
@@ -221,6 +223,7 @@ export default createOnyxDerivedValueConfig({
         [
             reports,
             preferredLocale,
+            currencyList,
             transactionViolations,
             reportActions,
             reportNameValuePairs,
@@ -237,6 +240,8 @@ export default createOnyxDerivedValueConfig({
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
+        const convertToDisplayString = (amount: number | undefined, currency: string | undefined) => convertToDisplayStringCurrencyUtils(amount, currency, false, currencyList);
+        const convertToDisplayStringWithoutCurrency = (amount: number, currency?: string) => convertToDisplayStringWithoutCurrencyUtils(amount, currency, currencyList);
         // Check if display names changed when personal details are updated
         let displayNameChanges: Set<number> | typeof RECOMPUTE_ALL | null = null;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
@@ -543,6 +548,8 @@ export default createOnyxDerivedValueConfig({
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
                               isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                              convertToDisplayString,
+                              convertToDisplayStringWithoutCurrency,
                           })
                         : '',
                     isEmpty: generateIsEmptyReport(report, isReportArchived),

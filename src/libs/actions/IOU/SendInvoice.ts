@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {CurrencyListActionsContextType} from '@components/OnyxListItemProvider';
 
 import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
@@ -88,6 +89,7 @@ type SendInvoiceOptions = {
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateAccountID: number | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -593,6 +595,7 @@ function getSendInvoiceInformation({
     senderPolicyTags,
     formatPhoneNumber,
     delegateAccountID,
+    convertToDisplayString,
 }: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
@@ -626,6 +629,7 @@ function getSendInvoiceInformation({
         receiver.displayName ?? (receiverParticipant as Participant)?.login ?? '',
         amount,
         currency,
+        convertToDisplayString,
     );
 
     // STEP 3: Build optimistic receipt and transaction
@@ -671,7 +675,16 @@ function getSendInvoiceInformation({
     }
 
     // STEP 5: Build optimistic reportActions.
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction, undefined, undefined, delegateAccountID);
+    const reportPreviewAction = buildOptimisticReportPreview(
+        chatReport,
+        optimisticInvoiceReport,
+        convertToDisplayString,
+        trimmedComment,
+        optimisticTransaction,
+        undefined,
+        undefined,
+        delegateAccountID,
+    );
     optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
@@ -686,6 +699,7 @@ function getSendInvoiceInformation({
             transactionID: optimisticTransaction.transactionID,
             currentUserAccountID,
             delegateAccountIDParam: delegateAccountID,
+            convertToDisplayString,
         });
 
     // STEP 6: Build Onyx Data
@@ -743,6 +757,7 @@ function sendInvoice({
     senderPolicyTags,
     formatPhoneNumber,
     delegateAccountID,
+    convertToDisplayString,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -778,6 +793,7 @@ function sendInvoice({
         policyRecentlyUsedTags,
         senderPolicyTags: senderPolicyTags ?? {},
         formatPhoneNumber,
+        convertToDisplayString,
         delegateAccountID,
     });
 

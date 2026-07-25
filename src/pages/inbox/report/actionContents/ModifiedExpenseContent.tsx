@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,6 +25,7 @@ type ModifiedExpenseContentProps = {
 
 function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpenseContentProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {email: currentUserEmail} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -46,6 +48,7 @@ function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpe
         policyTags: policyTags ?? CONST.POLICY.DEFAULT_TAG_LIST,
         policyCategories,
         currentUserLogin: currentUserEmail ?? '',
+        convertToDisplayString,
     });
 
     return (

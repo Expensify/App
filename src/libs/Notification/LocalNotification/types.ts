@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 
 import type {Policy, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -25,6 +27,7 @@ type LocalNotificationModifiedExpenseParams = {
     movedToReport?: OnyxEntry<Report>;
     currentUserLogin: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {

@@ -1,3 +1,5 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
@@ -12,6 +14,7 @@ import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
 function useUndeleteTransactions() {
+    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -40,6 +43,8 @@ function useUndeleteTransactions() {
             selfDMReportActions,
             isTrackIntentUser,
             personalPolicyOutputCurrency: policy?.outputCurrency,
+            convertToDisplayString,
+            getCurrencySymbol,
         });
     };
 }

@@ -6,6 +6,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -49,6 +50,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
@@ -76,7 +78,16 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     if (isPolicyExpenseChat(report)) {
         participants = [
             getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails, translate),
-            getPolicyExpenseReportOption({...report, selected: true, reportID}, privateIsArchived, personalDetails, report, policy, translate, reportAttributesDerived),
+            getPolicyExpenseReportOption(
+                {...report, selected: true, reportID},
+                privateIsArchived,
+                personalDetails,
+                report,
+                policy,
+                translate,
+                {convertToDisplayString, convertToDisplayStringWithoutCurrency},
+                reportAttributesDerived,
+            ),
         ];
     } else {
         participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails, translate));
@@ -111,6 +122,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             isTrackIntentUser,
             sessionEmail: session?.email,
             formatPhoneNumber,
+            convertToDisplayString,
         });
     }, [
         reportID,
@@ -126,6 +138,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         delegateAccountID,
         isTrackIntentUser,
         formatPhoneNumber,
+        convertToDisplayString,
     ]);
 
     return (

@@ -2,6 +2,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -35,6 +36,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -67,6 +69,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 currentUserAccountID,
                 currentUserLogin ?? '',
                 betas,
+                convertToDisplayString,
             );
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 clearSelectedTransactions(true);
@@ -87,6 +90,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             currentUserAccountID,
             currentUserLogin,
             betas,
+            convertToDisplayString,
             route.name,
             showDelegateNoAccessModal,
             clearSelectedTransactions,

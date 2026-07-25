@@ -4,6 +4,7 @@ import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -11,7 +12,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToDisplayStringWithExplicitCurrency} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {formatLastFourPAN} from '@libs/TransactionPreviewUtils';
@@ -39,6 +39,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'ReceiptBody', 'CreditCardExclamation']);
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1);
     const transactionPreviewWidth = reportPreviewStyles.transactionPreviewStandaloneStyle.width;
@@ -64,7 +65,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
         ? DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT)
         : '';
     const headerText = [formattedDate, translate('common.card')].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
-    const displayAmount = amount === undefined ? '' : convertToDisplayStringWithExplicitCurrency(amount, currency);
+    const displayAmount = amount === undefined ? '' : currency ? convertToDisplayString(amount, currency) : convertToDisplayStringWithoutCurrency(amount);
 
     const formattedLastFourPAN = formatLastFourPAN(lastFourPAN);
     const shouldShowCardEnding = formattedLastFourPAN.length > 0;

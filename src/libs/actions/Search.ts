@@ -229,6 +229,7 @@ type HandleActionButtonPressParams = {
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 function handleActionButtonPress({
@@ -267,6 +268,7 @@ function handleActionButtonPress({
     delegateEmail,
     delegateAccountID,
     isTrackIntentUser,
+    convertToDisplayString,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -351,6 +353,7 @@ function handleActionButtonPress({
                 delegateEmail,
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
+                convertToDisplayString,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -603,6 +606,7 @@ function getPayActionCallback({
         chatReportActions,
         delegateAccountID,
         isTrackIntentUser,
+        convertToDisplayString,
     });
 }
 
@@ -623,6 +627,7 @@ type GetApproveActionCallbackParams = {
     delegateEmail?: string;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 function getApproveActionCallback({
@@ -642,6 +647,7 @@ function getApproveActionCallback({
     delegateEmail,
     isTrackIntentUser,
     ownerLogin,
+    convertToDisplayString,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -668,6 +674,7 @@ function getApproveActionCallback({
         delegateEmail,
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
+        convertToDisplayString,
         isTrackIntentUser,
     });
 }
@@ -1319,6 +1326,7 @@ function rejectMoneyRequestInBulk(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -1338,7 +1346,7 @@ function rejectMoneyRequestInBulk(
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, undefined, true);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, convertToDisplayString, undefined, true);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -1375,6 +1383,7 @@ function rejectMoneyRequestsOnSearch(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) {
     const transactionIDs = Object.keys(selectedTransactions);
 
@@ -1407,7 +1416,7 @@ function rejectMoneyRequestsOnSearch(
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, hash);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, convertToDisplayString, hash);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
@@ -1416,7 +1425,7 @@ function rejectMoneyRequestsOnSearch(
                 existingRejectedReport = nextRejectedReport;
             };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, {
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, convertToDisplayString, {
                     sharedRejectedToReportID,
                     existingRejectedReport,
                     setExistingRejectedReport,
@@ -1906,7 +1915,12 @@ function getTotalFormattedAmount(
  *
  * Note: we don't create anything new, we just optimistically generate the data that we know will be returned by API.
  */
-function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData, IOUTransactionID?: string) {
+function setOptimisticDataForTransactionThreadPreview(
+    item: TransactionListItemType,
+    transactionPreviewData: TransactionPreviewData,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    IOUTransactionID?: string,
+) {
     const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
     const moneyRequestReportActionID = item?.reportAction?.reportActionID;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
@@ -1938,6 +1952,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
             } as ReportAction,
             // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             delegateAccountIDParam: undefined,
+            convertToDisplayString,
         });
         optimisticIOUAction.pendingAction = undefined;
         optimisticIOUAction.actorAccountID = from?.accountID;

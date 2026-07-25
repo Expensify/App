@@ -71,7 +71,7 @@ function useSplitParticipants({
 }: UseSplitParticipantsParams) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
 
     const transactionID = transaction?.transactionID;
     const onSplitShareChange = (accountID: number, value: number) => {
@@ -94,7 +94,7 @@ function useSplitParticipants({
                 if (iouAmount > 0) {
                     amount =
                         transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
-                        calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
+                        calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', getCurrencyDecimals, isPayer);
                 }
                 return {
                     ...participantOption,

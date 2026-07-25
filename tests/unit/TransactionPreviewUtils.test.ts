@@ -21,7 +21,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
-    iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
+    iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD', convertToDisplayString),
     iouReportOwnerLogin: undefined,
     policy: undefined,
     transaction: buildOptimisticTransaction({
@@ -45,6 +45,8 @@ const basicProps = {
         transactionID: '1',
         paymentType: undefined,
         iouReportID: '1',
+
+        convertToDisplayString,
     }),
     violations: [],
     transactionDetails: {},

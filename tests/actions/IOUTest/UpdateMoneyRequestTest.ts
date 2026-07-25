@@ -14,6 +14,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {editTransactionMerchantInline} from '@libs/actions/TransactionInlineEdit';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -2466,6 +2467,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
                 transactionID,
                 isPersonalTrackingExpense: true,
+
+                convertToDisplayString,
             });
             const transactionThread: Report = {
                 ...createRandomReport(2, undefined),

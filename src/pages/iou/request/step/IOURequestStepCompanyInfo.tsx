@@ -124,6 +124,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             senderPolicyTags: policyTags ?? {},
             formatPhoneNumber,
             delegateAccountID,
+            convertToDisplayString,
         });
         cleanupAndNavigateAfterExpenseCreate({
             report: undefined,

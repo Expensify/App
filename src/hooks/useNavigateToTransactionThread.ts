@@ -11,6 +11,7 @@ import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
@@ -44,6 +45,7 @@ type NavigateToTransactionThreadParams = {
  * `siblingTransactionIDs` because the data sources differ per screen.
  */
 function useNavigateToTransactionThread() {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {markReportRHPWidth} = useWideRHPActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -68,6 +70,7 @@ function useNavigateToTransactionThread() {
                 iouReport: report,
                 iouReportAction: iouAction,
                 transaction,
+                convertToDisplayString,
             });
             if (transactionThreadReport) {
                 reportIDToNavigate = transactionThreadReport.reportID;

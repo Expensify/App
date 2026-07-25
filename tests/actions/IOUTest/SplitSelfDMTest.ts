@@ -1,5 +1,6 @@
 import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 
@@ -133,6 +134,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
                 participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
                 transactionID: originalTransactionID,
                 isPersonalTrackingExpense: true,
+
+                convertToDisplayString,
             }),
         } as ReportAction;
 
