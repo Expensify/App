@@ -15,6 +15,7 @@ import Section from '@components/Section';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -69,7 +70,7 @@ function ProfilePage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
     useDocumentTitle(translate('common.profile'));
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
@@ -104,6 +105,7 @@ function ProfilePage() {
             description: translate('displayNamePage.headerTitle'),
             title: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate})),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
+            testID: 'display-name-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
         },
         {
@@ -122,6 +124,7 @@ function ProfilePage() {
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
             brickRoadIndicator: isEmptyObject(vacationDelegate?.errors) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            testID: 'status-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
         ...(!isAgentAccount
@@ -156,18 +159,21 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
+            testID: 'legal-name-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
             action: () => navigateToPrivateDetails(INPUT_IDS.LEGAL_FIRST_NAME),
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
+            testID: 'dob-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
             action: () => navigateToPrivateDetails(INPUT_IDS.DATE_OF_BIRTH),
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
+            testID: 'phone-number-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
             action: () => navigateToPrivateDetails(INPUT_IDS.PHONE_NUMBER),
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -175,6 +181,7 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.address'),
             title: getFormattedAddress(privateDetails),
+            testID: 'address-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
             action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
         },
@@ -182,7 +189,7 @@ function ProfilePage() {
 
     const privateSectionReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'ProfilePage.privateSection',
-        isLoadingApp: !!isLoadingApp,
+        isLoadingApp: isAppLoadPending,
     };
 
     return (
@@ -257,12 +264,11 @@ function ProfilePage() {
                                     </OfflineWithFeedback>
                                 )}
                             </View>
-                            {publicOptions.map((detail, index) => {
+                            {publicOptions.map((detail) => {
                                 const {pageRoute} = detail;
                                 return (
                                     <MenuItemWithTopDescription
-                                        // eslint-disable-next-line react/no-array-index-key
-                                        key={`${detail.title}_${index}`}
+                                        key={detail.testID}
                                         interactive={!!pageRoute}
                                         shouldShowRightIcon={!!pageRoute}
                                         title={detail.title}
@@ -292,7 +298,7 @@ function ProfilePage() {
                             childrenStyles={styles.pt3}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            {isLoadingApp ? (
+                            {isAppLoadPending ? (
                                 <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
                                     <ActivityIndicator
                                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -301,16 +307,16 @@ function ProfilePage() {
                                 </View>
                             ) : (
                                 <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
-                                    {privateOptions.map((detail, index) => (
+                                    {privateOptions.map((detail) => (
                                         <MenuItemWithTopDescription
-                                            // eslint-disable-next-line react/no-array-index-key
-                                            key={`${detail.title}_${index}`}
+                                            key={detail.testID}
                                             shouldShowRightIcon
                                             title={detail.title}
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
                                             onPress={detail.action}
                                             brickRoadIndicator={detail.brickRoadIndicator}
+                                            pressableTestID={detail?.testID}
                                             sentryLabel={detail.sentryLabel}
                                         />
                                     ))}
