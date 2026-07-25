@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,10 +26,11 @@ function ReportPreviewActionButton() {
 
     const viewButton = (
         <Button
-            text={translate('common.view')}
             onPress={openReportFromPreview}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
-        />
+        >
+            <Button.Text>{translate('common.view')}</Button.Text>
+        </Button>
     );
 
     const renderPrimaryButton = () => {
@@ -63,8 +64,6 @@ function ReportPreviewActionButton() {
     }
 
     return (
-        // The primary (green) button fills the available space while the View button hugs its content, so a long
-        // primary label (e.g. "Mark as paid") isn't truncated by a 50/50 split.
         <View style={[buttonMaxWidth, styles.flex1, styles.flexRow, styles.gap2, {height: variables.h40}]}>
             <View style={[styles.flex1]}>{primaryButton}</View>
             {viewButton}

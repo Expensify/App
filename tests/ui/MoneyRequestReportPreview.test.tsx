@@ -514,7 +514,7 @@ describe('MoneyRequestReportPreview', () => {
 
         it('opens the report in the wide RHP and then the pressed expense on top (after a short delay) on wide layouts', async () => {
             // The pressed expense opens on a short setTimeout so the report's wide RHP settles first. Use real
-            // timers so that delayed navigation actually fires (afterEach restores the global fake timers).
+            // timers so that delayed navigation actually fires
             jest.useRealTimers();
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);

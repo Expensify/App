@@ -88,9 +88,8 @@ function MoneyRequestReportPreview({
     const [iouReportActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: (reportActions) => Object.keys(reportActions ?? {}).length,
     });
-    // Whether the deferred press's openReport fetch is still in flight. Its true -> false flip re-runs the drain
-    // effect below even when the fetched actions match the cache (no count change), so a deferred press always
-    // settles — without this, a press deferred while some actions were already cached could hang forever.
+    // Whether the deferred press's openReport fetch is still in flight. The true -> false flip re-runs the drain
+    // effect below, so a deferred press settles even when the fetch returns the actions we already had.
     const [isLoadingInitialIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: (loadingState) => !!loadingState?.isLoadingInitialReportActions,
     });
@@ -185,9 +184,9 @@ function MoneyRequestReportPreview({
             const transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
             let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
             if (childReportID) {
-                // The thread already exists, but it may not be cached (offline, or after a cache clear). Seed its
+                // The thread already exists, but it may not be present in OnyxDB. Seed its
                 // optimistic report shell + parent linkage so navigating to it renders the expense instead of a
-                // blank/not-found screen — the same thing the canonical transaction-thread openers do.
+                // blank/not-found screen.
                 setOptimisticTransactionThread(childReportID, iouReport?.reportID ?? transaction.reportID, transactionIOUAction?.reportActionID, iouReport?.policyID ?? policyID);
             } else if (transactionIOUAction?.reportActionID) {
                 const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
@@ -221,19 +220,11 @@ function MoneyRequestReportPreview({
                     return;
                 }
 
-                // On mobile web, open the parent report as the top of the split (so it stays interactive and is never
-                // frozen under the expense), then open the pressed expense in the RHP over it — the same way the report
-                // view and the wide layout open an expense. Browser/OS back and the header back both close the RHP to
-                // the fully-loaded report, then to the chat. Pushing the expense as a second split report screen
-                // instead leaves the parent report frozen beneath it (freezeNonTopScreens), so hard-backing to that
-                // just-thawed, still-loading report drops the first transaction-row tap.
                 if (getPlatform() === CONST.PLATFORM.WEB) {
-                    // On mobile web, push the parent report first so it lands as its own browser-history entry (back
-                    // stops on the report, then the chat), then open the pressed expense in the RHP over it one
-                    // microtask later so the two navigations don't batch into a single history push. The report stays
-                    // live under the full-screen RHP because FreezeWrapper no longer freezes a split that has an RHP
-                    // over it, so it's never suspended mid-hydration (which used to wedge React concurrent rendering on
-                    // iOS Safari). Mirrors native's back -> report -> chat.
+                    // On mobile web, push the parent report first so it gets its own browser-history entry (back stops
+                    // on the report, then the chat), then open the pressed expense in the RHP over it one microtask
+                    // later so the two navigations don't batch into a single history push. Mirrors native's
+                    // back -> report -> chat.
                     const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
                     setActiveTransactionIDs(transactions.map((transaction) => transaction.transactionID));
                     Navigation.navigate(reportRoute);
@@ -249,8 +240,7 @@ function MoneyRequestReportPreview({
                 }
 
                 // On native the wide RHP is unavailable and there is a swipe-back gesture, so open the expense with the
-                // parent report as a real stack entry underneath as a single forward slide (see
-                // openExpenseOverParentReport for the mechanics).
+                // parent report as a real stack entry underneath as a single forward slide.
                 Navigation.openExpenseOverParentReport(iouReportID, childReportID, backTo);
                 return;
             }
@@ -307,9 +297,8 @@ function MoneyRequestReportPreview({
                 return;
             }
 
-            // The thread could not be resolved because this expense's IOU action isn't cached (e.g. right after a
-            // cache clear, or when only part of the report's actions were seeded). Fetch the report's actions and
-            // open the expense once the fetch settles (see the effect below) instead of falling back to the parent
+            // The thread could not be resolved because this expense's IOU action isn't present in OnyxDB. Fetch the report's actions and
+            // open the expense once the fetch settles, instead of falling back to the parent
             // report and losing the pressed expense. Skip this while offline: openReport can't fetch, so the
             // deferred press would never fire (dead tap) — fall through to opening the cached parent report
             // instead, matching the "View" button.
