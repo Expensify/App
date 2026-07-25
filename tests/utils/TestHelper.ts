@@ -1,8 +1,10 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
+import {format as formatNumber} from '@libs/NumberFormatUtils';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 
@@ -448,6 +450,32 @@ function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parame
     return translate(currentLocale, phrase, ...parameters);
 }
 
+/**
+ * A local version of useCurrencyListActions().getCurrencyDecimals for tests. Tests don't populate
+ * the currency list, so this mirrors the provider's behavior with an empty list and always returns
+ * the default number of decimals.
+ */
+function getCurrencyDecimalsLocal(): number {
+    return CONST.DEFAULT_CURRENCY_DECIMALS;
+}
+
+/**
+ * A local version of useCurrencyListActions().convertToDisplayString for tests that call lib
+ * functions directly and need to inject the currency formatter without the full app context.
+ * Mirrors the implementation in CurrencyListContextProvider, pinned to the `en` locale.
+ */
+function convertToDisplayStringLocal(amountInCents: number | undefined, currencyCode: string | undefined): string {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    const decimals = getCurrencyDecimalsLocal();
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
+    return formatNumber(CONST.LOCALES.EN, convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: 2,
+    });
+}
+
 function getNavigateToChatHintRegex(): RegExp {
     const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
     return new RegExp(hintTextPrefix, 'i');
@@ -475,6 +503,8 @@ function localeCompare(a: string, b: string): number {
 export type {MockFetch, FormData};
 export {
     translateLocal,
+    convertToDisplayStringLocal,
+    getCurrencyDecimalsLocal,
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,

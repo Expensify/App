@@ -1,13 +1,11 @@
 import getExpenseReportRowDisplayValues from '@components/Search/SearchList/ListItem/getExpenseReportRowDisplayValues';
 
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayStringLocal, translateLocal} from '../utils/TestHelper';
 
-const deps = {translate: translateLocal, convertToDisplayString};
+const deps = {translate: translateLocal, convertToDisplayString: convertToDisplayStringLocal};
 const DELETE = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
 describe('getExpenseReportRowDisplayValues', () => {

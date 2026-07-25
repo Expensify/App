@@ -1,5 +1,4 @@
 import ComposeProviders from '@components/ComposeProviders';
-import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import GPSInProgressModal from '@components/GPSInProgressModal';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
@@ -179,7 +178,6 @@ function AuthScreens() {
                         KYCWallContextProvider,
                         WideRHPContextProvider,
                         KeyboardDismissibleFlatListContextProvider,
-                        CurrencyListContextProvider,
                         SidebarOrderedReportsContextProvider,
                         SearchContextProvider,
                         LockedAccountModalProvider,

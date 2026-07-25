@@ -7,6 +7,7 @@ import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
@@ -164,6 +165,7 @@ function BaseReportActionContextMenu({
     ]);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
@@ -430,6 +432,7 @@ function BaseReportActionContextMenu({
                                 policy,
                                 policyTags,
                                 translate,
+                                convertToDisplayString,
                                 harvestReport,
                                 harvestReportOriginalID,
                                 introSelected,

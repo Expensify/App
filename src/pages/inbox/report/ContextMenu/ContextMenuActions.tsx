@@ -5,6 +5,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -337,6 +338,7 @@ type ContextMenuActionPayload = {
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     harvestReport?: OnyxEntry<ReportType>;
     harvestReportOriginalID?: string;
     introSelected: OnyxEntry<IntroSelected>;
@@ -932,6 +934,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 getLocalDateFromDatetime,
                 policyTags,
                 translate,
+                convertToDisplayString,
                 harvestReport,
                 harvestReportOriginalID,
                 currentUserPersonalDetails,
@@ -968,6 +971,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessageWithHTML = getForReportAction({
                         translate,
+                        convertToDisplayString,
                         reportAction,
                         policy,
                         movedFromReport,
