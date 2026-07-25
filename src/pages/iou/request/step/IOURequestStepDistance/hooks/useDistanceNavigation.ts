@@ -152,7 +152,7 @@ function useDistanceNavigation({
 
     const delegateAccountID = useDelegateAccountID();
     const {formatPhoneNumber} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} = useCurrencyListActions();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
     return () => {
         const optimisticTransactionID = rand64();
@@ -204,6 +204,8 @@ function useDistanceNavigation({
             policyTagList,
             formatPhoneNumber,
             getCurrencySymbol,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
         });
     };
 }

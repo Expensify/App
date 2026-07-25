@@ -110,6 +110,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     policyTagList: PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -209,6 +211,8 @@ function handleMoneyRequestStepDistanceNavigation({
     policyTagList,
     formatPhoneNumber,
     getCurrencySymbol,
+    convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -244,6 +248,8 @@ function handleMoneyRequestStepDistanceNavigation({
             reportAttributesDerived,
             reportDraft,
             translate,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
         );
 
         setDistanceRequestData?.(participants);

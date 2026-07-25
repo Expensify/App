@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -7,6 +9,7 @@ import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import {formatCurrentUserToAttendee, getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
@@ -16,6 +19,7 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
 } from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
 import {
@@ -51,6 +55,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Accountant, Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -238,6 +243,31 @@ function createTransaction({
             });
         }
     }
+}
+
+function getMoneyRequestParticipantOptions(
+    currentUserAccountID: number,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    conciergeReportID: string | undefined,
+    privateIsArchived: boolean | undefined,
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    reportDraft: OnyxEntry<Report> | undefined,
+    translate: LocalizedTranslate,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+): Array<Participant | OptionData> {
+    const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
+    return selectedParticipants.map((participant) => {
+        const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        return participantAccountID
+            ? getParticipantsOption(participant, personalDetails, translate)
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserAccountID, translate, {
+                  convertToDisplayString,
+                  convertToDisplayStringWithoutCurrency,
+              });
+    });
 }
 
 type InitMoneyRequestParams = {

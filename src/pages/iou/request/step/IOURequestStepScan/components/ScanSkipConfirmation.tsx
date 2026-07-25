@@ -78,7 +78,7 @@ type ScanSkipConfirmationProps = WithCurrentUserPersonalDetailsProps & {
  * Most complex variant with the most Onyx subscriptions.
  */
 function ScanSkipConfirmation({report, action, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanSkipConfirmationProps) {
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const policy = usePolicy(report?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isArchived = useReportIsArchived(report?.reportID);
@@ -127,6 +127,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         reportAttributesDerived,
         reportDraft,
         translate,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 

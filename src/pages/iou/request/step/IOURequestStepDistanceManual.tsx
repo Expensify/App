@@ -75,7 +75,7 @@ function IOURequestStepDistanceManual({
     currentUserPersonalDetails,
 }: IOURequestStepDistanceManualProps) {
     const {translate, formatPhoneNumber} = useLocalize();
-    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
@@ -315,6 +315,8 @@ function IOURequestStepDistanceManual({
             policyTagList,
             formatPhoneNumber,
             getCurrencySymbol,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
         });
     };
 

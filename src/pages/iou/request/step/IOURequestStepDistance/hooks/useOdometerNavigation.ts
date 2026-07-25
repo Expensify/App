@@ -156,7 +156,7 @@ function useOdometerNavigation({
 
     const delegateAccountID = useDelegateAccountID();
     const {formatPhoneNumber} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} = useCurrencyListActions();
 
     return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
@@ -211,6 +211,8 @@ function useOdometerNavigation({
             policyTagList,
             formatPhoneNumber,
             getCurrencySymbol,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
         });
     };
 }

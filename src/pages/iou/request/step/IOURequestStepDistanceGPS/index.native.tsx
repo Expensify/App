@@ -62,7 +62,7 @@ function IOURequestStepDistanceGPS({
     const delegateAccountID = useDelegateAccountID();
 
     const {translate, formatPhoneNumber} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isInLandscapeMode = useIsInLandscapeMode();
 
@@ -178,6 +178,8 @@ function IOURequestStepDistanceGPS({
             policyTagList,
             formatPhoneNumber,
             getCurrencySymbol,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
         });
     };
 
