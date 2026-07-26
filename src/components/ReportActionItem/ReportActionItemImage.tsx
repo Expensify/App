@@ -1,5 +1,6 @@
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import type {IconSize} from '@components/EReceiptThumbnail';
+import Image from '@components/Image';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
 import ReceiptImage from '@components/ReceiptImage';
@@ -223,22 +224,34 @@ function ReportActionItemImage({
     // view stays sharp. The thumbnail stays underneath as an instant preview and as a fallback if the PDF fails.
     // Map/route distance requests are excluded: their hover overlay is a DistanceEReceipt card, not the PDF.
     // isMapBasedDistanceRequest covers map, GPS, and manual-typed transactions that still carry waypoints.
-    const pdfSourceURL = typeof originalImageSource === 'string' && !!originalImageSource ? originalImageSource : undefined;
-    const isRemotePDF = !!isPDF && !effectiveIsLocalFile && !isEReceipt && !isMapBasedDistanceRequest(transaction) && !!pdfSourceURL;
+    const highResSourceURL = typeof originalImageSource === 'string' && !!originalImageSource ? originalImageSource : undefined;
+    const isRemotePDF = !!isPDF && !effectiveIsLocalFile && !isEReceipt && !isMapBasedDistanceRequest(transaction) && !!highResSourceURL;
     const shouldOverlayHighResPDF = canZoomReceipt && isRemotePDF && hasHoverSupport();
+    
+    const isRemoteImage = !isPDF && !effectiveIsLocalFile && !isEReceipt && !isMapBasedDistanceRequest(transaction) && !!highResSourceURL;
+    const shouldOverlayHighResImage = canZoomReceipt && isRemoteImage && hasHoverSupport();
 
     const renderReceiptContent = (receiptImage: React.ReactNode) =>
-        shouldOverlayHighResPDF ? (
+        shouldOverlayHighResPDF || shouldOverlayHighResImage ? (
             <View style={[styles.w100, styles.h100]}>
                 {receiptImage}
                 <View
                     style={StyleSheet.absoluteFill}
                     pointerEvents="none"
                 >
-                    <ReceiptPDFOverlay
-                        sourceURL={pdfSourceURL}
-                        onLoadFailure={onLoadFailure}
-                    />
+                    {shouldOverlayHighResPDF && (
+                        <ReceiptPDFOverlay
+                            sourceURL={highResSourceURL}
+                            onLoadFailure={onLoadFailure}
+                        />
+                    )}
+                    {shouldOverlayHighResImage && (
+                        <Image
+                            source={{uri: highResSourceURL}}
+                            style={StyleSheet.absoluteFill}
+                            isAuthTokenRequired
+                        />
+                    )}
                 </View>
             </View>
         ) : (
