@@ -59,13 +59,9 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     let frozenByText: string | undefined;
     if (formattedFrozenDate) {
         if (item.frozenByAccountID === session?.accountID) {
-            frozenByText = translate('cardPage.youFroze', {
-                date: formattedFrozenDate,
-            });
+            frozenByText = translate('cardPage.youFroze', {date: formattedFrozenDate});
         } else {
-            const frozenByAdminPrefix = translate('cardPage.frozenByAdminPrefix', {
-                date: formattedFrozenDate,
-            });
+            const frozenByAdminPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedFrozenDate});
             frozenByText = `${frozenByAdminPrefix}${item.frozenByDisplayName ?? translate('common.someone')}`;
         }
     }

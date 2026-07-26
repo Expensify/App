@@ -130,6 +130,7 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'lastFour',
             label: translate('workspace.expensifyCard.lastFour'),
             sortable: true,
+            width: variables.tableLastFourColumnWidth,
         },
         {
             key: 'status',
