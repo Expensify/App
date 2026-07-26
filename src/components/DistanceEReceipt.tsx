@@ -11,11 +11,12 @@ import {getWaypointIndex, hasReceipt, isFetchingWaypointsFromServer} from '@libs
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import type {TranslationPaths} from '@src/languages/types';
-import type {Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
@@ -30,15 +31,18 @@ type DistanceEReceiptProps = {
 
     /** Whether the distanceEReceipt is shown as hover preview */
     hoverPreview?: boolean;
+
+    /** The policy associated with the transaction/report */
+    policy?: OnyxEntry<Policy>;
 };
 
-function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptProps) {
+function DistanceEReceipt({transaction, hoverPreview = false, policy}: DistanceEReceiptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const thumbnail = hasReceipt(transaction) ? getThumbnailAndImageURIs(transaction).thumbnail : null;
-    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = getTransactionDetails(transaction) ?? {};
+    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = getTransactionDetails(transaction, undefined, policy) ?? {};
     const formattedTransactionAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);
