@@ -77,7 +77,7 @@ export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectio
     };
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceTagTableRowData> = (item, filterValues) => {
-        if (!filterValues || filterValues.length === 0 || filterValues.includes('all')) {
+        if (!filterValues || filterValues.length === 0) {
             return true;
         }
         if (filterValues.includes('enabled') && item.enabled) {
