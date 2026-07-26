@@ -280,6 +280,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? snapshotReport?.chatReportID ?? snapshotReport.parentReportID)}`,
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID} =
         useReportPaymentContext({
@@ -332,6 +333,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            allViolations,
         });
     };
     return !isLargeScreenWidth ? (

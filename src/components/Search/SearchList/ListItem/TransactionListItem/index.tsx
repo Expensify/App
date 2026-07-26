@@ -132,6 +132,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(transactionItem?.report?.ownerAccountID)});
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const [transactionViolationsForRow] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
+    const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const parentReportActionID = transactionItem?.reportAction?.reportActionID;
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {
         selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${parentReportActionID}`],
@@ -233,6 +234,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            allViolations,
         });
     };
 

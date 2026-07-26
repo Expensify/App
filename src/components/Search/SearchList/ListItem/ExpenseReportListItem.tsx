@@ -118,6 +118,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
@@ -299,6 +300,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            allViolations,
         });
     }, [
         currentSearchHash,
@@ -339,6 +341,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         isTrackIntentUser,
+        allViolations,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

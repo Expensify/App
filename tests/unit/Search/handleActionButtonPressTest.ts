@@ -1,15 +1,18 @@
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 
+import * as ReportWorkflow from '@libs/actions/IOU/ReportWorkflow';
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-imports -- namespace import needed to spy on hasViolations in the approve-action test
+import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {LastPaymentMethod, Policy, Report, SearchResults} from '@src/types/onyx';
+import type {LastPaymentMethod, Policy, Report, SearchResults, TransactionViolations} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -333,8 +336,8 @@ describe('handleActionButtonPress', () => {
         Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, mockLastPaymentMethod);
     });
 
-    const snapshotReport = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${mockReportItemWithHold.reportID}`] ?? {};
-    const snapshotPolicy = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold.policyID}`] ?? {};
+    const snapshotReport = (mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${mockReportItemWithHold.reportID}`] ?? {}) as Report;
+    const snapshotPolicy = (mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold.policyID}`] ?? {}) as Policy;
 
     test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
@@ -342,8 +345,8 @@ describe('handleActionButtonPress', () => {
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem,
-            snapshotReport: snapshotReport as Report,
-            snapshotPolicy: snapshotPolicy as Policy,
+            snapshotReport,
+            snapshotPolicy,
             submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
@@ -351,11 +354,12 @@ describe('handleActionButtonPress', () => {
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
             onHoldMenuOpen: jest.fn(),
-            policy: snapshotPolicy as Policy,
+            policy: snapshotPolicy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            allViolations: undefined,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -366,8 +370,8 @@ describe('handleActionButtonPress', () => {
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem: jest.fn(),
-            snapshotReport: snapshotReport as Report,
-            snapshotPolicy: snapshotPolicy as Policy,
+            snapshotReport,
+            snapshotPolicy,
             submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
@@ -375,11 +379,12 @@ describe('handleActionButtonPress', () => {
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
             onHoldMenuOpen,
-            policy: snapshotPolicy as Policy,
+            policy: snapshotPolicy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            allViolations: undefined,
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -391,21 +396,62 @@ describe('handleActionButtonPress', () => {
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem,
-            snapshotReport: snapshotReport as Report,
-            snapshotPolicy: snapshotPolicy as Policy,
+            snapshotReport,
+            snapshotPolicy,
             submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
-            policy: snapshotPolicy as Policy,
+            policy: snapshotPolicy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            allViolations: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
+    });
+
+    test('Should compute hasViolations from the passed allViolations param (not the global Onyx collection) and forward it to approveMoneyRequest', () => {
+        // Given: a report item with no held expenses so the approve action reaches getApproveActionCallback,
+        // and a violations collection passed explicitly through the params.
+        const allViolations: OnyxCollection<TransactionViolations> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1049531721038862176`]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+        };
+
+        const hasViolationsMock = jest.spyOn(ReportUtils, 'hasViolations').mockReturnValue(true);
+        const approveMoneyRequestMock = jest.spyOn(ReportWorkflow, 'approveMoneyRequest').mockImplementation(jest.fn());
+
+        // When: the approve action button is pressed
+        handleActionButtonPress({
+            hash: searchHash,
+            item: updatedMockReportItem,
+            goToItem: jest.fn(),
+            snapshotReport,
+            snapshotPolicy,
+            submitterLogin: undefined,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
+            policy: snapshotPolicy,
+            chatReportActions: undefined,
+            currentUserAccountID: 1206,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            allViolations,
+        });
+
+        // Then: hasViolations is evaluated against the passed collection, proving the deprecated global getter is no longer used,
+        // and the resulting value is forwarded to approveMoneyRequest.
+        expect(hasViolationsMock).toHaveBeenCalledWith(updatedMockReportItem.reportID, allViolations, 1206, '');
+        expect(approveMoneyRequestMock).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
+
+        hasViolationsMock.mockRestore();
+        approveMoneyRequestMock.mockRestore();
     });
 });
 
