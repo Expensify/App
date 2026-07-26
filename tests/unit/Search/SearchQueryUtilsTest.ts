@@ -39,6 +39,7 @@ import {
     shouldResetSort,
     shouldResetSortForViewChange,
     sortOptionsWithEmptyValue,
+    withExactMatchFilterKeys,
 } from '@src/libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -3474,6 +3475,22 @@ describe('SearchQueryUtils', () => {
         it('should not affect non-text fields in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
             expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+        });
+    });
+
+    describe('withExactMatchFilterKeys', () => {
+        it('should give exact queries distinct snapshot hashes', () => {
+            const partialQuery = buildSearchQueryJSON('type:expense merchant:Amazon');
+            if (!partialQuery) {
+                throw new Error('Expected partial query to be defined');
+            }
+
+            const exactQuery = withExactMatchFilterKeys(partialQuery, [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+
+            expect(exactQuery.hash).not.toBe(partialQuery.hash);
+            expect(exactQuery.recentSearchHash).not.toBe(partialQuery.recentSearchHash);
+            expect(exactQuery.similarSearchHash).not.toBe(partialQuery.similarSearchHash);
+            expect(exactQuery.exactMatchFilterKeys).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
         });
     });
 

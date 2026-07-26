@@ -555,6 +555,12 @@ function getQueryHashes(query: SearchQueryJSON) {
     }
 
     const filterSet = new Set<string>(orderedQuery);
+    const exactMatchFilterKeys = [...(query.exactMatchFilterKeys ?? [])].sort();
+    if (exactMatchFilterKeys.length > 0) {
+        const exactMatchIdentity = `exactMatch:${exactMatchFilterKeys.join(',')}`;
+        orderedQuery += ` ${exactMatchIdentity}`;
+        filterSet.add(exactMatchIdentity);
+    }
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
     // actually filter out results
@@ -607,6 +613,17 @@ function getQueryHashes(query: SearchQueryJSON) {
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
+}
+
+function withExactMatchFilterKeys(queryJSON: Readonly<SearchQueryJSON>, exactMatchFilterKeys: SearchFilterKey[]): SearchQueryJSON {
+    const queryWithExactMatches = {...queryJSON, exactMatchFilterKeys};
+    const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(queryWithExactMatches);
+    return {
+        ...queryWithExactMatches,
+        hash: primaryHash,
+        recentSearchHash,
+        similarSearchHash,
+    };
 }
 
 /**
@@ -2542,6 +2559,7 @@ export {
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
     getQueryHashes,
+    withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
     getDateFilterRange,

@@ -190,6 +190,7 @@ import {
     isFilterSupported,
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
+    withExactMatchFilterKeys,
 } from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
@@ -3073,7 +3074,7 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFi
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
     const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
     const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
-    return specificGroupQueryJSON ? {...specificGroupQueryJSON, exactMatchFilterKeys: [filterKey]} : undefined;
+    return specificGroupQueryJSON ? withExactMatchFilterKeys(specificGroupQueryJSON, [filterKey]) : undefined;
 }
 
 function buildEmptyTagGroupQuery(queryJSON: SearchQueryJSON): SearchQueryJSON | undefined {
