@@ -2,12 +2,14 @@ import {render} from '@testing-library/react-native';
 
 import ActivityIndicator from '@components/ActivityIndicator';
 import CategorySelector from '@components/Search/FilterComponents/CategorySelector';
+import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
 
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -35,10 +37,12 @@ describe('CategorySelector', () => {
     const mockedUseNetwork = jest.mocked(useNetwork);
     const mockedOpenSearchCategoryFiltersPage = jest.mocked(openSearchCategoryFiltersPage);
     const mockedActivityIndicator = jest.mocked(ActivityIndicator);
+    const mockedMultiSelect = jest.mocked(MultiSelect);
 
     beforeEach(() => {
         mockedOpenSearchCategoryFiltersPage.mockClear();
         mockedActivityIndicator.mockClear();
+        mockedMultiSelect.mockClear();
         (mockedUseOnyx as jest.Mock).mockImplementation((key) => {
             if (key === ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED) {
                 return [true];
@@ -99,5 +103,51 @@ describe('CategorySelector', () => {
         );
 
         expect(mockedActivityIndicator).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows No category as the first option when no categories are configured', () => {
+        mockedUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+
+        render(
+            <CategorySelector
+                value={[]}
+                policyID={undefined}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(mockedMultiSelect.mock.lastCall?.[0].items).toEqual([{text: 'search.noCategory', value: CONST.SEARCH.CATEGORY_EMPTY_VALUE}]);
+    });
+
+    it('keeps No category before configured categories', () => {
+        mockedUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        (mockedUseOnyx as jest.Mock).mockImplementation((key) => {
+            if (key === ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED) {
+                return [true];
+            }
+            if (key === ONYXKEYS.PERSONAL_POLICY_ID) {
+                return [undefined];
+            }
+            if (key === ONYXKEYS.COLLECTION.POLICY_CATEGORIES) {
+                return [
+                    {
+                        [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]: {
+                            Meals: {name: 'Meals', enabled: true},
+                        },
+                    },
+                ];
+            }
+            return [{}];
+        });
+
+        render(
+            <CategorySelector
+                value={[]}
+                policyID={undefined}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(mockedMultiSelect.mock.lastCall?.[0].items.at(0)).toEqual({text: 'search.noCategory', value: CONST.SEARCH.CATEGORY_EMPTY_VALUE});
     });
 });
