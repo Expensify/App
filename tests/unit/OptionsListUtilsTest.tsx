@@ -25,7 +25,6 @@ import {
     filterWorkspaceChats,
     formatMemberForList,
     formatSectionsFromSearchTerm,
-    getFilteredRecentAttendees,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
@@ -83,7 +82,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -8671,84 +8670,6 @@ describe('OptionsListUtils', () => {
             expect(Object.isFrozen(reportItem)).toBe(false);
         });
     });
-    describe('getFilteredRecentAttendees', () => {
-        it('should deduplicate recent attendees by email', () => {
-            const personalDetails = {};
-            const attendees: Array<{
-                email: string;
-                displayName: string;
-                avatarUrl: string;
-            }> = [];
-            const recentAttendees = [
-                {email: 'user1@example.com', displayName: 'User One', avatarUrl: ''},
-                {
-                    email: 'user1@example.com',
-                    displayName: 'User One Duplicate',
-                    avatarUrl: '',
-                }, // Duplicate by email
-                {email: 'user2@example.com', displayName: 'User Two', avatarUrl: ''},
-            ];
-
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
-
-            // Should deduplicate by email - user1@example.com should only appear once
-            const logins = result.map((r) => r.login);
-            const user1Count = logins.filter((login) => login === 'user1@example.com').length;
-            expect(user1Count).toBe(1);
-        });
-
-        it('should deduplicate name-only attendees by displayName', () => {
-            const personalDetails = {};
-            const attendees: Array<{
-                email: string;
-                displayName: string;
-                avatarUrl: string;
-            }> = [];
-            const recentAttendees = [
-                {email: '', displayName: 'Name Only', avatarUrl: ''},
-                {email: '', displayName: 'Name Only', avatarUrl: ''}, // Duplicate by displayName (name-only attendee)
-                {email: '', displayName: 'Another Name', avatarUrl: ''},
-            ];
-
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
-
-            // Should deduplicate by displayName - Name Only should only appear once
-            const logins = result.map((r) => r.login);
-            const nameOnlyCount = logins.filter((login) => login === 'Name Only').length;
-            expect(nameOnlyCount).toBe(1);
-        });
-
-        it('should use displayName as login for name-only attendees', () => {
-            const personalDetails = {};
-            const attendees: Array<{
-                email: string;
-                displayName: string;
-                avatarUrl: string;
-            }> = [];
-            const recentAttendees = [{email: '', displayName: 'John Smith', avatarUrl: ''}];
-
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
-
-            // Name-only attendee should have displayName as login
-            const johnSmith = result.find((r) => r.login === 'John Smith');
-            expect(johnSmith).toBeDefined();
-        });
-
-        it('should preserve displayName for recent attendees with undefined email', () => {
-            const personalDetails = {};
-            const attendees: Array<{
-                email: string;
-                displayName: string;
-                avatarUrl: string;
-            }> = [];
-            const recentAttendees: Attendee[] = [{displayName: 'Login Only User', avatarUrl: ''}];
-
-            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translateLocal);
-
-            expect(result.find((r) => r.login === 'Login Only User')).toBeDefined();
-        });
-    });
-
     describe('getValidOptions() with recentAttendees', () => {
         const recentAttendees = Array.from({length: 8}, (_, index) => ({
             login: `john${index}@example.com`,

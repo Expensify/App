@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getLoginByAccountID, getPersonalDetailByEmail, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
@@ -190,7 +190,7 @@ import type {
     Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -209,7 +209,6 @@ import type {
     GetValidReportsConfig,
     IsValidReportsConfig,
     MemberForList,
-    Option,
     OptionList,
     Options,
     OptionsResult,
@@ -2991,51 +2990,6 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
     };
 }
 
-function getFilteredRecentAttendees(
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    attendees: Attendee[],
-    recentAttendees: Attendee[],
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    translate: LocalizedTranslate,
-): Option[] {
-    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserEmail);
-    if (!recentAttendeeHasCurrentUser && currentUserEmail) {
-        const details = getPersonalDetailByEmail(currentUserEmail);
-        recentAttendees.push({
-            email: currentUserEmail,
-            displayName: details?.displayName ?? currentUserEmail,
-            avatarUrl: details?.avatarThumbnail ?? '',
-        });
-    }
-
-    // Deduplicate recentAttendees: use email for regular users, displayName for name-only attendees
-    const seenAttendees = new Set<string>();
-    const deduplicatedRecentAttendees = recentAttendees.filter((attendee) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const key = attendee.email || attendee.displayName || '';
-        if (seenAttendees.has(key)) {
-            return false;
-        }
-        seenAttendees.add(key);
-        return true;
-    });
-
-    const filteredRecentAttendees = deduplicatedRecentAttendees
-        .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
-        .map((attendee) => ({
-            ...attendee,
-            // Use || instead of ?? to handle empty string email for name-only attendees
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            login: attendee.email || attendee.displayName,
-            ...getPersonalDetailByEmail(attendee.email),
-            keyForList: `${currentUserAccountID}`,
-        }))
-        .map((attendee) => getParticipantsOption(attendee, personalDetails, translate));
-
-    return filteredRecentAttendees;
-}
-
 /**
  * Format personalDetails or userToInvite to be shown in the list
  *
@@ -3530,7 +3484,6 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getAlternateText,
-    getFilteredRecentAttendees,
     getEmptyOptions,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
