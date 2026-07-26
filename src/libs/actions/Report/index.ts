@@ -5059,7 +5059,10 @@ function buildInviteToRoomOnyxData(
     const defaultNotificationPreference = getDefaultNotificationPreferenceForReport(report);
 
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
-    const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
+    // A missing account ID would be written into the participants map as an "undefined" key, so drop those
+    // before any optimistic data is built. The emails are left untouched so the invite still reaches the
+    // server, which reconciles the real account ID.
+    const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs).filter((accountID) => accountID != null);
 
     const participantsAfterInvitation = inviteeAccountIDs.reduce(
         (reportParticipants: Participants, accountID: number) => {
