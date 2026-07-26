@@ -121,6 +121,7 @@ function SelectBankStep() {
                 ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
                     setLocalBankSelected(value);
+                    setAddNewCompanyCardStepAndData({data: {selectedBank: value}});
                     setHasError(false);
                 }}
                 initiallyFocusedItemKey={bankSelected ?? undefined}
