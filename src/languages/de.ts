@@ -32,6 +32,8 @@ import type {
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
@@ -7184,6 +7186,17 @@ Wenn du die Abrechnung für das gesamte Abonnement übernehmen willst, bitte sie
 
 ${reportName}`,
             confirmText: 'Ja, erneut exportieren',
+            cancelText: 'Abbrechen',
+        },
+        exportPartialModal: {
+            title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
+                `${exportableCount}/${selectedCount} Berichte nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} exportieren?`,
+            description: ({integration}: ExportPartialModalDescriptionParams) =>
+                `Nur mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} verbundene Berichte werden exportiert. Der Rest deiner Auswahl gehört zu anderen Integrationen und wird übersprungen.`,
+            confirmText: ({count}: {count: number}) => ({
+                one: `${count} Bericht exportieren`,
+                other: `${count} Berichte exportieren`,
+            }),
             cancelText: 'Abbrechen',
         },
         upgrade: {

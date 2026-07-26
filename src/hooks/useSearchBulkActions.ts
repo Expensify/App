@@ -56,6 +56,7 @@ import {
     isIndividualInvoiceRoom,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
+    isExported,
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
@@ -91,7 +92,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
-import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -1521,29 +1522,65 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
             }
 
+            // A partial export happens when the chosen integration's reports are only a subset of the full
+            // selection — the rest belong to other integrations (or to no integration) and are skipped.
+            const totalSelectedReportsCount = selectedReportIDs.length;
+
+            // Shared confirmation flow used by BOTH "Export to <integration>" and "Mark as exported" so the
+            // two actions behave identically. When applicable, the partial-export modal is shown first and,
+            // only after it resolves, the existing "export again" modal — the two are never combined.
             const buildIntegrationHandleExportAction =
                 (integrationReportIDs: string[], integration: NonNullable<ReturnType<typeof getConnectedIntegration>>) => (exportAction: () => void) => {
+                    const runExport = () => {
+                        if (!hash) {
+                            return;
+                        }
+                        clearSelectedTransactions();
+                        exportAction();
+                    };
+
+                    // Detect already-exported reports from the report actions (the same source that drives the
+                    // "exported" icon in the search list), not the report's `isExportedToIntegration` field which
+                    // can be stale/false in the search snapshot.
                     const exportedReportNames: string[] = [];
                     let areAnyReportsExported = false;
-
                     for (const reportID of integrationReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        const liveReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        const snapshotReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        // Prefer live Onyx report actions, falling back to the search snapshot.
+                        const reportActions =
+                            allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ??
+                            (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] as OnyxEntry<ReportActions>);
 
-                        if (!report?.pendingFields?.export && !report?.isExportedToIntegration) {
+                        const wasExported =
+                            !!liveReport?.pendingFields?.export ||
+                            !!snapshotReport?.pendingFields?.export ||
+                            liveReport?.isExportedToIntegration === true ||
+                            snapshotReport?.isExportedToIntegration === true ||
+                            // Pass ONLY the report actions so `isExported` evaluates the actions instead of
+                            // short-circuiting on the (possibly stale) `isExportedToIntegration` field.
+                            isExported(reportActions);
+
+                        if (!wasExported) {
                             continue;
                         }
 
                         areAnyReportsExported = true;
-
-                        // The live Onyx report can be an incomplete optimistic record (e.g. exported offline before it
-                        // was ever loaded) that lacks `reportName`, so fall back to the Search snapshot for the name.
-                        const reportName = report.reportName ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+                        // The live Onyx report can be an incomplete optimistic record (e.g. exported offline before
+                        // it was ever loaded) that lacks `reportName`, so fall back to the Search snapshot for the name.
+                        const reportName = liveReport?.reportName ?? snapshotReport?.reportName;
                         if (reportName) {
                             exportedReportNames.push(reportName);
                         }
                     }
 
-                    if (areAnyReportsExported) {
+                    // Ask about the already-exported reports (if any) and then run the export.
+                    const confirmExportAgainThenRun = () => {
+                        if (!areAnyReportsExported) {
+                            runExport();
+                            return;
+                        }
+
                         showConfirmModal({
                             title: translate('workspace.exportAgainModal.title'),
                             prompt: translate('workspace.exportAgainModal.description', {
@@ -1557,16 +1594,33 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             if (result.action !== ModalActions.CONFIRM) {
                                 return;
                             }
-
-                            if (hash) {
-                                clearSelectedTransactions();
-                                exportAction();
-                            }
+                            runExport();
                         });
-                    } else if (hash) {
-                        exportAction();
-                        clearSelectedTransactions();
+                    };
+
+                    // For a partial export, confirm the partial scope first. Cancelling aborts; confirming moves
+                    // on to the export-again check. The modals are presented sequentially so they don't overlap.
+                    const isPartialExport = integrationReportIDs.length < totalSelectedReportsCount;
+                    if (!isPartialExport) {
+                        confirmExportAgainThenRun();
+                        return;
                     }
+
+                    showConfirmModal({
+                        title: translate('workspace.exportPartialModal.title', {
+                            exportableCount: integrationReportIDs.length,
+                            selectedCount: totalSelectedReportsCount,
+                            integration,
+                        }),
+                        prompt: translate('workspace.exportPartialModal.description', {integration}),
+                        confirmText: translate('workspace.exportPartialModal.confirmText', {count: integrationReportIDs.length}),
+                        cancelText: translate('workspace.exportPartialModal.cancelText'),
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        confirmExportAgainThenRun();
+                    });
                 };
 
             // Group each integration's actions together, listing its "Export to <integration>" option

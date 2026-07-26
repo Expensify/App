@@ -11,13 +11,14 @@ import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryAct
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, SearchResults} from '@src/types/onyx';
+import type {Report, ReportActions, SearchResults} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 import {createRandomReport} from '../../utils/collections/reports';
+import createMock from '../../utils/createMock';
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -317,11 +318,26 @@ function makeSnapshotReport(reportID: string = REPORT_ID, policyID: string = POL
     };
 }
 
-/** Build a minimal expense-report search snapshot containing the given reports keyed by their collection key. */
-function makeSearchResults(reports: Report[]): SearchResults {
+/** A report action that marks a report as exported to an integration (the source the "exported" icon reads). */
+function makeExportedReportActions(label: string = CONST.EXPORT_LABELS.NETSUITE): ReportActions {
+    return createMock<ReportActions>({
+        exportAction: {
+            reportActionID: 'exportAction',
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            created: '2024-01-01 00:00:00.000',
+            originalMessage: {label, markedManually: true},
+        },
+    });
+}
+
+/** Build a minimal expense-report search snapshot containing the given reports (and optional report actions) keyed by their collection key. */
+function makeSearchResults(reports: Report[], reportActionsByReportID: Record<string, ReportActions> = {}): SearchResults {
     const data: SearchResults['data'] = {};
     for (const report of reports) {
         data[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
+    }
+    for (const [reportID, reportActions] of Object.entries(reportActionsByReportID)) {
+        data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = reportActions;
     }
     return {
         search: {
@@ -358,6 +374,9 @@ describe('useSearchBulkActions - report export options resolve from the search s
         mockSelectedTransactions = {};
         mockSelectedReports = [];
         mockCurrentSearchResults = undefined;
+        // Both confirmation modals (partial-export and export-again) resolve to CONFIRM by default; individual
+        // tests override with mockResolvedValueOnce to exercise the cancel path.
+        mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         // A policy connected to NetSuite so the integration export branch is reachable.
@@ -489,13 +508,253 @@ describe('useSearchBulkActions - report export options resolve from the search s
             .filter((text) => text === NETSUITE_FRIENDLY_NAME || text === QBO_FRIENDLY_NAME || text === 'workspace.common.markAsExported');
         expect(integrationOptionTexts).toEqual([NETSUITE_FRIENDLY_NAME, 'workspace.common.markAsExported', QBO_FRIENDLY_NAME, 'workspace.common.markAsExported']);
 
-        // Each export action is scoped to only the reports for its integration.
-        subMenuItems.find((item) => item.text === QBO_FRIENDLY_NAME)?.onSelected?.();
-        expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.QBO, undefined);
-
-        subMenuItems.find((item) => item.text === NETSUITE_FRIENDLY_NAME)?.onSelected?.();
-        expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
-
         expect(markAsManuallyExported).not.toHaveBeenCalled();
+    });
+
+    it('shows the partial-export modal for a multi-integration selection, then exports only the chosen integration subset', async () => {
+        /**
+         * Given: two reports on workspaces connected to different integrations (report1 → NetSuite,
+         *        report2 → QBO), so exporting to one integration only covers a subset of the selection.
+         *
+         * When: the user clicks "Export to NetSuite" and confirms.
+         *
+         * Then: the partial-export confirmation modal is shown first (never the export-again modal, since
+         *       nothing was exported yet), and after confirming, only report1 is exported to NetSuite.
+         */
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
+            id: POLICY_ID_2,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
+        });
+
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)]);
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === NETSUITE_FRIENDLY_NAME)
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+        });
+
+        // Only the partial-export modal is shown (there is nothing already-exported to warn about).
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
+    });
+
+    it('aborts the export when the partial-export modal is cancelled', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
+            id: POLICY_ID_2,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
+        });
+
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)]);
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+        };
+        // Cancel the partial-export modal.
+        mockShowConfirmModal.mockResolvedValueOnce({action: 'CLOSE'});
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === NETSUITE_FRIENDLY_NAME)
+            ?.onSelected?.();
+
+        // Flush the (cancelled) modal promise chain, then confirm nothing was exported.
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+        expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
+    });
+
+    it('shows the partial-export modal first and then the export-again modal when the chosen subset was already exported', async () => {
+        /**
+         * Given: a multi-integration selection (report1 → NetSuite, report2 → QBO) where the NetSuite
+         *        report has already been exported (detected from its report actions).
+         *
+         * When: the user clicks "Export to NetSuite".
+         *
+         * Then: the two confirmations are presented in sequence — the partial-export modal first, then the
+         *       existing export-again modal — and only after confirming both is report1 exported.
+         */
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
+            id: POLICY_ID_2,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
+        });
+
+        // report1 is already exported (via its report actions), report2 is not.
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)], {[REPORT_ID]: makeExportedReportActions()});
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === NETSUITE_FRIENDLY_NAME)
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+        });
+
+        // Both modals were shown, in order: partial-export first, export-again second.
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
+        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(1, expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
+        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(2, expect.objectContaining({title: 'workspace.exportAgainModal.title'}));
+    });
+
+    it('shows only the export-again modal (no partial modal) for a single-integration already-exported selection', async () => {
+        /**
+         * Given: a single-workspace selection where every selected report belongs to NetSuite and has
+         *        already been exported.
+         *
+         * When: the user clicks "Export to NetSuite".
+         *
+         * Then: only the export-again modal is shown (the export is not partial), and after confirming the
+         *       report is exported.
+         */
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()], {[REPORT_ID]: makeExportedReportActions()});
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === NETSUITE_FRIENDLY_NAME)
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+        });
+
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportAgainModal.title'}));
+    });
+
+    it('detects an already-exported report from report actions even when isExportedToIntegration is stale/false', async () => {
+        /**
+         * Given: a report whose `isExportedToIntegration` field is stale (false) in the snapshot but whose
+         *        report actions show it was exported — the same source that drives the search list icon.
+         *
+         * When: the user clicks "Export to NetSuite".
+         *
+         * Then: the export-again modal is still shown, proving detection reads the report actions and does
+         *       not trust the stale `isExportedToIntegration` field.
+         */
+        mockCurrentSearchResults = makeSearchResults([{...makeSnapshotReport(), isExportedToIntegration: false}], {[REPORT_ID]: makeExportedReportActions()});
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === NETSUITE_FRIENDLY_NAME)
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportAgainModal.title'}));
+        });
+    });
+
+    it('shows no confirmation modal when every selected report belongs to the chosen integration and none were exported', async () => {
+        /**
+         * Given: two reports that both belong to NetSuite and were never exported.
+         *
+         * When: the user clicks "Export to NetSuite".
+         *
+         * Then: no modal is shown (the export is neither partial nor a re-export) and both reports are
+         *       exported straight away.
+         */
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID)]);
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === NETSUITE_FRIENDLY_NAME)
+            ?.onSelected?.();
+
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+    });
+
+    it('routes "Mark as exported" through the same flow: partial modal first, then export-again, then marks the subset', async () => {
+        /**
+         * Given: a multi-integration selection (report1 → NetSuite already exported, report2 → QBO).
+         *
+         * When: the user clicks NetSuite's "Mark as exported".
+         *
+         * Then: it goes through the identical shared flow as export — partial-export modal first, then the
+         *       export-again modal — and only report1 is marked as exported to NetSuite.
+         */
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
+            id: POLICY_ID_2,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
+        });
+
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)], {[REPORT_ID]: makeExportedReportActions()});
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        // The first "Mark as exported" option belongs to NetSuite (its group is listed first).
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+        });
+
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
+        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(1, expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
+        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(2, expect.objectContaining({title: 'workspace.exportAgainModal.title'}));
+        expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
     });
 });

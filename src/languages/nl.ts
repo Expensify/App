@@ -32,6 +32,8 @@ import type {
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
@@ -7148,6 +7150,17 @@ Als je de facturering voor hun volledige abonnement wilt overnemen, laat hen je 
 
 ${reportName}`,
             confirmText: 'Ja, opnieuw exporteren',
+            cancelText: 'Annuleren',
+        },
+        exportPartialModal: {
+            title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
+                `${exportableCount}/${selectedCount} rapporten exporteren naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: ({integration}: ExportPartialModalDescriptionParams) =>
+                `Alleen rapporten die zijn verbonden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} worden geëxporteerd. De rest van je selectie hoort bij andere integraties en wordt overgeslagen.`,
+            confirmText: ({count}: {count: number}) => ({
+                one: `${count} rapport exporteren`,
+                other: `${count} rapporten exporteren`,
+            }),
             cancelText: 'Annuleren',
         },
         upgrade: {

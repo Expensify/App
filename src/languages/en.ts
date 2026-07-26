@@ -20,6 +20,8 @@ import type {
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
@@ -7354,6 +7356,17 @@ const translations = {
             description: ({reportName, connectionName}: ExportAgainModalDescriptionParams) =>
                 `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Are you sure you want to export them again?\n\n${reportName}`,
             confirmText: 'Yes, export again',
+            cancelText: 'Cancel',
+        },
+        exportPartialModal: {
+            title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
+                `Export ${exportableCount}/${selectedCount} reports to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: ({integration}: ExportPartialModalDescriptionParams) =>
+                `Only reports connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} will be exported. The rest of your selection belongs to other integrations and will be skipped.`,
+            confirmText: ({count}: {count: number}) => ({
+                one: `Export ${count} report`,
+                other: `Export ${count} reports`,
+            }),
             cancelText: 'Cancel',
         },
         upgrade: {

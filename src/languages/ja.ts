@@ -32,6 +32,8 @@ import type {
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
@@ -7081,6 +7083,17 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
 
 ${reportName}`,
             confirmText: 'はい、再度エクスポートします',
+            cancelText: 'キャンセル',
+        },
+        exportPartialModal: {
+            title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
+                `${exportableCount}/${selectedCount}件のレポートを${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}にエクスポートしますか？`,
+            description: ({integration}: ExportPartialModalDescriptionParams) =>
+                `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}に接続されているレポートのみがエクスポートされます。選択した残りのレポートは他の連携に属しているためスキップされます。`,
+            confirmText: ({count}: {count: number}) => ({
+                one: `${count}件のレポートをエクスポート`,
+                other: `${count}件のレポートをエクスポート`,
+            }),
             cancelText: 'キャンセル',
         },
         upgrade: {

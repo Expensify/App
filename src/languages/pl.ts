@@ -32,6 +32,8 @@ import type {
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
@@ -7128,6 +7130,17 @@ Jeśli chcesz przejąć rozliczenia za całą ich subskrypcję, poproś ich najp
 
 ${reportName}`,
             confirmText: 'Tak, wyeksportuj ponownie',
+            cancelText: 'Anuluj',
+        },
+        exportPartialModal: {
+            title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
+                `Wyeksportować ${exportableCount}/${selectedCount} raportów do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: ({integration}: ExportPartialModalDescriptionParams) =>
+                `Wyeksportowane zostaną tylko raporty połączone z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}. Reszta zaznaczenia należy do innych integracji i zostanie pominięta.`,
+            confirmText: ({count}: {count: number}) => ({
+                one: `Wyeksportuj ${count} raport`,
+                other: `Wyeksportuj ${count} raportów`,
+            }),
             cancelText: 'Anuluj',
         },
         upgrade: {

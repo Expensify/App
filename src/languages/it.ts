@@ -32,6 +32,8 @@ import type {
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
+    ExportPartialModalTitleParams,
+    ExportPartialModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
@@ -7164,6 +7166,17 @@ Se vuoi assumere la fatturazione per l'intero abbonamento, chiedi loro di aggiun
 
 ${reportName}`,
             confirmText: 'Sì, esporta di nuovo',
+            cancelText: 'Annulla',
+        },
+        exportPartialModal: {
+            title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
+                `Esportare ${exportableCount}/${selectedCount} report in ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: ({integration}: ExportPartialModalDescriptionParams) =>
+                `Verranno esportati solo i report collegati a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}. Il resto della selezione appartiene ad altre integrazioni e verrà ignorato.`,
+            confirmText: ({count}: {count: number}) => ({
+                one: `Esporta ${count} report`,
+                other: `Esporta ${count} report`,
+            }),
             cancelText: 'Annulla',
         },
         upgrade: {
