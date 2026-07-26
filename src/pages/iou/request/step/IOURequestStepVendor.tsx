@@ -60,6 +60,7 @@ function IOURequestStepVendor({
         isPerDiemRequest: isPerDiemRequest(transaction),
     });
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const delegateAccountID = useDelegateAccountID();
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
@@ -114,6 +115,7 @@ function IOURequestStepVendor({
                 parentReport,
                 policy,
                 delegateAccountID,
+                transactionViolations,
             });
         }
         navigateBack();

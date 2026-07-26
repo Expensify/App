@@ -598,6 +598,7 @@ type UpdateMoneyRequestVendorParams = {
     parentReport?: OnyxEntry<OnyxTypes.Report>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     delegateAccountID: number | undefined;
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
 };
 
 /**
@@ -608,7 +609,16 @@ type UpdateMoneyRequestVendorParams = {
  *
  * Passing `vendorID=''` clears the vendor from the transaction.
  */
-function updateMoneyRequestVendor({transactionID, vendorID, transaction, transactionThreadReport, parentReport, policy, delegateAccountID}: UpdateMoneyRequestVendorParams) {
+function updateMoneyRequestVendor({
+    transactionID,
+    vendorID,
+    transaction,
+    transactionThreadReport,
+    parentReport,
+    policy,
+    delegateAccountID,
+    transactionViolations,
+}: UpdateMoneyRequestVendorParams) {
     // Fall back to the cached Onyx transaction when the caller doesn't pass one so failureData can
     // restore the actual previous vendor on API failure instead of clearing it.
     const resolvedTransaction = transaction ?? getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -736,9 +746,7 @@ function updateMoneyRequestVendor({transactionID, vendorID, transaction, transac
     // resolves it (no vendor → no inactive-vendor). Without this, the stale violation persists
     // in Onyx until some unrelated recalculation fires, keeping the expense incorrectly flagged.
     const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const currentViolations = getAllTransactionViolations()[violationsKey] ?? [];
+    const currentViolations = transactionViolations ?? [];
     if (currentViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
