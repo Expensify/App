@@ -16,6 +16,7 @@ import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs
 import variables from '@styles/variables';
 
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
+import {buildOnboardingFlowParams, getRequired2FAOnboardingResumePath} from '@userActions/Welcome/OnboardingFlow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,25 +59,39 @@ function RequireTwoFactorAuthenticationOverlay() {
     const {translate} = useLocalize();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const requires2FAForXeroSelector = useCallback((workspaces: OnyxCollection<Policy>) => is2FARequiredBecauseOfXeroSelector(email)(workspaces), [email]);
     const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: requires2FAForXeroSelector});
+
+    const snapshotOnboardingResumePathIfNeeded = useCallback(() => {
+        const activeRoute = Navigation.getActiveRoute();
+        if (activeRoute.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
+            updateOnboardingLastVisitedPath(activeRoute);
+            return;
+        }
+        if (onboardingInitialPath) {
+            return;
+        }
+        const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
+        const resumePath = getRequired2FAOnboardingResumePath(onboardingFlowParams);
+        if (resumePath.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
+            updateOnboardingLastVisitedPath(resumePath);
+        }
+    }, [account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath]);
 
     useEffect(() => {
         if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
             return;
         }
-        const activeRoute = Navigation.getActiveRoute();
-        if (activeRoute.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
-            updateOnboardingLastVisitedPath(activeRoute);
-        }
-    }, [shouldShowRequire2FAPage, isIn2FASetupFlow]);
+        snapshotOnboardingResumePathIfNeeded();
+    }, [shouldShowRequire2FAPage, isIn2FASetupFlow, snapshotOnboardingResumePathIfNeeded]);
 
     const handleOnPress = () => {
-        const activeRoute = Navigation.getActiveRoute();
-        if (!onboardingInitialPath && activeRoute.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
-            updateOnboardingLastVisitedPath(activeRoute);
-        }
+        snapshotOnboardingResumePathIfNeeded();
         Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true}));
     };
 

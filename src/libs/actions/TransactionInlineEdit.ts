@@ -3,6 +3,7 @@ import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getTagLists, isGroupPolicy, isMultiLevelTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -32,6 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
     IntroSelected,
+    PersonalDetailsList,
     Policy,
     PolicyCategories,
     PolicyTagLists,
@@ -193,6 +195,8 @@ type GetIouParamsInput = {
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
     distanceOriginalPolicy?: OnyxEntry<Policy>;
+    personalDetailsList: OnyxEntry<PersonalDetailsList>;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -223,6 +227,8 @@ function getIouParamsForTransaction({
     parentReportNextStep,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
+    personalDetailsList,
+    delegateAccountID,
     isTrackIntentUser,
 }: GetIouParamsInput) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -278,6 +284,7 @@ function getIouParamsForTransaction({
         transactionID,
         transactionThreadReport: resolvedTransactionThreadReport,
         parentReport: resolvedParentReport,
+        iouReportOwnerLogin: getLoginByAccountID(resolvedParentReport?.ownerAccountID, personalDetailsList),
         policy,
         policyForTrackExpense,
         policyCategories,
@@ -285,9 +292,8 @@ function getIouParamsForTransaction({
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
         isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas),
+        delegateAccountID,
         isTrackIntentUser,
-        // delegateAccountID: will be threaded in PR 11; updateMoneyRequest* falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-        delegateAccountID: undefined,
         reportPolicyTags,
         // Field-specific extras
         transaction,

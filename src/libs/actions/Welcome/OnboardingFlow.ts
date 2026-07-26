@@ -1,9 +1,10 @@
 import {translate} from '@libs/Localize';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
-import {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
+import {openApp} from '@userActions/App';
 import type {Video} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -34,6 +35,8 @@ type GetOnboardingInitialPathParamsType = {
     onboardingInitialPath: OnyxEntry<string> | null;
     onboardingValues: OnyxEntry<Onboarding>;
     isAccountValidated?: boolean;
+    /** When set, startOnboardingFlow navigates here directly instead of re-deriving via getOnboardingInitialPath. */
+    resumePath?: string;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -88,7 +91,8 @@ Onyx.connectWithoutView({
  */
 function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams) as Route, undefined, false);
+    const onboardingPath = startOnboardingFlowParams.resumePath ?? getOnboardingInitialPath(startOnboardingFlowParams);
+    const adaptedState = getAdaptedStateFromPath(onboardingPath as Route, undefined, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -210,11 +214,37 @@ function getRequired2FAOnboardingResumePath(onboardingFlowParams: GetOnboardingI
         return savedPath;
     }
 
-    if ((!savedPath || savedPath === `/${ROUTES.ONBOARDING_ROOT.route}`) && onboardingFlowParams.isUserFromPublicDomain) {
-        return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
+    if (!savedPath || savedPath === `/${ROUTES.ONBOARDING_ROOT.route}`) {
+        if (onboardingFlowParams.isUserFromPublicDomain) {
+            return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
+        }
+        if (!onboardingFlowParams.isUserFromPublicDomain && onboardingFlowParams.hasAccessiblePolicies) {
+            return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
+        }
     }
 
     return getOnboardingInitialPath(onboardingFlowParams);
+}
+
+/**
+ * After required-2FA setup during incomplete guided setup, reload app data then resume onboarding.
+ * Re-asserts incomplete onboarding after openApp (server may return empty nvp_onboarding) so AuthScreens
+ * mounts ONBOARDING_MODAL_NAVIGATOR, then starts the flow at the resolved resume path.
+ */
+async function resumeOnboardingAfterRequired2FASetup(onboardingFlowParams: GetOnboardingInitialPathParamsType) {
+    await openApp();
+
+    await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+
+    await Navigation.waitForProtectedRoutes();
+
+    const resumePath = getRequired2FAOnboardingResumePath(onboardingFlowParams);
+
+    startOnboardingFlow({
+        ...onboardingFlowParams,
+        onboardingInitialPath: resumePath,
+        resumePath,
+    });
 }
 
 const getOnboardingMessages = (locale?: Locale) => {
@@ -436,4 +466,4 @@ const getOnboardingMessages = (locale?: Locale) => {
 };
 
 export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
-export {buildOnboardingFlowParams, getOnboardingInitialPath, getRequired2FAOnboardingResumePath, startOnboardingFlow, getOnboardingMessages};
+export {buildOnboardingFlowParams, getOnboardingInitialPath, getRequired2FAOnboardingResumePath, resumeOnboardingAfterRequired2FASetup, startOnboardingFlow, getOnboardingMessages};

@@ -219,6 +219,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -308,6 +309,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -418,6 +420,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -513,6 +516,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -574,6 +578,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 
@@ -666,6 +671,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
             isTrackIntentUser: false,
         });
 

@@ -37,7 +37,7 @@ jobs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ inputs.ENVIRONMENT || github.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -215,7 +215,7 @@ jobs:
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -269,7 +269,7 @@ jobs:
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.androidBuild.result != 'failure' && needs.androidUploadGooglePlay.result != 'failure' }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -445,7 +445,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -525,7 +525,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -701,7 +701,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -763,7 +763,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -807,7 +807,7 @@ jobs:
       ]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
@@ -934,6 +934,35 @@ jobs:
           fi
           echo "IS_RELEASE_READY=$isReleaseReady" >> "$GITHUB_OUTPUT"
           echo "IS_RELEASE_READY is $isReleaseReady (VCR result: ${{ needs.victoryChartRendererBuild.result }})"
+
+  autoRetestRequestForCP:
+    name: File retest request for cherry-picked deploy-blocker fixes
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # Only for a cherry-pick to staging, once every platform is on staging.
+    if: ${{ github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
+    needs: [prep, checkDeploymentSuccess]
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Load retest webhook from 1Password
+        id: loadWebhook
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SLACK_RETEST_WEBHOOK: op://${{ vars.OP_VAULT }}/Repository-Secrets/SLACK_RETEST_WEBHOOK
+
+      - name: File retest request
+        run: npx bun scripts/createRetestRequestForCP.ts --deploy-sha=${{ needs.prep.outputs.DEPLOY_SHA }} --deploy-tag=${{ needs.prep.outputs.TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          SLACK_RETEST_WEBHOOK: ${{ steps.loadWebhook.outputs.SLACK_RETEST_WEBHOOK }}
 
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -1078,7 +1107,7 @@ jobs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload
@@ -1107,7 +1136,7 @@ jobs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload

@@ -7,6 +7,8 @@ internalScope: Applies to Workspace Admins and Card Admins. Covers Expensify Car
 
 Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manage company spending with real-time controls and flexibility across employees and subscriptions.
 
+**Note:** This guide covers the Expensify Card for companies with a U.S. business bank account. If your company is based in the UK or EU, see [Set Up and Manage the Expensify Card in the UK and EU](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card-UK-EU) instead. Cash back and other perks described below apply to the U.S. Expensify Card only.
+
 **Card Admins** can also issue and manage Expensify Cards — including setting limits, freezing or unfreezing cards, and adjusting card settings — once the Expensify Card is enabled on the workspace.
 
 **The Expensify Card offers powerful spend control tools, including:**
@@ -99,6 +101,19 @@ Your workspace also has built-in default protections that automatically block ce
 ![Click the card row to view the card details and make settings adjustments]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_06.png){:width="100%"}
 
 ![Click Settings to adjust the settlement account or frequency]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_08.png){:width="100%"}
+
+## What the Status column shows in the Expensify Card list
+
+The Expensify Card list includes a **Status** column so you can see each card's lifecycle state at a glance without opening the card. Click the **Status** column header to sort the list by status.
+
+Each card shows one of the following statuses:
+
+- **Pending order** — A physical card has been issued but not yet ordered by the cardholder.
+- **Shipped** — A physical card has shipped and is on its way to the cardholder.
+- **Active** — The card is ready to use. Virtual cards are immediately **Active** once issued.
+- **Inactive** — The card is frozen or otherwise not currently usable.
+
+**Note:** The **Status** column is hidden on narrow and medium screens. Widen your browser window or view the list on a larger screen to see it.
 
 ---
 

@@ -12,12 +12,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
-import {openApp} from '@userActions/App';
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openLink} from '@userActions/Link';
 import {clearTwoFactorAuthData, quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
-import {buildOnboardingFlowParams, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
+import {buildOnboardingFlowParams, resumeOnboardingAfterRequired2FASetup} from '@userActions/Welcome/OnboardingFlow';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -54,10 +53,27 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
+    const isIncompleteOnboarding = hasCompletedGuidedSetupFlow === false;
+    const hasSavedOnboardingPath = !!onboardingInitialPath?.includes(`/${ROUTES.ONBOARDING_ROOT.route}`);
     // Forced onboarding 2FA always enters via Settings > Security (from the require-2FA overlay).
-    const shouldReturnToOnboardingAfter2FA = isSecuritySettingsFlow && AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow);
+    const isForcedOnboardingHandoff = AccountUtils.isForced2FAOnboardingSetup(account, false) || (!!account?.requiresTwoFactorAuth && isIncompleteOnboarding && hasSavedOnboardingPath);
+    const shouldReturnToOnboardingAfter2FA = isSecuritySettingsFlow && isForcedOnboardingHandoff;
+
+    const completeForcedOnboarding2FAHandoff = () => {
+        clearTwoFactorAuthData(true);
+        const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
+            afterTransition: () => {
+                resumeOnboardingAfterRequired2FASetup(onboardingFlowParams);
+            },
+        });
+    };
 
     const goBack = () => {
+        if (shouldReturnToOnboardingAfter2FA) {
+            completeForcedOnboarding2FAHandoff();
+            return;
+        }
         if (isUSDBankAccountFlow) {
             Navigation.goBack(dynamicBackPath, {
                 afterTransition: () => {
@@ -80,20 +96,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             return;
         }
         if (shouldReturnToOnboardingAfter2FA) {
-            clearTwoFactorAuthData(true);
-            Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
-                afterTransition: () => {
-                    // Reload app data under the post-2FA auth token (deferred from validateTwoFactorAuth so
-                    // the RHP could stay open), then resume onboarding.
-                    openApp().finally(() => {
-                        const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
-                        startOnboardingFlow({
-                            ...onboardingFlowParams,
-                            onboardingInitialPath: getRequired2FAOnboardingResumePath(onboardingFlowParams),
-                        });
-                    });
-                },
-            });
+            completeForcedOnboarding2FAHandoff();
             return;
         }
         // For the Settings > Security entry, keep the 2FA RHP open on the Enabled page instead of dismissing it

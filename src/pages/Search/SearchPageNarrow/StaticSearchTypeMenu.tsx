@@ -6,7 +6,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import {SearchTypeMenuNarrowContent} from '@pages/Search/SearchTypeMenuNarrow';
@@ -21,7 +21,7 @@ import React from 'react';
 
 import staticPolicyInfoSelector from './staticPolicyInfoSelector';
 
-function getActiveKey(similarSearchHash: number, hasGroupPolicy: boolean, searches: Record<string, SearchTypeMenuItem>): string {
+function getActiveKey(similarSearchHash: number, hasGroupPolicy: boolean, searches: Record<string, SearchTypeMenuItem>): SearchKey {
     const reportsSearch = searches[CONST.SEARCH.SEARCH_KEYS.REPORTS];
     const expensesSearch = searches[CONST.SEARCH.SEARCH_KEYS.EXPENSES];
     const submitSearch = searches[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
@@ -42,7 +42,7 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const expensesSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES];
     const submitSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
 
-    const tabs: TabSelectorBaseItem[] = [
+    const tabs: Array<TabSelectorBaseItem<SearchKey>> = [
         {key: reportsSearch.key, icon: expensifyIcons.Document, title: translate(reportsSearch.translationPath)},
         {key: expensesSearch.key, icon: expensifyIcons.Receipt, title: translate(expensesSearch.translationPath)},
     ];

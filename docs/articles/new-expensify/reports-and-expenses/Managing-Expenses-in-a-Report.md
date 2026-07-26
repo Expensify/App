@@ -93,16 +93,38 @@ After it’s unapproved:
 
 ## How to view and use the expense table
 
-Each report includes a table showing all attached expenses.
+Each report includes an expense table showing the following default columns:
 
-Each report includes an expense table showing:
+  - Receipt
   - Date
   - Merchant
-  - Category
+  - Reimbursable
+  - Card
+  - Description
+  - Total
   - Amount
-  - Workspace violations (if applicable)
+  - Category
+  - Workspace violations, if applicable
 
-Additional columns such as **Attendees** and **Per attendee** can be enabled via the **Columns** picker when attendee tracking is available.
+Additional columns can be enabled from the **Columns** picker:
+
+  - Attendees
+  - Billable
+  - Category GL code
+  - Custom field 1
+  - Custom field 2
+  - Exchange rate
+  - International reimbursement IDs
+  - MCC
+  - Per attendee
+  - Posted
+  - Purchase amount
+  - Tag
+  - Tag GL code
+  - Tax
+  - Tax code
+  - Tax rate
+  - Withdrawal ID
 
 Clicking a row opens the full expense details in a side panel (web) or details screen (mobile).
 
@@ -119,11 +141,12 @@ Comments update live for everyone with access to the report.
 
 On desktop, you can edit certain expense fields directly in the table without opening the expense details:
 
-1. Click a **date**, **merchant**, **description**, **category**, or **amount** cell in the expense table.
-2. Edit the value using the inline editor that appears (a text input, date picker, or category picker depending on the field).
-3. Click outside the cell or press Enter to save your changes.
+1. Hover over a **date**, **merchant**, **description**, **category**, or **amount** cell in the expense table, or use the Tab key to move to it.
+2. Click the pencil edit icon that appears in the cell.
+3. Edit the value using the inline editor that appears (a text input, date picker, or category picker depending on the field).
+4. Click outside the cell or press Enter to save your changes.
 
-**Note:** Inline editing is only available on desktop (wide layout). On mobile, tap the expense row to open the full details screen.
+**Note:** Clicking anywhere else in the cell or row (outside the pencil edit icon) opens the expense instead of editing inline. Inline editing is only available on desktop (wide layout). On mobile, tap the expense row to open the full details screen.
 
 ---
 

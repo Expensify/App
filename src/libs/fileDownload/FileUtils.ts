@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
+import fileURIToPath from '@libs/fileURIToPath';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
@@ -407,7 +408,7 @@ function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatS
         return Promise.resolve(false);
     }
 
-    const cleanUri = fileUri.replace('file://', '');
+    const cleanUri = fileURIToPath(fileUri);
 
     if (Platform.OS === 'ios') {
         return ReactNativeBlobUtil.fs.readFile(cleanUri, 'base64').then((fullBase64Data: string) => {

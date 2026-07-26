@@ -10,7 +10,7 @@ import {openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuc
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU/PayMoneyRequest';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
@@ -78,7 +78,7 @@ function KYCWall({
     const [employeeLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
     const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
 
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -164,7 +164,6 @@ function KYCWall({
                         const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(
                             iouReport,
                             adminPolicy,
-                            formatPhoneNumber,
                             filteredReportActions,
                             reportPreviewAction,
                             currentUserAccountID,
@@ -228,12 +227,9 @@ function KYCWall({
                     return;
                 }
 
-                if (policy?.id !== undefined) {
-                    const bankAccount = Object.values(bankAccountList).find((account) => account.accountData?.policyIDs?.includes(policy.id));
-                    if (isBankAccountPartiallySetup(bankAccount?.accountData?.state)) {
-                        navigateToBankAccountRoute({policyID: policy.id, policyCurrency: policy.outputCurrency, bankAccountState: bankAccount?.accountData?.state});
-                        return;
-                    }
+                if (policy?.id !== undefined && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id)) {
+                    navigateToBankAccountRoute({policyID: policy.id});
+                    return;
                 }
 
                 // If user has existing bank accounts that he can connect we show the list of these accounts
@@ -263,7 +259,6 @@ function KYCWall({
             employeeLogin,
             doesSubmitterPersonalDetailExist,
             introSelected,
-            formatPhoneNumber,
             translate,
             reportTransactions,
             allReports,

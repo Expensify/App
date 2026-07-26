@@ -100,7 +100,7 @@ jest.mock('@hooks/useConfirmPendingRTERAndProceed', () => ({
 const mockStartSubmittingAnimation = jest.fn();
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
-    useReportPreviewData: () => ({iouReportID: TEST_IOU_REPORT_ID}),
+    useReportPreviewData: () => ({iouReportID: TEST_IOU_REPORT_ID, transactions: []}),
     useReportPreviewAnimationState: () => ({isSubmittingAnimationRunning: false}),
     useReportPreviewActions: () => ({stopAnimation: jest.fn(), startSubmittingAnimation: mockStartSubmittingAnimation}),
 }));
