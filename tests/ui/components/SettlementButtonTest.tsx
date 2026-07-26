@@ -11,6 +11,7 @@ import SettlementButton from '@components/SettlementButton';
 import type SettlementButtonProps from '@components/SettlementButton/types';
 
 import {createWorkspace} from '@libs/actions/Policy/Policy';
+import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -81,6 +82,34 @@ jest.mock('@libs/actions/Policy/Policy', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Policy/Policy'),
     createWorkspace: jest.fn(() => ({policyID: 'mock-created-policy-id'})),
 }));
+
+jest.mock('@libs/actions/ReimbursementAccount', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/ReimbursementAccount'),
+    navigateToBankAccountRoute: jest.fn(),
+}));
+
+// Dropdown items defer onSelected until the popover finishes hiding, so the modal has to report that.
+jest.mock('@components/Modal/ReanimatedModal', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
+
+    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactElement}) {
+        const wasVisible = useRef<boolean>(isVisible);
+
+        useEffect(() => {
+            if (wasVisible.current && !isVisible) {
+                onModalHide?.();
+            }
+            wasVisible.current = isVisible;
+        }, [isVisible, onModalHide]);
+
+        if (!isVisible) {
+            return null;
+        }
+
+        return children;
+    };
+});
 
 const mockVerifyAccountAndResume = jest.fn();
 
@@ -201,13 +230,16 @@ type OnyxSetupParams = {
     report?: Report;
     chatReport?: Report;
     policy?: Policy;
+    extraPolicies?: Policy[];
+    activePolicyID?: string;
+    personalPolicyID?: string;
     bankAccountList?: BankAccountList;
     lastPaymentMethod?: LastPaymentMethod;
     userWallet?: {tierName?: ValueOf<typeof CONST.WALLET.TIER_NAME>};
     betas?: Beta[];
 };
 
-async function setupOnyxState({report, chatReport, policy, bankAccountList, lastPaymentMethod, userWallet, betas}: OnyxSetupParams) {
+async function setupOnyxState({report, chatReport, policy, extraPolicies, activePolicyID, personalPolicyID, bankAccountList, lastPaymentMethod, userWallet, betas}: OnyxSetupParams) {
     await act(async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: ACCOUNT_LOGIN});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -222,6 +254,15 @@ async function setupOnyxState({report, chatReport, policy, bankAccountList, last
         }
         if (policy) {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        }
+        for (const extraPolicy of extraPolicies ?? []) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${extraPolicy.id}`, extraPolicy);
+        }
+        if (activePolicyID) {
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, activePolicyID);
+        }
+        if (personalPolicyID) {
+            await Onyx.merge(ONYXKEYS.PERSONAL_POLICY_ID, personalPolicyID);
         }
         if (bankAccountList) {
             await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
@@ -1106,6 +1147,118 @@ describe('SettlementButton', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(createWorkspaceMock).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('invoice business add bank account workspace reuse', () => {
+        const ACTIVE_POLICY_ID = 'active-admin-policy-id';
+        const PERSONAL_POLICY_ID = 'personal-policy-id';
+
+        function pressPopoverMenuItem(text: string) {
+            const menuItem = screen.getByTestId(`PopoverMenuItem-${text}`);
+
+            // MenuItem only forwards the press when it receives an event, so a GestureResponderEvent-shaped one is required.
+            fireEvent.press(menuItem, {nativeEvent: {}, type: 'press', target: menuItem, currentTarget: menuItem});
+        }
+
+        function createPersonalPolicy(): Policy {
+            return createTestPolicy({
+                id: PERSONAL_POLICY_ID,
+                name: 'Personal Policy',
+                type: CONST.POLICY.TYPE.PERSONAL,
+                outputCurrency: CONST.CURRENCY.USD,
+            });
+        }
+
+        async function payAsBusinessAddBankAccount(params: Omit<OnyxSetupParams, 'report' | 'betas'>) {
+            const invoiceReport = createInvoiceReport();
+
+            await setupOnyxState({
+                report: invoiceReport,
+                betas: [CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY],
+                ...params,
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        iouReport={invoiceReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            await waitForBatchedUpdatesWithAct();
+
+            pressPopoverMenuItem(translateLocal('bankAccount.addBankAccount'));
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        const individualReceiverChat = () =>
+            createChatReport({
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                    accountID: ACCOUNT_ID,
+                },
+            });
+
+        it('should reuse the active admin workspace when its currency is not supported for direct reimbursement', async () => {
+            await payAsBusinessAddBankAccount({
+                chatReport: individualReceiverChat(),
+                policy: createTestPolicy({id: ACTIVE_POLICY_ID, outputCurrency: CONST.CURRENCY.EUR}),
+                extraPolicies: [createPersonalPolicy()],
+                activePolicyID: ACTIVE_POLICY_ID,
+                personalPolicyID: PERSONAL_POLICY_ID,
+            });
+
+            expect(createWorkspace).not.toHaveBeenCalled();
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({policyID: ACTIVE_POLICY_ID});
+        });
+
+        it('should reuse the active admin workspace when its currency is supported for direct reimbursement', async () => {
+            await payAsBusinessAddBankAccount({
+                chatReport: individualReceiverChat(),
+                policy: createTestPolicy({id: ACTIVE_POLICY_ID, outputCurrency: CONST.CURRENCY.USD}),
+                extraPolicies: [createPersonalPolicy()],
+                activePolicyID: ACTIVE_POLICY_ID,
+                personalPolicyID: PERSONAL_POLICY_ID,
+            });
+
+            expect(createWorkspace).not.toHaveBeenCalled();
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({policyID: ACTIVE_POLICY_ID});
+        });
+
+        it('should create a workspace when the active policy is not one the user administers', async () => {
+            await payAsBusinessAddBankAccount({
+                chatReport: individualReceiverChat(),
+                policy: createTestPolicy({id: ACTIVE_POLICY_ID, outputCurrency: CONST.CURRENCY.EUR, role: CONST.POLICY.ROLE.USER}),
+                extraPolicies: [createPersonalPolicy()],
+                activePolicyID: ACTIVE_POLICY_ID,
+                personalPolicyID: PERSONAL_POLICY_ID,
+            });
+
+            expect(createWorkspace).toHaveBeenCalled();
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({policyID: 'mock-created-policy-id'});
+        });
+
+        it('should use the receiver workspace for a business invoice receiver', async () => {
+            await payAsBusinessAddBankAccount({
+                chatReport: createChatReport({
+                    invoiceReceiver: {
+                        type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                        policyID: POLICY_ID,
+                    },
+                }),
+                policy: createTestPolicy(),
+                extraPolicies: [createTestPolicy({id: ACTIVE_POLICY_ID, outputCurrency: CONST.CURRENCY.EUR})],
+                activePolicyID: ACTIVE_POLICY_ID,
+            });
+
+            expect(createWorkspace).not.toHaveBeenCalled();
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({policyID: POLICY_ID});
         });
     });
 });
