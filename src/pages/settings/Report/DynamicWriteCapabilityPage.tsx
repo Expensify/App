@@ -74,6 +74,7 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
                     confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={currentWriteCapability}
+                    addBottomSafeAreaPadding
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

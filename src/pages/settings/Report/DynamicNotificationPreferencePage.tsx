@@ -81,6 +81,7 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
                     confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={currentNotificationPreference}
+                    addBottomSafeAreaPadding
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

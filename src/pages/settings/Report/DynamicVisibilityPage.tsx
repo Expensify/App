@@ -105,6 +105,7 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={report?.visibility}
                     ListItem={SingleSelectListItem}
+                    addBottomSafeAreaPadding
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
