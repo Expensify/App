@@ -181,6 +181,9 @@ function Search({
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0, areAllMatchingItemsSelected);
+    // Retrying a failed page always resets pagination to the first page, so totals eligibility
+    // must be evaluated as if we're on the first page rather than the (possibly paginated) offset.
+    const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, hash, true, areAllMatchingItemsSelected);
 
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
@@ -945,15 +948,20 @@ function Search({
                     // Retrying an invalid query won't help, so the retry button is only offered for other errors.
                     {...(!isInvalidQuery && {
                         buttonTranslationKey: 'common.tryAgain',
-                        onButtonPress: () =>
+                        onButtonPress: () => {
+                            // A failed load-more clears the whole snapshot (data: null), so retrying with the
+                            // paginated offset would refetch only the later page into an empty snapshot and drop
+                            // the initial results. Reset pagination to the first page before retrying.
+                            setOffset(0);
                             handleSearch({
                                 queryJSON,
                                 searchKey: currentSearchKey,
-                                offset,
-                                shouldCalculateTotals,
+                                offset: 0,
+                                shouldCalculateTotals: shouldCalculateTotalsOnRetry,
                                 prevReportsLength: filteredDataLength,
                                 isLoading: !!searchResults?.search?.isLoading,
-                            }),
+                            });
+                        },
                     })}
                 />
             </View>
