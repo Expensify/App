@@ -3072,7 +3072,8 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFi
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
     const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-    return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+    const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+    return specificGroupQueryJSON ? {...specificGroupQueryJSON, exactMatchFilterKeys: [filterKey]} : undefined;
 }
 
 function buildEmptyTagGroupQuery(queryJSON: SearchQueryJSON): SearchQueryJSON | undefined {
