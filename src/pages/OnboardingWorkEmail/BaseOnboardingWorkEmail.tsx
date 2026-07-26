@@ -1,5 +1,5 @@
 import AutoEmailLink from '@components/AutoEmailLink';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -246,8 +246,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             onClose={() => setOnboardingErrorMessage(null)}
                         >
                             <Button
-                                large
-                                text={translate('common.skip')}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 testID="onboardingPrivateEmailSkipButton"
                                 onPress={() => {
                                     setOnboardingErrorMessage(null);
@@ -255,7 +254,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                                     setOnboardingMergeAccountStepValue(true, true);
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
-                            />
+                            >
+                                <Button.Text>{translate('common.skip')}</Button.Text>
+                            </Button>
                         </OfflineWithFeedback>
                     }
                     shouldRenderFooterAboveSubmit

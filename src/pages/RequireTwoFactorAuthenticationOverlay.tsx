@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
@@ -122,12 +122,13 @@ function RequireTwoFactorAuthenticationOverlay() {
                                 </Text>
                             </View>
                             <Button
-                                large
-                                success
-                                pressOnEnter
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 onPress={handleOnPress}
-                                text={translate('twoFactorAuth.enableTwoFactorAuth')}
-                            />
+                            >
+                                <Button.KeyboardShortcut />
+                                <Button.Text>{translate('twoFactorAuth.enableTwoFactorAuth')}</Button.Text>
+                            </Button>
                         </View>
                     </View>
                 </View>
