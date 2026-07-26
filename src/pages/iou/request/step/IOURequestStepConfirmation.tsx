@@ -39,7 +39,6 @@ import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
 import {
     getIsWorkspacesOnlyForTransaction,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
@@ -973,9 +972,7 @@ function IOURequestStepConfirmation({
                             />
                         )}
                     </SubmitExpenseOrchestrator>
-                    {/* On iOS the picker is a plain overlay we mount only when visible; on web/Android it is a self-animating
-                        react-native-modal that must stay mounted while hidden so it can animate out and fire onModalHide. */}
-                    {isNewManualExpenseFlowEnabled && (getPlatform() !== CONST.PLATFORM.IOS || isParticipantPickerVisible) && (
+                    {isNewManualExpenseFlowEnabled && (
                         <ParticipantPicker
                             participants={participants}
                             iouType={participantPickerIOUType}
