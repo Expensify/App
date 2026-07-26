@@ -1,4 +1,4 @@
-import type {ASTNode, QueryFilter, SearchQueryJSON} from '@components/Search/types';
+import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -3430,6 +3430,44 @@ describe('SearchQueryUtils', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
             expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should preserve exact merchant matches in AST filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            if (!queryJSON) {
+                throw new Error('Expected queryJSON to be defined');
+            }
+            const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)) as {filters: ASTNode};
+            const merchantNode = findNode(serialized.filters, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+
+        it('should preserve exact merchant matches in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
+            const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)) as {rawFilterList: typeof rawFilterList};
+            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+
+        it('should preserve multiple exact merchant matches while keeping description as contains', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:Amazon,"Amazon Marketplace" description:order');
+            if (!queryJSON) {
+                throw new Error('Expected queryJSON to be defined');
+            }
+            const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)) as {filters: ASTNode};
+            const merchantNode = findNode(serialized.filters, 'merchant');
+            const descriptionNode = findNode(serialized.filters, 'description');
+            if (!merchantNode || !descriptionNode) {
+                throw new Error('Expected merchant and description nodes to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+            expect(merchantNode.right).toEqual(['Amazon', 'Amazon Marketplace']);
+            expect(descriptionNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
         });
 
         it('should not affect non-text fields in rawFilterList', () => {
