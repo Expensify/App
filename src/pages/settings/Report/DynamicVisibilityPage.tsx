@@ -35,8 +35,6 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
 
     const {showConfirmModal} = useConfirmModal();
 
-    // Keep the draft undefined until the user picks a row so we always fall back to the live visibility.
-    // This avoids freezing a stale value that could be saved over an external update to report.visibility.
     const [draftVisibility, setDraftVisibility] = useState<RoomVisibility | undefined>(undefined);
     const selectedVisibility = draftVisibility ?? report?.visibility;
 

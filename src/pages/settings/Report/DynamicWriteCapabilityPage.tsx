@@ -28,8 +28,6 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
     const {translate} = useLocalize();
     const currentWriteCapability = report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
-    // Keep the draft undefined until the user picks a row so we always fall back to the live write capability.
-    // This avoids freezing a stale value that could be saved over an external update to report.writeCapability.
     const [draftWriteCapability, setDraftWriteCapability] = useState<WriteCapability | undefined>(undefined);
     const selectedWriteCapability = draftWriteCapability ?? currentWriteCapability;
     const writeCapabilityOptions = Object.values(CONST.REPORT.WRITE_CAPABILITIES).map((value) => ({
