@@ -1,18 +1,23 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptImage from '@components/ReceiptImage';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
 
 type ConfirmationReceiptThumbnailProps = {
     /** ID of the transaction whose receipt is being previewed */

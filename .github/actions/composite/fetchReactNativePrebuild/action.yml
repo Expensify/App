@@ -1,0 +1,28 @@
+name: Fetch React Native prebuild files
+description: >
+  Copies the `ios-prebuild*` scripts and `Package.swift` from the upstream
+  facebook/react-native repo (matching the version pinned in package.json)
+  into the local node_modules/react-native/ folder.
+
+runs:
+  using: composite
+  steps:
+    - name: Get React Native version
+      id: rnVersion
+      shell: bash
+      run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout upstream React Native prebuild files
+      uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+      with:
+        repository: facebook/react-native
+        ref: v${{ steps.rnVersion.outputs.VERSION }}
+        path: rn-prebuild
+        sparse-checkout: packages/react-native/scripts
+
+    - name: Copy prebuild files into node_modules
+      shell: bash
+      run: |
+        cp -r rn-prebuild/packages/react-native/scripts/ios-prebuild* node_modules/react-native/scripts/
+        cp rn-prebuild/packages/react-native/Package.swift node_modules/react-native/
+        rm -rf rn-prebuild

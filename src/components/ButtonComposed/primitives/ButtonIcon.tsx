@@ -1,11 +1,15 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useButtonContext} from '@components/ButtonComposed/context';
 import Icon from '@components/Icon';
+
 import useTheme from '@hooks/useTheme';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ButtonIconProps = {
     /** The icon asset to display */
@@ -25,16 +29,19 @@ function ButtonIcon({src, style, hoverFill, fill}: ButtonIconProps) {
     const theme = useTheme();
     const {isHovered, variant, size} = useButtonContext();
 
-    const defaultFill = variant === 'success' || variant === 'danger' ? theme.textLight : theme.buttonIcon;
+    let defaultFill = theme.buttonIcon;
+    if (variant === CONST.BUTTON_VARIANT.DANGER) {
+        defaultFill = theme.buttonDangerText;
+    } else if (variant === CONST.BUTTON_VARIANT.SUCCESS) {
+        defaultFill = theme.textLight;
+    }
     const propsFill = isHovered ? hoverFill : fill;
     return (
         <View style={style}>
             <Icon
                 src={src}
                 fill={propsFill ?? defaultFill}
-                small={size === CONST.BUTTON_SIZE.SMALL}
-                medium={size === CONST.BUTTON_SIZE.MEDIUM}
-                large={size === CONST.BUTTON_SIZE.LARGE}
+                size={size}
                 isButtonIcon
             />
         </View>

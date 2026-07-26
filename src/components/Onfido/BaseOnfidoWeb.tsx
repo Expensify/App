@@ -1,15 +1,21 @@
-import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
-import React, {useEffect} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+
 import Log from '@libs/Log';
+
 import type {ThemeColors} from '@styles/theme/types';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import {EXTENDED_LOCALES} from '@src/CONST/LOCALES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
+import React, {useEffect} from 'react';
+
 import './index.css';
 import type {OnfidoProps} from './types';
 

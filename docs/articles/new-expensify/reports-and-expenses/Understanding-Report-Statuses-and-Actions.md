@@ -16,7 +16,10 @@ Each report status reflects a different stage in the reporting workflow:
 - **Submitted**: The report is awaiting approval from another person.
 - **Outstanding**: The report is in progress—under review, held, or partially completed.
 - **Approved**: The report is approved and ready for payment or export.
-- **Paid**: The report has been paid. All actions are complete.
+- **Paid**: The report has been paid. All actions are complete. On the web, hover over the **Paid** status to see the specific payment stage:
+  - **Marked as paid**: The report was marked as paid outside of Expensify.
+  - **Withdrawing**: The reimbursement is being withdrawn from the bank account and is still in progress.
+  - **Confirmed**: The reimbursement has been confirmed.
 - **Done**: The report is locked. No further edits or deletions can be made. This is the final status for non-approvable reports.
 
 ---
@@ -51,7 +54,7 @@ Depending on the report status and your role, the primary action button may say:
 
 - **Submit**: The report is ready to submit.
 - **Review**: The report contains holds, violations, or duplicate warnings.
-  - A red dot means something needs attention.
+  - A **Fix** badge means something needs attention.
 - **Approve**: The report is ready for approval.
 - **Pay**: The report has been approved and is ready for reimbursement.
 - **Export**: Send the approved report to your accounting system.

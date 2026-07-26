@@ -1,11 +1,9 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -14,24 +12,32 @@ import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getTripIDFromTransactionParentReportID} from '@libs/ReportUtils';
 import {formatCancelledDescription, getReservationDetailsFromSequence, getReservationsFromTripReport} from '@libs/TripReservationUtils';
+
 import {openTravelDotLink} from '@userActions/Link';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import type {Reservation} from '@src/types/onyx/Transaction';
+
+import type {StackScreenProps} from '@react-navigation/stack';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useState} from 'react';
+
 import CarTripDetails from './CarTripDetails';
 import FlightTripDetails from './FlightTripDetails';
 import HotelTripDetails from './HotelTripDetails';
 import TrainTripDetails from './TrainTripDetails';
 
-function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsList>, reservation: Reservation | undefined) {
-    return Object.values(personalDetails ?? {})?.find((personalDetail) => personalDetail?.login === reservation?.travelerPersonalInfo?.email);
+function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsList>, travelerEmail: string | undefined) {
+    return Object.values(personalDetails ?? {})?.find((personalDetail) => personalDetail?.login === travelerEmail);
 }
 
 type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
@@ -74,9 +80,10 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
 
     const {reservation, prevReservation, reservationType, reservationIcon, isCancelled} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
-    const travelerPersonalDetailsSelector = (personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, reservation);
-
-    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: travelerPersonalDetailsSelector}, [travelerPersonalDetailsSelector]);
+    const travelerEmail = reservation?.travelerPersonalInfo?.email;
+    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, travelerEmail),
+    });
 
     return (
         <ScreenWrapper

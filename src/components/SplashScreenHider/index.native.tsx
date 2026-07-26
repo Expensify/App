@@ -1,12 +1,18 @@
-import {useCallback, useEffect, useRef} from 'react';
+import Logo from '@assets/images/new-expensify-dark.svg';
+
+import ImageSVG from '@components/ImageSVG';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import BootSplash from '@libs/BootSplash';
+
 import type {ViewStyle} from 'react-native';
+
+import {useCallback, useEffect, useRef} from 'react';
 import {StyleSheet} from 'react-native';
 import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import Logo from '@assets/images/new-expensify-dark.svg';
-import ImageSVG from '@components/ImageSVG';
-import useThemeStyles from '@hooks/useThemeStyles';
-import BootSplash from '@libs/BootSplash';
+
 import type {SplashScreenHiderProps, SplashScreenHiderReturnType} from './types';
 
 function SplashScreenHider({onHide, shouldHideSplash}: SplashScreenHiderProps): SplashScreenHiderReturnType {

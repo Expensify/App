@@ -1,18 +1,18 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+
+import useConfirmModal from '@hooks/useConfirmModal';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -23,18 +23,28 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {MenuItemData} from '@pages/workspace/accounting/types';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {openExternalLink} from '@userActions/Link';
 import {openPolicyReceiptPartnersPage, removePolicyReceiptPartnersConnection, togglePolicyUberAutoInvite, togglePolicyUberAutoRemove} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {AnchorPosition} from '@src/styles';
+
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
 import getSynchronizationErrorMessage from './utils';
 
 type WorkspaceReceiptPartnersPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS>;
@@ -45,15 +55,14 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {showConfirmModal} = useConfirmModal();
     const receiptPartnerNames = CONST.POLICY.RECEIPT_PARTNERS.NAME;
     const receiptPartnerIntegrations = Object.values(receiptPartnerNames);
     const threeDotsMenuContainerRef = useRef<View>(null);
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
     const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
-    const [selectedPartner, setSelectedPartner] = useState<(typeof receiptPartnerNames)[keyof typeof receiptPartnerNames] | null>(null);
     const isLoading = policy?.isLoading;
-    const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const integrations = policy?.receiptPartners;
     const isAutoRemove = !!integrations?.uber?.autoRemove;
     const isAutoInvite = !!integrations?.uber?.autoInvite;
@@ -94,7 +103,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         if (!isUberConnected || prevIsUberConnected || !canWriteMoreFeatures) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)));
     }, [prevIsUberConnected, isUberConnected, policyID, canWriteMoreFeatures]);
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
@@ -119,6 +128,17 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         togglePolicyUberAutoRemove(policyID, !isAutoRemove);
     }, [isAutoRemove, policyID]);
 
+    const disconnectPartner = useCallback(
+        (partner: (typeof receiptPartnerNames)[keyof typeof receiptPartnerNames]) => {
+            if (!policyID) {
+                return;
+            }
+            removePolicyReceiptPartnersConnection(policyID, partner, integrations?.[partner]);
+            fetchReceiptPartners();
+        },
+        [policyID, integrations, fetchReceiptPartners],
+    );
+
     const getOverflowMenu = useCallback(
         (integration: string) => {
             switch (integration) {
@@ -128,7 +148,10 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                             {
                                 icon: icons.Key,
                                 text: translate('workspace.accounting.enterCredentials'),
-                                onSelected: () => startIntegrationFlow({name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER}),
+                                onSelected: () =>
+                                    startIntegrationFlow({
+                                        name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
+                                    }),
                                 shouldCallAfterModalHide: true,
                                 disabled: isOffline,
                                 iconRight: icons.NewWindow,
@@ -141,8 +164,18 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                             icon: icons.Trashcan,
                             text: translate('workspace.accounting.disconnect'),
                             onSelected: () => {
-                                setIsDisconnectModalOpen(true);
-                                setSelectedPartner(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
+                                showConfirmModal({
+                                    title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
+                                    prompt: translate('workspace.moreFeatures.receiptPartnersWarningModal.description'),
+                                    confirmText: translate('workspace.accounting.disconnect'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                }).then(({action}) => {
+                                    if (action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
+                                    disconnectPartner(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
+                                });
                             },
                             shouldCallAfterModalHide: true,
                         },
@@ -151,22 +184,8 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     return [];
             }
         },
-        [icons.Key, icons.NewWindow, icons.Trashcan, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow],
+        [icons.Key, icons.NewWindow, icons.Trashcan, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow, showConfirmModal, disconnectPartner],
     );
-
-    const onCloseModal = useCallback(() => {
-        setIsDisconnectModalOpen(false);
-        setSelectedPartner(null);
-    }, []);
-
-    const onDisconnectPartner = useCallback(() => {
-        if (!policyID || !selectedPartner) {
-            return;
-        }
-        removePolicyReceiptPartnersConnection(policyID, selectedPartner, integrations?.[selectedPartner]);
-        fetchReceiptPartners();
-        onCloseModal();
-    }, [policyID, selectedPartner, integrations, onCloseModal, fetchReceiptPartners]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (policyID) {
@@ -375,7 +394,11 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                 shouldShowRightIcon
                                                 icon={icons.Mail}
                                                 style={[styles.sectionMenuItemTopDescription, styles.mbn3, !centralBillingAccountEmail && styles.mt6]}
-                                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER))}
+                                                onPress={() =>
+                                                    Navigation.navigate(
+                                                        createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)),
+                                                    )
+                                                }
                                             />
                                         )}
                                     </>
@@ -383,16 +406,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                             </Section>
                         </View>
                     </ScrollView>
-                    <ConfirmModal
-                        title={translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle')}
-                        isVisible={isDisconnectModalOpen}
-                        onConfirm={onDisconnectPartner}
-                        onCancel={onCloseModal}
-                        prompt={translate('workspace.moreFeatures.receiptPartnersWarningModal.description')}
-                        confirmText={translate('workspace.accounting.disconnect')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
                 </ScreenWrapper>
             )}
         </AccessOrNotFoundWrapper>

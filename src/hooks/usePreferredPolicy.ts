@@ -1,5 +1,7 @@
-import {Str} from 'expensify-common';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {Str} from 'expensify-common';
+
 import useOnyx from './useOnyx';
 
 type UsePreferredPolicyResult = {

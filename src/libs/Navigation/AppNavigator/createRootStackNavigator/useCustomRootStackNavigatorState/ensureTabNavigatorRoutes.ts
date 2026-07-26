@@ -1,5 +1,6 @@
-import type {NavigationRoute, ParamListBase} from '@react-navigation/native';
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {NavigationRoute, ParamListBase} from '@react-navigation/native';
 
 type Route = NavigationRoute<ParamListBase, string>;
 

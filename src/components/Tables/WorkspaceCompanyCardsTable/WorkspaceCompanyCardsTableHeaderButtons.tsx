@@ -1,12 +1,9 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
-import Table from '@components/Table';
+
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
@@ -17,15 +14,25 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
 import {getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
+
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
+import getShouldShowBrokenConnectionError from './getShouldShowBrokenConnectionError';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
@@ -39,9 +46,6 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Whether the feed is loading */
     isLoading: boolean;
 
-    /** Whether to show the table controls */
-    showTableControls: boolean;
-
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
@@ -49,7 +53,7 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     CardFeedIcon: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, showTableControls, canWriteCompanyCards, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, canWriteCompanyCards, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -71,10 +75,9 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const {cardFeedErrors, shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
     const feedErrors = cardFeedErrors[feedName];
-    const hasFeedErrors = feedErrors?.hasFeedErrors;
-    const isFeedConnectionBroken = feedErrors?.isFeedConnectionBroken;
     const hasOtherFeedWithRBR = Object.keys(companyFeeds ?? {}).some((feed) => feed !== feedName && shouldShowRbrForFeedNameWithDomainID[feed]);
     const shouldShowFeedSelectorRBR = hasOtherFeedWithRBR || !!feedErrors?.hasWorkspaceErrors;
+    const shouldShowBrokenConnectionError = getShouldShowBrokenConnectionError(feedName, feedErrors);
 
     const openBankConnection = () => {
         if (!feedName) {
@@ -155,37 +158,23 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                 <View
                     style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
                 >
-                    {!isLoading && showTableControls && (
-                        <View style={[styles.mnw200]}>
-                            <Table.SearchBar
-                                style={[styles.mh0, styles.mb0]}
-                                label={translate('workspace.companyCards.findCard')}
-                            />
-                        </View>
-                    )}
-
                     <View style={[styles.flexRow, styles.gap3]}>
-                        {!isLoading && (
-                            <>
-                                {showTableControls && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
-                                {canWriteCompanyCards && (
-                                    <ButtonWithDropdownMenu
-                                        success={false}
-                                        onPress={() => {}}
-                                        shouldUseOptionIcon
-                                        customText={translate('common.more')}
-                                        options={secondaryActions}
-                                        isSplitButton={false}
-                                        wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.MORE_DROPDOWN}
-                                    />
-                                )}
-                            </>
+                        {!isLoading && canWriteCompanyCards && (
+                            <ButtonWithDropdownMenu
+                                onPress={() => {}}
+                                shouldUseOptionIcon
+                                customText={translate('common.more')}
+                                options={secondaryActions}
+                                isSplitButton={false}
+                                wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.MORE_DROPDOWN}
+                            />
                         )}
                     </View>
                 </View>
             </View>
-            {!isLoading && canWriteCompanyCards && (isFeedConnectionBroken || hasFeedErrors) && (
+
+            {!isLoading && canWriteCompanyCards && shouldShowBrokenConnectionError && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
                         src={icons.DotIndicator}

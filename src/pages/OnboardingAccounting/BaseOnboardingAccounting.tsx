@@ -1,6 +1,4 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
@@ -19,10 +18,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+
 import variables from '@styles/variables';
+
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -30,6 +32,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import type {BaseOnboardingAccountingProps} from './types';
 
 type Integration = {
@@ -85,7 +91,7 @@ type OnboardingListItem = ListItem & {
     keyForList: OnboardingAccounting;
 };
 
-function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
+function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -173,7 +179,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
 
     const accountingOptions: OnboardingListItem[] = [...integrations.map(createAccountingOption), othersAccountingOption, noneAccountingOption];
 
-    const handleContinue = () => {
+    const submitAccounting = () => {
         if (userReportedIntegration === undefined) {
             setError(translate('onboarding.errorSelection'));
             return;
@@ -182,7 +188,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         setOnboardingUserReportedIntegration(userReportedIntegration);
 
         // Navigate to the next onboarding step interested features with the selected integration
-        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
+        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
     };
 
     const handleIntegrationSelect = (integrationKey: OnboardingListItem['keyForList']) => {
@@ -253,13 +259,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 )}
 
                 <Button
-                    success
-                    large
-                    text={translate('common.continue')}
-                    onPress={handleContinue}
-                    pressOnEnter
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    onPress={submitAccounting}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.continue')}</Button.Text>
+                </Button>
             </FixedFooter>
         </ScreenWrapper>
     );

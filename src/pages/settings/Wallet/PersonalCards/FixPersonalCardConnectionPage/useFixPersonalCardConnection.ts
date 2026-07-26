@@ -1,15 +1,19 @@
-import {useEffect} from 'react';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {updatePersonalCardConnection} from '@libs/actions/PersonalCards';
 import {getBankName, getPlaidInstitutionId, isCardConnectionBroken} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConnection';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useEffect} from 'react';
 
 function useFixPersonalCardConnection(cardID: string) {
     const {isOffline} = useNetwork();

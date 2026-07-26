@@ -1,16 +1,22 @@
-import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
+import {getCertiniaFFAExportStatusValue, getCertiniaReportExportStatusValue} from '@pages/workspace/accounting/certinia/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
 
 type ExportRow = {
     description: string;
@@ -28,27 +34,56 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
     const policyOwner = policy?.owner ?? '';
     const {config, data} = policy?.connections?.financialforce ?? {};
     const exportConfig = config?.export;
+    const hasPSA = !!config?.hasPSA;
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.path}` : undefined;
     const selectedVendor = data?.vendors?.find((vendor) => vendor.id === exportConfig?.vendorAccount);
     const exportStatus = exportConfig?.exportStatus;
-    const exportDate = exportConfig?.exportDate;
+    const normalizedFFAExportStatus = getCertiniaFFAExportStatusValue(exportStatus);
+    const normalizedReportExportStatus = getCertiniaReportExportStatusValue(exportStatus);
+    const exportDate = Object.values(CONST.CERTINIA_EXPORT_DATE).find((value) => value === exportConfig?.exportDate);
 
-    const rows: ExportRow[] = [
+    const preferredExporterRow: ExportRow = {
+        description: translate('workspace.accounting.preferredExporter'),
+        title: exportConfig?.exporter ?? policyOwner,
+        onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER.path, exportPath)),
+        subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORTER],
+    };
+
+    const psaRows: ExportRow[] = [
+        preferredExporterRow,
         {
-            description: translate('workspace.accounting.preferredExporter'),
-            title: exportConfig?.exporter ?? policyOwner,
-            onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER.path, exportPath)),
-            subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORTER],
+            description: translate('workspace.certinia.reportExportStatus.label'),
+            title: normalizedReportExportStatus ? translate(`workspace.certinia.reportExportStatus.values.${normalizedReportExportStatus}`) : exportStatus,
+            onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS.path, exportPath)),
+            subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_STATUS],
         },
         {
+            description: translate('workspace.certinia.exportReimbursable.label'),
+            title: translate('workspace.certinia.expenseReports'),
+            helperText: translate('workspace.certinia.exportReimbursableExpenseReports.helperText'),
+            interactive: false,
+            subscribedSettings: [CONST.CERTINIA_CONFIG.REIMBURSABLE],
+        },
+        {
+            description: translate('workspace.certinia.exportNonReimbursable.label'),
+            title: translate('workspace.certinia.expenseReports'),
+            helperText: translate('workspace.certinia.exportNonReimbursableExpenseReports.helperText'),
+            interactive: false,
+            subscribedSettings: [CONST.CERTINIA_CONFIG.NON_REIMBURSABLE],
+        },
+    ];
+
+    const ffaRows: ExportRow[] = [
+        preferredExporterRow,
+        {
             description: translate('workspace.certinia.exportStatus.label'),
-            title: exportStatus ? translate(`workspace.certinia.exportStatus.values.${exportStatus}`) : exportConfig?.exportStatus,
+            title: normalizedFFAExportStatus ? translate(`workspace.certinia.exportStatus.values.${normalizedFFAExportStatus}`) : undefined,
             onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_STATUS],
         },
         {
             description: translate('workspace.certinia.exportDate.label'),
-            title: exportDate ? translate(`workspace.certinia.exportDate.values.${exportDate}`) : exportConfig?.exportDate,
+            title: exportDate ? translate(`workspace.certinia.exportDate.values.${exportDate}`) : undefined,
             onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_DATE],
         },
@@ -72,6 +107,8 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
             subscribedSettings: [CONST.CERTINIA_CONFIG.VENDOR_ACCOUNT],
         },
     ];
+
+    const rows = hasPSA ? psaRows : ffaRows;
 
     return (
         <ConnectionLayout

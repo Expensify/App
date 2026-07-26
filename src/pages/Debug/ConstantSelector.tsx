@@ -1,13 +1,17 @@
-import {useRoute} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
-import React, {useEffect} from 'react';
-import type {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect} from 'react';
 
 type ConstantSelectorProps = {
     /** Form error text. e.g when no constant is selected */
@@ -35,10 +39,8 @@ type ConstantSelectorProps = {
     ref: ForwardedRef<View>;
 };
 
-function ConstantSelector(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    {formType, policyID, errorText = '', name, value, onInputChange, ref}: ConstantSelectorProps,
-) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function ConstantSelector({formType, policyID, errorText = '', name, value, onInputChange, ref}: ConstantSelectorProps) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {

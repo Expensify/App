@@ -1,15 +1,19 @@
-import {getInput, setFailed} from '@actions/core';
-import * as core from '@actions/core';
-import {context} from '@actions/github';
-import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEvent} from '@octokit/webhooks-types';
-import {format} from 'date-fns';
-import {toZonedTime} from 'date-fns-tz';
-import type {TupleToUnion} from 'type-fest';
 import {convertToNumber} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+
 import PROPOSAL_POLICE_TEMPLATES from '@prompts/proposalPolice';
+
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
+
+import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEvent} from '@octokit/webhooks-types';
+import type {TupleToUnion} from 'type-fest';
+
+import {getInput, setFailed} from '@actions/core';
+import * as core from '@actions/core';
+import {context} from '@actions/github';
+import {format} from 'date-fns';
+import {toZonedTime} from 'date-fns-tz';
 
 type AssistantResponse = {
     action: typeof CONST.NO_ACTION | typeof CONST.ACTION_REQUIRED | typeof CONST.ACTION_EDIT;

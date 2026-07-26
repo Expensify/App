@@ -1,8 +1,9 @@
+import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
+
 /**
  * Constants specific to native biometrics (HSM / react-native-biometrics).
  */
 import {AuthType} from '@sbaiahmed1/react-native-biometrics/types';
-import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
 
 const NATIVE_BIOMETRICS_HSM_VALUES = {
     /**

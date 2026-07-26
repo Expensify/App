@@ -10,7 +10,7 @@ In Expensify, categories represent your **chart of accounts, GL accounts, expens
 
 Workspace Admins can create categories manually, or import them automatically when connecting an accounting system such as QuickBooks, Xero, NetSuite, or Sage Intacct. Once categories are available, they can be enabled or disabled as needed. Over time, Expensify also learns how categories are applied to specific merchants and suggests them automatically.
 
-The Categories table displays the category **Name**, **GL Code** (if assigned), and whether it's **Enabled** for workspace members to use.
+The Categories table displays the category **Name**, **GL Code** (if assigned), the assigned **Approver** (on the Control plan), and whether it's **Enabled** for workspace members to use.
 
 ![The Categories tab]({{site.url}}/assets/images/NewExpensify_ManageCategories_1.png){:width="100%"}
 
@@ -180,6 +180,14 @@ Yes. When a category is manually edited, the change is logged in the related exp
 ## What happens if a category is disabled in my accounting system?
 
 It will be removed from the workspace’s category list. However, it will remain visible on previously submitted or drafted reports where it was already applied.
+
+## What happens to an expense if its category is disabled on the workspace?
+
+If categories are disabled on the workspace while an expense still has a category applied, the **Category** field stays on the expense with a **Category no longer valid** violation.
+
+To resolve the violation, select the **Category** field on the expense. A **Category disabled** alert appears with options for managing the disabled category.
+
+Alternatively, you can enable tags on the workspace to edit the category directly.
 
 ## How can members see GL codes?
 

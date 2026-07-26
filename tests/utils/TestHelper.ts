@@ -1,13 +1,11 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import {Str} from 'expensify-common';
-import {Linking} from 'react-native';
-import Onyx from 'react-native-onyx';
-import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
+
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -18,6 +16,15 @@ import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
+
+import {Str} from 'expensify-common';
+import {Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
+
+import {isObject} from './typeGuards';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
@@ -31,6 +38,16 @@ type MockFetch = jest.MockedFn<typeof fetch> & {
 
 type ConnectionCallback<TKey extends OnyxKey> = NonNullable<ConnectOptions<TKey>['callback']>;
 type ConnectionCallbackParams<TKey extends OnyxKey> = Parameters<ConnectionCallback<TKey>>;
+type APIWriteOnyxData = OnyxData<OnyxKey>;
+type APIWriteDataType = keyof Pick<APIWriteOnyxData, 'failureData' | 'optimisticData' | 'successData'>;
+type ProductionAPIWriteOnyxUpdate = NonNullable<APIWriteOnyxData[APIWriteDataType]>[number];
+type APIWriteOnyxKey = Extract<ProductionAPIWriteOnyxUpdate['key'], string>;
+type APIWriteOnyxUpdate<TKey extends string = APIWriteOnyxKey> = {
+    key: TKey;
+    onyxMethod: ProductionAPIWriteOnyxUpdate['onyxMethod'];
+    value?: unknown;
+};
+type APIWriteOnyxUpdateWithObjectValue<TKey extends string = APIWriteOnyxKey> = Omit<APIWriteOnyxUpdate<TKey>, 'value'> & {value: Record<PropertyKey, unknown>};
 
 type QueueItem = {
     resolve: (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
@@ -94,6 +111,71 @@ function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
             },
         });
     });
+}
+
+function getRequiredWriteCall(calls: unknown, callIndex = -1): [unknown, Record<PropertyKey, unknown>, Record<PropertyKey, unknown>] {
+    if (!Array.isArray(calls)) {
+        throw new Error('Expected API.write mock calls.');
+    }
+
+    const call: unknown = calls.at(callIndex);
+    if (!Array.isArray(call)) {
+        throw new Error(`Expected API.write call ${callIndex}.`);
+    }
+
+    const parameters: unknown = call.at(1);
+    const onyxData: unknown = call.at(2);
+    if (!isObject(parameters) || !isObject(onyxData)) {
+        throw new Error(`Expected API.write call ${callIndex} to include parameters and Onyx data.`);
+    }
+
+    return [call.at(0), parameters, onyxData];
+}
+
+function getRequiredOnyxUpdates(onyxData: Record<PropertyKey, unknown>, dataType: APIWriteDataType): unknown[] {
+    const updates = onyxData[dataType];
+    if (!Array.isArray(updates)) {
+        throw new Error(`Expected API.write Onyx data to include ${dataType}.`);
+    }
+    return updates;
+}
+
+function isMatchingOnyxUpdate<TKey extends string>(candidate: unknown, key: TKey, onyxMethod: APIWriteOnyxUpdate['onyxMethod']): candidate is APIWriteOnyxUpdate<TKey> {
+    return isObject(candidate) && candidate.key === key && candidate.onyxMethod === onyxMethod;
+}
+
+function getRequiredOnyxUpdate<TKey extends string>(
+    onyxData: Record<PropertyKey, unknown>,
+    dataType: APIWriteDataType,
+    key: TKey,
+    onyxMethod: APIWriteOnyxUpdate['onyxMethod'],
+    requireObjectValue: true,
+): APIWriteOnyxUpdateWithObjectValue<TKey>;
+function getRequiredOnyxUpdate<TKey extends string>(
+    onyxData: Record<PropertyKey, unknown>,
+    dataType: APIWriteDataType,
+    key: TKey,
+    onyxMethod: APIWriteOnyxUpdate['onyxMethod'],
+    requireObjectValue?: false,
+): APIWriteOnyxUpdate<TKey>;
+function getRequiredOnyxUpdate<TKey extends string>(
+    onyxData: Record<PropertyKey, unknown>,
+    dataType: APIWriteDataType,
+    key: TKey,
+    onyxMethod: APIWriteOnyxUpdate['onyxMethod'],
+    requireObjectValue = false,
+): APIWriteOnyxUpdate<TKey> {
+    const update = getRequiredOnyxUpdates(onyxData, dataType).find((candidate) => isMatchingOnyxUpdate(candidate, key, onyxMethod));
+    if (!update) {
+        throw new Error(`Expected API.write ${dataType} to include a ${onyxMethod} update for ${key}.`);
+    }
+
+    const value: unknown = update.value;
+    if (requireObjectValue && !isObject(value)) {
+        throw new Error(`Expected API.write ${dataType} update for ${key} to include an object value.`);
+    }
+
+    return update;
 }
 
 /**
@@ -217,7 +299,7 @@ function signOutTestUser() {
  * - fail() - start returning a failure response
  * - success() - go back to returning a success response
  */
-function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
+function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
     let queue: QueueItem[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let responses = new Map<string, (params: any) => OnyxResponse<any>>();
@@ -280,7 +362,11 @@ function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
     mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<any>): void => {
         responses.set(command, responseHandler);
     };
-    return mockFetch as typeof fetch;
+    return mockFetch;
+}
+
+function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
+    return createGlobalFetchMock(mockResponse);
 }
 
 function setupGlobalFetchMock(): MockFetch {
@@ -394,6 +480,10 @@ export {
     buildTestReportComment,
     getFetchMockCalls,
     getGlobalFetchMock,
+    createGlobalFetchMock,
+    getRequiredOnyxUpdate,
+    getRequiredOnyxUpdates,
+    getRequiredWriteCall,
     setPersonalDetails,
     signInWithTestUser,
     signOutTestUser,

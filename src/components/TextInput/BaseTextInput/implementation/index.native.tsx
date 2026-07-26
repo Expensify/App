@@ -1,8 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -18,6 +13,7 @@ import * as styleConst from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
+
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -27,11 +23,21 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTextInputAccessibility from '@hooks/useTextInputAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 
 function BaseTextInput({
     label = '',
@@ -64,6 +70,7 @@ function BaseTextInput({
     shouldRenderHintAsHTML = false,
     onInputChange = () => {},
     multiline = false,
+    shouldLabelStayOnSingleLine = false,
     autoCorrect = true,
     prefixCharacter = '',
     suffixCharacter = '',
@@ -83,6 +90,7 @@ function BaseTextInput({
     onClearInput,
     iconContainerStyle,
     clearButtonStyle,
+    clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
@@ -345,6 +353,7 @@ function BaseTextInput({
                                 labelScale={labelScale}
                                 for={inputProps.nativeID}
                                 isMultiline={isMultiline}
+                                shouldLabelStayOnSingleLine={shouldLabelStayOnSingleLine}
                             />
                         ) : null}
                         {hiddenLabel}
@@ -392,7 +401,6 @@ function BaseTextInput({
                                     const elementRef = element as AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null;
                                     input.current = elementRef;
                                 }}
-                                // eslint-disable-next-line
                                 {...inputProps}
                                 autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
                                 accessibilityLabel={resolvedAccessibilityLabel}
@@ -458,6 +466,7 @@ function BaseTextInput({
                                         setValue('');
                                         onClearInput?.();
                                     }}
+                                    iconSize={clearButtonIconSize}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                 />
                             )}
@@ -468,7 +477,7 @@ function BaseTextInput({
                                     reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
                             )}
-                            {/* Render rightHandSideComponent only when clear button is not shown 
+                            {/* Render rightHandSideComponent only when clear button is not shown
                                 This prevents UI conflicts between clear button and custom components like flip/currency buttons */}
                             {!shouldShowClearButton && shouldHideClearButton && !inputProps.isLoading && !!rightHandSideComponent && (
                                 <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}>{rightHandSideComponent}</View>

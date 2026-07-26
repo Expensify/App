@@ -1,7 +1,7 @@
 ---
 title: Split Expenses 
 description: Learn how to create and submit expenses to a workspace or individual using SmartScan, manual entry, or distance tracking in Expensify.
-keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split]
+keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split, unreported expenses, split unreported]
 internalScope: Audience is submitters, approvers and admins. Covers how to split, edit, and revert expenses in New Expensify using the Split feature. Does not cover Classic behavior.
 ---
 
@@ -12,7 +12,7 @@ Expensify makes it easy to split expenses by dividing a single transaction acros
 
 ## Who can split expenses
 
-- **Submitters** can split any posted, editable expense they've created
+- **Submitters** can split any editable expense they've created, excluding unreported expenses that haven't been added to a report yet (but this functionality will be available soon)
 - **Approvers** can split expenses assigned to them for approval
 - **Admins** can split any expense that hasn't been fully approved
 

@@ -1,8 +1,10 @@
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {FileObject} from '@src/types/utils/Attachment';
+
 import type {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {Ref} from 'react';
 import type {StyleProp, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {FileObject} from '@src/types/utils/Attachment';
 
 type TextSelection = {
     start: number;

@@ -1,6 +1,3 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
@@ -9,9 +6,9 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -22,13 +19,21 @@ import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {TupleToUnion} from 'type-fest';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type SpendRulesSectionProps = {
     policyID: string;
@@ -45,7 +50,6 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Plus']);
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardProtectionIllustration']);
-    const {isProduction} = useEnvironment();
     const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -196,8 +200,8 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
                                             <Badge
                                                 text={part.badgeLabel}
                                                 badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
-                                                error={!part.isNeutral && rule.isBlock}
-                                                success={!part.isNeutral && !rule.isBlock}
+                                                error={part.variant === CONST.SPEND_RULES.BADGE_VARIANTS.ERROR}
+                                                success={part.variant === CONST.SPEND_RULES.BADGE_VARIANTS.SUCCESS}
                                                 isCondensed
                                             />
                                             <Text
@@ -220,24 +224,22 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
                     </OfflineWithFeedback>
                 ))
             )}
-            {!isProduction && (
-                <MenuItem
-                    title={translate('workspace.rules.spendRules.addSpendRule')}
-                    titleStyle={styles.textStrong}
-                    icon={expensifyIcons.Plus}
-                    iconHeight={20}
-                    iconWidth={20}
-                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
-                    onPress={() => {
-                        if (!canWriteRules) {
-                            showReadOnlyModal();
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
-                    }}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
-                />
-            )}
+            <MenuItem
+                title={translate('workspace.rules.spendRules.addSpendRule')}
+                titleStyle={styles.textStrong}
+                icon={expensifyIcons.Plus}
+                iconHeight={20}
+                iconWidth={20}
+                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
+                onPress={() => {
+                    if (!canWriteRules) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+                }}
+            />
         </Section>
     );
 }

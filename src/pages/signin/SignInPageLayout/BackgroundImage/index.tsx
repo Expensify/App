@@ -1,9 +1,13 @@
-import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
-import Animated, {FadeIn} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isAnonymousUser} from '@libs/actions/Session';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import CONST from '@src/CONST';
+
+import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
+import Animated, {FadeIn} from 'react-native-reanimated';
+
 import type BackgroundImageProps from './types';
 
 const BackgroundMobile = lazy(() =>

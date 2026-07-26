@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {
@@ -17,9 +18,9 @@ import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {BankAccountList} from '@src/types/onyx/BankAccount';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
-import type {Connections} from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {buildPersonalDetails, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -207,6 +208,24 @@ describe('WorkflowUtils', () => {
                 buildApprover(1, {forwardsTo: '1@example.com'}),
                 buildApprover(1, {forwardsTo: '1@example.com', isCircularReference: true}),
             ]);
+        });
+
+        it('Should surface a DELETE pendingAction from the employee onto the approver row so the workflow card renders with strikethrough', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: '2@example.com',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: undefined,
+                },
+            };
+
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
+
+            expect(approvers).toEqual([buildApprover(1, {forwardsTo: '2@example.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), buildApprover(2)]);
         });
 
         it('Should include approvalLimit and overLimitForwardsTo in approver objects', () => {
@@ -785,9 +804,10 @@ describe('WorkflowUtils', () => {
                             approvalMode: CONST.MERGE_HR.APPROVAL_MODE.MANAGER,
                             finalApprover: 'finalapprover@example.com',
                             integration: 'workday',
+                            groups: [],
                         },
                     },
-                } as Connections,
+                },
             };
             const personalDetailsForTest: PersonalDetailsList = {
                 'unassigned@example.com': {accountID: 1, login: 'unassigned@example.com', displayName: 'Unassigned'},

@@ -1,12 +1,10 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -15,29 +13,35 @@ import useMergeTransactions from '@hooks/useMergeTransactions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
-import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getAmount, getCreated, getCurrency, getDescription, getMerchant, isExpenseUnreported} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import MergeTransactionItem from './MergeTransactionItem';
 
 type MergeTransactionsListContentProps = {
     transactionID: string;
     mergeTransaction: OnyxEntry<MergeTransaction>;
-    isOnSearch?: boolean;
 };
 
 type MergeTransactionListItemType = Transaction & ListItem;
 
-function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSearch}: MergeTransactionsListContentProps) {
+function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -123,7 +127,6 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
         // Clear the merge transaction data when select a new source transaction to merge
         setupMergeTransactionData(transactionID, {
             targetTransactionID: transactionID,
-            targetTransactionThreadReportID: mergeTransaction?.targetTransactionThreadReportID,
             sourceTransactionID: item.transactionID,
             eligibleTransactions: mergeTransaction?.eligibleTransactions,
         });
@@ -133,8 +136,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
         ? getTransactionReportName({
               translate,
               reportAction: undefined,
-              transactions: [targetTransaction],
-              reports: targetTransactionReport ? [targetTransactionReport] : [],
+              linkedTransaction: targetTransaction,
+              report: getReportOrDraftReport(targetTransaction?.reportID, targetTransactionReport ? [targetTransactionReport] : [], undefined, undefined, targetTransactionReport),
           })
         : '';
 
@@ -160,23 +163,10 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate | undefined = mergeTransaction?.targetTransactionThreadReportID
-            ? {
-                  transactionID: mergeTransaction?.targetTransactionID ?? transactionID,
-                  threadReportID: mergeTransaction.targetTransactionThreadReportID,
-              }
-            : undefined;
-        setupMergeTransactionDataAndNavigate(
-            transactionID,
-            [targetTransaction, sourceTransaction],
-            localeCompare,
-            getCurrencyDecimals,
-            reports,
-            true,
-            isOnSearch,
-            [targetTransactionPolicy, sourceTransactionPolicy],
-            targetTransactionThreadReportCandidate,
-        );
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, undefined, [
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+        ]);
     };
 
     const confirmButtonOptions = {

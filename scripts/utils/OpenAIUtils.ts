@@ -1,9 +1,12 @@
-import OpenAI from 'openai';
-import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
-import type {ResponseCreateParamsNonStreaming} from 'openai/resources/responses/responses';
 import type {AssistantResponse} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
+
 import retryWithBackoff from '@scripts/utils/retryWithBackoff';
+
+import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
+import type {ResponseCreateParamsNonStreaming} from 'openai/resources/responses/responses';
+
+import OpenAI from 'openai';
 
 type ResponsesModel = ResponseCreateParamsNonStreaming['model'];
 

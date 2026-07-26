@@ -1,13 +1,8 @@
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useRef} from 'react';
-import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
@@ -17,12 +12,25 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setSearchContext} from '@libs/actions/Search';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ForwardedRef} from 'react';
+import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
 type SearchAutocompleteInputProps = {
@@ -120,7 +128,7 @@ function SearchAutocompleteInput({
     const tagAutocompleteList = getAutocompleteTags(allPoliciesTags);
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 

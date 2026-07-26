@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/consistent-type-definitions */
-import type {TargetedEvent} from 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
 import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
 import type {NavBarButtonStyle, NavigationBarType} from '@libs/NavBarManager/types';
 import type {ShareActionHandlerModule} from '@libs/ShareActionHandlerModule';
 import type {ShortcutManagerModule} from '@libs/ShortcutManager';
+
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
+import type {TargetedEvent} from 'react-native';
 
 type AppStateTrackerModule = {
     getWasAppRelaunchedFromIcon: () => Promise<boolean>;

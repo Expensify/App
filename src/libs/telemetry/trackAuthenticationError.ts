@@ -1,5 +1,6 @@
-import * as Sentry from '@sentry/react-native';
 import CONST from '@src/CONST';
+
+import * as Sentry from '@sentry/react-native';
 
 type AuthenticationFunction = 'Authenticate' | 'reauthenticate';
 type AuthenticationErrorType = 'missing_params' | 'network_retry' | 'auth_failure' | 'unexpected_error';

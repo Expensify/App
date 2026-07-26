@@ -1,25 +1,32 @@
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {EdgeInsets} from 'react-native-safe-area-context';
-import type {ValueOf} from 'type-fest';
 import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+import type {ValueOf} from 'type-fest';
+
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 type SidebarLinksProps = {
     /** Safe area insets required for mobile devices margins */
@@ -28,6 +35,9 @@ type SidebarLinksProps = {
     /** List of options to display */
     optionListItems: Report[];
 
+    /** Whether the full (unfiltered) LHN report set is empty. Used to distinguish an Onyx-cleared reload from a per-tab empty view. */
+    hasReportData: boolean;
+
     /** The chat priority mode */
     priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
 
@@ -35,10 +45,11 @@ type SidebarLinksProps = {
     isActiveReport: (reportID: string) => boolean;
 };
 
-function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {setStickyReportID} = useSidebarOrderedReportsActions();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
     useEffect(() => {
@@ -69,29 +80,38 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
+            // Keep this report visible in the active To-do/Unread tab even after opening it marks it read.
+            setStickyReportID(option.reportID);
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, actionTargetReportActionID));
         },
-        [shouldUseNarrowLayout, isActiveReport],
+        [shouldUseNarrowLayout, isActiveReport, setStickyReportID],
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
-
-    const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SidebarLinks',
-        isLoadingReportData,
-        optionListItemsCount: optionListItems?.length,
-    };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
     const shouldShowEmptyLHN = optionListItems.length === 0;
 
+    // Show the loading skeleton only while report data is loading AND the entire LHN report set is empty
+    // (e.g. switching accounts/delegate sessions or re-authenticating after an Onyx clear, where openApp() repopulates reports).
+    // Gating on the unfiltered set — rather than the current tab's filtered list — avoids the reconnect flash on the
+    // Unread/To-do tabs, where the filtered list is legitimately empty while reports still exist.
+    const shouldShowLoadingSkeleton = isLoadingReportData && !hasReportData;
+
+    const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SidebarLinks',
+        isLoadingReportData,
+        hasReportData,
+        optionListItemsCount: optionListItems?.length,
+    };
+
     return (
         <View style={[styles.flex1, styles.h100]}>
             <View style={[styles.pRelative, styles.flex1]}>
                 {shouldShowEmptyLHN ? (
-                    <View style={[styles.flex1, styles.emptyLHNWrapper]}>
+                    <View style={[styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper]}>
                         <LHNEmptyState />
                     </View>
                 ) : (
@@ -105,7 +125,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                         onFirstItemRendered={setSidebarLoaded}
                     />
                 )}
-                {isLoadingReportData && optionListItems?.length === 0 && (
+                {shouldShowLoadingSkeleton && (
                     <View style={[StyleSheet.absoluteFill, styles.appBG, styles.mt3]}>
                         <OptionsListSkeletonView
                             shouldAnimate

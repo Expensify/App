@@ -1,28 +1,28 @@
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDBTimeWithSkew} from '@libs/NetworkState';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -32,6 +32,11 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction, optimisticReportLastData} from './Report';
 import {setSelfTourViewed} from './Welcome';
 
@@ -78,6 +83,7 @@ type CreateTaskAndNavigateParams = {
     ancestors?: ReportUtils.Ancestor[];
     currentUserDisplayName: string | undefined;
     currentUserAvatar: AvatarSource | undefined;
+    taskCreatorAndAssigneeDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 /**
@@ -122,6 +128,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         isCreatedUsingMarkdown = false,
         quickAction = {},
         ancestors = [],
+        taskCreatorAndAssigneeDetails,
     } = params;
     const parentReportID = parentReport?.reportID;
     if (!parentReportID) {
@@ -204,13 +211,6 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             value: {[optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction as OnyxTypes.ReportAction},
         },
     ];
-
-    // We need the personal details of the task creator and assignee so that the "From" and "Assignee" columns wil be rendered in "Reports > Task" while offline.
-    const personalDetailsList = PersonalDetailsUtils.createPersonalDetailsLookupByAccountID(
-        PersonalDetailsUtils.getPersonalDetailsByIDs({
-            accountIDs: [currentUserAccountID, assigneeAccountID],
-        }),
-    );
 
     // FOR TASK REPORT
     const successData: Array<
@@ -300,7 +300,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] = {
         [optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction as OnyxTypes.ReportAction,
     };
-    snapshotDataToStore[ONYXKEYS.PERSONAL_DETAILS_LIST] = personalDetailsList;
+    // We need the personal details of the task creator and assignee so that the "From" and "Assignee" columns wil be rendered in "Reports > Task" while offline.
+    snapshotDataToStore[ONYXKEYS.PERSONAL_DETAILS_LIST] = taskCreatorAndAssigneeDetails;
 
     // We push the optimistic task data into chat and task snapshot hashes so it appears immediately in "Reports > Chats" and "Reports > Task" while offline.
     for (const type of searchDataTypes) {
@@ -386,10 +387,19 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
-        InteractionManager.runAfterInteractions(() => {
+        const isSearchActive = isSearchTopmostFullScreenRoute();
+        const isParentReportVisible = isSearchActive && Navigation.getTopmostSearchReportID() === parentReportID;
+
+        if (isParentReportVisible) {
+            Navigation.closeRHPFlow();
             clearOutTaskInfo();
-        });
-        Navigation.dismissModalWithReport({reportID: parentReportID});
+        } else {
+            Navigation.dismissModalWithReport({reportID: parentReportID}, undefined, {
+                afterTransition: () => {
+                    clearOutTaskInfo();
+                },
+            });
+        }
     }
     notifyNewAction(parentReportID, optimisticAddCommentReport.reportAction, true);
 }
@@ -1078,7 +1088,7 @@ function clearOutTaskInfoAndNavigate(
     if (assigneePersonalDetails && assigneeAccountID > 0) {
         setAssigneeValue(currentUserAccountID, assigneePersonalDetails, reportID, chatReport, assigneeAccountID === currentUserAccountID, skipConfirmation);
     }
-    Navigation.navigate(ROUTES.NEW_TASK_DETAILS.getRoute(Navigation.getReportRHPActiveRoute()));
+    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_DETAILS.path));
 }
 
 /**
@@ -1095,7 +1105,12 @@ function startOutCreateTaskQuickAction(currentUserAccountID: number, reportID: s
 /**
  * Get the assignee data
  */
-function getAssignee(assigneeAccountID: number | undefined, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee | undefined {
+function getAssignee(
+    assigneeAccountID: number | undefined,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): Assignee | undefined {
     if (!assigneeAccountID) {
         return;
     }
@@ -1112,7 +1127,7 @@ function getAssignee(assigneeAccountID: number | undefined, personalDetails: Ony
 
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+        displayName: formatPhoneNumber(PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
         subtitle: details.login ?? '',
     };
 }
@@ -1124,7 +1139,10 @@ function getShareDestination(
     report: OnyxEntry<OnyxTypes.Report>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     policy: OnyxEntry<OnyxTypes.Policy>,
+    conciergeReportID: string | undefined,
+    translate: LocalizedTranslate,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
@@ -1136,7 +1154,8 @@ function getShareDestination(
         OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails),
         isMultipleParticipant,
         localeCompare,
-        LocalePhoneNumber.formatPhoneNumber,
+        formatPhoneNumber,
+        translate,
     );
 
     let subtitle = '';
@@ -1145,13 +1164,13 @@ function getShareDestination(
 
         const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
         const login = personalDetails?.[participantAccountID]?.login ?? '';
-        subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
+        subtitle = formatPhoneNumber(login || displayName);
     } else {
-        subtitle = ReportUtils.getChatRoomSubtitle(report, policy) ?? '';
+        subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, FallbackAvatar),
-        displayName: getReportName(report, reportAttributes),
+        icons: ReportUtils.getIcons(report, formatPhoneNumber, translate, personalDetails, FallbackAvatar),
+        displayName: deprecatedGetReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),
@@ -1163,12 +1182,12 @@ function getShareDestination(
  * @param report - The task report being deleted
  * @returns The URL to navigate to
  */
-function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined): string | undefined {
+function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, reportActions: OnyxEntry<OnyxTypes.ReportActions>): string | undefined {
     if (!report) {
         return undefined;
     }
 
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID);
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID, reportActions);
     if (!shouldDeleteTaskReport) {
         return undefined;
     }
@@ -1198,6 +1217,7 @@ function deleteTask(
     parentReportAction: OnyxEntry<ReportAction>,
     conciergeReportID: string | undefined,
     delegateEmail: string | undefined,
+    reportActions: OnyxEntry<OnyxTypes.ReportActions>,
     ancestors: ReportUtils.Ancestor[] = [],
 ) {
     if (!report) {
@@ -1209,7 +1229,7 @@ function deleteTask(
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report, isReportArchived);
 
     // If the task report is the last visible action in the parent report, we should navigate back to the parent report
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID, canUserPerformWriteAction);
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID, reportActions, canUserPerformWriteAction);
     const optimisticReportAction: Partial<ReportUtils.OptimisticTaskReportAction> = {
         pendingAction: shouldDeleteTaskReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         previousMessage: parentReportAction?.message,
@@ -1323,7 +1343,7 @@ function deleteTask(
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, undefined, true);
 
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID);
+    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions);
     if (urlToNavigateBack) {
         Navigation.goBack();
         return urlToNavigateBack;

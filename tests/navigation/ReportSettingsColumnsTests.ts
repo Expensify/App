@@ -1,4 +1,5 @@
 import {config} from '@libs/Navigation/linkingConfig/config';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';

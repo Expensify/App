@@ -1,18 +1,24 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import {clearAddNewPersonalCardFlow} from '@userActions/PersonalCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import BankConnection from './steps/BankConnection';
 import PlaidConnectionStep from './steps/PlaidConnectionStep';
 import SelectBankStep from './steps/SelectBankStep';

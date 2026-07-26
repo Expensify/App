@@ -1,7 +1,7 @@
 ---
 title: How Expensify and Expensify Travel Connect
 description: Learn how Expensify Travel integrates with your Expensify account to automate business travel booking and expense reporting.
-keywords: [Expensify Travel, travel booking, automatic expense creation, flight expense, hotel booking, car rental, SmartScan, travel integration, trip automation, book business travel]
+keywords: [Expensify Travel, travel booking, automatic expense creation, flight expense, hotel booking, car rental, SmartScan, travel integration, trip automation, book business travel, view trip from expense, Trip row, open trip from expense]
 
 ---
 
@@ -48,6 +48,24 @@ Once booked, everything else is automated.
 **4. Workspace policy and accounting sync**
 - Expenses follow your workspace’s rules for categories, tags, and GL codes.
 - If you’ve connected an accounting tool like **QuickBooks** or **NetSuite**, expenses sync automatically after approval or reimbursement.
+
+---
+
+## How to open the related trip from a travel expense
+
+Each expense created from an Expensify Travel booking links back to the trip it belongs to, so you can jump from a single booking to the full trip and its other expenses.
+
+1. Open the travel expense to view its details (in a side panel on web, or a details screen on mobile).
+2. Select the **Trip** row, which shows the trip name.
+3. The related trip opens, where you can review the bookings and expenses for that trip.
+
+The **Trip** row only appears on expenses created from an Expensify Travel booking. It does not appear on manually created expenses.
+
+<!-- SCREENSHOT:
+Suggestion: Travel expense details with the Trip row highlighted, showing the trip name as a link.
+Location: After the steps in "How to open the related trip from a travel expense".
+Purpose: Show users exactly where the Trip row appears in the expense details.
+-->
 
 ---
 

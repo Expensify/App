@@ -1,4 +1,5 @@
 import * as Browser from '@libs/Browser';
+
 import type ShouldPreventScrollOnAutoCompleteSuggestion from './types';
 
 const isMobileSafari = Browser.isMobileSafari();

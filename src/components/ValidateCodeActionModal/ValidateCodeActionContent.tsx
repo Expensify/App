@@ -1,15 +1,22 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {ValidateCodeActionContentProps} from './type';
-import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
+
+import ValidateCodeForm from './ValidateCodeForm';
 
 function ValidateCodeActionContent({
     title,
@@ -29,19 +36,27 @@ function ValidateCodeActionContent({
 }: ValidateCodeActionContentProps) {
     const themeStyles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const [validateCodeAction, validateCodeActionMetadata] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const firstRenderRef = useRef(true);
 
     useEffect(() => {
-        if (!firstRenderRef.current || validateCodeAction?.validateCodeSent) {
+        // Wait for Onyx to hydrate before deciding, otherwise on reload we read undefined and wrongly re-send
+        if (isLoadingOnyxValue(validateCodeActionMetadata) || !firstRenderRef.current) {
             return;
         }
         firstRenderRef.current = false;
 
+        // The magic code is account-level, so skip sending if one was already requested within the resend window (e.g. a page reload)
+        const requestedAt = validateCodeAction?.lastValidateCodeRequestedAt;
+        const sentRecently = !!requestedAt && Date.now() - requestedAt < CONST.REQUEST_CODE_DELAY * CONST.MILLISECONDS_PER_SECOND;
+        if (sentRecently) {
+            return;
+        }
+
         sendValidateCode();
-        // We only want to send validate code on first render not on change of validateCodeSent, so we don't add it as a dependency.
+        // We only want to decide whether to send once Onyx has hydrated, so we depend on the hydration metadata rather than the value
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sendValidateCode]);
+    }, [sendValidateCode, validateCodeActionMetadata]);
 
     const hide = useCallback(() => {
         clearError();

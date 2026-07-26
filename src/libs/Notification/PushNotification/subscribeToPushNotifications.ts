@@ -1,19 +1,25 @@
-import {NativeModules} from 'react-native';
-import type {OnyxKey} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
+
 import {updateLastVisitedPath} from '@userActions/App';
 import * as Modal from '@userActions/Modal';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
-import PushNotification from '.';
+
+import type {OnyxKey} from 'react-native-onyx';
+
+import {NativeModules} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import type {AnyPushNotificationData, PushNotificationData} from './NotificationType';
+
+import PushNotification from '.';
 
 /**
  * Manage push notification subscriptions on sign-in/sign-out.

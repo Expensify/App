@@ -1,9 +1,15 @@
 import type {ReactNode, RefObject} from 'react';
 import type {View} from 'react-native';
 
+/** Shared hover state passed to children so overlays (e.g. the distance e-receipt flip) stay in sync with the zoom. */
+type ReceiptHoverZoomRenderState = {
+    /** True while the pointer is actively over the receipt (set on the first pointer move after load, cleared on leave). */
+    isHovering: boolean;
+};
+
 type ReceiptHoverZoomProps = {
-    /** Children to render inside the zoom container */
-    children: ReactNode;
+    /** Children to render inside the zoom container. May be a render function that receives the shared hover state. */
+    children: ReactNode | ((state: ReceiptHoverZoomRenderState) => ReactNode);
 
     /** When false the wrapper is a pass-through with no DOM/listener overhead */
     isEnabled?: boolean;

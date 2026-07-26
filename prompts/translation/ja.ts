@@ -1,4 +1,5 @@
-import dedent from '@libs/StringUtils/dedent';
+import {Str} from 'expensify-common';
+
 import Glossary from './Glossary';
 
 const japaneseGlossary = new Glossary([
@@ -6,7 +7,7 @@ const japaneseGlossary = new Glossary([
     {sourceTerm: 'Expensify Card', targetTerm: 'Expensify カード', usage: 'Branded Expensify payment card'},
 ]);
 
-export default dedent(`
+export default Str.dedent(`
     When translating to Japanese, follow these rules:
 
     - Use polite form (です/ます) for user-facing text.

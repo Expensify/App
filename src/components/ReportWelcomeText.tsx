@@ -1,6 +1,4 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -8,10 +6,11 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getInvoiceReceiverPolicyID,
     getParticipantsAccountIDsForDisplay,
@@ -25,11 +24,19 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+import {View} from 'react-native';
+
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -55,6 +62,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
@@ -64,7 +72,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, betas, isReportArchived, isRestrictedToPreferredPolicy);
-    const policyName = getPolicyName({report});
+    const policyName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const filteredOptions = moneyRequestOptions.filter(
         (
@@ -82,7 +91,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const reportName = getReportName(report, reportAttributes);
+    const reportName = deprecatedGetReportName(report, reportAttributes);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
@@ -125,6 +134,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
+        isTrackIntentUser: !!isTrackIntentUser,
+        currentUserAccountID,
     });
 
     return (

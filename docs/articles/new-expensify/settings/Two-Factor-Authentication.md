@@ -1,7 +1,7 @@
 ---
 title: Two-Factor Authentication (2FA)
 description: Learn how to set up, use, and recover your Expensify account with two-factor authentication (2FA), including lost device and admin recovery options.
-keywords: [New Expensify, two-factor authentication, 2FA, login security, authenticator app, recovery codes, locked out, lost phone, account recovery, Domain Admin reset, backup codes]
+keywords: [New Expensify, two-factor authentication, 2FA, login security, authenticator app, recovery codes, locked out, lost phone, account recovery, Domain Admin reset, backup codes, MFA, multi-factor, multi-factor authentication, verification code, security code, two factor, two-factor, security key]
 ---
 
 Setting up two-factor authentication (2FA) in New Expensify adds an extra layer of protection to your account. This guide explains how to enable 2FA and what to expect if you're ever locked out.
@@ -34,7 +34,7 @@ Anyone can enable Two-Factor Authentication on their own account. Domain Admins 
 # What to expect when logging in
 
 After setup, login requires both:
-1. Your magic code (sent via email).  
+1. Your security code (sent via email).  
 2. The 6-digit verification code from your authenticator app.
 
 ---

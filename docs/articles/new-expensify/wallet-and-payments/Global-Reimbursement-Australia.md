@@ -68,6 +68,8 @@ Accepted file types: PDF, PNG, JPEG. Each file must be 2 MB or less.
 
 **Note:** For global reimbursements, Expensify requires information from at least two Directors or Senior Officers for Australian companies.
 
+**Note:** Each designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
+
 ---
 
 # Step 3: Confirm Test Transactions

@@ -1,25 +1,27 @@
 name: 'Is Authorized Contributor'
 description: 'Checks whether a PR author is authorized to contribute (org member, Contributor+, or linked issue)'
 inputs:
-    PR_NUMBER:
-        description: Pull request number
-        required: true
-    ACTOR:
-        description: Login of the user to authorize (PR author, comment author, etc.)
-        required: true
-    ACTOR_ASSOCIATION:
-        description: "Actor's association with the repository (MEMBER, OWNER, CONTRIBUTOR, etc.)"
-        required: true
-    GITHUB_TOKEN:
-        description: Auth token for repository API calls
-        required: true
-        default: ${{ github.token }}
-    OS_BOTIFY_TOKEN:
-        description: OSBotify token for org team membership (read:org)
-        required: true
+  PR_NUMBER:
+    description: Pull request number
+    required: true
+  ACTOR:
+    description: Login of the user to authorize (PR author, comment author, etc.)
+    required: true
+  ACTOR_ASSOCIATION:
+    description: "Actor's association with the repository (MEMBER, OWNER, CONTRIBUTOR, etc.)"
+    required: true
+  GITHUB_TOKEN:
+    description: Auth token for repository API calls
+    required: true
+    default: ${{ github.token }}
+  OS_BOTIFY_TOKEN:
+    description: OSBotify token for org team membership (read:org)
+    required: true
 outputs:
-    IS_AUTHORIZED:
-        description: "'true' if the contributor is authorized, 'false' otherwise"
+  IS_AUTHORIZED:
+    description: "'true' if the contributor is authorized, 'false' otherwise"
+  IS_INTERNAL:
+    description: "'true' if the actor is an internal Expensify engineer (engineering org team member), 'false' otherwise"
 runs:
-    using: 'node24'
-    main: './index.js'
+  using: 'node24'
+  main: './index.js'

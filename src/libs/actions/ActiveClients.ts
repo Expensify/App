@@ -1,5 +1,6 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 function setActiveClients(activeClients: string[]): Promise<void | void[]> {
     return Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);

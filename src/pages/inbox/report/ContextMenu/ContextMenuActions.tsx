@@ -1,14 +1,12 @@
-import {Str} from 'expensify-common';
-import type {RefObject} from 'react';
-import React from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
+
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
+
 import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
@@ -22,6 +20,7 @@ import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {getLoginByAccountID, getParticipantsPersonalDetails, getPersonalDetailsByID, getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
@@ -37,6 +36,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
@@ -52,6 +52,7 @@ import {
     getDynamicExternalWorkflowSubmitFailedActionMessage,
     getExportIntegrationMessageHTML,
     getForeignCurrencyDefaultTaxUpdateMessage,
+    getForwardedReportActionMessage,
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
@@ -150,6 +151,7 @@ import {
     isMovedAction,
     isOldDotReportAction,
     isOriginalReportDeleted,
+    isPolicyCopyReportAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRejectedAction,
@@ -175,23 +177,27 @@ import {
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    getPolicyChangeLogCopyMessage,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportOrDraftReport,
-    getReportPreviewMessage,
+    getReportPreviewMessageForCopy,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
     isSelfDM,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from '@libs/SpendRuleChangeLogUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {isExpenseSplit, isPerDiemRequest} from '@libs/TransactionUtils';
+
 import {setDownload} from '@userActions/Download';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import {openOldDotLink} from '@userActions/Link';
 import {
     explain,
     markCommentAsUnread,
@@ -202,6 +208,8 @@ import {
     togglePinnedState,
     toggleSubscribeToChildReport,
 } from '@userActions/Report';
+
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -222,10 +230,20 @@ import type {
     ReportAttributesDerivedValue,
     Report as ReportType,
     Transaction,
+    TransactionViolations,
 } from '@src/types/onyx';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {RefObject} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
+
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
@@ -248,6 +266,16 @@ function setClipboardMessage(content: string | undefined) {
     }
 }
 
+/** Sets the HTML string to Clipboard after stripping the SMS domain from any user mentions */
+function setClipboardMessageWithCleanedMentions(value: string) {
+    setClipboardMessage(
+        value.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
+            const modifiedContent = Str.removeSMSDomain(innerContent) || '';
+            return openTag + modifiedContent + closeTag || '';
+        }),
+    );
+}
+
 type ShouldShow = (args: {
     type: string;
     reportAction: OnyxEntry<ReportAction>;
@@ -263,6 +291,8 @@ type ShouldShow = (args: {
     isOffline: boolean;
     isMini: boolean;
     isProduction: boolean;
+    isDevelopment: boolean;
+    isStaging: boolean;
     moneyRequestAction: ReportAction | undefined;
     areHoldRequirementsMet: boolean;
     isDebugModeEnabled: OnyxEntry<boolean>;
@@ -276,6 +306,7 @@ type ShouldShow = (args: {
 
 type ContextMenuActionPayload = {
     reportActions: OnyxEntry<ReportActions>;
+    childReportActions: OnyxEntry<ReportActions>;
     reportAction: ReportAction;
     transaction?: OnyxEntry<Transaction>;
     reportID: string | undefined;
@@ -299,6 +330,7 @@ type ContextMenuActionPayload = {
     originalReport: OnyxEntry<ReportType>;
     isHarvestReport?: boolean;
     isTryNewDotNVPDismissed?: boolean;
+    isTrackIntentUser?: boolean;
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
@@ -309,6 +341,7 @@ type ContextMenuActionPayload = {
     harvestReportOriginalID?: string;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     isDelegateAccessRestricted?: boolean;
@@ -316,12 +349,14 @@ type ContextMenuActionPayload = {
     currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
     encryptedAuthToken: string;
     iouTransaction: OnyxEntry<Transaction>;
+    iouTransactionViolations: OnyxEntry<TransactionViolations>;
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
     originalReportOfUnapprovedTransaction?: OnyxEntry<ReportType>;
     delegateAccountID: number | undefined;
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
+    memberChangeLogRoomReportName: string | undefined;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string) => void;
@@ -354,6 +389,7 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
         | 'Trashcan'
         | 'Exit'
         | 'Concierge'
+        | 'Eye'
     >;
     successTextTranslateKey?: TranslationPaths;
     successIcon?: Extract<
@@ -456,15 +492,16 @@ const ContextMenuActions: ContextMenuAction[] = [
             return !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
         onPress: (closePopover, {reportAction, childReport, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, personalDetails}) => {
+            const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, personalDetails, isSelfTourViewed);
+                        navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, participantsPersonalDetails, isSelfTourViewed);
                     });
                 });
                 return;
             }
-            navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, personalDetails, isSelfTourViewed);
+            navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, participantsPersonalDetails, isSelfTourViewed);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD,
@@ -478,8 +515,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return (type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isDynamicWorkflowRoutedAction) || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat);
         },
-        onPress: (closePopover, {reportActions, reportAction, reportID, currentUserAccountID}) => {
-            markCommentAsUnread(reportID, reportActions, reportAction, currentUserAccountID);
+        onPress: (closePopover, {reportActions, reportAction, reportID, currentUserAccountID, isOffline}) => {
+            markCommentAsUnread(reportID, reportActions, reportAction, currentUserAccountID, isOffline);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -498,10 +535,15 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             return hasReasoning(reportAction);
         },
-        onPress: (closePopover, {reportAction, childReport, originalReport, translate, currentUserPersonalDetails, introSelected, betas, isSelfTourViewed, delegateAccountID}) => {
+        onPress: (
+            closePopover,
+            {reportAction, childReport, originalReport, translate, currentUserPersonalDetails, introSelected, betas, isSelfTourViewed, delegateAccountID, personalDetails},
+        ) => {
             if (!originalReport?.reportID) {
                 return;
             }
+
+            const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserPersonalDetails.accountID, Number(reportAction?.actorAccountID)], personalDetails);
 
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -516,6 +558,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                             betas,
                             isSelfTourViewed,
                             delegateAccountID,
+                            participantsPersonalDetails,
                             currentUserPersonalDetails?.timezone,
                         );
                     });
@@ -533,6 +576,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 betas,
                 isSelfTourViewed,
                 delegateAccountID,
+                participantsPersonalDetails,
                 currentUserPersonalDetails?.timezone,
             );
         },
@@ -563,11 +607,11 @@ const ContextMenuActions: ContextMenuAction[] = [
             (canEditReportAction(reportAction, iouTransaction) || canEditReportAction(moneyRequestAction, iouTransaction)) &&
             !isArchivedRoom &&
             !isChronosReport,
-        onPress: (closePopover, {reportID, originalReportID, reportAction, moneyRequestAction, introSelected, betas}) => {
+        onPress: (closePopover, {reportID, originalReportID, reportAction, moneyRequestAction, introSelected, betas, childReportActions}) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
-                    openReport({reportID: childReportID, introSelected, betas});
+                    openReport({reportID: childReportID, introSelected, betas, hasReportActions: !!childReportActions});
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {
@@ -604,7 +648,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID).canUnholdRequest;
         },
-        onPress: (closePopover, {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails}) => {
+        onPress: (
+            closePopover,
+            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
+        ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
                 return;
@@ -612,13 +659,29 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID),
+                    changeMoneyRequestHoldStatus(
+                        moneyRequestAction,
+                        iouTransaction,
+                        isOffline,
+                        currentUserPersonalDetails?.login ?? '',
+                        currentUserPersonalDetails.accountID,
+                        iouTransactionViolations,
+                        isTrackIntentUser,
+                    ),
                 );
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID);
+            changeMoneyRequestHoldStatus(
+                moneyRequestAction,
+                iouTransaction,
+                isOffline,
+                currentUserPersonalDetails?.login ?? '',
+                currentUserPersonalDetails.accountID,
+                iouTransactionViolations,
+                isTrackIntentUser,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNHOLD,
@@ -634,7 +697,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID).canHoldRequest;
         },
-        onPress: (closePopover, {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails}) => {
+        onPress: (
+            closePopover,
+            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
+        ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
                 return;
@@ -642,13 +708,29 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID),
+                    changeMoneyRequestHoldStatus(
+                        moneyRequestAction,
+                        iouTransaction,
+                        isOffline,
+                        currentUserPersonalDetails?.login ?? '',
+                        currentUserPersonalDetails.accountID,
+                        iouTransactionViolations,
+                        isTrackIntentUser,
+                    ),
                 );
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID);
+            changeMoneyRequestHoldStatus(
+                moneyRequestAction,
+                iouTransaction,
+                isOffline,
+                currentUserPersonalDetails?.login ?? '',
+                currentUserPersonalDetails.accountID,
+                iouTransactionViolations,
+                isTrackIntentUser,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,
@@ -678,7 +760,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -690,6 +772,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         originalReport,
                         introSelected,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         betas,
                         childReportNotificationPreference,
                         personalDetails,
@@ -706,6 +789,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 childReportNotificationPreference,
                 personalDetails,
@@ -737,7 +821,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -749,6 +833,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         originalReport,
                         introSelected,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         betas,
                         childReportNotificationPreference,
                         personalDetails,
@@ -765,6 +850,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 childReportNotificationPreference,
                 personalDetails,
@@ -838,6 +924,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReport,
                 isHarvestReport,
                 isTryNewDotNVPDismissed,
+                isTrackIntentUser,
                 movedFromReport,
                 movedToReport,
                 childReport,
@@ -849,9 +936,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                 harvestReportOriginalID,
                 currentUserPersonalDetails,
                 bankAccountList,
-                conciergeReportID,
                 reportAttributes,
                 originalReportOfUnapprovedTransaction,
+                personalDetails,
+                memberChangeLogRoomReportName,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -861,9 +949,17 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isAttachment = isReportActionAttachment(reportAction);
             if (!isAttachment) {
                 const content = selection || messageHtml;
-                if (isReportPreviewAction) {
+                if (selection) {
+                    // When the user has highlighted part of a message, always copy exactly what's selected,
+                    // regardless of the report action type (including system messages like "marked as paid").
+                    setClipboardMessageWithCleanedMentions(selection);
+                } else if (isReportPreviewAction) {
                     const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
-                    const displayMessage = getReportPreviewMessage(iouReportID, conciergeReportID, reportAction, undefined, undefined, undefined, undefined, undefined, true);
+                    const displayMessage = getReportPreviewMessageForCopy({
+                        reportOrID: iouReportID,
+                        iouReportAction: reportAction,
+                        reportAttributes,
+                    });
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
                     const {text, html} = getTaskReportActionMessage(translate, reportAction);
@@ -896,7 +992,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const taskPreviewMessage = getTaskCreatedMessage(translate, reportAction, childReport, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
-                    const logMessage = getMemberChangeMessageFragment(translate, reportAction, getReportName, reportAttributes).html ?? '';
+                    const targetAccountIDs = getOriginalMessage(reportAction)?.targetAccountIDs;
+                    const logMessage =
+                        getMemberChangeMessageFragment(
+                            translate,
+                            reportAction,
+                            getPersonalDetailsByID(reportAction.actorAccountID, personalDetails),
+                            getPersonalDetailsListByIDs(targetAccountIDs, personalDetails),
+                            memberChangeLogRoomReportName,
+                        ).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(translate, reportAction)));
@@ -977,6 +1081,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getRequireCompanyCardsEnabledMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
                     Clipboard.setString(getAutoReimbursementMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE) {
+                    Clipboard.setString(getCategoryTaxRateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY) {
                     Clipboard.setString(getMccGroupCategoryMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
@@ -1012,13 +1118,23 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(getMarkedReimbursedMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
-                    Clipboard.setString(getReimbursedMessage(translate, reportAction, report?.ownerAccountID, currentUserPersonalDetails.accountID));
+                    Clipboard.setString(
+                        getReimbursedMessage(
+                            translate,
+                            reportAction,
+                            report?.ownerAccountID,
+                            getLoginByAccountID(report?.ownerAccountID, personalDetails),
+                            getLoginByAccountID(reportAction.actorAccountID, personalDetails),
+                            currentUserPersonalDetails.accountID,
+                        ),
+                    );
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(
                         getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report, shouldUseShortDisplayName: false}),
                     );
                 } else if (isActionableMentionWhisper(reportAction)) {
-                    const mentionWhisperMessage = getActionableMentionWhisperMessage(translate, reportAction);
+                    const targetAccountIDs = getOriginalMessage(reportAction)?.inviteeAccountIDs;
+                    const mentionWhisperMessage = getActionableMentionWhisperMessage(translate, reportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails));
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
@@ -1033,7 +1149,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (harvesting) {
                         setClipboardMessage(translate('iou.automaticallySubmitted'));
                     } else {
-                        Clipboard.setString(translate('iou.submitted', getOriginalMessage(reportAction)?.message));
+                        Clipboard.setString(
+                            shouldShowMarkAsDone({
+                                policy,
+                                isTrackIntentUser,
+                                report,
+                            })
+                                ? translate('iou.markedAsDone', getOriginalMessage(reportAction)?.message)
+                                : translate('iou.submitted', getOriginalMessage(reportAction)?.message),
+                        );
                     }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
@@ -1049,7 +1173,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     if (automaticAction) {
                         setClipboardMessage(translate('iou.automaticallyForwarded'));
                     } else {
-                        Clipboard.setString(translate('iou.forwarded'));
+                        Clipboard.setString(getForwardedReportActionMessage(reportAction, translate));
                     }
                 } else if (isRejectedAction(reportAction)) {
                     Clipboard.setString(translate('iou.rejectedThisReport'));
@@ -1166,6 +1290,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedIndividualBudgetNotificationMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION)) {
                     setClipboardMessage(getUpdatedSharedBudgetNotificationMessage(translate, reportAction));
+                } else if (isPolicyCopyReportAction(reportAction)) {
+                    setClipboardMessage(getPolicyChangeLogCopyMessage(translate, reportAction));
                 } else if (
                     isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
                     isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
@@ -1216,12 +1342,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const missingFields = getOriginalMessage(reportAction)?.missingFields;
                     setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields}));
                 } else if (content) {
-                    setClipboardMessage(
-                        content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
-                            const modifiedContent = Str.removeSMSDomain(innerContent) || '';
-                            return openTag + modifiedContent + closeTag || '';
-                        }),
-                    );
+                    setClipboardMessageWithCleanedMentions(content);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
                     setClipboardMessage(getSettlementAccountLockedMessage(translate, reportAction));
                 } else if (messageText) {
@@ -1362,6 +1483,25 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: true,
+        textTranslateKey: 'reportActionContextMenu.viewAgentZeroTrace',
+        icon: 'Eye',
+        shouldShow: ({type, reportAction, isProduction}) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            !isProduction &&
+            !!(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && getOriginalMessage(reportAction)?.agentZeroRequestID),
+        onPress: (closePopover, {reportAction}) => {
+            const agentZeroRequestID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.agentZeroRequestID : undefined;
+            if (agentZeroRequestID) {
+                // On dev there are no Victoria logs to query, so point the tracer at the local syslog instead.
+                openOldDotLink(CONST.OLDDOT_URLS.AGENT_ZERO_TRACER(agentZeroRequestID, CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV));
+            }
+            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+        },
+        getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.VIEW_AGENT_ZERO_TRACE,
+    },
+    {
+        isAnonymousAction: true,
         textTranslateKey: 'debug.debug',
         icon: 'Bug',
         shouldShow: ({type, isDebugModeEnabled}) => [CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, CONST.CONTEXT_MENU_TYPES.REPORT].some((value) => value === type) && !!isDebugModeEnabled,
@@ -1380,12 +1520,24 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'common.delete',
         icon: 'Trashcan',
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID: reportIDParam, moneyRequestAction, iouTransaction, transactions, childReportActions, isProduction}) => {
+        shouldShow: ({
+            type,
+            reportAction,
+            isArchivedRoom,
+            isChronosReport,
+            reportID: reportIDParam,
+            moneyRequestAction,
+            iouTransaction,
+            transactions,
+            childReportActions,
+            isProduction,
+            currentUserAccountID,
+        }) => {
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             let reportID = reportIDParam;
 
             if (isMoneyRequestAction(moneyRequestAction)) {
-                reportID = getOriginalMessage(moneyRequestAction)?.IOUReportID;
+                reportID = moneyRequestAction?.reportID;
             } else if (isReportPreviewActionReportActionsUtils(reportAction)) {
                 reportID = reportAction?.childReportID;
             }
@@ -1405,14 +1557,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             return (
                 !!reportIDParam &&
                 type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-                canDeleteReportAction(moneyRequestAction ?? reportAction, reportID, iouTransaction, transactions, childReportActions) &&
+                canDeleteReportAction(moneyRequestAction ?? reportAction, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID) &&
                 !isArchivedRoom &&
                 !isChronosReport &&
                 !isMessageDeleted(reportAction)
             );
         },
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
-            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : undefined;
+            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? moneyRequestAction?.reportID : undefined;
 
             const reportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportIDParam;
             if (closePopover) {

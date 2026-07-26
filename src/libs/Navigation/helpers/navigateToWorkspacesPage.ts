@@ -1,15 +1,18 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
-import {findFocusedRoute, StackActions, TabActions} from '@react-navigation/native';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-// eslint-disable-next-line no-restricted-imports -- TransitionTracker is needed here to sequence the tab jump after the popToTop transition completes, so WorkspaceInitialPage appears before the tab becomes visible.
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Domain, Policy} from '@src/types/onyx';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
+import {findFocusedRoute, StackActions, TabActions} from '@react-navigation/native';
+
 import getActiveTabName from './getActiveTabName';
 import {saveWorkspacesTabPathToSessionStorage} from './lastVisitedTabPathUtils';
 

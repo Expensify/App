@@ -1,9 +1,11 @@
 import {useContext} from 'react';
+
 import {
     SearchQueryActionsContext,
     SearchQueryContext,
     SearchResultsActionsContext,
     SearchResultsContext,
+    SearchRowSelectionActionsContext,
     SearchSelectionActionsContext,
     SearchSelectionContext,
 } from './SearchContextDefinitions';
@@ -11,7 +13,7 @@ import {
 // Lightweight public surface for search contexts.
 // `useOnyx` imports the context instances from here; pulling in the providers (and their useOnyx
 // users like useCardFeedsForDisplay) would create a cycle that breaks jest mock resolution in tests
-// like PureReportActionItemTest. Providers live in `SearchContextProvider.tsx`.
+// like ReportActionItemTest. Providers live in `SearchContextProvider.tsx`.
 
 function useSearchQueryContext() {
     return useContext(SearchQueryContext);
@@ -37,6 +39,10 @@ function useSearchSelectionActions() {
     return useContext(SearchSelectionActionsContext);
 }
 
+function useSearchRowSelectionActions() {
+    return useContext(SearchRowSelectionActionsContext);
+}
+
 export {
     SearchQueryContext,
     SearchQueryActionsContext,
@@ -50,4 +56,5 @@ export {
     useSearchResultsActions,
     useSearchSelectionContext,
     useSearchSelectionActions,
+    useSearchRowSelectionActions,
 };

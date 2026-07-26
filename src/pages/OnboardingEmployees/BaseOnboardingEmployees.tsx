@@ -1,5 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -7,19 +6,29 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
 import {getPreviousOnboardingRoute} from '@libs/getOnboardingStepCounter';
 import Navigation from '@libs/Navigation/Navigation';
+import {getVisibleJoinablePoliciesCount} from '@libs/OnboardingUtils';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
+
 import {setOnboardingCompanySize} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useMemo, useState} from 'react';
+
 import type {BaseOnboardingEmployeesProps} from './types';
 
 type OnboardingListItem = ListItem & {
@@ -39,6 +48,11 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [purposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const onboardingFlowContext = useMemo(
         () => ({
@@ -47,15 +61,27 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             hasAccessibleDomainPolicies: account?.hasAccessibleDomainPolicies,
             purposeSelected: purposeSelected ?? undefined,
             isMergeAccountStepSkipped: onboardingValues?.isMergeAccountStepSkipped,
+            isAccountValidated: isCurrentUserValidated(loginList, session?.email),
+            hasJoinablePolicies: getVisibleJoinablePoliciesCount(joinablePolicies, canUseSubmit2026) > 0,
         }),
-        [account?.hasAccessibleDomainPolicies, account?.isFromPublicDomain, onboardingValues?.isMergeAccountStepSkipped, onboardingValues?.signupQualifier, purposeSelected],
+        [
+            account?.hasAccessibleDomainPolicies,
+            account?.isFromPublicDomain,
+            canUseSubmit2026,
+            joinablePolicies,
+            loginList,
+            onboardingValues?.isMergeAccountStepSkipped,
+            onboardingValues?.signupQualifier,
+            purposeSelected,
+            session?.email,
+        ],
     );
 
     const handleBackButtonPress = useCallback(() => {
         const previousRoute = getPreviousOnboardingRoute(SCREENS.ONBOARDING.EMPLOYEES, onboardingFlowContext, route.params?.backTo);
 
         if (previousRoute) {
-            Navigation.navigate(previousRoute);
+            Navigation.goBack(previousRoute);
             return;
         }
 
@@ -90,6 +116,15 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             });
     }, [translate, selectedCompanySize, onboardingValues?.signupQualifier]);
 
+    const submitCompanySize = () => {
+        if (!selectedCompanySize) {
+            setError(translate('onboarding.errorSelection'));
+            return;
+        }
+        setOnboardingCompanySize(selectedCompanySize);
+        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+    };
+
     const footerContent = (
         <>
             {!!error && (
@@ -100,20 +135,14 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 />
             )}
             <Button
-                success
-                large
-                text={translate('common.continue')}
-                onPress={() => {
-                    if (!selectedCompanySize) {
-                        setError(translate('onboarding.errorSelection'));
-                        return;
-                    }
-                    setOnboardingCompanySize(selectedCompanySize);
-                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
-                }}
-                pressOnEnter
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
+                onPress={submitCompanySize}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
-            />
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.continue')}</Button.Text>
+            </Button>
         </>
     );
 

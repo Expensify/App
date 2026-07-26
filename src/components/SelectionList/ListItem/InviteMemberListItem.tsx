@@ -1,17 +1,21 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
+import type {InviteMemberListItemProps, ListItem} from './types';
+
 import BaseListItem from './BaseListItem';
 import SelectableListItem from './SelectableListItem';
-import type {InviteMemberListItemProps, ListItem} from './types';
 
 /**
  * A user row with avatar, name, and subtitle used for person selection and invitation. Adds

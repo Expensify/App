@@ -1,4 +1,5 @@
 import {getApiRoot} from '@libs/ApiUtils';
+
 import CONST from '@src/CONST';
 import {getValidatedImageSource, isValidExtension, isValidResolution, isValidSize, validateAvatarImage} from '@src/libs/AvatarUtils';
 import * as FileUtils from '@src/libs/fileDownload/FileUtils';

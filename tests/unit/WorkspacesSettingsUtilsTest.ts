@@ -1,13 +1,20 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getLeaveWorkspaceConfirmationPrompt, getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import mockData from './WorkspacesSettingsUtilsTest.json';
@@ -202,6 +209,47 @@ describe('WorkspacesSettingsUtils', () => {
                 streetLineOne: '123 Main St',
                 streetLineTwo: 'Legacy Line 2',
             });
+        });
+    });
+
+    describe('getLeaveWorkspaceConfirmationPrompt', () => {
+        const translate = jest.fn((key: string) => key) as unknown as LocaleContextProps['translate'];
+        const userEmail = 'user@example.com';
+        const ownerDisplayName = 'Workspace Owner';
+
+        it('returns reimburser key when user is the reimbursement contact', () => {
+            const policy = {achAccount: {reimburser: userEmail}} as Policy;
+            expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceReimburser');
+        });
+
+        it('returns technicalContact key when user is the technical contact', () => {
+            const policy = {technicalContact: userEmail} as Policy;
+            expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmationTechContact');
+        });
+
+        it('returns exporter key when user is an accounting connection exporter', () => {
+            const policy = {connections: {quickbooksOnline: {config: {export: {exporter: userEmail}}}}} as unknown as Policy;
+            expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmationExporter');
+        });
+
+        it('returns approver key when user is an approver', () => {
+            const policy = {approver: userEmail} as Policy;
+            expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmationApprover');
+        });
+
+        it('returns admin key when the policy role is admin', () => {
+            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmationAdmin');
+        });
+
+        it('returns auditor key when the policy role is auditor', () => {
+            const policy = {role: CONST.POLICY.ROLE.AUDITOR} as Policy;
+            expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmationAuditor');
+        });
+
+        it('returns default key when user has no special role', () => {
+            const policy = {} as Policy;
+            expect(getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate)).toBe('common.leaveWorkspaceConfirmation');
         });
     });
 });

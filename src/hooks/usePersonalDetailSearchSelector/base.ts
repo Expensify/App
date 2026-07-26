@@ -1,14 +1,19 @@
-import {useState} from 'react';
-import type {PermissionStatus} from 'react-native-permissions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailOptions from '@hooks/usePersonalDetailOptions';
+
 import {filterOption, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {PermissionStatus} from 'react-native-permissions';
+
+import {useState} from 'react';
 
 type SearchSelectorSelectionMode = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SELECTION_MODE_SINGLE' | 'SELECTION_MODE_MULTI'>];
 
@@ -31,7 +36,7 @@ type UseSearchSelectorConfig = {
     /** Logins to exclude from suggestions only (soft exclusions - can still be manually entered) */
     excludeFromSuggestionsOnly?: Record<string, boolean>;
 
-    /** Whether to include recent reports (for getMemberInviteOptions) */
+    /** Whether to include recent reports */
     includeRecentReports?: boolean;
 
     /** Whether to include current user */
@@ -43,8 +48,8 @@ type UseSearchSelectorConfig = {
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
 
-    /** Callback when selection changes (multi-select mode) */
-    onSelectionChange?: (selected: string[]) => void;
+    /** Callback when selection changes (multi-select mode). Receives the new selected accountIDs and the new selected options. */
+    onSelectionChange?: (selected: string[], selectedOptions: OptionData[]) => void;
 
     /** Callback when single option is selected (single-select mode) */
     onSingleSelect?: (option: OptionData) => void;
@@ -182,7 +187,7 @@ function usePersonalDetailSearchSelectorBase({
     const [extraOptions, setExtraOptions] = useState<OptionData[]>(initialExtraOptions);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(initialSearchPhrase);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
@@ -275,11 +280,13 @@ function usePersonalDetailSearchSelectorBase({
             }
             const newSet = new Set([...selectedAccountIDs].filter((accountID) => accountID !== option.accountID.toString()));
             setSelectedAccountIDs(newSet);
-            onSelectionChange?.(Array.from(newSet));
+            const newSelectedOptions = selectedOptions.filter((selected) => selected.accountID !== option.accountID);
+            onSelectionChange?.(Array.from(newSet), newSelectedOptions);
         } else {
             const newSet = new Set(selectedAccountIDs).add(option.accountID.toString());
             setSelectedAccountIDs(newSet);
-            onSelectionChange?.(Array.from(newSet));
+            const newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
+            onSelectionChange?.(Array.from(newSet), newSelectedOptions);
             if (!existingAccountIDs.has(option.accountID.toString())) {
                 setExtraOptions((prev) => [...prev, {...option, isSelected: true}]);
             }

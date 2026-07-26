@@ -1,6 +1,9 @@
 import type {SearchAutocompleteQueryRange} from '@components/Search/types';
+
 import {parse} from '@libs/SearchParser/autocompleteParser';
+
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
+
 import {getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
 /**

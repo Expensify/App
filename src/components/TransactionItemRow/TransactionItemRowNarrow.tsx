@@ -1,22 +1,28 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import RadioButton from '@components/RadioButton';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionItemRowNarrowComputedData, TransactionItemRowProps, TransactionItemRowRBRDeferControlProps} from './types';
+
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
-import type {TransactionItemRowNarrowComputedData, TransactionItemRowProps} from './types';
 
 type TransactionItemRowNarrowProps = Pick<
     TransactionItemRowProps,
@@ -42,7 +48,8 @@ type TransactionItemRowNarrowProps = Pick<
     | 'shouldShowArrowRightOnNarrowLayout'
     | 'checkboxSentryLabel'
 > &
-    TransactionItemRowNarrowComputedData;
+    TransactionItemRowNarrowComputedData &
+    TransactionItemRowRBRDeferControlProps;
 
 function TransactionItemRowNarrow({
     transactionItem,
@@ -66,6 +73,7 @@ function TransactionItemRowNarrow({
     onArrowRightPress,
     shouldShowArrowRightOnNarrowLayout,
     checkboxSentryLabel,
+    shouldDeferRBR = true,
     bgActiveStyles,
     merchant,
     merchantOrDescription,
@@ -173,6 +181,7 @@ function TransactionItemRowNarrow({
                 </View>
                 {shouldShowErrors && (
                     <DeferredTransactionItemRowRBR
+                        shouldDefer={shouldDeferRBR}
                         transaction={transactionItem}
                         violations={violations}
                         report={report}

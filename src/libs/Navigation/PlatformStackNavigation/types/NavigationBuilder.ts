@@ -1,5 +1,6 @@
 // Represents the options passed to useNavigationBuilder for creating a custom navigation builder,
 import type {Descriptor, EventMapBase, NavigationHelpers, NavigationProp, ParamListBase, RouteProp, StackActionHelpers} from '@react-navigation/native';
+
 import type {PlatformSpecificEventMap, PlatformSpecificNavigationOptions, PlatformStackNavigationState} from '.';
 
 // Represents the type of the navigation object returned by useNavigationBuilder

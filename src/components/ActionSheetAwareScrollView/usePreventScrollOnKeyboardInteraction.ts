@@ -1,7 +1,8 @@
-import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import type {AnimatedRef} from 'react-native-reanimated';
-import {scrollTo, useScrollOffset} from 'react-native-reanimated';
 import type Reanimated from 'react-native-reanimated';
+
+import {useKeyboardHandler} from 'react-native-keyboard-controller';
+import {scrollTo, useScrollOffset} from 'react-native-reanimated';
 
 type UsePreventScrollOnKeyboardInteractionProps = {
     scrollViewRef: AnimatedRef<Reanimated.ScrollView>;

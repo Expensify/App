@@ -1,5 +1,6 @@
 import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
+
 import CONST from '@src/CONST';
 
 jest.mock(

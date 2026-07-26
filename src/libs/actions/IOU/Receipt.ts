@@ -1,6 +1,3 @@
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {DetachReceiptParams, ReplaceReceiptParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -8,11 +5,14 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {buildOptimisticDetachReceipt, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
 import {resolveDetachReceiptConflicts} from '@userActions/RequestConflictUtils';
+
 import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,11 +21,17 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
+
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
+import {getAllReports} from '.';
 import {getReceiptError} from './MoneyRequestBuilder';
 
 type ReplaceReceipt = {
-    transactionID: string;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
     file?: File;
     source: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
@@ -33,24 +39,23 @@ type ReplaceReceipt = {
     transactionPolicy: OnyxEntry<OnyxTypes.Policy>;
     isSameReceipt?: boolean;
     transactionPolicyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    transactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
 };
+type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction'> & {transactionID: string};
 
 function detachReceipt(
-    transactionID: string | undefined,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
     transactionPolicy: OnyxEntry<OnyxTypes.Policy>,
     transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
     transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
+    const transactionID = transaction?.transactionID;
     if (!transactionID) {
         return;
     }
-    const allTransactions = getAllTransactions();
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const newTransaction = transaction
         ? {
@@ -101,8 +106,8 @@ function detachReceipt(
         },
     ];
 
-    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    if (transactionPolicy && isGroupPolicy(transactionPolicy) && newTransaction) {
+        const currentTransactionViolations = transactionViolations ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction: newTransaction,
             transactionViolations: currentTransactionViolations,
@@ -111,6 +116,7 @@ function detachReceipt(
             policyCategories: transactionPolicyCategories ?? {},
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
             isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+            ownerLogin: undefined,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({
@@ -175,18 +181,17 @@ function detachReceipt(
     );
 }
 
-function replaceReceipt({transactionID, file, source, state, transactionPolicy, transactionPolicyCategories, isSameReceipt, transactionPolicyTagList}: ReplaceReceipt) {
-    if (!file) {
+function replaceReceipt({transaction, file, source, state, transactionPolicy, transactionPolicyCategories, isSameReceipt, transactionPolicyTagList, transactionViolations}: ReplaceReceipt) {
+    const transactionID = transaction?.transactionID;
+
+    if (!file || !transactionID) {
         return;
     }
 
-    const allTransactions = getAllTransactions();
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const allTransactionViolations = getAllTransactionViolations();
+    const receiptTraceId = mintAndStampReceiptTraceId(file);
+    logReceiptCaptured({file, captureSource: 'replace', receiptTraceId});
     const allReports = getAllReports();
 
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
@@ -194,9 +199,18 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
         localSource: null,
         state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
         filename: file.name,
+        receiptTraceId,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
-    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicy, transactionPolicyCategories, transactionPolicyTagList};
+    const retryParams: ReplaceReceiptRetryParams = {
+        transactionID: transaction.transactionID,
+        file: undefined,
+        source,
+        transactionPolicy,
+        transactionPolicyCategories,
+        transactionPolicyTagList,
+        transactionViolations,
+    };
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
@@ -239,8 +253,8 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
         },
     ];
 
-    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    if (transactionPolicy && isGroupPolicy(transactionPolicy) && newTransaction) {
+        const currentTransactionViolations = transactionViolations ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction: newTransaction,
             transactionViolations: currentTransactionViolations,
@@ -249,6 +263,7 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
             policyCategories: transactionPolicyCategories ?? {},
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
             isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+            ownerLogin: undefined,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({
@@ -304,10 +319,11 @@ function setMoneyRequestReceipt(
     isTestReceipt = false,
     isTestDriveReceipt = false,
     thumbnail?: string,
+    receiptTraceId?: string,
 ) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
-        receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null, thumbnail},
+        receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null, thumbnail, receiptTraceId},
     });
 }
 
@@ -358,4 +374,4 @@ function checkIfLocalFileIsAccessible(
 }
 
 export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
-export type {ReplaceReceipt};
+export type {ReplaceReceiptRetryParams};

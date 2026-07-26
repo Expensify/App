@@ -1,11 +1,15 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {LoginList, PersonalDetails} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import type {DeviceContact, StringHolder} from './ContactImport/types';
 import type {SearchOption} from './OptionsListUtils';
-import {getContactOption} from './PersonalDetailOptionsListUtils';
 import type {OptionData} from './PersonalDetailOptionsListUtils';
+
+import {getContactOption} from './PersonalDetailOptionsListUtils';
 import RandomAvatarUtils from './RandomAvatarUtils';
 
 function sortEmailObjects(emails: StringHolder[], localeCompare: LocaleContextProps['localeCompare']): string[] {

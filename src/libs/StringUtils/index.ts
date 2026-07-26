@@ -1,9 +1,13 @@
-import deburr from 'lodash/deburr';
-import type {KebabCase} from 'type-fest';
 import {isSafari} from '@libs/Browser';
+
 import CONST from '@src/CONST';
+
+import type {KebabCase} from 'type-fest';
+
+import {Str} from 'expensify-common';
+import deburr from 'lodash/deburr';
+
 import decodeUnicode from './decodeUnicode';
-import dedent from './dedent';
 import hash from './hash';
 
 /**
@@ -220,7 +224,7 @@ export default {
     removeDoubleQuotes,
     removePreCodeBlock,
     sortStringArrayByLength,
-    dedent,
+    dedent: (str: string) => Str.dedent(str),
     hash,
     getUTF8ByteLength,
     decodeUnicode,

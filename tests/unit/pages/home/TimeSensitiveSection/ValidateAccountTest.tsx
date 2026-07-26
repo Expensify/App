@@ -1,11 +1,15 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TimeSensitiveSection from '@src/pages/home/TimeSensitiveSection';
 import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation');
@@ -108,8 +112,10 @@ describe('TimeSensitiveSection - ValidateAccount', () => {
 
         await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
         await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT, email: validatedEmail});
-        await Onyx.set(ONYXKEYS.LOGIN_LIST, {
-            [validatedEmail]: {
+        await Onyx.set(ONYXKEYS.LOGINS, {
+            [`1_${validatedEmail}`]: {
+                partnerID: 1,
+                partnerUserID: validatedEmail,
                 validatedDate: '2026-03-18 00:00:00.000',
             },
         });

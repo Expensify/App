@@ -1,26 +1,32 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
-import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
+
 import StatusBadge from './StatusBadge';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -45,6 +51,9 @@ type ParentNavigationSubtitleProps = {
 
     /** The status text of the expense report */
     statusText?: string;
+
+    /** Text to display in a tooltip shown on hover of the status badge */
+    statusTooltipText?: string;
 
     /** The style of the text */
     textStyles?: StyleProp<TextStyle>;
@@ -79,6 +88,7 @@ function ParentNavigationSubtitle({
     pressableStyles,
     openParentReportInCurrentTab = false,
     statusText,
+    statusTooltipText,
     textStyles,
     statusTextBackgroundColor,
     statusTextColor,
@@ -89,6 +99,10 @@ function ParentNavigationSubtitle({
     shouldShowFromPrefix = true,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
+    // We intentionally use isSmallScreenWidth (real device width), not shouldUseNarrowLayout — the latter is
+    // true whenever this component renders inside an RHP, which would always block the super-wide path below.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -104,7 +118,6 @@ function ParentNavigationSubtitle({
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const isReportInRHP = currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         // Find the tab navigator, which wraps all full-screen navigators
@@ -128,6 +141,12 @@ function ParentNavigationSubtitle({
             currentFocusedNavigator: focusedNavigator,
         };
     });
+    const isReportInRHP =
+        currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ||
+        (currentRoute.params &&
+            'reportID' in currentRoute.params &&
+            currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR &&
+            currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {
@@ -173,26 +192,36 @@ function ParentNavigationSubtitle({
             }
         }
 
-        // When viewing a money request in the search navigator, open the parent report in a right-hand pane (RHP)
-        // to preserve the search context instead of navigating away.
         if (openParentReportInCurrentTab && currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             const lastRoute = currentFocusedNavigator?.state?.routes.at(-1);
-            if (lastRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID}));
+
+            // Deduplication must run before the navigate-to-parent branches below: when the parent report is already the
+            // previous RHP in the stack, go back to it instead of pushing a new copy. Otherwise hopping parent <->
+            // child repeatedly (e.g. workspace chat <-> expense report from Home) stacks [chat, report, chat,
+            // report, …] in history, forcing the back button to walk through every duplicate.
+            const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
+
+            if (
+                (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || previousRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) &&
+                previousRoute.params &&
+                'reportID' in previousRoute.params &&
+                previousRoute.params.reportID === parentReportID
+            ) {
+                Navigation.goBack();
                 return;
             }
 
-            // Specific case: when opening expense report from search report (chat RHP),
-            // avoid stacking RHPs by going back to the search report if it's already there
-            const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
-
-            if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRoute.params && 'reportID' in previousRoute.params) {
-                const reportIDFromParams = previousRoute.params.reportID;
-
-                if (reportIDFromParams === parentReportID) {
-                    Navigation.goBack();
-                    return;
-                }
+            // When viewing a money request report in an RHP, open its parent (the workspace chat) as another RHP
+            // instead of navigating away full-page. This mirrors the Search flow (SEARCH_MONEY_REQUEST_REPORT). The
+            // EXPENSE_REPORT case is scoped to the Home tab — in the Reports/Inbox tab the parent chat is the
+            // fullscreen underneath, so the dismiss-to-reveal logic below should handle it instead.
+            if (
+                lastRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ||
+                (lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && currentFullScreenRoute?.name === SCREENS.HOME)
+            ) {
+                const backTo = currentFullScreenRoute?.name === SCREENS.HOME ? Navigation.getActiveRoute() : undefined;
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID, backTo}));
+                return;
             }
 
             // When the parent report is already the topmost route in the tab underneath the RHP,
@@ -216,6 +245,11 @@ function ParentNavigationSubtitle({
             // and the parent isn't already in the stack — otherwise the REPORT_WITH_ID fallback
             // would yank the user to Inbox.
             if (isReportInRHP) {
+                if (!isSmallScreenWidth && isMoneyRequestReport(report)) {
+                    Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: parentReportID}));
+                    return;
+                }
+
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: isVisibleAction ? parentReportActionID : undefined}));
                 return;
             }
@@ -254,6 +288,7 @@ function ParentNavigationSubtitle({
                     backgroundColor={statusTextBackgroundColor}
                     textColor={statusTextColor}
                     badgeStyles={[styles.mr1, statusTextContainerStyles]}
+                    tooltipText={statusTooltipText}
                 />
             )}
             <Text

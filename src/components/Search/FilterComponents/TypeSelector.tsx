@@ -1,18 +1,23 @@
-import React from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {SearchFilterCommonProps} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getTypeOptions} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React from 'react';
+
 import SingleSelect from './SingleSelect';
 
-type TypeSelectorProps = {
-    value: string | undefined;
-    onChange: (item: string) => void;
-};
+type TypeSelectorProps = SearchFilterCommonProps<SearchDataTypes | undefined>;
 
 /**
  * Extracts only the fields needed by getTypeOptions (canSendInvoice check).
@@ -43,7 +48,7 @@ function typeOptionsPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColl
     return result;
 }
 
-function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, onChange}: TypeSelectorProps) {
+function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: TypeSelectorProps) {
     const {translate} = useLocalize();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: typeOptionsPoliciesSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -55,7 +60,14 @@ function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, onChange}: TypeS
             // text is only needed when the list is searchable
             value={{value, text: ''}}
             items={types}
-            onChange={(item) => onChange(item.value)}
+            selectionListStyle={selectionListStyle}
+            footer={footer}
+            onChange={(item) => {
+                if (!item) {
+                    return;
+                }
+                onChange(item.value);
+            }}
         />
     );
 }

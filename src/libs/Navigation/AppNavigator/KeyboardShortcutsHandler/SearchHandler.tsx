@@ -1,10 +1,15 @@
-import {useEffect} from 'react';
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
+
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
+
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
+
 import * as Session from '@userActions/Session';
+
 import CONST from '@src/CONST';
+
+import {useEffect} from 'react';
 
 function SearchHandler() {
     const {toggleSearch} = useSearchRouterActions();

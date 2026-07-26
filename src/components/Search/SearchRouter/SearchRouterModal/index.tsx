@@ -1,13 +1,17 @@
-import React, {useEffect, useState} from 'react';
-import {Dimensions} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Modal from '@components/Modal';
 import ScreenWrapperContainer from '@components/ScreenWrapper/ScreenWrapperContainer';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import {useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {isMobileIOS} from '@libs/Browser';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {Dimensions} from 'react-native';
 
 const isMobileWebIOS = isMobileIOS();
 
@@ -15,6 +19,7 @@ function SearchRouterModal() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSearchRouterDisplayed} = useSearchRouterState();
     const {closeSearchRouter} = useSearchRouterActions();
+    const actionAfterModalHideRef = useRef<() => void>(undefined);
 
     // On mWeb Safari, the input caret stuck for a moment while the modal is animating. So, we hide the caret until the animation is done.
     const [shouldHideInputCaret, setShouldHideInputCaret] = useState(isMobileWebIOS);
@@ -24,7 +29,7 @@ function SearchRouterModal() {
             return;
         }
 
-        const subscription = Dimensions.addEventListener('change', closeSearchRouter);
+        const subscription = Dimensions.addEventListener('change', () => closeSearchRouter());
 
         return () => {
             subscription.remove();
@@ -32,6 +37,22 @@ function SearchRouterModal() {
     }, [isSearchRouterDisplayed, closeSearchRouter, shouldUseNarrowLayout]);
 
     const modalType = shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT : CONST.MODAL.MODAL_TYPE.POPOVER;
+    const closeSearchRouterAfterModalHide = (afterClose?: () => void) => {
+        if (!isSearchRouterDisplayed) {
+            afterClose?.();
+            return;
+        }
+
+        actionAfterModalHideRef.current = afterClose;
+        closeSearchRouter();
+    };
+
+    const handleModalHide = () => {
+        setShouldHideInputCaret(isMobileWebIOS);
+        actionAfterModalHideRef.current?.();
+        actionAfterModalHideRef.current = undefined;
+    };
+
     return (
         <Modal
             type={modalType}
@@ -40,7 +61,7 @@ function SearchRouterModal() {
             fullscreen
             swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
             onClose={closeSearchRouter}
-            onModalHide={() => setShouldHideInputCaret(isMobileWebIOS)}
+            onModalHide={handleModalHide}
             onModalShow={() => setShouldHideInputCaret(false)}
             shouldApplySidePanelOffset={!shouldUseNarrowLayout}
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -53,7 +74,7 @@ function SearchRouterModal() {
             >
                 <FocusTrapForModal active={isSearchRouterDisplayed}>
                     <SearchRouter
-                        onRouterClose={closeSearchRouter}
+                        onRouterClose={closeSearchRouterAfterModalHide}
                         shouldHideInputCaret={shouldHideInputCaret}
                         isSearchRouterDisplayed={isSearchRouterDisplayed}
                     />

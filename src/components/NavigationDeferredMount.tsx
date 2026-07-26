@@ -1,6 +1,8 @@
-import {startTransition, useEffect, useRef, useState} from 'react';
-import type {ReactNode} from 'react';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
+import type {ReactNode} from 'react';
+
+import {startTransition, useEffect, useRef, useState} from 'react';
 
 type NavigationDeferredMountProps = {
     /** Shown until `children` hydrate. Render something cheap with stable sizing to avoid layout jumps. */

@@ -1,5 +1,6 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
+
 import lightTheme from './light';
 
 const lightContrastTheme = {
@@ -8,6 +9,7 @@ const lightContrastTheme = {
     icon: colors.productLight800,
     textSupporting: '#53645C',
     buttonSuccessText: colors.productLight900,
+    buttonDangerText: colors.productDark100,
     bordersBold: colors.productLight800,
     buttonIcon: colors.productLight900,
     mentionText: colors.blue700,

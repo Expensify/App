@@ -1,5 +1,5 @@
 type ToggleCardCashbackToBillParams = {
-    workspaceAccountID: number;
+    policyAccountID: number;
     shouldApplyCashbackToBill: boolean;
 };
 

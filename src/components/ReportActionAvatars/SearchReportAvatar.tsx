@@ -1,8 +1,11 @@
-import React from 'react';
-import type {ColorValue} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+
+import type {ColorValue} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import ReportActionAvatar from './ReportActionAvatar';
 
 type SearchReportAvatarProps = {

@@ -1,5 +1,7 @@
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {parse} from '@libs/SearchParser/autocompleteParser';
+
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
 const tests = [
@@ -295,6 +297,42 @@ const tests = [
                 negated: false,
             },
             ranges: [{key: 'expenseType', value: 'per-diem', negated: false, start: 13, length: 8}],
+        },
+    },
+    {
+        query: 'bankAccount:42',
+        expected: {
+            autocomplete: {key: 'bankAccount', value: '42', start: 12, length: 2, negated: false},
+            ranges: [{key: 'bankAccount', value: '42', negated: false, start: 12, length: 2}],
+        },
+    },
+    {
+        query: 'receipt-type:ereceipt',
+        expected: {
+            autocomplete: {
+                key: 'receiptType',
+                value: 'ereceipt',
+                start: 13,
+                length: 8,
+                negated: false,
+            },
+            ranges: [{key: 'receiptType', value: 'ereceipt', negated: false, start: 13, length: 8}],
+        },
+    },
+    {
+        query: 'receipt-type:hotel,itemized',
+        expected: {
+            autocomplete: {
+                key: 'receiptType',
+                value: 'itemized',
+                start: 19,
+                length: 8,
+                negated: false,
+            },
+            ranges: [
+                {key: 'receiptType', value: 'hotel', negated: false, start: 13, length: 5},
+                {key: 'receiptType', value: 'itemized', negated: false, start: 19, length: 8},
+            ],
         },
     },
 ];

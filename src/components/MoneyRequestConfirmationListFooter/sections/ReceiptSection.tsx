@@ -1,39 +1,31 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import {receiptSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
+import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 import ConfirmationReceiptThumbnail from '@components/MoneyRequestConfirmationListFooter/ConfirmationReceiptThumbnail';
 import useCompactReceiptDimensions from '@components/MoneyRequestConfirmationListFooter/hooks/useCompactReceiptDimensions';
 import useReceiptThumbnailSource from '@components/MoneyRequestConfirmationListFooter/hooks/useReceiptThumbnailSource';
 import shouldShowDistanceMap from '@components/MoneyRequestConfirmationListFooter/shouldShowDistanceMap';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isScanRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type ReceiptSectionProps = {
-    /** Active transaction (drives receipt source resolution + scan-mode compact dimensions) */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+import type {OnyxEntry} from 'react-native-onyx';
 
+import React from 'react';
+
+type ReceiptSectionProps = {
     /** Active policy (used to decide whether the receipt empty state should render) */
     policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Whether the active transaction is a per-diem request */
-    isPerDiemRequest: boolean;
-
-    /** Whether the active transaction is a distance request (suppresses receipt area unless manual/odometer) */
-    isDistanceRequest: boolean;
-
-    /** Whether the active transaction is a manual distance request */
-    isManualDistanceRequest: boolean;
-
-    /** Whether the active transaction is an odometer-driven distance request */
-    isOdometerDistanceRequest: boolean;
 
     /** Whether the receipt can be replaced */
     isReceiptEditable: boolean;
@@ -61,12 +53,7 @@ type ReceiptSectionProps = {
 };
 
 function ReceiptSection({
-    transaction,
     policy,
-    isPerDiemRequest,
-    isDistanceRequest,
-    isManualDistanceRequest,
-    isOdometerDistanceRequest,
     isReceiptEditable,
     shouldDisplayReceipt,
     isLoadingReceipt,
@@ -79,7 +66,8 @@ function ReceiptSection({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {action, iouType, transactionID, reportID, isReadOnly} = useConfirmationFields();
+    const {action, iouType, transactionID, reportID, isReadOnly, isPerDiemRequest, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} = useConfirmationFields();
+    const transaction = useTransactionSelector(transactionID, receiptSliceSelector);
 
     const receiptSource = useReceiptThumbnailSource({transaction, receiptPath, receiptFilename});
 

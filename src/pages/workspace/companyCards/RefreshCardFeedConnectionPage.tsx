@@ -1,20 +1,28 @@
-import React, {useEffect} from 'react';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+
 import {isDirectFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import LoadingPage from '@pages/LoadingPage';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect} from 'react';
+
 import PlaidConnectionStep from './addNew/PlaidConnectionStep';
 import BankConnection from './BankConnection';
 
@@ -63,26 +71,40 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
         return <NotFoundPage />;
     }
 
+    let content: React.ReactNode;
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
-            return (
+            content = (
                 <BankConnection
                     policyID={policyID}
                     feed={feed}
                     title={title}
                 />
             );
+            break;
         case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
-            return (
+            content = (
                 <PlaidConnectionStep
                     feed={feed}
                     policyID={policyID}
                     title={title}
                 />
             );
+            break;
         default:
-            return <LoadingPage title={title} />;
+            content = <LoadingPage title={title} />;
     }
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            {content}
+        </AccessOrNotFoundWrapper>
+    );
 }
 
 export default withPolicyAndFullscreenLoading(RefreshCardFeedConnectionPage);

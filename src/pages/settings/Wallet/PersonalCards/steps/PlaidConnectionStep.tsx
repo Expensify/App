@@ -1,30 +1,37 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
-import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PlaidLink from '@components/PlaidLink';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setAddNewPersonalCardStepAndData} from '@libs/actions/PersonalCards';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
+
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
 import {openPlaidCompanyCardLogin} from '@userActions/Plaid';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID, PlaidData} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
+import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type PlaidLinkContentProps = {
     plaidLinkToken?: string;

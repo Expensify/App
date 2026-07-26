@@ -1,5 +1,6 @@
-import type {NetInfoState} from '@react-native-community/netinfo';
 import type * as NetworkState from '@src/libs/NetworkState';
+
+import type {NetInfoState} from '@react-native-community/netinfo';
 
 let netInfoListener: ((state: NetInfoState) => void) | null = null;
 const mockOnyxCallbacks = new Map<string, (value: unknown) => void>();
@@ -112,15 +113,43 @@ describe('NetworkState — reachability recovery triggers reconnect', () => {
         expect(reconnectListener).toHaveBeenCalledTimes(1);
     });
 
-    test('null→true fires reconnect listener', () => {
+    test('null→true does NOT fire reconnect listener when the app was never offline (fake recovery)', () => {
+        // Boot, post-configure, and refresh() all look like this:
+        // NetInfo emits null while a Ping is in flight, then true when it succeeds.
+        // No hard stop was active, so there is nothing to recover from.
         const reconnectListener = jest.fn();
         onReachabilityConfirmed(reconnectListener);
 
-        // Simulate losing reachability tracking (null) then recovering
+        fireNetInfoState({isInternetReachable: null});
+        fireNetInfoState({isInternetReachable: true});
+
+        expect(reconnectListener).not.toHaveBeenCalled();
+    });
+
+    test('false→null→true fires reconnect listener once (real outage with lost tracking)', () => {
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        // Confirmed unreachable, so the internetUnreachable hard stop is active
+        fireNetInfoState({isInternetReachable: false});
+        // Tracking lost mid-outage, then recovery confirmed
         fireNetInfoState({isInternetReachable: null});
         fireNetInfoState({isInternetReachable: true});
 
         expect(reconnectListener).toHaveBeenCalledTimes(1);
+    });
+
+    test('repeated re-confirmations after a fake-recovery shape never fire reconnect', () => {
+        // Re-emitting null/true pairs should not result in a reconnect
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        for (let i = 0; i < 5; i++) {
+            fireNetInfoState({isInternetReachable: null});
+            fireNetInfoState({isInternetReachable: true});
+        }
+
+        expect(reconnectListener).not.toHaveBeenCalled();
     });
 
     test('undefined→true does NOT fire reconnect listener (boot event)', () => {

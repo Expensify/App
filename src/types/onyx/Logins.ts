@@ -1,53 +1,59 @@
 import type {ErrorFields, OnyxValueWithOfflineFeedback} from './OnyxCommon';
 
 /** Model of user login data */
-type Login = OnyxValueWithOfflineFeedback<{
-    /** The timestamp of when this login was created */
-    created: string;
+type Login = OnyxValueWithOfflineFeedback<
+    {
+        /** The timestamp of when this login was created */
+        created: string;
 
-    /** The owner of this login */
-    accountID: number;
+        /** The owner of this login */
+        accountID: number;
 
-    /** The ID for the partner for this login (either Expensify itself or another 3rd party service)  */
-    partnerID: number;
+        /** The ID for the partner for this login (either Expensify itself or another 3rd party service)  */
+        partnerID: number;
 
-    /** This login's unique user ID for this partner */
-    partnerUserID: string;
+        /** This login's unique user ID for this partner */
+        partnerUserID: string;
 
-    /** Most recent timestamp of when this login was used */
-    lastLogin: string;
+        /** Most recent timestamp of when this login was used */
+        lastLogin: string;
 
-    /** Timestamp of when this login was validated */
-    validatedDate: string | null;
+        /** Timestamp of when this login was validated */
+        validatedDate: string | null;
 
-    /** Additional name-value pairs for this login */
-    additionalData?: {
-        /** The app version used where this account is logged in */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        app_version: string;
+        /** Whether the user validation code was sent */
+        validateCodeSent?: boolean;
 
-        /** The device name where this account is logged in */
-        deviceName: string;
+        /** Additional name-value pairs for this login */
+        additionalData?: {
+            /** The app version used where this account is logged in */
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            app_version: string;
 
-        /** The device version where this account is logged in */
-        deviceVersion?: string;
+            /** The device name where this account is logged in */
+            deviceName: string;
 
-        /** The partnerID of the ancestor login associated with this one. Note: this may just be a reference to the current login */
-        infiniteLoginRoot?: string;
+            /** The device version where this account is logged in */
+            deviceVersion?: string;
 
-        /** The device OS where this account is logged in */
-        os: string;
+            /** The partnerID of the ancestor login associated with this one. Note: this may just be a reference to the current login */
+            infiniteLoginRoot?: string;
 
-        /** The device OS version where this account is logged in */
-        osVersion: string;
+            /** The device OS where this account is logged in */
+            os: string;
 
-        /** Timestamp of when this device info was collected */
-        timestamp: string;
-    };
+            /** The device OS version where this account is logged in */
+            osVersion: string;
 
-    /** Error fields of the login */
-    errorFields?: ErrorFields<'revoke'>;
-}>;
+            /** Timestamp of when this device info was collected */
+            timestamp: string;
+        };
+
+        /** Error fields of the login */
+        errorFields?: ErrorFields<'revoke' | 'validateCodeSent' | 'addedLogin' | 'validateLogin' | 'defaultLogin' | 'deletedLogin'>;
+    },
+    'defaultLogin' | 'validateLogin' | 'addedLogin' | 'deletedLogin' | 'validateCodeSent'
+>;
 
 /** Record of user login data, indexed by partnerID_partnerUserID */
 type Logins = Record<string, Login>;

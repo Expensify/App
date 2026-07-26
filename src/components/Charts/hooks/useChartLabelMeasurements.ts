@@ -1,20 +1,21 @@
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {ChartDataPoint} from '@components/Charts/types';
 import {getFontLineMetrics, measureTextWidth} from '@components/Charts/utils';
 import {ELLIPSIS, MIN_TRUNCATED_CHARS} from '@components/Charts/VictoryTheme';
 
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+
 /**
  * Computes all text measurements needed for label layout and domain padding.
  */
-function useChartLabelMeasurements(data: ChartDataPoint[], fontMgr: SkTypefaceFontProvider | null, fontSize: number) {
-    if (!fontMgr || data.length === 0) {
+function useChartLabelMeasurements(data: ChartDataPoint[], fontManager: SkTypefaceFontProvider | null, fontSize: number) {
+    if (!fontManager || data.length === 0) {
         return {lineHeight: 0, ellipsisWidth: 0, labelWidths: [], maxLabelWidth: 0, firstLabelWidth: 0, lastLabelWidth: 0, minTruncatedWidth: 0, firstMinTrunc: 0, lastMinTrunc: 0};
     }
 
-    const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
+    const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
     const lineHeight = Math.abs(ascent) + Math.abs(descent);
-    const ellipsisWidth = measureTextWidth(ELLIPSIS, fontMgr, fontSize);
-    const labelWidths = data.map((point) => measureTextWidth(point.label, fontMgr, fontSize));
+    const ellipsisWidth = measureTextWidth(ELLIPSIS, fontManager, fontSize);
+    const labelWidths = data.map((point) => measureTextWidth(point.label, fontManager, fontSize));
     const maxLabelWidth = Math.max(...labelWidths);
     const firstLabelWidth = labelWidths.at(0) ?? 0;
     const lastLabelWidth = labelWidths.at(-1) ?? 0;
@@ -24,14 +25,14 @@ function useChartLabelMeasurements(data: ChartDataPoint[], fontMgr: SkTypefaceFo
             if (point.label.length <= MIN_TRUNCATED_CHARS) {
                 return labelWidths.at(index) ?? 0;
             }
-            return measureTextWidth(point.label.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontMgr, fontSize);
+            return measureTextWidth(point.label.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontManager, fontSize);
         }),
     );
 
     const firstLabel = data.at(0)?.label ?? '';
     const lastLabel = data.at(-1)?.label ?? '';
-    const firstMinTrunc = firstLabel.length <= MIN_TRUNCATED_CHARS ? firstLabelWidth : measureTextWidth(firstLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontMgr, fontSize);
-    const lastMinTrunc = lastLabel.length <= MIN_TRUNCATED_CHARS ? lastLabelWidth : measureTextWidth(lastLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontMgr, fontSize);
+    const firstMinTrunc = firstLabel.length <= MIN_TRUNCATED_CHARS ? firstLabelWidth : measureTextWidth(firstLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontManager, fontSize);
+    const lastMinTrunc = lastLabel.length <= MIN_TRUNCATED_CHARS ? lastLabelWidth : measureTextWidth(lastLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontManager, fontSize);
 
     return {lineHeight, ellipsisWidth, labelWidths, maxLabelWidth, firstLabelWidth, lastLabelWidth, minTruncatedWidth, firstMinTrunc, lastMinTrunc};
 }

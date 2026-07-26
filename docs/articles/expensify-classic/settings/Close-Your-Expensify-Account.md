@@ -1,7 +1,7 @@
 ---
 title: Close Your Expensify Account
 description: Learn how to close your Expensify account. 
-keywords: [Expensify Classic, close account, delete account, cancel account, delete Expensify account, cancel Expensify, deactivate account, how to delete Expensify, how to cancel Expensify]
+keywords: [Expensify Classic, close account, delete account, cancel account, delete Expensify account, cancel Expensify, deactivate account, how to delete Expensify, how to cancel Expensify, remove account, terminate account, delete Expensify, how to delete, how to cancel, remove user]
 internalScope: Audience is all members. Covers how to close an Expensify account and resolve common errors that block account closure. Does not cover how to delete workspaces or how to remove members from the domain. 
 ---
 

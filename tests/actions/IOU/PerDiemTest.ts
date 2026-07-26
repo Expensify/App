@@ -1,8 +1,7 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {PerDiemExpenseTransactionParams} from '@libs/actions/IOU/PerDiem';
 import {addSubrate, clearSubrates, computePerDiemExpenseAmount, getPerDiemExpenseInformation, removeSubrate, submitPerDiemExpense, updateSubrate} from '@libs/actions/IOU/PerDiem';
 import type RequestMoneyParticipantParams from '@libs/actions/IOU/types/RequestMoneyParticipantParams';
+
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,13 +9,18 @@ import type {PersonalDetailsList, RecentlyUsedTags, Report} from '@src/types/ony
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import createRandomPolicyTags from '../../utils/collections/policyTags';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {formatPhoneNumber, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -322,7 +326,8 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipantParams.payeeAccountID]: {accountID: mockParticipantParams.payeeAccountID, login: 'payee@example.com'}},
-                conciergeReportID: undefined,
+                formatPhoneNumber,
+                isTrackIntentUser: false,
             });
 
             expect(result.onyxData).toBeDefined();
@@ -413,7 +418,8 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
-                conciergeReportID: 'concierge_chat_001',
+                formatPhoneNumber,
+                isTrackIntentUser: false,
             });
 
             // Then: Verify the result structure and key values
@@ -461,6 +467,62 @@ describe('PerDiem', () => {
             // Verify created action IDs for new reports
             expect(result.createdChatReportActionID).toBeDefined();
             expect(result.createdIOUReportActionID).toBeDefined();
+        });
+
+        it('does not optimistically create a transaction thread — no thread IDs and no thread report in optimistic data', () => {
+            const mockTransactionParams: PerDiemExpenseTransactionParams = {
+                comment: '',
+                currency: CONST.CURRENCY.USD,
+                created: '2024-02-02',
+                category: 'Meals',
+                tag: 'PerDiem',
+                customUnit: {
+                    customUnitID: 'per_diem_unit',
+                    customUnitRateID: 'rate_1',
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    attributes: {dates: {start: '2024-02-02', end: '2024-02-02'}},
+                    subRates: [],
+                    quantity: 1,
+                },
+                billable: true,
+                attendees: [],
+                reimbursable: true,
+            };
+
+            const mockParticipantParams: RequestMoneyParticipantParams = {
+                payeeAccountID: 123,
+                payeeEmail: 'payee@example.com',
+                participant: {accountID: 123, login: 'payee@example.com'},
+            };
+
+            const result = getPerDiemExpenseInformation({
+                parentChatReport: undefined,
+                transactionParams: mockTransactionParams,
+                participantParams: mockParticipantParams,
+                recentlyUsedParams: {},
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'payee@example.com',
+                hasViolations: false,
+                policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {[mockParticipantParams.payeeAccountID]: {accountID: mockParticipantParams.payeeAccountID, login: 'payee@example.com'}},
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+            });
+
+            // The builder must not produce a transaction thread — the backend creates it lazily when first needed.
+            expect(result.transactionThreadReportID).toBeUndefined();
+            expect(result.createdReportActionIDForThread).toBeUndefined();
+
+            // And no optimistic transaction thread report should be written: every optimistic REPORT write is the chat or the iou report.
+            const allowedReportIDs = new Set([result.chatReport?.reportID, result.iouReport?.reportID].filter(Boolean));
+            const optimisticData = result.onyxData?.optimisticData ?? [];
+            const unexpectedReportWrites = optimisticData.filter(
+                (update) => typeof update.key === 'string' && update.key.startsWith(ONYXKEYS.COLLECTION.REPORT) && !allowedReportIDs.has(update.key.slice(ONYXKEYS.COLLECTION.REPORT.length)),
+            );
+            expect(unexpectedReportWrites).toHaveLength(0);
         });
 
         it('should return correct per diem expense information with existing chat report', () => {
@@ -548,7 +610,8 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
-                conciergeReportID: undefined,
+                formatPhoneNumber,
+                isTrackIntentUser: false,
             });
 
             // Then: Verify the result uses existing chat report
@@ -637,7 +700,8 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
-                conciergeReportID: 'concierge_chat_002',
+                formatPhoneNumber,
+                isTrackIntentUser: false,
             });
 
             // Then: Verify policy expense chat handling
@@ -713,7 +777,8 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
-                conciergeReportID: undefined,
+                formatPhoneNumber,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -782,14 +847,14 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 optimisticTransactionID,
-                conciergeReportID: undefined,
+                formatPhoneNumber,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
             const transactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (val) => {
                         resolve(val ?? {});
                         Onyx.disconnect(connection);
@@ -856,7 +921,8 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: personalDetailsList,
-                conciergeReportID: undefined,
+                formatPhoneNumber,
+                isTrackIntentUser: false,
             });
 
             // Then the result should be valid (personalDetails is correctly passed through the chain)
@@ -921,7 +987,8 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: personalDetailsList,
-                conciergeReportID: undefined,
+                formatPhoneNumber,
+                isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
@@ -931,7 +998,6 @@ describe('PerDiem', () => {
             const transactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);

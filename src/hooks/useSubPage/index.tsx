@@ -1,19 +1,18 @@
-import {useNavigation, useRoute} from '@react-navigation/native';
-import type {ComponentType} from 'react';
-import {useEffect} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex, findPageIndex} from '@libs/SubPageUtils';
+
+import type {ComponentType} from 'react';
+
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {useEffect} from 'react';
+
 import type {SubPageProps, UseSubPageProps} from './types';
 
 /**
- * @param pages - array of objects with pageName and component to display in each page
- * @param onFinished - callback triggered after finishing the last page
- * @param startFrom - index of the page to start from (used when no subPage param in URL)
- * @param onPageChange - callback triggered after finishing each page
- * @param skipPages - array of page names to skip
- * @param buildRoute - function that returns the route for a given page name and optional action
+ * Non-generic implementation so OXC's React Compiler can memoize the hook.
+ * OXC bails on type params inside hooks ("Unsupported declaration type for hoisting").
  */
-export default function useSubPage<TProps extends SubPageProps>({pages, onFinished, startFrom = 0, skipPages = [], onPageChange = () => {}, buildRoute}: UseSubPageProps<TProps>) {
+function useSubPageImpl({pages, onFinished, startFrom = 0, skipPages = [], onPageChange = () => {}, buildRoute, shouldReplaceRoute = false}: UseSubPageProps<SubPageProps, string>) {
     const navigation = useNavigation();
     const route = useRoute();
     const params = route.params as {subPage?: string; action?: 'edit'} | undefined;
@@ -37,16 +36,20 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
     const lastPageName = pages.at(lastPageIndex)?.pageName;
 
     const navigateToPage = (pageName: string, action?: 'edit') => {
+        if (shouldReplaceRoute) {
+            Navigation.navigate(buildRoute(pageName, action), {forceReplace: true});
+            return;
+        }
         Navigation.navigate(buildRoute(pageName, action));
     };
 
-    if (pages.length === skipPages.length) {
-        throw new Error('All pages are skipped');
-    }
-
     const prevPage = () => {
         let targetIndex = pageIndex - 1;
-        while (targetIndex >= 0 && skipPages.includes(pages.at(targetIndex)?.pageName ?? '')) {
+        while (targetIndex >= 0) {
+            const targetIndexPageName = pages.at(targetIndex)?.pageName;
+            if (!targetIndexPageName || !skipPages.includes(targetIndexPageName)) {
+                break;
+            }
             targetIndex -= 1;
         }
 
@@ -56,6 +59,12 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
 
         const targetPage = pages.at(targetIndex);
         if (targetPage) {
+            // When routes are replaced (dynamic routes), the flow keeps a single screen in the stack,
+            // so there is nothing to pop back to - navigate (replacing) to the previous page instead.
+            if (shouldReplaceRoute) {
+                Navigation.navigate(buildRoute(targetPage.pageName), {forceReplace: true});
+                return;
+            }
             Navigation.goBack(buildRoute(targetPage.pageName));
         }
     };
@@ -67,7 +76,11 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         }
 
         let targetIndex = pageIndex + 1;
-        while (targetIndex < pages.length && skipPages.includes(pages.at(targetIndex)?.pageName ?? '')) {
+        while (targetIndex < pages.length) {
+            const targetIndexPageName = pages.at(targetIndex)?.pageName;
+            if (!targetIndexPageName || !skipPages.includes(targetIndexPageName)) {
+                break;
+            }
             targetIndex += 1;
         }
 
@@ -98,12 +111,16 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         }
     };
 
+    if (pages.length === skipPages.length) {
+        throw new Error('All pages are skipped');
+    }
+
     const currentPage = pages.at(pageIndex);
 
     return {
         // Type assertion for component type - pageIndex defaults to 0 via findPageIndex, so currentPage should exist for non-empty pages array
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        CurrentPage: currentPage?.component as ComponentType<SubPageProps & TProps>,
+        CurrentPage: currentPage?.component as ComponentType<SubPageProps>,
         isEditing,
         currentPageName,
         pageIndex,
@@ -113,5 +130,20 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         moveTo,
         resetToPage,
         isRedirecting,
+    };
+}
+
+/**
+ * @param pages - array of objects with pageName and component to display in each page
+ * @param onFinished - callback triggered after finishing the last page
+ * @param startFrom - index of the page to start from (used when no subPage param in URL)
+ * @param onPageChange - callback triggered after finishing each page
+ * @param skipPages - array of page names to skip
+ * @param buildRoute - function that returns the route for a given page name and optional action
+ */
+export default function useSubPage<TProps extends SubPageProps, TPageName extends string = string>(props: UseSubPageProps<TProps, TPageName>) {
+    return useSubPageImpl(props as unknown as UseSubPageProps<SubPageProps, string>) as ReturnType<typeof useSubPageImpl> & {
+        CurrentPage: ComponentType<SubPageProps & TProps>;
+        resetToPage: (pageName?: TPageName) => void;
     };
 }

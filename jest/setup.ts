@@ -1,19 +1,23 @@
-// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
-import * as core from '@actions/core';
+import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
+
 import '@shopify/flash-list/jestSetup';
 import type {ReactNode} from 'react';
-import {useMemo} from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
-import 'react-native-gesture-handler/jestSetup';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
-import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
+
+import 'react-native-gesture-handler/jestSetup';
 import type Animated from 'react-native-reanimated';
+
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
+import * as core from '@actions/core';
+import {useMemo} from 'react';
 import 'setimmediate';
+import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import {TextDecoder, TextEncoder} from 'util';
-import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
 import '@src/polyfills/PromiseWithResolvers';
 import '@src/polyfills/requestIdleCallback';
+
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 

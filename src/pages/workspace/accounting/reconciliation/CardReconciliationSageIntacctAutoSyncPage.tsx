@@ -1,9 +1,11 @@
-import React from 'react';
 import SageIntacctAutoSyncPageBase from '@pages/workspace/accounting/intacct/advanced/SageIntacctAutoSyncPageBase';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 function CardReconciliationSageIntacctAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;

@@ -1,6 +1,8 @@
 import React from 'react';
-import BaseOnboardingInterestedFeatures from './BaseOnboardingInterestedFeatures';
+
 import type {OnboardingInterestedFeaturesProps} from './types';
+
+import BaseOnboardingInterestedFeatures from './BaseOnboardingInterestedFeatures';
 
 function OnboardingInterestedFeatures(props: OnboardingInterestedFeaturesProps) {
     return (

@@ -1,14 +1,11 @@
-import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
-import type {NavigationState, PartialState} from '@react-navigation/native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {translate} from '@libs/Localize';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
 import type {Video} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -17,6 +14,13 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
@@ -27,7 +31,7 @@ type GetOnboardingInitialPathParamsType = {
     onboardingValuesParam?: Onboarding;
     currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
-    onboardingInitialPath: OnyxEntry<string>;
+    onboardingInitialPath: OnyxEntry<string> | null;
     onboardingValues: OnyxEntry<Onboarding>;
     isAccountValidated?: boolean;
 };
@@ -106,11 +110,12 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         onboardingValuesParam,
         currentOnboardingPurposeSelected,
         currentOnboardingCompanySize,
-        onboardingInitialPath = '',
+        onboardingInitialPath,
         onboardingValues,
         isAccountValidated,
     } = getOnboardingInitialPathParams;
-    const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
+    const initialPath = onboardingInitialPath ?? '';
+    const state = getStateFromPath(initialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
     const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
@@ -134,7 +139,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
 
     // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain. Only redirect
     // validated accounts; unvalidated users mid-AddWorkEmail can legitimately land here while isFromPublicDomain is stale.
-    if (isUserFromPublicDomain && isAccountValidated && onboardingInitialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
+    if (isUserFromPublicDomain && isAccountValidated && initialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
         if (isVsb) {
             return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
         }
@@ -145,8 +150,8 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
-        if (onboardingInitialPath) {
-            return onboardingInitialPath;
+        if (initialPath) {
+            return initialPath;
         }
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
@@ -162,18 +167,18 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
+    if (initialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
     if (
-        onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+        initialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
         ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
     ) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
-    return onboardingInitialPath;
+    return initialPath;
 }
 
 const getOnboardingMessages = (locale?: Locale) => {
@@ -182,12 +187,6 @@ const getOnboardingMessages = (locale?: Locale) => {
         ONBOARDING_TASK_NAME: translate(resolvedLocale, 'onboarding.testDrive.name', {}),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
         EMBEDDED_DEMO_IFRAME_TITLE: translate(resolvedLocale, 'onboarding.testDrive.embeddedDemoIframeTitle'),
-        EMPLOYEE_FAKE_RECEIPT: {
-            AMOUNT: 2000,
-            CURRENCY: 'USD',
-            DESCRIPTION: translate(resolvedLocale, 'onboarding.testDrive.employeeFakeReceipt.description'),
-            MERCHANT: "Tommy's Tires",
-        },
     };
     const addExpenseApprovalsTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS,
