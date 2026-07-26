@@ -1417,7 +1417,17 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
                 ONYXKEYS.ONBOARDING_COMPANY_SIZE,
             ];
             updateAuthToken(response.authToken, response.encryptedAuthToken);
-            clearOnyxAndSeedFullReconnect(keysToPreserveForForcedOnboarding2FA);
+            clearOnyxAndSeedFullReconnect(keysToPreserveForForcedOnboarding2FA, {
+                [ONYXKEYS.ACCOUNT]: {
+                    requiresTwoFactorAuth: true,
+                    twoFactorAuthSetupInProgress: true,
+                    needsTwoFactorAuthSetup: false,
+                    isLoading: false,
+                },
+                [ONYXKEYS.NVP_ONBOARDING]: {
+                    hasCompletedGuidedSetupFlow: false,
+                },
+            });
             return;
         }
 
