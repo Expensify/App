@@ -5501,6 +5501,7 @@ function getDisplayValue(
         key === FILTER_KEYS.TAX_RATE ||
         key === FILTER_KEYS.IN ||
         key === FILTER_KEYS.BANK_ACCOUNT ||
+        key === FILTER_KEYS.FEED ||
         key === FILTER_KEYS.POLICY_ID ||
         key === FILTER_KEYS.POLICY_ID_NOT
     ) {
