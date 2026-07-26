@@ -2,12 +2,7 @@ const name = 'no-direct-pre-insert-fullscreen-under-rhp';
 const NAVIGATION_MODULE_SUFFIX = '/Navigation/Navigation';
 const PRE_INSERT_METHOD_NAME = 'preInsertFullscreenUnderRHP';
 
-const ALLOWED_FILE_SUFFIXES = [
-    'src/hooks/usePreMountDestination/index.ts',
-    'src/hooks/useSkipConfirmationPreInsert.ts',
-    'src/libs/Navigation/Navigation.ts',
-    'src/pages/iou/request/step/IOURequestStepConfirmation.tsx',
-];
+const ALLOWED_FILE_SUFFIXES = ['src/hooks/usePreMountDestination/index.ts', 'src/libs/Navigation/Navigation.ts'];
 
 const meta = {
     type: 'problem',
