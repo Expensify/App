@@ -1542,11 +1542,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     // Detect already-exported reports from the report actions (the same source that drives the
                     // "exported" icon in the search list), not the report's `isExportedToIntegration` field which
                     // can be stale/false in the search snapshot.
+                    const exportableReportNames: string[] = [];
                     const exportedReportNames: string[] = [];
                     let areAnyReportsExported = false;
                     for (const reportID of integrationReportIDs) {
                         const liveReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                         const snapshotReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        // The live Onyx report can be an incomplete optimistic record (e.g. exported offline before
+                        // it was ever loaded) that lacks `reportName`, so fall back to the Search snapshot for the name.
+                        const reportName = liveReport?.reportName ?? snapshotReport?.reportName;
+                        if (reportName) {
+                            exportableReportNames.push(reportName);
+                        }
+
                         // Prefer live Onyx report actions, falling back to the search snapshot.
                         const reportActions =
                             allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ??
@@ -1566,9 +1574,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         }
 
                         areAnyReportsExported = true;
-                        // The live Onyx report can be an incomplete optimistic record (e.g. exported offline before
-                        // it was ever loaded) that lacks `reportName`, so fall back to the Search snapshot for the name.
-                        const reportName = liveReport?.reportName ?? snapshotReport?.reportName;
                         if (reportName) {
                             exportedReportNames.push(reportName);
                         }
@@ -1583,10 +1588,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                         showConfirmModal({
                             title: translate('workspace.exportAgainModal.title'),
-                            prompt: translate('workspace.exportAgainModal.description', {
+                            // Reuse the existing description for the fixed subtitle, passing an empty report list so
+                            // only the "already exported, export again?" text remains; the report names go in the
+                            // scrollable prompt below.
+                            subtitle: translate('workspace.exportAgainModal.description', {
                                 connectionName: integration,
-                                reportName: exportedReportNames.join('\n'),
-                            }),
+                                reportName: '',
+                            }).trim(),
+                            prompt: exportedReportNames.join('\n'),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
                             shouldEnablePromptScroll: true,
@@ -1612,9 +1621,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             selectedCount: totalSelectedReportsCount,
                             integration,
                         }),
-                        prompt: translate('workspace.exportPartialModal.description', {integration}),
+                        // Fixed subtitle describes the partial scope; the scrollable prompt lists the report names
+                        // that will actually be exported for the chosen integration.
+                        subtitle: translate('workspace.exportPartialModal.description', {integration}),
+                        prompt: exportableReportNames.join('\n'),
                         confirmText: translate('workspace.exportPartialModal.confirmText', {count: integrationReportIDs.length}),
                         cancelText: translate('workspace.exportPartialModal.cancelText'),
+                        shouldEnablePromptScroll: true,
                     }).then((result) => {
                         if (result.action !== ModalActions.CONFIRM) {
                             return;

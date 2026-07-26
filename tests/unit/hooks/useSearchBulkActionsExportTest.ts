@@ -547,9 +547,17 @@ describe('useSearchBulkActions - report export options resolve from the search s
             expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
         });
 
-        // Only the partial-export modal is shown (there is nothing already-exported to warn about).
+        // Only the partial-export modal is shown (there is nothing already-exported to warn about). Its
+        // descriptive text lives in the fixed subtitle, and the scrollable prompt lists the report names.
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: 'workspace.exportPartialModal.title',
+                subtitle: 'workspace.exportPartialModal.description',
+                prompt: 'Approved report',
+                shouldEnablePromptScroll: true,
+            }),
+        );
     });
 
     it('aborts the export when the partial-export modal is cancelled', async () => {
@@ -619,10 +627,22 @@ describe('useSearchBulkActions - report export options resolve from the search s
             expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
         });
 
-        // Both modals were shown, in order: partial-export first, export-again second.
+        // Both modals were shown, in order: partial-export first, export-again second. Each splits its
+        // descriptive text into the fixed subtitle and its report list into the scrollable prompt.
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
-        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(1, expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
-        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(2, expect.objectContaining({title: 'workspace.exportAgainModal.title'}));
+        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({title: 'workspace.exportPartialModal.title', subtitle: 'workspace.exportPartialModal.description', shouldEnablePromptScroll: true}),
+        );
+        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({
+                title: 'workspace.exportAgainModal.title',
+                subtitle: 'workspace.exportAgainModal.description',
+                prompt: 'Approved report',
+                shouldEnablePromptScroll: true,
+            }),
+        );
     });
 
     it('shows only the export-again modal (no partial modal) for a single-integration already-exported selection', async () => {
@@ -654,7 +674,14 @@ describe('useSearchBulkActions - report export options resolve from the search s
         });
 
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportAgainModal.title'}));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: 'workspace.exportAgainModal.title',
+                subtitle: 'workspace.exportAgainModal.description',
+                prompt: 'Approved report',
+                shouldEnablePromptScroll: true,
+            }),
+        );
     });
 
     it('detects an already-exported report from report actions even when isExportedToIntegration is stale/false', async () => {

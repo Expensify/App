@@ -7172,7 +7172,7 @@ ${reportName}`,
             title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
                 `Esportare ${exportableCount}/${selectedCount} report in ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
             description: ({integration}: ExportPartialModalDescriptionParams) =>
-                `Verranno esportati solo i report collegati a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}. Il resto della selezione appartiene ad altre integrazioni e verrà ignorato.`,
+                `Verranno esportati solo i report collegati a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}. Il resto della selezione appartiene ad altre integrazioni e verrà ignorato.\n\nVerranno esportati i seguenti report:`,
             confirmText: ({count}: {count: number}) => ({
                 one: `Esporta ${count} report`,
                 other: `Esporta ${count} report`,

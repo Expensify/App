@@ -7219,7 +7219,7 @@ ${reportName}`,
             title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
                 `Exporter ${exportableCount}/${selectedCount} rapports vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} ?`,
             description: ({integration}: ExportPartialModalDescriptionParams) =>
-                `Seuls les rapports connectés à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} seront exportés. Le reste de votre sélection appartient à d’autres intégrations et sera ignoré.`,
+                `Seuls les rapports connectés à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} seront exportés. Le reste de votre sélection appartient à d’autres intégrations et sera ignoré.\n\nLes rapports suivants seront exportés :`,
             confirmText: ({count}: {count: number}) => ({
                 one: `Exporter ${count} rapport`,
                 other: `Exporter ${count} rapports`,

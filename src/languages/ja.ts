@@ -7089,7 +7089,7 @@ ${reportName}`,
             title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
                 `${exportableCount}/${selectedCount}件のレポートを${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}にエクスポートしますか？`,
             description: ({integration}: ExportPartialModalDescriptionParams) =>
-                `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}に接続されているレポートのみがエクスポートされます。選択した残りのレポートは他の連携に属しているためスキップされます。`,
+                `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}に接続されているレポートのみがエクスポートされます。選択した残りのレポートは他の連携に属しているためスキップされます。\n\n以下のレポートがエクスポートされます：`,
             confirmText: ({count}: {count: number}) => ({
                 one: `${count}件のレポートをエクスポート`,
                 other: `${count}件のレポートをエクスポート`,
