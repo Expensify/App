@@ -511,6 +511,8 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(getExpensifyCardStatementPDF).toHaveBeenCalledTimes(1);
         expect(getExpensifyCardStatementPDF).toHaveBeenCalledWith('policy1', 'US', [123]);
         expect(result.current.isExpensifyCardStatementPDFModalVisible).toBe(true);
+        // Clears the selection once the export fires, like the other bulk actions.
+        expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
     it('should surface the error modal when the statement PDF request fails', async () => {
@@ -737,5 +739,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         });
 
         expect(getExpensifyCardStatementPDF).not.toHaveBeenCalled();
+        // Offline is a validation-style bail-out, so the selection is kept (matches the other bulk actions).
+        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
     });
 });

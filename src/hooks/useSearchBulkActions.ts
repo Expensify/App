@@ -622,6 +622,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         setExpensifyCardStatementPDFParams(statementParams);
         setIsExpensifyCardStatementPDFModalVisible(true);
+        // Clear the selection once the export is fired, like the other bulk actions. The offline, empty, and
+        // multi-feed cases return above, so this only runs after the request is actually initiated.
+        clearSelectedTransactions();
         getExpensifyCardStatementPDF(statementParams.policyID, statementParams.feedCountry, entryIDs)
             ?.then((response) => {
                 const statementKey = response?.statementKey;
@@ -641,7 +644,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 setExpensifyCardStatementPDFParams((currentParams) => (currentParams ? {...currentParams, statementKey} : currentParams));
             })
             .catch(showStatementError);
-    }, [isOffline]);
+    }, [isOffline, clearSelectedTransactions]);
     const firstTransactionID = selectedTransactionsKeys.at(0);
     const firstTransaction =
         (firstTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`] : undefined) ??
