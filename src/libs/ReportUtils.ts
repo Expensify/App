@@ -241,7 +241,7 @@ import {
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
-import {deprecatedGetReportName, getGroupChatName, getInvoicePayerName, getInvoiceReportName} from './ReportNameUtils';
+import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {isTaskCompleted} from './TaskUtils';
 import {
@@ -5693,7 +5693,8 @@ function getReportPreviewMessageForCopy(
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     if (report) {
-        return deprecatedGetReportName(report, reportAttributes ?? reportAttributesDerivedValue) || (originalReportAction?.childReportName ?? '');
+        const attributes = reportAttributes ?? reportAttributesDerivedValue;
+        return getReportName(report, attributes?.[report.reportID]?.reportName) || (originalReportAction?.childReportName ?? '');
     }
     return originalReportAction?.childReportName ?? '';
 }
@@ -7188,7 +7189,7 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
 
     const report = fromReport ?? toReport;
 
-    const reportName = Parser.htmlToText(deprecatedGetReportName(report, reportAttributes) ?? report?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName(report, report?.reportID ? reportAttributes?.[report.reportID]?.reportName : undefined));
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return reportName ? translate('iou.movedTransactionTo', reportUrl, reportName) : translate('iou.movedTransactionToAnotherReport');
@@ -7202,7 +7203,7 @@ function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: 
 
     const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    const reportName = Parser.htmlToText(deprecatedGetReportName(fromReport, reportAttributes) ?? fromReport?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName(fromReport, fromReport?.reportID ? reportAttributes?.[fromReport.reportID]?.reportName : undefined));
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 
@@ -13115,10 +13116,11 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     }
 
     if (report?.reportID) {
-        return deprecatedGetReportName(getReport(report?.reportID, deprecatedAllReports), reportAttributesDerivedValue);
+        const fullReport = getReport(report.reportID, deprecatedAllReports);
+        return getReportName(fullReport, fullReport?.reportID ? reportAttributesDerivedValue?.[fullReport.reportID]?.reportName : undefined);
     }
 
-    return deprecatedGetReportName(report, reportAttributesDerivedValue);
+    return getReportName(report, report?.reportID ? reportAttributesDerivedValue?.[report.reportID]?.reportName : undefined);
 }
 
 /**

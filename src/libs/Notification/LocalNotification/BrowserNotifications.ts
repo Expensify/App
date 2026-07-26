@@ -6,7 +6,7 @@ import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 
@@ -134,7 +134,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            const roomName = deprecatedGetReportName(report, reportAttributes);
+            const roomName = getReportName(report, reportAttributes?.[report.reportID]?.reportName);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
