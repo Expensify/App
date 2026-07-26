@@ -35,7 +35,10 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
 
     const {showConfirmModal} = useConfirmModal();
 
-    const [selectedVisibility, setSelectedVisibility] = useState<RoomVisibility | undefined>(report?.visibility);
+    // Keep the draft undefined until the user picks a row so we always fall back to the live visibility.
+    // This avoids freezing a stale value that could be saved over an external update to report.visibility.
+    const [draftVisibility, setDraftVisibility] = useState<RoomVisibility | undefined>(undefined);
+    const selectedVisibility = draftVisibility ?? report?.visibility;
 
     const visibilityOptions = useMemo(
         () =>
@@ -97,7 +100,7 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
                 <SelectionList
                     shouldPreventDefaultFocusOnSelectRow
                     data={visibilityOptions}
-                    onSelectRow={(option) => setSelectedVisibility(option.value)}
+                    onSelectRow={(option) => setDraftVisibility(option.value)}
                     confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={report?.visibility}
