@@ -57,6 +57,12 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
         wasLoading.current = false;
     }, [privatePersonalDetails?.isLoading, hasErrors]);
 
+    // The parent page defers clearing the form draft to this page so the submission payload survives navigating
+    // to the magic-code RHP. Clear it whenever we leave this page without validating, so an unvalidated edit
+    // doesn't reappear in the RHP form on remount. This covers the header back arrow, swipe-back, and hardware
+    // back, and is idempotent with the success path above (which already clears the draft before navigating away).
+    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM), []);
+
     const values = normalizeCountryCode(getPrivatePersonalDetailsFormValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm;
 
     const handleSubmitForm = (validateCode: string) => {
