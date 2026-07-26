@@ -127,7 +127,7 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
     const {enabled = true, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config;
 
     const {accountID} = useCurrentUserPersonalDetails();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const reportIDsSet = (() => {
         if (!reports) {
@@ -153,7 +153,7 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
     const filteredReportAttributes = filterReportAttributes(reportAttributes, reportIDsSet);
 
     const optionsData = !isLoading
-        ? createOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, filteredReportAttributes, privateIsArchivedMap, formatPhoneNumber, {
+        ? createOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, filteredReportAttributes, privateIsArchivedMap, formatPhoneNumber, translate, {
               shouldStoreReportErrors,
               shouldShowBrickRoadIndicator,
           })

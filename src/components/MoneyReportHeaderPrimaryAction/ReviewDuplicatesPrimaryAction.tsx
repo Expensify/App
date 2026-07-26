@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -14,6 +14,7 @@ import {isDuplicate} from '@libs/TransactionUtils';
 
 import {createTransactionThreadReport} from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
@@ -41,8 +42,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
 
     return (
         <Button
-            success
-            text={translate('iou.reviewDuplicates')}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => {
                 let threadID: string | undefined | null = transactionThreadReportID;
                 if (!threadID) {
@@ -81,7 +81,9 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
                 }
             }}
-        />
+        >
+            <Button.Text>{translate('iou.reviewDuplicates')}</Button.Text>
+        </Button>
     );
 }
 
