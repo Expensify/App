@@ -701,11 +701,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
 
             const exportColumnLabels: Partial<Record<SearchColumnType, string>> = {};
-            for (const column of columnsToExport) {
+            // Always include user-selected visible columns, even if they have no data
+            const allColumnsForExport = new Set(columnsToExport);
+            for (const column of visibleColumns) {
+                allColumnsForExport.add(column);
+            }
+            for (const column of allColumnsForExport) {
                 exportColumnLabels[column] = translate(getSearchColumnTranslationKey(column));
             }
 
-            const jsonQuery = queryJSONToExport ? serializeQueryJSONForBackend({...queryJSONToExport, columns: columnsToExport}) : (JSON.stringify(queryJSONToExport) ?? '');
+            const jsonQuery = queryJSONToExport ? serializeQueryJSONForBackend({...queryJSONToExport, columns: [...allColumnsForExport]}) : (JSON.stringify(queryJSONToExport) ?? '');
 
             return {
                 jsonQuery,
