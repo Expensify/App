@@ -1,5 +1,5 @@
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
@@ -10,6 +10,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 
+import {useIsAppLoadPending} from './useInFlightRequests';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -56,11 +57,12 @@ function useReportActionsListModel(reportID: string) {
     const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
     const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
 
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
 
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
 
@@ -113,9 +115,10 @@ function useReportActionsListModel(reportID: string) {
         transactionThreadReport,
         isReportArchived,
         isReportTransactionThread,
+        shouldBeAlignedToTop,
         isLoadingInitialReportActions,
         hasOnceLoadedReportActions,
-        isLoadingApp,
+        isLoadingApp: isAppLoadPending,
         reportActionsLength: reportActions.length,
         oldestUnreadReportAction,
         isSingleExpenseReport,

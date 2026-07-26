@@ -1,5 +1,4 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import SearchChartView from '@components/Search/SearchChartView';
 import WidgetContainer from '@components/WidgetContainer';
@@ -11,6 +10,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+
+import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
 
 import variables from '@styles/variables';
 
@@ -41,15 +42,17 @@ function SpendOverTimeSectionContent() {
             title={translate('search.spendOverTime')}
             titleRightContent={
                 state === SPEND_OVER_TIME_STATE.READY ? (
-                    <Button
-                        small
-                        text={translate('common.view')}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}))}
-                        iconRight={icons.Expand}
-                        shouldShowRightIcon
-                        textStyles={styles.pb0}
-                        style={styles.widgetItemButton}
-                        iconWrapperStyles={styles.justifyContentCenter}
+                    <WidgetHeaderMenu
+                        testID="spendOverTimeOverflowMenu"
+                        sentryLabel="SpendOverTimeOverflowMenu"
+                        menuItems={[
+                            {
+                                text: translate('common.view'),
+                                icon: icons.Expand,
+                                onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query})),
+                                shouldCallAfterModalHide: true,
+                            },
+                        ]}
                     />
                 ) : null
             }

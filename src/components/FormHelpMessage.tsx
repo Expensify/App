@@ -132,7 +132,7 @@ function FormHelpMessage({
                 <Icon
                     src={icons.Exclamation}
                     fill={theme.icon}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                     additionalStyles={[styles.mr1]}
                 />
             )}

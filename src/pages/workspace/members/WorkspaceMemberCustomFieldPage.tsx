@@ -58,6 +58,8 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="WorkspaceMemberCustomFieldPage"

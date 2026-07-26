@@ -61,13 +61,6 @@ jest.mock('@libs/getPlatform', () => ({
     default: jest.fn(() => 'ios'),
 }));
 
-// The grouped view imports isTransactionMatchWithGroupItem from the heavy SearchList module; stub it out.
-jest.mock('@components/Search/SearchList', () => ({
-    __esModule: true,
-    default: () => null,
-    isTransactionMatchWithGroupItem: jest.fn(() => false),
-}));
-
 // Group header/children only render on the split path; stub them so importing the view stays lightweight.
 jest.mock('@components/Search/SearchList/ListItem/GroupHeader', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/Search/SearchList/ListItem/GroupChildrenContainer', () => ({__esModule: true, default: () => null}));
@@ -133,14 +126,12 @@ const STABLE_QUERY_JSON: SearchQueryJSON = {
     similarSearchHash: 0,
     groupBy: CONST.SEARCH.GROUP_BY.CARD,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
     sortOrder: 'desc',
     view: CONST.SEARCH.VIEW.TABLE,
     flatFilters: [],
     inputQuery: '',
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, right: ''},
-    policyID: undefined,
     columns: undefined,
     limit: undefined,
     rawFilterList: undefined,

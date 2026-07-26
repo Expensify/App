@@ -1,6 +1,7 @@
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {DomainSecurityGroupWithID} from '@selectors/Domain';
@@ -9,8 +10,6 @@ import {groupsSelector} from '@selectors/Domain';
 
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-
-const ALL_MEMBERS_VALUE = 'all';
 
 type UseDomainGroupFilterResult = {
     /** Filter configuration for the domain members table group filter. */
@@ -32,9 +31,10 @@ type UseDomainGroupFilterResult = {
 function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResult {
     const {translate} = useLocalize();
 
-    const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
+    const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        selector: groupsSelector,
+    });
 
-    const allMembersLabel = translate('domain.members.allMembers');
     const shouldShowGroupFilter = (groups?.length ?? 0) > 1;
     const shouldShowGroupColumn = (groups?.length ?? 0) > 0;
 
@@ -42,10 +42,12 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
         ? undefined
         : {
               group: {
-                  label: allMembersLabel,
-                  filterType: 'single-select',
-                  options: [{label: allMembersLabel, value: ALL_MEMBERS_VALUE}, ...(groups ?? []).map((group) => ({label: group.details.name ?? '', value: group.id}))],
-                  default: ALL_MEMBERS_VALUE,
+                  label: translate('common.group'),
+                  filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
+                  options: (groups ?? []).map((group) => ({
+                      label: group.details.name ?? '',
+                      value: group.id,
+                  })),
               },
           };
 
@@ -53,11 +55,6 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
         ? undefined
         : (item, filterValues) => {
               const filterValue = filterValues.at(0);
-
-              if (!filterValue || filterValue === ALL_MEMBERS_VALUE) {
-                  return true;
-              }
-
               const matchedGroup = groups?.find((group) => group.id === filterValue);
 
               if (!matchedGroup) {

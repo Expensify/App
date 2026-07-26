@@ -95,7 +95,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
 
     const scrollToListIndex = (index: number, animated = true) => {
         const item = listData.at(index);
-        if (!listRef.current || !item || index === -1) {
+        if (!listRef.current || !item || index < 0) {
             return;
         }
         // Mirror SearchList: don't scroll while a row's cell is being inline-edited, which would blur/move it mid-edit.

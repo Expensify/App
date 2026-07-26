@@ -63,6 +63,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
     const allTransactions = useAllTransactions();
     const transactionMain = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -184,7 +185,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport({reportID, introSelected, betas});
+        openReport({reportID, introSelected, betas, hasReportActions});
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -265,9 +266,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID, policy, policyTagList, transactionViolations, policyCategories);
+        detachReceipt(transaction, policy, policyTagList, transactionViolations, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList, transactionViolations]);
+    }, [transaction, policy, policyTagList, transactionViolations, policyCategories, navigation]);
 
     /**
      * Remove odometer image and close the modal.
@@ -305,7 +306,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     setMoneyRequestReceipt(transaction.transactionID, durableUri, filename, isDraftTransaction, fileType);
                 } else {
                     replaceReceipt({
-                        transactionID: transaction.transactionID,
+                        transaction,
                         file: durableFile,
                         source: durableUri,
                         transactionPolicyCategories: policyCategories,

@@ -1,13 +1,12 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -24,7 +23,6 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
-import {removeDraftTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +41,7 @@ import type BasePolicyParams from './types/BasePolicyParams';
 
 import {getAllPersonalDetails} from '.';
 import {getReceiptError, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
-import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type SendInvoiceInformation = {
@@ -88,9 +86,8 @@ type SendInvoiceOptions = {
     policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
     isFromGlobalCreate?: boolean;
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    shouldHandleNavigation?: boolean;
-    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    delegateAccountID: number | undefined;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -594,6 +591,7 @@ function getSendInvoiceInformation({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     senderPolicyTags,
+    formatPhoneNumber,
     delegateAccountID,
 }: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
@@ -743,7 +741,7 @@ function sendInvoice({
     policyRecentlyUsedTags,
     isFromGlobalCreate = false,
     senderPolicyTags,
-    shouldHandleNavigation = true,
+    formatPhoneNumber,
     delegateAccountID,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
@@ -779,6 +777,7 @@ function sendInvoice({
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
         senderPolicyTags: senderPolicyTags ?? {},
+        formatPhoneNumber,
         delegateAccountID,
     });
 
@@ -813,24 +812,12 @@ function sendInvoice({
     };
 
     deferOrExecuteWrite(apiWrite, {
-        shouldDeferForSearch: shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+        shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
-
-    if (shouldHandleNavigation) {
-        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
-        handleNavigateAfterExpenseCreate({
-            activeReportID: invoiceRoom.reportID,
-            transactionID,
-            isFromGlobalCreate,
-            isInvoice: true,
-        });
-    } else {
-        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    }
 
     notifyNewAction(invoiceRoom.reportID, undefined, true);
 }

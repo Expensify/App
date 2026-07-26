@@ -72,9 +72,10 @@ const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
 const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
-const RECEIPT_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
+const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
+const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
 const BOOLEAN_VALUES = Object.values(CONST.SEARCH.BOOLEAN);
 const ACTION_FILTER_VALUES = Object.values(CONST.SEARCH.ACTION_FILTERS);
 const IS_VALUES_LIST = Object.values(CONST.SEARCH.IS_VALUES);
@@ -337,7 +338,7 @@ function useAutocompleteSuggestions({
             );
             return filteredViews.map((viewValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW, text: viewValue}));
         }
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS: {
             const statusAutocompleteList = (() => {
                 let suggestedStatuses;
                 switch (currentType) {
@@ -359,7 +360,7 @@ function useAutocompleteSuggestions({
                     default:
                         suggestedStatuses = DEFAULT_STATUS_VALUES;
                 }
-                return suggestedStatuses.filter((value) => value !== '').map((value) => getUserFriendlyValue(value));
+                return suggestedStatuses.map(getUserFriendlyValue);
             })();
             const filteredStatuses = statusAutocompleteList
                 .filter((status) => status.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(status))
@@ -406,6 +407,14 @@ function useAutocompleteSuggestions({
             return filteredWithdrawalStatuses.map((withdrawalStatus) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS,
                 text: withdrawalStatus,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS: {
+            const filteredPaidStatuses = PAID_STATUS_VALUES.filter((paidStatus) => paidStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(paidStatus)).sort();
+
+            return filteredPaidStatuses.map((paidStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PAID_STATUS,
+                text: paidStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {

@@ -2,7 +2,6 @@ import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableDat
 import Table from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -13,7 +12,6 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import ReportParticipantsTableRow from './ReportParticipantsTableRow';
 
@@ -60,15 +58,11 @@ type ReportParticipantsTableProps = {
     /** The list of selected row keys */
     selectedKeys: string[];
 
-    /** Whether to show the find-member search bar */
-    shouldShowSearchBar: boolean;
-
     /** Callback when the set of selected rows changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function ReportParticipantsTable({ref, members, isGroupChat, selectionEnabled, selectedKeys, shouldShowSearchBar, onRowSelectionChange}: ReportParticipantsTableProps) {
-    const styles = useThemeStyles();
+export default function ReportParticipantsTable({ref, members, isGroupChat, selectionEnabled, selectedKeys, onRowSelectionChange}: ReportParticipantsTableProps) {
     const {translate, localeCompare} = useLocalize();
 
     const columns: Array<TableColumn<ReportParticipantsTableColumnKey>> = [
@@ -127,14 +121,8 @@ export default function ReportParticipantsTable({ref, members, isGroupChat, sele
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {shouldShowSearchBar && (
-                <View style={[styles.mb3, styles.mh5]}>
-                    <Table.SearchBar
-                        label={translate('selectionList.findMember')}
-                        style={[styles.mb0, styles.mh0]}
-                    />
-                </View>
-            )}
+            <Table.FilterBar label={translate('selectionList.findMember')} />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

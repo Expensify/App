@@ -11,15 +11,6 @@ jest.mock('@libs/actions/TransactionEdit', () => ({
     removeDraftTransactionsByIDs: (ids: string[] | undefined) => mockRemoveDraftTransactionsByIDs(ids) as void,
 }));
 
-jest.mock('react-native', () => ({
-    InteractionManager: {
-        runAfterInteractions: (callback: () => void) => {
-            callback();
-            return {then: (cb: () => void) => cb(), cancel: jest.fn()};
-        },
-    },
-}));
-
 jest.mock('@libs/Navigation/Navigation', () => ({
     getReportRouteByID: jest.fn(),
     removeScreenByKey: jest.fn(),
@@ -30,7 +21,7 @@ describe('cleanupAfterExpenseCreate', () => {
         jest.clearAllMocks();
     });
 
-    it('should remove draft transactions via InteractionManager when draftTransactionIDs is provided', () => {
+    it('should remove draft transactions when draftTransactionIDs is provided', () => {
         cleanupAfterExpenseCreate({
             draftTransactionIDs: ['txn-1', 'txn-2'],
         });

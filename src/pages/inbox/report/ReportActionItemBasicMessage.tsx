@@ -1,7 +1,9 @@
 import Text from '@components/Text';
 
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -18,7 +20,9 @@ type ReportActionItemBasicMessageProps = Partial<ChildrenProps> & {
 
 function ReportActionItemBasicMessage({message, children}: ReportActionItemBasicMessageProps) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const messageContainsCustomEmojiWithText = useMemo(() => containsCustomEmoji(message) && !containsOnlyCustomEmoji(message), [message]);
+    const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
 
     return (
         <View>
@@ -26,11 +30,11 @@ function ReportActionItemBasicMessage({message, children}: ReportActionItemBasic
                 (messageContainsCustomEmojiWithText ? (
                     <TextWithEmojiFragment
                         message={Str.htmlDecode(message)}
-                        style={[styles.chatItemMessage, styles.colorMuted]}
+                        style={[styles.chatItemMessage, styles.colorMuted, selectableStyle]}
                         alignCustomEmoji
                     />
                 ) : (
-                    <Text style={[styles.chatItemMessage, styles.colorMuted]}>{Str.htmlDecode(message)}</Text>
+                    <Text style={[styles.chatItemMessage, styles.colorMuted, selectableStyle]}>{Str.htmlDecode(message)}</Text>
                 ))}
             {children}
         </View>

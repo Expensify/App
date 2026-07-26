@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {clearHRConnectionErrorField} from '@libs/actions/connections/MergeHR';
+import {showMergeHRManualSyncLimitModalIfReached} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -115,8 +116,14 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
         return {
             icon: icons.Sync,
             text: translate('workspace.hr.syncNow'),
-            onSelected: () => syncConnection(policy, card.connectionName),
+            onSelected: () => {
+                if (showMergeHRManualSyncLimitModalIfReached(policy, card.connectionName, translate, showConfirmModal)) {
+                    return;
+                }
+                syncConnection(policy, card.connectionName);
+            },
             disabled: isOffline,
+            shouldCallAfterModalHide: true,
         };
     };
 

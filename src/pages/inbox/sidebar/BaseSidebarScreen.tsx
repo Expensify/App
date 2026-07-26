@@ -10,11 +10,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobile} from '@libs/Browser';
+import {getSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
@@ -43,6 +45,15 @@ function BaseSidebarScreen() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading;
+
+    // Tag an in-flight inbox-tab navigation span when the app-loading skeleton is shown instead of the
+    // report list, so durations that include the openApp wait can be queried separately in Sentry.
+    useEffect(() => {
+        if (!shouldShowSkeleton) {
+            return;
+        }
+        getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SKELETON_SHOWN, true);
+    }, [shouldShowSkeleton]);
 
     return (
         <ScreenWrapper

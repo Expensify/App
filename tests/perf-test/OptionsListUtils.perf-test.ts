@@ -1,6 +1,6 @@
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
-import {createFilteredOptionList, filterAndOrderOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {clearFilteredOptionListCache, createFilteredOptionList, filterAndOrderOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -20,6 +20,7 @@ import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
@@ -259,6 +260,7 @@ describe('OptionsListUtils', () => {
                 {},
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 undefined,
+                translateLocal,
                 mockedPersonalDetails,
                 true,
             ),
@@ -271,17 +273,21 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, mockedPersonalDetails, true));
+        await measureFunction(() =>
+            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, mockedPersonalDetails, true),
+        );
     });
 
     test('[OptionsListUtils] createFilteredOptionList', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() =>
-            createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+        await measureFunction(() => {
+            // Inputs are referentially identical across measured runs, so clear the cache to measure the build path.
+            clearFilteredOptionListCache();
+            return createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 maxRecentReports: 500,
                 isSearching: false,
-            }),
-        );
+            });
+        });
     });
 
     test('[OptionsListUtils] createFilteredOptionList with isSearching is true', async () => {

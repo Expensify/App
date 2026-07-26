@@ -323,7 +323,6 @@ function WorkspaceTaxesPage({
                         />
                     )}
                     <ButtonWithDropdownMenu
-                        success={false}
                         onPress={() => {}}
                         shouldUseOptionIcon
                         customText={translate('common.more')}
@@ -338,9 +337,10 @@ function WorkspaceTaxesPage({
 
         return (
             <ButtonWithDropdownMenu<WorkspaceTaxRatesBulkActionType>
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => {}}
                 options={dropdownMenuOptions}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                size={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}

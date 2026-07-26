@@ -17,8 +17,16 @@ export default {
         height: 28,
     },
 
+    h8: {
+        height: 32,
+    },
+
     h10: {
         height: 40,
+    },
+
+    h11: {
+        height: 44,
     },
 
     h68: {

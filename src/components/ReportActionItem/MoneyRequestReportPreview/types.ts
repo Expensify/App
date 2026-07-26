@@ -65,6 +65,8 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
     transactions: Transaction[];
+    /** Full set of the report's transactions, including optimistically-deleted rows (matches `getReportTransactions`) */
+    allReportTransactions: Transaction[];
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;

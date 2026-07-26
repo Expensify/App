@@ -4,7 +4,7 @@ import type {StreetValue} from '@components/AddressSearch/types';
 
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React, {useState} from 'react';
 

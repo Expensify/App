@@ -6,7 +6,6 @@ import {openReport} from '@libs/actions/Report';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canUserPerformWriteAction, isReportNotFound} from '@libs/ReportUtils';
-import validateAttachmentFile from '@libs/validateAttachmentFile';
 
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
@@ -23,7 +22,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {View} from 'react-native';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 
 import AddAttachmentModalCarouselView from './AddAttachmentModalCarouselView';
 
@@ -59,13 +58,15 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     // Extract the reportActionID from the attachmentID (format: reportActionID_index)
     const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
 
+    const hasReportActions = !!reportActions;
+
     const shouldFetchReport = useMemo(() => {
         return isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
     }, [reportActions, reportActionID]);
 
     const fetchReport = useCallback(() => {
-        openReport({reportID, introSelected, reportActionID, betas});
-    }, [reportID, introSelected, reportActionID, betas]);
+        openReport({reportID, introSelected, reportActionID, betas, hasReportActions});
+    }, [reportID, introSelected, reportActionID, betas, hasReportActions]);
 
     // Close the modal if user loses write access (e.g., admin switches "Who can post" to Admins only)
     useEffect(() => {
@@ -83,32 +84,20 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         fetchReport();
     }, [reportID, fetchReport, shouldFetchReport]);
 
-    const [source, setSource] = useState(() => getValidatedImageSource(sourceParam));
-
-    const [validFiles, setValidFiles] = useState<FileObject | FileObject[] | undefined>(fileParam);
-    useEffect(() => {
-        async function validateFiles() {
-            if (!fileParam) {
-                return;
-            }
-
-            const files = Array.isArray(fileParam) ? fileParam : [fileParam];
-            const results = await Promise.all(files.map(async (file) => validateAttachmentFile(file)));
-
-            const validResults = results.filter((r) => r.isValid);
-            if (validResults.length === 0) {
-                return;
-            }
-
-            const validatedFiles = validResults.map((r) => r.file);
-            const firstValidSource = validResults.at(0)?.file.uri;
-
-            setSource(firstValidSource);
-            setValidFiles(validatedFiles);
+    // Files reaching this screen were already validated, HEIC-converted and resized by useFilesValidation
+    // before navigation (useAttachmentPicker's onFilesValidated is the only entry point to this route).
+    // Re-running validateAttachmentFile here decodes every image a second time and allocates a duplicate
+    // set of object URLs at the exact moment the carousel decodes the same images for display — on
+    // memory-constrained mobile Safari that doubled peak is enough to kill the WebContent process and
+    // reload the tab, silently dropping the attachments. Trust the validated params and derive directly.
+    const validFiles = useMemo<FileObject[] | undefined>(() => {
+        if (!fileParam) {
+            return undefined;
         }
-
-        validateFiles();
+        return Array.isArray(fileParam) ? fileParam : [fileParam];
     }, [fileParam]);
+
+    const source = useMemo(() => (validFiles ? validFiles.at(0)?.uri : getValidatedImageSource(sourceParam)), [validFiles, sourceParam]);
 
     const modalType = useReportAttachmentModalType(source, validFiles);
     useNavigateToReportOnRefresh({source: sourceParam, file: validFiles, reportID});
@@ -137,8 +126,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
     });
-
-    useNavigateToReportOnRefresh({source: sourceParam, file: validFiles, reportID});
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(() => {
         if (validFiles === undefined || (Array.isArray(validFiles) && validFiles.length === 0)) {
