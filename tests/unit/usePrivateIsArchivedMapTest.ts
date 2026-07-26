@@ -71,6 +71,16 @@ describe('usePrivateIsArchivedMap', () => {
         expect(result.current[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`]).toBe(true);
     });
 
+    it('returns a frozen map in dev so an accidental write throws instead of corrupting the shared cache', async () => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`, {private_isArchived: ARCHIVED_DATE});
+        });
+
+        const {result} = renderHook(() => usePrivateIsArchivedMap());
+
+        expect(Object.isFrozen(result.current)).toBe(true);
+    });
+
     it('handles a mix of archived and non-archived reports', async () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID_1}`, {private_isArchived: ARCHIVED_DATE});

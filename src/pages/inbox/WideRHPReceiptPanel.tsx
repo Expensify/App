@@ -1,6 +1,7 @@
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ScrollView from '@components/ScrollView';
-import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
+import type {RHPWidth} from '@components/WideRHPContextProvider';
+import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -62,17 +63,24 @@ function WideRHPReceiptPanelGate() {
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
+    const hasMultipleTransactions = (visibleTransactions?.length ?? 0) > 1;
+    const isConfirmedMultiTransactionReport = isMoneyRequestOrInvoiceReport && hasMultipleTransactions && shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     const shouldShowWideRHP =
-        !shouldDisplayMoneyRequestActionsList &&
+        !isConfirmedMultiTransactionReport &&
         (isTransactionThread(parentReportAction) ||
             parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE ||
             parentReportAction?.childType === CONST.REPORT.TYPE.IOU ||
             report?.type === CONST.REPORT.TYPE.EXPENSE ||
             report?.type === CONST.REPORT.TYPE.IOU);
 
-    useShowWideRHPVersion(shouldShowWideRHP);
+    let rhpWidth: RHPWidth = 'narrow';
+    if (isConfirmedMultiTransactionReport) {
+        rhpWidth = 'super-wide';
+    } else if (shouldShowWideRHP) {
+        rhpWidth = 'wide';
+    }
+    useRHPWidth(rhpWidth);
 
     if (!shouldShowWideRHP) {
         return null;

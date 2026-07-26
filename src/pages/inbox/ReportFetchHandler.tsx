@@ -12,7 +12,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackNavigationProp, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
@@ -20,6 +22,7 @@ import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTr
 import {
     isChatThread,
     isHiddenForCurrentUser,
+    isMoneyRequestReport,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isPublicRoom,
@@ -34,6 +37,7 @@ import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from 
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
+    joinReportViaSecureLink,
     openReport,
     readNewestAction,
     setViewingPublicRoomReportID,
@@ -45,6 +49,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
@@ -79,7 +84,11 @@ function ReportFetchHandler() {
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
 
-    const navigation = useNavigation();
+    // Only the main report route carries a Submit-via-PDF secure access key.
+    const secureKeyFromRoute = route.name === SCREENS.REPORT ? route.params?.secureKey : undefined;
+    const shouldReplaceWithExpenseReportRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && route.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP] === 'true';
+
+    const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
@@ -90,8 +99,11 @@ function ReportFetchHandler() {
     const prevIsAnonymousUser = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const joinedSecureLinkReportIDRef = useRef<string | undefined>(undefined);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
+    const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -103,6 +115,7 @@ function ReportFetchHandler() {
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
     const [viewingPublicRoomReportID] = useOnyx(ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID);
+    const [hasViewingPublicRoomReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${viewingPublicRoomReportID}`, {selector: Boolean});
 
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
@@ -145,6 +158,14 @@ function ReportFetchHandler() {
             return;
         }
 
+        // A draft-only report (created optimistically via createDraftWorkspace, e.g. the "Submit to my employer" Submit
+        // workspace when the user has none) exists only in REPORT_DRAFT and has no server counterpart. openReport would
+        // 403 "Report not found" and merge an errorFields.notFound stub into REPORT, shadowing the draft. It's persisted
+        // later by the confirmation's AddTrackedExpenseToPolicy request, so never openReport it here.
+        if (!reportOnyx?.reportID && !!reportDraftOnyx?.reportID) {
+            return;
+        }
+
         if (report?.errorFields?.notFound && isOffline) {
             return;
         }
@@ -157,7 +178,7 @@ function ReportFetchHandler() {
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas});
+        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas, hasReportActions});
     });
 
     const createOneTransactionThread = useEffectEvent(() => {
@@ -189,7 +210,7 @@ function ReportFetchHandler() {
         if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected, betas});
+        openReport({reportID, introSelected, betas, hasReportActions});
     });
 
     const joinPublicRoomIfNeeded = useEffectEvent(() => {
@@ -197,7 +218,7 @@ function ReportFetchHandler() {
         if (!viewingPublicRoomReportID || viewingPublicRoomReportID === reportIDFromRoute) {
             return;
         }
-        openReport({reportID: viewingPublicRoomReportID, introSelected, betas});
+        openReport({reportID: viewingPublicRoomReportID, introSelected, betas, hasReportActions: hasViewingPublicRoomReportActions});
     });
 
     // Effect order below matches the original declaration order in ReportScreen.tsx.
@@ -223,6 +244,28 @@ function ReportFetchHandler() {
         }
         navigation.setParams({reportActionID: ''});
     }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport]);
+
+    // When an approver opens a Submit-via-PDF secure access link (/r/:reportID?secureKey=...), validate it once they're
+    // signed in. On success the backend shares the report and sets them as manager; on failure the ReportNotFoundGuard
+    // shows the standard 404. The ref is keyed by reportID so it fires once per report and re-navigation is handled
+    // naturally, without a separate reset effect that could clobber the flag on mount before the report loads.
+    useEffect(() => {
+        if (!secureKeyFromRoute || !reportIDFromRoute || isAnonymousUser || joinedSecureLinkReportIDRef.current === reportIDFromRoute) {
+            return;
+        }
+        joinedSecureLinkReportIDRef.current = reportIDFromRoute;
+        joinReportViaSecureLink(reportIDFromRoute, secureKeyFromRoute);
+    }, [secureKeyFromRoute, reportIDFromRoute, isAnonymousUser]);
+
+    // Keep secureKey in the URL until the join has actually granted access to the report. Clearing it earlier would drop
+    // the "secure-link visit" signal that suppresses onboarding, so a slow join could bounce a new user into onboarding
+    // before they gain access. Once the report is accessible we clear it so it isn't reused or left in history.
+    useEffect(() => {
+        if (!secureKeyFromRoute || joinedSecureLinkReportIDRef.current !== reportIDFromRoute || !report?.reportID || !!report?.errorFields?.notFound) {
+            return;
+        }
+        navigation.setParams({secureKey: undefined});
+    }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
 
     useEffect(() => {
         if (!isAnonymousUser) {
@@ -300,6 +343,23 @@ function ReportFetchHandler() {
         }
         updateLoadingInitialReportAction(reportIDFromRoute, true);
     }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
+
+    useEffect(() => {
+        // Both `Navigation.setParams` and `forceReplace` below act on the currently focused route, but this effect
+        // can fire late (after a slow `OpenReport`) while this SearchReport RHP has been blurred but is still mounted.
+        // Bail while blurred so we never clear the flag on, or replace, whatever route the user has since navigated
+        // to; the effect re-runs if focus returns to this screen.
+        if (!shouldReplaceWithExpenseReportRHP || !report || !reportIDFromRoute || !isFocused) {
+            return;
+        }
+
+        if (!isMoneyRequestReport(report)) {
+            Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP]: undefined});
+            return;
+        }
+
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportIDFromRoute, backTo: route.params?.backTo}), {forceReplace: true});
+    }, [isFocused, report, reportIDFromRoute, route.params?.backTo, shouldReplaceWithExpenseReportRHP]);
 
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.

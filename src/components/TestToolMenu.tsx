@@ -5,6 +5,7 @@ import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import {useIsAgentAccount} from '@libs/SessionUtils';
 
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
@@ -36,6 +37,9 @@ function TestToolMenu() {
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
+
+    // Agent accounts can't have biometric multifactor authentication, so hide the biometrics test row for them.
+    const isAgentAccount = useIsAgentAccount();
 
     return (
         <>
@@ -79,7 +83,7 @@ function TestToolMenu() {
                         />
                     </TestToolRow>
 
-                    {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
+                    {/* Clears stored auto-generated credentials, corrupts the local authToken and fires a request so reauth fails and the user is signed out. Useful for manually testing sign out logic. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.deviceCredentials')}>
                         <Button
                             small
@@ -107,7 +111,7 @@ function TestToolMenu() {
                     </TestToolRow>
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
-                    <BiometricsTestToolRow />
+                    {!isAgentAccount && <BiometricsTestToolRow />}
                 </>
             )}
 

@@ -1,9 +1,8 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -107,7 +106,7 @@ function WorkspaceCompanyCardTableRow({
     const canAssignCard = !isAssigned && canWriteCompanyCards && !isAssigningCardDisabled;
     const canPressRow = canOpenCardDetails || canAssignCard;
 
-    const handleRowPress = () => {
+    const assignCardOrOpenDetails = () => {
         if (!assignedCard) {
             if (!canAssignCard) {
                 return;
@@ -132,7 +131,7 @@ function WorkspaceCompanyCardTableRow({
             disabled={isCardDeleted || !canPressRow}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
             offlineWithFeedback={{errors, pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
-            onPress={handleRowPress}
+            onPress={assignCardOrOpenDetails}
         >
             {({hovered}) => (
                 <>
@@ -152,11 +151,13 @@ function WorkspaceCompanyCardTableRow({
 
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
+                                shouldShowTooltip
                                 text={memberColumnTitle}
                                 style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter]}
                             />
                             {!!memberCardSubtitle && (
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     text={memberCardSubtitle}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
@@ -166,35 +167,36 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
+                            <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
+                                text={formattedCardDetails}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {formattedCardDetails}
-                            </Text>
+                            />
                         </View>
                     )}
 
                     {!shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text
+                            <TextWithTooltip
+                                shouldShowTooltip
                                 numberOfLines={1}
+                                text={customCardName ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            >
-                                {customCardName}
-                            </Text>
+                            />
                         </View>
                     )}
 
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
                         {!isAssigned && canWriteCompanyCards && (
                             <Button
-                                small
-                                success
-                                text={translate('workspace.companyCards.assign')}
-                                onPress={handleRowPress}
+                                size={CONST.BUTTON_SIZE.SMALL}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                onPress={assignCardOrOpenDetails}
                                 isDisabled={isAssigningCardDisabled}
-                            />
+                            >
+                                <Button.Text>{translate('workspace.companyCards.assign')}</Button.Text>
+                            </Button>
                         )}
 
                         {canPressRow && (

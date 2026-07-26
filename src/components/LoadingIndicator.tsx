@@ -28,7 +28,7 @@ function LoadingIndicator({style, iconSize, reasonAttributes}: LoadingIndicatorP
     const styles = useThemeStyles();
 
     return (
-        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, style]}>
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100, style]}>
             <View style={styles.w100}>
                 <ActivityIndicator
                     size={iconSize ?? CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

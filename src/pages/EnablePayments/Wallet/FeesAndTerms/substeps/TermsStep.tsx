@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,6 +42,7 @@ function TermsStep({onNext}: SubPageProps) {
     const {translate} = useLocalize();
 
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: !!walletTerms?.isLoading});
 
     const errorMessage = error ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
 
@@ -58,7 +60,9 @@ function TermsStep({onNext}: SubPageProps) {
             return;
         }
         setError(false);
-        onNext();
+        startWithLoading(() => {
+            onNext();
+        });
     };
 
     /** clear error */
@@ -92,7 +96,8 @@ function TermsStep({onNext}: SubPageProps) {
                 onSubmit={submit}
                 message={errorMessage}
                 isAlertVisible={error || !!errorMessage}
-                isLoading={!!walletTerms?.isLoading}
+                shouldShowLoadingImmediatelyOnPress={false}
+                isLoading={isLoading}
                 containerStyles={[styles.mh0, styles.mv5]}
             />
         </View>

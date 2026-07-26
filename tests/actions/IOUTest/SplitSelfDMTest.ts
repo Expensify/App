@@ -216,6 +216,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -301,6 +303,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -327,7 +331,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`;
         await Onyx.merge(snapshotKey, {
             data: {[originalTransactionSnapshotKey]: originalTransaction},
-            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, isLoading: false},
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
         } as unknown as SearchResults);
         await waitForBatchedUpdates();
 
@@ -406,6 +410,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -497,6 +503,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -556,6 +564,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();
@@ -644,6 +654,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         await waitForBatchedUpdates();

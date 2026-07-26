@@ -7,6 +7,9 @@ import {precacheReceiptImage} from '@hooks/useLocalReceiptThumbnail';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 
+import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
+import {getPickerCaptureSource} from '@libs/telemetry/ReceiptObservability';
+
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -67,7 +70,7 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction, currentUse
 
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
-    const processReceipts = (files: FileObject[]) => {
+    const processReceipts = (files: FileObject[], captureSource: ReceiptCaptureSource) => {
         const receiptFiles = buildReceiptFiles({
             files,
             getFileSource,
@@ -79,6 +82,7 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction, currentUse
             isMultiScanEnabled,
             transactions,
             draftTransactionIDsToCleanUp: draftTransactionIDs,
+            captureSource,
         });
 
         if (receiptFiles.length === 0) {
@@ -104,7 +108,7 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction, currentUse
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files);
+        processReceipts(files, getPickerCaptureSource());
     });
 
     return (
@@ -113,12 +117,12 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction, currentUse
             <Camera
                 onCapture={(file, source) => {
                     if (isMultiScanEnabled) {
-                        processReceipts([file]);
+                        processReceipts([file], 'camera');
                         return;
                     }
                     // Pre-warm the thumbnail cache before navigating so the confirm page
                     // doesn't flash an un-thumbnail receipt.
-                    precacheReceiptImage(source).then(() => processReceipts([file]));
+                    precacheReceiptImage(source).then(() => processReceipts([file], 'camera'));
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}

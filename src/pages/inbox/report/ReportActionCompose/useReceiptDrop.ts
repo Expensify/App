@@ -46,6 +46,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const onFilesValidated = (files: FileObject[]) => {
         if (files.length === 0) {
@@ -55,7 +56,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         if (shouldAddOrReplaceReceipt && transactionID) {
             const source = URL.createObjectURL(files.at(0) as Blob);
             replaceReceipt({
-                transactionID,
+                transaction,
                 file: files.at(0) as File,
                 source,
                 transactionPolicy: policy,
