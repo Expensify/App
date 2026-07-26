@@ -285,10 +285,8 @@
 "../../src/components/MultifactorAuthentication/components/OutcomeScreen/OutcomeScreenBase.tsx"	"no-restricted-imports"	1
 "../../src/components/MultifactorAuthentication/config/scenarios/ChangePIN.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MultifactorAuthentication/config/scenarios/DefaultUserInterface.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Navigation/NavigationTabBar/InboxTabButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"no-restricted-imports"	2
-"../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/Navigation/TopLevelNavigationTabBar/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/NumberWithSymbolForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/NumberWithSymbolForm.tsx"	"react-hooks/set-state-in-effect"	2
@@ -457,9 +455,6 @@
 "../../src/components/Table/middlewares/filtering.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Tables/WorkspaceCategoryRulesTable/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableRow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Tables/WorkspaceListTable/LeaveWorkspaceFlow.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
-"../../src/components/Tables/WorkspaceListTable/WorkspaceRowBrickRoadIndicator.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
-"../../src/components/Tables/WorkspaceListTable/WorkspaceRowThreeDotsMenu.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/TagPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TaxPicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TextInput/BaseTextInput/implementation/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1008,11 +1003,8 @@
 "../../src/pages/Debug/DebugDetails.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/pages/Debug/DebugJSON.tsx"	"no-restricted-imports"	1
 "../../src/pages/Debug/Report/DebugReportActions.tsx"	"no-restricted-imports"	1
-"../../src/pages/Debug/Report/DebugReportActions.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/Debug/Report/DebugReportPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/Debug/Report/DebugReportPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
 "../../src/pages/Debug/ReportAction/DebugReportActionCreatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/Debug/ReportAction/DebugReportActionPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/Debug/ReportAction/DebugReportActionPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/Debug/Transaction/DebugTransactionViolations.tsx"	"no-restricted-imports"	1
 "../../src/pages/Debug/Transaction/DebugTransactionViolations.tsx"	"no-restricted-syntax"	1
@@ -1021,7 +1013,6 @@
 "../../src/pages/DynamicEditReportFieldPage.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/DynamicEditReportFieldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
@@ -1154,7 +1145,6 @@
 "../../src/pages/Travel/DynamicTravelUpgrade.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/ManageTrips.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/TravelUpgrade.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/Travel/TripDetailsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/Travel/WorkspaceConfirmationForTravelPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/TripChatNameEditPage.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/UnreportedExpenseListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1163,11 +1153,8 @@
 "../../src/pages/domain/DomainsListPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/domain/Groups/DomainGroupsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/domain/Groups/PreferredWorkspaceToggle.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/pages/domain/Members/DomainAddMemberPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/domain/Members/DomainMemberDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/domain/Members/DomainMembersPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/domain/Members/DomainReportSuspiciousActivityPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
-"../../src/pages/domain/Members/MoveUserBetweenGroupsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/domain/Saml/SamlLoginSectionContent.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/domain/Saml/ScimTokenContent.tsx"	"no-restricted-imports"	1
 "../../src/pages/home/FreeTrialSection/index.tsx"	"no-restricted-imports"	1
@@ -1229,7 +1216,6 @@
 "../../src/pages/inbox/report/withReportOrNotFound.tsx"	"react-hooks/refs"	3
 "../../src/pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/CreateReportMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/CreateReportMenuItem.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/InvoiceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/NewWorkspaceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/QuickActionMenuItem.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	2
@@ -1365,7 +1351,6 @@
 "../../src/pages/settings/Wallet/ExpensifyCardPage/ChangePINPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/substeps/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/substeps/AddressStep.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1417,12 +1402,10 @@
 "../../src/pages/workspace/WorkspaceOverviewCurrencyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/workspace/WorkspaceOverviewSharePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceResetBankAccountModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/WorkspaceResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspacesListPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspacesListPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	3
 "../../src/pages/workspace/accounting/AccountingContext/default.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1573,7 +1556,6 @@
 "../../src/pages/workspace/reports/TypeSelector/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/rooms/WorkspaceRoomsPage.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/workspace/rooms/WorkspaceRoomsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/rooms/WorkspaceRoomsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/workspace/rules/AgentRules/EditAgentRulePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/rules/MerchantRules/MerchantRulePageBase.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/rules/PolicyRulesPageRevamp.tsx"	"no-restricted-imports"	1
@@ -1706,7 +1688,6 @@
 "../../tests/actions/IOUTest/ReceiptTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/actions/IOUTest/ReceiptTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/RejectMoneyRequestTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/actions/IOUTest/ReportWorkflowTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	62
 "../../tests/actions/IOUTest/SendInvoiceTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/actions/IOUTest/SplitSelfDMTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/actions/IOUTest/SplitTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
@@ -1732,7 +1713,6 @@
 "../../tests/actions/ReplaceOptimisticReportWithActualReportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/actions/ReportFieldTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/ReportFieldTest.ts"	"no-restricted-imports"	1
-"../../tests/actions/ReportPreviewActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	28
 "../../tests/actions/ReportPreviewActionUtilsTest.ts"	"no-restricted-imports"	2
 "../../tests/actions/ReportTest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
 "../../tests/actions/ReportTest.ts"	"no-restricted-imports"	1
@@ -1959,7 +1939,6 @@
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	3
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	23
 "../../tests/unit/ReportPrimaryActionUtilsTest.ts"	"no-restricted-imports"	1
-"../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	31
 "../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"no-restricted-imports"	2
 "../../tests/unit/ReportSubmitUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ReportTitleUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
