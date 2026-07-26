@@ -3418,8 +3418,9 @@ describe('SearchQueryUtils', () => {
             if (!queryJSON) {
                 throw new Error('Expected queryJSON to be defined');
             }
-            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON)) as {filters: ASTNode};
-            const merchantNode = findNode(serialized.filters, 'merchant');
+            const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters);
+            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            const merchantNode = findNode(normalizedFilters, 'merchant');
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
             }
@@ -3428,8 +3429,8 @@ describe('SearchQueryUtils', () => {
 
         it('should apply contains to merchant in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
-            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
-            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+            const normalizedRawFilterList = rawFilterList.map((filter) => ({...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList, status: ''}));
         });
 
         it('should preserve exact merchant matches in AST filters', () => {
@@ -3438,8 +3439,8 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected queryJSON to be defined');
             }
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)) as {filters: ASTNode};
-            const merchantNode = findNode(serialized.filters, 'merchant');
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, status: ''}));
+            const merchantNode = findNode(queryJSON.filters, 'merchant');
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
             }
@@ -3449,8 +3450,7 @@ describe('SearchQueryUtils', () => {
         it('should preserve exact merchant matches in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)) as {rawFilterList: typeof rawFilterList};
-            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
         });
 
         it('should preserve multiple exact merchant matches while keeping description as contains', () => {
@@ -3459,9 +3459,10 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected queryJSON to be defined');
             }
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)) as {filters: ASTNode};
-            const merchantNode = findNode(serialized.filters, 'merchant');
-            const descriptionNode = findNode(serialized.filters, 'description');
+            const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters, exactMatchFilterKeys);
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            const merchantNode = findNode(normalizedFilters, 'merchant');
+            const descriptionNode = findNode(normalizedFilters, 'description');
             if (!merchantNode || !descriptionNode) {
                 throw new Error('Expected merchant and description nodes to be found in AST');
             }
@@ -3472,8 +3473,7 @@ describe('SearchQueryUtils', () => {
 
         it('should not affect non-text fields in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
-            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
-            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
         });
     });
 

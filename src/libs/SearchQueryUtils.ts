@@ -2468,7 +2468,9 @@ function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdva
  * should be treated as a substring/partial match (`contains`) when querying the backend.
  * This allows searches like `merchant:coffee` to match "Coffee shop".
  */
-const TEXT_SEARCH_FIELDS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
+function isTextSearchField(key: string): key is SearchFilterKey {
+    return key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION;
+}
 
 /**
  * Recursively traverses a search AST and replaces the `eq` operator with `contains`
@@ -2477,8 +2479,8 @@ const TEXT_SEARCH_FIELDS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_
  * Keys in `exactMatchFilterKeys` keep their original `eq` operator.
  */
 function applyContainsOperatorToTextFields(node: ASTNode, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>): ASTNode {
-    const filterKey = typeof node.left === 'string' ? (node.left as SearchFilterKey) : undefined;
-    if (filterKey && TEXT_SEARCH_FIELDS.has(filterKey) && !exactMatchFilterKeys?.has(filterKey) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+    const filterKey = typeof node.left === 'string' && isTextSearchField(node.left) ? node.left : undefined;
+    if (filterKey && !exactMatchFilterKeys?.has(filterKey) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
         return {...node, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
     }
 
@@ -2514,7 +2516,7 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
     const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters, exactMatchFilterKeys) : queryData.filters;
     const normalizedRawFilterList = queryData.rawFilterList
         ? queryData.rawFilterList.map((filter) => {
-              if (TEXT_SEARCH_FIELDS.has(filter.key) && !exactMatchFilterKeys?.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+              if (isTextSearchField(filter.key) && !exactMatchFilterKeys?.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                   return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
               }
               return filter;
