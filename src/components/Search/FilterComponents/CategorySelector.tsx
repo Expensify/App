@@ -1,13 +1,12 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 
+import useLoadSearchCategoryData from '@hooks/useLoadSearchCategoryData';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -19,7 +18,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import MultiSelect from './MultiSelect';
@@ -30,18 +29,10 @@ type CategorySelectorProps = SearchFilterCommonProps<string[] | undefined> & {
 
 function CategorySelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
     const {translate, localeCompare} = useLocalize();
-    const {isOffline} = useNetwork();
+    const {areCategoriesLoaded, isOffline} = useLoadSearchCategoryData({shouldRefresh: true});
     const theme = useTheme();
     const styles = useThemeStyles();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [areCategoriesLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED);
-
-    useEffect(() => {
-        if (isOffline) {
-            return;
-        }
-        openSearchCategoryFiltersPage();
-    }, [isOffline]);
 
     const selectedCategoriesItems = value.map((category) => {
         if (category === CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
