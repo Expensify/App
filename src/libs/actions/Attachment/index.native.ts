@@ -127,13 +127,11 @@ async function getCachedAttachment({uri, attachmentID, localSource}: GetCachedAt
     if (localSource) {
         const isCached = await RNFS.exists(localSource);
         if (!isCached) {
-            removeCachedAttachment({attachmentID, localSource: localSource});
+            removeCachedAttachment({attachmentID, localSource});
             return;
         }
         return `file://${localSource}`;
     }
-
-    return;
 }
 
 async function removeCachedAttachment({attachmentID, localSource}: RemoveCachedAttachmentProps): Promise<void> {
@@ -149,7 +147,7 @@ async function removeCachedAttachment({attachmentID, localSource}: RemoveCachedA
         await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
         attachmentLocalSources.delete(attachmentID);
     } catch (error) {
-        Log.hmmm(`[AttachmentCache] Failed to remove cached attachment: ${attachmentID}`, {message: (error as Error).message});
+        Log.hmmm(`[AttachmentCache] Failed to remove cached attachment: ${attachmentID}`, {message: error instanceof Error ? error.message : String(error)});
     }
 }
 
@@ -162,7 +160,7 @@ async function clearCachedAttachments(): Promise<void> {
         await Onyx.setCollection(ONYXKEYS.COLLECTION.ATTACHMENT, {});
         attachmentLocalSources.clear();
     } catch (error) {
-        Log.hmmm('[AttachmentCache] Failed to clear cached attachments', {message: (error as Error).message});
+        Log.hmmm('[AttachmentCache] Failed to clear cached attachments', {message: error instanceof Error ? error.message : String(error)});
     }
 }
 

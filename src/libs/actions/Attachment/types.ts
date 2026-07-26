@@ -1,7 +1,3 @@
-import type {Attachment} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
-
 type CacheAttachmentProps = {
     uri: string;
     /** Attachment ID based on the data-attachment-id attribute (only required for non-auth remote attachments) */

@@ -198,7 +198,7 @@ async function removeCachedAttachment({attachmentID}: RemoveCachedAttachmentProp
         await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
         attachmentLocalSources.delete(attachmentID);
     } catch (error) {
-        Log.hmmm(`[AttachmentCache] Failed to remove cached attachment: ${attachmentID}`, {message: (error as Error).message});
+        Log.hmmm(`[AttachmentCache] Failed to remove cached attachment: ${attachmentID}`, {message: error instanceof Error ? error.message : String(error)});
     }
 }
 
@@ -208,7 +208,7 @@ async function clearCachedAttachments() {
         await Onyx.setCollection(ONYXKEYS.COLLECTION.ATTACHMENT, {});
         attachmentLocalSources.clear();
     } catch (error) {
-        Log.hmmm('[AttachmentCache] Failed to clear cached attachments', {message: (error as Error).message});
+        Log.hmmm('[AttachmentCache] Failed to clear cached attachments', {message: error instanceof Error ? error.message : String(error)});
     }
 }
 

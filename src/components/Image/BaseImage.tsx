@@ -33,7 +33,7 @@ function BaseImage({onLoad, onLoadStart, source, style, ...props}: BaseImageProp
         }
         // expo-image doesn't support onLoadStart on web, so we call it manually when the source changes, matching react-native-web's Image behavior
         onLoadStart?.();
-    }, [source, onLoadStart]);
+    }, [resolvedSource, onLoadStart]);
 
     const imageLoadedSuccessfully = useCallback(
         (event: ImageLoadEventData) => {

@@ -54,7 +54,8 @@ const revokeObjectURLMock = jest.fn();
 let currentAttachmentID: string | undefined;
 
 function Wrapper({children}: {children: React.ReactNode}) {
-    return <AttachmentIDContext.Provider value={{attachmentID: currentAttachmentID}}>{children}</AttachmentIDContext.Provider>;
+    const value = React.useMemo(() => ({attachmentID: currentAttachmentID}), [currentAttachmentID]);
+    return <AttachmentIDContext.Provider value={value}>{children}</AttachmentIDContext.Provider>;
 }
 
 beforeEach(() => {
