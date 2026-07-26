@@ -1,6 +1,5 @@
 import {render} from '@testing-library/react-native';
 
-import ActivityIndicator from '@components/ActivityIndicator';
 import CategorySelector from '@components/Search/FilterComponents/CategorySelector';
 import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
 
@@ -15,15 +14,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React from 'react';
 
 jest.mock('@components/Search/FilterComponents/MultiSelect', () => jest.fn(() => null));
-jest.mock('@components/ActivityIndicator', () => jest.fn(() => null));
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
     default: {isHybridApp: () => false},
 }));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
-jest.mock('@hooks/useTheme', () => jest.fn(() => ({spinner: 'green'})));
-jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({})));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
@@ -36,12 +32,10 @@ describe('CategorySelector', () => {
     const mockedUseOnyx = jest.mocked(useOnyx);
     const mockedUseNetwork = jest.mocked(useNetwork);
     const mockedOpenSearchCategoryFiltersPage = jest.mocked(openSearchCategoryFiltersPage);
-    const mockedActivityIndicator = jest.mocked(ActivityIndicator);
     const mockedMultiSelect = jest.mocked(MultiSelect);
 
     beforeEach(() => {
         mockedOpenSearchCategoryFiltersPage.mockClear();
-        mockedActivityIndicator.mockClear();
         mockedMultiSelect.mockClear();
         (mockedUseOnyx as jest.Mock).mockImplementation((key) => {
             if (key === ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED) {
@@ -82,7 +76,7 @@ describe('CategorySelector', () => {
         expect(mockedOpenSearchCategoryFiltersPage).not.toHaveBeenCalled();
     });
 
-    it('shows a loading indicator while categories are loading online', () => {
+    it('shows cached options while categories are loading online', () => {
         mockedUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
         (mockedUseOnyx as jest.Mock).mockImplementation((key) => {
             if (key === ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED) {
@@ -102,7 +96,7 @@ describe('CategorySelector', () => {
             />,
         );
 
-        expect(mockedActivityIndicator).toHaveBeenCalledTimes(1);
+        expect(mockedMultiSelect.mock.lastCall?.[0].items).toEqual([{text: 'search.noCategory', value: CONST.SEARCH.CATEGORY_EMPTY_VALUE}]);
     });
 
     it('shows No category as the first option when no categories are configured', () => {

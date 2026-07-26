@@ -188,7 +188,7 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CATEGORY);
     });
 
-    it('loads category data when category autocomplete becomes active online', async () => {
+    it('retries loading category data when category autocomplete is reopened after a failure', async () => {
         onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = false;
         parseForAutocomplete.mockImplementation((query: string) => ({
             autocomplete: {
@@ -204,10 +204,19 @@ describe('useAutocompleteSuggestions', () => {
 
         await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1));
 
+        rerender({query: 'category:tr'});
+        expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1);
+
         rerender({query: 'tag:t'});
         rerender({query: 'category:tr'});
 
-        expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1);
+        await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(2));
+
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = true;
+        rerender({query: 'tag:t'});
+        rerender({query: 'category:tra'});
+
+        expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(2);
     });
 
     it('does not load category data when it is already loaded', () => {

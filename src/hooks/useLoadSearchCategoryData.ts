@@ -18,7 +18,12 @@ function useLoadSearchCategoryData({shouldLoad = true, shouldRefresh = false}: U
     const hasRequestedCategoryDataRef = useRef(false);
 
     useEffect(() => {
-        if (!shouldLoad || isOffline || hasRequestedCategoryDataRef.current || (areCategoriesLoaded && !shouldRefresh)) {
+        if (!shouldLoad) {
+            hasRequestedCategoryDataRef.current = false;
+            return;
+        }
+
+        if (isOffline || hasRequestedCategoryDataRef.current || (areCategoriesLoaded && !shouldRefresh)) {
             return;
         }
         hasRequestedCategoryDataRef.current = true;
