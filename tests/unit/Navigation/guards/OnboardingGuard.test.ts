@@ -31,6 +31,7 @@ describe('OnboardingGuard', () => {
         isAuthenticated: true,
         isLoading: false,
         currentUrl: '',
+        isSupportalSession: false,
     };
 
     beforeAll(() => {
@@ -77,6 +78,7 @@ describe('OnboardingGuard', () => {
                 isAuthenticated: true,
                 isLoading: false,
                 currentUrl: 'https://new.expensify.com/transition',
+                isSupportalSession: false,
             };
 
             // When the guard evaluates during the transition
@@ -541,6 +543,29 @@ describe('OnboardingGuard', () => {
             // Then the RESET should still be blocked by shouldPreventReset (runs before the new check)
             expect(result.type).toBe('BLOCK');
             expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
+        });
+    });
+
+    describe('supportal session', () => {
+        it('should return ALLOW and skip onboarding during a supportal session', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            const result = OnboardingGuard.evaluate(mockState, mockAction, {...authenticatedContext, isSupportalSession: true});
+
+            expect(result.type).toBe('ALLOW');
+        });
+    });
+
+    describe('copilot session', () => {
+        it('should return ALLOW and skip onboarding when acting as a copilot', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'copilot@expensify.com'}});
+            await waitForBatchedUpdates();
+
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+
+            expect(result.type).toBe('ALLOW');
         });
     });
 });

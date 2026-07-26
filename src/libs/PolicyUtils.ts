@@ -1476,6 +1476,33 @@ function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
+/**
+ * Returns true when the user is both a submitter and an approver, mirroring the Submit/Approve suggested-search eligibility in
+ * `getSuggestedSearchesVisibility` (SearchUIUtils): a submitter is a member of any group workspace, and an approver is a member of a
+ * group workspace with a non-optional approval flow whom `isPolicyApprover` recognizes (named approver or someone reports submit/forward to).
+ */
+function isSubmitterAndApprover(policies: OnyxCollection<Policy> | null | undefined, currentUserEmail: string | undefined): boolean {
+    if (!policies || !currentUserEmail) {
+        return false;
+    }
+    let isSubmitter = false;
+    let isApprover = false;
+    for (const policy of Object.values(policies)) {
+        if (!policy) {
+            continue;
+        }
+        isSubmitter = isSubmitter || isGroupPolicy(policy);
+        if (!isApprover) {
+            const hasApprovalFlow = isGroupPolicy(policy) && !!policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+            isApprover = hasApprovalFlow && isPolicyApprover(policy, currentUserEmail);
+        }
+        if (isSubmitter && isApprover) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
@@ -2964,6 +2991,7 @@ export {
     isPolicyMember,
     isPolicyPayer,
     arePaymentsEnabled,
+    isSubmitterAndApprover,
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,
