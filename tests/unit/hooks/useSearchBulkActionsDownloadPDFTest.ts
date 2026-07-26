@@ -511,7 +511,12 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(getExpensifyCardStatementPDF).toHaveBeenCalledTimes(1);
         expect(getExpensifyCardStatementPDF).toHaveBeenCalledWith('policy1', 'US', [123]);
         expect(result.current.isExpensifyCardStatementPDFModalVisible).toBe(true);
-        // Clears the selection once the export fires, like the other bulk actions.
+        // The selection is kept while the modal is open (the modal renders inside the selection-gated bar), then
+        // cleared when the modal hides.
+        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+        act(() => {
+            result.current.handleExpensifyCardStatementPDFModalHide();
+        });
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
