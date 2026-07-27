@@ -2856,6 +2856,12 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: 'black',
         },
 
+        trialReminderIllustrationContainer: {
+            // Fixed brand navy used as the illustration backdrop; intentionally not theme-dependent.
+            backgroundColor: colors.blue800,
+            height: CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT,
+        },
+
         reportActionContextMenuMiniButton: {
             height: 28,
             width: 28,
@@ -3002,6 +3008,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         avatarSectionWrapperSkeleton: {
             width: '100%',
+        },
+
+        conciergeAnimatedAvatar: {
+            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeNormal,
         },
 
         accountSettingsSectionContainer: {
@@ -4961,6 +4972,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
 
+        receiptEmptyStateCompact: {
+            ...spacing.mh4,
+            overflow: 'hidden',
+            borderRadius: variables.componentBorderRadiusNormal,
+            height: 52,
+            maxWidth: '100%',
+        },
+
         moneyRequestAttachReceiptThumbnailIcon: {
             position: 'absolute',
             bottom: -4,
@@ -5223,6 +5242,11 @@ const staticStyles = (theme: ThemeColors) =>
         // Extra 2 to account for the borders
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
         searchPageInputNarrowTouchableWrapper: {height: 46},
+
+        // Compact search inputs that appear above lists/popovers. Matches the smaller
+        // "above the table" search input heights (34 on web/desktop, 46 on mobile).
+        listSearchInputWideWrapper: {height: 34},
+        listSearchInputNarrowWrapper: {height: 46},
 
         walletStaticIllustration: {
             width: 262,
