@@ -47,6 +47,7 @@ type RequestError = Error & {
     message?: string;
     status?: string;
 };
+type RequestWithLegacyID = AnyRequest & {requestID?: number};
 
 let resolveIsReadyPromise: (() => void) | undefined;
 let isReadyPromise: Promise<void> = Promise.resolve();
@@ -74,7 +75,38 @@ function setIsReadyPromisePending() {
 let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
+let clearActiveLoadingQueueWedgedTimer: (() => void) | undefined;
 const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
+
+function clearLoadingQueueWedgedTimer() {
+    clearActiveLoadingQueueWedgedTimer?.();
+}
+
+function startLoadingQueueWedgedTimer(requestToProcess: RequestWithLegacyID) {
+    clearLoadingQueueWedgedTimer();
+    const startedAt = Date.now();
+    const timer = setTimeout(() => {
+        if (clearActiveLoadingQueueWedgedTimer === clearTimer) {
+            clearActiveLoadingQueueWedgedTimer = undefined;
+        }
+        Log.info('loading_queue_wedged', true, {
+            command: requestToProcess.command,
+            requestIndex: requestToProcess.requestIndex ?? requestToProcess.requestID,
+            elapsedTime: Date.now() - startedAt,
+            queueLength: getAllPersistedRequests().length + 1,
+            isOffline: isOfflineNetwork(),
+            isPaused: isQueuePaused,
+        });
+    }, CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION);
+    function clearTimer() {
+        clearTimeout(timer);
+        if (clearActiveLoadingQueueWedgedTimer === clearTimer) {
+            clearActiveLoadingQueueWedgedTimer = undefined;
+        }
+    }
+    clearActiveLoadingQueueWedgedTimer = clearTimer;
+    return clearTimer;
+}
 
 /**
  * Puts the queue into a paused state so that no requests will be processed
@@ -181,7 +213,16 @@ function process(): Promise<void> {
     });
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
-    currentRequestPromise = processWithMiddleware(requestToProcess, true)
+    const clearRequestLoadingQueueWedgedTimer = startLoadingQueueWedgedTimer(requestToProcess);
+    let requestProcessingPromise: ReturnType<typeof processWithMiddleware>;
+    try {
+        requestProcessingPromise = processWithMiddleware(requestToProcess, true);
+    } catch (error) {
+        clearRequestLoadingQueueWedgedTimer();
+        throw error;
+    }
+    currentRequestPromise = requestProcessingPromise
+        .finally(clearRequestLoadingQueueWedgedTimer)
         .then((response) => {
             Log.info('[SequentialQueue] Request processed successfully', false, {
                 command: requestToProcess.command,
@@ -659,6 +700,7 @@ function waitForIdle(): Promise<unknown> {
  * This is to prevent previous requests interfering with other tests
  */
 function resetQueue(): void {
+    clearLoadingQueueWedgedTimer();
     isSequentialQueueRunning = false;
     currentRequestPromise = null;
     isQueuePaused = false;

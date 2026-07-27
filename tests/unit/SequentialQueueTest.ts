@@ -1,4 +1,5 @@
 import {resolveDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import Log from '@libs/Log';
 import * as NetworkState from '@libs/NetworkState';
 
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
@@ -406,6 +407,197 @@ describe('SequentialQueue', () => {
             processSpy.mockRestore();
             onyxUpdateSpy.mockRestore();
         }
+    });
+});
+
+describe('SequentialQueue loading queue diagnostics', () => {
+    const requestIndex = 123;
+    let logSpy: jest.SpyInstance<void, Parameters<typeof Log.info>>;
+    let processSpy: jest.SpyInstance;
+
+    function createPendingAttempt() {
+        let resolve!: () => void;
+        let reject!: (error: Error) => void;
+        const promise = new Promise<void>((promiseResolve, promiseReject) => {
+            resolve = promiseResolve;
+            reject = promiseReject;
+        });
+        return {promise, reject, resolve};
+    }
+
+    function getWedgedLogs() {
+        return logSpy.mock.calls.filter(([message]) => message === 'loading_queue_wedged');
+    }
+
+    async function startAttempt() {
+        const attempt = createPendingAttempt();
+        processSpy.mockReturnValueOnce(attempt.promise);
+        await SequentialQueue.push({command: 'ReconnectApp', requestIndex});
+        await jest.advanceTimersByTimeAsync(0);
+        expect(processSpy).toHaveBeenCalledTimes(1);
+        return attempt;
+    }
+
+    beforeEach(async () => {
+        SequentialQueue.resetQueue();
+        SequentialQueue.sequentialQueueRequestThrottle.clear();
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
+        await clearPersistedRequests();
+        await waitForBatchedUpdates();
+        jest.useFakeTimers();
+        logSpy = jest.spyOn(Log, 'info');
+        processSpy = jest.spyOn(RequestModule, 'processWithMiddleware');
+    });
+
+    afterEach(() => {
+        jest.clearAllTimers();
+        jest.useRealTimers();
+        jest.restoreAllMocks();
+        SequentialQueue.resetQueue();
+        SequentialQueue.sequentialQueueRequestThrottle.clear();
+    });
+
+    it('does not log below the threshold and clears the timer after success', async () => {
+        const attempt = await startAttempt();
+
+        jest.advanceTimersByTime(CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION - 1);
+        expect(getWedgedLogs()).toHaveLength(0);
+
+        attempt.resolve();
+        await SequentialQueue.waitForIdle();
+        jest.advanceTimersByTime(CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION);
+
+        expect(getWedgedLogs()).toHaveLength(0);
+    });
+
+    it('logs one diagnostic after the threshold for an active request', async () => {
+        const attempt = await startAttempt();
+
+        jest.advanceTimersByTime(CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION);
+
+        expect(getWedgedLogs()).toEqual([
+            [
+                'loading_queue_wedged',
+                true,
+                {
+                    command: 'ReconnectApp',
+                    requestIndex,
+                    elapsedTime: CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION,
+                    queueLength: 1,
+                    isOffline: false,
+                    isPaused: false,
+                },
+            ],
+        ]);
+
+        jest.advanceTimersByTime(CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION);
+        expect(getWedgedLogs()).toHaveLength(1);
+
+        attempt.resolve();
+        await SequentialQueue.waitForIdle();
+    });
+
+    it('uses the legacy request ID when the request index is missing', async () => {
+        const legacyRequestID = 456;
+        const attempt = createPendingAttempt();
+        processSpy.mockReturnValueOnce(attempt.promise);
+        await SequentialQueue.push({command: 'ReconnectApp', requestID: legacyRequestID} as Request<never> & {requestID: number});
+        await jest.advanceTimersByTimeAsync(0);
+
+        jest.advanceTimersByTime(CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION);
+
+        expect(getWedgedLogs()).toEqual([
+            [
+                'loading_queue_wedged',
+                true,
+                expect.objectContaining({
+                    requestIndex: legacyRequestID,
+                    queueLength: 1,
+                }),
+            ],
+        ]);
+
+        attempt.resolve();
+        await SequentialQueue.waitForIdle();
+    });
+
+    it('does not let stale attempt cleanup clear a newer timer', async () => {
+        const firstAttempt = createPendingAttempt();
+        const secondAttempt = createPendingAttempt();
+        processSpy.mockReturnValueOnce(firstAttempt.promise).mockReturnValueOnce(secondAttempt.promise);
+
+        await SequentialQueue.push({command: 'ReconnectApp', requestIndex});
+        await jest.advanceTimersByTimeAsync(0);
+        expect(processSpy).toHaveBeenCalledTimes(1);
+
+        SequentialQueue.resetQueue();
+        SequentialQueue.flush();
+        await jest.advanceTimersByTimeAsync(0);
+        expect(processSpy).toHaveBeenCalledTimes(2);
+
+        firstAttempt.resolve();
+        await jest.advanceTimersByTimeAsync(0);
+        jest.advanceTimersByTime(CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION);
+
+        expect(getWedgedLogs()).toEqual([
+            [
+                'loading_queue_wedged',
+                true,
+                expect.objectContaining({
+                    requestIndex,
+                    elapsedTime: CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION,
+                }),
+            ],
+        ]);
+
+        secondAttempt.resolve();
+        await jest.advanceTimersByTimeAsync(0);
+    });
+
+    it('does not start the timer while a request is parked offline', async () => {
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: true});
+        await SequentialQueue.push({command: 'ReconnectApp', requestIndex});
+
+        jest.advanceTimersByTime(CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION);
+
+        expect(processSpy).not.toHaveBeenCalled();
+        expect(getWedgedLogs()).toHaveLength(0);
+    });
+
+    it('clears the timer after a terminal failure', async () => {
+        const attempt = await startAttempt();
+
+        attempt.reject(new Error(CONST.ERROR.DUPLICATE_RECORD));
+        await SequentialQueue.waitForIdle();
+        jest.advanceTimersByTime(CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION);
+
+        expect(getWedgedLogs()).toHaveLength(0);
+    });
+
+    it('clears the timer before rollback and retry', async () => {
+        const retryPromise = new Promise<void>(() => {});
+        const sleepSpy = jest.spyOn(SequentialQueue.sequentialQueueRequestThrottle, 'sleep').mockReturnValue(retryPromise);
+        const attempt = await startAttempt();
+
+        attempt.reject(new Error('retryable request failure'));
+        await jest.advanceTimersByTimeAsync(0);
+        expect(sleepSpy).toHaveBeenCalledTimes(1);
+
+        jest.advanceTimersByTime(CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION);
+
+        expect(getWedgedLogs()).toHaveLength(0);
+    });
+
+    it('clears the timer after cancellation', async () => {
+        const attempt = await startAttempt();
+        const cancellationError = new Error('request cancelled');
+        cancellationError.name = CONST.ERROR.REQUEST_CANCELLED;
+
+        attempt.reject(cancellationError);
+        await SequentialQueue.waitForIdle();
+        jest.advanceTimersByTime(CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION);
+
+        expect(getWedgedLogs()).toHaveLength(0);
     });
 });
 
