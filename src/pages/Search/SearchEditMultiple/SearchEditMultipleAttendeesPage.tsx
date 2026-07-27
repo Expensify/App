@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 import {deepEqual} from 'fast-equals';
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 
 function SearchEditMultipleAttendeesPage() {
     const {translate} = useLocalize();
@@ -32,8 +32,6 @@ function SearchEditMultipleAttendeesPage() {
         const currentUserAsAttendee = getReportOwnerAsAttendee(currentUserPersonalDetails);
         return currentUserAsAttendee ? [currentUserAsAttendee] : [];
     });
-    const attendeesOnOpen = useRef(attendees);
-    const hadDraftAttendeesOnOpen = useRef((draftTransaction?.comment?.attendees?.length ?? 0) > 0);
 
     const saveAttendees = () => {
         if (attendees.length <= 0) {
@@ -43,11 +41,6 @@ function SearchEditMultipleAttendeesPage() {
         const currentAttendees = draftTransaction?.comment?.attendees ?? [];
         if (deepEqual(currentAttendees, attendees)) {
             updateBulkEditDraftTransaction({comment: {attendees: null}});
-            Navigation.goBack();
-            return;
-        }
-
-        if (!hadDraftAttendeesOnOpen.current && deepEqual(attendeesOnOpen.current, attendees)) {
             Navigation.goBack();
             return;
         }
