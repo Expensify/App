@@ -5,6 +5,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -32,6 +34,10 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
 
     const activeDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
     const defaultVendorName = getDefaultVendorName(activeDefaultVendor, intacctData?.vendors);
+    const defaultVendorSettingName =
+        config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+            ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
+            : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES>>();
     const backTo = route.params?.backTo;
 
@@ -40,6 +46,8 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             <OfflineWithFeedback
                 key={item.description}
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
+                errors={item.errors}
+                onClose={item.onCloseError}
             >
                 <MenuItemWithTopDescription
                     key={item.title}
@@ -98,11 +106,14 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                 }
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase())));
             },
-            subscribedSettings: [
-                config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
-                    ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
-                    : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
-            ],
+            subscribedSettings: [defaultVendorSettingName],
+            errors: getLatestErrorField(config, defaultVendorSettingName),
+            onCloseError: () => {
+                if (!policyID) {
+                    return;
+                }
+                clearSageIntacctErrorField(policyID, defaultVendorSettingName);
+            },
             shouldHide: !config?.export.nonReimbursable,
         },
     ];

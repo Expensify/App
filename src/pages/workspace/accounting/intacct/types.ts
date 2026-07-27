@@ -17,6 +17,12 @@ type MenuItemToRender = MenuItemWithSubscribedSettings & {
 
     /** Optional muted helper text rendered below the MenuItemWithTopDescription */
     helperText?: string;
+
+    /** Optional error message to surface via OfflineWithFeedback */
+    errors?: OfflineWithFeedbackProps['errors'];
+
+    /** Optional callback to clear the surfaced error */
+    onCloseError?: OfflineWithFeedbackProps['onClose'];
 };
 
 type MenuItem = MenuItemProps & {
