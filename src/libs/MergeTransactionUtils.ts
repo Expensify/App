@@ -372,15 +372,19 @@ function willReportBecomeOneTransactionReportAfterMerge(
         return false;
     }
 
+    // Only Search snapshot entries that are transactions carry a string transactionID (report actions, personal
+    // details, etc. are keyed records), so this narrows to transactions without a cast.
+    const isSearchResultTransaction = (value: unknown): value is Transaction =>
+        typeof value === 'object' && value !== null && 'transactionID' in value && typeof value.transactionID === 'string';
+
     // Merge both sources into one map keyed by transactionID before filtering. The Onyx copy overrides the snapshot
     // one, so the optimistic reportID/pendingAction wins and a stale snapshot row can't slip past the filter below.
     const transactionsByID = new Map<string, Transaction>();
-    for (const [key, value] of Object.entries(searchResultsData ?? {})) {
-        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) || !value) {
+    for (const value of Object.values(searchResultsData ?? {})) {
+        if (!isSearchResultTransaction(value)) {
             continue;
         }
-        const snapshotTransaction = value as Transaction;
-        transactionsByID.set(snapshotTransaction.transactionID, snapshotTransaction);
+        transactionsByID.set(value.transactionID, value);
     }
     for (const transaction of Object.values(reportTransactionsCollection ?? {})) {
         if (!transaction) {
