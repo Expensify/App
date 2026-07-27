@@ -42,6 +42,7 @@ function DynamicCategoryDefaultTaxRatePage({
 
     const [draftTaxRate, setDraftTaxRate] = useState<string>();
     const selectedTaxRate = draftTaxRate ?? persistedTaxRate;
+    const hasChanges = !!selectedTaxRate && selectedTaxRate !== persistedTaxRate;
 
     const textForDefault = useCallback((taxID: string, taxRate: TaxRate) => formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates), [policy?.taxRates, translate]);
 
@@ -61,7 +62,7 @@ function DynamicCategoryDefaultTaxRatePage({
     }, [policy, selectedTaxRate, textForDefault, localeCompare]);
 
     const saveAndGoBack = () => {
-        if (selectedTaxRate && selectedTaxRate !== persistedTaxRate) {
+        if (hasChanges) {
             setPolicyCategoryTax(policy, categoryName, selectedTaxRate);
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
             return;
@@ -73,6 +74,7 @@ function DynamicCategoryDefaultTaxRatePage({
         showButton: true,
         text: translate('common.save'),
         onConfirm: saveAndGoBack,
+        isDisabled: !hasChanges,
     };
 
     return (
