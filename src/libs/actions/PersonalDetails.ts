@@ -57,7 +57,7 @@ function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDeta
     return {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        phoneNumber: LoginUtils.formatE164PhoneNumber(values.phoneNumber?.trim() ?? '', countryCode) ?? '',
         addressCity: values.city.trim(),
         addressStreet: values.addressLine1?.trim() ?? '',
         addressStreet2: values.addressLine2?.trim() ?? '',
@@ -588,7 +588,7 @@ function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FOR
     const parameters: UpdatePrivatePersonalDetailsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        phoneNumber: LoginUtils.formatE164PhoneNumber(values.phoneNumber?.trim() ?? '', countryCode) ?? '',
         addressCity: (values.city ?? '').trim(),
         addressStreet: values.addressLine1?.trim() ?? '',
         addressStreet2: values.addressLine2?.trim() ?? '',

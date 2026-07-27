@@ -2852,6 +2852,12 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: 'black',
         },
 
+        trialReminderIllustrationContainer: {
+            // Fixed brand navy used as the illustration backdrop; intentionally not theme-dependent.
+            backgroundColor: colors.blue800,
+            height: CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT,
+        },
+
         reportActionContextMenuMiniButton: {
             height: 28,
             width: 28,
@@ -4961,6 +4967,14 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
+
+        receiptEmptyStateCompact: {
+            ...spacing.mh4,
+            overflow: 'hidden',
+            borderRadius: variables.componentBorderRadiusNormal,
+            height: 52,
+            maxWidth: '100%',
+        },
 
         moneyRequestAttachReceiptThumbnailIcon: {
             position: 'absolute',

@@ -1,5 +1,5 @@
 import {initReconnect} from '@libs/actions/Reconnect';
-import {AUTHENTICATION_COMMAND, READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 
 import CONST from '@src/CONST';
@@ -23,6 +23,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
+// These split and NVP commands are intentionally plain persistable commands with no special conflict resolution, persistence exclusions, or side-effect handling.
 const MOCK_COMMAND_LOWERCASE = WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION;
 const MOCK_READ_COMMAND_LOWERCASE = READ_COMMANDS.GET_REPORT_PRIVATE_NOTE;
 const MOCK_COMMAND = WRITE_COMMANDS.SPLIT_TRANSACTION;
@@ -362,7 +363,7 @@ describe('APITests', () => {
                     const [commandName2] = call2;
                     const [commandName3] = call3;
                     expect(commandName1).toBe(MOCK_COMMAND);
-                    expect(commandName2).toBe(AUTHENTICATION_COMMAND);
+                    expect(commandName2).toBe('Authenticate');
                     expect(commandName3).toBe(MOCK_COMMAND);
                 })
         );
@@ -513,7 +514,7 @@ describe('APITests', () => {
 
                 // Third command should be the call to Authenticate
                 const [thirdCommand] = xhr.mock.calls.at(2) ?? [];
-                expect(thirdCommand).toBe(AUTHENTICATION_COMMAND);
+                expect(thirdCommand).toBe('Authenticate');
 
                 const [fourthCommand] = xhr.mock.calls.at(3) ?? [];
                 expect(fourthCommand).toBe(MOCK_COMMAND);
