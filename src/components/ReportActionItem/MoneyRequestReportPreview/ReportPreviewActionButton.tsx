@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,7 +24,16 @@ function ReportPreviewActionButton() {
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {openReportFromPreview} = useReportPreviewActions();
 
-    const renderButton = () => {
+    const viewButton = (
+        <Button
+            onPress={openReportFromPreview}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
+        >
+            <Button.Text>{translate('common.view')}</Button.Text>
+        </Button>
+    );
+
+    const renderPrimaryButton = () => {
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT) {
             return <SubmitActionButton />;
         }
@@ -45,16 +54,21 @@ function ReportPreviewActionButton() {
             return <AddExpenseActionButton />;
         }
 
-        return (
-            <Button
-                text={translate('common.view')}
-                onPress={openReportFromPreview}
-                sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.VIEW_BUTTON}
-            />
-        );
+        return null;
     };
 
-    return <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{renderButton()}</View>;
+    const primaryButton = renderPrimaryButton();
+
+    if (!primaryButton) {
+        return <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{viewButton}</View>;
+    }
+
+    return (
+        <View style={[buttonMaxWidth, styles.flex1, styles.flexRow, styles.gap2, {height: variables.h40}]}>
+            <View style={[styles.flex1]}>{primaryButton}</View>
+            {viewButton}
+        </View>
+    );
 }
 
 export default ReportPreviewActionButton;
