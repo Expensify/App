@@ -68,13 +68,13 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
-    const isSearchLoading = !!searchResults?.search?.isLoading;
 
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
     const onConfigChanged = useEffectEvent(() => {
-        if (!queryJSON || isSearchLoading || isOffline) {
+        // `search.isLoading` is persisted and may be stale after a reload. Call `search()` again and let it ignore a request that is still running.
+        if (!queryJSON || isOffline) {
             return;
         }
 
