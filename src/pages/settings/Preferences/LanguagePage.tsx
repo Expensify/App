@@ -53,8 +53,10 @@ function LanguagePage() {
             showButton: true,
             text: translate('common.save'),
             onConfirm: saveAndGoBack,
+            // Nothing to save while the selection still matches the persisted locale.
+            isDisabled: selectedLocale === preferredLocale,
         }),
-        [saveAndGoBack, translate],
+        [saveAndGoBack, translate, selectedLocale, preferredLocale],
     );
 
     return (

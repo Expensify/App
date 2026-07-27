@@ -17,7 +17,7 @@ import React from 'react';
 
 type CurrencyOption = {text: string; value: string; keyForList: string; isSelected: boolean};
 
-type ConfirmButtonOptions = {showButton?: boolean; text?: string; onConfirm?: () => void};
+type ConfirmButtonOptions = {showButton?: boolean; text?: string; onConfirm?: () => void; isDisabled?: boolean};
 
 let capturedData: CurrencyOption[] = [];
 let capturedOnSelectRow: ((option: CurrencyOption) => void) | undefined;
@@ -220,6 +220,25 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(mockSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {currency: 'AUD'});
         expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
         expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/change-billing-currency');
+    });
+
+    it('disables Save while the selection still matches the persisted currency, and enables it after a change', () => {
+        mockOnyx('USD');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        // Nothing has changed yet, so there is nothing to save.
+        expect(capturedConfirmButtonOptions?.isDisabled).toBe(true);
+
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        // A different currency is now selected, so Save becomes actionable.
+        expect(capturedConfirmButtonOptions?.isDisabled).toBe(false);
     });
 
     it('shows the currency note when opened from a flow that does not already display it (e.g. add payment card)', () => {

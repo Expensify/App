@@ -72,8 +72,10 @@ function DynamicPaymentCardCurrencySelectorPage() {
             showButton: true,
             text: translate('common.save'),
             onConfirm: saveAndGoBack,
+            // Nothing to save while the selection still matches the persisted currency.
+            isDisabled: selectedCurrency === currentCurrency,
         }),
-        [saveAndGoBack, translate],
+        [saveAndGoBack, translate, selectedCurrency, currentCurrency],
     );
 
     return (
