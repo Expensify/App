@@ -128,38 +128,41 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
             // The expense stays in the same report, so we can keep the RHP underneath open by just closing the merge modal.
             if (targetTransaction.reportID === mergeTransaction.reportID) {
-                // But if the report is left with a single expense, it turns into a one-transaction thread report and
-                // keeping the RHP open would stack it on top of the expense thread. Fall through to the full dismiss below.
-                const willTargetReportBeOneTransactionReport = willReportBecomeOneTransactionReportAfterMerge(
-                    targetTransaction.reportID,
-                    sourceTransaction.transactionID,
-                    targetReportTransactionsCollection,
-                    currentSearchResults?.data,
-                    isOffline,
-                );
-
                 // Only keep the RHP underneath when it actually belongs to the target. If the merge swapped target and
                 // source (e.g. merging a cash expense into a selected card/split expense), the RHP underneath is the
                 // source's, so we fall through to the full dismiss below instead of leaving that stale report stacked.
+                // These are cheap navigation lookups, so we check them before the expensive one-transaction computation.
                 const topmostSearchReportID = Navigation.getTopmostSearchReportID();
                 const isTargetThreadTopmost = !!targetTransactionThreadReportID && topmostSearchReportID === targetTransactionThreadReportID;
                 const isTargetReportUnderneath = Navigation.getTopmostSuperWideRHPReportID() === targetTransaction.reportID;
 
-                if (!willTargetReportBeOneTransactionReport && (isTargetThreadTopmost || isTargetReportUnderneath)) {
-                    if (isTargetThreadTopmost) {
-                        // The target's own thread is already the RHP underneath, so just close the merge modal to reveal it.
-                        Navigation.dismissToPreviousRHP();
+                if (isTargetThreadTopmost || isTargetReportUnderneath) {
+                    // But if the report is left with a single expense, it turns into a one-transaction thread report and
+                    // keeping the RHP open would stack it on top of the expense thread. Fall through to the full dismiss below.
+                    const willTargetReportBeOneTransactionReport = willReportBecomeOneTransactionReportAfterMerge(
+                        targetTransaction.reportID,
+                        sourceTransaction.transactionID,
+                        targetReportTransactionsCollection,
+                        currentSearchResults?.data,
+                        isOffline,
+                    );
+
+                    if (!willTargetReportBeOneTransactionReport) {
+                        if (isTargetThreadTopmost) {
+                            // The target's own thread is already the RHP underneath, so just close the merge modal to reveal it.
+                            Navigation.dismissToPreviousRHP();
+                            return;
+                        }
+
+                        // The target's multi-expense report is underneath, but a different thread may sit on top of it (e.g.
+                        // the swapped-away source's thread). Dismiss down to that shared super wide report so the stale
+                        // thread isn't left stacked, then open the merged expense's thread over it.
+                        Navigation.dismissToSuperWideRHP();
+                        Navigation.setNavigationActionToMicrotaskQueue(() => {
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
+                        });
                         return;
                     }
-
-                    // The target's multi-expense report is underneath, but a different thread may sit on top of it (e.g.
-                    // the swapped-away source's thread). Dismiss down to that shared super wide report so the stale thread
-                    // isn't left stacked, then open the merged expense's thread over it.
-                    Navigation.dismissToSuperWideRHP();
-                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
-                    });
-                    return;
                 }
             }
 
