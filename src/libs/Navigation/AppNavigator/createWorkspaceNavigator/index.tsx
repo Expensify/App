@@ -12,15 +12,18 @@ import {createNavigatorFactory} from '@react-navigation/native';
 
 import WorkspaceRouter from './WorkspaceRouter';
 
-function useCustomEffects(props: CustomEffectsHookProps) {
+function WorkspaceNavigatorEffects(props: CustomEffectsHookProps) {
     useNavigationResetOnLayoutChange(props);
     usePreserveNavigatorState(props.state, props.parentRoute);
+    // Returning null makes Babel skip memoization for this Effects slot; an empty fragment is required.
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
 }
 
 const WorkspaceNavigatorComponent = createPlatformStackNavigatorComponent(NAVIGATORS.WORKSPACE_NAVIGATOR, {
     createRouter: WorkspaceRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
-    useCustomEffects,
+    Effects: WorkspaceNavigatorEffects,
 });
 
 function createWorkspaceNavigator<

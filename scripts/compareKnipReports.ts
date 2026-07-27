@@ -13,7 +13,7 @@ import fs from 'fs';
  * resolves others. Findings are matched per `<file>::<name>`, so a single file
  * with multiple unused items counts as one finding per item.
  *
- * Usage: ts-node scripts/compareKnipReports.ts --mainPath=<main.json> --prPath=<pr.json>
+ * Usage: bun scripts/compareKnipReports.ts --mainPath=<main.json> --prPath=<pr.json>
  */
 
 const CATEGORIES = [

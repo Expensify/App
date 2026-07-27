@@ -1,10 +1,9 @@
+import {hasAuthToken} from '@libs/actions/Session';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
-import {isTabNavigatorMounted, whenTabNavigatorReady} from '@libs/Navigation/helpers/tabNavigatorReadiness';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 
 import type {LinkingOptions} from '@react-navigation/native';
@@ -52,14 +51,11 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             continuePlaidOAuth(url);
             return;
         }
-        // TAB_NAVIGATOR is declared on the root navigator before its lazily-loaded child router
-        // mounts. Forwarding the URL during that window dispatches a NAVIGATE that no navigator can
-        // handle, so the deep link is silently dropped. Defer (don't drop) until the tab router
-        // mounts. On public screens TAB_NAVIGATOR isn't declared, so we forward immediately.
-        const rootState = navigationRef.current?.getRootState();
-        const isTabNavigatorDeclared = !!rootState?.routeNames?.includes(NAVIGATORS.TAB_NAVIGATOR);
-        if (isTabNavigatorDeclared && !isTabNavigatorMounted()) {
-            whenTabNavigatorReady().then(() => listener(url));
+        // For an unauthenticated session, a report deep link (`/r/<reportID>`) targets the Report screen,
+        // which lives in AuthScreens and is not mounted while PublicScreens is showing. Dispatching it here
+        // throws "NAVIGATE ... was not handled by any navigator". openReportFromDeepLink() already opens the
+        // public room as an anonymous user and handles navigation, so defer to it instead. See #92672.
+        if (!hasAuthToken() && url.includes(`/${ROUTES.REPORT}/`)) {
             return;
         }
         listener(url);

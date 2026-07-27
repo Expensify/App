@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
+import useNavigateBackOnSave from '@hooks/useNavigateBackOnSave';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -18,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {hasReceipt} from '@libs/TransactionUtils';
 
@@ -31,13 +31,15 @@ import {updateMoneyRequestDescription} from '@userActions/IOU/UpdateMoneyRequest
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -64,10 +66,13 @@ function IOURequestStepDescription({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
 
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -87,7 +92,6 @@ function IOURequestStepDescription({
     const [currentDescription, setCurrentDescription] = useState(currentDescriptionInMarkdown);
     const [isSaved, setIsSaved] = useState(false);
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
-    const shouldNavigateAfterSaveRef = useRef(false);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -112,17 +116,7 @@ function IOURequestStepDescription({
         [translate],
     );
 
-    const navigateBack = useCallback(() => {
-        Navigation.goBack(backTo);
-    }, [backTo]);
-
-    useEffect(() => {
-        if (!isSaved || !shouldNavigateAfterSaveRef.current) {
-            return;
-        }
-        shouldNavigateAfterSaveRef.current = false;
-        navigateBack();
-    }, [isSaved, navigateBack]);
+    const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backTo);
 
     const updateDescriptionRef = (value: string) => {
         setCurrentDescription(value);
@@ -137,14 +131,14 @@ function IOURequestStepDescription({
 
         if (newComment === currentDescriptionInMarkdown) {
             setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
+            armNavigateBack();
             return;
         }
 
         if (isEditingSplit) {
             setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment});
             setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
+            armNavigateBack();
             return;
         }
 
@@ -153,6 +147,7 @@ function IOURequestStepDescription({
                 transactionID: transaction?.transactionID,
                 transactionThreadReport: report,
                 parentReport,
+                iouReportOwnerLogin,
                 comment: newComment,
                 policy,
                 policyTagList: policyTags,
@@ -162,13 +157,15 @@ function IOURequestStepDescription({
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
                 delegateAccountID,
+                reportPolicyTags,
+                isTrackIntentUser,
             });
         } else {
             setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft, hasReceipt(transaction));
         }
 
         setIsSaved(true);
-        shouldNavigateAfterSaveRef.current = true;
+        armNavigateBack();
     };
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
