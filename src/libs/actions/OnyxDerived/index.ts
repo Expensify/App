@@ -90,7 +90,7 @@ function init() {
                     name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
                     op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
                     parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-                    attributes: {derivedKey: key, [CONST.TELEMETRY.ATTRIBUTE_DERIVED_TRIGGER]: sourceKey ?? 'unknown'},
+                    attributes: {derivedKey: key, [CONST.TELEMETRY.ATTRIBUTE_DERIVED_TRIGGER]: triggeredKeys.size > 0 ? [...triggeredKeys].join(',') : 'initial'},
                 });
 
                 try {
