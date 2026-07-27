@@ -1223,6 +1223,8 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
+                submitted: '',
+                approved: '',
                 exported: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: '',
@@ -1351,6 +1353,8 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 category: '',
                 comment: {comment: ''},
                 created: '2024-12-21',
+                submitted: '2024-12-21 13:05:20',
+                approved: '',
                 exported: '',
                 currency: 'USD',
                 date: '2024-12-21',
@@ -1497,6 +1501,8 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 category: '',
                 comment: {comment: ''},
                 created: '2025-03-05',
+                submitted: '2025-03-05',
+                approved: '',
                 exported: '',
                 currency: 'VND',
                 hasEReceipt: false,
@@ -1563,6 +1569,8 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 category: '',
                 comment: {comment: ''},
                 created: '2025-03-05',
+                submitted: '2025-03-05',
+                approved: '',
                 exported: '',
                 currency: 'VND',
                 hasEReceipt: false,
@@ -2771,7 +2779,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 55;
+            const expectedPropertyCount = 57;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -6725,6 +6733,30 @@ describe('SearchUIUtils', () => {
                 expect(item?.approved).toBe(snapshotApprovedAt);
             });
 
+            it('should clear the approved date for a report that is back to Outstanding while its approved date is still set (offline unapprove)', () => {
+                const staleApprovedAt = '2024-12-18 07:00:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    approved: staleApprovedAt,
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe('');
+            });
+
+            it('should clear the approved date for a report that is back to Draft while its approved date is still set', () => {
+                const staleApprovedAt = '2024-12-18 07:00:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    approved: staleApprovedAt,
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe('');
+            });
+
             it('should populate submitted from a live SUBMITTED action missing from the snapshot when the report is optimistically submitted (offline submit)', () => {
                 const submittedAt = '2024-12-22 09:30:00';
                 const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
@@ -6793,6 +6825,34 @@ describe('SearchUIUtils', () => {
                 });
                 const item = sections.find((s) => s.keyForList === rptFilterReportID);
                 expect(item?.submitted).toBe(snapshotSubmittedAt);
+            });
+
+            it('should populate submitted/approved on nested transaction rows from live actions missing from the snapshot', () => {
+                const submittedAt = '2024-12-20 08:00:00';
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: submittedAt,
+                            },
+                            {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: approvedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                const nestedTransaction = item?.transactions.at(0);
+                expect(nestedTransaction?.submitted).toBe(submittedAt);
+                expect(nestedTransaction?.approved).toBe(approvedAt);
             });
         });
     });

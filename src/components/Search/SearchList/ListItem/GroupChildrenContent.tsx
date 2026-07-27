@@ -1,3 +1,4 @@
+import useLiveFilteredReportActions from '@components/Search/hooks/useLiveFilteredReportActions';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
@@ -22,6 +23,8 @@ import React, {useEffect, useMemo, useState} from 'react';
 import type {GroupChildrenContentProps, TransactionListItemType} from './types';
 
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
+
+const emptyChildReportIDs: string[] = [];
 
 function GroupChildrenContent({
     item,
@@ -51,6 +54,9 @@ function GroupChildrenContent({
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
+    const liveReportActions = useLiveFilteredReportActions(
+        isExpenseReportType ? emptyChildReportIDs : groupItem.transactions.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID),
+    );
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState<number>(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
     const isActionLoadingSet = useActionLoadingReportIDs();
     const snapshotData = transactionsSnapshot?.data;
@@ -76,6 +82,7 @@ function GroupChildrenContent({
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
+            reportActions: liveReportActions,
             reportAttributesDerivedValue: undefined,
         }) as [TransactionListItemType[], number, boolean];
         return sectionData.map((transactionItem) => ({
@@ -95,6 +102,7 @@ function GroupChildrenContent({
         cardFeeds,
         conciergeReportID,
         convertToDisplayString,
+        liveReportActions,
         selectedTransactionIDsSet,
     ]);
 

@@ -2240,6 +2240,52 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
+
+        it('optimistically updates the report status and adds a SUBMITTED action so search submit reflects while offline', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write onyxData to verify optimistic submit payload.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            submitMoneyRequestOnSearch(1, [report], [policy], undefined);
+
+            const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            expect(typeof parameters.reportActionID).toBe('string');
+            const reportActionID = String(parameters.reportActionID);
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`;
+
+            const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
+            expect(optimisticReportUpdate.value).toEqual({
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+
+            const optimisticActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportActionsKey, Onyx.METHOD.MERGE, true);
+            expect(optimisticActionsUpdate.value[reportActionID]).toMatchObject({
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            const failureReportUpdate = getRequiredOnyxUpdate(onyxData, 'failureData', reportKey, Onyx.METHOD.MERGE, true);
+            expect(failureReportUpdate.value).toEqual({
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            const failureActionsUpdate = getRequiredOnyxUpdate(onyxData, 'failureData', reportActionsKey, Onyx.METHOD.MERGE, true);
+            expect(failureActionsUpdate.value[reportActionID]).toBeNull();
+        });
     });
 
     describe('delegateAccountID forwarding', () => {

@@ -2071,6 +2071,18 @@ function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, repo
 
 /**
  * @private
+ * Returns the report's actions from the live filtered collection when available, falling back to the snapshot's.
+ */
+function getLiveOrSnapshotReportActions(
+    reportActions: Record<string, OnyxTypes.ReportAction[]>,
+    data: OnyxTypes.SearchResults['data'],
+    reportID: string | undefined,
+): OnyxTypes.ReportAction[] {
+    return reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
+}
+
+/**
+ * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -2158,11 +2170,7 @@ function getTransactionsSections({
                 report,
                 translate,
             );
-            const actions =
-                reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ??
-                Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
-            // Submitted/approved come from the parent report's live actions (not just the snapshot) so offline
-            // submit/approve reflects immediately here too — see getSubmittedDate/getApprovedDate.
+            const actions = getLiveOrSnapshotReportActions(reportActions, data, transactionItem.reportID);
             const submitted = report ? getSubmittedDate(report, actions) : undefined;
             const approved = report ? getApprovedDate(report, actions) : undefined;
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
@@ -2823,12 +2831,15 @@ function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction |
 }
 
 /**
- * Returns the report's approved date, falling back to the latest live APPROVED action's created time when the
- * report is optimistically fully approved (statusNum) but the snapshot's `approved` field hasn't caught up yet —
- * same snapshot-merge gap as `getFirstApprovedAction`. Gated on statusNum so an offline intermediate approval step
- * in a multi-level workflow (report still Processing) doesn't get a premature approved date.
+ * Returns the report's approved date, falling back to the latest APPROVED action's created time. A report that is
+ * back to Open/Submitted (e.g. an offline unapprove) is not approved anymore even if its `approved` date is still
+ * set, and the action fallback is gated on statusNum so an intermediate approval step in a multi-level workflow
+ * (report still Processing) doesn't get a premature date.
  */
 function getApprovedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
+    if (reportItem.statusNum === CONST.REPORT.STATUS_NUM.OPEN || reportItem.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        return '';
+    }
     if (reportItem.approved) {
         return reportItem.approved;
     }
@@ -2839,13 +2850,8 @@ function getApprovedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.Report
 }
 
 /**
- * Returns the report's submitted date, falling back to the latest live SUBMITTED action's created time when the
- * report has been submitted (statusNum) but the snapshot's `submitted` field hasn't caught up yet — same
- * snapshot-merge gap as `getApprovedDate`/`getFirstApprovedAction`.
- *
- * statusNum is checked BEFORE trusting `reportItem.submitted`: the backend can populate `submitted` with a date
- * even for reports that have never been submitted, so OPEN (the only status a report can't have been submitted
- * from) is the source of truth here, not the date field.
+ * Returns the report's submitted date, falling back to the latest SUBMITTED action's created time. The OPEN check
+ * comes before trusting `reportItem.submitted` because the backend can stamp `submitted` on never-submitted reports.
  */
 function getSubmittedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
     if (reportItem.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -2925,8 +2931,7 @@ function getReportSections({
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
             const isIOUReport = reportItem.type === CONST.REPORT.TYPE.IOU;
-            const actions =
-                reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`] ?? Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`] ?? {});
+            const actions = getLiveOrSnapshotReportActions(reportActions, data, reportItem.reportID);
 
             const isActionLoading = !!isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`);
             const shouldShow = !isActionLoading && currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? isEligibleForStatus(currentQueryJSON, reportItem) : true;
@@ -3047,7 +3052,7 @@ function getReportSections({
                 getLoginByAccountID(report?.ownerAccountID, data.personalDetailsList),
                 policy,
             );
-            const actions = Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
+            const actions = getLiveOrSnapshotReportActions(reportActions, data, transactionItem.reportID);
             const from = reportAction?.actorAccountID ? (mergedPersonalDetails?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, mergedPersonalDetails, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
@@ -3082,6 +3087,8 @@ function getReportSections({
                 formattedTotal,
                 formattedMerchant,
                 date,
+                submitted: report ? getSubmittedDate(report, actions) : undefined,
+                approved: report ? getApprovedDate(report, actions) : undefined,
                 exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreated || shouldShowYearCreatedReport,
