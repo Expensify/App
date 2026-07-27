@@ -67,9 +67,6 @@ const POLICY_SIGNATURE_EXCLUDED_KEYS = new Set([
     'lastModified',
 ]);
 
-// Bump when the signature format or exclusion set changes; old stored signatures then mismatch and cause a one-time scoped recompute.
-const POLICY_SIGNATURE_VERSION = '2';
-
 // Deterministic stringify: keys are sorted at every level, so equal content yields equal strings regardless of key insertion order.
 const stableStringify = (value: unknown): string => {
     if (value === null || typeof value !== 'object') {
@@ -86,13 +83,16 @@ const stableStringify = (value: unknown): string => {
 
 // Signature of a policy's attribute-relevant content, stored in the derived value (like `locale`) so the
 // change-detection baseline survives app restarts. The serialized length is appended so a 32-bit hash
-// collision alone cannot mask a change.
+// collision alone cannot mask a change. No format/version marker is needed: the serialized string encodes
+// its own shape (keys included), so any change to the exclusion set, stringify format, or hash function
+// alters signatures of affected policies — the resulting mismatch triggers a one-time scoped recompute
+// that also refreshes the stored baseline; identical signatures imply identical relevant content.
 const policyRelevantSignature = (policy: Policy | null | undefined): string | null => {
     if (!policy) {
         return null;
     }
     const serialized = stableStringify(policy);
-    return `${POLICY_SIGNATURE_VERSION}|${hashCode(serialized)}.${serialized.length}`;
+    return `${hashCode(serialized)}.${serialized.length}`;
 };
 
 const buildPolicySignatures = (policies: OnyxCollection<Policy>): Record<string, string> => {
