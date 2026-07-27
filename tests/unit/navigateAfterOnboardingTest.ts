@@ -298,7 +298,7 @@ describe('navigateAfterOnboarding', () => {
         navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, undefined);
 
         expect(navigate).toHaveBeenNthCalledWith(1, ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
-        expect(navigate).toHaveBeenNthCalledWith(2, ROUTES.HOME);
+        expect(navigate).toHaveBeenNthCalledWith(2, ROUTES.HOME, undefined);
     });
 
     it('should preserve the pending Concierge deep link across a module reload', () => {
