@@ -52,7 +52,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -75,6 +75,7 @@ import type {
     ReportAction,
     ReportActions,
     ReportNextStepDeprecated,
+    SaveSearch,
     Transaction,
 } from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
@@ -718,19 +719,15 @@ function getOnyxLoadingData(
         Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
     }
 
-    // successData writes the terminal `loaded` state on any jsonCode 200 resolve. It also stamps `type` so
-    // responses that do carry data stay consistent with the anti-stale isSearchDataLoaded check (which compares
-    // type/hash). On a success response without data, isSearchDataLoaded still resolves to false via its own data/errors gate;
-    // `state` is what marks that case as done once a future PR wires the read side to it. `isLoading` isn't set here
-    // because finallyData always runs right after and already clears it for isSearchAPI. Empty for the non-search
-    // callers of this helper so they don't pay for a meaningless `{search: {}}` merge on the SNAPSHOT key.
+    // A successful response may contain no snapshot data. Store `type` and `hash` with `loaded` so the UI can match it to the current query and show the empty state.
+    // Do not clear `isLoading` here because `finallyData` always does.
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = isSearchRequest
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                   value: {
-                      search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type},
+                      search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type, hash},
                   },
               },
           ]
@@ -759,7 +756,7 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.ERROR}),
+                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.ERROR, hash}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -809,6 +806,68 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
         },
     ];
     write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
+}
+
+function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, savedSearches: OnyxEntry<SaveSearch>) {
+    const queryString = `type:expense from:${currentUserAccountID}`;
+    const queryJSON = buildSearchQueryJSON(queryString);
+    if (!queryJSON) {
+        return;
+    }
+
+    if (savedSearches?.[queryJSON.hash]) {
+        return;
+    }
+
+    const jsonQuery = JSON.stringify(queryJSON);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    name: searchName,
+                    query: queryJSON.inputQuery,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH,
+            value: true,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH,
+            value: false,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: searchName}, {optimisticData, failureData, successData});
 }
 
 function deleteSavedSearch(hash: number) {
@@ -1000,8 +1059,14 @@ function search({
     const startRequest = () =>
         makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
+                const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+
+                // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
+                if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
+                    Log.info('[Search] loading_terminal_empty', false, {hash: queryJSON.hash, type: queryJSON.type});
+                }
+
                 if (shouldUpdateLastSearchParams) {
-                    const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
                     const reports = Object.keys(response?.data ?? {})
                         .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
                         .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
@@ -1905,6 +1970,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 
 export {
     saveSearch,
+    seedMyExpensesSearch,
     search,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
