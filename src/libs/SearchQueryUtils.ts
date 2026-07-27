@@ -162,9 +162,10 @@ function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
 /**
  * @private
  * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
+ * `shouldQuoteComma` additionally quotes on a comma, which the parser otherwise treats as a value separator.
  */
-function sanitizeSearchValue(str: string) {
-    if (str.includes(' ') || str.includes(`\xA0`)) {
+function sanitizeSearchValue(str: string, shouldQuoteComma = false) {
+    if (str.includes(' ') || str.includes(`\xA0`) || (shouldQuoteComma && str.includes(','))) {
         return `"${str}"`;
     }
     return str;
@@ -879,7 +880,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     if (columns?.length) {
         const filterValueArray = [...new Set<string>(columns)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -1011,7 +1012,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     if (!isNegated && filterKey === FILTER_KEYS.TAG && filterValueArray.length === 1 && filterValueArray.at(0) === CONST.SEARCH.TAG_EMPTY_VALUE) {
                         return `-${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}:${CONST.SEARCH.HAS_VALUES.TAG}`;
                     }
-                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`;
                 }
             }
 

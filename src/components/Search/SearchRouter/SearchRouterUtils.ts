@@ -56,20 +56,20 @@ function getContextualReportData(state: NavigationState | undefined): Contextual
     return {contextualReportID: undefined, isSearchRouterScreen};
 }
 
-function getContextualSearchAutocompleteKey(item: SearchQueryItem, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
-    if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${item.searchQuery}`;
-    }
-    if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
-    }
-    if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : ''}`;
-    }
+function getContextualSearchValue(value: string) {
+    return value.replaceAll(/["“”]/g, '');
 }
 
-function sanitizeContextualSearchValue(value: string) {
-    return value.includes(',') ? `"${value}"` : sanitizeSearchValue(value);
+function getContextualSearchAutocompleteKey(item: SearchQueryItem, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
+    if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${getContextualSearchValue(item.searchQuery ?? '')}`;
+    }
+    if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT) {
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${getContextualSearchValue(item.searchQuery ?? '')}`;
+    }
+    if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${getContextualSearchValue(item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : '')}`;
+    }
 }
 
 function getContextualSearchQuery(item: SearchQueryItem, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
@@ -78,19 +78,20 @@ function getContextualSearchQuery(item: SearchQueryItem, policies: OnyxCollectio
 
     switch (item.roomType) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeContextualSearchValue(
-                item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : '',
+            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeSearchValue(
+                getContextualSearchValue(item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : ''),
+                true,
             )}`;
             break;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${item.policyID}`;
             if (item.autocompleteID) {
-                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeContextualSearchValue(item.searchQuery ?? '')}`;
+                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(getContextualSearchValue(item.searchQuery ?? ''), true)}`;
             }
             break;
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
-            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeContextualSearchValue(item.searchQuery ?? '')}`;
+            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(getContextualSearchValue(item.searchQuery ?? ''), true)}`;
             break;
     }
     return baseQuery + additionalQuery;
