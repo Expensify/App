@@ -77,13 +77,16 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
         Navigation.goBack();
     }, [selectedFrequency, currentFrequency, hasFrequencyError, workspaceAccountID, monthlySettlementDate]);
 
+    // Nothing to persist when the selection matches the current frequency, so disable Save (unless there's a
+    // settlement-date error to clear, which mirrors the persist guard in saveAndGoBack).
     const confirmButtonOptions = useMemo(
         () => ({
             showButton: true,
             text: translate('common.save'),
             onConfirm: saveAndGoBack,
+            isDisabled: selectedFrequency === currentFrequency && !hasFrequencyError,
         }),
-        [saveAndGoBack, translate],
+        [saveAndGoBack, translate, selectedFrequency, currentFrequency, hasFrequencyError],
     );
 
     return (

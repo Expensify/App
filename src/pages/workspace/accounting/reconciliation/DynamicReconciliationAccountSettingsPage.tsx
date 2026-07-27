@@ -90,13 +90,15 @@ function ReconciliationAccountSettingsLayout({
         isSelected: bankAccount.id === selectedID,
     }));
 
+    // Nothing to persist when the selection matches the currently reconciled account, so disable Save.
     const confirmButtonOptions = useMemo(
         () => ({
             showButton: true,
             text: translate('common.save'),
             onConfirm: () => onSelectBankAccount(selectedID),
+            isDisabled: selectedID === selectedBankAccountID,
         }),
-        [translate, onSelectBankAccount, selectedID],
+        [translate, onSelectBankAccount, selectedID, selectedBankAccountID],
     );
 
     return (
