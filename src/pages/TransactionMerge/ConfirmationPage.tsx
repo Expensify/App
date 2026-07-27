@@ -125,7 +125,10 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 // RHP open would leave both that report and the merged expense's thread stacked, so in that case we fall
                 // through to the production path below (dismiss the whole modal, then open the merged expense).
                 const isSourceInTargetReport = sourceTransaction.reportID === targetTransaction.reportID;
-                const willTargetReportBeOneTransactionReport = targetReportTransactions.length - (isSourceInTargetReport ? 1 : 0) <= 1;
+                // Only real reports collapse into a one-transaction thread report. The unreported/split sentinels are
+                // shared across expenses, so counting transactions by them would match unrelated expenses app-wide.
+                const isRealTargetReport = targetTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && targetTransaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID;
+                const willTargetReportBeOneTransactionReport = isRealTargetReport && targetReportTransactions.length - (isSourceInTargetReport ? 1 : 0) <= 1;
 
                 if (!willTargetReportBeOneTransactionReport) {
                     // The report stays a multi-transaction report, so keep the wide/super wide RHP underneath open and
