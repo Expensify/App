@@ -1909,7 +1909,8 @@ type DecoratedOption<T> = {
 };
 
 type DecoratedOptionHeap<T> = {
-    pushDecoratedOption: (decoratedOption: DecoratedOption<T>) => boolean;
+    /** Pushes the option (evicting the worst one if at capacity) and returns whether the heap was already at capacity, i.e. there are more options than the limit. */
+    pushAndCheckHasMore: (decoratedOption: DecoratedOption<T>) => boolean;
     getOptionsFromDecoratedHeap: () => T[];
 };
 
@@ -1925,7 +1926,7 @@ function createDecoratedOptionHeap<T>(reversed: boolean, limit?: number): Decora
     const heap = reversed ? new MaxHeap<DecoratedOption<T>>(getDecoratedOptionKey) : new MinHeap<DecoratedOption<T>>(getDecoratedOptionKey);
 
     return {
-        pushDecoratedOption(decoratedOption) {
+        pushAndCheckHasMore(decoratedOption) {
             if (limit === undefined || heap.size() < limit) {
                 heap.push(decoratedOption);
                 return false;
@@ -1977,7 +1978,7 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
         if (filter && !filter(option)) {
             continue;
         }
-        if (heap.pushDecoratedOption(decorateOption(option, comparator))) {
+        if (heap.pushAndCheckHasMore(decorateOption(option, comparator))) {
             hasMore = true;
         }
     }
@@ -2034,7 +2035,7 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
         }
 
         // Add to heap with limit logic (each heap has its own limit)
-        if (targetHeap.pushDecoratedOption(decoratedOption)) {
+        if (targetHeap.pushAndCheckHasMore(decoratedOption)) {
             hasMore = true;
         }
     }
