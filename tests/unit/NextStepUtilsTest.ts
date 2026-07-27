@@ -1517,6 +1517,30 @@ describe('libs/NextStepUtils', () => {
             const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999);
             expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
         });
+
+        it('uses the provided phone number formatter when resolving an SMS actor login', async () => {
+            const phoneActorAccountID = 780071;
+            const phoneActorLogin = '18332403628@expensify.sms';
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[phoneActorAccountID]: {accountID: phoneActorAccountID, login: phoneActorLogin}});
+            await waitForBatchedUpdates();
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: phoneActorAccountID,
+            };
+            const translateWithActorName: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingToSubmit') {
+                    return `Waiting for ${String(parameters.at(0))} to submit expenses.`;
+                }
+                return translateLocal(path, ...parameters);
+            };
+            const formatPhoneNumber = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
+
+            const message = buildNextStepMessage(nextStep, translateWithActorName, 999999, formatPhoneNumber);
+
+            expect(formatPhoneNumber).toHaveBeenCalledWith(phoneActorLogin);
+            expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
+        });
     });
 
     describe('buildOptimisticNextStep', () => {
