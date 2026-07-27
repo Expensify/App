@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
@@ -17,9 +17,12 @@ import React from 'react';
 
 type CurrencyOption = {text: string; value: string; keyForList: string; isSelected: boolean};
 
+type ConfirmButtonOptions = {showButton?: boolean; text?: string; onConfirm?: () => void};
+
 let capturedData: CurrencyOption[] = [];
 let capturedOnSelectRow: ((option: CurrencyOption) => void) | undefined;
 let capturedCustomListHeader: React.ReactNode;
+let capturedConfirmButtonOptions: ConfirmButtonOptions | undefined;
 
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false})));
 
@@ -72,10 +75,21 @@ jest.mock('@components/HeaderWithBackButton', () => {
 });
 
 jest.mock('@components/SelectionList', () => {
-    function MockSelectionList({data, onSelectRow, customListHeader}: {data: CurrencyOption[]; onSelectRow: (option: CurrencyOption) => void; customListHeader?: React.ReactNode}) {
+    function MockSelectionList({
+        data,
+        onSelectRow,
+        customListHeader,
+        confirmButtonOptions,
+    }: {
+        data: CurrencyOption[];
+        onSelectRow: (option: CurrencyOption) => void;
+        customListHeader?: React.ReactNode;
+        confirmButtonOptions?: ConfirmButtonOptions;
+    }) {
         capturedData = data ?? [];
         capturedOnSelectRow = onSelectRow;
         capturedCustomListHeader = customListHeader;
+        capturedConfirmButtonOptions = confirmButtonOptions;
         return (data ?? []).map((item) => item.text).join(',');
     }
     return MockSelectionList;
@@ -119,6 +133,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         capturedData = [];
         capturedOnSelectRow = undefined;
         capturedCustomListHeader = undefined;
+        capturedConfirmButtonOptions = undefined;
         mockUsePermissions.mockReturnValue({isBetaEnabled: () => false});
         mockUseDynamicBackPath.mockReturnValue('settings/subscription/change-billing-currency');
         mockOnyx();
@@ -166,13 +181,41 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(capturedData.find((option) => option.isSelected)?.value).toBe('GBP');
     });
 
-    it('writes the chosen currency to both flows and navigates back on select', () => {
+    it('moves the checkmark on select without persisting or navigating (deferred until Save)', () => {
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
         const aud = capturedData.find((option) => option.value === 'AUD');
         expect(aud).toBeDefined();
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        capturedOnSelectRow?.(aud!);
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        // Selecting a row is not an automatic change of context: nothing is persisted and we stay on the page.
+        expect(mockSetDraftValues).not.toHaveBeenCalled();
+        expect(mockSetPaymentMethodCurrency).not.toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
+
+        // The checkmark follows the in-page draft selection.
+        const selected = capturedData.filter((option) => option.isSelected);
+        expect(selected).toHaveLength(1);
+        expect(selected.at(0)?.value).toBe('AUD');
+    });
+
+    it('writes the chosen currency to both flows and navigates back when Save is tapped', () => {
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        expect(capturedConfirmButtonOptions?.showButton).toBe(true);
+        act(() => {
+            capturedConfirmButtonOptions?.onConfirm?.();
+        });
 
         expect(mockSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {currency: 'AUD'});
         expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
