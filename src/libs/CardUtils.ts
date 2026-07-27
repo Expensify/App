@@ -1031,15 +1031,6 @@ function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean 
     return cardFeed?.expiration ? isBefore(fromUnixTime(cardFeed.expiration), new Date()) : false;
 }
 
-function isCompanyCardImportProcessing(feed: CombinedCardFeed | undefined): boolean {
-    if (!feed?.importStartedAt) {
-        return false;
-    }
-    // Auth stamps this in microseconds.
-    const elapsedMilliseconds = Date.now() - feed.importStartedAt / 1000;
-    return elapsedMilliseconds >= 0 && elapsedMilliseconds < CONST.COMPANY_CARDS.IMPORT_PROCESSING_WINDOW_MS;
-}
-
 /**
  * For Amex Direct (FDX) feeds, parent cards aggregate child accounts and should not be assignable.
  * Parent cards follow the format "CardType - Digits" (2 segments separated by " - "),
@@ -2043,7 +2034,6 @@ export {
     getCardFeedIcon,
     getBankName,
     isSelectedFeedExpired,
-    isCompanyCardImportProcessing,
     isTravelCard,
     isTravelCardTransaction,
     getCompanyFeeds,

@@ -17,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
-import {getCompanyCardCustomName, getDefaultCardName, isCompanyCardImportProcessing} from '@libs/CardUtils';
+import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
@@ -145,7 +145,7 @@ function WorkspaceCompanyCardsTable({
     // If we already have fetched cards, then do not show a loading spinner (let the remaining updates refresh in the background), else show it
     const hasCards = (companyCardEntries ?? []).length > 0;
 
-    const isImportProcessing = !hasCards && isCompanyCardImportProcessing(selectedFeed);
+    const isImportProcessing = !hasCards && !!selectedFeed?.importStartedAt;
 
     const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);
     const isLoadingOnyxPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
