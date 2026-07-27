@@ -24,6 +24,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -149,7 +150,7 @@ function MoneyRequestReportTransactionItemBody({
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const shouldUseMediumNarrowLayout = isMediumScreenWidth && !shouldScrollHorizontally;
     const shouldUseNarrowTransactionRow = shouldUseNarrowLayout || shouldUseMediumNarrowLayout;
-    let transactionRowStyle = [styles.ph3, styles.noBorderRadius];
+    let transactionRowStyle: StyleProp<ViewStyle> = [styles.ph3, styles.noBorderRadius];
     if (shouldUseNarrowLayout) {
         transactionRowStyle = [styles.p4, styles.noBorderRadius];
     } else if (shouldUseMediumNarrowLayout) {
