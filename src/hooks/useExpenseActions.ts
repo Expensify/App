@@ -4,8 +4,6 @@ import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/ty
 import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 
-import useParticipantsPolicyTags, {getPolicyTagsSelector} from '@hooks/useParticipantsPolicyTags';
-
 import {duplicateReport as duplicateReportAction, duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport} from '@libs/actions/Report';
@@ -73,6 +71,7 @@ import useLocalize from './useLocalize';
 import useMoneyRequestPolicyTagsForReport from './useMoneyRequestPolicyTagsForReport';
 import useOnyx from './useOnyx';
 import useParentReportAction from './useParentReportAction';
+import useParticipantsPolicyTags, {getPolicyTagsSelector} from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
