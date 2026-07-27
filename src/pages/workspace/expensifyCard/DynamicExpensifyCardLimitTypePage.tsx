@@ -189,6 +189,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
         isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
         isDisabled: !areApprovalsConfigured,
+        titleStyles: areApprovalsConfigured ? undefined : {color: theme.heading},
     });
 
     data.push({

@@ -31,6 +31,7 @@ function ValueSelectionList({
             isDisabled: item.isDisabled,
             rightElement: item.rightElement,
             shouldHideSelectionButton: item.shouldHideSelectionButton,
+            titleStyles: item.titleStyles,
         }));
         const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : []);
 

@@ -83,6 +83,7 @@ function BaseSelectListItem<TItem extends ListItem>({
                             isDisabled && styles.colorMuted,
                             isMultilineSupported ? {paddingLeft} : null,
                             titleStyles,
+                            item.titleStyles,
                         ]}
                         numberOfLines={isMultilineSupported ? titleNumberOfLines : 1}
                     />

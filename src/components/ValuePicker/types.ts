@@ -3,7 +3,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type {ForwardedRef, ReactNode} from 'react';
-import type {View} from 'react-native';
+import type {StyleProp, TextStyle, View} from 'react-native';
 
 type ValuePickerListItem = ListItem & {
     value?: string;
@@ -23,6 +23,9 @@ type ValuePickerItem = {
 
     /** Whether to hide the selection button (radio) entirely */
     shouldHideSelectionButton?: boolean;
+
+    /** Styles applied to the item title */
+    titleStyles?: StyleProp<TextStyle>;
 };
 
 type ValueSelectorModalProps = {

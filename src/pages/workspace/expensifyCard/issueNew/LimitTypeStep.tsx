@@ -124,6 +124,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
             keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
             isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
             isDisabled: !areApprovalsConfigured,
+            titleStyles: areApprovalsConfigured ? undefined : {color: theme.heading},
         });
 
         options.push(
@@ -153,7 +154,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
             });
         }
         return options;
-    }, [areApprovalsConfigured, expensifyIcons.Lock, issueNewCard?.data?.cardType, theme.icon, translate, typeSelected, workspaceWorkflowsPageURL]);
+    }, [areApprovalsConfigured, expensifyIcons.Lock, issueNewCard?.data?.cardType, theme.heading, theme.icon, translate, typeSelected, workspaceWorkflowsPageURL]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
