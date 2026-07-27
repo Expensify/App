@@ -17,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
-import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import {getCompanyCardCustomName, getDefaultCardName, isCompanyCardImportProcessing} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
@@ -102,7 +102,7 @@ function WorkspaceCompanyCardsTable({
     } = companyCards;
 
     const {cardFeedErrors} = useCardFeedErrors();
-    const illustrations = useMemoizedLazyIllustrations(['LaptopAssignCard', 'BrokenMagnifyingGlass']);
+    const illustrations = useMemoizedLazyIllustrations(['LaptopAssignCard', 'BrokenMagnifyingGlass', 'CardReconciliation']);
     const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.isFeedConnectionBroken : false;
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
@@ -144,6 +144,8 @@ function WorkspaceCompanyCardsTable({
 
     // If we already have fetched cards, then do not show a loading spinner (let the remaining updates refresh in the background), else show it
     const hasCards = (companyCardEntries ?? []).length > 0;
+
+    const isImportProcessing = !hasCards && isCompanyCardImportProcessing(selectedFeed);
 
     const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);
     const isLoadingOnyxPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
@@ -406,12 +408,14 @@ function WorkspaceCompanyCardsTable({
                 <>
                     <Table.FilterBar label={translate('workspace.companyCards.findCard')} />
                     <Table.EmptyState
-                        headerMedia={illustrations.LaptopAssignCard}
+                        headerMedia={isImportProcessing ? illustrations.CardReconciliation : illustrations.LaptopAssignCard}
                         containerStyles={styles.mt5}
                         headerStyles={styles.emptyStateCardIllustrationContainer}
-                        headerContentStyles={styles.pendingStateCardIllustration}
-                        title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
-                        subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
+                        headerContentStyles={isImportProcessing ? styles.cardReconciliationIllustration : styles.pendingStateCardIllustration}
+                        title={translate(isImportProcessing ? 'workspace.moreFeatures.companyCards.importingCardsTitle' : 'workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
+                        subtitle={translate(
+                            isImportProcessing ? 'workspace.moreFeatures.companyCards.importingCardsDescription' : 'workspace.moreFeatures.companyCards.emptyAddedFeedDescription',
+                        )}
                     >
                         {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
                     </Table.EmptyState>
