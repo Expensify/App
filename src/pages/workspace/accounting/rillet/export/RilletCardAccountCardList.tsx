@@ -62,7 +62,7 @@ function RilletCardAccountCardList({
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             shouldBeBlocked
-            shouldForceBeBlocked={!hasActiveCards}
+            shouldBeForceBlocked={!hasActiveCards}
         >
             <View>
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.cardAccount.descriptionLevel2')}</Text>

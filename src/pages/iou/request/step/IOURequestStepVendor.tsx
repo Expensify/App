@@ -142,21 +142,30 @@ function IOURequestStepVendor({
             testID="IOURequestStepVendor"
             includeSafeAreaPaddingBottom
         >
-            <SelectionList
-                data={data}
-                onSelectRow={selectVendor}
-                textInputOptions={{
-                    label: translate('common.search'),
-                    value: searchValue,
-                    onChangeText: setSearchValue,
-                    headerMessage,
-                }}
-                initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
-                ListItem={SingleSelectListItem}
-                shouldShowLoadingPlaceholder={!policy}
-                listEmptyContent={listEmptyContent}
-                shouldSingleExecuteRowSelect
-            />
+            {({didScreenTransitionEnd}) => {
+                // Defer mounting the SelectionList (and its policy-derived data / lazy illustrations)
+                // until the RHP entry animation ends. First-open cost otherwise lands mid-transition
+                // and shows up as a backdrop flicker on the underlying expense view.
+                if (!didScreenTransitionEnd) {
+                    return null;
+                }
+                return (
+                    <SelectionList
+                        data={data}
+                        onSelectRow={selectVendor}
+                        textInputOptions={{
+                            label: translate('common.search'),
+                            value: searchValue,
+                            onChangeText: setSearchValue,
+                            headerMessage,
+                        }}
+                        initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
+                        ListItem={SingleSelectListItem}
+                        listEmptyContent={listEmptyContent}
+                        shouldSingleExecuteRowSelect
+                    />
+                );
+            }}
         </StepScreenWrapper>
     );
 }
