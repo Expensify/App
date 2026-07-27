@@ -13,6 +13,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import Permissions from '@libs/Permissions';
 import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
@@ -65,6 +66,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
     hasAnyTransactionWithoutRTERViolation,
+    hasSmartScanFailedWithMissingFields,
     isDuplicate,
     isOnHold,
     isPending,
@@ -752,7 +754,9 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     let optimisticHoldReportExpenseActionIDs;
     let optimisticReportActionCopyIDs;
     let optimisticCreatedReportForUnapprovedTransactionsActionID;
-    if (!full && !!chatReport && !!expenseReport) {
+    const shouldMoveScanFailedTransactions =
+        Permissions.isBetaEnabled(CONST.BETAS.SUBMIT_2026, betas) && reportTransactions.some((transaction) => hasSmartScanFailedWithMissingFields([transaction], expenseReport));
+    if ((!full || shouldMoveScanFailedTransactions) && !!chatReport && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport,
@@ -762,6 +766,8 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
             betas,
+            shouldMoveHeldTransactions: !full,
+            shouldMoveScanFailedTransactions,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);

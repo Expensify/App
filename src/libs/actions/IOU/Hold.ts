@@ -28,7 +28,7 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isProcessingReport,
 } from '@libs/ReportUtils';
-import {getAmount} from '@libs/TransactionUtils';
+import {getAmount, hasSmartScanFailedWithMissingFields} from '@libs/TransactionUtils';
 
 import {notifyNewAction} from '@userActions/Report';
 
@@ -597,7 +597,12 @@ type OptimisticHoldReportExpenseActionID = {
     oldReportActionID: string;
 };
 
-function getHoldReportActionsAndTransactions(reportID: string | undefined) {
+function getHoldReportActionsAndTransactions(
+    reportID: string | undefined,
+    iouReport?: OnyxEntry<OnyxTypes.Report>,
+    shouldMoveHeldTransactions = true,
+    shouldMoveScanFailedTransactions = false,
+) {
     const allTransactions = getAllTransactions();
     const iouReportActions = getAllReportActions(reportID);
     const holdReportActions: Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = [];
@@ -607,7 +612,14 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
-        if (transaction?.comment?.hold) {
+        if (!transaction) {
+            continue;
+        }
+
+        const isHeld = shouldMoveHeldTransactions && !!transaction.comment?.hold;
+        const isScanFailed = shouldMoveScanFailedTransactions && hasSmartScanFailedWithMissingFields([transaction], iouReport);
+
+        if (isHeld || isScanFailed) {
             holdReportActions.push(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
             holdTransactions.push(transaction);
         }
@@ -715,6 +727,8 @@ function getReportFromHoldRequestsOnyxData({
     betas,
     isApprovalFlow = false,
     delegateAccountID,
+    shouldMoveHeldTransactions = true,
+    shouldMoveScanFailedTransactions = false,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -725,6 +739,8 @@ function getReportFromHoldRequestsOnyxData({
     isApprovalFlow?: boolean;
     // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
+    shouldMoveHeldTransactions?: boolean;
+    shouldMoveScanFailedTransactions?: boolean;
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -735,7 +751,7 @@ function getReportFromHoldRequestsOnyxData({
     successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
     failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>>;
 } {
-    const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport?.reportID);
+    const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport?.reportID, iouReport, shouldMoveHeldTransactions, shouldMoveScanFailedTransactions);
     const firstHoldTransaction = holdTransactions.at(0);
     const newParentReportActionID = NumberUtils.rand64();
 
@@ -743,8 +759,20 @@ function getReportFromHoldRequestsOnyxData({
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     const holdReimbursable = getReimbursableTotal(iouReport) - getUnheldReimbursableTotal(iouReport);
     const holdNonReimbursable = (iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0);
-    const holdAmount = (holdReimbursable + holdNonReimbursable) * coefficient;
-    const holdNonReimbursableAmount = holdNonReimbursable * coefficient;
+
+    let movedReimbursableAmount = 0;
+    let movedNonReimbursableAmount = 0;
+    for (const movedTransaction of holdTransactions) {
+        const transactionAmount = getAmount(movedTransaction, isExpenseReport(iouReport));
+        if (movedTransaction.reimbursable === false) {
+            movedNonReimbursableAmount += transactionAmount;
+        } else {
+            movedReimbursableAmount += transactionAmount;
+        }
+    }
+
+    const holdAmount = shouldMoveScanFailedTransactions ? movedReimbursableAmount + movedNonReimbursableAmount : (holdReimbursable + holdNonReimbursable) * coefficient;
+    const holdNonReimbursableAmount = shouldMoveScanFailedTransactions ? movedNonReimbursableAmount : holdNonReimbursable * coefficient;
 
     // Pass held transactions for formula computation (e.g., {report:startdate})
     const reportTransactions: Record<string, OnyxTypes.Transaction> = {};
@@ -850,7 +878,21 @@ function getReportFromHoldRequestsOnyxData({
     // Held transactions just moved out, leaving total/nonReimbursableTotal stale on this report —
     // offline consumers (e.g. the Pay button) would read the wrong amount until server reconciles.
     // unheldTotal stays as-is: every remaining transaction is unheld, so it already equals the new total.
-    const shouldUpdateOriginalReportTotals = holdTransactions.length > 0 && iouReport?.unheldTotal !== undefined;
+    const shouldUpdateOriginalReportTotals = holdTransactions.length > 0 && (shouldMoveScanFailedTransactions || iouReport?.unheldTotal !== undefined);
+
+    const movedTotal = holdAmount * coefficient;
+    const movedNonReimbursableTotal = holdNonReimbursableAmount * coefficient;
+    const remainingReportTotals = shouldMoveScanFailedTransactions
+        ? {
+              total: (iouReport?.total ?? 0) - movedTotal,
+              nonReimbursableTotal: (iouReport?.nonReimbursableTotal ?? 0) - movedNonReimbursableTotal,
+              reimbursableTotal: getReimbursableTotal(iouReport) - (movedTotal - movedNonReimbursableTotal),
+          }
+        : {
+              total: iouReport?.unheldTotal ?? 0,
+              nonReimbursableTotal: iouReport?.unheldNonReimbursableTotal ?? 0,
+              reimbursableTotal: getUnheldReimbursableTotal(iouReport),
+          };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
@@ -910,11 +952,7 @@ function getReportFromHoldRequestsOnyxData({
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: {
-                total: iouReport?.unheldTotal ?? 0,
-                nonReimbursableTotal: iouReport?.unheldNonReimbursableTotal ?? 0,
-                reimbursableTotal: getUnheldReimbursableTotal(iouReport),
-            },
+            value: remainingReportTotals,
         });
     }
 
