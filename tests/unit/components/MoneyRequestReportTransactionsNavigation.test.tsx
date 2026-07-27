@@ -3,12 +3,14 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import MoneyRequestReportTransactionsNavigation from '@components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 
 import {createTransactionThreadReport} from '@libs/actions/Report';
+import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
 
 import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
@@ -101,10 +103,13 @@ jest.mock('@navigation/Navigation', () => ({
     },
 }));
 
+const makeRootState = (focusedRouteName: string) => ({index: 0, routes: [{key: 'k', name: focusedRouteName}]});
+const mockGetRootState = jest.fn(() => makeRootState('testRoute'));
+
 jest.mock('@navigation/navigationRef', () => ({
     __esModule: true,
     default: {
-        getRootState: jest.fn(() => ({index: 0, routes: [{key: 'k', name: 'testRoute'}]})),
+        getRootState: () => mockGetRootState(),
         getCurrentRoute: jest.fn(() => undefined),
     },
 }));
@@ -142,6 +147,7 @@ const resetMockState = () => {
     mockState.transactionsCollection = {};
     mockState.reportActionsCollection = {};
     mockState.reportsCollection = {};
+    mockGetRootState.mockReturnValue(makeRootState('testRoute'));
 };
 
 const setupUseOnyx = () => {
@@ -370,5 +376,36 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         renderNavigation();
 
         expect(screen.queryByTestId('next-button')).toBeNull();
+    });
+
+    describe('clearing the carousel on unmount', () => {
+        const setFocusedRoute = (name: string) => {
+            mockGetRootState.mockReturnValue(makeRootState(name));
+        };
+
+        // Unmounting onto one of these means we're still inside the expense-navigation flow, and a screen lower in
+        // the RHP stack may still depend on the carousel. In particular, opening the parent report from the
+        // subtitle link pushes an EXPENSE_REPORT / SEARCH_MONEY_REQUEST_REPORT RHP on top of the transaction
+        // thread, so backing out of an expense onto it must not wipe the underlying thread's carousel (#90366).
+        it.each([
+            ['SEARCH_REPORT', SCREENS.RIGHT_MODAL.SEARCH_REPORT],
+            ['SEARCH_MONEY_REQUEST_REPORT', SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+            ['EXPENSE_REPORT', SCREENS.RIGHT_MODAL.EXPENSE_REPORT],
+            ['TRANSACTION_DUPLICATE.REVIEW', SCREENS.TRANSACTION_DUPLICATE.REVIEW],
+        ])('keeps the active transaction IDs when unmounting onto %s', (_label, screenName) => {
+            setFocusedRoute(screenName);
+
+            renderNavigation().unmount();
+
+            expect(clearActiveTransactionIDs).not.toHaveBeenCalled();
+        });
+
+        it('clears the active transaction IDs when unmounting onto an unrelated screen', () => {
+            setFocusedRoute(SCREENS.SEARCH.ROOT);
+
+            renderNavigation().unmount();
+
+            expect(clearActiveTransactionIDs).toHaveBeenCalled();
+        });
     });
 });

@@ -32,6 +32,13 @@ import {findFocusedRoute} from '@react-navigation/native';
 import React, {startTransition, useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
+const CAROUSEL_PRESERVING_SCREENS = [
+    SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+    SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+    SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+    SCREENS.TRANSACTION_DUPLICATE.REVIEW,
+] as const;
+
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;
     isFromReviewDuplicates?: boolean;
@@ -165,7 +172,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     useEffect(() => {
         return () => {
             const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-            if (focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || focusedRoute?.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW) {
+            if (focusedRoute?.name && (CAROUSEL_PRESERVING_SCREENS as readonly string[]).includes(focusedRoute.name)) {
                 return;
             }
             clearActiveTransactionIDs();
