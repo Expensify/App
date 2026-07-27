@@ -430,6 +430,8 @@ const translations = {
         longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
         internationalReimbursementIDs: 'International reimbursement IDs',
+        amountDebited: 'Amount debited',
+        amountReimbursed: 'Amount reimbursed',
         withdrawalStatus: 'Withdrawal status',
         paidStatus: 'Paid status',
         bankAccounts: 'Bank accounts',

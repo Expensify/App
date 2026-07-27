@@ -196,6 +196,18 @@ type SearchWithdrawalIDGroup = {
 
     /** Settlement state (5/6/7=failed, 8=cleared, others=pending) */
     state: number;
+
+    /** What the company was debited, when the settlement converted currencies */
+    debitedAmount?: number;
+
+    /** Currency the company was debited in */
+    debitedCurrency?: string;
+
+    /** What the employee was credited, when the settlement converted currencies */
+    creditedAmount?: number;
+
+    /** Currency the employee was credited in */
+    creditedCurrency?: string;
 };
 
 /** Model of category grouped search result */

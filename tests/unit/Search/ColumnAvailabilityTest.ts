@@ -54,6 +54,8 @@ describe('Column availability single source of truth', () => {
         TABLE_COLUMNS.GROUP_YEAR,
         TABLE_COLUMNS.GROUP_QUARTER,
         TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
+        TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+        TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
     ]);
 
     test('every TABLE_COLUMNS value is classified in COLUMN_AVAILABILITY or owned by another surface', () => {
