@@ -4617,6 +4617,7 @@ describe('SearchUIUtils', () => {
             expect(emptyMerchantItem?.transactionsQueryJSON).toBeDefined();
             // The query should use 'none' (MERCHANT_EMPTY_VALUE) instead of empty string
             expect(emptyMerchantItem?.transactionsQueryJSON?.inputQuery).toContain(CONST.SEARCH.MERCHANT_EMPTY_VALUE);
+            expect(emptyMerchantItem?.transactionsQueryJSON?.exactMatchFilterKeys).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
         });
 
         it('should treat DEFAULT_MERCHANT "Expense" as empty merchant and display "No merchant"', () => {
