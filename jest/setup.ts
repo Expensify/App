@@ -313,15 +313,6 @@ jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
 }));
 
-jest.mock('react-native-nitro-fetch', () => ({
-    __esModule: true,
-    fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args),
-    prefetchOnAppStart: jest.fn(() => Promise.resolve()),
-    registerTokenRefresh: jest.fn(),
-    clearTokenRefresh: jest.fn(),
-    removeFromAutoPrefetch: jest.fn(() => Promise.resolve()),
-}));
-
 jest.mock('@shopify/react-native-skia', () => ({
     useFont: jest.fn(() => null),
     matchFont: jest.fn(() => null),
