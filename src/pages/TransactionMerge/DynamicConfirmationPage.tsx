@@ -13,6 +13,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -48,6 +49,7 @@ type DynamicConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNav
 function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
     const {transactionID, isOnSearch} = route.params;
@@ -133,6 +135,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                     sourceTransaction.transactionID,
                     targetReportTransactionsCollection,
                     currentSearchResults,
+                    isOffline,
                 );
 
                 if (!willTargetReportBeOneTransactionReport) {

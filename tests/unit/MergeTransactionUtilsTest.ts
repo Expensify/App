@@ -1578,7 +1578,7 @@ describe('MergeTransactionUtils', () => {
             const target = buildTransaction('target', REPORT_ID);
 
             // When we check if the report becomes a one-transaction report after the merge
-            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target]), undefined);
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target]), undefined, false);
 
             // Then it should be true because only the target is left
             expect(result).toBe(true);
@@ -1590,7 +1590,7 @@ describe('MergeTransactionUtils', () => {
             const source = buildTransaction('source', REPORT_ID);
 
             // When we check after the source is merged away
-            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source]), undefined);
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source]), undefined, false);
 
             // Then it should be true because only the target remains
             expect(result).toBe(true);
@@ -1603,7 +1603,7 @@ describe('MergeTransactionUtils', () => {
             const other = buildTransaction('other', REPORT_ID);
 
             // When we check after the source is merged away
-            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source, other]), undefined);
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source, other]), undefined, false);
 
             // Then it should be false because the target and the other expense remain
             expect(result).toBe(false);
@@ -1616,7 +1616,7 @@ describe('MergeTransactionUtils', () => {
             const other = buildTransaction('other', REPORT_ID);
 
             // When we check after the source is merged away
-            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, {}, toSearchResults([target, source, other]));
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, {}, toSearchResults([target, source, other]), false);
 
             // Then it should be false because the snapshot still shows the target and the other expense
             expect(result).toBe(false);
@@ -1628,22 +1628,34 @@ describe('MergeTransactionUtils', () => {
             const source = buildTransaction('source', REPORT_ID);
 
             // When we check after the source is merged away
-            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source]), toSearchResults([target, source]));
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source]), toSearchResults([target, source]), false);
 
             // Then it should be true because the duplicated target is only counted once
             expect(result).toBe(true);
         });
 
-        it('ignores siblings that are pending deletion', () => {
-            // Given a report with the target and a sibling that is pending deletion
+        it('ignores siblings pending deletion while online', () => {
+            // Given a report with the target and a sibling that is pending deletion, while online
             const target = buildTransaction('target', REPORT_ID);
             const deletingSibling = buildTransaction('deleting', REPORT_ID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
 
             // When we check after the merge
-            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletingSibling]), undefined);
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletingSibling]), undefined, false);
 
-            // Then it should be true because the deleting sibling doesn't count
+            // Then it should be true because the deleting sibling is hidden online and doesn't count
             expect(result).toBe(true);
+        });
+
+        it('keeps siblings pending deletion while offline', () => {
+            // Given the same report with a sibling pending deletion, but now offline
+            const target = buildTransaction('target', REPORT_ID);
+            const deletingSibling = buildTransaction('deleting', REPORT_ID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // When we check after the merge while offline
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletingSibling]), undefined, true);
+
+            // Then it should be false because the Search report still shows the deleting sibling while offline
+            expect(result).toBe(false);
         });
 
         it('returns false for the unreported and split sentinel reports', () => {
@@ -1652,8 +1664,8 @@ describe('MergeTransactionUtils', () => {
             const split = buildTransaction('split', CONST.REPORT.SPLIT_REPORT_ID);
 
             // When we check each sentinel report
-            const unreportedResult = willReportBecomeOneTransactionReportAfterMerge(CONST.REPORT.UNREPORTED_REPORT_ID, 'source', toCollection([unreported]), undefined);
-            const splitResult = willReportBecomeOneTransactionReportAfterMerge(CONST.REPORT.SPLIT_REPORT_ID, 'source', toCollection([split]), undefined);
+            const unreportedResult = willReportBecomeOneTransactionReportAfterMerge(CONST.REPORT.UNREPORTED_REPORT_ID, 'source', toCollection([unreported]), undefined, false);
+            const splitResult = willReportBecomeOneTransactionReportAfterMerge(CONST.REPORT.SPLIT_REPORT_ID, 'source', toCollection([split]), undefined, false);
 
             // Then both should be false because those reportIDs are shared across expenses
             expect(unreportedResult).toBe(false);
@@ -1663,7 +1675,7 @@ describe('MergeTransactionUtils', () => {
         it('returns false when the reportID is undefined', () => {
             // Given no reportID
             // When we check whether the report collapses to a single expense
-            const result = willReportBecomeOneTransactionReportAfterMerge(undefined, 'source', {}, undefined);
+            const result = willReportBecomeOneTransactionReportAfterMerge(undefined, 'source', {}, undefined, false);
 
             // Then it should be false
             expect(result).toBe(false);

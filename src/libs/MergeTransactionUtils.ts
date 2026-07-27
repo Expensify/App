@@ -357,14 +357,16 @@ function getTransactionThreadReportID(transaction: OnyxEntry<Transaction>) {
 
 /**
  * Whether merging the source into the target leaves its report with a single expense (a one-transaction thread report).
- * Looks at both Onyx and the Search snapshot, and skips the source and any expense that's being deleted. Unreported and
- * split expenses share a reportID, so they never count as a single-expense report.
+ * Looks at both Onyx and the Search snapshot, and skips the source. Unreported and split expenses share a reportID, so
+ * they never count as a single-expense report. A sibling that's being deleted is skipped too, unless we're offline -
+ * the Search report keeps those rows visible while offline, so they still count towards keeping the report open.
  */
 function willReportBecomeOneTransactionReportAfterMerge(
     reportID: string | undefined,
     sourceTransactionID: string | undefined,
     reportTransactionsCollection: OnyxCollection<Transaction>,
     searchResults: OnyxEntry<SearchResults>,
+    isOffline: boolean,
 ): boolean {
     if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportID === CONST.REPORT.SPLIT_REPORT_ID) {
         return false;
@@ -372,7 +374,7 @@ function willReportBecomeOneTransactionReportAfterMerge(
 
     const remainingTransactionIDs = new Set<string>();
     const collectTransaction = (transaction: OnyxEntry<Transaction>) => {
-        if (!transaction || transaction.reportID !== reportID || transaction.transactionID === sourceTransactionID || isTransactionPendingDelete(transaction)) {
+        if (!transaction || transaction.reportID !== reportID || transaction.transactionID === sourceTransactionID || (!isOffline && isTransactionPendingDelete(transaction))) {
             return;
         }
         remainingTransactionIDs.add(transaction.transactionID);
