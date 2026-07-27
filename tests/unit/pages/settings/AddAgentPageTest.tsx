@@ -312,7 +312,7 @@ describe('AddAgentPage', () => {
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
             expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.AGENT_REPORT.getRoute(OPTIMISTIC_REPORT_ID));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.AGENT_REPORT.getRoute(OPTIMISTIC_REPORT_ID), {forceReplace: true});
         });
 
         it('creates the agent with the persisted preset when no photo was uploaded', () => {

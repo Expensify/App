@@ -288,6 +288,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     };
 
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const isAgentReportInRHP = route.name === SCREENS.RIGHT_MODAL.AGENT_REPORT;
     const shouldDisplaySearchRouter = !isInSidePanel && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurposeSelected);
@@ -299,7 +300,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !isInSidePanel;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
     const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
-    const shouldShowCloseButton = !!isInSidePanel && !shouldUseNarrowLayout;
+    // AGENT_REPORT is only ever opened as an RHP (see AddAgentPage), where isInNarrowPaneModal makes
+    // shouldUseNarrowLayout true regardless of actual screen width, so it can't gate on that like the
+    // side-panel case below.
+    const shouldShowCloseButton = (!!isInSidePanel && !shouldUseNarrowLayout) || isAgentReportInRHP;
     const shouldShowBackButton = (shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton;
 
     const onboardingHelpDropdownButton = (

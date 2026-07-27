@@ -122,9 +122,9 @@ function AddAgentPage({route}: AddAgentPageProps) {
         }
 
         // On wide layouts, open the DM in a dedicated RHP screen instead of the fullscreen report split.
-        // No explicit dismiss needed: navigating to another side-modal route while one is open replaces
-        // it in a single transition (see isNavigatingToModalFromModal in RootStackRouter.ts).
-        Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID));
+        // forceReplace swaps this screen out for the DM instead of pushing on top of it, so the
+        // already-submitted form can't be reached again via the close/back button.
+        Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {forceReplace: true});
     };
 
     return (
