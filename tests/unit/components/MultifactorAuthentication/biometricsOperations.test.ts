@@ -1,35 +1,17 @@
 // jest-expo defaults to the ios platform, so this import resolves the native operations module
 // (operations/index.native.ts), which checks the HSM biometric sensor.
-import {
-    areLocalCredentialsKnownToServer,
-    deviceCheckFailureReason,
-    deviceVerificationType,
-    doesDeviceSupportAuthenticationMethod,
-} from '@components/MultifactorAuthentication/biometrics/operations';
+import {deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthenticationMethod} from '@components/MultifactorAuthentication/biometrics/operations';
 
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-
-import Onyx from 'react-native-onyx';
-import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 
 const mockIsSensorAvailable = jest.fn();
-const mockGetAllKeys = jest.fn();
 
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     isSensorAvailable: (...args: unknown[]) => mockIsSensorAvailable(...args),
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    getAllKeys: (...args: unknown[]) => mockGetAllKeys(...args),
 }));
-
-const ACCOUNT_ID = 12345;
-// The keystore returns the public key as plain base64 while the server stores base64url IDs, so the
-// characters below only match after the module's base64url conversion.
-const LOCAL_PUBLIC_KEY_BASE64 = 'Ab+/cd==';
-const LOCAL_CREDENTIAL_ID = 'Ab-_cd';
 
 describe('biometrics operations (native)', () => {
     beforeEach(() => {
@@ -60,41 +42,6 @@ describe('biometrics operations (native)', () => {
             mockIsSensorAvailable.mockResolvedValue({available: false, isDeviceSecure: false});
 
             await expect(doesDeviceSupportAuthenticationMethod()).resolves.toBe(false);
-        });
-    });
-
-    describe('areLocalCredentialsKnownToServer', () => {
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdates();
-        });
-
-        it('should return true when the local HSM key is among the server-known credential IDs', async () => {
-            mockGetAllKeys.mockResolvedValue({keys: [{publicKey: LOCAL_PUBLIC_KEY_BASE64}]});
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: ['other-credential-id', LOCAL_CREDENTIAL_ID]});
-
-            await expect(areLocalCredentialsKnownToServer(ACCOUNT_ID)).resolves.toBe(true);
-        });
-
-        it('should return false when the server does not know the local HSM key', async () => {
-            mockGetAllKeys.mockResolvedValue({keys: [{publicKey: LOCAL_PUBLIC_KEY_BASE64}]});
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: ['other-credential-id']});
-
-            await expect(areLocalCredentialsKnownToServer(ACCOUNT_ID)).resolves.toBe(false);
-        });
-
-        it('should return false when the device holds no key for the account', async () => {
-            mockGetAllKeys.mockResolvedValue({keys: []});
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: [LOCAL_CREDENTIAL_ID]});
-
-            await expect(areLocalCredentialsKnownToServer(ACCOUNT_ID)).resolves.toBe(false);
-        });
-
-        it('should return false when the keystore read throws', async () => {
-            mockGetAllKeys.mockRejectedValue(new Error('Keystore unavailable'));
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: [LOCAL_CREDENTIAL_ID]});
-
-            await expect(areLocalCredentialsKnownToServer(ACCOUNT_ID)).resolves.toBe(false);
         });
     });
 });

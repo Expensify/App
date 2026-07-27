@@ -1,8 +1,3 @@
-import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import type {CheckLocalCredentialsInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
-
-import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
-
 import {requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import type * as MultifactorAuthenticationActions from '@userActions/MultifactorAuthentication';
 import {requestValidateCodeAction} from '@userActions/User';
@@ -10,10 +5,9 @@ import type * as UserActions from '@userActions/User';
 
 import CONST from '@src/CONST';
 
-import {createActorAtState, sendCheckLocalCredentialsDone} from 'tests/utils/mfa/flowActors';
-import createInitEvent, {MFA_TEST_INVALID_CODE_ERROR, MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_VALIDATE_CODE} from 'tests/utils/mfa/flowFixtures';
+import {createActorAtState, sendValidateDeviceDone} from 'tests/utils/mfa/flowActors';
+import {MFA_TEST_INVALID_CODE_ERROR, MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_VALIDATE_CODE} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
-import {createActor, fromPromise} from 'xstate';
 
 // The machine fires the magic-code email request, which is a backend call this suite only observes.
 jest.mock('@userActions/User', () => ({
@@ -78,10 +72,10 @@ describe('MFA magic code and registration decision', () => {
     });
 
     it('requests a validate code exactly once when a fresh registration reaches the magic-code screen', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.VALIDATING_DEVICE}});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, false);
+        sendValidateDeviceDone(actor, {success: true});
 
         expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE})).toBe(true);
         expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
@@ -90,10 +84,10 @@ describe('MFA magic code and registration decision', () => {
     });
 
     it('skips the magic code for a returning user whose credentials the server knows', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.VALIDATING_DEVICE}}, {localCredentialsKnownToServer: true});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, true);
+        sendValidateDeviceDone(actor, {success: true});
 
         expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}})).toBe(true);
         expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
@@ -210,27 +204,6 @@ describe('MFA magic code and registration decision', () => {
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE})).toBe(true);
         expect(result.context.continuableError).toBeUndefined();
-
-        actor.stop();
-    });
-
-    it('ends the current flow with an error when the credentials check rejects', async () => {
-        const machine = mfaMachine.provide({
-            actors: {
-                validateDevice: fromPromise<MFAResult, ValidateDeviceInput>(() => Promise.resolve({success: true})),
-                checkLocalCredentials: fromPromise<boolean, CheckLocalCredentialsInput>(() => Promise.reject(new Error('Keystore read failed'))),
-            },
-        });
-        const actor = createActor(machine);
-
-        actor.start();
-        actor.send(createInitEvent());
-        await waitForBatchedUpdates();
-
-        const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
-        expect(result.context.error?.reason).toBe(REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION);
-        expect(result.context.error?.message).toContain('Local credentials check threw: Keystore read failed');
 
         actor.stop();
     });

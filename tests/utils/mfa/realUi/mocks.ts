@@ -1,7 +1,6 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
 import type {
-    CheckLocalCredentialsInput,
     ReadHasAcceptedSoftPromptInput,
     RequestRegistrationChallengeInput,
     RequestRegistrationChallengeOutput,
@@ -24,6 +23,7 @@ type PendingCall<TOutput> = {
 };
 
 let pendingCloseCallback: CapturedCallback | undefined;
+let localCredentialsKnownToServer = false;
 
 /**
  * Captures the callback scheduled by the navigator through `runAfterUpcomingTransition`
@@ -48,12 +48,21 @@ const pendingModalClose = {
 };
 
 /**
- * Provides only the biometric values captured for telemetry while preparing `INIT`. They do not
- * currently affect machine transitions. The `Pick` makes renamed hook fields fail type checking.
+ * Provides the biometric values captured while preparing `INIT`. The `Pick` makes renamed hook
+ * fields fail type checking.
  */
 const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'areLocalCredentialsKnownToServer'> = {
     serverKnownCredentialIDs: [],
-    areLocalCredentialsKnownToServer: () => Promise.resolve(false),
+    areLocalCredentialsKnownToServer: () => Promise.resolve(localCredentialsKnownToServer),
+};
+
+const localCredentialsKnownToServerControl = {
+    set: (value: boolean) => {
+        localCredentialsKnownToServer = value;
+    },
+    reset: () => {
+        localCredentialsKnownToServer = false;
+    },
 };
 
 /**
@@ -90,14 +99,13 @@ function createControlledActor<TOutput, TInput>(actorID: string) {
 
 const validateDeviceControl = createControlledActor<MFAResult, ValidateDeviceInput>('validateDevice');
 const readHasAcceptedSoftPromptControl = createControlledActor<boolean, ReadHasAcceptedSoftPromptInput>('readHasAcceptedSoftPrompt');
-const checkLocalCredentialsControl = createControlledActor<boolean, CheckLocalCredentialsInput>('checkLocalCredentials');
 const requestRegistrationChallengeControl = createControlledActor<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>('requestRegistrationChallenge');
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
+    localCredentialsKnownToServerControl.reset();
     validateDeviceControl.reset();
     readHasAcceptedSoftPromptControl.reset();
-    checkLocalCredentialsControl.reset();
     requestRegistrationChallengeControl.reset();
 }
 
@@ -106,7 +114,6 @@ function mfaActorsMock() {
     const actors = {
         validateDevice: validateDeviceControl.actor,
         readHasAcceptedSoftPrompt: readHasAcceptedSoftPromptControl.actor,
-        checkLocalCredentials: checkLocalCredentialsControl.actor,
         requestRegistrationChallenge: requestRegistrationChallengeControl.actor,
     } satisfies ReturnType<typeof createActors>;
 
@@ -178,9 +185,9 @@ function navigationMock() {
 
 export {
     pendingModalClose,
+    localCredentialsKnownToServerControl,
     validateDeviceControl,
     readHasAcceptedSoftPromptControl,
-    checkLocalCredentialsControl,
     requestRegistrationChallengeControl,
     resetMfaUiMocks,
     mfaActorsMock,

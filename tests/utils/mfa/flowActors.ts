@@ -7,10 +7,9 @@ import type {OutputFrom, StateValue} from 'xstate';
 import {createActor} from 'xstate';
 
 import createInitEvent from './flowFixtures';
-import {CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, VALIDATE_DEVICE_DONE_EVENT_TYPE} from './flowPaths';
+import {REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, VALIDATE_DEVICE_DONE_EVENT_TYPE} from './flowPaths';
 
 type ValidateDeviceOutput = OutputFrom<ReturnType<typeof createActors>['validateDevice']>;
-type CheckLocalCredentialsOutput = OutputFrom<ReturnType<typeof createActors>['checkLocalCredentials']>;
 type RequestRegistrationChallengeOutput = OutputFrom<ReturnType<typeof createActors>['requestRegistrationChallenge']>;
 
 /**
@@ -25,6 +24,7 @@ function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
         scenarioName: initEvent.scenarioName,
         scenario: initEvent.scenario,
         payload: initEvent.payload,
+        localCredentialsKnownToServer: initEvent.localCredentialsKnownToServer,
         validateCode: undefined,
         continuableError: undefined,
         registrationChallenge: undefined,
@@ -52,15 +52,6 @@ function sendValidateDeviceDone(actor: ReturnType<typeof createActorAtState>, ou
     actor.send({type: VALIDATE_DEVICE_DONE_EVENT_TYPE, output} as unknown as MfaEvent);
 }
 
-/**
- * Completes the invoked credentials-check actor by sending its done event carrying the given output.
- */
-function sendCheckLocalCredentialsDone(actor: ReturnType<typeof createActorAtState>, output: CheckLocalCredentialsOutput) {
-    // Framework actor events are not part of the application's MfaEvent union.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    actor.send({type: CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, output} as unknown as MfaEvent);
-}
-
 /** Completes the registration-challenge request with the supplied backend-shaped result. */
 function sendRequestRegistrationChallengeDone(actor: ReturnType<typeof createActorAtState>, output: RequestRegistrationChallengeOutput) {
     // Framework actor events are not part of the application's MfaEvent union.
@@ -68,4 +59,4 @@ function sendRequestRegistrationChallengeDone(actor: ReturnType<typeof createAct
     actor.send({type: REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, output} as unknown as MfaEvent);
 }
 
-export {createActorAtState, createFlowContext, sendCheckLocalCredentialsDone, sendRequestRegistrationChallengeDone, sendValidateDeviceDone};
+export {createActorAtState, createFlowContext, sendRequestRegistrationChallengeDone, sendValidateDeviceDone};

@@ -1,5 +1,5 @@
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import type {CheckLocalCredentialsInput, ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
+import type {ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
 
 import {getDeviceBiometricsOnyxKey} from '@libs/actions/MultifactorAuthentication';
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 
 import Onyx from 'react-native-onyx';
 import getOnyxValue from 'tests/utils/getOnyxValue';
-import {createActorAtState, sendCheckLocalCredentialsDone} from 'tests/utils/mfa/flowActors';
+import {createActorAtState, sendValidateDeviceDone} from 'tests/utils/mfa/flowActors';
 import createInitEvent, {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {createActor, fromPromise} from 'xstate';
@@ -27,10 +27,10 @@ describe('MFA soft prompt', () => {
     });
 
     it('moves a registered account to the soft prompt when the current account has not accepted it', async () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.VALIDATING_DEVICE}}, {localCredentialsKnownToServer: true});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, true);
+        sendValidateDeviceDone(actor, {success: true});
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
@@ -42,10 +42,10 @@ describe('MFA soft prompt', () => {
 
     it('skips the soft prompt when the user has already accepted it on this device', async () => {
         await Onyx.merge(getDeviceBiometricsOnyxKey(MFA_TEST_ACCOUNT_ID), {hasAcceptedSoftPrompt: true});
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.VALIDATING_DEVICE}}, {localCredentialsKnownToServer: true});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, true);
+        sendValidateDeviceDone(actor, {success: true});
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
@@ -60,10 +60,10 @@ describe('MFA soft prompt', () => {
         const connection = {id: 'soft-prompt-read-test', callbackID: 'soft-prompt-read-test'};
         jest.spyOn(Onyx, 'connectWithoutView').mockReturnValue(connection);
         const disconnectSpy = jest.spyOn(Onyx, 'disconnect').mockImplementation();
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.VALIDATING_DEVICE}}, {localCredentialsKnownToServer: true});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, true);
+        sendValidateDeviceDone(actor, {success: true});
         expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}})).toBe(true);
 
         actor.send({type: 'CLOSE_MODAL'});
@@ -78,15 +78,13 @@ describe('MFA soft prompt', () => {
         const machine = mfaMachine.provide({
             actors: {
                 validateDevice: fromPromise<MFAResult, ValidateDeviceInput>(() => Promise.resolve({success: true})),
-                // A registered account routes the flow straight to the soft-prompt read under test.
-                checkLocalCredentials: fromPromise<boolean, CheckLocalCredentialsInput>(() => Promise.resolve(true)),
                 readHasAcceptedSoftPrompt: fromPromise<boolean, ReadHasAcceptedSoftPromptInput>(() => Promise.reject(new Error('Onyx read failed'))),
             },
         });
         const actor = createActor(machine);
 
         actor.start();
-        actor.send(createInitEvent());
+        actor.send(createInitEvent(true));
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();

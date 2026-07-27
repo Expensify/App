@@ -16,8 +16,6 @@ import type {SnapshotFrom} from 'xstate';
 import Onyx from 'react-native-onyx';
 import {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths, {
-    CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE,
-    CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE,
     isAutoDrivenEvent,
     READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE,
     READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE,
@@ -29,7 +27,7 @@ import getWalkedPaths, {
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {
-    checkLocalCredentialsControl,
+    localCredentialsKnownToServerControl,
     pendingModalClose,
     readHasAcceptedSoftPromptControl,
     requestRegistrationChallengeControl,
@@ -85,8 +83,6 @@ type MfaActorEventExecutors = {
     [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => Promise<void>;
     [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step: {event: {type: typeof READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE; output: boolean}}) => Promise<void>;
     [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => Promise<void>;
-    [CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE]: (step: {event: {type: typeof CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE; output: boolean}}) => Promise<void>;
-    [CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE]: () => Promise<void>;
     [REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE]: (step: {
         event: {type: typeof REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE; output: RequestRegistrationChallengeOutput};
     }) => Promise<void>;
@@ -96,7 +92,7 @@ type MfaActorEventExecutors = {
 type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
 
 function isMfaInitEvent(event: {type: string}): event is MfaInitEvent {
-    return event.type === 'INIT' && 'accountID' in event && 'scenarioName' in event && 'scenario' in event && 'payload' in event;
+    return event.type === 'INIT' && 'accountID' in event && 'scenarioName' in event && 'scenario' in event && 'payload' in event && 'localCredentialsKnownToServer' in event;
 }
 
 type MfaValidateCodeEnteredEvent = Extract<MfaEvent, {type: 'VALIDATE_CODE_ENTERED'}>;
@@ -123,6 +119,7 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             if (!isMfaInitEvent(event)) {
                 throw new Error('MFA INIT executor received a path event without the scenario fixture payload.');
             }
+            localCredentialsKnownToServerControl.set(event.localCredentialsKnownToServer);
             await act(async () => {
                 await executeScenario(event.scenarioName, event.payload);
             });
@@ -167,8 +164,6 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
         [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleActor(validateDeviceControl.reject),
         [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step) => settleActor(() => readHasAcceptedSoftPromptControl.resolve(step.event.output)),
         [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => settleActor(readHasAcceptedSoftPromptControl.reject),
-        [CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE]: (step) => settleActor(() => checkLocalCredentialsControl.resolve(step.event.output)),
-        [CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE]: () => settleActor(checkLocalCredentialsControl.reject),
         [REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE]: (step) => settleActor(() => requestRegistrationChallengeControl.resolve(step.event.output)),
         [REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE]: () => settleActor(requestRegistrationChallengeControl.reject),
     } satisfies MfaEventExecutors & MfaActorEventExecutors;
@@ -186,12 +181,6 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
-        },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.DECIDING_REGISTRATION}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
-            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
-            expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
-            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
-            expect(state.context.error).toBeUndefined();
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);

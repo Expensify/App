@@ -26,13 +26,14 @@ const MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR = createMFAErrorFromApiRespons
 /**
  * Builds the INIT event fixture for the test scenario.
  */
-function createInitEvent(): MultifactorAuthenticationInitEvent<typeof MFA_TEST_SCENARIO_NAME> {
+function createInitEvent(localCredentialsKnownToServer = false): MultifactorAuthenticationInitEvent<typeof MFA_TEST_SCENARIO_NAME> {
     return {
         type: 'INIT',
         accountID: MFA_TEST_ACCOUNT_ID,
         scenarioName: MFA_TEST_SCENARIO_NAME,
         scenario: getScenarioConfig(MFA_TEST_SCENARIO_NAME),
         payload: undefined,
+        localCredentialsKnownToServer,
     };
 }
 
