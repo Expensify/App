@@ -91,6 +91,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
                         role={CONST.ROLE.PRESENTATION}
                         onKeyPress={submitFormOnModEnter}
                         multiline
+                        type="markdown"
                         shouldSaveDraft
                         shouldLabelStayOnSingleLine
                         containerStyles={[styles.flex1]}

@@ -167,6 +167,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={defaultPrompt}
                             multiline
+                            type="markdown"
                             containerStyles={[styles.flex1]}
                             touchableInputWrapperStyle={[styles.flex1]}
                             textInputContainerStyles={[styles.flex1]}

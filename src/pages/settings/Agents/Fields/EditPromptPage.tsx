@@ -100,6 +100,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
                         multiline
+                        type="markdown"
                         containerStyles={[styles.flex1]}
                         touchableInputWrapperStyle={[styles.flex1]}
                         textInputContainerStyles={[styles.flex1]}
