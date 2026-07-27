@@ -16,9 +16,6 @@ type Modal = {
 
     /** Indicates if the modal is a popover */
     isPopover?: boolean;
-
-    /** Indicates if the modal suppresses persistent surfaces from opening through final hide */
-    isModalCovering?: boolean;
 };
 
 export default Modal;

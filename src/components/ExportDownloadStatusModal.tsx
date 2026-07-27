@@ -198,6 +198,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             isVisible={isVisible}
             onClose={isNonDismissible ? () => {} : onClose}
             onBackdropPress={isNonDismissible ? () => {} : undefined}
+            shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
         >

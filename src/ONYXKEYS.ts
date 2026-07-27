@@ -39,6 +39,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever the sidebar has loaded */
     RAM_ONLY_IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    /** Whether a semantic modal is covering the product marketing window in this app instance */
+    RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED: 'isProductMarketingWindowCovered',
+
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
@@ -1514,6 +1517,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
     [ONYXKEYS.CURRENT_DATE]: string;

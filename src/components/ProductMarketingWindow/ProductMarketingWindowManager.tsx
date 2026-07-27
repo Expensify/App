@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
-import {isProductMarketingWindowCoveredSelector} from '@src/selectors/Modal';
 import {activeAdminPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy, Session} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -55,9 +54,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // Semantically covering overlays take precedence over the marketing window from pre-show through final hide.
     // Responsive popover sheets and route-backed right-docked navigation remain exempt.
-    const [isModalCovering = false] = useOnyx(ONYXKEYS.MODAL, {
-        selector: isProductMarketingWindowCoveredSelector,
-    });
+    const [isProductMarketingWindowCovered = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED);
     // Anonymous sessions (logged-out visitors of public rooms) should never see product marketing.
     const [isAnonymousSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
     // Copilots must not see (or permanently dismiss) the account owner's announcement.
@@ -80,7 +77,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     // dismissed window could flash on cold start or the CTA could briefly target the wrong workspace.
     const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, activeAdminPoliciesMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
 
-    if (!announcement || !variant || isLoading || isModalCovering || isAnonymousSession || isActingAsDelegate || isCoveredByCenteredModalScreen) {
+    if (!announcement || !variant || isLoading || isProductMarketingWindowCovered || isAnonymousSession || isActingAsDelegate || isCoveredByCenteredModalScreen) {
         return null;
     }
 

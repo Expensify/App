@@ -254,8 +254,8 @@ describe('ProductMarketingWindowManager', () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
                 willAlertModalBecomeVisible: true,
                 isPopover: false,
-                isModalCovering: true,
             });
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED, true);
             await waitForBatchedUpdatesWithAct();
         });
         expect(screen.queryByText(adminHeading)).toBeNull();
@@ -273,7 +273,6 @@ describe('ProductMarketingWindowManager', () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
                 willAlertModalBecomeVisible: false,
                 isPopover: false,
-                isModalCovering: true,
             });
             await waitForBatchedUpdatesWithAct();
         });
@@ -283,8 +282,8 @@ describe('ProductMarketingWindowManager', () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
                 isVisible: false,
                 type: null,
-                isModalCovering: false,
             });
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED, false);
             await waitForBatchedUpdatesWithAct();
         });
         expect(screen.getByText(adminHeading)).toBeTruthy();
@@ -296,8 +295,8 @@ describe('ProductMarketingWindowManager', () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
                 willAlertModalBecomeVisible: true,
                 isPopover: true,
-                isModalCovering: false,
             });
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED, false);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -319,7 +318,6 @@ describe('ProductMarketingWindowManager', () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
                 willAlertModalBecomeVisible: false,
                 isPopover: false,
-                isModalCovering: false,
             });
             await waitForBatchedUpdatesWithAct();
         });
@@ -334,8 +332,8 @@ describe('ProductMarketingWindowManager', () => {
                 isVisible: false,
                 type: CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
                 isPopover: true,
-                isModalCovering: false,
             });
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED, false);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -353,7 +351,6 @@ describe('ProductMarketingWindowManager', () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
                 willAlertModalBecomeVisible: false,
                 isPopover: false,
-                isModalCovering: false,
             });
             await waitForBatchedUpdatesWithAct();
         });
@@ -375,8 +372,8 @@ describe('ProductMarketingWindowManager', () => {
                 willAlertModalBecomeVisible: true,
                 isVisible: false,
                 isPopover: true,
-                isModalCovering: true,
             });
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED, true);
             await waitForBatchedUpdatesWithAct();
         });
         expect(screen.queryByText(adminHeading)).toBeNull();
@@ -394,7 +391,6 @@ describe('ProductMarketingWindowManager', () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
                 willAlertModalBecomeVisible: false,
                 isPopover: false,
-                isModalCovering: true,
             });
             await waitForBatchedUpdatesWithAct();
         });
@@ -404,8 +400,8 @@ describe('ProductMarketingWindowManager', () => {
             await Onyx.merge(ONYXKEYS.MODAL, {
                 isVisible: false,
                 type: null,
-                isModalCovering: false,
             });
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED, false);
             await waitForBatchedUpdatesWithAct();
         });
         expect(screen.getByText(adminHeading)).toBeTruthy();

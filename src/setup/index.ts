@@ -53,8 +53,8 @@ export default function () {
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
-                isModalCovering: false,
             },
+            [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: false,
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
@@ -65,6 +65,7 @@ export default function () {
             ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
             ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
             ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+            ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED,
             ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
             ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
             ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,

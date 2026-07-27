@@ -94,6 +94,7 @@ function setModalVisibility(isVisible: boolean, type: ModalType | null = null) {
 /**
  * Tracks covering modals by instance so one modal cannot clear the covering state while another is still open.
  * The entry is kept until the modal's hide animation has completed.
+ * The published value is RAM-only so independently running browser tabs cannot overwrite each other's registry.
  */
 function setModalCovering(modalID: number, isCovering: boolean) {
     if (isCovering) {
@@ -102,7 +103,7 @@ function setModalCovering(modalID: number, isCovering: boolean) {
         coveringModalIDs.delete(modalID);
     }
 
-    Onyx.merge(ONYXKEYS.MODAL, {isModalCovering: coveringModalIDs.size > 0});
+    Onyx.set(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED, coveringModalIDs.size > 0);
 }
 
 /**
