@@ -1,3 +1,4 @@
+import Table from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspaceRequireFieldsTable from '@components/Tables/WorkspaceRequireFieldsTable';
 
@@ -78,6 +79,10 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
             },
         ],
     };
+
+    if (arePolicyCategoriesLoading) {
+        return <Table.LoadingState context="RulesRequireFieldsTab" />;
+    }
 
     return (
         <WorkspaceRequireFieldsTable

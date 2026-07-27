@@ -563,6 +563,7 @@
         "diems",
         "dimen",
         "directfeeds",
+        "dispatchable",
         "displaystatus",
         "domainpadding",
         "domelementtype",
@@ -1076,7 +1077,8 @@
         "Prefetcher",
         "knip",
         "lottiefiles",
-        "jsitooling"
+        "jsitooling",
+        "Refetched"
     ],
     "ignorePaths": [
         ".gitignore",

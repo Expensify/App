@@ -507,7 +507,7 @@ function MagicCodeInput({
                             }}
                             selectionColor="transparent"
                             inputStyle={[styles.inputTransparent]}
-                            accessibilityLabel={`${accessibilityLabel ?? translate('common.magicCode')}, ${maxLength} ${translate('common.digits')}`}
+                            accessibilityLabel={`${accessibilityLabel ?? translate('common.securityCode')}, ${maxLength} ${translate('common.digits')}`}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}
