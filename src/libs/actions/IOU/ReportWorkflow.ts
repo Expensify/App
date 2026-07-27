@@ -13,7 +13,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import Permissions from '@libs/Permissions';
 import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
@@ -754,8 +753,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     let optimisticHoldReportExpenseActionIDs;
     let optimisticReportActionCopyIDs;
     let optimisticCreatedReportForUnapprovedTransactionsActionID;
-    const shouldMoveScanFailedTransactions =
-        Permissions.isBetaEnabled(CONST.BETAS.SUBMIT_2026, betas) && reportTransactions.some((transaction) => hasSmartScanFailedWithMissingFields([transaction], expenseReport));
+    const shouldMoveScanFailedTransactions = reportTransactions.some((transaction) => hasSmartScanFailedWithMissingFields([transaction], expenseReport));
     if ((!full || shouldMoveScanFailedTransactions) && !!chatReport && !!expenseReport) {
         const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
