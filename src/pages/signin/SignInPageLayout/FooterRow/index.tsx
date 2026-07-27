@@ -15,6 +15,9 @@ function FooterRow({href, onPress, text, style}: FooterRowProps) {
     if (onPress) {
         return (
             <TextLink
+                // FooterRow fully controls the link color/font via `style`, so skip styles.link to avoid its
+                // high-contrast underline (textDecorationColor: theme.link) mismatching the footer text color.
+                suppressDefaultStyle
                 style={style}
                 onPress={onPress}
             >
@@ -25,6 +28,9 @@ function FooterRow({href, onPress, text, style}: FooterRowProps) {
 
     return (
         <TextLink
+            // FooterRow fully controls the link color/font via `style`, so skip styles.link to avoid its
+            // high-contrast underline (textDecorationColor: theme.link) mismatching the footer text color.
+            suppressDefaultStyle
             style={style}
             href={href}
             tabIndex={0}
