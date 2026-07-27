@@ -5072,8 +5072,8 @@ ${amount} für ${merchant} – ${date}`,
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
                     ? `Legen Sie einen Standardlieferanten fest, der auf erstattungsfähige Ausgaben angewendet wird, für die es in Sage Intacct keinen passenden Lieferanten gibt.`
-                    : `Ausgaben, die nicht mit Ihren Sage Intacct-Lieferanten abgeglichen werden können, werden standardmäßig diesem Lieferanten zugeordnet.`,
-            creditCardMiscFallback: `Andernfalls werden sie als „Credit Card Misc.“ exportiert.`,
+                    : `Ausgaben, die keinem Ihrer Sage Intacct-Lieferanten zugeordnet werden können, werden standardmäßig diesem Lieferanten zugewiesen.`,
+            creditCardMiscFallback: `Andernfalls werden sie als Kreditkarte – Verschiedenes exportiert.`,
             exportDescription: 'Konfigurieren Sie, wie Expensify Daten nach Sage Intacct exportiert.',
             exportPreferredExporterNote:
                 'Der bevorzugte Exporteur kann jede Workspace-Adminperson sein, muss jedoch auch Domain-Admin sein, wenn du in den Domaineinstellungen unterschiedliche Exportkonten für einzelne Firmenkarten festlegst.',
