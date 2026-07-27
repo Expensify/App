@@ -11183,6 +11183,116 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getSubmittedViolationsForTransaction', () => {
+        const transactionIDForViolations = 'tx-violations-1';
+        const otherTransactionID = 'tx-violations-2';
+
+        const createSubmittedAction = (
+            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+            violations?: {transactions: Record<string, Array<{name: string}>>},
+            reportActionID = 'submit-action-1',
+        ): OnyxTypes.ReportAction =>
+            ({
+                reportActionID,
+                actionName,
+                created: '2025-01-01 00:00:00',
+                originalMessage: {
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    ...(violations ? {violations} : {}),
+                },
+            }) as OnyxTypes.ReportAction;
+
+        test('returns undefined when reportActions or transactionID is missing', () => {
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction(undefined, transactionIDForViolations)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([], transactionIDForViolations)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED)], undefined)).toBeUndefined();
+        });
+
+        test('ignores non-submit report actions', () => {
+            const iouAction: OnyxTypes.ReportAction = {
+                reportActionID: 'iou-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2025-01-01 00:00:00',
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: transactionIDForViolations,
+                },
+            };
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([iouAction], transactionIDForViolations)).toBeUndefined();
+        });
+
+        test('returns comma-separated violation names from a SUBMITTED action', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_COMMENT}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations)).toBe(
+                `${CONST.VIOLATIONS.MISSING_CATEGORY}, ${CONST.VIOLATIONS.MISSING_COMMENT}`,
+            );
+        });
+
+        test('includes violations from SUBMITTED_AND_CLOSED actions', () => {
+            const submitAndCloseAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations)).toBe(CONST.VIOLATIONS.RECEIPT_REQUIRED);
+        });
+
+        test('aggregates across multiple submit actions and dedupes by name', () => {
+            const firstSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_TAG}],
+                    },
+                },
+                'submit-1',
+            );
+            const secondSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                    },
+                },
+                'submit-2',
+            );
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations)).toBe(
+                `${CONST.VIOLATIONS.MISSING_CATEGORY}, ${CONST.VIOLATIONS.MISSING_TAG}, ${CONST.VIOLATIONS.RECEIPT_REQUIRED}`,
+            );
+        });
+
+        test('ignores violations for other transaction IDs', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [otherTransactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations)).toBeUndefined();
+        });
+
+        test('returns undefined when submit actions have no violations for the transaction', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [],
+                },
+            });
+            const submitActionWithoutViolations = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitActionWithoutViolations], transactionIDForViolations)).toBeUndefined();
+        });
+    });
+
     describe('getDisplayValue', () => {
         test('returns translated has option labels from getHasOptions', () => {
             const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
