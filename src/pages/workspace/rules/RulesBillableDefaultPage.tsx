@@ -44,7 +44,9 @@ function RulesBillableDefaultPage({
     // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
     // persisted defaultBillable, so the change of context (persist + navigate) only happens when the user taps Save.
     const [draftBillable, setDraftBillable] = useState<boolean>();
-    const selectedBillable = draftBillable ?? policy?.defaultBillable ?? false;
+    const persistedBillable = policy?.defaultBillable ?? false;
+    const selectedBillable = draftBillable ?? persistedBillable;
+    const hasChanges = selectedBillable !== persistedBillable;
 
     const billableModes = [
         {
@@ -76,6 +78,7 @@ function RulesBillableDefaultPage({
         showButton: true,
         text: translate('common.save'),
         onConfirm: saveAndGoBack,
+        isDisabled: !hasChanges,
     };
 
     const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
