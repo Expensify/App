@@ -1,3 +1,4 @@
+import {subscribeToUserEvents} from '@libs/actions/User';
 import type * as NetworkStateModule from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
@@ -5,8 +6,6 @@ import PusherUtils from '@libs/PusherUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
-
-import {subscribeToUserEvents} from '../../src/libs/actions/User';
 
 jest.mock('@libs/API');
 jest.mock('@libs/PusherUtils');
@@ -41,6 +40,11 @@ describe('Pusher PINGPONG watchdog', () => {
             throw new Error('The PONG subscription was not registered');
         }
         pongCallback = callback;
+    });
+
+    afterAll(() => {
+        reconnectSpy.mockRestore();
+        jest.useRealTimers();
     });
 
     // Both tests share one continuous fake-timer timeline and must run in file order
