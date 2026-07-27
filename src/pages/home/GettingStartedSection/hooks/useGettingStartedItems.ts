@@ -20,6 +20,7 @@ import {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isWorkspaceProvisionedForTravel,
 } from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -193,7 +194,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
                 key: 'setupTravel',
                 label: translate('homePage.gettingStartedSection.setupTravel'),
                 subText: translate('homePage.gettingStartedSection.setupTravelSubText'),
-                isComplete: !!policy.travelSettings?.spotnanaCompanyID,
+                isComplete: isWorkspaceProvisionedForTravel(policy.travelSettings),
                 route: ROUTES.WORKSPACE_TRAVEL.getRoute(activePolicyID),
             });
         }
@@ -263,7 +264,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             key: 'setupTravel',
             label: translate('homePage.gettingStartedSection.setupTravel'),
             subText: translate('homePage.gettingStartedSection.setupTravelSubText'),
-            isComplete: !!policy.travelSettings?.spotnanaCompanyID,
+            isComplete: isWorkspaceProvisionedForTravel(policy.travelSettings),
             route: ROUTES.WORKSPACE_TRAVEL.getRoute(activePolicyID),
         });
     }
