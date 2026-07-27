@@ -48,6 +48,18 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
     if (policy?.shouldShowAutoReimbursementLimitOption && !autoPayApprovedReportsUnavailable) {
         total.push(translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'));
     }
+    if (policy?.customRules) {
+        total.push(translate('workspace.rules.customRules.title'));
+    }
+    if (policy?.glCodes) {
+        total.push(translate('workspace.categories.glCode'));
+    }
+
+    // defaultReimbursable defaults to true, so a flipped default or a hidden billable/reimbursable field
+    // (disabledFields) both indicate a non-default cash expense rule worth copying.
+    if (policy?.defaultReimbursable === false || Object.values(policy?.disabledFields ?? {}).some(Boolean)) {
+        total.push(translate('workspace.rules.individualExpenseRules.cashExpenseDefault'));
+    }
 
     return total.length > 0 ? total : null;
 }
