@@ -4719,6 +4719,8 @@ const CONST = {
         // After a card connection has been broken and unresolved for this many days, stop actively
         // prompting the user: the time-sensitive home task and the RBR are removed (the error itself is kept).
         BROKEN_CONNECTION_DISMISS_AFTER_DAYS: 90,
+        // How long after a CSV import starts we keep showing the processing empty state before falling back to the regular one.
+        IMPORT_PROCESSING_WINDOW_MS: 10 * 60 * 1000,
         WORKSPACE_FEEDS_LOAD_ERROR: 'workspaceFeedsLoadError',
         FEED_LOAD_ERROR: 'feedLoadError',
         STEP: {
