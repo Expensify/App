@@ -86,7 +86,7 @@ function flushQueue(): Promise<void> {
         copyUpdates = copyUpdates.filter((update) => preservedKeys.has(update.key as OnyxKey));
     }
     // WRITE requests gate their lastUpdateID watermark advance on this flush (see OnyxUpdates.apply), so a
-    // failure here keeps the watermark back and the next reconnect refetches and reapplies the missed updates.
+    // failure here keeps the watermark back and the next reconnect can refetch and reapply the missed updates.
     return Onyx.update(copyUpdates)
         .then(() => resolveCurrentFlush?.())
         .catch((error: unknown) => {
