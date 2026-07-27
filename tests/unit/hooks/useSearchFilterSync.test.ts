@@ -29,7 +29,7 @@ describe('useSearchFilterSync', () => {
         const incompleteValues: Partial<SearchAdvancedFiltersForm> = {type: 'expense'};
         const completeValues: Partial<SearchAdvancedFiltersForm> = {
             type: 'expense',
-            category: {value: ['SecondTesting'], isNegated: false},
+            category: ['SecondTesting'],
         };
 
         const {rerender} = renderHook(({formValues, shouldDeferSync}) => useSearchFilterSync(queryJSON, formValues, shouldDeferSync), {

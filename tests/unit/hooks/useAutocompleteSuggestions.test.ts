@@ -258,11 +258,11 @@ describe('useAutocompleteSuggestions', () => {
 
         onyxData[ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA] = false;
         onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = true;
-        rerender();
+        rerender(undefined);
 
         delete onyxData[ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA];
         delete onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED];
-        rerender();
+        rerender(undefined);
 
         await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(2));
     });
