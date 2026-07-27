@@ -15,7 +15,6 @@ function FooterRow({href, onPress, text, style}: FooterRowProps) {
     if (onPress) {
         return (
             <TextLink
-                suppressDefaultStyle
                 style={style}
                 onPress={onPress}
             >
@@ -26,7 +25,6 @@ function FooterRow({href, onPress, text, style}: FooterRowProps) {
 
     return (
         <TextLink
-            suppressDefaultStyle
             style={style}
             href={href}
             tabIndex={0}
