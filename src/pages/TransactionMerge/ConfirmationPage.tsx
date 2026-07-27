@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
+import useOneTransactionThreadReportID from '@hooks/useOneTransactionThreadReportID';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
@@ -64,6 +65,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
+    // The target's report is a one-transaction thread report when its single transaction thread is the target's thread.
+    // In that case the report is opened by its own reportID (rendering the transaction inline), not the thread reportID.
+    const targetReportOneTransactionThreadReportID = useOneTransactionThreadReportID(targetTransaction?.reportID);
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
@@ -118,7 +122,14 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             // wide/super wide RHP underneath stays open.
             if (targetTransaction.reportID === mergeTransaction.reportID) {
                 Navigation.dismissToPreviousRHP();
-                const isTargetThreadStillOpen = !!targetTransactionThreadReportID && Navigation.getTopmostSearchReportID() === targetTransactionThreadReportID;
+                const topmostSearchReportID = Navigation.getTopmostSearchReportID();
+                // The target expense is already visible when the topmost RHP is either its transaction thread, or its
+                // report opened as a one-transaction thread report (which renders the single transaction inline). In
+                // both cases there's nothing new to open, so we avoid stacking a redundant report on top.
+                const isTargetThreadStillOpen =
+                    !!targetTransactionThreadReportID &&
+                    (topmostSearchReportID === targetTransactionThreadReportID ||
+                        (topmostSearchReportID === targetTransaction.reportID && targetReportOneTransactionThreadReportID === targetTransactionThreadReportID));
                 if (!isTargetThreadStillOpen) {
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
