@@ -36,7 +36,7 @@ type UseSearchSelectorConfig = {
     /** Logins to exclude from suggestions only (soft exclusions - can still be manually entered) */
     excludeFromSuggestionsOnly?: Record<string, boolean>;
 
-    /** Whether to include recent reports (for getMemberInviteOptions) */
+    /** Whether to include recent reports */
     includeRecentReports?: boolean;
 
     /** Whether to include current user */
@@ -48,8 +48,8 @@ type UseSearchSelectorConfig = {
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
 
-    /** Callback when selection changes (multi-select mode) */
-    onSelectionChange?: (selected: string[]) => void;
+    /** Callback when selection changes (multi-select mode). Receives the new selected accountIDs and the new selected options. */
+    onSelectionChange?: (selected: string[], selectedOptions: OptionData[]) => void;
 
     /** Callback when single option is selected (single-select mode) */
     onSingleSelect?: (option: OptionData) => void;
@@ -280,11 +280,13 @@ function usePersonalDetailSearchSelectorBase({
             }
             const newSet = new Set([...selectedAccountIDs].filter((accountID) => accountID !== option.accountID.toString()));
             setSelectedAccountIDs(newSet);
-            onSelectionChange?.(Array.from(newSet));
+            const newSelectedOptions = selectedOptions.filter((selected) => selected.accountID !== option.accountID);
+            onSelectionChange?.(Array.from(newSet), newSelectedOptions);
         } else {
             const newSet = new Set(selectedAccountIDs).add(option.accountID.toString());
             setSelectedAccountIDs(newSet);
-            onSelectionChange?.(Array.from(newSet));
+            const newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
+            onSelectionChange?.(Array.from(newSet), newSelectedOptions);
             if (!existingAccountIDs.has(option.accountID.toString())) {
                 setExtraOptions((prev) => [...prev, {...option, isSelected: true}]);
             }

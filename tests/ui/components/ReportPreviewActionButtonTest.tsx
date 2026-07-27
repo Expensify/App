@@ -65,13 +65,19 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/AddExpenseActi
         return null;
     },
 }));
-jest.mock('@components/Button', () => ({
-    __esModule: true,
-    default: () => {
+jest.mock('@components/ButtonComposed', () => {
+    function MockButton() {
         mockView();
         return null;
-    },
-}));
+    }
+
+    MockButton.Text = () => null;
+
+    return {
+        __esModule: true,
+        default: MockButton,
+    };
+});
 
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({flex1: {}})}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
@@ -100,7 +106,9 @@ describe('ReportPreviewActionButton', () => {
         mockActionState.connectedIntegration = CONST.POLICY.CONNECTIONS.NAME.QBO;
         render(<ReportPreviewActionButton />);
         expect(mockExport).toHaveBeenCalled();
-        expect(mockView).not.toHaveBeenCalled();
+        // The View button now renders alongside the primary action button (here ExportActionButton) rather than
+        // instead of it, so it is expected to render too.
+        expect(mockView).toHaveBeenCalled();
     });
 
     it('falls back to the View button for EXPORT_TO_ACCOUNTING when no integration is connected', () => {
