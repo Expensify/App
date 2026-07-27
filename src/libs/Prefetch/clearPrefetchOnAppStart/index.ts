@@ -5,14 +5,16 @@ import {clearTokenRefresh, removeFromAutoPrefetch} from 'react-native-nitro-fetc
 
 import type ClearPrefetchOnAppStart from './types';
 
-const clearPrefetchOnAppStart: ClearPrefetchOnAppStart = () => {
+const clearPrefetchOnAppStart: ClearPrefetchOnAppStart = async () => {
     clearTokenRefresh('fetch');
 
-    for (const command of PrefetchQueries) {
-        removeFromAutoPrefetch(command).catch((error) => {
-            Log.warn(`[HttpUtils] removeFromAutoPrefetch failed for ${command}`, {error});
-        });
-    }
+    await Promise.all(
+        Array.from(PrefetchQueries).map(async (command) => {
+            await removeFromAutoPrefetch(command).catch((error) => {
+                Log.warn(`[HttpUtils] removeFromAutoPrefetch failed for ${command}`, {error});
+            });
+        }),
+    );
 };
 
 export default clearPrefetchOnAppStart;

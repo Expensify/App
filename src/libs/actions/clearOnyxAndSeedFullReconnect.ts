@@ -19,10 +19,10 @@ import Onyx from 'react-native-onyx';
  * IS_LOADING_APP=true for delegate transitions). Seeded keys are appended to the
  * preserve list automatically so they survive the clear.
  */
-function clearOnyxAndSeedFullReconnect(keysToPreserve: OnyxKey[], extraSeeds?: OnyxMultiSetInput): Promise<void> {
+async function clearOnyxAndSeedFullReconnect(keysToPreserve: OnyxKey[], extraSeeds?: OnyxMultiSetInput): Promise<void> {
     // Any Onyx reset can preserve or replace SESSION/CREDENTIALS while dropping account-scoped data.
     // Clear native startup prefetches so a cold start cannot replay requests from the previous identity.
-    clearPrefetchOnAppStart();
+    await clearPrefetchOnAppStart();
 
     const seeds: OnyxMultiSetInput = {
         ...extraSeeds,

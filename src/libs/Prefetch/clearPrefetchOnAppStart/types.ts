@@ -1,3 +1,3 @@
-type ClearPrefetchOnAppStart = () => void;
+type ClearPrefetchOnAppStart = () => Promise<void>;
 
 export default ClearPrefetchOnAppStart;
