@@ -111,6 +111,9 @@ function DynamicCategoryRequireReceiptsOverPage({
         showButton: true,
         text: translate('common.save'),
         onConfirm: saveAndGoBack,
+        // Disable Save until the selection actually differs from the persisted value, so tapping Save without a real change
+        // doesn't re-persist the current value (and re-trigger the entangled cross-threshold logic).
+        isDisabled: selectedOptionKey === persistedOptionKey,
     };
 
     return (
