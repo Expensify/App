@@ -32,8 +32,8 @@ const listeners = new Set<() => void>();
 const reconnectListeners = new Set<() => void>();
 
 // Wire FailureTracker → NetworkState so sustained failures trigger offline state and a
-// successful request clears the INTERNET_UNREACHABLE hard stop. Without the latter, only
-// the Ping could clear it — reads and side-effect commands bypass the paused queue, so the
+// successful request clears the INTERNET_UNREACHABLE hard stop. Without the latter only
+// the Ping could clear it. Reads and side-effect commands bypass the paused queue, so the
 // app could keep succeeding at real requests while staying stuck offline.
 onSustainedFailureChange((active) => setSustainedFailures(active));
 // A server response proves the network works, same as a passing Ping.

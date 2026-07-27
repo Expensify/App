@@ -305,7 +305,7 @@ describe('NetworkState — a successful request clears the INTERNET_UNREACHABLE 
         const reconnectListener = jest.fn();
         onReachabilityConfirmed(reconnectListener);
 
-        // Ping fails — INTERNET_UNREACHABLE hard stop
+        // Ping fails and sets the INTERNET_UNREACHABLE hard stop
         fireNetInfoState({isInternetReachable: false});
         expect(getIsOffline()).toBe(true);
 
@@ -365,11 +365,11 @@ describe('NetworkState — a successful request clears the INTERNET_UNREACHABLE 
         const reconnectListener = jest.fn();
         onReachabilityConfirmed(reconnectListener);
 
-        // Ping fails — INTERNET_UNREACHABLE hard stop
+        // Ping fails and sets the INTERNET_UNREACHABLE hard stop
         fireNetInfoState({isInternetReachable: false});
         expect(getIsOffline()).toBe(true);
 
-        // Requests fail past both thresholds — SUSTAINED_FAILURES hard stop on top
+        // Requests fail past both thresholds, adding the SUSTAINED_FAILURES hard stop on top
         const connectivityError = new Error(CONST.ERROR.FAILED_TO_FETCH);
         for (let i = 0; i < CONST.NETWORK.SUSTAINED_FAILURE_THRESHOLD_COUNT - 1; i++) {
             await expect(FailureTracking(Promise.reject(connectivityError), mockRequest, false)).rejects.toThrow();

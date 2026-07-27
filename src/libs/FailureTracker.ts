@@ -17,8 +17,8 @@ function onSustainedFailureChange(listener: (active: boolean) => void): () => vo
 /**
  * Register a listener fired on every successful request, even with zero recorded
  * failures. Reads and side-effect commands bypass the paused queue and can succeed
- * while the INTERNET_UNREACHABLE hard stop is set — NetworkState needs that signal
- * to clear it (the Ping alone may keep failing).
+ * while the INTERNET_UNREACHABLE hard stop is set. NetworkState needs that signal
+ * to clear the hard stop, because the Ping alone may keep failing.
  */
 function onSuccess(listener: () => void): () => void {
     successListeners.add(listener);
