@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {DomainRowData} from '@components/Tables/DomainListTable';
 import DomainListTable from '@components/Tables/DomainListTable';
 import WorkspaceListLayout from '@components/WorkspaceListLayout';
@@ -83,13 +83,14 @@ function DomainsListPage() {
 
     const headerButton = !!domainRows.length && (
         <Button
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             accessibilityLabel={translate('common.new')}
-            text={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DOMAIN_BUTTON}
             onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN))}
-            icon={icons.Plus}
-        />
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('common.new')}</Button.Text>
+        </Button>
     );
 
     return (

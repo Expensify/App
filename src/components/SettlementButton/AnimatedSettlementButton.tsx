@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -173,11 +173,12 @@ function AnimatedSettlementButton({
                     exiting={buttonAnimation}
                 >
                     <Button
-                        text={isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         isLoading={isDEWApprovalLoading}
-                        success
-                        icon={icon}
-                    />
+                    >
+                        {!!icon && <Button.Icon src={icon} />}
+                        <Button.Text>{isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}</Button.Text>
+                    </Button>
                 </Animated.View>
             )}
             {!isAnimationRunning && (

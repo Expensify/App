@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
@@ -10,7 +10,7 @@ import {getOriginalMessage} from '@libs/ReportActionsUtils';
 
 import {removeEvent} from '@userActions/Chronos';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type ReportAction from '@src/types/onyx/ReportAction';
 
 import React from 'react';
@@ -61,7 +61,7 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                                       )}
                             </Text>
                             <Button
-                                small
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 style={styles.pl2}
                                 onPress={() => removeEvent(reportID, action.reportActionID, event.id, events)}
                             >

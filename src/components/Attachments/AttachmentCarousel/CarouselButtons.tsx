@@ -1,5 +1,5 @@
 import type {Attachment} from '@components/Attachments/types';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -51,15 +51,18 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                 <Tooltip text={translate('common.previous')}>
                     <View style={[styles.attachmentArrow, shouldUseNarrowLayout ? styles.l2 : styles.l8]}>
                         <Button
-                            small
+                            size={CONST.BUTTON_SIZE.SMALL}
                             innerStyles={[styles.arrowIcon]}
-                            icon={icons.BackArrow}
-                            iconFill={theme.text}
                             onPress={onBack}
                             onPressIn={cancelAutoHideArrow}
                             onPressOut={autoHideArrow}
                             sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.PREVIOUS_BUTTON}
-                        />
+                        >
+                            <Button.Icon
+                                src={icons.BackArrow}
+                                fill={theme.text}
+                            />
+                        </Button>
                     </View>
                 </Tooltip>
             )}
@@ -67,15 +70,18 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                 <Tooltip text={translate('common.next')}>
                     <View style={[styles.attachmentArrow, shouldUseNarrowLayout ? styles.r2 : styles.r8]}>
                         <Button
-                            small
+                            size={CONST.BUTTON_SIZE.SMALL}
                             innerStyles={[styles.arrowIcon]}
-                            icon={icons.ArrowRight}
-                            iconFill={theme.text}
                             onPress={onForward}
                             onPressIn={cancelAutoHideArrow}
                             onPressOut={autoHideArrow}
                             sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.NEXT_BUTTON}
-                        />
+                        >
+                            <Button.Icon
+                                src={icons.ArrowRight}
+                                fill={theme.text}
+                            />
+                        </Button>
                     </View>
                 </Tooltip>
             )}

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 import ImageSVG from '@components/ImageSVG';
@@ -335,10 +335,13 @@ function MapViewImpl({
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
                         onPress={centerMap}
-                        iconFill={theme.icon}
-                        icon={expensifyIcons.Crosshair}
                         accessibilityLabel={translate('common.center')}
-                    />
+                    >
+                        <Button.Icon
+                            src={expensifyIcons.Crosshair}
+                            fill={theme.icon}
+                        />
+                    </Button>
                 </View>
             )}
         </View>

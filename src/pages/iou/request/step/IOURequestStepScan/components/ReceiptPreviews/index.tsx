@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FlatList from '@components/FlatList/FlatList';
 import Image from '@components/Image';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -145,14 +145,17 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
                 />
                 <SubmitButtonShadow isInLandscapeMode={isInLandscapeMode}>
                     <Button
-                        large
+                        size={CONST.BUTTON_SIZE.LARGE}
                         isDisabled={!optimisticTransactionsReceipts.length || isCapturingPhoto}
                         innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
-                        icon={icons.ArrowRight}
-                        iconFill={theme.white}
                         onPress={submit}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_PREVIEW_SUBMIT_BUTTON}
-                    />
+                    >
+                        <Button.Icon
+                            src={icons.ArrowRight}
+                            fill={theme.white}
+                        />
+                    </Button>
                 </SubmitButtonShadow>
             </View>
         </Animated.View>

@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
@@ -214,13 +214,14 @@ function WorkspacesListPage() {
 
     const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             accessibilityLabel={translate('common.new')}
-            text={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
             onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)))}
-            icon={icons.Plus}
-        />
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('common.new')}</Button.Text>
+        </Button>
     );
 
     const onBackButtonPress = () => {

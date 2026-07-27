@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import getActionBadgeText from '@components/utils/getActionBadgeText';
@@ -41,14 +41,23 @@ type FloatingPillButtonProps = {
     textStyle?: StyleProp<TextStyle>;
 };
 
+function getButtonVariant(isSuccess?: boolean, isDanger?: boolean) {
+    if (isDanger) {
+        return CONST.BUTTON_VARIANT.DANGER;
+    }
+    if (isSuccess) {
+        return CONST.BUTTON_VARIANT.SUCCESS;
+    }
+    return undefined;
+}
+
 function FloatingPillButton({success, danger, onPress, icon, iconFill, label, textStyle}: FloatingPillButtonProps) {
     const styles = useThemeStyles();
 
     return (
         <Button
-            success={success}
-            danger={danger}
-            small
+            variant={getButtonVariant(success, danger)}
+            size={CONST.BUTTON_SIZE.SMALL}
             onPress={onPress}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.FLOATING_MESSAGE_COUNTER}
         >
