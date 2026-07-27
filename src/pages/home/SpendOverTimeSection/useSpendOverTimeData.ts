@@ -66,10 +66,7 @@ function useSpendOverTimeData() {
     const isFocused = useIsFocused();
 
     const onConfigChanged = useEffectEvent(() => {
-        // Do not bail on the stored `search.isLoading` flag: a reload/crash mid-request strands it, and on
-        // native the snapshot is disk-persisted so the stranded flag survives restarts, which would block the
-        // re-fire forever and pin the spinner. search() dedupes a genuinely in-flight request through its own
-        // module-memory registry (reset on reload), so a stranded loading state re-fires and self-heals.
+        // `search.isLoading` is persisted and may be stale after a reload. Call `search()` again and let it ignore a request that is still running.
         if (!queryJSON || isOffline) {
             return;
         }

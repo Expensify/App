@@ -1,6 +1,6 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -52,7 +52,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -75,6 +75,7 @@ import type {
     ReportAction,
     ReportActions,
     ReportNextStepDeprecated,
+    SaveSearch,
     Transaction,
 } from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
@@ -718,12 +719,8 @@ function getOnyxLoadingData(
         Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
     }
 
-    // successData writes the terminal `loaded` state on any jsonCode 200 resolve, stamping `type` and `hash` so
-    // the terminal state satisfies the anti-stale isSearchDataLoaded check (which matches type/hash) even on a
-    // response that carries no data of its own. isSearchDataLoaded now treats a terminal state as resolved,
-    // so such a response resolves to Search's empty view instead of pinning the skeleton on the data-shape check.
-    // `isLoading` isn't set here because finallyData always runs right after and already clears it for isSearchAPI.
-    // Empty for the non-search callers of this helper so they don't pay for a meaningless `{search: {}}` merge.
+    // A successful response may contain no snapshot data. Store `type` and `hash` with `loaded` so the UI can match it to the current query and show the empty state.
+    // Do not clear `isLoading` here because `finallyData` always does.
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = isSearchRequest
         ? [
               {
@@ -809,6 +806,68 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
         },
     ];
     write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
+}
+
+function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, savedSearches: OnyxEntry<SaveSearch>) {
+    const queryString = `type:expense from:${currentUserAccountID}`;
+    const queryJSON = buildSearchQueryJSON(queryString);
+    if (!queryJSON) {
+        return;
+    }
+
+    if (savedSearches?.[queryJSON.hash]) {
+        return;
+    }
+
+    const jsonQuery = JSON.stringify(queryJSON);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    name: searchName,
+                    query: queryJSON.inputQuery,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH,
+            value: true,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH,
+            value: false,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SAVED_SEARCHES,
+            value: {
+                [queryJSON.hash]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: searchName}, {optimisticData, failureData, successData});
 }
 
 function deleteSavedSearch(hash: number) {
@@ -1002,9 +1061,7 @@ function search({
             .then((result) => {
                 const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
 
-                // Observability for the failure mode this read side converts from an infinite skeleton into an empty
-                // view: a jsonCode 200 that wrote no snapshot data. It used to be invisible (the skeleton just hung),
-                // so log it to keep the no-data resolve case queryable now that it silently resolves.
+                // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
                 if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
                     Log.info('[Search] loading_terminal_empty', false, {hash: queryJSON.hash, type: queryJSON.type});
                 }
@@ -1051,11 +1108,21 @@ function search({
                 inFlightSearchRequests.delete(dedupeKey);
             });
 
+    // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
+    // in SearchPage/SearchPageNarrow) is covered without a separate catch each. Failure state is already
+    // applied via failureData, so this only prevents the rejection from floating into the browser's
+    // onunhandledrejection (APP-5J) while still logging it for diagnosis. Resolves to undefined so
+    // callers' .then still runs and reads a real (falsy) jsonCode.
+    const handleSearchError = (error: unknown) => {
+        Log.hmmm('[Search] search() request failed', {error: String(error)});
+        return undefined;
+    };
+
     if (skipWaitForWrites) {
-        return startRequest();
+        return startRequest().catch(handleSearchError);
     }
 
-    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
+    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest).catch(handleSearchError);
 }
 
 function submitMoneyRequestOnSearch(
@@ -1539,23 +1606,41 @@ function queueExportSearchWithTemplate(
     return exportID;
 }
 
+/** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
+type ExportTemplateGroups = {
+    /** Custom templates (custom integrations + account/policy in-app templates) */
+    customTemplates: ExportTemplate[];
+    /** Default templates (expense/report level exports, and optionally the basic export) */
+    defaultTemplates: ExportTemplate[];
+};
+
 /**
- * Collates a list of export templates available to the user from their account, policy, and custom integrations templates
+ * Collates the export templates available to the user from their account, policy, and custom integrations templates
  * @param integrationsExportTemplates - The user's custom integrations export templates
  * @param csvExportLayouts - The user's custom account level export templates
+ * @param localeCompare - Locale-aware string comparison function used to sort each group alphabetically
  * @param policy - The user's policy
  * @param includeReportLevelExport - Whether to include the report level export template
- * @returns
+ * @param includeBasicExport - Whether to include the basic export (CSV download) template in the default group
+ * @returns The export templates pre-grouped into the custom group and the default group, each sorted alphabetically
  */
 function getExportTemplates(
     integrationsExportTemplates: ExportTemplate[],
     csvExportLayouts: Record<string, ExportTemplate>,
     translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
     policy?: Policy,
     includeReportLevelExport = true,
-): ExportTemplate[] {
+    includeBasicExport = false,
+): ExportTemplateGroups {
     // Helper function to normalize template data into consistent ExportTemplate format
-    const normalizeTemplate = (templateName: string, template: ExportTemplate, type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>, description = '', policyID?: string): ExportTemplate => ({
+    const normalizeTemplate = (
+        templateName: string,
+        template: Pick<ExportTemplate, 'name'> & Partial<ExportTemplate>,
+        type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>,
+        description = '',
+        policyID?: string,
+    ): ExportTemplate => ({
         ...template,
         templateName,
         description,
@@ -1565,14 +1650,17 @@ function getExportTemplates(
 
     // By default, we always include the expense level export template
     const exportTemplates: ExportTemplate[] = [
-        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
+        normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, {name: translate('export.expenseLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
     ];
 
     // Conditionally include the report level export template
     if (includeReportLevelExport) {
-        exportTemplates.push(
-            normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')} as ExportTemplate, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS),
-        );
+        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
+    }
+
+    // Conditionally include the basic export (CSV download) template so it's sorted alphabetically alongside the other default templates
+    if (includeBasicExport) {
+        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, {name: translate('export.basicExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
     }
 
     // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
@@ -1588,7 +1676,13 @@ function getExportTemplates(
     // Update the integrations export templates to include the name, description, policyID, and type
     const integrationsTemplates = integrationsExportTemplates.map((template) => normalizeTemplate(template.name, template, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
 
-    return [...exportTemplates, ...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
+    // Custom templates (custom integrations + account/policy in-app templates), sorted alphabetically by name
+    const customTemplates = [...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates].sort((first, second) => localeCompare(first.name, second.name));
+
+    // Default templates (expense/report level and optionally basic export), sorted alphabetically by name
+    const defaultTemplates = [...exportTemplates].sort((first, second) => localeCompare(first.name, second.name));
+
+    return {customTemplates, defaultTemplates};
 }
 
 /**
@@ -1876,6 +1970,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 
 export {
     saveSearch,
+    seedMyExpensesSearch,
     search,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,

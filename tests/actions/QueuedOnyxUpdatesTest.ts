@@ -64,6 +64,10 @@ jest.mock('@src/CONFIG', () => ({
     IS_TEST_ENV: false,
 }));
 
+// QueuedOnyxUpdates now imports Log, which transitively pulls in the network stack that reads
+// the (mocked, partial) CONFIG at load time. Mock Log so that chain never loads.
+jest.mock('@libs/Log');
+
 function getOnyxUpdateValue<T>(key: string): T | undefined {
     return queuedOnyxUpdates.find((item) => item.key === key)?.value as T | undefined;
 }
@@ -73,7 +77,6 @@ async function testOnyxKeyValue<T>(key: OnyxKey): Promise<void> {
     return new Promise<void>((resolve) => {
         const connection = Onyx.connect({
             key,
-            waitForCollectionCallback: false,
             callback: (value) => {
                 Onyx.disconnect(connection);
 
@@ -115,7 +118,6 @@ describe('actions/QueuedOnyxUpdates', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report).toBeUndefined();
@@ -128,7 +130,6 @@ describe('actions/QueuedOnyxUpdates', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report).toBeUndefined();
@@ -160,7 +161,6 @@ describe('actions/QueuedOnyxUpdates', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report).toEqual(getOnyxUpdateValue(`${ONYXKEYS.COLLECTION.REPORT}2175919089355165`));
@@ -173,7 +173,6 @@ describe('actions/QueuedOnyxUpdates', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`,
-                    waitForCollectionCallback: false,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
                         expect(reportActions).toEqual(getOnyxUpdateValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`));

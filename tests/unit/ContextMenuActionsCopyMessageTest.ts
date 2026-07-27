@@ -3,6 +3,8 @@ import getClipboardText from '@libs/Clipboard/getClipboardText';
 
 import CONST from '@src/CONST';
 
+import {formatPhoneNumber} from '../utils/TestHelper';
+
 jest.mock(
     'expo-web-browser',
     () => ({
@@ -55,6 +57,7 @@ const createPayload = (selection: string): Record<string, unknown> => ({
     getLocalDateFromDatetime: jest.fn(),
     policyTags: {},
     translate: (translateKey: string) => translateKey,
+    formatPhoneNumber,
     currentUserPersonalDetails: {
         accountID: 1,
         login: 'user@expensify.com',

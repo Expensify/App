@@ -17,12 +17,11 @@ import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 
-import {clearErrorFields, clearErrors, setDraftValues, setErrors as setFormErrors} from '@userActions/FormActions';
+import {clearErrorFields, clearErrors, setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -252,13 +251,16 @@ function FormProvider({
 
             const touchedInputErrors = Object.fromEntries(Object.entries(validateErrors).filter(([inputID]) => touchedInputs.current[inputID]));
 
-            if (!deepEqual(errors, touchedInputErrors)) {
-                setErrors(touchedInputErrors);
-            }
+            // Compare against the latest committed errors via a functional update rather than the `errors` captured in this
+            // closure. When a value is selected (e.g. an address suggestion) right after a blur, the delayed blur validation
+            // sets the error before this validation runs; reading `errors` from the closure would still see the pre-error
+            // (empty) snapshot, short-circuit the update, and leave the stale error showing (see
+            // https://github.com/Expensify/App/issues/94519).
+            setErrors((prevErrors) => (deepEqual(prevErrors, touchedInputErrors) ? prevErrors : touchedInputErrors));
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate, allowHTML, shouldUseStrictHtmlTagValidation, hasServerError, hasServerErrorFields],
+        [shouldTrimValues, formID, validate, translate, allowHTML, shouldUseStrictHtmlTagValidation, hasServerError, hasServerErrorFields],
     );
 
     // When locales change from another session of the same account,
@@ -389,10 +391,9 @@ function FormProvider({
         (inputID: keyof Form) => {
             const newErrors = {...errors};
             delete newErrors[inputID];
-            setFormErrors(formID, newErrors as Errors);
             setErrors(newErrors);
         },
-        [errors, formID],
+        [errors],
     );
 
     const scrollToEnd = useCallback(() => {
@@ -506,7 +507,14 @@ function FormProvider({
                             setTouchedInput(inputID);
                             // Skip validation if the screen is not focused or keyboard focus is being restored (Android mWeb)
                             if (shouldValidateOnBlur && isFocusedRef.current && !getIsRestoringKeyboardFocus()) {
-                                onValidate(inputValues, !hasServerError);
+                                // Validate against the latest committed values rather than the `inputValues` captured in this
+                                // closure when the input blurred. Selecting a value (e.g. an address suggestion) updates the
+                                // field after this blur validation is scheduled, so validating the stale value would re-apply an
+                                // error that the selection just cleared (see https://github.com/Expensify/App/issues/94519).
+                                setInputValues((latestValues) => {
+                                    onValidate(latestValues, !hasServerError);
+                                    return latestValues;
+                                });
                             }
                         }, VALIDATE_DELAY);
                     }

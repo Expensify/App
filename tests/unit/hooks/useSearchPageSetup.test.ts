@@ -50,9 +50,11 @@ function makeUnresolvedSearchResults(hash: number, isLoading: boolean): SearchRe
             hasMoreResults: false,
             hasResults: false,
             isLoading,
+            sortBy: 'date',
+            sortOrder: 'desc',
         },
     };
-    // Simulate an Onyx snapshot where the search response has not written data yet.
+    // Remove `data` to represent a snapshot before the response arrives.
     Reflect.set(searchResults, 'data', undefined);
     return searchResults;
 }

@@ -36,11 +36,9 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const hash = queryJSON?.hash;
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
 
-    // Derived primitives so the effect does not depend on the whole snapshot object (new reference every
-    // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().
+    // Depend on the values that can trigger a search instead of the whole snapshot, which gets a new reference after every Onyx merge.
     const isSnapshotDataLoaded = queryJSON ? isSearchDataLoaded(currentSearchResults, queryJSON) : false;
-    // Keep the legacy flag only as a retry signal: handlePreventSearchAPI toggles it when temporary
-    // prevention ends, while a stranded true value must not block the initial search attempt.
+    // Keep `isLoading` as a dependency so an unresolved search retries when temporary search prevention changes it to false.
     const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
 
     // Clear selected transactions when navigating to a different search query
@@ -71,10 +69,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             lastSavedSearchHash = hash;
         }
 
-        // Only skip when the snapshot already holds resolved data for this query. Do not gate on a stored
-        // loading flag: a reload/crash mid-request strands it and would block the re-fire forever. search()
-        // dedupes a genuinely in-flight request through its own module-memory registry, which resets on
-        // reload, so a stranded loading state re-fires and self-heals instead of pinning the skeleton.
+        // A persisted `isLoading` value may be stale after a reload. Only skip resolved snapshots and let `search()` ignore requests that are already running.
         if (isSnapshotDataLoaded) {
             return;
         }
