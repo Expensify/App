@@ -27,6 +27,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {findSelfDMReportID} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -125,12 +126,16 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 // expenses in a report), it becomes a one-transaction thread report. Keeping the previous wide/super wide
                 // RHP open would leave both that report and the merged expense's thread stacked, so in that case we fall
                 // through to the production path below (dismiss the whole modal, then open the merged expense).
-                const isSourceInTargetReport = sourceTransaction.reportID === targetTransaction.reportID;
                 // Only real reports collapse into a one-transaction thread report. The unreported/split sentinels are
                 // shared across expenses, so counting transactions by them would match unrelated expenses app-wide.
                 const isRealTargetReport = targetTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && targetTransaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID;
-                const targetReportTransactionCount = Object.values(targetReportTransactionsCollection ?? {}).filter(Boolean).length;
-                const willTargetReportBeOneTransactionReport = isRealTargetReport && targetReportTransactionCount - (isSourceInTargetReport ? 1 : 0) <= 1;
+                // After the source is merged away, the report becomes a one-transaction thread report when only the
+                // target remains. Mirror the one-transaction detection by ignoring the source and any sibling that is
+                // pending deletion, so raw transaction count quirks don't make us misjudge the report.
+                const remainingTargetReportTransactions = Object.values(targetReportTransactionsCollection ?? {}).filter(
+                    (transaction) => !!transaction && transaction.transactionID !== sourceTransaction.transactionID && !isTransactionPendingDelete(transaction),
+                );
+                const willTargetReportBeOneTransactionReport = isRealTargetReport && remainingTargetReportTransactions.length <= 1;
 
                 if (!willTargetReportBeOneTransactionReport) {
                     // The report stays a multi-transaction report, so keep the wide/super wide RHP underneath open and
