@@ -154,6 +154,19 @@ describe('API.writeWhenReady', () => {
         expect(mockPush).toHaveBeenCalledTimes(1);
     });
 
+    it('executes immediately when the app is already in the background', async () => {
+        // The AppState listener only sees new transitions, so a write queued while already backgrounded
+        // (e.g. from a push notification handler) has to be caught by the up-front currentState check.
+        emitAppState('background');
+
+        const barrier = jest.fn(() => new Promise<void>(() => {}));
+        deferWrite(barrier);
+        await flushMicrotasks(pushHappened);
+
+        expect(mockPush).toHaveBeenCalledTimes(1);
+        expect(barrier).not.toHaveBeenCalled();
+    });
+
     it('does not flush a pending write when the app becomes active', async () => {
         let releaseBarrier: () => void = () => {};
         const barrier = () =>

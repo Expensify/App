@@ -156,6 +156,13 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
         registerBackgroundFlushListener();
         flushOnBackground = () => execute('appBackground');
 
+        // The AppState listener only catches new background transitions, so an app that is already backgrounded
+        // when the write is queued (e.g. from a push notification handler) would never be flushed by it.
+        if (AppState.currentState === CONST.APP_STATE.BACKGROUND) {
+            execute('appBackground');
+            return;
+        }
+
         pendingWrites.add(flushOnBackground);
 
         safetyTimeoutID = setTimeout(() => execute('safetyTimeout'), Math.max(0, safetyTimeoutMs));
