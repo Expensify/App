@@ -34,7 +34,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import RECONCILIATION_ACCOUNT_SETTINGS_TYPE from './constants';
@@ -75,13 +75,29 @@ function ReconciliationAccountSettingsLayout({
     onSelectBankAccount,
 }: ReconciliationAccountSettingsLayoutProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
+    // persisted account, so the change of context (persist + navigate, done by onSelectBankAccount) only happens when
+    // the user taps Save. Lifted into this shared layout so both reconciliation sections get the behavior once.
+    const [draftBankAccountID, setDraftBankAccountID] = useState<string>();
+    const selectedID = draftBankAccountID ?? selectedBankAccountID;
 
     const options = connectionBankAccounts.map((bankAccount) => ({
         text: bankAccount.name,
         value: bankAccount.id,
         keyForList: bankAccount.id,
-        isSelected: bankAccount.id === selectedBankAccountID,
+        isSelected: bankAccount.id === selectedID,
     }));
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: () => onSelectBankAccount(selectedID),
+        }),
+        [translate, onSelectBankAccount, selectedID],
+    );
 
     return (
         <ConnectionLayout
@@ -102,7 +118,8 @@ function ReconciliationAccountSettingsLayout({
 
             <SelectionList
                 data={options}
-                onSelectRow={({value}) => onSelectBankAccount(value)}
+                onSelectRow={({value}) => setDraftBankAccountID(value)}
+                confirmButtonOptions={confirmButtonOptions}
                 ListItem={SingleSelectListItem}
                 initiallyFocusedItemKey={selectedBankAccountID}
             />

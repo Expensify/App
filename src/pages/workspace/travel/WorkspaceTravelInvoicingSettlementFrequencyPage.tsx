@@ -24,7 +24,7 @@ import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
-import React from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 
 type WorkspaceTravelInvoicingSettlementFrequencyPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY>;
 
@@ -46,6 +46,11 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
     const monthlySettlementDateError = getLatestErrorField(travelSettings, CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE);
     const hasFrequencyError = !isEmptyValueObject(monthlySettlementDateError);
 
+    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
+    // persisted frequency, so the change of context (persist + navigate) only happens when the user taps Save.
+    const [draftFrequency, setDraftFrequency] = useState<ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>>();
+    const selectedFrequency = draftFrequency ?? frequencies.find((frequency) => frequency === currentFrequency);
+
     function getSettlementFrequencyLabel(frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) {
         if (frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY) {
             return translate('workspace.common.frequency.monthly');
@@ -59,15 +64,24 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
         text: getSettlementFrequencyLabel(frequency),
         value: frequency,
         keyForList: frequency,
-        isSelected: frequency === currentFrequency,
+        isSelected: frequency === selectedFrequency,
     }));
 
-    const selectFrequency = (item: FrequencyItem) => {
-        if (item.value !== currentFrequency || hasFrequencyError) {
-            updateTravelInvoiceSettlementFrequency(workspaceAccountID, item.value, travelSettings?.monthlySettlementDate ? new Date(travelSettings.monthlySettlementDate) : undefined);
+    const saveAndGoBack = useCallback(() => {
+        if (selectedFrequency && (selectedFrequency !== currentFrequency || hasFrequencyError)) {
+            updateTravelInvoiceSettlementFrequency(workspaceAccountID, selectedFrequency, travelSettings?.monthlySettlementDate ? new Date(travelSettings.monthlySettlementDate) : undefined);
         }
         Navigation.goBack();
-    };
+    }, [selectedFrequency, currentFrequency, hasFrequencyError, workspaceAccountID, travelSettings?.monthlySettlementDate]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveAndGoBack,
+        }),
+        [saveAndGoBack, translate],
+    );
 
     return (
         <ScreenWrapper
@@ -81,7 +95,8 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
             />
             <SelectionList<FrequencyItem>
                 data={data}
-                onSelectRow={selectFrequency}
+                onSelectRow={(item) => setDraftFrequency(item.value)}
+                confirmButtonOptions={confirmButtonOptions}
                 ListItem={SingleSelectListItem}
                 initiallyFocusedItemKey={currentFrequency}
                 customListHeaderContent={
