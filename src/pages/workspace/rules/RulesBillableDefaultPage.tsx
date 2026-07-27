@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type RulesBillableDefaultPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT>;
@@ -65,19 +65,18 @@ function RulesBillableDefaultPage({
 
     const initiallyFocusedOptionKey = selectedBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
 
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
-        Navigation.goBack();
-    }, [policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable]);
+        // Queue the navigation so the optimistic Onyx update from setPolicyBillableMode runs before we return,
+        // otherwise the Rules page can briefly render the stale billable value.
+        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAndGoBack,
-        }),
-        [saveAndGoBack, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+    };
 
     const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
     const isTrackBillableToggleDisabled = !policy?.areTagsEnabled;

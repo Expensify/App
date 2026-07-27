@@ -62,21 +62,22 @@ function DynamicCategoryDefaultTaxRatePage({
             .sort((a, b) => localeCompare(a.text ?? a.keyForList ?? '', b.text ?? b.keyForList ?? ''));
     }, [policy, selectedTaxRate, textForDefault, localeCompare]);
 
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         if (selectedTaxRate && selectedTaxRate !== persistedTaxRate) {
             setPolicyCategoryTax(policy, categoryName, selectedTaxRate);
+            // Queue the navigation so the optimistic Onyx update from setPolicyCategoryTax runs before we return,
+            // otherwise the category settings page can briefly render the old tax rate.
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
+            return;
         }
         Navigation.goBack(categorySettingsBackPath);
-    }, [policy, categoryName, selectedTaxRate, persistedTaxRate, categorySettingsBackPath]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAndGoBack,
-        }),
-        [saveAndGoBack, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+    };
 
     return (
         <AccessOrNotFoundWrapper
