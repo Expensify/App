@@ -495,14 +495,14 @@ describe('reportAttributes compute — policy change code flow', () => {
         });
 
         // The same policies come back with fresh references (identical values).
-        const rementedPolicies: OnyxCollection<Policy> = {
+        const samePoliciesNewRefs: OnyxCollection<Policy> = {
             [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {...policy1},
             [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: {...policy2},
         };
 
-        const result = config.compute(buildArgs(rementedPolicies), {
+        const result = config.compute(buildArgs(samePoliciesNewRefs), {
             currentValue: existingValue,
-            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: rementedPolicies},
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: samePoliciesNewRefs},
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
