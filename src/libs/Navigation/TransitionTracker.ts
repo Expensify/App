@@ -24,7 +24,7 @@ type RunAfterTransitionsOptions = {
 
 const activeTransitions = new Map<TransitionHandle, {timeout: ReturnType<typeof setTimeout>; kind: TransitionKind}>();
 
-const transitionStartListeners = new Set<() => void>();
+const transitionStartListeners = new Set<(kind: TransitionKind) => void>();
 
 let activeNavigationCount = 0;
 
@@ -119,7 +119,7 @@ function startTransition(kind: TransitionKind = 'other'): TransitionHandle {
     activeTransitions.set(handle, {timeout, kind});
 
     for (const listener of transitionStartListeners) {
-        invokeSafely(listener);
+        invokeSafely(() => listener(kind));
     }
 
     return handle;
@@ -223,9 +223,10 @@ function runAfterTransitions({
 
 /**
  * Subscribes to be notified synchronously whenever a new transition starts (via {@link startTransition}).
+ * The listener receives the started transition's kind so subscribers can react to screen transitions only.
  * Returns an unsubscribe function.
  */
-function onTransitionStart(listener: () => void): () => void {
+function onTransitionStart(listener: (kind: TransitionKind) => void): () => void {
     transitionStartListeners.add(listener);
     return () => {
         transitionStartListeners.delete(listener);

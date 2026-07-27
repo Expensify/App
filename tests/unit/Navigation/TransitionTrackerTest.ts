@@ -356,6 +356,22 @@ describe('TransitionTracker', () => {
             drainTransitions();
         });
 
+        it('passes the started transition kind to subscribers', () => {
+            const listener = jest.fn();
+            const unsubscribe = TransitionTracker.onTransitionStart(listener);
+
+            const otherHandle = TransitionTracker.startTransition();
+            expect(listener).toHaveBeenLastCalledWith('other');
+
+            const navigationHandle = TransitionTracker.startTransition('navigation');
+            expect(listener).toHaveBeenLastCalledWith('navigation');
+
+            unsubscribe();
+            TransitionTracker.endTransition(otherHandle);
+            TransitionTracker.endTransition(navigationHandle);
+            drainTransitions();
+        });
+
         it('stops notifying a listener after it unsubscribes', () => {
             const listener = jest.fn();
             const unsubscribe = TransitionTracker.onTransitionStart(listener);

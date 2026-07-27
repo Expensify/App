@@ -171,7 +171,7 @@ describe('runAfterPredictedTransition', () => {
         emitAction('NAVIGATE');
         emitState('route-b');
 
-        const transitionHandle = TransitionTracker.startTransition();
+        const transitionHandle = TransitionTracker.startTransition('navigation');
 
         const callback = jest.fn();
         runAfterPredictedTransition(callback);
@@ -182,6 +182,30 @@ describe('runAfterPredictedTransition', () => {
 
         TransitionTracker.endTransition(transitionHandle);
         expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps an unconfirmed prediction pending when a non-navigation transition starts', () => {
+        // A keyboard / modal animation can start in the same press as the navigation, before the
+        // screen transition registers. Settling on it would release waiters as soon as it ends.
+        emitState('route-a');
+        emitAction('NAVIGATE');
+
+        const otherHandle = TransitionTracker.startTransition();
+
+        const callback = jest.fn();
+        runAfterPredictedTransition(callback);
+        flushPredictionTick();
+
+        expect(runAfterTransitionsSpy).not.toHaveBeenCalled();
+        expect(callback).not.toHaveBeenCalled();
+
+        emitState('route-b');
+        flushPredictionTick();
+
+        expect(runAfterTransitionsSpy).toHaveBeenCalledWith(expect.objectContaining({callback, waitForUpcomingTransition: true}));
+
+        TransitionTracker.endTransition(otherHandle);
+        expect(callback).not.toHaveBeenCalled();
     });
 
     it('stops waiting after the prediction window expires without a focus change', () => {

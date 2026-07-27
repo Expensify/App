@@ -179,8 +179,17 @@ navigationRef.addListener('state', () => {
     confirmFocusMove(focusedRouteKey);
 });
 
-// Phase 3: a real transition started - prediction state is obsolete.
-TransitionTracker.onTransitionStart(clearPending);
+// Phase 3: a real screen transition started - prediction state is obsolete, waiters can fall back to
+// the regular active-transition path. Non-navigation starts (keyboard, modal, layout) are ignored:
+// they can begin in the same press while the predicted screen transition has not started yet, and
+// settling on them would release waiters as soon as that unrelated animation ends.
+TransitionTracker.onTransitionStart((kind) => {
+    if (kind !== 'navigation') {
+        return;
+    }
+
+    clearPending();
+});
 
 /**
  * Heuristic-aware drop-in for `TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true})`.
