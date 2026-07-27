@@ -61,7 +61,7 @@ function FloatingPillButton({success, danger, onPress, icon, iconFill, label, te
             onPress={onPress}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.FLOATING_MESSAGE_COUNTER}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph1]}>
                 <Icon
                     size={CONST.ICON_SIZE.SMALL}
                     src={icon}
