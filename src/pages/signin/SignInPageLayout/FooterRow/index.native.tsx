@@ -2,6 +2,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
 import useEnvironment from '@hooks/useEnvironment';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {FooterColumnRow} from '@pages/signin/SignInPageLayout/types';
 
@@ -19,6 +20,7 @@ type FooterRowProps = FooterColumnRow & {
 };
 
 function FooterRow({href, onPress, translationPath, text, style}: FooterRowProps) {
+    const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
 
     return (
@@ -40,7 +42,7 @@ function FooterRow({href, onPress, translationPath, text, style}: FooterRowProps
             <Text
                 accessible={false}
                 suppressHighlighting
-                style={style}
+                style={[styles.link, style]}
             >
                 {text}
             </Text>
