@@ -176,7 +176,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...CODING_PARTS_TIED_TO_CONNECTION.filter((part) => availablePartSet.has(part))]))
         : selectedAvailableFeatures;
 
-    const shouldIncludeCurrency = effectiveSelectedFeatures.length > 0 && !isPartIncompatible('currency') && (!shouldShowCurrency || (isWorkflowsSelected && currencyNeededForWorkflows));
+    const shouldIncludeCurrency = effectiveSelectedFeatures.length > 0 && !isPartIncompatible('currency') && isWorkflowsSelected && currencyNeededForWorkflows;
     if (shouldIncludeCurrency && !effectiveSelectedFeatures.includes('currency')) {
         effectiveSelectedFeatures.push('currency');
     }
