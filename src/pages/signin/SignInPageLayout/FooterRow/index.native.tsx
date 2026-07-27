@@ -40,8 +40,6 @@ function FooterRow({href, onPress, translationPath, text, style}: FooterRowProps
             <Text
                 accessible={false}
                 suppressHighlighting
-                // FooterRow fully controls the link color/font via `style`, so skip styles.link to avoid its
-                // high-contrast underline (textDecorationColor: theme.link) mismatching the footer text color.
                 style={style}
             >
                 {text}
