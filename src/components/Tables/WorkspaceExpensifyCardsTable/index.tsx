@@ -110,6 +110,12 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'name',
             label: translate('workspace.expensifyCard.name'),
             sortable: true,
+            styling: {
+                // Cardholder names and card titles are the longest values in the table, so this column takes the
+                // space freed up by giving Type, Last 4 and Status fixed widths. Limit type still needs a full share
+                // to fit its longest value, so this stops at double rather than taking everything.
+                flex: 2,
+            },
         },
         {
             key: 'type',
