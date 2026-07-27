@@ -4309,6 +4309,20 @@ describe('OptionsListUtils', () => {
             expect(comparator).not.toHaveBeenCalled();
             expect(result.options).toStrictEqual([[], [], []]);
         });
+
+        it('keeps the oldest options per group up to the limit when reversed', () => {
+            const options = createGroupedOptions(9);
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+
+            const result = optionsOrderAndGroupBy(separators, options, comparator, 2, undefined, true);
+
+            expect(result.options.map((group) => group.map((option) => option.reportID))).toStrictEqual([
+                ['1', '4'],
+                ['2', '5'],
+                ['3', '6'],
+            ]);
+            expect(result.hasMore).toBe(true);
+        });
     });
 
     describe('sortAlphabetically', () => {
