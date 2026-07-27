@@ -40,8 +40,7 @@ describe('useInFlightRequests', () => {
 
     beforeEach(async () => {
         await Onyx.clear().then(waitForBatchedUpdates);
-        // These hooks keep process-session latches that survive Onyx.clear. Render them once against the
-        // cleared state so their reset effects run, isolating each test.
+        // Module-level state survives `Onyx.clear()`. Mount both hooks once so their effects reset it before each test.
         const {unmount: unmountAppLoad} = renderHook(() => useIsAppLoadPending());
         const {unmount: unmountReportLoad} = renderHook(() => useIsReportLoadPending('1234'));
         await act(() => waitForBatchedUpdates());
@@ -160,8 +159,6 @@ describe('useInFlightRequests', () => {
             expect(nonMatching.current).toBe(false);
         });
 
-        // Consumers with a possibly-undefined reportID pass it straight through. An undefined scope key must
-        // never match a real OpenReport request, so an absent report reads as "not loading".
         it('returns false for an undefined reportID even when an OpenReport is queued', async () => {
             await setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_REPORT, {reportID: '1234'})]);
             const {result} = renderHook(() => useIsReportLoadPending(undefined));
@@ -176,7 +173,6 @@ describe('useInFlightRequests', () => {
             const {result} = renderHook(() => useIsReportLoadPending('1234'));
             await act(() => waitForBatchedUpdates());
 
-            // A loading flag left by a previous process must not gate a report before this process observes its request.
             expect(result.current).toBe(false);
 
             await act(() => setPersistedRequests([buildRequest(WRITE_COMMANDS.OPEN_REPORT, {reportID: '1234'})]));

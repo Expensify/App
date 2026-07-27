@@ -120,7 +120,7 @@ function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | nu
 // accompanied by a dep change that re-renders every consumer, so no consumer can strand a stale read.
 let hasObservedOpenAppFlushPending = false;
 
-// Shared across hook instances so consumers mounting during a deferred flush observe the same lifecycle.
+// Keep this outside the hook so a new consumer can see a report whose deferred updates are still pending.
 const reportIDsWithPendingOpenReportFlush = new Set<string>();
 
 /** Whether an OpenApp request or its deferred Onyx updates are pending. */
@@ -141,13 +141,12 @@ function useIsAppLoadPending(): boolean {
 }
 
 /**
- * Whether an OpenReport request or its deferred Onyx updates are pending for the given report.
+ * Whether an OpenReport request or its deferred Onyx updates are pending for this report.
  *
- * Accepts `undefined` so callers with an optional reportID don't have to default the ID to a sentinel
- * value: an undefined scope key never matches a real OpenReport request, so it reads as "not loading".
+ * `undefined` returns false, so callers can pass an optional reportID without a fallback value.
  *
- * Do not call this inside list-item render paths (e.g. per row in a list): every call opens three Onyx
- * subscriptions. Lift it to the screen level and pass the result down instead.
+ * Do not use this hook in list rows. Each call creates three Onyx subscriptions.
+ * Call it at screen level and pass the result down.
  */
 function useIsReportLoadPending(reportID: string | undefined): boolean {
     const hasPendingRequest = useIsPendingInternal('reportLoad', reportID);
@@ -155,8 +154,8 @@ function useIsReportLoadPending(reportID: string | undefined): boolean {
         selector: isLoadingInitialReportActionsSelector,
     });
 
-    // The queue arms this lifecycle, so a loading flag stranded by a previous process cannot gate by itself.
-    // Once armed, the terminal flag keeps consumers gated until deferred response updates are flushed.
+    // Track the loading flag only after this session sees a matching OpenReport request, so stale flags are ignored.
+    // Keep tracking until the deferred updates clear the flag.
     useEffect(() => {
         if (!reportID) {
             return;
