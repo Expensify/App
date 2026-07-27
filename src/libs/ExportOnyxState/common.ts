@@ -50,6 +50,12 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['email', 'accountID', 'loading', 'creationDate', 'errors'],
         maskList: [],
     },
+    // Holds a full Session (authToken, encryptedAuthToken, supportAuthToken) preserved across imported
+    // state, so it must be masked exactly like SESSION - otherwise the tokens leak into the export.
+    [ONYXKEYS.PRESERVED_USER_SESSION]: {
+        allowList: ['email', 'accountID', 'loading', 'creationDate', 'errors'],
+        maskList: [],
+    },
     [ONYXKEYS.CREDENTIALS]: {
         allowList: ['login', 'accountID'],
         maskList: [],
@@ -59,6 +65,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         maskList: [],
     },
     [ONYXKEYS.ACCOUNT]: {
+        allowList: ['validated', 'isFromPublicDomain', 'isUsingExpensifyCard'],
+        maskList: ['primaryLogin'],
+    },
+    // Holds a full Account preserved across imported state, so it must be masked exactly like ACCOUNT.
+    [ONYXKEYS.PRESERVED_ACCOUNT]: {
         allowList: ['validated', 'isFromPublicDomain', 'isUsingExpensifyCard'],
         maskList: ['primaryLogin'],
     },
@@ -225,7 +236,9 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
     ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION,
+    ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER,
     ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED,
+    ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH,
     ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO,
     ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
     ONYXKEYS.NVP_LAST_ANDROID_LOGIN,
@@ -419,8 +432,6 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     ONYXKEYS.PERSONAL_DETAILS_METADATA,
     ONYXKEYS.PLAID_DATA,
-    ONYXKEYS.PRESERVED_ACCOUNT,
-    ONYXKEYS.PRESERVED_USER_SESSION,
     ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     ONYXKEYS.PURCHASE_LIST,
     ONYXKEYS.QUEUE_FLUSHED_DATA,
