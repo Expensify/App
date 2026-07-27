@@ -145,7 +145,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
     describe('buildCopyPolicySettingsData', () => {
         describe('per-part field patches and pendingFields', () => {
             it.each<[Part, ReadonlyArray<keyof Policy>]>([
-                ['overview', ['outputCurrency', 'address', 'description']],
+                ['overview', ['address', 'description']],
+                ['currency', ['outputCurrency']],
                 ['members', ['employeeList']],
                 ['reports', ['fieldList', 'areReportFieldsEnabled']],
                 ['accounting', ['connections', 'areConnectionsEnabled']],
@@ -599,7 +600,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
             it('successData clears errors on target policies after retry-success', () => {
                 const targetPolicy = makeTargetPolicy();
-                const {successData} = buildCopyPolicySettingsData(makeSourcePolicy(), [targetPolicy], ['overview'], {}, {});
+                const {successData} = buildCopyPolicySettingsData(makeSourcePolicy(), [targetPolicy], ['overview', 'currency'], {}, {});
 
                 const targetSuccess = successData.find((entry) => entry.key === POLICY_KEY && entry.onyxMethod === Onyx.METHOD.MERGE);
                 const successPatch = getMergedPolicyPatch(targetSuccess);

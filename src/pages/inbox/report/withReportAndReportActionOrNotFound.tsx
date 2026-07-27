@@ -23,7 +23,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 
 type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList,
@@ -42,77 +42,86 @@ type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     parentReportAction: NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null;
 };
 
+type WithReportOrNotFoundImplProps<TProps extends WithReportAndReportActionOrNotFoundProps> = {
+    WrappedComponent: ComponentType<TProps>;
+} & TProps;
+
+function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotFoundProps>({WrappedComponent, ...props}: WithReportOrNotFoundImplProps<TProps>) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
+
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${props.route.params.reportID}`);
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+
+    const parentReportAction = useParentReportAction(report);
+    let linkedReportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
+
+    // Handle threads if needed
+    if (!linkedReportAction?.reportActionID) {
+        linkedReportAction = parentReportAction ?? undefined;
+    }
+
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    // For small screen, we don't call openReport API when we go to a sub report page by deeplink
+    // So we need to call openReport here for small screen
+    useEffect(() => {
+        if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
+            return;
+        }
+        openReport({reportID: props.route.params.reportID, introSelected, betas});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shouldUseNarrowLayout, props.route.params.reportID]);
+
+    // Perform all the loading checks
+    const isLoadingReport = isLoadingReportData && !report?.reportID;
+    const isLoadingReportAction = isEmptyObject(reportActions) || (reportLoadingState?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
+
+    if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'withReportAndReportActionOrNotFound',
+            isLoadingReport,
+            isLoadingReportAction,
+        };
+        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+
+    // Perform the access/not found checks
+    // Be sure to avoid showing the not-found page while the parent report actions are still being read from Onyx. The parentReportAction will be undefined while it's being read from Onyx
+    // and then linkedReportAction will either be a valid parentReportAction or an empty object. In the case of an empty object, then it's OK to show the not-found page.
+    if (shouldHideReport || (parentReportAction !== undefined && isEmptyObject(linkedReportAction))) {
+        return <NotFoundPage />;
+    }
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            report={report}
+            parentReport={parentReport}
+            reportAction={linkedReportAction}
+            parentReportAction={parentReportAction}
+        />
+    );
+}
+
 export default function <TProps extends WithReportAndReportActionOrNotFoundProps>(WrappedComponent: ComponentType<TProps>): ComponentType<TProps> {
     function WithReportOrNotFound(props: TProps) {
-        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
-
-        const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-        const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${props.route.params.reportID}`);
-        const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-        const [betas] = useOnyx(ONYXKEYS.BETAS);
-        const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`);
-        const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-
-        const parentReportAction = useParentReportAction(report);
-        const linkedReportAction = useMemo(() => {
-            let reportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
-
-            // Handle threads if needed
-            if (!reportAction?.reportActionID) {
-                reportAction = parentReportAction ?? undefined;
-            }
-
-            return reportAction;
-        }, [reportActions, props.route.params.reportActionID, parentReportAction]);
-
-        const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-        // For small screen, we don't call openReport API when we go to a sub report page by deeplink
-        // So we need to call openReport here for small screen
-        useEffect(() => {
-            if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
-                return;
-            }
-            openReport({reportID: props.route.params.reportID, introSelected, betas});
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [shouldUseNarrowLayout, props.route.params.reportID]);
-
-        // Perform all the loading checks
-        const isLoadingReport = isLoadingReportData && !report?.reportID;
-        const isLoadingReportAction = isEmptyObject(reportActions) || (reportLoadingState?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
-        const isReportArchived = useReportIsArchived(report?.reportID);
-        const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
-
-        if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'withReportAndReportActionOrNotFound',
-                isLoadingReport,
-                isLoadingReportAction,
-            };
-            return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
-        }
-
-        // Perform the access/not found checks
-        // Be sure to avoid showing the not-found page while the parent report actions are still being read from Onyx. The parentReportAction will be undefined while it's being read from Onyx
-        // and then linkedReportAction will either be a valid parentReportAction or an empty object. In the case of an empty object, then it's OK to show the not-found page.
-        if (shouldHideReport || (parentReportAction !== undefined && isEmptyObject(linkedReportAction))) {
-            return <NotFoundPage />;
-        }
-
         return (
-            <WrappedComponent
+            <WithReportOrNotFoundImpl
+                WrappedComponent={WrappedComponent}
                 {...props}
-                report={report}
-                parentReport={parentReport}
-                reportAction={linkedReportAction}
-                parentReportAction={parentReportAction}
             />
         );
     }
 
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return React.memo(WithReportOrNotFound);
+    return WithReportOrNotFound;
 }
 
 export type {WithReportAndReportActionOrNotFoundProps};

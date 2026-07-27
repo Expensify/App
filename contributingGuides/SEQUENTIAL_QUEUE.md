@@ -251,7 +251,7 @@ These are **two distinct deferral mechanisms** that are easy to confuse.
 
 **Problem `queueFlushedData` solves.** Apply a small piece of data **only after a full drain**: mark the app as loaded only once the queue has actually emptied, not mid-drain.
 
-**How `queueFlushedData` works.** It is a **distinct, Onyx-persisted** buffer (`QUEUE_FLUSHED_DATA`), separate from the in-memory `QueuedOnyxUpdates`. `SequentialQueue.saveQueueFlushedData` appends a successfully-processed request's `queueFlushedData` field; the queue applies it via `Onyx.update` and clears it only when fully drained (after `flushOnyxUpdatesQueue`). Its sole producer is `App.getOnyxDataForOpenOrReconnect` (`OPEN_APP` / `ReconnectApp`), currently carrying exactly one entry: a merge of `HAS_LOADED_APP = true`.
+**How `queueFlushedData` works.** It is a **distinct, Onyx-persisted** buffer (`QUEUE_FLUSHED_DATA`), separate from the in-memory `QueuedOnyxUpdates`. `SequentialQueue.saveQueueFlushedData` appends a request's `queueFlushedData` field only when the response's `jsonCode` is `CONST.JSON_CODE.SUCCESS`; a resolved-but-failed response (`HttpUtils.xhr` resolves application-level failures instead of rejecting them) does not save it, so it cannot wrongly mark `HAS_LOADED_APP` true on the next boot. The queue applies it via `Onyx.update` and clears it only when fully drained (after `flushOnyxUpdatesQueue`). Its sole producer is `App.getOnyxDataForOpenOrReconnect` (`OPEN_APP` / `ReconnectApp`), currently carrying exactly one entry: a merge of `HAS_LOADED_APP = true`.
 
 **Sharp edges.**
 - Both apply **only** when the queue reaches fully-empty. Under sustained WRITE pressure neither applies, so `HAS_LOADED_APP` never flips and the buffers accumulate.

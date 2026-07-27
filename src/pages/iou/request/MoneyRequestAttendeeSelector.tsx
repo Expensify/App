@@ -1,42 +1,27 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
-import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
-import useReportAttributes from '@hooks/useReportAttributes';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useUserToInviteReports from '@hooks/useUserToInviteReports';
 
 import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {
-    formatSectionsFromSearchTerm,
-    getFilteredRecentAttendees,
-    getHeaderMessage,
-    getParticipantsOption,
-    getPolicyExpenseReportOption,
-    isCurrentUser,
-    orderOptions,
-    sortAlphabetically,
-} from '@libs/OptionsListUtils';
-import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
+import {getFilteredRecentAttendees, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
+import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
-import type {OptionData} from '@libs/ReportUtils';
-import {expensifyLoginsSelector} from '@libs/UserUtils';
+import {generateAccountID} from '@libs/UserUtils';
 
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
@@ -60,115 +45,91 @@ type MoneyRequestAttendeesSelectorProps = {
 
     /** The type of IOU report, i.e. split, request, send, track */
     iouType: IOUType;
-
-    /** The action of the IOU, i.e. create, split, move */
-    action: IOUAction;
 };
 
-function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
-    const {translate, localeCompare} = useLocalize();
+function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType}: MoneyRequestAttendeesSelectorProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const personalDetails = usePersonalDetails();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
-    const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
-    const reportAttributesDerived = useReportAttributes();
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const isPaidGroupPolicy = isPaidGroupPolicyFn(policy);
-    const recentAttendeeLists = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID, translate);
+    const recentAttendeeLogins = getFilteredRecentAttendees(attendees, recentAttendees ?? [], currentUserEmail);
 
-    const initialSelectedOptions = sortAlphabetically([...attendees], 'displayName', localeCompare).map((attendee) => ({
-        ...attendee,
-        reportID: CONST.DEFAULT_NUMBER_ID.toString(),
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        keyForList: attendee.email || attendee.displayName,
-        selected: true,
+    // Build the initial selection. Attendees that aren't in the personal details list (name-only or unknown emails) get a stable dummy
+    // accountID derived from their login (generateAccountID is deterministic), so they can be tracked by accountID like everyone else.
+    const initialSelectedOptions = attendees.map((attendee) => {
         // Use || to fall back to displayName for name-only attendees (empty email)
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        login: attendee.email || attendee.displayName,
-        ...getPersonalDetailByEmail(attendee?.email),
-    }));
+        const login = attendee.email || attendee.displayName;
+        const personalDetail = getPersonalDetailByEmail(attendee.email);
+        const accountID = personalDetail?.accountID ?? generateAccountID(login);
+        return {attendee, login, personalDetail, accountID};
+    });
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const initialSelected = new Set(initialSelectedOptions.map((option) => String(option.accountID)));
+
+    // Seed optimistic options for attendees that don't exist in the personal details list so they survive a round-trip through the hook
+    const initialExtraOptions: OptionData[] = initialSelectedOptions
+        .filter((option) => !option.personalDetail)
+        .map((option) => ({
+            text: option.attendee.displayName || option.login,
+            alternateText: option.login || option.attendee.displayName,
+            login: option.login,
+            accountID: option.accountID,
+            keyForList: option.login,
+            isSelected: true,
+            icons: [
+                {
+                    source: option.attendee.avatarUrl || icons.FallbackAvatar,
+                    name: option.login,
+                    type: CONST.ICON_TYPE_AVATAR,
+                    id: option.accountID,
+                },
+            ],
+        }));
+
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES,
         includeUserToInvite: true,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: false,
         includeCurrentUser: true,
-        getValidOptionsConfig: {
-            includeSelfDM: false,
-            includeInvoiceRooms: false,
-            action,
-            recentAttendees: recentAttendeeLists,
-        },
-        initialSelected: initialSelectedOptions,
+        recentAttendees: recentAttendeeLogins,
+        shouldAllowNameOnlyOptions: true,
+        initialSelected,
+        initialExtraOptions,
         shouldInitialize: didScreenTransitionEnd,
-        onSelectionChange: (newSelectedOptions) => {
+        maxRecentReportsToShow: 5,
+        // Propagate the selection to the parent directly from the selection event (the hook passes the new selected options)
+        onSelectionChange: (_selectedAccountIDs, newSelectedOptions) => {
             const newAttendees: Attendee[] = newSelectedOptions.map((option) => {
                 const iconSource = option.icons?.[0]?.source;
                 const icon = typeof iconSource === 'function' ? '' : SafeString(iconSource);
                 return {
-                    accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    login: option.login,
                     email: option.login ?? '',
-                    displayName: option.displayName ?? option.text ?? option.login ?? '',
-                    selected: true,
-                    searchText: option.searchText,
-                    avatarUrl: option.avatarUrl ?? icon,
-                    iouType,
+                    // Use || to fall back for name-only attendees
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    displayName: option.text || option.login || '',
+                    avatarUrl: icon,
                 };
             });
             onAttendeesAdded(newAttendees);
         },
-        maxRecentReportsToShow: 5,
     });
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    let orderedAvailableOptions;
-    if (!isPaidGroupPolicy || !areOptionsInitialized) {
-        orderedAvailableOptions = availableOptions;
-    } else {
-        const orderedOptions = orderOptions(
-            {
-                recentReports: availableOptions.recentReports,
-                personalDetails: availableOptions.personalDetails,
-                workspaceChats: availableOptions.workspaceChats ?? [],
-            },
-            searchTerm,
-            {
-                preferChatRoomsOverThreads: true,
-                preferPolicyExpenseChat: !!action,
-                preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
-            },
-        );
-        orderedAvailableOptions = {
-            ...availableOptions,
-            recentReports: orderedOptions.recentReports,
-            personalDetails: orderedOptions.personalDetails,
-            workspaceChats: orderedOptions.workspaceChats,
-        };
-    }
-
-    const {userToInviteExpenseReport} = useUserToInviteReports(orderedAvailableOptions?.userToInvite);
-    const userToInviteExpenseReportPolicy = usePolicy(userToInviteExpenseReport?.policyID);
-
     const shouldShowErrorMessage = selectedOptions.length < 1;
 
-    const handleConfirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
+    const confirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
         if (shouldShowErrorMessage || (!selectedOptions.length && !option)) {
             return;
         }
@@ -193,14 +154,15 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     />
                 )}
                 <Button
-                    success
-                    text={translate('common.save')}
-                    onPress={handleConfirmSelection}
-                    pressOnEnter
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={confirmSelection}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={shouldShowErrorMessage}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.ATTENDEES_SAVE_BUTTON}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </>
         );
     };
@@ -214,75 +176,39 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     } else {
         const newSections: Array<Section<OptionData>> = [];
         const cleanSearchTerm = searchTerm.trim().toLowerCase();
-        const formatResults = formatSectionsFromSearchTerm(
-            cleanSearchTerm,
-            initialSelectedOptions,
-            orderedAvailableOptions.recentReports,
-            orderedAvailableOptions.personalDetails,
-            privateIsArchivedMap,
-            currentUserAccountID,
-            allPolicies,
-            translate,
-            personalDetails,
-            true,
-            undefined,
-            reportAttributesDerived,
-        );
 
-        newSections.push({
-            ...formatResults.section,
-            sectionIndex: 0,
-            data: formatResults.section.data as OptionData[],
-        });
+        if (availableOptions.selectedOptions.length > 0) {
+            newSections.push({
+                data: availableOptions.selectedOptions,
+                sectionIndex: 0,
+            });
+        }
 
-        if (orderedAvailableOptions.recentReports.length > 0) {
+        if (availableOptions.recentOptions.length > 0) {
             newSections.push({
                 title: translate('common.recents'),
-                data: orderedAvailableOptions.recentReports,
+                data: availableOptions.recentOptions,
                 sectionIndex: 1,
             });
         }
 
-        if (orderedAvailableOptions.personalDetails.length > 0) {
+        if (availableOptions.personalDetails.length > 0) {
             newSections.push({
                 title: translate('common.contacts'),
-                data: orderedAvailableOptions.personalDetails,
+                data: availableOptions.personalDetails,
                 sectionIndex: 2,
             });
         }
 
-        if (
-            orderedAvailableOptions.userToInvite &&
-            !isCurrentUser(
-                {
-                    ...orderedAvailableOptions.userToInvite,
-                    accountID: orderedAvailableOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    status: orderedAvailableOptions.userToInvite?.status ?? undefined,
-                },
-                loginList,
-                currentUserEmail,
-            )
-        ) {
+        if (availableOptions.userToInvite) {
             newSections.push({
                 title: undefined,
-                data: [orderedAvailableOptions.userToInvite].map((participant) => {
-                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
-                    return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
-                        : getParticipantsOption(participant, personalDetails, translate);
-                }) as OptionData[],
+                data: [availableOptions.userToInvite],
                 sectionIndex: 3,
             });
         }
 
-        header = getHeaderMessage(
-            formatResults.section.data.length + (orderedAvailableOptions.personalDetails ?? []).length + (orderedAvailableOptions.recentReports ?? []).length !== 0,
-            !!orderedAvailableOptions?.userToInvite,
-            cleanSearchTerm,
-            countryCode,
-            attendees.some((attendee) => doesPersonalDetailMatchSearchTerm(attendee, currentUserAccountID, cleanSearchTerm)),
-        );
+        header = newSections.length > 0 ? '' : getHeaderMessage(translate, cleanSearchTerm, countryCode);
         sections = newSections;
     }
 
@@ -306,7 +232,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             onSelectRow={toggleSelection}
             textInputOptions={textInputOptions}
             confirmButtonOptions={{
-                onConfirm: handleConfirmSelection,
+                onConfirm: confirmSelection,
             }}
             footerContent={footerContent}
             isLoadingNewOptions={!!isSearchingForReports}
@@ -314,7 +240,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             shouldShowListEmptyContent={shouldShowListEmptyContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onEndReached={onListEndReached}
             shouldSingleExecuteRowSelect
             shouldShowTextInput
             canSelectMultiple

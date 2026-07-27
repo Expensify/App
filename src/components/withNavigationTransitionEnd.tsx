@@ -9,32 +9,44 @@ import React, {useEffect, useState} from 'react';
 
 type WithNavigationTransitionEndProps = {didScreenTransitionEnd: boolean};
 
+type WithNavigationTransitionEndImplProps<TProps> = {
+    WrappedComponent: ComponentType<TProps>;
+} & TProps;
+
+function WithNavigationTransitionEndImpl<TProps>({WrappedComponent, ...props}: WithNavigationTransitionEndImplProps<TProps>) {
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
+
+    useEffect(() => {
+        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
+            setDidScreenTransitionEnd(true);
+        });
+
+        return unsubscribeTransitionEnd;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            didScreenTransitionEnd={didScreenTransitionEnd}
+        />
+    );
+}
+
 export default function <TProps>(WrappedComponent: ComponentType<TProps>): React.ComponentType<TProps> {
     function WithNavigationTransitionEnd(props: TProps) {
-        const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-        const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
-
-        useEffect(() => {
-            const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
-                setDidScreenTransitionEnd(true);
-            });
-
-            return unsubscribeTransitionEnd;
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []);
-
         return (
-            <WrappedComponent
+            <WithNavigationTransitionEndImpl
+                WrappedComponent={WrappedComponent}
                 {...props}
-                didScreenTransitionEnd={didScreenTransitionEnd}
             />
         );
     }
 
     WithNavigationTransitionEnd.displayName = `WithNavigationTransitionEnd(${getComponentDisplayName(WrappedComponent)})`;
 
-    // OXC's React Compiler does not memoize this component on web; memoize it explicitly.
-    return React.memo(WithNavigationTransitionEnd);
+    return WithNavigationTransitionEnd;
 }
 
 export type {WithNavigationTransitionEndProps};
