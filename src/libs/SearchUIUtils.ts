@@ -4825,6 +4825,13 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !type || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
+/**
+ * Uses `search.state`, which tracks API requests, instead of `search.isLoading`, which also tracks temporary UI loading.
+ */
+function isSearchPending(searchResults: SearchResults | undefined) {
+    return searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADING;
+}
+
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const queryJSONHash =
         queryJSON && searchResults?.search
@@ -4834,8 +4841,13 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
                   sortOrder: searchResults.search.sortOrder,
               }).primaryHash
             : queryJSON?.hash;
+    const state = searchResults?.search?.state;
+    // A response can finish without writing data or errors, so `loaded` and `error` also count as resolved.
+    // The type and hash checks below keep results from an earlier query out.
+    const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || state === CONST.SEARCH.SNAPSHOT_STATE.ERROR;
+    const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
 
-    return (searchResults?.data != null || searchResults?.errors != null) && searchResults.search?.type === queryJSON?.type && searchResults.search?.hash === queryJSONHash;
+    return hasResolved && searchResults?.search?.type === queryJSON?.type && searchResults?.search?.hash === queryJSONHash;
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
@@ -6559,6 +6571,7 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    isSearchPending,
     getValidGroupBy,
     getTypeOptions,
     getSortByOptions,

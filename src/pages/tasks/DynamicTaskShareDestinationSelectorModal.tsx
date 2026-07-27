@@ -3,6 +3,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -22,24 +23,13 @@ import {setShareDestinationValue} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-
-const selectReportHandler = (option: unknown) => {
-    HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
-    const optionItem = option as OptionData;
-
-    if (!optionItem?.reportID) {
-        return;
-    }
-
-    setShareDestinationValue(optionItem?.reportID);
-    Navigation.goBack();
-};
 
 const reportFilter = (reportOptions: Array<SearchOption<Report>>, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
     (reportOptions ?? []).reduce((filtered: Array<SearchOption<Report>>, option) => {
@@ -51,13 +41,27 @@ const reportFilter = (reportOptions: Array<SearchOption<Report>>, reportNameValu
         return filtered;
     }, []);
 
-function TaskShareDestinationSelectorModal() {
+function DynamicTaskShareDestinationSelectorModal() {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path);
+
+    const selectReportHandler = (option: unknown) => {
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+        const optionItem = option as OptionData;
+
+        if (!optionItem?.reportID) {
+            return;
+        }
+
+        setShareDestinationValue(optionItem?.reportID);
+        Navigation.goBack(backPath);
+    };
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -112,13 +116,13 @@ function TaskShareDestinationSelectorModal() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="TaskShareDestinationSelectorModal"
+            testID="DynamicTaskShareDestinationSelectorModal"
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <>
                 <HeaderWithBackButton
                     title={translate('common.share')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                     <SelectionList
@@ -137,4 +141,4 @@ function TaskShareDestinationSelectorModal() {
     );
 }
 
-export default TaskShareDestinationSelectorModal;
+export default DynamicTaskShareDestinationSelectorModal;
