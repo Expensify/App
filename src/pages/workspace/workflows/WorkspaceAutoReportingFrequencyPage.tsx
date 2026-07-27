@@ -90,8 +90,9 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
             showButton: true,
             text: translate('common.save'),
             onConfirm: saveAutoReportingFrequency,
+            isDisabled: userSelectedFrequency === undefined,
         }),
-        [saveAutoReportingFrequency, translate],
+        [saveAutoReportingFrequency, translate, userSelectedFrequency],
     );
 
     const getDescriptionText = () => {
