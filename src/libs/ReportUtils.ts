@@ -6339,28 +6339,15 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 }
 
 /**
- * Returns account IDs whose latest pending action is DELETE.
- * Uses `findLast` so that a subsequent ADD (e.g. re-invite while offline) takes precedence over an earlier DELETE.
+ * Returns the deduplicated account IDs that have a pending DELETE action.
+ * Preserves the original inline behavior (an account is excluded if any entry marks it DELETE).
  */
 function getPendingDeleteMemberAccountIDs(pendingChatMembers: PendingChatMember[] | undefined): string[] {
     if (!pendingChatMembers?.length) {
         return [];
     }
 
-    const seen = new Set<string>();
-    const result: string[] = [];
-    for (const member of pendingChatMembers) {
-        seen.add(member.accountID);
-    }
-
-    for (const accountID of seen) {
-        const latestAction = pendingChatMembers.findLast((member) => member.accountID === accountID);
-        if (latestAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            result.push(accountID);
-        }
-    }
-
-    return result;
+    return [...new Set(pendingChatMembers.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID))];
 }
 
 /**

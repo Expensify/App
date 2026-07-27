@@ -21488,7 +21488,7 @@ describe('getPendingDeleteMemberAccountIDs', () => {
         expect(getPendingDeleteMemberAccountIDs([])).toEqual([]);
     });
 
-    it('returns account IDs with DELETE as the latest pending action', () => {
+    it('returns account IDs that have a DELETE pending action', () => {
         const pendingChatMembers = [
             {accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
             {accountID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
@@ -21498,14 +21498,24 @@ describe('getPendingDeleteMemberAccountIDs', () => {
         expect(result).toEqual(['1']);
     });
 
-    it('uses findLast so a subsequent ADD overrides an earlier DELETE for the same member', () => {
+    it('deduplicates account IDs that appear in multiple DELETE entries', () => {
+        const pendingChatMembers = [
+            {accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            {accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+        ];
+
+        const result = getPendingDeleteMemberAccountIDs(pendingChatMembers);
+        expect(result).toEqual(['1']);
+    });
+
+    it('includes an account ID if any entry marks it DELETE, matching the original behavior', () => {
         const pendingChatMembers = [
             {accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
             {accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         ];
 
         const result = getPendingDeleteMemberAccountIDs(pendingChatMembers);
-        expect(result).toEqual([]);
+        expect(result).toEqual(['1']);
     });
 
     it('correctly handles mixed scenarios with multiple members', () => {
@@ -21517,6 +21527,6 @@ describe('getPendingDeleteMemberAccountIDs', () => {
         ];
 
         const result = getPendingDeleteMemberAccountIDs(pendingChatMembers);
-        expect(result).toEqual(['2', '3']);
+        expect(result).toEqual(['1', '2', '3']);
     });
 });
