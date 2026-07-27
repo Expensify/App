@@ -1353,6 +1353,82 @@ describe('SidebarUtils', () => {
             expect(result.messageHtml).toContain('HiddenMarker');
         });
 
+        it('resolves the policy expense chat workspace name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            // A translate that tags the "unavailable" workspace copy so we can prove getPolicyName used the provided translate
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
+        it('resolves the admin room workspace name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
+        it('resolves the invoice room receiver name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
         it('do not return pronouns in the welcome message text when it is group chat', async () => {
             const MOCK_REPORT: Report = {
                 ...LHNTestUtils.getFakeReport(),
