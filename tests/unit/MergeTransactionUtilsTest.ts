@@ -1096,7 +1096,7 @@ describe('MergeTransactionUtils', () => {
             // When we get updated values for merchant field
             const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals});
 
-            // Then it should include merchant plus all distance-specific fields
+            // Then it should include merchant plus all distance-specific fields, with odometer readings nulled for a non-odometer request
             expect(result).toEqual({
                 merchant: 'New Distance Merchant',
                 amount: -2500,
@@ -1117,7 +1117,65 @@ describe('MergeTransactionUtils', () => {
                 taxValue: '5%',
                 taxName: '5%',
                 taxAmount: 125,
+                odometerStart: null,
+                odometerEnd: null,
+                odometerStartImage: null,
+                odometerEndImage: null,
             });
+        });
+
+        it('should copy odometer readings when an odometer distance expense is selected', () => {
+            // Given an odometer distance request transaction with odometer readings
+            const transaction = {
+                ...createRandomDistanceRequestTransaction(0),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'unit123',
+                    },
+                    odometerStart: 1000,
+                    odometerEnd: 1042,
+                    odometerStartImage: 'start.jpg',
+                    odometerEndImage: 'end.jpg',
+                },
+            };
+            const fieldValue = 'Odometer Merchant';
+
+            // When we get updated values for merchant field
+            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals});
+
+            // Then the odometer readings should be carried over from the selected transaction
+            expect(result).toEqual(
+                expect.objectContaining({
+                    odometerStart: 1000,
+                    odometerEnd: 1042,
+                    odometerStartImage: 'start.jpg',
+                    odometerEndImage: 'end.jpg',
+                }),
+            );
+        });
+
+        it('should null odometer readings when a map distance expense is selected', () => {
+            // Given a map distance request transaction (no odometer readings)
+            const transaction = {
+                ...createRandomDistanceRequestTransaction(0, true),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            };
+            const fieldValue = 'Map Merchant';
+
+            // When we get updated values for merchant field
+            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals});
+
+            // Then the odometer readings should be explicitly nulled so none leak in from a previous odometer selection
+            expect(result).toEqual(
+                expect.objectContaining({
+                    odometerStart: null,
+                    odometerEnd: null,
+                    odometerStartImage: null,
+                    odometerEndImage: null,
+                }),
+            );
         });
     });
 
