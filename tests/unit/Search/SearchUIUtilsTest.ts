@@ -8432,6 +8432,122 @@ describe('SearchUIUtils', () => {
         it('should return false when queryJSON is undefined but searchResults has a concrete type and hash', () => {
             expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), undefined)).toBe(false);
         });
+
+        it('should return true on a response with no data that reached a terminal loaded state (type and hash match)', () => {
+            const results = makeSearchResults({
+                data: undefined,
+                errors: undefined,
+                search: {
+                    hasMoreResults: false,
+                    hasResults: false,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: queryJSON?.sortBy ?? 'date',
+                    sortOrder: queryJSON?.sortOrder ?? 'desc',
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
+                },
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
+        });
+
+        it('should return true when the request reached a terminal error state', () => {
+            const results = makeSearchResults({
+                data: undefined,
+                errors: undefined,
+                search: {
+                    hasMoreResults: false,
+                    hasResults: false,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: queryJSON?.sortBy ?? 'date',
+                    sortOrder: queryJSON?.sortOrder ?? 'desc',
+                    state: CONST.SEARCH.SNAPSHOT_STATE.ERROR,
+                },
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
+        });
+
+        it('should return false while a request is still loading with no data yet', () => {
+            const results = makeSearchResults({
+                data: undefined,
+                errors: undefined,
+                search: {
+                    hasMoreResults: false,
+                    hasResults: false,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: true,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: queryJSON?.sortBy ?? 'date',
+                    sortOrder: queryJSON?.sortOrder ?? 'desc',
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADING,
+                },
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
+        it('should return false when a terminal state belongs to a stale snapshot (hash mismatch)', () => {
+            const results = makeSearchResults({
+                data: undefined,
+                errors: undefined,
+                search: {
+                    hasMoreResults: false,
+                    hasResults: false,
+                    offset: 0,
+                    hash: (queryJSON?.hash ?? 0) + 1,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: queryJSON?.sortBy ?? 'date',
+                    sortOrder: queryJSON?.sortOrder ?? 'desc',
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
+                },
+            });
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+
+        it('should return false when searchResults.search is undefined', () => {
+            const results = makeSearchResults({search: undefined});
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
+    });
+
+    describe('Test isSearchPending', () => {
+        const queryJSON = buildSearchQueryJSON('type:expense');
+
+        function makeSearch(state: OnyxTypes.SearchResults['search']['state']): OnyxTypes.SearchResults {
+            return {
+                data: {personalDetailsList: {}},
+                search: {
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    hash: queryJSON?.hash ?? 0,
+                    isLoading: false,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: queryJSON?.sortBy ?? 'date',
+                    sortOrder: queryJSON?.sortOrder ?? 'desc',
+                    state,
+                },
+            };
+        }
+
+        it('should return true only while the snapshot state is loading', () => {
+            expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADING))).toBe(true);
+        });
+
+        it('should return false for the terminal loaded and error states', () => {
+            expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.LOADED))).toBe(false);
+            expect(SearchUIUtils.isSearchPending(makeSearch(CONST.SEARCH.SNAPSHOT_STATE.ERROR))).toBe(false);
+        });
+
+        it('should return false when the state is absent or searchResults is undefined', () => {
+            expect(SearchUIUtils.isSearchPending(makeSearch(undefined))).toBe(false);
+            expect(SearchUIUtils.isSearchPending(undefined)).toBe(false);
+        });
     });
 
     describe('Test isSearchResultsEmpty', () => {
@@ -10732,7 +10848,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -10918,7 +11034,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID)).toBe(true);
         });
     });
     describe('getToFieldValueForTransaction', () => {
@@ -11151,6 +11267,59 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getHasOptions', () => {
+        test('returns expense has options including submitted violation', () => {
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE);
+
+            expect(result).toEqual([
+                {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+                {text: translateLocal('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+            ]);
+        });
+
+        test('returns chat has options without submitted violation', () => {
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.CHAT);
+
+            expect(result).toEqual([
+                {text: translateLocal('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+            ]);
+        });
+
+        test('returns empty array for unsupported search types', () => {
+            expect(SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual([]);
+        });
+    });
+
+    describe('getDisplayValue', () => {
+        test('returns translated has option labels from getHasOptions', () => {
+            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(translateLocal('search.filters.has.submittedViolation'));
+        });
+
+        test('returns multiple has option labels joined by comma', () => {
+            const result = SearchUIUtils.getDisplayValue(
+                'has',
+                {has: [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+            );
+
+            expect(result).toBe(`${translateLocal('common.receipt')}, ${translateLocal('search.filters.has.submittedViolation')}`);
+        });
+
+        test('continues to use common translations for is filter values', () => {
+            const result = SearchUIUtils.getDisplayValue('is', {is: [CONST.SEARCH.IS_VALUES.READ]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(translateLocal('common.read'));
+        });
+    });
+
     describe('filterValidHasValues', () => {
         test('should return undefined when hasValues or type is undefined', () => {
             expect(SearchUIUtils.filterValidHasValues(undefined, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal)).toBeUndefined();
@@ -11158,12 +11327,12 @@ describe('SearchUIUtils', () => {
         });
 
         test('should filter and return only valid hasValues', () => {
-            // Valid values for EXPENSE: receipt, attachment, tag, category
+            // Valid values for EXPENSE: receipt, attachment, tag, category, submitted-violation
             // Invalid value: link (only valid for CHAT)
-            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK];
+            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION];
             const result = SearchUIUtils.filterValidHasValues(hasValues, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
 
-            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG]);
+            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]);
         });
     });
 

@@ -31,6 +31,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -157,7 +158,7 @@ function MultifactorAuthenticationValidateCodePage() {
             clearValidateCodeActionError('actionVerified');
         }
         addMFABreadcrumb('Validate code resend requested');
-        requestValidateCodeAction();
+        requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY});
         inputRef.current?.clear();
         setInputCode('');
         setFormError({});
