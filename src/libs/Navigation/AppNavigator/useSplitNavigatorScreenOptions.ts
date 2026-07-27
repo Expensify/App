@@ -19,6 +19,11 @@ import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
 const IS_MOBILE_SAFARI = isMobileSafari();
 
+// On mWeb the centralScreen card is `position: fixed`, so `width: 100%` resolves against the viewport
+// (including the landscape notch gutters), not the layout parent. Subtract the safe-area
+// insets so the card is sized to the usable safe region instead of overflowing.
+const NARROW_CARD_SAFE_AREA_WIDTH = 'calc(100% - env(safe-area-inset-left) - env(safe-area-inset-right))';
+
 type SplitNavigatorScreenOptions = {
     sidebarScreen: PlatformStackNavigationOptions;
     centralScreen: PlatformStackNavigationOptions;
@@ -66,7 +71,7 @@ const useSplitNavigatorScreenOptions = () => {
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: centralScreenEnter}),
                 cardStyle: shouldUseNarrowLayout
-                    ? StyleUtils.getNavigationModalCardStyle()
+                    ? {...StyleUtils.getNavigationModalCardStyle(), width: NARROW_CARD_SAFE_AREA_WIDTH}
                     : {
                           ...themeStyles.h100,
                       },

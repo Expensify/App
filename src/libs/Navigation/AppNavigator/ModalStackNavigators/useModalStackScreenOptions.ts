@@ -61,7 +61,9 @@ function useWideModalStackScreenOptions() {
                     contentStyle: styles.navigationScreenCardStyle,
                 },
                 web: {
-                    cardStyle: styles.navigationScreenCardStyle,
+                    cardStyle: isSmallScreenWidth
+                        ? {...styles.navigationScreenCardStyle, paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)'}
+                        : styles.navigationScreenCardStyle,
                     cardStyleInterpolator,
                     transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
                 },
