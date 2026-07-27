@@ -144,7 +144,7 @@ const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, undefined, {isSearching: true});
+const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {conciergeReportID: undefined, isSearching: true});
 
 const mockOnClose = jest.fn((afterClose?: () => void) => {
     afterClose?.();
@@ -297,7 +297,7 @@ describe('SearchAutocompleteList', () => {
         // Then the contextual report (not part of recent reports) is built through createOptionFromReport
         // with the conciergeReportID threaded from Onyx (#66411)
         expect(createOptionFromReportSpy).toHaveBeenCalled();
-        expect(createOptionFromReportSpy.mock.calls.at(0)?.at(5)).toBe('concierge-router-1');
+        expect(createOptionFromReportSpy.mock.calls.at(0)?.at(0)?.conciergeReportID).toBe('concierge-router-1');
     });
 
     describe('two-section chat switcher', () => {

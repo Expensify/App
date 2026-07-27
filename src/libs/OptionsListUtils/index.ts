@@ -1664,8 +1664,8 @@ function createFilteredOptionList(
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     privateIsArchivedMap: PrivateIsArchivedMap,
     policiesCollection: OnyxCollection<Policy>,
-    conciergeReportID: string | undefined,
     options: {
+        conciergeReportID: string | undefined;
         maxRecentReports?: number;
         includeP2P?: boolean;
         isSearching?: boolean;
@@ -1677,14 +1677,14 @@ function createFilteredOptionList(
          */
         deferContactsUntilSearch?: boolean;
         locale?: Locale;
-    } = {},
+    },
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = EMPTY_VISIBLE_REPORT_ACTIONS,
     isTrackIntentUser?: boolean,
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
-    const {maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
+    const {conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
 
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
     // opts into deferral and is not actively searching, skip building them entirely; the empty state
@@ -1850,19 +1850,33 @@ function createFilteredOptionList(
     return cloneOptionList(result);
 }
 
-function createOptionFromReport(
-    report: Report,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: boolean | undefined,
-    policy: OnyxEntry<Policy>,
-    sortedActions: Record<string, ReportAction[]> | undefined,
-    conciergeReportID: string | undefined,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    config?: PreviewConfig,
-    policyTags?: OnyxEntry<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    isTrackIntentUser?: boolean,
-) {
+type CreateOptionFromReportParams = {
+    report: Report;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    privateIsArchived: boolean | undefined;
+    policy: OnyxEntry<Policy>;
+    sortedActions: Record<string, ReportAction[]> | undefined;
+    conciergeReportID: string | undefined;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    config?: PreviewConfig;
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    isTrackIntentUser?: boolean;
+};
+
+function createOptionFromReport({
+    report,
+    personalDetails,
+    privateIsArchived,
+    policy,
+    sortedActions,
+    conciergeReportID,
+    reportAttributesDerived,
+    config,
+    policyTags,
+    visibleReportActionsData = {},
+    isTrackIntentUser,
+}: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {

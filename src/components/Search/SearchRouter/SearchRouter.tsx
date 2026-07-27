@@ -213,21 +213,18 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const option = createOptionFromReport(
-                    contextualReport,
+                const option = createOptionFromReport({
+                    report: contextualReport,
                     personalDetails,
-                    contextualReportNVP,
-                    contextualReportPolicy,
+                    privateIsArchived: contextualReportNVP,
+                    policy: contextualReportPolicy,
                     sortedActions,
                     conciergeReportID,
-                    undefined,
-                    {
+                    config: {
                         showPersonalDetails: true,
                     },
-                    undefined,
-                    undefined,
                     isTrackIntentUser,
-                );
+                });
                 reportForContextualSearch = option;
             }
 
@@ -281,6 +278,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         },
         [
             contextualReportID,
+            conciergeReportID,
             navigationSuggestions,
             textInputValue,
             isSearchRouterDisplayed,
