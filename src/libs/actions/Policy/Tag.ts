@@ -1137,7 +1137,7 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
 }
 
-function setPolicyShowTagGLCodes(policyID: string | undefined, showTagGLCodes: boolean) {
+function setPolicyShowTagGLCodes(policyID: string | undefined, showTagGLCodes: boolean, currentShowTagGLCodes: boolean | undefined) {
     if (!policyID) {
         return;
     }
@@ -1177,7 +1177,7 @@ function setPolicyShowTagGLCodes(policyID: string | undefined, showTagGLCodes: b
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    showTagGLCodes: !showTagGLCodes,
+                    showTagGLCodes: currentShowTagGLCodes,
                     errorFields: {
                         showTagGLCodes: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                     },

@@ -1298,9 +1298,8 @@ function getPolicyTagGLCode(tags: PolicyTags | undefined, tagName: string | unde
     if (!tags || !tagName) {
         return '';
     }
-    const directMatch = tags[tagName];
-    const glCode = directMatch?.['GL Code'] ?? Object.values(tags).find((tag) => tag.name === tagName)?.['GL Code'];
-    return glCode != null ? String(glCode).replaceAll('"', '') : '';
+    const matchingTag = tags[tagName] ?? Object.values(tags).find((tag) => tag.name === tagName);
+    return getGLCodeFromPolicyTag(matchingTag);
 }
 
 /**

@@ -6401,6 +6401,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 one: '1 dzień',
                 other: (count: number) => `${count} tagi`,
             }),
+            showTagGLCodes: '[pl] Show GL codes when selecting a tag',
         },
         taxes: {
             subtitle: 'Dodaj nazwy podatków, stawki i ustaw domyślne.',

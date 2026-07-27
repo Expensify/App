@@ -214,7 +214,7 @@ describe('actions/Policy', () => {
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
-                    setPolicyShowTagGLCodes(fakePolicy.id, true);
+                    setPolicyShowTagGLCodes(fakePolicy.id, true, false);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -259,7 +259,7 @@ describe('actions/Policy', () => {
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     mockFetch?.fail?.();
-                    setPolicyShowTagGLCodes(fakePolicy.id, false);
+                    setPolicyShowTagGLCodes(fakePolicy.id, false, true);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
