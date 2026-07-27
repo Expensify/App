@@ -20,7 +20,7 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
+import {enablePolicyCategories, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 import {enablePolicyTags, setPolicyRequiresTag} from '@userActions/Policy/Tag';
 
@@ -49,7 +49,8 @@ function RulesRequireFieldsPage({
 
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
-    const isCategoryToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
+    const isCategoryFeatureDisabled = !policy?.areCategoriesEnabled;
+    const isCategoryToggleDisabled = isCategoryFeatureDisabled || !hasEnabledCategories || isConnectedToAccounting;
 
     const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const isTagFeatureDisabled = !policy?.areTagsEnabled;
@@ -95,6 +96,62 @@ function RulesRequireFieldsPage({
         }
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     }, [hasChanges, categoryRequired, initialCategoryRequired, tagRequired, initialTagRequired, policyData]);
+
+    const categoryDisabledText = (() => {
+        if (!isCategoryToggleDisabled) {
+            return undefined;
+        }
+        if (isConnectedToAccounting) {
+            return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
+        }
+        if (isCategoryFeatureDisabled) {
+            return translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockPrompt');
+        }
+        return translate('workspace.rules.individualExpenseRules.enableCategoriesListToRequirePrompt');
+    })();
+
+    const promptEnableCategoriesForRequireCategory = useCallback(async () => {
+        if (isConnectedToAccounting) {
+            const {action} = await showConfirmModal({
+                title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
+                prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
+                confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
+                cancelText: translate('common.cancel'),
+            });
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            return;
+        }
+
+        if (isCategoryFeatureDisabled) {
+            const {action} = await showConfirmModal({
+                title: translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockTitle'),
+                prompt: translate('workspace.rules.individualExpenseRules.enableCategoriesAndRequirePrompt'),
+                confirmText: translate('common.buttonConfirm'),
+                cancelText: translate('common.cancel'),
+            });
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            enablePolicyCategories(policyData, true, false);
+            setWorkspaceRequiresCategory(policyData, true);
+            setCategoryRequired(true);
+            return;
+        }
+
+        const {action} = await showConfirmModal({
+            title: translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockTitle'),
+            prompt: translate('workspace.rules.individualExpenseRules.enableCategoriesListToRequirePrompt'),
+            confirmText: translate('common.buttonConfirm'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    }, [isCategoryFeatureDisabled, isConnectedToAccounting, policyData, policyID, showConfirmModal, translate]);
 
     const promptEnableTagsForRequireTag = useCallback(async () => {
         if (isTagFeatureDisabled) {
@@ -156,6 +213,8 @@ function RulesRequireFieldsPage({
                         isActive={categoryRequired}
                         disabled={isCategoryToggleDisabled}
                         showLockIcon={isCategoryToggleDisabled}
+                        disabledText={categoryDisabledText}
+                        disabledAction={isCategoryToggleDisabled ? promptEnableCategoriesForRequireCategory : undefined}
                         pendingAction={policy?.pendingFields?.requiresCategory}
                         errors={policy?.errorFields?.requiresCategory ?? undefined}
                         onCloseError={() => clearPolicyErrorField(policyID, 'requiresCategory')}
@@ -170,6 +229,15 @@ function RulesRequireFieldsPage({
                         isActive={tagRequired}
                         disabled={isTagToggleDisabled}
                         showLockIcon={isTagToggleDisabled}
+                        disabledText={
+                            isTagToggleDisabled
+                                ? translate(
+                                      isTagFeatureDisabled
+                                          ? 'workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt'
+                                          : 'workspace.rules.individualExpenseRules.enableTagsListToRequirePrompt',
+                                  )
+                                : undefined
+                        }
                         disabledAction={isTagToggleDisabled ? promptEnableTagsForRequireTag : undefined}
                         pendingAction={policy?.pendingFields?.requiresTag}
                         errors={policy?.errorFields?.requiresTag ?? undefined}

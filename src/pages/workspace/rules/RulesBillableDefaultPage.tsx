@@ -114,6 +114,7 @@ function RulesBillableDefaultPage({
                         isActive={isBillableTrackingEnabled}
                         disabled={isTrackBillableToggleDisabled}
                         showLockIcon={isTrackBillableToggleDisabled}
+                        disabledText={isTrackBillableToggleDisabled ? translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt') : undefined}
                         disabledAction={isTrackBillableToggleDisabled ? promptEnableTagsToUnlockTrackBillable : undefined}
                         pendingAction={getBillableExpensesPendingAction(policy)}
                         onToggle={() => toggleBillableExpenses(policy)}
