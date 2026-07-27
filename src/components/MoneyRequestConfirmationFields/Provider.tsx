@@ -37,6 +37,9 @@ type ProviderProps = {
     /** Whether we're editing an existing split expense */
     isEditingSplitBill?: boolean;
 
+    /** Whether the new manual expense flow beta is enabled */
+    isNewManualExpenseFlowEnabled?: boolean;
+
     /** Whether the surface is in a policy-expense chat */
     isPolicyExpenseChat?: boolean;
 
@@ -81,6 +84,7 @@ function Provider({
     isReadOnly = false,
     didConfirm = false,
     isEditingSplitBill = false,
+    isNewManualExpenseFlowEnabled = false,
     isPolicyExpenseChat = false,
     isDistanceRequest = false,
     isPerDiemRequest = false,
@@ -103,6 +107,7 @@ function Provider({
         isReadOnly,
         didConfirm,
         isEditingSplitBill,
+        isNewManualExpenseFlowEnabled,
         isPolicyExpenseChat,
         isDistanceRequest,
         isPerDiemRequest,

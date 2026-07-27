@@ -102,7 +102,6 @@ function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): bo
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (actions) => {
         if (!actions) {
             return;
@@ -132,7 +131,6 @@ Onyx.connect({
 let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
@@ -187,6 +185,11 @@ const deprecatedOldDotReportActions = new Set<ReportActionName>([
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+}
+
+/** The current user's optimistic, not-yet-synced comment — a message just sent in the current session. */
+function isCurrentUserPendingAddAction(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
+    return !!currentUserAccountID && reportAction?.actorAccountID === currentUserAccountID && reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 }
 
 function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
@@ -613,6 +616,10 @@ function isIntegrationMessageAction(reportAction: OnyxInputOrEntry<ReportAction>
 
 function isTravelUpdate(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE);
+}
+
+function isTravelNudge(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE);
 }
 
 /**
@@ -1285,7 +1292,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (isTripPreview(reportAction) || isTravelUpdate(reportAction)) {
+    if (isTripPreview(reportAction) || isTravelUpdate(reportAction) || isTravelNudge(reportAction)) {
         return true;
     }
 
@@ -4610,6 +4617,26 @@ function getActionableCard3DSTransactionApprovalMessage(
     return translate('report.actions.type.actionableCard3DSTransactionApproval', formattedAmount, merchant);
 }
 
+function getTravelNudgeMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE>) {
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return '';
+    }
+    const isCardCreated = originalMessage.origination === CONST.TRAVEL_NUDGE.ORIGINATION.CARD;
+    switch (originalMessage.travelType) {
+        case CONST.RESERVATION_TYPE.FLIGHT:
+            return translate(isCardCreated ? 'travel.nudge.airfareCard' : 'travel.nudge.airfareManual');
+        case CONST.RESERVATION_TYPE.HOTEL:
+            return translate(isCardCreated ? 'travel.nudge.hotelCard' : 'travel.nudge.hotelManual');
+        case CONST.RESERVATION_TYPE.CAR:
+            return translate(isCardCreated ? 'travel.nudge.carCard' : 'travel.nudge.carManual');
+        case CONST.RESERVATION_TYPE.TRAIN:
+            return translate(isCardCreated ? 'travel.nudge.railCard' : 'travel.nudge.railManual');
+        default:
+            return '';
+    }
+}
+
 /**
  * @private
  */
@@ -4732,6 +4759,7 @@ function hasReasoning(action: OnyxInputOrEntry<ReportAction>): boolean {
 function isPolicyCopyReportAction(action: OnyxInputOrEntry<ReportAction>): action is ReportAction<PolicyChangeLogCopyReportActionNames> {
     return [
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW,
+        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CURRENCY,
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES,
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS,
         CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING,
@@ -4823,6 +4851,7 @@ export {
     isExportedToIntegrationAction,
     hasNextActionMadeBySameActor,
     isCreatedAction,
+    isCurrentUserPendingAddAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
@@ -4969,6 +4998,7 @@ export {
     getWorkspaceCustomUnitUpdatedMessage,
     getRoomChangeLogMessage,
     getActionableCard3DSTransactionApprovalMessage,
+    getTravelNudgeMessage,
     shouldShowActivateCard,
     isRejectedAction,
     isReopenedAction,

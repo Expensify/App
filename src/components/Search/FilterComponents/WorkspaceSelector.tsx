@@ -6,6 +6,7 @@ import type {ListItem, TextInputOptions} from '@components/SelectionList/types';
 
 import {advancedSearchPoliciesSelector, useAdvancedSearchFiltersWorkspaces} from '@hooks/useAdvancedSearchFilters';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -40,7 +41,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>(), policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     // Fetch the full (unfiltered) workspace list and apply the search filter locally, so pinning is decided from the
@@ -98,7 +99,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
             itemCount={listData.length}
             isSearchable={shouldShowWorkspaceSearchInput}
         >
-            {isLoadingApp && !isOffline ? (
+            {isAppLoadPending && !isOffline ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
