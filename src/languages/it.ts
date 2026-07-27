@@ -1104,6 +1104,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: 'Parla con il tuo account executive',
             forGuidedSetup: 'per la configurazione guidata.',
             configureApprovalsSubText: 'Definisci le approvazioni dei report',
+            setupTravel: 'Configura viaggi',
+            setupTravelSubText: 'Configura regole specifiche per i viaggi',
         },
         yourSpend: {
             title: 'Le tue spese',

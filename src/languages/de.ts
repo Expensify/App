@@ -1090,6 +1090,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: 'Sprechen Sie mit Ihrer Kundenbetreuung',
             forGuidedSetup: 'für die geführte Einrichtung.',
             configureApprovalsSubText: 'Berichtsfreigaben festlegen',
+            setupTravel: 'Reisen einrichten',
+            setupTravelSubText: 'Reisespezifische Regeln konfigurieren',
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
