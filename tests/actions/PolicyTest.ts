@@ -1,8 +1,7 @@
-import type {TaskForParameters} from '@libs/actions/Report';
+import type {GuidedSetupTask} from '@libs/actions/Report';
 import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {isRecord} from '@libs/ObjectUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {isPolicyPayer} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -38,7 +37,16 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import {getOptionalNumberProperty, parseJSONArray, parseJSONRecord, readProperty, requireRecord, requireRecordArrayProperty, requireStringProperty} from '../utils/typeGuards';
+import {
+    getOptionalNumberProperty,
+    isGuidedSetupTask,
+    parseJSONArray,
+    parseJSONRecord,
+    readProperty,
+    requireRecord,
+    requireRecordArrayProperty,
+    requireStringProperty,
+} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
@@ -55,23 +63,11 @@ const TEST_PHONE_NUMBER = '1234567890';
 const TEST_NON_PUBLIC_DOMAIN_EMAIL = 'esh@example.com';
 const TEST_SMS_DOMAIN_EMAIL = 'esh@expensify.sms';
 
-type GuidedSetupTask = Extract<TaskForParameters, {type: 'task'}>;
-type GuidedSetupTaskFields = Pick<GuidedSetupTask, 'type' | 'task' | 'completedTaskReportActionID'>;
-
 function requireCallArgument(call: unknown, index: number): unknown {
     if (!Array.isArray(call) || !(index in call)) {
         throw new Error(`Expected API call argument ${index}`);
     }
     return call.at(index);
-}
-
-function isGuidedSetupTask(value: unknown): value is GuidedSetupTaskFields {
-    return (
-        isRecord(value) &&
-        value.type === 'task' &&
-        typeof value.task === 'string' &&
-        (value.completedTaskReportActionID === undefined || typeof value.completedTaskReportActionID === 'string')
-    );
 }
 
 jest.mock('@libs/GoogleTagManager');
