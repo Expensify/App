@@ -1965,24 +1965,9 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
     filter?: (option: T) => boolean | undefined,
     reversed = false,
 ): {options: T[]; hasMore: boolean} {
-    let hasMore = false;
-
-    // If a limit is 0 or negative, return an empty array
-    if (limit !== undefined && limit <= 0) {
-        return {options: [], hasMore};
-    }
-
-    const heap = createDecoratedOptionHeap<T>(reversed, limit);
-
-    for (const option of options) {
-        if (filter && !filter(option)) {
-            continue;
-        }
-        if (heap.pushAndCheckHasMore(decorateOption(option, comparator))) {
-            hasMore = true;
-        }
-    }
-    return {options: heap.getOptionsFromDecoratedHeap(), hasMore};
+    // With no separators, every option lands in the single default group
+    const {options: groupedOptions, hasMore} = optionsOrderAndGroupBy<T>([], options, comparator, limit, filter, reversed);
+    return {options: groupedOptions.at(0) ?? [], hasMore};
 }
 
 /**
@@ -2000,14 +1985,15 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
     filter?: (option: T) => boolean | undefined,
     reversed = false,
 ): {options: T[][]; hasMore: boolean} {
-    const heaps = Array.from({length: separators.length}, () => createDecoratedOptionHeap<T>(reversed, limit));
-    const defaultHeap = createDecoratedOptionHeap<T>(reversed, limit);
     let hasMore = false;
 
     // If limit is 0 or negative, return N+1 empty arrays
     if (limit !== undefined && limit <= 0) {
         return {options: Array.from({length: separators.length + 1}, () => []), hasMore};
     }
+
+    const heaps = Array.from({length: separators.length}, () => createDecoratedOptionHeap<T>(reversed, limit));
+    const defaultHeap = createDecoratedOptionHeap<T>(reversed, limit);
 
     // Process each option
     for (const option of options) {
