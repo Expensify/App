@@ -55,6 +55,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // Derived primitives so effects do not depend on the whole snapshot object (new reference every
     // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().
     const isSnapshotDataLoaded = queryJSON ? isSearchDataLoaded(currentSearchResults, queryJSON) : false;
+    // Keep `isLoading` as a dependency so an unresolved search retries when temporary search prevention changes it to false.
     const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
 
     // Clear selected transactions when navigating to a different search query
@@ -85,7 +86,8 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             lastSavedSearchHash = hash;
         }
 
-        if (isSnapshotDataLoaded || isSnapshotSearchLoading) {
+        // A persisted `isLoading` value may be stale after a reload. Only skip resolved snapshots and let `search()` ignore requests that are already running.
+        if (isSnapshotDataLoaded) {
             return;
         }
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);

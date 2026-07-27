@@ -528,6 +528,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: 'グラフを表示できません',
         webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。有効にするか、別のブラウザに切り替えてください。',
         apiKey: 'API キー',
+        exportsTo: 'エクスポート先',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -5719,6 +5720,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 },
                 csvColumns: {
                     cardNumber: 'カード番号',
+                    cardName: 'カード名',
                     postedDate: '日付',
                     merchant: '加盟店',
                     amount: '金額',
@@ -5734,6 +5736,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
                     duplicateColumns: (duplicateColumn: string) => `おっと！1 つのフィールド（"${duplicateColumn}"）を複数の列にマッピングしています。確認して、もう一度お試しください。`,
+                    cardIdentityColumn: '取引をカードに照合できるように、カード番号またはカード名を対応付けてください。',
                 },
                 fileImportDescription: '銀行からフィードを送信できない場合の手動オプションです。',
                 duplicateFeedModal: {title: 'カードフィードはすでに接続されています', prompt: '同じカードフィードを同じワークスペースに二重に追加することはできません。'},
@@ -7527,7 +7530,7 @@ ${reportName}`,
             },
             customRules: {
                 title: '経費ポリシー',
-                cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
+                cardSubtitle: '精算ポリシーをアップロードして、全員が経費として申請できるもの／できないものを理解できるようにしてください。',
                 policyDocument: 'ポリシー文書',
                 policyText: 'ポリシーテキスト',
             },
@@ -8726,6 +8729,7 @@ ${reportName}`,
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',
         searchName: '名前を検索',
         savedSearchesMenuItemTitle: '保存済み',
+        mySavedSearch: '自分の経費',
         urlCopied: 'URLをコピーしました',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
@@ -10044,7 +10048,6 @@ ${reportName}`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
-        saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',
         accountSwitcher: '<tooltip>ここから<strong>Copilot アカウント</strong>にアクセスできます</tooltip>',
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',

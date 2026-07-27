@@ -147,9 +147,7 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-type NoneAccountingKey = 'none';
-
-type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | NoneAccountingKey | null;
+type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | (string & Record<never, never>) | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -989,7 +987,6 @@ const CONST = {
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
-        BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
@@ -2275,6 +2272,7 @@ const CONST = {
             REPORT_ACTIONS_APP_LOAD: 'report_actions_app_load',
             SKELETON_GUARD_LOADING: 'skeleton_guard_loading',
             SKELETON_GUARD_DERIVED_TIMING: 'skeleton_guard_derived_timing',
+            INBOX_TAB_DEFER: 'inbox_tab_defer',
         },
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
@@ -2482,9 +2480,6 @@ const CONST = {
         BAD_GATEWAY: 502,
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
-    },
-    HTTP_HEADER_NAMES: {
-        AUTH_TOKEN: 'authToken',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
@@ -6453,6 +6448,10 @@ const CONST = {
 
     VIDEO_PLAYER: {
         PLAYBACK_SPEEDS: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+        // Tolerance (in seconds) used when deciding whether a paused video is "at its end". `timeUpdate`
+        // samples every ~0.1s and stops firing once the video pauses at the end, so `currentTime` can
+        // freeze up to ~0.1s short of `duration`; comparing against `duration - this` absorbs that gap.
+        REPLAY_END_THRESHOLD_SECONDS: 0.15,
         HIDE_TIME_TEXT_WIDTH: 250,
         MIN_WIDTH: 170,
         MIN_HEIGHT: 120,
@@ -7933,6 +7932,7 @@ const CONST = {
         MERCHANT: 'merchant',
         TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category'] as const,
         CARD_NUMBER: 'cardNumber',
+        CARD_NAME: 'cardName',
         POSTED_DATE: 'postedDate',
         TAG: 'tag',
         COMMENT: 'comment',
@@ -8130,7 +8130,6 @@ const CONST = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
-        RENAME_SAVED_SEARCH: 'renameSavedSearch',
         OUTSTANDING_FILTER: 'outstandingFilter',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
