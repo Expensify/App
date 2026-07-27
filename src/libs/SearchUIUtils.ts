@@ -4824,17 +4824,29 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !type || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
+/**
+ * Uses `search.state`, which tracks API requests, instead of `search.isLoading`, which also tracks temporary UI loading.
+ */
+function isSearchPending(searchResults: SearchResults | undefined) {
+    return searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADING;
+}
+
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    return (
-        (searchResults?.data != null || searchResults?.errors != null) &&
-        searchResults.search.type === queryJSON?.type &&
-        searchResults.search.hash ===
-            getQueryHashes({
-                ...queryJSON,
-                sortBy: searchResults.search.sortBy,
-                sortOrder: searchResults.search.sortOrder,
-            }).primaryHash
-    );
+    const queryJSONHash =
+        queryJSON && searchResults?.search
+            ? getQueryHashes({
+                  ...queryJSON,
+                  sortBy: searchResults.search.sortBy,
+                  sortOrder: searchResults.search.sortOrder,
+              }).primaryHash
+            : queryJSON?.hash;
+    const state = searchResults?.search?.state;
+    // A response can finish without writing data or errors, so `loaded` and `error` also count as resolved.
+    // The type and hash checks below keep results from an earlier query out.
+    const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || state === CONST.SEARCH.SNAPSHOT_STATE.ERROR;
+    const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
+
+    return hasResolved && searchResults?.search?.type === queryJSON?.type && searchResults?.search?.hash === queryJSONHash;
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
@@ -6394,6 +6406,7 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
+    currentUserAccountID: number,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -6418,7 +6431,7 @@ function shouldShowDeleteOption(
                       reportTransactions.push(item);
                   }
               }
-              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray);
+              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID);
           })
         : selectedTransactionsKeys.every((id) => {
               const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
@@ -6432,7 +6445,7 @@ function shouldShowDeleteOption(
                   Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                   selectedTransactions[id].reportAction;
 
-              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
+              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID);
           });
 }
 
@@ -6557,6 +6570,7 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    isSearchPending,
     getValidGroupBy,
     getTypeOptions,
     getSortByOptions,
