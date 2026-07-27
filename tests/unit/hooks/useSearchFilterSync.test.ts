@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useSearchFilterSync, {shouldDeferSearchFilterSync} from '@hooks/useSearchFilterSync';
+import useSearchFilterSync, {shouldDeferSearchFilterSync, shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync';
 
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import {resetSearchFilterSyncState} from '@libs/SearchFilterSyncState';
@@ -59,5 +59,16 @@ describe('useSearchFilterSync', () => {
         expect(shouldDeferSearchFilterSync(queryJSON, true, true, false)).toBe(true);
         expect(shouldDeferSearchFilterSync(queryJSON, true, false, false)).toBe(false);
         expect(shouldDeferSearchFilterSync(queryJSON, false, undefined, true)).toBe(false);
+    });
+
+    it('shows category filter loading only during initial load', () => {
+        const queryJSON = buildSearchQueryJSON('type:expense category:SecondTesting');
+        if (!queryJSON) {
+            throw new Error('Expected query to parse');
+        }
+
+        expect(shouldShowInitialCategoryFilterLoading(queryJSON, false, undefined, false)).toBe(true);
+        expect(shouldShowInitialCategoryFilterLoading(queryJSON, true, true, false)).toBe(false);
+        expect(shouldShowInitialCategoryFilterLoading(queryJSON, false, undefined, true)).toBe(false);
     });
 });

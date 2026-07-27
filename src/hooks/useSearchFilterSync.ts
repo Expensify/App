@@ -16,6 +16,10 @@ function shouldDeferSearchFilterSync(queryJSON: SearchQueryJSON, areCategoriesLo
     return hasCategoryFilter && !isOffline && isCategoryRequestPending;
 }
 
+function shouldShowInitialCategoryFilterLoading(queryJSON: SearchQueryJSON, areCategoriesLoaded: boolean | undefined, isLoadingCategories: boolean | undefined, isOffline: boolean) {
+    return !areCategoriesLoaded && shouldDeferSearchFilterSync(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
+}
+
 /**
  * Syncs computed filter form values to the SEARCH_ADVANCED_FILTERS_FORM Onyx
  * key when the URL query string actually changes. The form is the source for
@@ -44,4 +48,4 @@ function useSearchFilterSync(queryJSON: SearchQueryJSON | undefined, formValues:
 }
 
 export default useSearchFilterSync;
-export {shouldDeferSearchFilterSync};
+export {shouldDeferSearchFilterSync, shouldShowInitialCategoryFilterLoading};

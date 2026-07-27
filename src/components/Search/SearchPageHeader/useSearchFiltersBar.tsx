@@ -12,7 +12,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {shouldDeferSearchFilterSync} from '@hooks/useSearchFilterSync';
+import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync';
 
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
@@ -204,7 +204,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         setFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
         setSearchContext(false);
     };
-    const isCategoryFilterLoading = shouldDeferSearchFilterSync(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
+    const isCategoryFilterLoading = shouldShowInitialCategoryFilterLoading(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
 
     return {
         filters,
