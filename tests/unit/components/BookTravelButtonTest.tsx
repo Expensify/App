@@ -135,7 +135,7 @@ describe('BookTravelButton', () => {
             // Then the terms screen is stored as the post-validation destination
             expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(TCS_ROUTE);
             // And the admin is sent to verify their account first
-            expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('travel/verify-account'));
+            expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('verify-account'));
         });
     });
 

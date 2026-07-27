@@ -71,7 +71,8 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
     const [isModifyTripLoading, setIsModifyTripLoading] = useState(false);
     const [isTripSupportLoading, setIsTripSupportLoading] = useState(false);
 
-    const {transactionID, sequenceIndex, pnr, detailsReportID: reportID} = route.params;
+    const {transactionID, sequenceIndex, pnr, detailsReportID, reportID: baseReportID} = route.params;
+    const reportID = detailsReportID ?? baseReportID;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.path);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);

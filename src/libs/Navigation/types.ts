@@ -2722,7 +2722,10 @@ type TravelNavigatorParamList = {
         transactionID: string;
     };
     [SCREENS.TRAVEL.DYNAMIC_TRIP_DETAILS]: {
-        detailsReportID: string;
+        detailsReportID?: string;
+        // Present when this dynamic suffix is matched directly on top of SCREENS.REPORT (e.g. pre-migration links
+        // without the detailsReportID query param). Used as a fallback when detailsReportID is absent.
+        reportID?: string;
         transactionID: string;
         sequenceIndex: number;
         pnr: string;
