@@ -19,7 +19,7 @@ jest.mock('@libs/NetworkState', () => ({
     getIsOffline: () => false,
 }));
 
-// The watchdog checks every 60s; each reconnect resets the PONG clock, so while PONGs stay missing it fires on every second check tick (~2 minutes)
+// The watchdog checks every 60s; each reconnect skips the following check, so while PONGs stay missing it fires on every second check tick (~2 minutes)
 const CHECK_INTERVAL_MS = 60_000;
 
 describe('Pusher PINGPONG watchdog', () => {
@@ -53,7 +53,7 @@ describe('Pusher PINGPONG watchdog', () => {
         await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS + 1_000);
         expect(reconnectSpy).toHaveBeenCalledTimes(1);
 
-        // The check tick right after a reconnect lands inside the grace period
+        // The check tick right after a reconnect is skipped
         await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
         expect(reconnectSpy).toHaveBeenCalledTimes(1);
 
@@ -67,7 +67,7 @@ describe('Pusher PINGPONG watchdog', () => {
     it('defers the next reconnect when a PONG arrives', async () => {
         reconnectSpy.mockClear();
 
-        // Let the in-grace check tick pass, then deliver a PONG
+        // Let the skipped check tick pass, then deliver a PONG
         await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
         pongCallback({pingID: '1', pingTimestamp: Date.now()});
 

@@ -799,6 +799,7 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
 
 let lastPingSentTimestamp = Date.now();
 let lastPongReceivedTimestamp = Date.now();
+let shouldSkipCheckAfterReconnect = false;
 function subscribeToPusherPong(currentUserAccountID: number) {
     // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
     if (!currentUserAccountID) {
@@ -854,15 +855,21 @@ function checkForLatePongReplies() {
         return;
     }
 
+    // A reconnect just happened, so give the fresh socket one full check interval to deliver a PONG
+    if (shouldSkipCheckAfterReconnect) {
+        shouldSkipCheckAfterReconnect = false;
+        return;
+    }
+
     const now = Date.now();
     const timeSinceLastPongReceived = now - lastPongReceivedTimestamp;
 
     // A missing PONG while HTTP still works (the client is not offline) means the socket is presumed dead, so reconnect Pusher
     if (timeSinceLastPongReceived > SOCKET_PRESUMED_DEAD_THRESHOLD_IN_SECONDS * 1000) {
-        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event in ${timeSinceLastPongReceived} ms so the socket is presumed dead and Pusher is being reconnected`);
+        Log.info(`[Pusher PINGPONG] The server has not sent a PONG in ${timeSinceLastPongReceived} ms so the socket is presumed dead and Pusher is being reconnected`);
 
-        // Reset the PONG clock so the fresh socket gets a full grace period; retries stay unbounded (~1 reconnect every 2 minutes while PONGs are missing)
-        lastPongReceivedTimestamp = now;
+        // Retries stay unbounded: one reconnect every second check tick (~2 minutes) while PONGs are missing
+        shouldSkipCheckAfterReconnect = true;
         Pusher.reconnect();
     } else {
         Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so the socket is presumed alive`);
