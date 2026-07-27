@@ -1,4 +1,4 @@
-import type {Connection, KeyValueMapping, OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {Connection, OnyxKey, OnyxValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -7,7 +7,7 @@ import Onyx from 'react-native-onyx';
  * disconnected after the first value or when the optional abort signal fires; an aborted read never
  * resolves, which lets XState actors drop it silently when they are stopped.
  */
-function readOnyxValueOnce<TKey extends OnyxKey>(key: TKey, signal?: AbortSignal): Promise<OnyxEntry<KeyValueMapping[TKey]>> {
+function readOnyxValueOnce<TKey extends OnyxKey>(key: TKey, signal?: AbortSignal): Promise<OnyxValue<TKey>> {
     return new Promise((resolve) => {
         let connection: Connection;
         const disconnect = () => Onyx.disconnect(connection);
