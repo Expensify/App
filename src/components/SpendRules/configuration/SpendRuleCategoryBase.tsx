@@ -51,15 +51,18 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
         return (item.text ?? '').toLowerCase().includes(searchInput.toLowerCase());
     };
 
-    const sortCategories = (items: CategoryListItem[]) => {
-        return items.sort((a, b) => localeCompare(a.text ?? '', b.text ?? ''));
-    };
-
-    const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(categoryItems, filterCategory, sortCategories);
-    const orderedCategoryItems = useMemo(
-        () => (inputValue ? filteredCategoryItems : moveInitialSelectionToTop(filteredCategoryItems, initialSelectedCategories)),
-        [filteredCategoryItems, initialSelectedCategories, inputValue],
+    // Pin the initially selected categories to the top of the FULL sorted list, then let the search filter run
+    // over the already-pinned list (no sort override) so pinned rows stay at the top even while searching.
+    const sortedCategoryItems = useMemo(
+        () =>
+            moveInitialSelectionToTop(
+                [...categoryItems].sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
+                initialSelectedCategories,
+            ),
+        [categoryItems, initialSelectedCategories, localeCompare],
     );
+
+    const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(sortedCategoryItems, filterCategory);
 
     const toggleCategory = (item: CategoryListItem) => {
         setSelectedCategories((prev) => {
@@ -110,12 +113,12 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
                 canSelectMultiple
                 shouldUpdateFocusedIndex
                 ListItem={MultiSelectListItem}
-                data={orderedCategoryItems}
+                data={filteredCategoryItems}
                 selectedItems={selectedCategories}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={toggleCategory}
                 onSelectionButtonPress={toggleCategory}
-                onSelectAll={orderedCategoryItems.length > 0 ? toggleSelectAll : undefined}
+                onSelectAll={filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
                 textInputOptions={{
                     value: inputValue,
                     label: translate('common.search'),
