@@ -8482,7 +8482,9 @@ describe('actions/Report', () => {
 
             const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
             const updatedAction = reportActions?.[OFFER_ACTION_ID];
-            expect((updatedAction?.originalMessage as {resolution?: string} | undefined)?.resolution).toBe(CONST.REPORT.ACTIONABLE_APPLY_AGENT_RULE_RESOLUTION.APPLY);
+            const updatedOriginalMessage =
+                updatedAction && isActionOfType(updatedAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_APPLY_AGENT_RULE) ? getOriginalMessage(updatedAction) : undefined;
+            expect(updatedOriginalMessage?.resolution).toBe(CONST.REPORT.ACTIONABLE_APPLY_AGENT_RULE_RESOLUTION.APPLY);
             expect(Object.keys(updatedAction?.errors ?? {}).length).toBe(0);
         });
 
