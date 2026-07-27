@@ -79,3 +79,13 @@ Yes, but only if your balance is fully paid. If there is an outstanding balance,
 ## Where can I see travel charges?
 
 All charges appear in your Consolidated Travel Billing statement, which includes trip details, travelers, and booking information. They will also be added to the individual traveler's Expensify account. 
+
+## How can I review travel spend on the Spend page?
+
+Workspace Admins can drill into individual travel charges instead of relying only on the statement:
+
+1. In the Workspace settings, click **Travel**.
+2. In the **Consolidated Travel Billing** section, find the **Current travel spend** row.
+3. Click **View on Spend**.
+
+This opens the **Spend** view pre-filtered to your Consolidated Travel Billing expenses, so you can reconcile travel charges directly.
