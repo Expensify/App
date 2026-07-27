@@ -188,6 +188,16 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             });
         }
 
+        if (policy.isTravelEnabled) {
+            items.push({
+                key: 'setupTravel',
+                label: translate('homePage.gettingStartedSection.setupTravel'),
+                subText: translate('homePage.gettingStartedSection.setupTravelSubText'),
+                isComplete: !!policy.travelSettings?.spotnanaCompanyID,
+                route: ROUTES.WORKSPACE_TRAVEL.getRoute(activePolicyID),
+            });
+        }
+
         const activeMemberCount = Object.values(policy.employeeList ?? {}).filter((member) => member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
         items.push({
             key: 'inviteAccountant',
@@ -245,6 +255,16 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             subText: translate('homePage.gettingStartedSection.issueExpensifyCardsSubtitle'),
             isComplete: hasIssuedExpensifyCard,
             route: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(activePolicyID),
+        });
+    }
+
+    if (policy.isTravelEnabled) {
+        items.push({
+            key: 'setupTravel',
+            label: translate('homePage.gettingStartedSection.setupTravel'),
+            subText: translate('homePage.gettingStartedSection.setupTravelSubText'),
+            isComplete: !!policy.travelSettings?.spotnanaCompanyID,
+            route: ROUTES.WORKSPACE_TRAVEL.getRoute(activePolicyID),
         });
     }
 
