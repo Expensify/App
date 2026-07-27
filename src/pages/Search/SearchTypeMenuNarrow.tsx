@@ -139,6 +139,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         'CreditCardHourglass',
         'Bank',
         'User',
+        'UserEye',
         'Folder',
         'Basket',
         'CalendarSolid',

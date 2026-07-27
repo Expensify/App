@@ -60,6 +60,7 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
         'CreditCardHourglass',
         'Bank',
         'User',
+        'UserEye',
         'Folder',
         'Document',
         'Pencil',

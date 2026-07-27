@@ -4886,6 +4886,7 @@ export {
     isHoldAction,
     isWhisperAction,
     isSubmittedAction,
+    isSubmittedAndClosedAction,
     isDynamicExternalWorkflowSubmitAction,
     isMarkAsClosedAction,
     isForwardedAction,

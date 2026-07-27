@@ -26,6 +26,7 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
+import {getSubmittedViolationsForTransaction} from '@libs/SearchUIUtils';
 import {
     getAmount,
     getConvertedAmount,
@@ -195,6 +196,15 @@ function TransactionItemRowWide({
                             onSave={onEditTag}
                             policyID={effectivePolicyID}
                         />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
+                    >
+                        <TextCell text={getSubmittedViolationsForTransaction(reportActions, transactionItem.transactionID)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
