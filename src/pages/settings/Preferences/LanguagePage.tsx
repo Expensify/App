@@ -14,7 +14,7 @@ import {setLocale} from '@userActions/App';
 import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import type Locale from '@src/types/onyx/Locale';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 
 type LanguageEntry = ListItem & {
     value: Locale;
@@ -22,7 +22,11 @@ type LanguageEntry = ListItem & {
 
 function LanguagePage() {
     const {translate, preferredLocale} = useLocalize();
-    const isOptionSelected = useRef(false);
+
+    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
+    // persisted locale, so the change of context (persist + navigate) only happens when the user taps Save.
+    const [draftLocale, setDraftLocale] = useState<Locale>();
+    const selectedLocale = draftLocale ?? preferredLocale;
 
     const locales = useMemo(() => {
         const sortedLocales = preferredLocale ? [preferredLocale, ...SORTED_LOCALES.filter((locale) => locale !== preferredLocale)] : SORTED_LOCALES;
@@ -32,20 +36,26 @@ function LanguagePage() {
             text: LOCALE_TO_LANGUAGE_STRING[locale],
             accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
             keyForList: locale,
-            isSelected: preferredLocale === locale,
+            isSelected: selectedLocale === locale,
             lang: locale,
         }));
-    }, [preferredLocale]);
+    }, [preferredLocale, selectedLocale]);
 
-    const updateLanguage = (selectedLanguage: LanguageEntry) => {
-        if (isOptionSelected.current) {
-            return;
+    const saveAndGoBack = useCallback(() => {
+        if (selectedLocale && selectedLocale !== preferredLocale) {
+            setLocale(selectedLocale, preferredLocale);
         }
-        isOptionSelected.current = true;
-
-        setLocale(selectedLanguage.value, preferredLocale);
         Navigation.goBack();
-    };
+    }, [selectedLocale, preferredLocale]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveAndGoBack,
+        }),
+        [saveAndGoBack, translate],
+    );
 
     return (
         <ScreenWrapper
@@ -60,9 +70,10 @@ function LanguagePage() {
                 <SelectionList
                     data={locales}
                     ListItem={SingleSelectListItem}
-                    onSelectRow={updateLanguage}
+                    onSelectRow={(item: LanguageEntry) => setDraftLocale(item.value)}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={locales.find((locale) => locale.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={preferredLocale}
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
