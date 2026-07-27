@@ -59,7 +59,7 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
             },
         };
 
-        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A);
+        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, undefined);
 
         expect(writeMock).toHaveBeenCalledTimes(1);
         const [command, params] = writeMock.mock.calls.at(0) as [string, {emojiCode: string}];
@@ -77,7 +77,7 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
             },
         };
 
-        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A);
+        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, undefined);
 
         expect(writeMock).toHaveBeenCalledTimes(1);
         const [command, params] = writeMock.mock.calls.at(0) as [string, {emojiCode: string}];
@@ -95,7 +95,7 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
             },
         };
 
-        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A);
+        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, undefined);
 
         expect(writeMock).toHaveBeenCalledTimes(1);
         const [command] = writeMock.mock.calls.at(0) as [string];
@@ -118,7 +118,7 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
             },
         };
 
-        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A);
+        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, undefined);
 
         expect(writeMock).toHaveBeenCalledTimes(1);
         const [command, params] = writeMock.mock.calls.at(0) as [string, {emojiCode: string}];

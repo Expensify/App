@@ -79,7 +79,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
 
     const reportActionID = reportAction.reportActionID;
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     // Prime the locale emoji table when this action has reactions.
     // Skip the default locale since getLocalizedEmojiName never reads localeEmojis for it.

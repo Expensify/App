@@ -422,12 +422,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     report,
                     reportAction,
                     originalReportActions,
+                    reportActions,
                     ancestorsRef.current,
                     isReportArchived,
                     isOriginalReportArchived,
                     email ?? '',
                     visibleReportActionsData ?? undefined,
-                    reportActions,
                 );
             };
         }
