@@ -120,9 +120,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: delegateEmailSelector,
     });
-
-    // Store the pending payment and resume it after the user validates, instead of dropping it on the way to the magic-code screen.
-    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry) => retry?.());
+    // Sends an unvalidated user to the verify-account (magic code) screen and resumes the stored payment once they validate.
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry?: () => void) => retry?.());
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -450,9 +449,11 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             });
 
         if (!isUserValidated && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            // Store the payment selection so it resumes after the user validates, instead of being dropped.
             verifyAccountAndResume(runPaymentSelection);
             return;
         }
+
         runPaymentSelection();
     };
 
