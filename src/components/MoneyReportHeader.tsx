@@ -1,5 +1,6 @@
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useMoneyReportHeaderMoreContentVisibility from '@hooks/useMoneyReportHeaderMoreContentVisibility';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportPrimaryAction from '@hooks/useReportPrimaryAction';
@@ -9,8 +10,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import {isDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -95,8 +98,14 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
 
     const shouldShowHeaderButtonsInHeaderRow = isInLandscapeMode || !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
+
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+
     const isReportInRHP = route.name !== SCREENS.REPORT;
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
+
+    const {statusBarType, shouldShowNextStep, hasStatusOrNextStep} = useMoneyReportHeaderMoreContentVisibility(reportIDProp);
+    const shouldRenderActionsInHeaderRow = shouldShowHeaderButtonsInHeaderRow && !hasStatusOrNextStep && !isReportInSearch && isDM(chatReport);
     const shouldDisplaySearchRouter = !isReportInRHP || (isSmallScreenWidth && !isReportInSearch);
 
     const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
@@ -158,6 +167,14 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                             shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
                         />
                     ))}
+                {shouldRenderActionsInHeaderRow && (
+                    <MoneyReportHeaderActions
+                        reportID={reportIDProp}
+                        primaryAction={primaryAction}
+                        isReportInSearch={isReportInSearch}
+                        backTo={backTo}
+                    />
+                )}
             </HeaderWithBackButton>
             {!shouldShowHeaderButtonsInHeaderRow && (
                 <MoneyReportHeaderActions
@@ -171,7 +188,9 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 reportID={reportIDProp}
                 primaryAction={primaryAction}
                 backTo={backTo}
-                shouldShowHeaderButtonsInHeaderRow={shouldShowHeaderButtonsInHeaderRow}
+                statusBarType={statusBarType}
+                shouldShowNextStep={shouldShowNextStep}
+                shouldRenderActionsInRow={shouldShowHeaderButtonsInHeaderRow && !shouldRenderActionsInHeaderRow}
             />
             <HeaderLoadingBar />
         </View>

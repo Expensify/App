@@ -1,12 +1,8 @@
-import useMoneyReportHeaderStatusBar from '@hooks/useMoneyReportHeaderStatusBar';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {isGroupPolicy} from '@libs/PolicyUtils';
-import {isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,14 +28,22 @@ type MoneyReportHeaderMoreContentProps = {
     reportID: string | undefined;
     primaryAction: MoneyReportHeaderActionsProps['primaryAction'];
     backTo: Route | undefined;
-    shouldShowHeaderButtonsInHeaderRow: boolean;
+
+    /** Which status bar to render, resolved by the header via useMoneyReportHeaderMoreContentVisibility */
+    statusBarType: ValueOf<typeof CONST.REPORT.STATUS_BAR_TYPE> | undefined;
+
+    /** Whether the next step bar should be rendered, resolved alongside `statusBarType` */
+    shouldShowNextStep: boolean;
+
+    /** Whether the report actions belong at the end of this row. The header renders them itself when this row is empty. */
+    shouldRenderActionsInRow: boolean;
 };
 
 /**
- * Cheap visibility gate — fetches minimal data to decide whether the more-content section
- * should render at all, avoiding expensive hooks in the body when nothing is shown.
+ * Cheap visibility gate — decides whether the more-content section should render at all,
+ * avoiding expensive hooks in the body when nothing is shown.
  */
-function MoneyReportHeaderMoreContent({reportID, primaryAction, backTo, shouldShowHeaderButtonsInHeaderRow}: MoneyReportHeaderMoreContentProps) {
+function MoneyReportHeaderMoreContent({reportID, primaryAction, backTo, statusBarType, shouldShowNextStep, shouldRenderActionsInRow}: MoneyReportHeaderMoreContentProps) {
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT>
@@ -49,14 +53,8 @@ function MoneyReportHeaderMoreContent({reportID, primaryAction, backTo, shouldSh
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportID, moneyRequestReport?.chatReportID);
 
-    const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    const shouldShowNextStep = isGroupPolicy(policy) && !isInvoiceReport && !shouldShowStatusBar;
     const hasStatusOrNextStep = shouldShowNextStep || !!statusBarType;
-    const shouldRenderActionsInRow = shouldShowHeaderButtonsInHeaderRow;
-
     const shouldShowMoreContent = hasStatusOrNextStep || shouldRenderActionsInRow;
 
     if (!shouldShowMoreContent) {
