@@ -65,6 +65,7 @@ const SCREENS = {
         EDIT_MULTIPLE_TAG_RHP: 'Search_Edit_Multiple_Tag_RHP',
         EDIT_MULTIPLE_BILLABLE_RHP: 'Search_Edit_Multiple_Billable_RHP',
         EDIT_MULTIPLE_REIMBURSABLE_RHP: 'Search_Edit_Multiple_Reimbursable_RHP',
+        EDIT_MULTIPLE_ATTENDEES_RHP: 'Search_Edit_Multiple_Attendees_RHP',
         EDIT_MULTIPLE_TAX_RHP: 'Search_Edit_Multiple_Tax_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_Search',
         CHANGE_APPROVER: {

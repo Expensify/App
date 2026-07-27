@@ -5321,6 +5321,7 @@ const CONST = {
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
         REIMBURSABLE: 'reimbursable',
+        ATTENDEES: 'attendees',
         BILLABLE: 'billable',
         REPORT: 'report',
     },
