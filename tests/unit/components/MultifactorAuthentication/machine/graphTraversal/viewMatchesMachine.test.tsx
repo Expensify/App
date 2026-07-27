@@ -224,7 +224,7 @@ const testConfig = {
             expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeEnabled();
             expect(screen.getByText(translateLocal('multifactorAuthentication.letsVerifyItsYou'))).toBeOnTheScreen();
             expect(state.context.error).toBeUndefined();
-            const inlineError = translateLocal('validateCodeForm.error.incorrectMagicCode');
+            const inlineError = translateLocal('validateCodeForm.error.incorrectSecurityCode');
             if (state.context.continuableError) {
                 expect(screen.getByText(inlineError)).toBeOnTheScreen();
             } else {
