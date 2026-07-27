@@ -36,11 +36,10 @@ const reconnectListeners = new Set<() => void>();
 // the Ping could clear it — reads and side-effect commands bypass the paused queue, so the
 // app could keep succeeding at real requests while staying stuck offline.
 onSustainedFailureChange((active) => setSustainedFailures(active));
-// A resolved response proves connectivity just as strongly as a passing Ping, so clear both
-// hard stops and fire exactly one jittered reconnect. prevIsInternetReachable is left
-// untouched: it stays false, so steady Ping failure (false→false) cannot immediately
-// re-trigger the hard stop, and the next Ping success is ignored by the NetInfo listener
-// since the app is already online.
+// A server response proves the network works, same as a passing Ping.
+// prevIsInternetReachable stays false on purpose: the Ping may keep failing, and a repeated
+// false does not re-set the hard stop. When the Ping finally passes, the NetInfo listener
+// sees the app is already online and does nothing.
 onRequestSuccess(() => {
     if (!internetUnreachable) {
         return;
