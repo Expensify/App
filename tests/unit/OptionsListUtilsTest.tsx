@@ -1796,6 +1796,103 @@ describe('OptionsListUtils', () => {
                 expect(typeof option.isSelected).toBe('boolean');
             }
         });
+
+        it('should produce results identical to eagerly built options when searching with a top-N cap', () => {
+            // Given the same data built eagerly and lazily
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // When both lists go through getValidOptions with search + maxElements together
+            // (filter selects matches, then the heap keeps only the top-N survivors to hydrate)
+            const config = {searchString: 'man', maxElements: 3};
+            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+
+            // Then filtering, ranking, and hydration match the eager path
+            expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
+            expect(lazyResults.personalDetails.every((option) => option.icons !== undefined)).toBe(true);
+            expect(lazyResults.personalDetails.every((option) => !('buildFullOption' in option))).toBe(true);
+            expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it('should hydrate correctly after a filtered option list cache hit', () => {
+            // Given lazy contact options built while not searching (the only mode that uses the option-list cache)
+            clearFilteredOptionListCache();
+            const lazyOptions = {lazyContactOptions: true as const};
+            const firstLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, lazyOptions);
+            const cachedLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, lazyOptions);
+            const eagerList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies);
+
+            // Then the cache hit still returns shells with working buildFullOption closures
+            expect(cachedLazyList.personalDetails.every((option) => typeof option.buildFullOption === 'function')).toBe(true);
+
+            // When both the fresh and cached lazy lists go through getValidOptions
+            const config = {maxElements: 3};
+            const {options: firstResults} = getValidOptions(firstLazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+            const {options: cachedResults} = getValidOptions(cachedLazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+
+            // Then hydration from the cached clone matches the fresh lazy build and the eager path
+            expect(cachedResults.personalDetails).toEqual(firstResults.personalDetails);
+            expect(cachedResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it('should hydrate lazy shells when mixed with fully-built device contacts', () => {
+            // Given a fully-built device contact (no buildFullOption) appended onto eager and lazy lists,
+            // matching useSearchSelector's contactOptions concat path
+            const deviceContactLogin = '+15551234567';
+            const deviceContact: SearchOption<PersonalDetails> = {
+                item: {
+                    accountID: 9999,
+                    displayName: 'Device Contact Jane',
+                    login: deviceContactLogin,
+                },
+                reportID: '',
+                keyForList: '9999',
+                text: 'Device Contact Jane',
+                alternateText: deviceContactLogin,
+                login: deviceContactLogin,
+                accountID: 9999,
+                participantsList: [
+                    {
+                        accountID: 9999,
+                        displayName: 'Device Contact Jane',
+                        login: deviceContactLogin,
+                    },
+                ],
+                icons: [
+                    {
+                        source: '',
+                        name: 'Device Contact Jane',
+                        type: CONST.ICON_TYPE_AVATAR,
+                        id: 9999,
+                    },
+                ],
+                isSelected: false,
+                selected: false,
+                brickRoadIndicator: null,
+            };
+
+            const {eagerList, lazyList} = buildOptionLists();
+            const eagerWithContacts: OptionList = {
+                ...eagerList,
+                personalDetails: eagerList.personalDetails.concat(deviceContact),
+            };
+            const lazyWithContacts: OptionList = {
+                ...lazyList,
+                personalDetails: lazyList.personalDetails.concat(deviceContact),
+            };
+
+            // When both mixed lists are filtered for the device contact
+            const config = {searchString: 'Device Contact Jane'};
+            const {options: eagerResults} = getValidOptions(eagerWithContacts, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+            const {options: lazyResults} = getValidOptions(lazyWithContacts, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+
+            // Then the device contact survives hydrate unchanged, lazy shells hydrate, and results match eager
+            expect(lazyResults.personalDetails.some((option) => option.login === deviceContactLogin)).toBe(true);
+            expect(lazyResults.personalDetails.find((option) => option.login === deviceContactLogin)?.icons).toBeDefined();
+            expect(lazyResults.personalDetails.every((option) => !('buildFullOption' in option))).toBe(true);
+            expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
     });
 
     describe('getValidOptions() for chat room', () => {
