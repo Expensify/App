@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -55,11 +55,11 @@ function EditAgentRulePage({
     const formRef = useRef<FormRef>(null);
     const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
-    const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
-        if (!('key' in e)) {
+    const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
+        if (!('key' in event)) {
             return;
         }
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
             formRef.current?.submit();
         }
     };
@@ -141,12 +141,13 @@ function EditAgentRulePage({
                     shouldRenderFooterAboveSubmit
                     footerContent={
                         <Button
-                            text={translate('workspace.rules.agentRules.deleteRule')}
                             onPress={handleDelete}
                             style={[styles.mb4]}
-                            large
+                            size={CONST.BUTTON_SIZE.LARGE}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE}
-                        />
+                        >
+                            <Button.Text>{translate('workspace.rules.agentRules.deleteRule')}</Button.Text>
+                        </Button>
                     }
                 >
                     <View style={styles.flex1}>
@@ -157,7 +158,7 @@ function EditAgentRulePage({
                                 label={describeRuleLabel}
                                 accessibilityLabel={describeRuleLabel}
                                 role={CONST.ROLE.PRESENTATION}
-                                onKeyPress={handleKeyPress}
+                                onKeyPress={submitFormOnModEnter}
                                 defaultValue={agentRule.prompt}
                                 multiline
                                 shouldLabelStayOnSingleLine
