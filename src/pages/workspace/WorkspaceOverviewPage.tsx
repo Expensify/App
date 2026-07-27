@@ -504,7 +504,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNonAdmin
             policyFeature={CONST.POLICY.POLICY_FEATURE.OVERVIEW}
             icon={illustrationIcons.Building}
-            shouldShowNotFoundPage={policy === undefined}
+            shouldShowNotFoundPage={policy === undefined && !isPendingDelete}
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
             headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
