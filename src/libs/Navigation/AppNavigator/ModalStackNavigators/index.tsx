@@ -73,6 +73,10 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
         animationTypeForReplace: 'push',
     },
+    // Opened via forceReplace from the personal card upgrade page, so it needs a forward (push) transition instead of the default reversed (pop) one.
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: {
+        animationTypeForReplace: 'push',
+    },
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
         animation: Animations.NONE,
     },
