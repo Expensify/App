@@ -278,7 +278,9 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     shouldAlwaysShowDropdownMenu
                                     pressOnEnter
-                                    customText={translate('workspace.common.selected', {count: selectedMembers.length})}
+                                    customText={translate('workspace.common.selected', {
+                                        count: selectedMembers.length,
+                                    })}
                                     size={CONST.BUTTON_SIZE.MEDIUM}
                                     onPress={() => null}
                                     isSplitButton={false}

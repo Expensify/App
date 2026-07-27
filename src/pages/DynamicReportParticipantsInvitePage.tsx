@@ -136,7 +136,9 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         acc[login] = accountID;
         return acc;
     }, {} as InvitedEmailsToAccountIDs);
-    const [newAccountIDsAndLogins] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs)});
+    const [newAccountIDsAndLogins] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs),
+    });
 
     const inviteUsers = () => {
         if (selectedOptions.length === 0) {
