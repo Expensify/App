@@ -37,9 +37,14 @@ type WorkspaceCategoryRulesTableProps<TItem extends CategoryRulesTableItem> = {
     ruleColumnLabel: string;
     emptyState: TableEmptyStateProps;
     renderRow: (props: TableRenderRowProps<TItem>) => React.ReactElement;
+    typeColumnWidth?: number;
 };
 
-function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function WorkspaceCategoryRulesTableImpl({
     rulesData,
     selectionEnabled,
     selectedKeys,
@@ -51,7 +56,8 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
     ruleColumnLabel,
     emptyState,
     renderRow,
-}: WorkspaceCategoryRulesTableProps<TItem>) {
+    typeColumnWidth = variables.tableTypeColumnWidth,
+}: WorkspaceCategoryRulesTableProps<CategoryRulesTableItem>) {
     const {localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -62,7 +68,7 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
             key: 'type',
             label: typeColumnLabel,
             sortable: true,
-            width: variables.tableTypeColumnWidth,
+            width: typeColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
         {key: 'condition', label: conditionColumnLabel, sortable: true},
@@ -70,7 +76,7 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
     ];
 
-    const compareItems: CompareItemsCallback<TItem, CategoryRulesTableColumnKey> = (a, b, activeSorting) => {
+    const compareItems: CompareItemsCallback<CategoryRulesTableItem, CategoryRulesTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
         if (activeSorting.columnKey === 'type') {
@@ -88,12 +94,12 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
         return 0;
     };
 
-    const isItemInSearch: IsItemInSearchCallback<TItem> = (item, searchString) => {
+    const isItemInSearch: IsItemInSearchCallback<CategoryRulesTableItem> = (item, searchString) => {
         const matchingItems = tokenizedSearch([item], searchString, (i) => i.searchTokens);
         return matchingItems.length > 0;
     };
 
-    const renderItem = ({item, index}: ListRenderItemInfo<TItem>) => renderRow({item, rowIndex: index, shouldUseNarrowTableLayout});
+    const renderItem = ({item, index}: ListRenderItemInfo<CategoryRulesTableItem>) => renderRow({item, rowIndex: index, shouldUseNarrowTableLayout});
 
     return (
         <Table
@@ -117,6 +123,10 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
             <Table.Body />
         </Table>
     );
+}
+
+function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>(props: WorkspaceCategoryRulesTableProps<TItem>) {
+    return <WorkspaceCategoryRulesTableImpl {...(props as unknown as WorkspaceCategoryRulesTableProps<CategoryRulesTableItem>)} />;
 }
 
 export default WorkspaceCategoryRulesTable;

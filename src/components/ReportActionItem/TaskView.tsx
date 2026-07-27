@@ -95,6 +95,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         false,
         localeCompare,
         formatPhoneNumber,
+        translate,
     );
 
     const isOpen = isOpenTaskReport(report);
@@ -272,7 +273,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             {report?.managerID ? (
                                 <MenuItem
                                     label={translate('task.assignee')}
-                                    title={getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber})}
+                                    title={getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, translate})}
                                     iconAccountID={report.managerID}
                                     iconType={CONST.ICON_TYPE_AVATAR}
                                     avatarSize={CONST.AVATAR_SIZE.SMALLER}

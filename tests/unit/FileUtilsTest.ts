@@ -8,6 +8,7 @@ import {
     getExportFileName,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
+    isHighResolutionImage,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
 
@@ -477,6 +478,24 @@ describe('FileUtils', () => {
             });
         });
         /* eslint-enable no-bitwise */
+    });
+
+    describe('isHighResolutionImage', () => {
+        it('should return false when resolution is null', () => {
+            expect(isHighResolutionImage(null)).toBe(false);
+        });
+
+        it('should not treat narrow tall images under the safe pixel count as high resolution', () => {
+            expect(isHighResolutionImage({width: 864, height: 24174})).toBe(false);
+        });
+
+        it('should not treat images at exactly the safe pixel count as high resolution', () => {
+            expect(isHighResolutionImage({width: 10000, height: 5000})).toBe(false);
+        });
+
+        it('should treat images above the safe pixel count as high resolution', () => {
+            expect(isHighResolutionImage({width: 10000, height: 5001})).toBe(true);
+        });
     });
 
     describe('getFileValidationErrorText', () => {

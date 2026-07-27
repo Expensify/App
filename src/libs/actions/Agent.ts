@@ -1,5 +1,6 @@
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {buildAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -301,7 +302,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
             value: {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
@@ -333,11 +334,27 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
     }
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
+
     // Callers that end the copilot session right after deleting (e.g. deleting the agent you're copiloting into)
     // don't want the extra navigation, since the delegate transition resets navigation on its own.
     if (shouldNavigateBack) {
         Navigation.goBack(ROUTES.SETTINGS_AGENTS);
     }
+}
+
+/** Persists an uploaded agent avatar photo in a serialized form that survives a page refresh */
+function setNewAgentUploadedAvatar(image: File | CustomRNImageManipulatorResult) {
+    return buildAvatarCropResult(image).then((uploadedAvatar) => Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, {uploadedAvatar}));
+}
+
+/** Persists a preset agent avatar choice */
+function setNewAgentAvatarPreset(customExpensifyAvatarID: string) {
+    return Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, {customExpensifyAvatarID});
+}
+
+/** Clears the agent avatar draft */
+function clearNewAgentAvatarDraft() {
+    return Onyx.set(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT, null);
 }
 
 export {
@@ -354,4 +371,7 @@ export {
     updateAgentPrompt,
     updateAgentAvatar,
     deleteAgent,
+    setNewAgentUploadedAvatar,
+    setNewAgentAvatarPreset,
+    clearNewAgentAvatarDraft,
 };

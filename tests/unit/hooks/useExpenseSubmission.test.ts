@@ -18,6 +18,7 @@ const mockSubmitPerDiemExpenseForSelfDMAction = jest.fn();
 const mockCleanupAfterExpenseCreate = jest.fn();
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockResolveChatTargetForSubmitCleanup = jest.fn();
+const mockSendInvoiceAction = jest.fn();
 
 jest.mock('@userActions/IOU/TrackExpense', () => ({
     requestMoney: (...args: unknown[]) => mockRequestMoneyAction(...args),
@@ -27,6 +28,11 @@ jest.mock('@userActions/IOU/TrackExpense', () => ({
 jest.mock('@userActions/IOU/PerDiem', () => ({
     submitPerDiemExpense: (...args: unknown[]) => mockSubmitPerDiemExpenseAction(...args),
     submitPerDiemExpenseForSelfDM: (...args: unknown[]) => mockSubmitPerDiemExpenseForSelfDMAction(...args),
+}));
+
+jest.mock('@userActions/IOU/SendInvoice', () => ({
+    sendInvoice: (...args: unknown[]) => mockSendInvoiceAction(...args),
+    getReceiverType: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
@@ -509,5 +515,40 @@ describe('useExpenseSubmission action-bailout safety', () => {
         expect(mockTrackExpenseAction).not.toHaveBeenCalled();
         expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
         expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
+    });
+
+    describe('invoice path', () => {
+        it('calls cleanupAndNavigateAfterExpenseCreate with isInvoice when shouldHandleNavigation=true', async () => {
+            const {result} = renderHook(() => useExpenseSubmission(buildParams({iouType: CONST.IOU.TYPE.INVOICE})));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSendInvoiceAction).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    isInvoice: true,
+                    optimisticChatReportID: REPORT_ID,
+                    transactionID: TRANSACTION_ID,
+                }),
+            );
+        });
+
+        it('calls cleanupAfterExpenseCreate and skips cleanupAndNavigateAfterExpenseCreate when shouldHandleNavigation=false', async () => {
+            const {result} = renderHook(() => useExpenseSubmission(buildParams({iouType: CONST.IOU.TYPE.INVOICE})));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSendInvoiceAction).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
+        });
     });
 });

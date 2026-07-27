@@ -74,7 +74,11 @@ import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
 
-function TransactionGroupListItem<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function TransactionGroupListItemImpl({
     item,
     isFocused,
     showTooltip,
@@ -97,7 +101,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     onUndelete,
-}: TransactionGroupListItemProps<TItem>) {
+}: TransactionGroupListItemProps<ListItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
     const theme = useTheme();
@@ -115,10 +119,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
     const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`);
     const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(oneTransactionItem?.transactionID)}`);
-    const parentReportActionSelector = (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`];
-    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`, {selector: parentReportActionSelector}, [
-        oneTransactionItem,
-    ]);
+    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
+    });
     const transactionPreviewData: TransactionPreviewData = {
         hasParentReport: !!parentReport,
         hasTransaction: !!oneTransaction,
@@ -315,10 +318,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const onExpandedRowLongPress = (transaction: TransactionListItemType) => {
-        onLongPressRow?.(transaction as unknown as TItem);
+        onLongPressRow?.(transaction as ListItem);
     };
 
-    const handleSelectionButtonPress = (val: TItem) => {
+    const handleSelectionButtonPress = (val: ListItem) => {
         onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions);
     };
 
@@ -622,6 +625,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
+}
+
+function TransactionGroupListItem<TItem extends ListItem>(props: TransactionGroupListItemProps<TItem>) {
+    return <TransactionGroupListItemImpl {...(props as unknown as TransactionGroupListItemProps<ListItem>)} />;
 }
 
 export default TransactionGroupListItem;

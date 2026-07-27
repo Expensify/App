@@ -7,14 +7,14 @@ import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAss
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDBTimeWithSkew} from '@libs/NetworkState';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -387,11 +387,19 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
-        Navigation.dismissModalWithReport({reportID: parentReportID}, undefined, {
-            afterTransition: () => {
-                clearOutTaskInfo();
-            },
-        });
+        const isSearchActive = isSearchTopmostFullScreenRoute();
+        const isParentReportVisible = isSearchActive && Navigation.getTopmostSearchReportID() === parentReportID;
+
+        if (isParentReportVisible) {
+            Navigation.closeRHPFlow();
+            clearOutTaskInfo();
+        } else {
+            Navigation.dismissModalWithReport({reportID: parentReportID}, undefined, {
+                afterTransition: () => {
+                    clearOutTaskInfo();
+                },
+            });
+        }
     }
     notifyNewAction(parentReportID, optimisticAddCommentReport.reportAction, true);
 }
@@ -1097,7 +1105,12 @@ function startOutCreateTaskQuickAction(currentUserAccountID: number, reportID: s
 /**
  * Get the assignee data
  */
-function getAssignee(assigneeAccountID: number | undefined, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>, translate: LocalizedTranslate): Assignee | undefined {
+function getAssignee(
+    assigneeAccountID: number | undefined,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): Assignee | undefined {
     if (!assigneeAccountID) {
         return;
     }
@@ -1114,7 +1127,7 @@ function getAssignee(assigneeAccountID: number | undefined, personalDetails: Ony
 
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+        displayName: formatPhoneNumber(PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
         subtitle: details.login ?? '',
     };
 }
@@ -1126,6 +1139,7 @@ function getShareDestination(
     report: OnyxEntry<OnyxTypes.Report>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     policy: OnyxEntry<OnyxTypes.Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
@@ -1140,7 +1154,8 @@ function getShareDestination(
         OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails),
         isMultipleParticipant,
         localeCompare,
-        LocalePhoneNumber.formatPhoneNumber,
+        formatPhoneNumber,
+        translate,
     );
 
     let subtitle = '';
@@ -1149,13 +1164,13 @@ function getShareDestination(
 
         const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
         const login = personalDetails?.[participantAccountID]?.login ?? '';
-        subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
+        subtitle = formatPhoneNumber(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, translate, personalDetails, FallbackAvatar),
-        displayName: getReportName(report, reportAttributes),
+        icons: ReportUtils.getIcons(report, formatPhoneNumber, translate, personalDetails, FallbackAvatar),
+        displayName: deprecatedGetReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),
@@ -1167,12 +1182,12 @@ function getShareDestination(
  * @param report - The task report being deleted
  * @returns The URL to navigate to
  */
-function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined): string | undefined {
+function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, reportActions: OnyxEntry<OnyxTypes.ReportActions>): string | undefined {
     if (!report) {
         return undefined;
     }
 
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID);
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID, reportActions);
     if (!shouldDeleteTaskReport) {
         return undefined;
     }
@@ -1202,6 +1217,7 @@ function deleteTask(
     parentReportAction: OnyxEntry<ReportAction>,
     conciergeReportID: string | undefined,
     delegateEmail: string | undefined,
+    reportActions: OnyxEntry<OnyxTypes.ReportActions>,
     ancestors: ReportUtils.Ancestor[] = [],
 ) {
     if (!report) {
@@ -1213,7 +1229,7 @@ function deleteTask(
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report, isReportArchived);
 
     // If the task report is the last visible action in the parent report, we should navigate back to the parent report
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID, canUserPerformWriteAction);
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID, reportActions, canUserPerformWriteAction);
     const optimisticReportAction: Partial<ReportUtils.OptimisticTaskReportAction> = {
         pendingAction: shouldDeleteTaskReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         previousMessage: parentReportAction?.message,
@@ -1327,7 +1343,7 @@ function deleteTask(
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, undefined, true);
 
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID);
+    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions);
     if (urlToNavigateBack) {
         Navigation.goBack();
         return urlToNavigateBack;

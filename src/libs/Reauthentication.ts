@@ -39,6 +39,14 @@ let isAuthenticatingWithShortLivedToken = false;
 let isSupportAuthTokenUsed = false;
 let isSupportSession = false;
 
+// A SAML-required account cannot silently reauthenticate (there is no stored password), so an expired
+// session sends the user back through their IdP. When the token expires, the app fires several requests
+// at once (ReconnectApp, OpenApp, AuthenticatePusher, ...) and they all get a 407 in the same tick, so
+// each one would call redirectToSignIn on its own and the sign-in page would flash and re-initiate SAML
+// several times. This lets the first expired request trigger the redirect and skips the rest until the
+// next SAML sign-in begins.
+let hasQueuedSAMLReauthRedirect = false;
+
 // These session values are only used to help the user authentication with the API.
 // Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
 Onyx.connectWithoutView({
@@ -59,6 +67,12 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
     callback: (value) => {
         isAuthenticatingWithShortLivedToken = !!value;
+
+        // A new short-lived-token SAML sign-in has begun, so allow the redirect again the next time
+        // this session's token expires.
+        if (value) {
+            hasQueuedSAMLReauthRedirect = false;
+        }
     },
 });
 
@@ -206,8 +220,17 @@ function reauthenticate(command = ''): Promise<boolean> {
         // customer's SAML flow. Skipping the SAML redirect lets a support session fall through to the normal
         // sign-in redirect below instead of bouncing the agent to the customer's IdP (e.g. Okta).
         if (account?.isSAMLRequired && !isSupportSession && !isSupportAuthTokenUsed) {
-            Log.info(`[Reauthenticate] Redirecting to Sign In because SAML is required`);
             setIsAuthenticating(false);
+
+            // Skip the redirect if an earlier expired request in this same burst already queued it, so the
+            // sign-in page is not torn down and re-mounted (and SAML re-initiated) once per concurrent 407.
+            if (hasQueuedSAMLReauthRedirect) {
+                Log.info('[Reauthenticate] SAML sign-in redirect already queued, skipping duplicate redirect');
+                return false;
+            }
+
+            hasQueuedSAMLReauthRedirect = true;
+            Log.info(`[Reauthenticate] Redirecting to Sign In because SAML is required`);
             redirectToSignIn(undefined, true);
             return false;
         }

@@ -37,10 +37,20 @@ type AgentRowData = TableData & {
 };
 
 type AgentsTableProps = {
+    /** The list of agents to render as rows */
     agents: AgentRowData[];
+
+    /** Whether rows can be selected (enables selection UI) */
+    canSelectAgents: boolean;
+
+    /** Keys of the currently selected rows */
+    selectedKeys: string[];
+
+    /** Called with the updated selected row keys when the selection changes */
+    onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({agents}: AgentsTableProps) {
+export default function AgentsTable({agents, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -96,6 +106,9 @@ export default function AgentsTable({agents}: AgentsTableProps) {
             initialSortColumn="agent"
             title={translate('agentsPage.title')}
             keyExtractor={(item) => item.keyForList}
+            selectionEnabled={canSelectAgents}
+            selectedKeys={selectedKeys}
+            onRowSelectionChange={onRowSelectionChange}
         >
             <Table.FilterBar label={translate('agentsPage.findAgent')} />
             <Table.EmptyState
