@@ -25,7 +25,16 @@ Report previews are summaries shown directly in your workspace chat in the **Inb
   - Receipt thumbnail  
 - Carousel navigation  
 - **+X more** link if there are over 10 expenses  
-- Action button: Submit, Approve, Pay, etc., depending on the role
+- Action buttons:
+  - A role-based action button, such as **Submit**, **Approve**, or **Pay**, depending on your role.
+  - A **View** button that opens the full report.
+
+## How to open an expense or the report from a report preview
+
+- Click an individual expense in the preview to open that expense.
+  - On a wide screen, the expense opens in the right-hand pane.
+  - On a narrow screen (mobile or mWeb), the expense opens on top of the report, so pressing back returns you to the report.
+- Click **View** to open the full report.
 
 ## Preview Behavior and Updates
 
