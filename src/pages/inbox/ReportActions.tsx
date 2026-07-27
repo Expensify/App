@@ -1,4 +1,5 @@
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
+import NavigationDeferredMount from '@components/NavigationDeferredMount';
 
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
@@ -103,4 +104,33 @@ function ReportActions() {
     );
 }
 
+type ReportActionsWithInboxTabDeferredMountProps = {
+    /** The report ID used by the deferred loading skeleton */
+    reportID: string | undefined;
+
+    /** Whether to defer mounting report actions during the initial Inbox tab navigation */
+    shouldDefer: boolean;
+};
+
+function ReportActionsWithInboxTabDeferredMount({reportID, shouldDefer}: ReportActionsWithInboxTabDeferredMountProps) {
+    if (!shouldDefer) {
+        return <ReportActions />;
+    }
+
+    return (
+        <NavigationDeferredMount
+            waitForUpcomingTransition={false}
+            placeholder={
+                <ReportActionsLoadingSkeleton
+                    reportID={reportID}
+                    skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.INBOX_TAB_DEFER}
+                />
+            }
+        >
+            <ReportActions />
+        </NavigationDeferredMount>
+    );
+}
+
+export {ReportActionsWithInboxTabDeferredMount};
 export default ReportActions;
