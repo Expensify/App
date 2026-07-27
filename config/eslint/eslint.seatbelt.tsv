@@ -1671,7 +1671,6 @@
 "../../tests/actions/PolicyProfileTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/PolicyTagTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/PolicyTaxTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/actions/PolicyTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	74
 "../../tests/actions/PolicyTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/QueuedOnyxUpdatesTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/ReimbursementAccountTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
