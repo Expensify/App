@@ -295,16 +295,20 @@ export default createOnyxDerivedValueConfig({
             conciergeReportID,
             introSelected,
         ],
-        {currentValue, sourceValues},
+        {currentValue, sourceValues, triggeredKeys},
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
         // Check if display names changed when personal details are updated
         let displayNameChanges: Set<number> | typeof RECOMPUTE_ALL | null = null;
-        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
+        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
             displayNameChanges = getDisplayNameChanges(personalDetails);
-            if (!displayNameChanges) {
+
+            // Only short-circuit when personal details were the sole trigger; coalescing can batch them
+            // with report/transaction changes, and returning early would drop those.
+            const personalDetailsIsOnlyTrigger = triggeredKeys?.size === 1;
+            if (!displayNameChanges && personalDetailsIsOnlyTrigger) {
                 return currentValue ?? {reports: {}, locale: null};
             }
         } else if (!sourceValues) {
@@ -328,8 +332,8 @@ export default createOnyxDerivedValueConfig({
         // eslint-disable-next-line rulesdir/no-default-id-values -- same sentinel for values persisted before this field existed
         const storedConciergeReportID = currentValue && 'conciergeReportID' in currentValue ? (currentValue.conciergeReportID ?? '') : undefined;
         const storedIsTrackIntentUser = currentValue && 'isTrackIntentUser' in currentValue ? currentValue.isTrackIntentUser : undefined;
-        const conciergeReportIDTriggered = hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues);
-        const introSelectedTriggered = hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, sourceValues);
+        const conciergeReportIDTriggered = hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, triggeredKeys);
+        const introSelectedTriggered = hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);
         const hasConciergeReportIDChanged = conciergeReportIDTriggered && storedConciergeReportID !== nextConciergeReportID;
         const hasIsTrackIntentUserChanged = introSelectedTriggered && storedIsTrackIntentUser !== nextIsTrackIntentUser;
 
@@ -337,7 +341,7 @@ export default createOnyxDerivedValueConfig({
         // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
         // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
         const needsFullRecompute =
-            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
+            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) && preferredLocale !== currentValue?.locale) ||
             displayNameChanges === RECOMPUTE_ALL ||
             hasConciergeReportIDChanged ||
             hasIsTrackIntentUserChanged;
@@ -358,7 +362,7 @@ export default createOnyxDerivedValueConfig({
             return allPolicySignaturesCache;
         };
 
-        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
+        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, triggeredKeys)) {
             if (needsFullRecompute) {
                 // Every report recomputes with the current policies anyway — snapshot the full baseline.
                 nextPolicySignatures = buildAllPolicySignatures();
