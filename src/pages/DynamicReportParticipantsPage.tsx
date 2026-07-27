@@ -18,6 +18,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -89,11 +90,13 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = isGroupChatUtils(report);
     const policy = usePolicy(report.policyID);
-    const isReportSubmitterOrAdmin = isCurrentUserSubmitter(report) || isPolicyAdmin(policy) || (isGroupChat && isCurrentUserAdmin);
-    const shouldShowInviteButton = isReportSubmitterOrAdmin && (isGroupChat || (isMoneyRequestReport(report) && isOpenExpenseReport(report)));
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
+    const isReportSubmitterOrAdmin = isCurrentUserSubmitter(report) || isPolicyAdmin(policy) || isCurrentUserGroupChatAdmin;
+    const shouldShowInviteButton = isReportSubmitterOrAdmin && (isGroupChat || (isMoneyRequestReport(report) && isOpenExpenseReport(report)));
+
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
+    const reportAttributes = useReportAttributes();
 
     const {personalDetailsParticipants, participantsForDisplay} = getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata);
     const participantsForDisplayMap = participantsForDisplay.reduce<Record<number, TupleToUnion<typeof participantsForDisplay>>>((acc, participant) => {
@@ -268,7 +271,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                             navigateBackToReportDetails();
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>
                     {shouldShowInviteButton && (

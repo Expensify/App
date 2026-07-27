@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePolicy from '@hooks/usePolicy';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
@@ -58,6 +59,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const policy = usePolicy(report.policyID);
     const isReportSubmitterOrAdmin = isCurrentUserSubmitter(report) || isPolicyAdmin(policy) || (isGroupChat(report) && isGroupChatAdmin(report, currentUserAccountID));
     const shouldShowInvitePage = isReportSubmitterOrAdmin && (isGroupChat(report) || (isMoneyRequestReport(report) && isOpenExpenseReport(report)));
+    const reportAttributes = useReportAttributes();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -123,7 +125,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         toggleSelection(option);
     };
 
-    const reportName = StringUtils.lineBreaksToSpaces(getReportName(report));
+    const reportName = StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes));
 
     const goBack = () => {
         Navigation.goBack(backPath);
