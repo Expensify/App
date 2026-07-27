@@ -10,6 +10,7 @@ import type * as UserActions from '@userActions/User';
 
 import CONST from '@src/CONST';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import {createActorAtState, sendCheckLocalCredentialsDone} from 'tests/utils/mfa/flowActors';
 import createInitEvent, {MFA_TEST_INVALID_CODE_ERROR, MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_VALIDATE_CODE} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
@@ -85,6 +86,7 @@ describe('MFA magic code and registration decision', () => {
 
         expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE})).toBe(true);
         expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
+        expect(requestValidateCodeActionMock).toHaveBeenCalledWith({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY});
 
         actor.stop();
     });

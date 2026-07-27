@@ -10,6 +10,7 @@ import {requestValidateCodeAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import {assign, setup} from 'xstate';
 
 import type {MfaContext, MfaEvent} from './types';
@@ -95,7 +96,7 @@ const MFAMachine = setup({
         // Emails the user a magic code. Runs only on the decision transition into the magic-code
         // screen and on an explicit resend request, never on (re)entry, so the invalid-code retry
         // loop cannot resend the email.
-        requestValidateCode: () => requestValidateCodeAction(),
+        requestValidateCode: () => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY}),
         // Stores the submitted code. Same narrowing pattern as initFlow: only VALIDATE_CODE_ENTERED
         // is wired here, so the early return just satisfies the type checker.
         submitValidateCode: assign(({event}) => {
