@@ -3,6 +3,7 @@ import {act, render} from '@testing-library/react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -92,6 +93,45 @@ function renderConfirmationOverExpenseThread() {
     );
 }
 
+/** Same confirmation RHP, but reached while the Search tab is the active tab rather than a report. */
+function renderConfirmationOverSearch() {
+    render(
+        <TestNavigationContainer
+            initialState={{
+                index: 1,
+                routes: [
+                    {
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 2,
+                            routes: [
+                                {name: SCREENS.HOME},
+                                {
+                                    name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                    state: {
+                                        index: 1,
+                                        routes: [{name: SCREENS.INBOX}, {name: SCREENS.REPORT, params: {reportID: SELF_DM_REPORT_ID}}],
+                                    },
+                                },
+                                {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                            ],
+                        },
+                    },
+                    {
+                        name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{name: SCREENS.RIGHT_MODAL.MONEY_REQUEST}],
+                        },
+                    },
+                ],
+            }}
+        />,
+    );
+}
+
 function getCentralPaneReportID() {
     const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
     const reportsSplitNavigator = tabState?.routes.at(1);
@@ -124,6 +164,23 @@ describe('Going back from the submit confirmation page opened over an expense th
         const rootState = navigationRef.current?.getRootState();
         expect(rootState?.routes.at(-1)?.name).not.toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
         expect(getCentralPaneReportID()).toBe(SELF_DM_REPORT_ID);
+    });
+
+    it('resolves the visible report behind the RHP, which is what the flow uses to build backTo', () => {
+        // Given the confirmation RHP opened over the expense thread
+        renderConfirmationOverExpenseThread();
+
+        // Then the report behind the RHP is resolvable even though an RHP is focused
+        expect(isReportTopmostSplitNavigator()).toBe(true);
+        expect(Navigation.getTopmostReportId()).toBe(EXPENSE_THREAD_REPORT_ID);
+    });
+
+    it('reports no visible report when the flow is started from another tab', () => {
+        // Given an RHP opened while the Search tab is the active tab
+        renderConfirmationOverSearch();
+
+        // Then the flow falls back to the report the expense lives on instead of a stale inbox report
+        expect(isReportTopmostSplitNavigator()).toBe(false);
     });
 
     it('leaves the central pane alone when backTo points at the report the user is on', () => {
