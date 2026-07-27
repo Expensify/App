@@ -235,6 +235,17 @@ function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
     return menuItems.findIndex((option) => option.isSelected);
 }
 
+function getAvailableHeightForAnchor(anchorVertical: number, verticalAlignment: AnchorAlignment['vertical'], windowHeight: number): number {
+    if (verticalAlignment === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
+        return windowHeight - anchorVertical;
+    }
+    if (verticalAlignment === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
+        return anchorVertical;
+    }
+    // CENTER alignment grows in both directions from the anchor, so the closer window edge bounds it.
+    return Math.min(anchorVertical, windowHeight - anchorVertical) * 2;
+}
+
 /**
  * Return a stable string key for a menu item.
  * Prefers explicit `key` property on the item. If missing, falls back to `text`.
@@ -635,11 +646,23 @@ function BasePopoverMenu({
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth}, styles.pv2];
 
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
-            stylesArray.push({maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)});
+            const availableHeight = getAvailableHeightForAnchor(anchorPosition.vertical, anchorAlignment.vertical, windowHeight) - variables.compactPopoverMenuVerticalMargin;
+            const minHeight = Math.min(CONST.POPOVER_MENU_MAX_HEIGHT, windowHeight - variables.compactPopoverMenuVerticalMargin);
+            stylesArray.push({maxHeight: Math.max(availableHeight, minHeight)});
         }
 
         return stylesArray;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, styles.pv2, shouldUseScrollView, windowHeight, isInLandscapeMode]);
+    }, [
+        isSmallScreenWidth,
+        shouldEnableMaxHeight,
+        styles.createMenuContainer,
+        styles.pv2,
+        shouldUseScrollView,
+        windowHeight,
+        isInLandscapeMode,
+        anchorPosition.vertical,
+        anchorAlignment.vertical,
+    ]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
         (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : styles.pv2, scrollContainerStyle]) as ViewStyle) ?? {};
