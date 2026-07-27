@@ -28,10 +28,9 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
     return [value, {status: 'loaded'}];
 }
 
-// ApproveActionButton delegates rendering to ExpenseHeaderApprovalButton, which decides between a plain approve button
-// and a partial/full approval dropdown based on isAnyTransactionOnHold. Capture the props it receives so approval can be
-// triggered and the held-expense handling can be asserted at that boundary.
-const mockApprovalButtonProps: {current?: {onApprove: (full: boolean) => void; isAnyTransactionOnHold: boolean}} = {current: undefined};
+const mockApprovalButtonProps: {current?: {onApprove: (full: boolean) => void; isAnyTransactionOnHold: boolean}} = {
+    current: undefined,
+};
 jest.mock('@components/ExpenseHeaderApprovalButton', () => ({
     __esModule: true,
     default: (props: {onApprove: (full: boolean) => void; isAnyTransactionOnHold: boolean}) => {
@@ -39,6 +38,22 @@ jest.mock('@components/ExpenseHeaderApprovalButton', () => ({
         return null;
     },
 }));
+
+// Capture the onPress (confirmApproval) handler the button passes to the underlying Button so approval can be triggered.
+const mockOnPressHolder: {current?: () => void} = {current: undefined};
+jest.mock('@components/ButtonComposed', () => {
+    function MockButton(props: {onPress?: () => void}) {
+        mockOnPressHolder.current = props.onPress;
+        return null;
+    }
+
+    MockButton.Text = () => null;
+
+    return {
+        __esModule: true,
+        default: MockButton,
+    };
+});
 
 jest.mock('@userActions/IOU/ReportWorkflow', () => ({
     __esModule: true,
@@ -74,10 +89,22 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: mockShowDelegateNoAccessModal}),
 }));
 
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: jest.fn(() => ({accountID: 1, email: 'approver@test.com'}))}));
-jest.mock('@hooks/usePermissions', () => ({__esModule: true, default: jest.fn(() => ({isBetaEnabled: () => false}))}));
-jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: jest.fn(() => ({translate: (key: string) => key}))}));
-jest.mock('@hooks/useTransactionsAndViolationsForReport', () => ({__esModule: true, default: jest.fn(() => ({transactions: {}, violations: {}, isLoaded: true}))}));
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({accountID: 1, email: 'approver@test.com'})),
+}));
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({isBetaEnabled: () => false})),
+}));
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({translate: (key: string) => key})),
+}));
+jest.mock('@hooks/useTransactionsAndViolationsForReport', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({transactions: {}, violations: {}, isLoaded: true})),
+}));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 
 const mockedUseOnyx = jest.mocked(useOnyx);

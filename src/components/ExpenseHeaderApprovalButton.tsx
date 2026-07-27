@@ -16,7 +16,7 @@ import React from 'react';
 
 import type {LocaleContextProps} from './LocaleContextProvider';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 
 type ExpenseHeaderApprovalButtonProps = {
@@ -152,12 +152,13 @@ function ExpenseHeaderApprovalButton({
 
     return (
         <Button
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => onApprove(true)}
-            text={shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
             isDisabled={isDisabled}
-        />
+        >
+            <Button.Text>{shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}</Button.Text>
+        </Button>
     );
 }
 
