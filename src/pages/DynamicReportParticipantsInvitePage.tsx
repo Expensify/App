@@ -39,7 +39,6 @@ import {useEffect, useState} from 'react';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
-import getInvitedEmailsToAccountIDs from './InviteReportParticipantsPageUtils';
 
 type DynamicReportParticipantsInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
