@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getLoginByAccountID, getPersonalDetailByEmail, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
@@ -190,7 +190,7 @@ import type {
     Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -209,7 +209,6 @@ import type {
     GetValidReportsConfig,
     IsValidReportsConfig,
     MemberForList,
-    Option,
     OptionList,
     Options,
     OptionsResult,
@@ -1270,8 +1269,8 @@ function getReportOption(
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     reportDraft: OnyxEntry<Report>,
     currentUserAccountID: number,
+    translate: LocalizedTranslate,
     policyTags?: OnyxCollection<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): OptionData {
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
@@ -1289,20 +1288,20 @@ function getReportOption(
         },
         reportAttributesDerived,
         policyTags: reportPolicyTags,
-        visibleReportActionsData,
+        visibleReportActionsData: {},
         conciergeReportID,
         currentUserAccountID,
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
-        option.alternateText = translateLocal('reportActionsView.yourSpace');
+        option.alternateText = translate('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
         option.text = deprecatedGetReportName(report, reportAttributesDerived);
-        option.alternateText = translateLocal('workspace.common.invoices');
+        option.alternateText = translate('workspace.common.invoices');
     } else {
-        option.text = getPolicyName({report, policy});
-        option.alternateText = translateLocal('workspace.common.workspace');
+        option.text = getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
+        option.alternateText = translate('workspace.common.workspace');
 
         if (report?.policyID) {
             const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report?.ownerAccountID, personalDetails));
@@ -1310,7 +1309,7 @@ function getReportOption(
             const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
             if (subtitle) {
-                option.alternateText = translateLocal('iou.submitsTo', subtitle ?? '');
+                option.alternateText = translate('iou.submitsTo', subtitle ?? '');
             }
         }
     }
@@ -1330,6 +1329,7 @@ function getReportDisplayOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
+    translate: LocalizedTranslate,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1353,17 +1353,17 @@ function getReportDisplayOption(
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
-        option.alternateText = translateLocal('reportActionsView.yourSpace');
+        option.alternateText = translate('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
         option.text = deprecatedGetReportName(report, reportAttributesDerived);
-        option.alternateText = translateLocal('workspace.common.invoices');
+        option.alternateText = translate('workspace.common.invoices');
     } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;
         option.alternateText = unknownUserDetails.login;
         option.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
     } else if (report?.ownerAccountID !== 0 || !option.text) {
-        option.text = getPolicyName({report, policy});
-        option.alternateText = translateLocal('workspace.common.workspace');
+        option.text = getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
+        option.alternateText = translate('workspace.common.workspace');
     }
     option.isDisabled = true;
     option.isSelected = false;
@@ -1380,6 +1380,7 @@ function getPolicyExpenseReportOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     expenseReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    translate: LocalizedTranslate,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1404,8 +1405,8 @@ function getPolicyExpenseReportOption(
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
-    option.text = getPolicyName({report: expenseReport, policy});
-    option.alternateText = translateLocal('workspace.common.workspace');
+    option.text = getPolicyName({report: expenseReport, policy, unavailableTranslation: translate('workspace.common.unavailable')});
+    option.alternateText = translate('workspace.common.workspace');
     option.isSelected = participant.selected;
     option.selected = participant.selected; // Keep for backwards compatibility
     return option;
@@ -2989,51 +2990,6 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
     };
 }
 
-function getFilteredRecentAttendees(
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    attendees: Attendee[],
-    recentAttendees: Attendee[],
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    translate: LocalizedTranslate,
-): Option[] {
-    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserEmail);
-    if (!recentAttendeeHasCurrentUser && currentUserEmail) {
-        const details = getPersonalDetailByEmail(currentUserEmail);
-        recentAttendees.push({
-            email: currentUserEmail,
-            displayName: details?.displayName ?? currentUserEmail,
-            avatarUrl: details?.avatarThumbnail ?? '',
-        });
-    }
-
-    // Deduplicate recentAttendees: use email for regular users, displayName for name-only attendees
-    const seenAttendees = new Set<string>();
-    const deduplicatedRecentAttendees = recentAttendees.filter((attendee) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const key = attendee.email || attendee.displayName || '';
-        if (seenAttendees.has(key)) {
-            return false;
-        }
-        seenAttendees.add(key);
-        return true;
-    });
-
-    const filteredRecentAttendees = deduplicatedRecentAttendees
-        .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
-        .map((attendee) => ({
-            ...attendee,
-            // Use || instead of ?? to handle empty string email for name-only attendees
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            login: attendee.email || attendee.displayName,
-            ...getPersonalDetailByEmail(attendee.email),
-            keyForList: `${currentUserAccountID}`,
-        }))
-        .map((attendee) => getParticipantsOption(attendee, personalDetails, translate));
-
-    return filteredRecentAttendees;
-}
-
 /**
  * Format personalDetails or userToInvite to be shown in the list
  *
@@ -3160,7 +3116,7 @@ function formatSectionsFromSearchTerm(
                               const expenseReport = getReportByID(participant.reportID);
                               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                               const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                              return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
+                              return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, translate, reportAttributesDerived);
                           }
                           return getParticipantsOption(participant, personalDetails, translate);
                       })
@@ -3192,7 +3148,7 @@ function formatSectionsFromSearchTerm(
                           const expenseReport = getReportByID(participant.reportID);
                           const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                           const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                          return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, reportAttributesDerived);
+                          return getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, expenseReport, expenseReportPolicy, translate, reportAttributesDerived);
                       }
                       return getParticipantsOption(participant, personalDetails, translate);
                   })
@@ -3528,7 +3484,6 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getAlternateText,
-    getFilteredRecentAttendees,
     getEmptyOptions,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
