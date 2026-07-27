@@ -9495,7 +9495,6 @@ describe('SearchUIUtils', () => {
 
             // @ts-expect-error minimal dataset for getColumnsToShow
             const domesticData: OnyxTypes.SearchResults['data'] = {[`group_${domesticGroup.entryID}`]: domesticGroup};
-            // @ts-expect-error minimal dataset for getColumnsToShow
             const crossBorderData: OnyxTypes.SearchResults['data'] = {...domesticData, [`group_${crossBorderGroup.entryID}`]: crossBorderGroup};
 
             const domesticColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: domesticData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
