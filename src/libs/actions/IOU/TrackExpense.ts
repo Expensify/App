@@ -2456,7 +2456,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         distanceRequestType,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = parentChatReportParam;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
 
@@ -2529,7 +2528,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         optimisticReportActionID,
         onyxData: trackExpenseInformationOnyxData,
     } = getTrackExpenseInformation({
-        parentChatReport: currentChatReport,
+        parentChatReport: parentChatReportParam,
         moneyRequestReportID,
         existingTransaction,
         optimisticTransactionID,
