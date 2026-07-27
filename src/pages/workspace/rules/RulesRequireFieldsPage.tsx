@@ -129,7 +129,7 @@ function RulesRequireFieldsPage({
             const {action} = await showConfirmModal({
                 title: translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockTitle'),
                 prompt: translate('workspace.rules.individualExpenseRules.enableCategoriesAndRequirePrompt'),
-                confirmText: translate('common.buttonConfirm'),
+                confirmText: translate('common.ok'),
                 cancelText: translate('common.cancel'),
             });
             if (action !== ModalActions.CONFIRM) {
@@ -144,7 +144,7 @@ function RulesRequireFieldsPage({
         const {action} = await showConfirmModal({
             title: translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockTitle'),
             prompt: translate('workspace.rules.individualExpenseRules.enableCategoriesListToRequirePrompt'),
-            confirmText: translate('common.buttonConfirm'),
+            confirmText: translate('common.ok'),
             cancelText: translate('common.cancel'),
         });
         if (action !== ModalActions.CONFIRM) {
@@ -158,7 +158,7 @@ function RulesRequireFieldsPage({
             const {action} = await showConfirmModal({
                 title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
                 prompt: translate('workspace.rules.individualExpenseRules.enableTagsAndRequirePrompt'),
-                confirmText: translate('common.buttonConfirm'),
+                confirmText: translate('common.ok'),
                 cancelText: translate('common.cancel'),
             });
             if (action !== ModalActions.CONFIRM) {
@@ -173,7 +173,7 @@ function RulesRequireFieldsPage({
         const {action} = await showConfirmModal({
             title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
             prompt: translate('workspace.rules.individualExpenseRules.enableTagsListToRequirePrompt'),
-            confirmText: translate('common.buttonConfirm'),
+            confirmText: translate('common.ok'),
             cancelText: translate('common.cancel'),
         });
         if (action !== ModalActions.CONFIRM) {

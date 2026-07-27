@@ -78,7 +78,7 @@ function RulesBillableDefaultPage({
         const {action} = await showConfirmModal({
             title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
             prompt: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt'),
-            confirmText: translate('common.buttonConfirm'),
+            confirmText: translate('common.ok'),
             cancelText: translate('common.cancel'),
         });
         if (action !== ModalActions.CONFIRM) {
