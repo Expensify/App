@@ -826,6 +826,21 @@ describe('useGettingStartedItems', () => {
             const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
             expect(travelItem?.isComplete).toBe(true);
         });
+
+        it('should be completed once the workspace is provisioned with an associated Spotnana travel domain account (no Spotnana company ID)', async () => {
+            // Real-world Spotnana entity-based provisioning populates associatedTravelDomainAccountID rather
+            // than spotnanaCompanyID, so isComplete must not rely on spotnanaCompanyID alone.
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true, travelSettings: {associatedTravelDomainAccountID: '12345', hasAcceptedTerms: true}},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.isComplete).toBe(true);
+        });
     });
 
     describe('row 4 - Set up spend rules', () => {
@@ -1592,6 +1607,15 @@ describe('useGettingStartedItems', () => {
 
             it('should be completed once the workspace is provisioned with a Spotnana company ID', async () => {
                 await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, travelSettings: {spotnanaCompanyID: 'spotnana-company-1'}}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem?.isComplete).toBe(true);
+            });
+
+            it('should be completed once the workspace is provisioned with an associated Spotnana travel domain account (no Spotnana company ID)', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, travelSettings: {associatedTravelDomainAccountID: '12345', hasAcceptedTerms: true}}});
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
