@@ -41,6 +41,13 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES>>();
     const backTo = route.params?.backTo;
 
+    const isDefaultVendorSet = !!(defaultVendorName && defaultVendorName !== '');
+    const baseDefaultVendorHelperText = translate('workspace.accounting.defaultVendorHelperText', {
+        connectionName: translate('workspace.accounting.connectionName', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}),
+    });
+    // The "Credit Card Misc" fallback is specific to Sage Intacct, so it lives in the connection's own namespace and is appended here rather than baked into the shared accounting copy.
+    const defaultVendorHelperText = isDefaultVendorSet ? baseDefaultVendorHelperText : `${baseDefaultVendorHelperText} ${translate('workspace.sageIntacct.creditCardMiscFallback')}`;
+
     const renderDefault = (item: MenuItemToRender) => {
         return (
             <OfflineWithFeedback
@@ -93,13 +100,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             type: 'menuitem',
             title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : undefined,
             description: translate('workspace.sageIntacct.defaultVendor'),
-            helperText:
-                config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
-                    ? translate('workspace.accounting.defaultVendorHelperText', {
-                          connectionName: translate('workspace.accounting.connectionName', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}),
-                          isSet: !!(defaultVendorName && defaultVendorName !== ''),
-                      })
-                    : undefined,
+            helperText: config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? defaultVendorHelperText : undefined,
             onPress: () => {
                 if (!policyID) {
                     return;

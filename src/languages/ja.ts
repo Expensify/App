@@ -26,7 +26,6 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
-    ConnectionDefaultVendorHelperTextParams,
     ConnectionDisplayNameParams,
     ConnectionNameParams,
     DelegateRoleParams,
@@ -5006,8 +5005,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
-                    ? `Sage Intacct で一致する取引先がない立替経費に適用する、デフォルトの取引先を設定します。`
-                    : `Sage Intacct のベンダーに照合できない経費は、デフォルトでこのベンダーに割り当てられます。`,
+                    ? `Sage Intacct で一致するベンダーがない立替経費に適用するデフォルトのベンダーを設定します。`
+                    : `Sage Intacct の取引先に照合できない経費は、デフォルトでこの取引先に紐づけられます。`,
+            creditCardMiscFallback: `それ以外の場合は、「クレジットカードその他」としてエクスポートされます。`,
             exportDescription: 'Expensify のデータを Sage Intacct へエクスポートする方法を設定します。',
             exportPreferredExporterNote:
                 '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
@@ -6871,11 +6871,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             exportCompanyCard: '法人カード経費のエクスポート形式',
             exportDate: 'エクスポート日',
             defaultVendor: 'デフォルトのベンダー',
-            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
-                isSet
-                    ? `自動照合されない経費は、デフォルトでこの ${connectionName} のベンダーに紐づきます。`
-                    : `自動照合されない経費は、デフォルトでこの ${connectionName} の仕入先として処理されます。デフォルトのベンダーが設定されていない場合は、「Credit Card Misc」としてエクスポートされます。`,
-            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `自動的に照合されない経費に対して使用する、デフォルトの ${connectionName} 仕入先を選択します。`,
+            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) => `自動照合されない経費は、デフォルトでこの ${connectionName} ベンダーに割り当てられます。`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `自動的に照合されない経費に使用する、デフォルトの ${connectionName} 取引先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
             autoSyncDescription: 'NetSuite と Expensify を毎日自動で同期。確定したレポートをリアルタイムでエクスポート',

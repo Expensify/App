@@ -14,7 +14,6 @@ import startCase from 'lodash/startCase';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
-    ConnectionDefaultVendorHelperTextParams,
     ConnectionDisplayNameParams,
     ConnectionNameParams,
     DelegateRoleParams,
@@ -5184,6 +5183,7 @@ const translations = {
                 isReimbursable
                     ? `Set a default vendor that will apply to reimbursable expenses that don't have a matching vendor in Sage Intacct.`
                     : `Expenses that can't be matched to your Sage Intacct vendors will default to this vendor.`,
+            creditCardMiscFallback: `Otherwise, they'll export as Credit Card Misc.`,
             exportDescription: 'Configure how Expensify data exports to Sage Intacct.',
             exportPreferredExporterNote:
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
@@ -7074,10 +7074,7 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
-            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
-                isSet
-                    ? `Expenses that don't auto-match will default to this ${connectionName} vendor.`
-                    : `Expenses that don't auto-match will default to this ${connectionName} vendor. Otherwise, they'll export as Credit Card Misc.`,
+            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) => `Expenses that don't auto-match will default to this ${connectionName} vendor.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
             defaultAccount: 'Default account',
             autoSync: 'Auto-sync',

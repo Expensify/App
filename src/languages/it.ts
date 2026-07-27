@@ -26,7 +26,6 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
-    ConnectionDefaultVendorHelperTextParams,
     ConnectionDisplayNameParams,
     ConnectionNameParams,
     DelegateRoleParams,
@@ -5052,7 +5051,8 @@ ${amount} per ${merchant} - ${date}`,
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
                     ? `Imposta un fornitore predefinito che verrà applicato alle spese rimborsabili che non hanno un fornitore corrispondente in Sage Intacct.`
-                    : `Le spese che non possono essere abbinate ai tuoi fornitori Sage Intacct verranno assegnate per impostazione predefinita a questo fornitore.`,
+                    : `Le spese che non possono essere abbinate ai tuoi fornitori Sage Intacct verranno assegnate a questo fornitore per impostazione predefinita.`,
+            creditCardMiscFallback: `Altrimenti verranno esportate come Varie carta di credito.`,
             exportDescription: 'Configura come i dati di Expensify vengono esportati in Sage Intacct.',
             exportPreferredExporterNote:
                 'L’esportatore preferito può essere qualsiasi amministratore dello spazio di lavoro, ma deve anche essere un Amministratore del dominio se imposti conti di esportazione diversi per le singole carte aziendali nelle Impostazioni del dominio.',
@@ -6951,10 +6951,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             exportCompanyCard: 'Esporta le spese con carta aziendale come',
             exportDate: 'Data di esportazione',
             defaultVendor: 'Fornitore predefinito',
-            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
-                isSet
-                    ? `Le spese che non corrispondono automaticamente verranno associate per impostazione predefinita a questo fornitore ${connectionName}.`
-                    : `Le spese che non vengono abbinate automaticamente verranno associate per impostazione predefinita a questo fornitore ${connectionName}. In caso contrario, verranno esportate come “Credit Card Misc.”.`,
+            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Le spese che non vengono abbinate automaticamente verranno associate per impostazione predefinita a questo fornitore ${connectionName}.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Scegli un fornitore predefinito ${connectionName} per le spese che non vengono abbinate automaticamente.`,
             defaultAccount: 'Conto predefinito',

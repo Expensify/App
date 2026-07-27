@@ -26,7 +26,6 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
-    ConnectionDefaultVendorHelperTextParams,
     ConnectionDisplayNameParams,
     ConnectionNameParams,
     DelegateRoleParams,
@@ -5046,7 +5045,8 @@ ${amount} voor ${merchant} - ${date}`,
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
                     ? `Stel een standaardleverancier in die wordt toegepast op declarabele uitgaven waarvoor geen overeenkomende leverancier in Sage Intacct is.`
-                    : `Uitgaven die niet kunnen worden gekoppeld aan je Sage Intacct-leveranciers, worden standaard aan deze leverancier toegewezen.`,
+                    : `Uitgaven die niet aan je Sage Intacct-leveranciers kunnen worden gekoppeld, worden standaard aan deze leverancier toegewezen.`,
+            creditCardMiscFallback: `Anders worden ze geëxporteerd als Credit Card Misc.`,
             exportDescription: 'Configureer hoe Expensify-gegevens worden geëxporteerd naar Sage Intacct.',
             exportPreferredExporterNote:
                 'De voorkeurs-exporteur kan elke werkruimtebeheerder zijn, maar moet ook een domeinbeheerder zijn als je in Domeininstellingen verschillende exportrekeningen instelt voor individuele bedrijfskaarten.',
@@ -6937,12 +6937,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             exportCompanyCard: 'Bedrijfspaskosten exporteren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standaardleverancier',
-            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
-                isSet
-                    ? `Declaraties die niet automatisch worden gematcht, worden standaard aan deze ${connectionName}-leverancier gekoppeld.`
-                    : `Declaraties die niet automatisch worden gekoppeld, worden standaard aan deze ${connectionName}-leverancier toegewezen. Anders worden ze geëxporteerd als Credit Card Misc.`,
+            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Declaraties die niet automatisch worden gekoppeld, worden standaard aan deze ${connectionName}-leverancier toegewezen.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
-                `Kies een standaard ${connectionName}-leverancier voor onkosten die niet automatisch worden gekoppeld.`,
+                `Kies een standaard ${connectionName}-leverancier voor uitgaven die niet automatisch worden gekoppeld.`,
             defaultAccount: 'Standaardrekening',
             autoSync: 'Automatisch synchroniseren',
             autoSyncDescription: 'Synchroniseer NetSuite en Expensify automatisch, elke dag. Exporteer een afgerond rapport in realtime',
