@@ -93,7 +93,7 @@ function RilletCardAccountCardList({
                             <MenuItemWithTopDescription
                                 title={cardAccountDisplayName}
                                 description={getCardDescription(card, translate)}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(String(cardID))))}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(feedWithDomainID, String(cardID))))}
                                 shouldShowRightIcon
                                 brickRoadIndicator={
                                     areCardsCustomExportInErrorFields(
