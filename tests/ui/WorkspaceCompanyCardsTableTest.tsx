@@ -244,23 +244,13 @@ describe('WorkspaceCompanyCardsTable CSV import processing state', () => {
         });
     }
 
-    it('shows the importing empty state when the feed has a recent import marker and no cards', async () => {
+    it('shows the importing empty state when the feed has an import marker and no cards', async () => {
         renderTable(buildLoadedFeedWithImportMarker(Date.now() * MICROSECONDS_PER_MILLISECOND));
 
         await waitForBatchedUpdates();
 
         expect(screen.getByTestId('WorkspaceCompanyCardsTableEmptyStateTitle')).toHaveTextContent('Cards will appear in a moment...');
         expect(screen.getByTestId('WorkspaceCompanyCardsTableEmptyStateSubtitle')).toHaveTextContent('Hang tight, new cards and transactions may take a few minutes to appear.');
-    });
-
-    it('shows the default empty state when the import marker is older than the processing window', async () => {
-        const expiredMarker = (Date.now() - CONST.COMPANY_CARDS.IMPORT_PROCESSING_WINDOW_MS - 1) * MICROSECONDS_PER_MILLISECOND;
-
-        renderTable(buildLoadedFeedWithImportMarker(expiredMarker));
-
-        await waitForBatchedUpdates();
-
-        expect(screen.getByTestId('WorkspaceCompanyCardsTableEmptyStateTitle')).toHaveTextContent('No cards in this feed');
     });
 
     it('shows the default empty state when the feed has no import marker', async () => {
