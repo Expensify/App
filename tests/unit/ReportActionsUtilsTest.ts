@@ -4846,6 +4846,26 @@ describe('ReportActionsUtils', () => {
             expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
         });
 
+        it('uses the standard wording when a credited amount arrives without its currency', () => {
+            // Given a reimbursed action whose credited amount is missing the currency it is denominated in
+            const action = buildReimbursedAction({
+                paymentMethod: 'ACH',
+                debitBankAccountLast4: '9999',
+                creditBankAccountLast4: '5678',
+                creditedAmount: 8050,
+            });
+
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+
+            // Then we describe the payment without an amount rather than guessing a currency
+            expect(result).toBe(
+                `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
+                    creditBankAccount: '5678',
+                    expectedDate: undefined,
+                })}`,
+            );
+        });
+
         it('keeps the hold-release wording when the submitter adds a bank account for a cross-border payment', () => {
             // Given a cross-border payment retried because the submitter added a deposit account
             const action = buildReimbursedAction({

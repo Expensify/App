@@ -40,7 +40,7 @@ function PaymentContent({action, policyID}: PaymentContentProps) {
 
     if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         const last4Digits = getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policy);
-        if (originalMessage.creditedAmount) {
+        if (originalMessage.creditedAmount && originalMessage.creditedCurrency) {
             return <ReportActionItemBasicMessage message={getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits)} />;
         }
         if (wasAutoPaid) {

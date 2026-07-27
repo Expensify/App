@@ -534,15 +534,6 @@ function getReimbursedMessage(
 
     const isAutomation = !!reportAction?.delegateAccountID;
 
-    // The hold-release wording wins over the cross-border amount because it announces the submitter's action.
-    if (originalMessage.creditedAmount && !isSubmitterAddingBankAccount) {
-        let crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, effectiveDebitBankAccountLast4);
-        if (isAutomation) {
-            crossBorderMessage += ` ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}`;
-        }
-        return crossBorderMessage;
-    }
-
     let paymentSuffix = '';
     if (effectivePaymentMethod === 'Fast_ACH' && expectedDate && expectedDate !== '???') {
         const formattedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
@@ -561,6 +552,15 @@ function getReimbursedMessage(
 
     if (isSubmitterAddingBankAccount) {
         return `${translate('iou.reimbursedSubmitterAddedBankAccount', submitterLogin)}${paymentSuffix}`;
+    }
+
+    // The employee is credited in their own currency, so name that amount and both accounts, not the report total.
+    if (originalMessage.creditedAmount && originalMessage.creditedCurrency) {
+        let crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, effectiveDebitBankAccountLast4);
+        if (isAutomation) {
+            crossBorderMessage += ` ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}`;
+        }
+        return crossBorderMessage;
     }
 
     const actionText = isInvoiceOrBill ? translate('iou.paidThisBill') : translate('iou.reimbursedThisReport');

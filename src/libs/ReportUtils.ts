@@ -5846,7 +5846,7 @@ function getReportPreviewMessage(translate: LocalizedTranslate, params: GetRepor
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            if (originalMessage?.creditedAmount) {
+            if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
                 return getCrossBorderReimbursedMessage(translate, originalMessage, originalMessage?.accountNumber?.slice(-4));
             }
             return translate(translatePhraseKey, '', originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '');
@@ -6065,7 +6065,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
             const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
             // This variant returns raw English to match the surrounding non-localized preview strings.
-            if (originalMessage?.creditedAmount) {
+            if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
                 const creditedAmountDisplay = convertToDisplayString(originalMessage.creditedAmount, originalMessage.creditedCurrency);
                 return `paid ${creditedAmountDisplay} from account ${originalMessage.debitBankAccountLast4 ?? last4Digits} to account ${originalMessage.creditBankAccountLast4 ?? ''}`;
             }
@@ -10974,7 +10974,7 @@ function getIOUReportActionDisplayMessage(
                 if (isInvoice) {
                     return translate(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', '', last4Digits);
                 }
-                if (originalMessage.creditedAmount) {
+                if (originalMessage.creditedAmount && originalMessage.creditedCurrency) {
                     return getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits);
                 }
                 translationKey = 'iou.businessBankAccount';
