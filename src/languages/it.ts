@@ -6057,6 +6057,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             currentTravelSpendLabel: 'Spesa di viaggio attuale',
                             currentTravelSpendPaymentQueued: (amount: string) => `Il pagamento di ${amount} è in coda e verrà elaborato a breve.`,
                             currentTravelSpendCta: 'Paga saldo',
+                            viewOnSpend: 'Visualizza in Spese',
                             currentTravelLimitLabel: 'Limite di viaggio attuale',
                             settlementAccountLabel: 'Conto di regolamento',
                             settlementFrequencyLabel: 'Frequenza di regolamento',

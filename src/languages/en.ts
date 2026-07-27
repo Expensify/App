@@ -6164,6 +6164,7 @@ const translations = {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendPaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,
                             currentTravelSpendCta: 'Pay balance',
+                            viewOnSpend: 'View on Spend',
                             currentTravelLimitLabel: 'Current travel limit',
                             settlementAccountLabel: 'Settlement account',
                             settlementFrequencyLabel: 'Settlement frequency',

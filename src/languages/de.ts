@@ -6075,6 +6075,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                             currentTravelSpendLabel: 'Aktuelle Reisekosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Die Zahlung über ${amount} ist in der Warteschlange und wird in Kürze bearbeitet.`,
                             currentTravelSpendCta: 'Saldo bezahlen',
+                            viewOnSpend: 'In Ausgaben anzeigen',
                             currentTravelLimitLabel: 'Aktuelles Reisekontingent',
                             settlementAccountLabel: 'Verrechnungskonto',
                             settlementFrequencyLabel: 'Auszahlungsfrequenz',

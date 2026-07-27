@@ -6038,6 +6038,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             currentTravelSpendLabel: 'Gasto atual com viagens',
                             currentTravelSpendPaymentQueued: (amount: string) => `O pagamento de ${amount} está na fila e será processado em breve.`,
                             currentTravelSpendCta: 'Pagar saldo',
+                            viewOnSpend: 'Ver em Gastos',
                             currentTravelLimitLabel: 'Limite de viagem atual',
                             settlementAccountLabel: 'Conta de liquidação',
                             settlementFrequencyLabel: 'Frequência de liquidação',
