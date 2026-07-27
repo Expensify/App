@@ -27,7 +27,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {formatPhoneNumber, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -198,6 +198,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: existingRecentlyUsedCategories,
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -224,6 +225,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: undefined,
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -276,6 +278,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: 'https://testcompany.com',
                 policyRecentlyUsedCategories: ['Services', 'Consulting'],
                 senderPolicyTags: mockPolicyTagList as PolicyTagLists,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -391,6 +394,7 @@ describe('actions/SendInvoice', () => {
                     companyWebsite: 'https://testcompany.com',
                     policyRecentlyUsedCategories: [],
                     senderPolicyTags: baseSenderPolicyTags,
+                    formatPhoneNumber,
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                 });
 
@@ -432,6 +436,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: 'https://clientcompany.com',
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -469,6 +474,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -519,6 +525,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -550,6 +557,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -603,6 +611,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -657,6 +666,7 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderPolicyTags ?? {},
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -705,6 +715,7 @@ describe('actions/SendInvoice', () => {
                 currentUserAccountID: 123,
                 policyRecentlyUsedCurrencies: [],
                 senderPolicyTags: senderPolicyTags ?? {},
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -738,6 +749,7 @@ describe('actions/SendInvoice', () => {
                 companyName,
                 companyWebsite,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -767,6 +779,7 @@ describe('actions/SendInvoice', () => {
                 transaction,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -807,6 +820,7 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedCategories,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -849,6 +863,7 @@ describe('actions/SendInvoice', () => {
                         orderWeight: 0,
                     },
                 },
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -885,6 +900,7 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReportID: preGeneratedReportID,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 

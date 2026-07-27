@@ -178,8 +178,8 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/IOURequestStartPage').default,
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepConfirmation').default,
     [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepAmount').default,
-    [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTaxAmountPage').default,
-    [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTaxRatePage').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepTaxAmountPage').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepTaxRatePage').default,
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCategory').default,
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCategoryCreate').default,
     [SCREENS.MONEY_REQUEST.STEP_VENDOR]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepVendor').default,
@@ -195,16 +195,16 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_SCAN]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepScan').default,
     [SCREENS.MONEY_REQUEST.STEP_TAG]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTag').default,
     [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepWaypoint').default,
-    [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepSendFrom').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepSendFrom').default,
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepReport').default,
-    [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCompanyInfo').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepCompanyInfo').default,
     [SCREENS.MONEY_REQUEST.HOLD]: () => require<ReactComponentModule>('../../../../pages/iou/HoldReasonPage').default,
     [SCREENS.MONEY_REQUEST.REJECT]: () => require<ReactComponentModule>('../../../../pages/iou/RejectReasonPage').default,
     [SCREENS.MONEY_REQUEST.REPORT_REJECT]: () => require<ReactComponentModule>('../../../../pages/RejectExpenseReportPage').default,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/Pay/EnablePaymentsPage').default,
     [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default,
-    [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepAttendees').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepAttendees').default,
     [SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepAccountant').default,
     [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepUpgrade').default,
     [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDestination').default,
@@ -290,6 +290,7 @@ const WorkspaceConfirmationModalStackNavigator = createModalStackNavigator<Works
     [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceConfirmationPage').default,
     [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationOwnerSelectorPage').default,
     [SCREENS.WORKSPACE_CONFIRMATION.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationSuccessPage').default,
+    [SCREENS.WORKSPACE_CONFIRMATION.PLAN_TYPE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspacePlanTypeSelectionPage').default,
     [SCREENS.CURRENCY.DYNAMIC_SELECTION]: () => require<ReactComponentModule>('../../../../pages/DynamicWorkspaceCurrencySelectionPage').default,
 });
 
@@ -381,7 +382,7 @@ const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorPar
 const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorParamList>({
     [SCREENS.NEW_TASK.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicNewTaskPage').default,
     [SCREENS.NEW_TASK.DYNAMIC_TASK_ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicTaskAssigneeSelectorModal').default,
-    [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/tasks/TaskShareDestinationSelectorModal').default,
+    [SCREENS.NEW_TASK.DYNAMIC_TASK_SHARE_DESTINATION_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicTaskShareDestinationSelectorModal').default,
     [SCREENS.NEW_TASK.DYNAMIC_TASK_DETAILS]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicNewTaskDetailsPage').default,
     [SCREENS.NEW_TASK.DYNAMIC_TASK_TITLE]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicNewTaskTitlePage').default,
     [SCREENS.NEW_TASK.DYNAMIC_TASK_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicNewTaskDescriptionPage').default,
@@ -1180,10 +1181,10 @@ const TransactionDuplicateStackNavigator = createModalStackNavigator<Transaction
 });
 
 const MergeTransactionStackNavigator = createModalStackNavigator<MergeTransactionNavigatorParamList>({
-    [SCREENS.MERGE_TRANSACTION.LIST_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/MergeTransactionsListPage').default,
-    [SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/ReceiptReviewPage').default,
-    [SCREENS.MERGE_TRANSACTION.DETAILS_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/DetailsReviewPage').default,
-    [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/ConfirmationPage').default,
+    [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/DynamicMergeTransactionsListPage').default,
+    [SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/DynamicReceiptReviewPage').default,
+    [SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/DynamicDetailsReviewPage').default,
+    [SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/DynamicConfirmationPage').default,
 });
 
 const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchReportActionsParamList>({
