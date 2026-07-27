@@ -1,3 +1,8 @@
+/**
+ * Resolves the participants for a money request and derives the policy tags for each participant's policy.
+ * Combines `getMoneyRequestParticipantOptions` with `useParticipantsPolicyTags` so distance-request call sites can
+ * read reactive participant policy tags from Onyx instead of the deprecated `buildParticipantsPolicyTags` helper.
+ */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
