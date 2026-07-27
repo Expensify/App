@@ -141,7 +141,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <TextWithTooltip

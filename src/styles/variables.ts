@@ -150,6 +150,7 @@ export default {
     tableSwitchColumnWidth: 58,
     tableCaretColumnWidth: 20,
     tableLastFourColumnWidth: 88,
+    tableCardStatusColumnWidth: 112,
     workspaceTagsTableCountColumnWidth: 100,
     domainTableActionColumnWidth: 64,
     domainAdminsTableActionColumnWidth: 140,

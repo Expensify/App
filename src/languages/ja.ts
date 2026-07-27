@@ -5851,6 +5851,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             balanceWillBeSettledOn: (settlementDate: string) => `残高は${settlementDate}に精算されます`,
             settleBalance: '残高を清算',
             cardLimit: 'カード上限',
+            remaining: '残り',
             remainingLimit: '残りの上限',
             requestLimitIncrease: 'リクエスト上限の引き上げ',
             remainingLimitDescription:

@@ -5900,6 +5900,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             balanceWillBeSettledOn: (settlementDate: string) => `O saldo será liquidado em ${settlementDate}`,
             settleBalance: 'Quitar saldo',
             cardLimit: 'Limite do cartão',
+            remaining: 'Restante',
             remainingLimit: 'Limite restante',
             requestLimitIncrease: 'Solicitar aumento de limite',
             remainingLimitDescription:

@@ -115,6 +115,10 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'type',
             label: translate('common.type'),
             sortable: true,
+            width: variables.tableTypeColumnWidth,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
         },
         {
             key: 'limitType',
@@ -122,7 +126,7 @@ export default function WorkspaceExpensifyCardsTable({
             sortable: true,
             styling: {
                 // minWidth: 0 lets the grid track size purely from its 1fr share instead of the cell content,
-                // so the Limit type and Status columns always render at the same width.
+                // so a long limit type value truncates instead of widening the column.
                 containerStyles: [styles.mnw0],
             },
         },
@@ -136,6 +140,7 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'status',
             label: translate('common.status'),
             sortable: true,
+            width: variables.tableCardStatusColumnWidth,
             styling: {
                 containerStyles: [styles.mnw0],
             },
@@ -150,7 +155,7 @@ export default function WorkspaceExpensifyCardsTable({
         },
         {
             key: 'remainingLimit',
-            label: translate('workspace.expensifyCard.remainingLimit'),
+            label: translate('workspace.expensifyCard.remaining'),
             sortable: true,
             styling: {
                 containerStyles: [styles.justifyContentEnd],

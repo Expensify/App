@@ -5886,6 +5886,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             balanceWillBeSettledOn: (settlementDate: string) => `Saldo zostanie rozliczone w dniu ${settlementDate}`,
             settleBalance: 'Ureguluj saldo',
             cardLimit: 'Limit karty',
+            remaining: 'Pozostało',
             remainingLimit: 'Pozostały limit',
             requestLimitIncrease: 'Zwiększ limit żądań',
             remainingLimitDescription:

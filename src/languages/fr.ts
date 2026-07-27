@@ -5955,6 +5955,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             balanceWillBeSettledOn: (settlementDate: string) => `Le solde sera réglé le ${settlementDate}`,
             settleBalance: 'Régler le solde',
             cardLimit: 'Plafond de carte',
+            remaining: 'Restant',
             remainingLimit: 'Plafond restant',
             requestLimitIncrease: 'Demander une augmentation de la limite',
             remainingLimitDescription:
