@@ -131,7 +131,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy to S3
-        run: aws s3 cp --recursive --acl public-read dist s3://ad-hoc-expensify-cash/web/${{ inputs.APP_PR_NUMBER }}
+        run: aws s3 sync --delete --acl public-read --cache-control "no-cache" dist s3://ad-hoc-expensify-cash/web/${{ inputs.APP_PR_NUMBER }}
 
   postGithubComment:
     runs-on: blacksmith-4vcpu-ubuntu-2404
