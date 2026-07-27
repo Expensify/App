@@ -27,6 +27,7 @@ import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -5007,7 +5008,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 isReimbursable
                     ? `Sage Intacct で一致するベンダーがない立替経費に適用するデフォルトのベンダーを設定します。`
                     : `Sage Intacct の取引先に照合できない経費は、デフォルトでこの取引先に紐づけられます。`,
-            creditCardMiscFallback: `それ以外の場合は、「クレジットカードその他」としてエクスポートされます。`,
             exportDescription: 'Expensify のデータを Sage Intacct へエクスポートする方法を設定します。',
             exportPreferredExporterNote:
                 '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
@@ -6871,7 +6871,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             exportCompanyCard: '法人カード経費のエクスポート形式',
             exportDate: 'エクスポート日',
             defaultVendor: 'デフォルトのベンダー',
-            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) => `自動照合されない経費は、デフォルトでこの ${connectionName} ベンダーに割り当てられます。`,
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this vendor.`
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `自動的に照合されない経費に使用する、デフォルトの ${connectionName} 取引先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',

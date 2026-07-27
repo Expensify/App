@@ -27,6 +27,7 @@ import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -5046,7 +5047,6 @@ ${amount} voor ${merchant} - ${date}`,
                 isReimbursable
                     ? `Stel een standaardleverancier in die wordt toegepast op declarabele uitgaven waarvoor geen overeenkomende leverancier in Sage Intacct is.`
                     : `Uitgaven die niet aan je Sage Intacct-leveranciers kunnen worden gekoppeld, worden standaard aan deze leverancier toegewezen.`,
-            creditCardMiscFallback: `Anders worden ze geëxporteerd als Credit Card Misc.`,
             exportDescription: 'Configureer hoe Expensify-gegevens worden geëxporteerd naar Sage Intacct.',
             exportPreferredExporterNote:
                 'De voorkeurs-exporteur kan elke werkruimtebeheerder zijn, maar moet ook een domeinbeheerder zijn als je in Domeininstellingen verschillende exportrekeningen instelt voor individuele bedrijfskaarten.',
@@ -6937,8 +6937,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             exportCompanyCard: 'Bedrijfspaskosten exporteren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standaardleverancier',
-            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) =>
-                `Declaraties die niet automatisch worden gekoppeld, worden standaard aan deze ${connectionName}-leverancier toegewezen.`,
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this vendor.`
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Kies een standaard ${connectionName}-leverancier voor uitgaven die niet automatisch worden gekoppeld.`,
             defaultAccount: 'Standaardrekening',

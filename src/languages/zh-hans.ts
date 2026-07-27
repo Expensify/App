@@ -27,6 +27,7 @@ import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -4889,7 +4890,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             defaultVendor: '默认供应商',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable ? `为可报销但在 Sage Intacct 中没有匹配供应商的报销费用设置一个默认供应商。` : `无法与 Sage Intacct 供应商匹配的报销将默认归入此供应商。`,
-            creditCardMiscFallback: `否则，它们将作为“信用卡杂项”导出。`,
             exportDescription: '配置 Expensify 数据导出到 Sage Intacct 的方式。',
             exportPreferredExporterNote: '首选导出人可以是任意工作区管理员，但如果你在“域设置”中为各个公司卡设置了不同的导出账户，则该导出人还必须是域管理员。',
             exportPreferredExporterSubNote: '设置完成后，首选导出人将在其账户中看到可供导出的报表。',
@@ -6714,7 +6714,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             exportCompanyCard: '导出公司卡费用为',
             exportDate: '导出日期',
             defaultVendor: '默认供应商',
-            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) => `未自动匹配的报销将默认归属到此 ${connectionName} 供应商。`,
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this vendor.`
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `为未自动匹配的报销选择一个默认的 ${connectionName} 供应商。`,
             defaultAccount: '默认账户',
             autoSync: '自动同步',

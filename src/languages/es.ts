@@ -18,6 +18,7 @@ import type en from './en';
 import type {
     ConciergeBrokenCardConnectionParams,
     ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     EmptyViolationSnapshotResultsSubtitleParams,
     PaidElsewhereParams,
     RemoveCopilotAccessConfirmationParams,
@@ -4967,7 +4968,6 @@ ${amount} para ${merchant} - ${date}`,
                 isReimbursable
                     ? `Establece un proveedor predeterminado que se aplicará a los gastos reembolsables que no tengan un proveedor coincidente en Sage Intacct.`
                     : `Los gastos que no se puedan asociar a tus proveedores de Sage Intacct se asignarán a este proveedor de forma predeterminada.`,
-            creditCardMiscFallback: `De lo contrario, se exportarán como Tarjeta de crédito (Varios).`,
             exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Intacct.',
             exportPreferredExporterNote:
                 'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
@@ -6756,8 +6756,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             exportDate: 'Fecha de exportación',
             defaultVendor: 'Proveedor predeterminado',
-            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) =>
-                `Los gastos que no se concilien automáticamente se asignarán por defecto a este proveedor de ${connectionName}.`,
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this vendor.`
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Elige un proveedor predeterminado de ${connectionName} para los gastos que no se asignen automáticamente.`,
             defaultAccount: 'Cuenta predeterminada',

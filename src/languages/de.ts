@@ -27,6 +27,7 @@ import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -5073,7 +5074,6 @@ ${amount} für ${merchant} – ${date}`,
                 isReimbursable
                     ? `Legen Sie einen Standardlieferanten fest, der auf erstattungsfähige Ausgaben angewendet wird, für die es in Sage Intacct keinen passenden Lieferanten gibt.`
                     : `Ausgaben, die keinem Ihrer Sage Intacct-Lieferanten zugeordnet werden können, werden standardmäßig diesem Lieferanten zugewiesen.`,
-            creditCardMiscFallback: `Andernfalls werden sie als Kreditkarte – Verschiedenes exportiert.`,
             exportDescription: 'Konfigurieren Sie, wie Expensify Daten nach Sage Intacct exportiert.',
             exportPreferredExporterNote:
                 'Der bevorzugte Exporteur kann jede Workspace-Adminperson sein, muss jedoch auch Domain-Admin sein, wenn du in den Domaineinstellungen unterschiedliche Exportkonten für einzelne Firmenkarten festlegst.',
@@ -6970,8 +6970,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             exportCompanyCard: 'Firmenkartenausgaben exportieren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standardanbieter',
-            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) =>
-                `Ausgaben, die nicht automatisch abgeglichen werden, werden standardmäßig diesem ${connectionName}-Lieferanten zugeordnet.`,
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this vendor.`
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Wählen Sie einen Standard-${connectionName}-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.`,
             defaultAccount: 'Standardkonto',

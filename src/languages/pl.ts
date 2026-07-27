@@ -27,6 +27,7 @@ import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -5032,7 +5033,6 @@ ${amount} dla ${merchant} - ${date}`,
                 isReimbursable
                     ? `Ustaw domyślnego dostawcę, który będzie stosowany do wydatków podlegających zwrotowi, jeśli nie mają pasującego dostawcy w Sage Intacct.`
                     : `Wydatki, których nie da się dopasować do kontrahentów w Sage Intacct, zostaną domyślnie przypisane do tego kontrahenta.`,
-            creditCardMiscFallback: `W przeciwnym razie zostaną wyeksportowane jako „Różne wydatki karty kredytowej”.`,
             exportDescription: 'Skonfiguruj sposób eksportu danych z Expensify do Sage Intacct.',
             exportPreferredExporterNote:
                 'Preferowanym eksporterem może być dowolny administrator przestrzeni roboczej, ale musi on również być administratorem domeny, jeśli w Ustawieniach domeny ustawisz różne konta eksportu dla poszczególnych kart firmowych.',
@@ -6918,8 +6918,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             exportCompanyCard: 'Eksportuj wydatki z firmowej karty jako',
             exportDate: 'Data eksportu',
             defaultVendor: 'Domyślny dostawca',
-            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) =>
-                `Wydatki, które nie zostaną automatycznie dopasowane, domyślnie trafią do tego dostawcy ${connectionName}.`,
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this vendor.`
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Wybierz domyślnego dostawcę ${connectionName} dla wydatków, które nie pasują automatycznie.`,
             defaultAccount: 'Domyślne konto',
             autoSync: 'Automatyczna synchronizacja',

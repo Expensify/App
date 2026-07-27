@@ -91,6 +91,10 @@ type ConnectionDisplayNameParams = {
     connectionName: string;
 };
 
+type DefaultVendorHelperTextParams = {
+    isSet: boolean;
+};
+
 type ExportAgainModalDescriptionParams = {
     reportName: string;
     connectionName: ConnectionName;
@@ -180,6 +184,7 @@ export type {
     UnsupportedFormulaValueErrorParams,
     ConnectionNameParams,
     ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
     OptionalParam,
