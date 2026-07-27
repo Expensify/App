@@ -1763,7 +1763,7 @@
 "../../tests/ui/BottomTabBarTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/ui/CategoryListItemHeaderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/ui/ComposerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/ui/ContactMethodsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../tests/ui/DynamicContactMethodsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/ui/CountrySelectionListTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/CountrySelectorModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/DynamicCountrySelectionPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3

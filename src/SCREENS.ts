@@ -103,7 +103,7 @@ const SCREENS = {
         PROFILE: {
             ROOT: 'Settings_Profile',
             DISPLAY_NAME: 'Settings_Display_Name',
-            CONTACT_METHODS: 'Settings_ContactMethods',
+            DYNAMIC_CONTACT_METHODS: 'Dynamic_Settings_ContactMethods',
             CONTACT_METHOD_DETAILS: 'Settings_ContactMethodDetails',
             NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
             NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: 'Settings_NewContactMethod_ConfirmMagicCode',

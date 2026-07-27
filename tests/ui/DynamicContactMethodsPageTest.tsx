@@ -2,7 +2,7 @@ import {render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 
-import ContactMethodsPage from '@pages/settings/Profile/Contacts/ContactMethodsPage';
+import DynamicContactMethodsPage from '@pages/settings/Profile/Contacts/DynamicContactMethodsPage';
 
 import DelegateNoAccessModalProvider from '@src/components/DelegateNoAccessModalProvider';
 import LockedAccountModalProvider from '@src/components/LockedAccountModalProvider';
@@ -25,10 +25,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => ''));
+
 // Mock RenderHTML component
 jest.mock('@components/RenderHTML', () => {
     const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+    const {Text} = require('react-native') as {
+        Text: React.ComponentType<{children?: React.ReactNode}>;
+    };
 
     return ({html}: {html: string}) => {
         const plainText = html.replaceAll(/<[^>]*>/g, '');
@@ -39,12 +43,14 @@ jest.mock('@components/RenderHTML', () => {
 // Replace MenuItem with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItem', () => {
     const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{testID: string; children?: React.ReactNode}>};
+    const {Text} = require('react-native') as {
+        Text: React.ComponentType<{testID: string; children?: React.ReactNode}>;
+    };
     return ({title, brickRoadIndicator}: {title: string; brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) =>
         ReactMock.createElement(Text, {testID: `menu-${String(title)}`}, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`);
 });
 
-describe('ContactMethodsPage', () => {
+describe('DynamicContactMethodsPage', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -58,8 +64,7 @@ describe('ContactMethodsPage', () => {
     function renderPage() {
         return render(
             <ComposeProviders components={[LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
-                {/* @ts-expect-error - route typing is not necessary for this test */}
-                <ContactMethodsPage route={{params: {}}} />
+                <DynamicContactMethodsPage />
             </ComposeProviders>,
         );
     }
@@ -90,12 +95,12 @@ describe('ContactMethodsPage', () => {
 
         let node = screen.getByTestId(`menu-${defaultEmail}`);
 
-        // ContactMethodsPage doesn't set any BR for validated logins
+        // DynamicContactMethodsPage doesn't set any BR for validated logins
         expect(node).toHaveTextContent('none-brickRoadIndicator');
 
         node = screen.getByTestId(`menu-${otherEmail}`);
 
-        // ContactMethodsPage sets brickRoadIndicator to 'error' when any errorFields are present
+        // DynamicContactMethodsPage sets brickRoadIndicator to 'error' when any errorFields are present
         expect(node).toHaveTextContent('error-brickRoadIndicator');
 
         // Verify that RBR disappears
@@ -114,7 +119,7 @@ describe('ContactMethodsPage', () => {
         await waitFor(() => {
             node = screen.getByTestId(`menu-${otherEmail}`);
 
-            // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
+            // DynamicContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
             expect(node).toHaveTextContent('none-brickRoadIndicator');
         });
     });
@@ -141,12 +146,12 @@ describe('ContactMethodsPage', () => {
         renderPage();
         let node = screen.getByTestId(`menu-${defaultEmail}`);
 
-        // ContactMethodsPage doesn't set any BR for validated logins
+        // DynamicContactMethodsPage doesn't set any BR for validated logins
         expect(node).toHaveTextContent('none-brickRoadIndicator');
 
         node = screen.getByTestId(`menu-${otherEmail}`);
 
-        // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
+        // DynamicContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
         expect(node).toHaveTextContent('info-brickRoadIndicator');
 
         // Verify that GBR disappears

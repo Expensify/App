@@ -90,7 +90,7 @@ const DYNAMIC_ROUTES = {
         path: 'verify-account',
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
-            SCREENS.SETTINGS.PROFILE.CONTACT_METHODS,
+            SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS,
             SCREENS.HOME,
             SCREENS.SEARCH.ROOT,
             SCREENS.REPORT,
@@ -100,6 +100,11 @@ const DYNAMIC_ROUTES = {
             SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
         ],
+    },
+    CONTACT_METHODS: {
+        path: 'contact-methods',
+        // Reachable from anywhere: e.g. DebugTabView renders a persistent debug entry point on every screen.
+        entryScreens: ['*'],
     },
     TWO_FACTOR_AUTH_VERIFY_ACCOUNT: {
         path: 'two-factor-auth/verify-account',
@@ -1699,11 +1704,6 @@ const ROUTES = {
         getRoute: (fieldToFocus?: string) => `settings/profile/private-personal-details${fieldToFocus ? `?fieldToFocus=${encodeURIComponent(fieldToFocus)}` : ''}` as const,
     },
     SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'settings/profile/private-personal-details/confirm',
-    SETTINGS_CONTACT_METHODS: {
-        route: 'settings/profile/contact-methods',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
-    },
     SETTINGS_CONTACT_METHOD_DETAILS: {
         route: 'settings/profile/contact-methods/:contactMethod/details',
         getRoute: (contactMethod: string, backTo?: string, shouldSkipInitialValidation?: boolean) => {
