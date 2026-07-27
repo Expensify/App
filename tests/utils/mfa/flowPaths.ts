@@ -22,6 +22,8 @@ const VALIDATE_DEVICE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}validateDevic
 const VALIDATE_DEVICE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}validateDevice`;
 const READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
 const READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
+const CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}checkLocalCredentials`;
+const CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}checkLocalCredentials`;
 const REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}requestRegistrationChallenge`;
 const REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}requestRegistrationChallenge`;
 
@@ -72,6 +74,7 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [
             createInitEvent(),
             createActorDoneEvent(VALIDATE_DEVICE_DONE_EVENT_TYPE, {success: true}),
+            createActorDoneEvent(CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, false),
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent(REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, {success: false, error: MFA_TEST_INVALID_CODE_ERROR}),
             {type: 'CLEAR_CONTINUABLE_ERROR'},
@@ -92,7 +95,7 @@ type MfaEventFixtures = {
  * `{type}` and potentially bypass event-dependent behavior.
  */
 const MFA_GRAPH_EVENT_FIXTURES = {
-    INIT: [createInitEvent(), createInitEvent(true)],
+    INIT: [createInitEvent()],
     CLOSE_MODAL: [{type: 'CLOSE_MODAL'}],
     MODAL_CLOSED: [{type: 'MODAL_CLOSED'}],
     SOFT_PROMPT_APPROVED: [{type: 'SOFT_PROMPT_APPROVED'}],
@@ -129,6 +132,7 @@ const MFA_ACTOR_DONE_OUTPUT_FIXTURES = {
         },
     ],
     readHasAcceptedSoftPrompt: [false, true],
+    checkLocalCredentials: [false, true],
     requestRegistrationChallenge: [
         {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE},
         {success: false, error: MFA_TEST_INVALID_CODE_ERROR},
@@ -233,6 +237,8 @@ function getWalkedPaths() {
 
 export default getWalkedPaths;
 export {
+    CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE,
+    CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE,
     getDrivingJourneyPaths,
     getMfaShortestPaths,
     isAutoDrivenEvent,

@@ -33,9 +33,6 @@ type MfaContext = {
     /** Additional parameters for the current scenario */
     payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
 
-    /** Whether the local credential captured at flow start is among the server-known credential IDs */
-    localCredentialsKnownToServer: boolean;
-
     /** Magic code the user entered on this flow's validate-code screen */
     validateCode: string | undefined;
 
@@ -68,7 +65,6 @@ type MultifactorAuthenticationInitEvent<T extends MultifactorAuthenticationScena
     scenarioName: T;
     scenario: MultifactorAuthenticationScenarioConfigFor<T>;
     payload: MultifactorAuthenticationScenarioParams<T> | undefined;
-    localCredentialsKnownToServer: boolean;
 };
 
 /** Events handled by the MFA state machine. */
@@ -86,6 +82,9 @@ type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationM
 /** Identifies the per-account Onyx member read by the soft-prompt actor. */
 type ReadHasAcceptedSoftPromptInput = {accountID: number};
 
+/** Identifies the account whose local credentials the registration-decision actor checks. */
+type CheckLocalCredentialsInput = {accountID: number};
+
 /** Magic code sent to the backend to obtain a registration challenge. */
 type RequestRegistrationChallengeInput = {validateCode: string};
 
@@ -93,6 +92,7 @@ type RequestRegistrationChallengeInput = {validateCode: string};
 type RequestRegistrationChallengeOutput = MFAResult<{challenge: RegistrationChallenge}>;
 
 export type {
+    CheckLocalCredentialsInput,
     MfaContext,
     MfaEvent,
     MfaModalState,

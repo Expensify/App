@@ -35,7 +35,6 @@ const DEFAULT_CONTEXT: MfaContext = {
     scenarioName: undefined,
     scenario: undefined,
     payload: undefined,
-    localCredentialsKnownToServer: false,
     validateCode: undefined,
     continuableError: undefined,
     registrationChallenge: undefined,
@@ -77,7 +76,6 @@ const MFAMachine = setup({
                 scenarioName: event.scenarioName,
                 scenario: event.scenario,
                 payload: event.payload,
-                localCredentialsKnownToServer: event.localCredentialsKnownToServer,
             };
         }),
         // Deferring the outcome push until the modal-open transition settles lets the screen slide in
@@ -178,12 +176,25 @@ const MFAMachine = setup({
                             },
                         },
                         [MFA_STATE.DECIDING_REGISTRATION]: {
-                            // The Provider captures this value once for start telemetry and INIT. Reusing that
-                            // snapshot here avoids a second native keystore read before the first screen appears.
-                            always: [
-                                {guard: ({context}) => context.localCredentialsKnownToServer, target: SOFT_PROMPT_CHECK_TARGET},
-                                {target: MAGIC_CODE_TARGET, actions: ['requestValidateCode', 'navigateToMagicCode']},
-                            ],
+                            invoke: {
+                                id: 'checkLocalCredentials',
+                                src: 'checkLocalCredentials',
+                                input: ({context}) => {
+                                    if (context.accountID === undefined) {
+                                        throw new Error('MFA account must be initialized before the registration decision');
+                                    }
+                                    return {accountID: context.accountID};
+                                },
+                                // A returning user's credentials are already registered, so only a fresh registration asks for a code.
+                                onDone: [
+                                    {guard: ({event}) => event.output, target: SOFT_PROMPT_CHECK_TARGET},
+                                    {target: MAGIC_CODE_TARGET, actions: ['requestValidateCode', 'navigateToMagicCode']},
+                                ],
+                                onError: {
+                                    target: OUTCOME_TARGET,
+                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Local credentials check', event.error)}),
+                                },
+                            },
                         },
                         [MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE]: {
                             id: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE,

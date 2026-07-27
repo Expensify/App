@@ -81,14 +81,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         const scenario = getScenarioConfig(scenarioName);
 
-        send({
-            type: 'INIT',
-            accountID,
-            scenarioName,
-            scenario,
-            payload: params && Object.keys(params).length > 0 ? params : undefined,
-            localCredentialsKnownToServer: startCredentialsState.hasLocalCredentials,
-        });
+        send({type: 'INIT', accountID, scenarioName, scenario, payload: params && Object.keys(params).length > 0 ? params : undefined});
     };
 
     const closeModal = () => send({type: 'CLOSE_MODAL'});

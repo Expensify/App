@@ -1,4 +1,5 @@
 import checkDeviceEligibility from '@components/MultifactorAuthentication/biometrics/checkDeviceEligibility';
+import {areLocalCredentialsKnownToServer} from '@components/MultifactorAuthentication/biometrics/operations';
 
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
@@ -9,7 +10,7 @@ import {getDeviceBiometricsOnyxKey, requestRegistrationChallenge} from '@userAct
 
 import {fromPromise} from 'xstate';
 
-import type {ReadHasAcceptedSoftPromptInput, RequestRegistrationChallengeInput, RequestRegistrationChallengeOutput, ValidateDeviceInput} from './types';
+import type {CheckLocalCredentialsInput, ReadHasAcceptedSoftPromptInput, RequestRegistrationChallengeInput, RequestRegistrationChallengeOutput, ValidateDeviceInput} from './types';
 
 /**
  * A refused device resolves as a failed MFAResult, so the machine's onError transition for this
@@ -25,6 +26,12 @@ const readHasAcceptedSoftPrompt = fromPromise<boolean, ReadHasAcceptedSoftPrompt
     const deviceBiometrics = await readOnyxValueOnce(getDeviceBiometricsOnyxKey(input.accountID), signal);
     return deviceBiometrics?.hasAcceptedSoftPrompt ?? false;
 });
+
+/**
+ * Resolves to whether the account's local credentials are known to the server. A returning user
+ * (true) skips the registration path entirely.
+ */
+const checkLocalCredentials = fromPromise<boolean, CheckLocalCredentialsInput>(({input}) => areLocalCredentialsKnownToServer(input.accountID));
 
 /**
  * Exchanges the submitted magic code for a validated registration challenge. The action normalizes
@@ -43,7 +50,7 @@ const requestRegistrationChallengeActor = fromPromise<RequestRegistrationChallen
  * these working implementations, so no caller needs to provide stubs or overrides.
  */
 function createActors() {
-    return {validateDevice, readHasAcceptedSoftPrompt, requestRegistrationChallenge: requestRegistrationChallengeActor};
+    return {validateDevice, readHasAcceptedSoftPrompt, checkLocalCredentials, requestRegistrationChallenge: requestRegistrationChallengeActor};
 }
 
 export default createActors;
