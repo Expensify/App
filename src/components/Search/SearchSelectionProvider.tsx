@@ -96,7 +96,11 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                 totalSelectableItemsCount && totalSelectableItemsCount !== Object.keys(selectedTransactions).length ? false : prevState.areAllMatchingItemsSelected;
             let excludedTransactions = prevState.excludedTransactions;
 
-            if (prevState.areAllMatchingItemsSelected && options?.shouldPreserveAllMatchingSelection) {
+            const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions);
+            if (shouldClearAllMatchingSelection) {
+                areAllMatchingItemsSelected = false;
+            }
+            if (prevState.areAllMatchingItemsSelected && options?.shouldPreserveAllMatchingSelection && !shouldClearAllMatchingSelection) {
                 areAllMatchingItemsSelected = true;
                 excludedTransactions = {...prevState.excludedTransactions};
                 for (const [key, transaction] of Object.entries(prevState.selectedTransactions)) {

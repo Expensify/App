@@ -397,7 +397,11 @@ function SearchWriteActionsProvider({
 
                     return updatedTransactions;
                 },
-                {totalSelectableItemsCount, shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE},
+                {
+                    totalSelectableItemsCount,
+                    shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    shouldClearAllMatchingSelectionWhenEmpty: searchResults?.search?.hasMoreResults === false,
+                },
             );
             return;
         }
@@ -461,7 +465,11 @@ function SearchWriteActionsProvider({
                     ),
                 };
             },
-            {totalSelectableItemsCount, shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE},
+            {
+                totalSelectableItemsCount,
+                shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                shouldClearAllMatchingSelectionWhenEmpty: searchResults?.search?.hasMoreResults === false,
+            },
         );
     };
 

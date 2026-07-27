@@ -106,7 +106,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_1']);
     });
 
-    it('keeps a semantic selection when every loaded row is excluded', () => {
+    it('keeps a semantic selection when every loaded row is excluded and more results exist', () => {
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
 
@@ -121,6 +121,24 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_1', 'tx_2']);
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
         expect(result.current.state.hasSelectedTransactions).toBe(true);
+    });
+
+    it('clears all-matching selection when every result is excluded', () => {
+        const {result} = renderSelection();
+        seedAllMatchingSelection(result);
+
+        act(() => {
+            result.current.actions.applySelection(() => ({}), {
+                totalSelectableItemsCount: 2,
+                shouldPreserveAllMatchingSelection: true,
+                shouldClearAllMatchingSelectionWhenEmpty: true,
+            });
+        });
+
+        expect(result.current.state.selectedTransactions).toEqual({});
+        expect(result.current.state.excludedTransactions).toEqual({});
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
+        expect(result.current.state.hasSelectedTransactions).toBe(false);
     });
 
     it('removes an exclusion when the row is rechecked', () => {

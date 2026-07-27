@@ -237,10 +237,16 @@ type SearchSelectionActionsValue = {
      * thus re-rendering on — selection state. Passing `data` derives `selectedReports` in the same commit; passing
      * `totalSelectableItemsCount` unchecks "select all matching" when the new selection no longer covers every item.
      * `shouldPreserveAllMatchingSelection` keeps that mode active for row toggles and records removed rows as exclusions.
+     * `shouldClearAllMatchingSelectionWhenEmpty` exits that mode when no selected rows or additional results remain.
      */
     applySelection: (
         updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions,
-        options?: {data?: SearchData; totalSelectableItemsCount?: number; shouldPreserveAllMatchingSelection?: boolean},
+        options?: {
+            data?: SearchData;
+            totalSelectableItemsCount?: number;
+            shouldPreserveAllMatchingSelection?: boolean;
+            shouldClearAllMatchingSelectionWhenEmpty?: boolean;
+        },
     ) => void;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
