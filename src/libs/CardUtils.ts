@@ -831,8 +831,8 @@ const COMMERCIAL_FEED_DISPLAY_BASES = [
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD), shouldHideOne: true},
 ] as const;
 
-function getDefaultCommercialFeedDisplayName(feed: string | undefined): string | undefined {
-    const [feedName = ''] = feed?.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR) ?? [];
+function getDefaultCommercialFeedDisplayName(feed: CardFeedWithNumber | CardFeedWithDomainID | undefined): string | undefined {
+    const feedName = getCompanyCardFeed(feed);
     const displayBase = COMMERCIAL_FEED_DISPLAY_BASES.find(({base}) => feedName.startsWith(base));
     if (!displayBase) {
         return;

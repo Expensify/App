@@ -1473,21 +1473,20 @@ describe('CardUtils', () => {
     });
 
     describe('getDefaultCommercialFeedDisplayName', () => {
-        it.each([
+        const defaultCommercialFeedCases: Array<[Parameters<typeof getDefaultCommercialFeedDisplayName>[0], string]> = [
             [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, 'Visa'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`, 'Visa'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'Visa 2'],
-            ['vcfanzfav1', 'ANZ NZ 1'],
             [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 'Mastercard'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}1`, 'Mastercard'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}2`, 'Mastercard 2'],
             [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, 'American Express'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}1`, 'American Express'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2`, 'American Express 2'],
-            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}bmo`, 'Mastercard'],
-            [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}citibank2`, 'Visa'],
             [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}12345`, 'Visa 2'],
-        ])('Should derive default display name for commercial feed %s as %s', (feed, expectedFeedName) => {
+        ];
+
+        it.each(defaultCommercialFeedCases)('Should derive default display name for commercial feed %s as %s', (feed, expectedFeedName) => {
             const feedName = getDefaultCommercialFeedDisplayName(feed);
             expect(feedName).toBe(expectedFeedName);
         });

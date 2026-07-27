@@ -3,11 +3,12 @@ import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy, getExpensifyCar
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, Domain, Policy} from '@src/types/onyx';
-import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithNumber, CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -36,6 +37,14 @@ function createTestPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Poli
         isPolicyExpenseChatEnabled: false,
         ...overrides,
     };
+}
+
+function createCompanyCardFeedsWithRawKeys(feedNames: string[]): Record<string, CustomCardFeedData> {
+    const companyCards: Record<string, CustomCardFeedData> = {};
+    for (const feedName of feedNames) {
+        companyCards[feedName] = createMock<CustomCardFeedData>({});
+    }
+    return companyCards;
 }
 
 const cardFeedAmericaExpressMock: CardFeedWithNumber = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 1001`;
@@ -96,13 +105,12 @@ describe('Card Feed Utils', () => {
     });
 
     it('returns numbered commercial card feed names for search display', () => {
+        const companyCards = createCompanyCardFeedsWithRawKeys([`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'vcfanzfav1', 'cdfbmo', 'vcfcitibank2']);
         const cardFeedsWithNumberedCommercialFeeds: OnyxCollection<CardFeeds> = {
             sharedNVP_private_domain_member_1234: {
                 settings: {
                     companyCardNicknames: {},
-                    companyCards: {
-                        [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`]: {},
-                    },
+                    companyCards,
                 },
             },
         };
@@ -110,6 +118,9 @@ describe('Card Feed Utils', () => {
         const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsWithNumberedCommercialFeeds, {}, translateLocal);
         expect(cardFeedsForDisplay).toEqual({
             '1234_vcf2': {id: '1234_vcf2', fundID: '1234', feed: 'vcf2', name: 'Visa 2'},
+            '1234_vcfanzfav1': {id: '1234_vcfanzfav1', fundID: '1234', feed: 'vcfanzfav1', name: 'ANZ NZ 1'},
+            '1234_cdfbmo': {id: '1234_cdfbmo', fundID: '1234', feed: 'cdfbmo', name: 'Mastercard'},
+            '1234_vcfcitibank2': {id: '1234_vcfcitibank2', fundID: '1234', feed: 'vcfcitibank2', name: 'Visa'},
         });
     });
 
