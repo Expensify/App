@@ -24,7 +24,7 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type DynamicCategoryRequireItemizedReceiptsOverPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER>;
 
@@ -90,7 +90,7 @@ function DynamicCategoryRequireItemizedReceiptsOverPage({
         },
     ];
 
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         if (selectedOptionKey === CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT) {
             removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
         } else if (selectedOptionKey === CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.ALWAYS) {
@@ -102,17 +102,16 @@ function DynamicCategoryRequireItemizedReceiptsOverPage({
         } else {
             setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE);
         }
-        Navigation.goBack(categorySettingsBackPath);
-    }, [selectedOptionKey, policyData, categoryName, policyCategories, categorySettingsBackPath]);
+        // Queue the navigation so the optimistic Onyx update from the action above is delivered before we leave the page,
+        // otherwise the category settings page can briefly show the old threshold after Save.
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAndGoBack,
-        }),
-        [saveAndGoBack, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+    };
 
     return (
         <AccessOrNotFoundWrapper
