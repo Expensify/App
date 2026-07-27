@@ -274,7 +274,7 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         setPendingConciergeDeepLink();
 
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE});
 
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
@@ -400,7 +400,7 @@ describe('navigateAfterOnboarding', () => {
         setPendingConciergeDeepLink();
 
         updatePendingConciergeDeepLinkForRoute('', false);
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE});
 
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
@@ -413,7 +413,7 @@ describe('navigateAfterOnboarding', () => {
         setPendingConciergeDeepLink();
 
         window.localStorage.setItem(PENDING_CONCIERGE_DEEP_LINK_CANCEL_TOKEN_STORAGE_KEY, 'non-concierge-opened-in-another-tab');
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE});
 
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
@@ -437,7 +437,7 @@ describe('navigateAfterOnboarding', () => {
         await waitForBatchedUpdates();
 
         updatePendingConciergeDeepLinkForRoute('', false);
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM);
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, ONBOARDING_POLICY_ID, undefined, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM});
 
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute(ONBOARDING_POLICY_ID));
