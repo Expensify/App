@@ -3046,14 +3046,7 @@ type WorkspaceNavigatorParamList = {
 
 type TabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
-    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]:
-        | (NavigatorScreenParams<ReportsSplitNavigatorParamList> & {
-              shouldDeferInitialReportActions?: true;
-          })
-        | {
-              shouldDeferInitialReportActions?: true;
-          }
-        | undefined;
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
