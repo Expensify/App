@@ -33,6 +33,10 @@ function deferWrite(barrier?: WriteReadyBarrier, safetyTimeoutMs?: number, onyxD
     return API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, onyxData, barrier, safetyTimeoutMs);
 }
 
+// Built at module scope: the no-multiple-api-calls lint rule counts `API` tokens per function body, and the
+// describe block already has one.
+const navigationBarrier = API.createTransitionBarrier('navigation');
+
 // A barrier that never settles - forces the write to sit pending until a timeout/background flush.
 function neverSettlingBarrier(): WriteReadyBarrier {
     return () => new Promise<void>(() => {});
@@ -122,7 +126,7 @@ describe('API.writeWhenReady', () => {
         expect(mockPush).toHaveBeenCalledTimes(1);
     });
 
-    it('defaults to waiting for the navigation transition', async () => {
+    it('defaults to waiting for any transition', async () => {
         let transitionCallback: () => void = () => {};
         mockRunAfterTransitions.mockImplementation(({callback}) => {
             transitionCallback = callback as () => void;
@@ -132,7 +136,28 @@ describe('API.writeWhenReady', () => {
         API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN});
         await flushMicrotasks();
 
+        // `true` means any transition (navigation, modal, keyboard) opens the gate - a modal or the keyboard
+        // contends for the main thread just like a screen push does.
         expect(mockRunAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: true}));
+        expect(mockPush).not.toHaveBeenCalled();
+
+        transitionCallback();
+        await flushMicrotasks(pushHappened);
+
+        expect(mockPush).toHaveBeenCalledTimes(1);
+    });
+
+    it('gates on a screen transition only when given createTransitionBarrier(navigation)', async () => {
+        let transitionCallback: () => void = () => {};
+        mockRunAfterTransitions.mockImplementation(({callback}) => {
+            transitionCallback = callback as () => void;
+            return {cancel: jest.fn()};
+        });
+
+        deferWrite(navigationBarrier);
+        await flushMicrotasks();
+
+        expect(mockRunAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: 'navigation'}));
         expect(mockPush).not.toHaveBeenCalled();
 
         transitionCallback();

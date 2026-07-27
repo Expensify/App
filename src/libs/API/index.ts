@@ -18,7 +18,7 @@ import type {WriteReadyBarrier} from './writeWhenReady';
 import {buildLogParams, prepareRequest, processRequest} from './requestPipeline';
 import {READ_COMMANDS} from './types';
 import baseWrite from './write';
-import {writeWhenReady} from './writeWhenReady';
+import {createTransitionBarrier, writeWhenReady} from './writeWhenReady';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
@@ -204,6 +204,7 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
 export {
     write,
     writeWhenReady,
+    createTransitionBarrier,
     makeRequestWithSideEffects,
     read,
     paginate,

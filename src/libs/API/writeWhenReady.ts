@@ -65,19 +65,32 @@ function registerBackgroundFlushListener() {
 }
 
 /**
- * Default `writeWhenReady` barrier: resolves once the current or upcoming navigation transition completes.
+ * Builds a `writeWhenReady` barrier that resolves once the current or upcoming transition completes.
+ *
+ * `waitFor` only selects which transition *opens the gate*: `true` (the default) accepts any transition,
+ * `'navigation'` accepts only a screen transition. Once the gate is open, both wait for every active
+ * transition to finish, regardless of kind.
+ *
+ * The default is `true` because the point of deferring is to keep the optimistic re-render off the main
+ * thread while *something* is animating - a modal or the keyboard contends for it just like a screen push.
+ * Pass `'navigation'` when the caller knows it navigates away and a stray modal/keyboard blip must not
+ * release the write early; the trade-off is waiting out `CONST.MAX_TRANSITION_START_WAIT_MS` if no screen
+ * transition ever starts.
  */
-function waitForNavigationTransition(signal: AbortSignal): Promise<void> {
-    return new Promise((resolve) => {
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: () => resolve(),
-            waitForUpcomingTransition: true,
+function createTransitionBarrier(waitFor: true | 'navigation' = true): WriteReadyBarrier {
+    return (signal) =>
+        new Promise<void>((resolve) => {
+            const handle = TransitionTracker.runAfterTransitions({
+                callback: () => resolve(),
+                waitForUpcomingTransition: waitFor,
+            });
+            // On abort, drop the TransitionTracker registration.
+            // The promise is intentionally left pending because resolving or rejecting would execute the write that was cancelled via the signal
+            signal.addEventListener('abort', () => handle.cancel());
         });
-        // On abort, drop the TransitionTracker registration.
-        // The promise is intentionally left pending because resolving or rejecting would execute the write that was cancelled via the signal
-        signal.addEventListener('abort', () => handle.cancel());
-    });
 }
+
+const waitForTransition = createTransitionBarrier();
 
 /**
  * Like `write()`, but deferred until a readiness signal (barrier) is fired.
@@ -92,9 +105,9 @@ function waitForNavigationTransition(signal: AbortSignal): Promise<void> {
  *     If you need to preserve call order, it must be managed by callers: the later barrier must await resolution of the former.
  *
  * Caution:
- *   - By default, it waits for the navigation transition to complete, so re-renders from optimistic writes don't compete with the transition animation.
- *     If no navigation happens, then the write is deferred by roughly `CONST.MAX_TRANSITION_START_WAIT_MS + CONST.MAX_TRANSITION_DURATION_MS` (~2s).
- *     The default behavior can be overridden by passing a custom `barrier`
+ *   - By default, it waits for any transition to complete, so re-renders from optimistic writes don't compete with the transition animation.
+ *     If no transition happens, then the write is deferred by roughly `CONST.MAX_TRANSITION_START_WAIT_MS + CONST.MAX_TRANSITION_DURATION_MS` (~2s).
+ *     Pass `createTransitionBarrier('navigation')` to gate on a screen transition only, or a custom `barrier` to wait on something else entirely.
  *   - In the edge case where a user backgrounds or hard-kills the app before the write finishes, we make a best-effort to flush pending writes.
  *     This is not guaranteed to succeed, so critical writes (such as ones that move money) should not be deferred.
  *
@@ -112,7 +125,7 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
-    barrier: WriteReadyBarrier = waitForNavigationTransition,
+    barrier: WriteReadyBarrier = waitForTransition,
     safetyTimeoutMs: number = SAFETY_TIMEOUT_MS,
 ): Promise<void | Response<TKey>> {
     Log.info('[API] Called API writeWhenReady', false, buildLogParams(command, apiCommandParameters ?? {}));
@@ -185,5 +198,5 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
     });
 }
 
-export {writeWhenReady};
+export {writeWhenReady, createTransitionBarrier};
 export type {WriteReadyBarrier};
