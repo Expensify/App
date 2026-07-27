@@ -25,7 +25,9 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 import {View} from 'react-native';
 
-type RulesNewPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>;
+type RulesNewPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW>;
 
 type NewRuleOption = {
     key: string;

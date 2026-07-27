@@ -10,7 +10,12 @@ import FlagForReviewRuleAmountPageBase from './FlagForReviewRuleAmountPageBase';
 type FlagForReviewRuleAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT>;
 
 function FlagForReviewRuleAmountPage({route}: FlagForReviewRuleAmountPageProps) {
-    return <FlagForReviewRuleAmountPageBase policyID={route.params.policyID} />;
+    return (
+        <FlagForReviewRuleAmountPageBase
+            policyID={route.params.policyID}
+            isCategoryLocked={route.params.isCategoryLocked === 'true'}
+        />
+    );
 }
 
 export default FlagForReviewRuleAmountPage;

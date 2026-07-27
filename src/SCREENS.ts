@@ -828,6 +828,7 @@ const SCREENS = {
         DYNAMIC_CATEGORY_REQUIRE_RECEIPTS_OVER: 'Dynamic_Category_Require_Receipts_Over',
         DYNAMIC_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER: 'Dynamic_Category_Require_Itemized_Receipts_Over',
         DYNAMIC_CATEGORY_REQUIRED_FIELDS: 'Dynamic_Category_Required_Fields',
+        DYNAMIC_CATEGORY_RULES_NEW: 'Dynamic_Category_Rules_New',
         CATEGORIES_SETTINGS: 'Categories_Settings',
         DYNAMIC_CATEGORIES_SETTINGS: 'Dynamic_Categories_Settings',
         DYNAMIC_CATEGORIES_IMPORT: 'Dynamic_Categories_Import',

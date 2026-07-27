@@ -753,9 +753,9 @@ function getRequireFieldsRuleBackToRoute({policyID, isEditing, categoryName}: Re
         return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName);
     }
 
-    // Preserve ?categoryName= on create so goBack(compareParams) matches the stack entry
-    // instead of REPLACE-remounting and wiping the draft.
-    return ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, categoryName);
+    // Create from Rules tab must stay on /new without ?categoryName=, otherwise goBack remounts
+    // and locks category. Category-scoped create locks the field so this picker is not opened.
+    return ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
 }
 
 function getRequireFieldsFieldSettingUpdate(

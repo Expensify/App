@@ -567,7 +567,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 <MenuItem
                                     icon={expensifyIcons.Plus}
                                     title={translate('workspace.rules.categoryRules.createNewRule')}
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_NEW.getRoute(policyID, policyCategory.name))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_NEW.path))}
                                 />
                             )}
                         </>

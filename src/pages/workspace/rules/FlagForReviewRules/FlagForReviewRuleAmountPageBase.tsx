@@ -58,7 +58,9 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
 
     const backToRoute = isEditing
         ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName, isCategoryLocked)
-        : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, form?.[FLAG_FOR_REVIEW_RULE_INPUT_IDS.CATEGORY]);
+        : // Only preserve ?categoryName= when create started category-scoped (locked). Never inject the
+          // draft-selected category — that remounts Rules-tab create and locks the field.
+          ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, isCategoryLocked ? form?.[FLAG_FOR_REVIEW_RULE_INPUT_IDS.CATEGORY] : undefined);
 
     const expenseLimitTypes = useMemo(
         () =>

@@ -80,8 +80,7 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
         getRequireFieldsRuleBackToRoute({
             policyID,
             isEditing,
-            // Create flow: use the draft category so ?categoryName= survives goBack.
-            categoryName: isEditing ? categoryName : selectedCategoryName,
+            categoryName: isEditing ? categoryName : undefined,
         });
 
     const onSave = (value?: string) => {
