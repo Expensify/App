@@ -71,9 +71,10 @@ function FullPageErrorView({
                         iconWidth={variables.errorPageIconWidth}
                         iconHeight={variables.errorPageIconHeight}
                         title={title}
+                        titleStyles={[styles.mt0, styles.mb2]}
                         subtitle={subtitle}
                         subtitleStyle={subtitleStyle}
-                        containerStyle={containerStyle}
+                        containerStyle={[styles.gap5, containerStyle]}
                         buttonTranslationKey={buttonTranslationKey}
                         onButtonPress={onButtonPress}
                     />

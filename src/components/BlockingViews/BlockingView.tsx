@@ -199,7 +199,6 @@ function BlockingView({
             </View>
             {!!onButtonPress && !!buttonTranslationKey && (
                 <Button
-                    style={styles.mt4}
                     onPress={onButtonPress}
                     sentryLabel={CONST.SENTRY_LABEL.BLOCKING_VIEW.RETRY_BUTTON}
                 >
