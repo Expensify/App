@@ -99,6 +99,9 @@ type SearchOptionData = Pick<
 
 type SearchOption<T> = SearchOptionData & {
     item: T;
+
+    /** Runs the full createOption build for a lazily-built contact; used by getValidOptions for top-N survivors. */
+    buildFullOption?: () => SearchOption<T>;
 };
 
 type OptionList = {

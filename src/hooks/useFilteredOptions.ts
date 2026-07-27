@@ -31,6 +31,11 @@ type UseFilteredOptionsConfig = {
      * an option per contact on open. Leave false for contact pickers (default: false).
      */
     deferContactsUntilSearch?: boolean;
+    /**
+     * When true, defer full createOption builds for contacts until getValidOptions filters/ranks them.
+     * Only enable when every consumer routes personalDetails through getValidOptions/getSearchOptions (default: false).
+     */
+    lazyContactOptions?: boolean;
 };
 
 type UseFilteredOptionsResult = {
@@ -75,7 +80,7 @@ type UseFilteredOptionsResult = {
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, isSearching = false, deferContactsUntilSearch = false} = config;
+    const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, isSearching = false, deferContactsUntilSearch = false, lazyContactOptions = false} = config;
 
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
@@ -86,7 +91,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, translate} = useLocalize();
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
@@ -111,7 +116,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                           includeP2P,
                           isSearching,
                           deferContactsUntilSearch,
+                          lazyContactOptions,
                           locale: preferredLocale,
+                          translate,
                       },
                       undefined,
                       undefined,
@@ -130,7 +137,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             includeP2P,
             isSearching,
             deferContactsUntilSearch,
+            lazyContactOptions,
             preferredLocale,
+            translate,
             isTrackIntentUser,
             sortedActions,
         ],

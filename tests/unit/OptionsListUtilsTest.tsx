@@ -1680,6 +1680,124 @@ describe('OptionsListUtils', () => {
         });
     });
 
+    describe('getValidOptions() with lazy contact options', () => {
+        const buildOptionLists = () => {
+            const eagerList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true});
+            const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                isSearching: true,
+                lazyContactOptions: true,
+            });
+            return {eagerList, lazyList};
+        };
+
+        it('should defer the full option build for every contact', () => {
+            // Given an option list built with lazyContactOptions
+            const {lazyList} = buildOptionLists();
+
+            // Then every contact option is a lightweight one: it carries buildFullOption and skips expensive fields like icons
+            expect(lazyList.personalDetails.length).toBeGreaterThan(0);
+            expect(lazyList.personalDetails.every((option) => typeof option.buildFullOption === 'function')).toBe(true);
+            expect(lazyList.personalDetails.every((option) => option.icons === undefined)).toBe(true);
+        });
+
+        it('should produce results identical to eagerly built options after hydration', () => {
+            // Given the same data built eagerly and lazily
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // When both lists go through getValidOptions with a top-N cap that exercises the heap
+            const config = {maxElements: 3};
+            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+
+            // Then the surviving contacts are hydrated (createOption ran for them) and match the eager results exactly
+            expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
+            expect(lazyResults.personalDetails.every((option) => option.icons !== undefined)).toBe(true);
+            expect(lazyResults.personalDetails.every((option) => !('buildFullOption' in option))).toBe(true);
+            expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it('should produce results identical to eagerly built options when searching', () => {
+            // Given the same data built eagerly and lazily
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // When both lists go through getValidOptions with a search string (contact filtering reads text/login/participantsList)
+            const config = {searchString: 'spider'};
+            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+
+            // Then filtering and ordering are unchanged and the hydrated results match
+            expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it('should keep every shell filter and sort field identical to the eager option', () => {
+            // Given the same data built eagerly and lazily
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // Then each shell carries the exact values the downstream filter (login/accountID/participantsList/text)
+            // and the heap comparator key (text -> alternateText -> login) read on the eager option, which also
+            // guarantees identical tie-breaking for contacts with equal comparator keys
+            expect(lazyList.personalDetails.length).toBe(eagerList.personalDetails.length);
+            eagerList.personalDetails.forEach((eagerOption, index) => {
+                const shell = lazyList.personalDetails.at(index);
+                expect(shell?.text).toBe(eagerOption.text);
+                expect(shell?.login).toBe(eagerOption.login);
+                expect(shell?.accountID).toBe(eagerOption.accountID);
+                expect(shell?.participantsList).toEqual(eagerOption.participantsList);
+                expect(shell?.text ?? shell?.alternateText ?? shell?.login).toBe(eagerOption.text ?? eagerOption.alternateText ?? eagerOption.login);
+            });
+        });
+
+        it('should produce results identical to eagerly built options with custom exclusions', () => {
+            // Given the same data built eagerly and lazily
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // When both lists go through getValidOptions with a custom exclusion (filter reads shell.login)
+            const config = {excludeLogins: {'peterparker@expensify.com': true}};
+            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
+
+            // Then the excluded contact is dropped from both and the remaining results match
+            expect(lazyResults.personalDetails.some((option) => option.login === 'peterparker@expensify.com')).toBe(false);
+            expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it('should handle empty personal details', () => {
+            // Given a lazily built option list with no personal details
+            const lazyList = createFilteredOptionList({}, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                isSearching: true,
+                lazyContactOptions: true,
+            });
+
+            // When it goes through getValidOptions
+            const {options: results} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
+
+            // Then no contacts are produced and nothing throws
+            expect(lazyList.personalDetails).toEqual([]);
+            expect(results.personalDetails).toEqual([]);
+        });
+
+        it('should hydrate every rendering-critical property on surviving contacts', () => {
+            // Given a lazily built option list
+            const {lazyList} = buildOptionLists();
+
+            // When it goes through getValidOptions
+            const {options: results} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
+
+            // Then every surviving contact has the properties SelectionList rendering and selection rely on,
+            // so the deferred build introduces no missing fields
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+            for (const option of results.personalDetails) {
+                expect(option.icons).toBeDefined();
+                expect(option.keyForList).toBeTruthy();
+                expect(option.text).toBeDefined();
+                expect(option.alternateText).toBeDefined();
+                expect(option.login).toBeDefined();
+                expect(option.accountID).toBeDefined();
+                expect(typeof option.isSelected).toBe('boolean');
+            }
+        });
+    });
+
     describe('getValidOptions() for chat room', () => {
         it('should include all reports by default', () => {
             // Given a set of reports and personalDetails that includes workspace rooms

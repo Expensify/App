@@ -1569,6 +1569,44 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
 };
 
 /**
+ * Minimal contact option for lazyContactOptions: only fields getValidOptions needs for filtering/ranking.
+ * Full createOption work is deferred to buildFullOption for contacts that survive the top-N heap.
+ */
+function createLightweightContactOption(
+    personalDetail: PersonalDetails | null,
+    accountID: number,
+    report: Report | undefined,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    buildFullOption: () => SearchOption<PersonalDetails | null>,
+    translate: LocalizedTranslate | undefined,
+): SearchOption<PersonalDetails | null> {
+    // Same lookup createOption performs (also normalizes accountID in place).
+    const detail = getPersonalDetailsForAccountIDs([accountID], personalDetails)[accountID];
+    const formattedLogin = formatPhoneNumberPhoneUtils(detail?.login ?? '');
+    // Match createOption's showPersonalDetails reportName (global store when a 1:1 report exists).
+    const text = report
+        ? getDisplayNameForParticipant({accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) || formattedLogin
+        : getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails ?? undefined, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) || formattedLogin;
+
+    return {
+        item: personalDetail,
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        reportID: report?.reportID ?? '',
+        keyForList: report ? String(report.reportID) : String(accountID),
+        text,
+        // Comparator fallback only; hydrated option recomputes the real alternateText.
+        alternateText: report && detail?.login ? detail.login : formattedLogin,
+        login: detail?.login,
+        accountID: Number(detail?.accountID),
+        participantsList: detail ? [detail] : [],
+        isSelected: false,
+        selected: false,
+        brickRoadIndicator: null,
+        buildFullOption,
+    };
+}
+
+/**
  * Creates an optimized option list with smart pre-filtering.
  *
  * Performance optimization approach:
@@ -1578,6 +1616,8 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
  *    thousands of reports while ensuring correct filtering.
  * 3. Search mode (`options.isSearching` true): uses the full pre-filtered report list with no recency sort and
  *    no `maxRecentReports` cap, so search can include all eligible reports.
+ * 4. Lazy contacts (`options.lazyContactOptions` true): builds contacts via createLightweightContactOption and
+ *    hydrates survivors in getValidOptions. Reports stay eager — their filters read fully-built fields.
  *
  * @param options.isSearching - When true, skips the sort and top-N limit in step 2; when false, applies them.
  *
@@ -1671,7 +1711,14 @@ function createFilteredOptionList(
          * empty state (contact pickers) must leave this false.
          */
         deferContactsUntilSearch?: boolean;
+        /**
+         * Defer full createOption builds for contacts until getValidOptions filters/ranks them.
+         * Only enable when every consumer routes personalDetails through getValidOptions/getSearchOptions.
+         */
+        lazyContactOptions?: boolean;
         locale?: Locale;
+        /** Used by lazily-built contact options to resolve display names; falls back to non-translated defaults when omitted */
+        translate?: LocalizedTranslate;
     } = {},
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = EMPTY_VISIBLE_REPORT_ACTIONS,
@@ -1679,7 +1726,7 @@ function createFilteredOptionList(
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
-    const {maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
+    const {maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, lazyContactOptions = false, locale, translate} = options;
 
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
     // opts into deferral and is not actively searching, skip building them entirely; the empty state
@@ -1691,7 +1738,7 @@ function createFilteredOptionList(
     // full-account-sized arrays until sign-out — and any Onyx change invalidates them anyway.
     const shouldUseCache = !isSearching;
 
-    const cacheEntryKey = buildFilteredOptionListCacheKey([maxRecentReports, includeP2P, isSearching, deferContactsUntilSearch]);
+    const cacheEntryKey = buildFilteredOptionListCacheKey([maxRecentReports, includeP2P, isSearching, deferContactsUntilSearch, lazyContactOptions]);
     const cacheInputs = [
         personalDetails,
         reports,
@@ -1800,12 +1847,12 @@ function createFilteredOptionList(
               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
               const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
               const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-              return {
+              const buildFullOption = (): SearchOption<PersonalDetails | null> => ({
                   item: personalDetail,
                   ...createOption({
                       accountIDs: [accountID],
                       personalDetails,
-                      report: reportMapForAccountIDs[accountID],
+                      report,
                       policy,
                       privateIsArchived,
                       config: {showPersonalDetails: true},
@@ -1813,7 +1860,9 @@ function createFilteredOptionList(
                       policyTags: reportPolicyTags,
                       visibleReportActionsData,
                   }),
-              };
+              });
+              // Prefer lightweight options; getValidOptions hydrates survivors via buildFullOption.
+              return lazyContactOptions ? createLightweightContactOption(personalDetail, accountID, report, personalDetails, buildFullOption, translate) : buildFullOption();
           })
         : [];
 
@@ -2811,7 +2860,8 @@ function getValidOptions(
             ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), MIN_PERSONAL_DETAILS_SLOTS)
             : undefined;
         const groupedPersonalDetails = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
-        personalDetailsOptions = groupedPersonalDetails.options;
+        // Hydrate lazily-built contacts now that filtering/ranking has selected the top-N survivors.
+        personalDetailsOptions = groupedPersonalDetails.options.map((option) => option.buildFullOption?.() ?? option);
 
         hasMore = hasMore || groupedPersonalDetails.hasMore;
 
