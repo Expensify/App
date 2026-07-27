@@ -48,7 +48,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
-    useSearchPageSetup(currentSearchQueryJSON);
+    const {searchRequestResponseStatusCode, setSearchRequestResponseStatusCode} = useSearchPageSetup(currentSearchQueryJSON);
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
     // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would
@@ -104,18 +104,19 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(false);
     }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
-    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
-
-    const handleSearchAction = useCallback((value: SearchParams | string) => {
-        if (typeof value === 'string') {
-            searchInServer(value);
-        } else {
-            setSearchRequestResponseStatusCode(null);
-            search(value)?.then((jsonCode) => {
-                setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
-            });
-        }
-    }, []);
+    const handleSearchAction = useCallback(
+        (value: SearchParams | string) => {
+            if (typeof value === 'string') {
+                searchInServer(value);
+            } else {
+                setSearchRequestResponseStatusCode(null);
+                search(value)?.then((jsonCode) => {
+                    setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
+                });
+            }
+        },
+        [setSearchRequestResponseStatusCode],
+    );
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
@@ -142,6 +143,8 @@ function SearchPage({route}: SearchPageProps) {
                             queryJSON={currentSearchQueryJSON}
                             metadata={metadata}
                             searchResults={searchResults}
+                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                            setSearchRequestResponseStatusCode={setSearchRequestResponseStatusCode}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             onSortPressedCallback={onSortPressedCallback}
                             searchOverlayContent={searchOverlayContent}

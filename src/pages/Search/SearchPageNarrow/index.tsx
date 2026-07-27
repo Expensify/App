@@ -58,6 +58,10 @@ type SearchPageNarrowProps = {
     metadata?: SearchResultsInfo;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
+    /** jsonCode of the current query's most recent SEARCH response (owned by useSearchPageSetup in the parent). */
+    searchRequestResponseStatusCode: number | null;
+    /** Setter for the response status code, so user-driven re-searches update the same source of truth. */
+    setSearchRequestResponseStatusCode: (statusCode: number | null) => void;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
     searchOverlayContent: React.ReactNode;
@@ -76,6 +80,8 @@ function SearchPageNarrow({
     searchResults,
     isMobileSelectionModeEnabled,
     metadata,
+    searchRequestResponseStatusCode,
+    setSearchRequestResponseStatusCode,
     onSortPressedCallback,
     searchOverlayContent,
     onSearchContentReady,
@@ -98,8 +104,6 @@ function SearchPageNarrow({
     const route = useRoute();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
-
-    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
@@ -154,13 +158,17 @@ function SearchPageNarrow({
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    const handleSearchAction = useCallback((value: SearchParams | string) => {
-        if (typeof value === 'string') {
-            searchInServer(value);
-        } else {
-            search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
-        }
-    }, []);
+    const handleSearchAction = useCallback(
+        (value: SearchParams | string) => {
+            if (typeof value === 'string') {
+                searchInServer(value);
+            } else {
+                setSearchRequestResponseStatusCode(null);
+                search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
+            }
+        },
+        [setSearchRequestResponseStatusCode],
+    );
 
     const navigation = useNavigation();
     // When pre-inserted behind the RHP (not focused), always start in static rendering
