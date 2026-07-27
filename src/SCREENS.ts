@@ -121,7 +121,7 @@ const SCREENS = {
             PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'Settings_PrivatePersonalDetails_ConfirmMagicCode',
             AVATAR: 'Settings_Avatar',
             DYNAMIC_ADDRESS_COUNTRY: 'Dynamic_Address_Country',
-            ADDRESS_STATE: 'Settings_Address_State',
+            DYNAMIC_ADDRESS_STATE: 'Dynamic_Address_State',
         },
 
         PREFERENCES: {
