@@ -4407,7 +4407,7 @@ const translations = {
         toLearnMore: ' to learn more.',
         termsAndConditions: {
             header: 'Before we continue...',
-            title: 'Terms & conditions',
+            title: 'Review terms & conditions',
             label: 'I agree to the terms & conditions',
             subtitle: `Please agree to the Expensify Travel <a href="${CONST.TRAVEL_TERMS_URL}">terms & conditions</a>.`,
             error: 'You must agree to the Expensify Travel terms & conditions to continue',
@@ -4481,7 +4481,7 @@ const translations = {
         errorMessage: 'Something went wrong. Please try again later.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</rbr>`,
         domainSelector: {
-            headline: 'Choose domain',
+            headline: 'Which domain do you want to set up?',
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
             recommended: 'Recommended',
