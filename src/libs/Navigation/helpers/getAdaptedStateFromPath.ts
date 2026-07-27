@@ -12,6 +12,7 @@ import {
 } from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, NavigationRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
 import CONST from '@src/CONST';
@@ -66,7 +67,10 @@ const PUBLIC_SCREENS = new Set<string>([
  * Tab navigators require all routes in the state for proper rendering.
  */
 function getTabNavigatorState(selectedTabRoute: NavigationPartialRoute): NavigationPartialRoute {
-    return {name: NAVIGATORS.TAB_NAVIGATOR, state: buildTabNavigatorNestedState(selectedTabRoute)};
+    return {
+        name: NAVIGATORS.TAB_NAVIGATOR,
+        state: buildTabNavigatorNestedState(selectedTabRoute),
+    };
 }
 
 function isRouteWithBackToParam(route: NavigationRoute): route is Route<string, {backTo: string}> {
@@ -137,9 +141,11 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
     const routeNameForLookup = getSearchScreenNameForRoute(route);
     // Deeplink-only relations provide a default search screen underneath the RHP when the state is
     // built from a path. They are ignored for in-app navigation so the RHP can open over any fullscreen.
-    const matchingSearchScreen = RHP_TO_SEARCH[routeNameForLookup] ?? (isDeeplink ? RHP_TO_SEARCH_DEEPLINK[routeNameForLookup] : undefined);
-    if (matchingSearchScreen) {
-        const paramsFromRoute = getParamsFromRoute(matchingSearchScreen);
+    const matchingSearchScreen = RHP_TO_SEARCH[routeNameForLookup];
+    const matchingDeeplinkSearchScreen = isDeeplink ? RHP_TO_SEARCH_DEEPLINK[routeNameForLookup] : undefined;
+    const resolvedSearchScreen = matchingSearchScreen ?? matchingDeeplinkSearchScreen;
+    if (resolvedSearchScreen) {
+        const paramsFromRoute = getParamsFromRoute(resolvedSearchScreen);
         const copiedParams = paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : {};
         let queryParam: Record<string, string> = {};
         if (route.path) {
@@ -149,12 +155,23 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
             }
         }
 
+        // Deeplink-only defaults (e.g. create flows) land on SCREENS.SEARCH.ROOT, which carries no path
+        // params and no `q`. Without an explicit query, SearchQueryProvider falls back to the previous
+        // defined query and can reveal a stale search when the RHP closes. Seed the canned expenses query
+        // so these deeplinks resolve to Spend > Expenses.
+        if (!queryParam.q && !matchingSearchScreen && matchingDeeplinkSearchScreen) {
+            queryParam = {q: buildCannedSearchQuery()};
+        }
+
         const searchRoute = {
-            name: matchingSearchScreen,
+            name: resolvedSearchScreen,
             params: Object.keys({...copiedParams, ...queryParam}).length > 0 ? {...copiedParams, ...queryParam} : undefined,
         };
         const searchState = getRoutesWithIndex([searchRoute]);
-        return getTabNavigatorState({name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: searchState});
+        return getTabNavigatorState({
+            name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+            state: searchState,
+        });
     }
 
     if (RHP_TO_HOME[route.name]) {
@@ -308,7 +325,9 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
     }
 
     const routes = [];
-    routes.push({name: onboardingRoute.name === SCREENS.ONBOARDING.WORKSPACES ? SCREENS.ONBOARDING.PERSONAL_DETAILS : SCREENS.ONBOARDING.PURPOSE});
+    routes.push({
+        name: onboardingRoute.name === SCREENS.ONBOARDING.WORKSPACES ? SCREENS.ONBOARDING.PERSONAL_DETAILS : SCREENS.ONBOARDING.PURPOSE,
+    });
     if (onboardingRoute.name === SCREENS.ONBOARDING.ACCOUNTING) {
         routes.push({name: SCREENS.ONBOARDING.EMPLOYEES});
     }
@@ -347,7 +366,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 const updatedWsNavRoute = {...wsNavRoute, state: updatedNestedState};
                 const updatedTabRoutes = (tabState?.routes ?? []).map((r) => (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? updatedWsNavRoute : r)) as NavigationPartialRoute[];
                 const updatedTabState = {...tabState, routes: updatedTabRoutes};
-                const updatedFullScreenRoute = {...fullScreenRoute, state: updatedTabState};
+                const updatedFullScreenRoute = {
+                    ...fullScreenRoute,
+                    state: updatedTabState,
+                };
                 const updatedRoutes = currentState.routes.map((r) => (r.name === NAVIGATORS.TAB_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
                 return getRoutesWithIndex(updatedRoutes);
             }
