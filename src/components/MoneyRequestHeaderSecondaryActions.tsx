@@ -110,7 +110,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     >();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {login: currentUserLogin, accountID, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
@@ -270,6 +270,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 isTrackIntentUser,
                 delegateAccountID,
                 policyTagList,
+                formatPhoneNumber,
             });
         }
     };
@@ -381,8 +382,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 if (!transaction) {
                     return;
                 }
-                const isOnSearch = route.name.toLowerCase().startsWith('search');
-                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, getCurrencyDecimals, [], false, isOnSearch);
+                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, getCurrencyDecimals, [], false, isReportInSearch);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE]: {

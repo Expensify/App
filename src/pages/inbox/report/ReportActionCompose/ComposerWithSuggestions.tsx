@@ -305,6 +305,8 @@ function ComposerWithSuggestions({
             },
             [reportID],
         ),
+        undefined,
+        true,
     );
 
     useDraftMessageVideoAttributeCache({

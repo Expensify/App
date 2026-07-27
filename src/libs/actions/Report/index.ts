@@ -54,7 +54,6 @@ import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisi
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
-import {extractCollectionItemID} from '@libs/CollectionUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as Environment from '@libs/Environment/Environment';
@@ -449,8 +448,7 @@ type MergeReportsProps = {
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
-// map of reportID to all reportActions for that report
-const allReportActions: OnyxCollection<ReportActions> = {};
+let allReportActions: OnyxCollection<ReportActions> = {};
 const STALE_DM_RECOVERY_TARGET_TTL_MS = 30000;
 const staleDMRecoveryTargetBySourceReportID: Record<string, string> = {};
 const staleDMRecoverySourceByTargetReportID: Record<string, string> = {};
@@ -501,19 +499,14 @@ function clearStaleDMRecoveryTargetByTargetReportID(targetReportID: string) {
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-        const reportID = extractCollectionItemID(key);
-        allReportActions[reportID] = actions;
+    callback: (value) => {
+        allReportActions = value ?? {};
     },
 });
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -567,7 +560,6 @@ Onyx.connect({
 let allAttachments: OnyxCollection<Attachment> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.ATTACHMENT,
-    waitForCollectionCallback: true,
     callback: (value) => (allAttachments = value),
 });
 
@@ -884,6 +876,11 @@ function addActions({
     const reportID = getStaleDMRecoveryTarget(sourceReportID) ?? sourceReportID;
     const reportForAction = reportID === sourceReportID ? report : (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? report);
 
+    // Anchor the Concierge question's `created` to the server clock so skew can't hide it from the session view,
+    // clamped after the last action so successive sends stay monotonic.
+    const isConciergeChat = isConciergeChatReport(reportForAction, conciergeReportID);
+    const lastActionCreated = reportForAction?.lastVisibleActionCreated;
+
     let resolvedNotifyReportID: AddActionsParams['notifyReportID'];
     if (typeof notifyReportID === 'string') {
         resolvedNotifyReportID = getStaleDMRecoveryTarget(notifyReportID) ?? notifyReportID;
@@ -899,7 +896,14 @@ function addActions({
 
     const attachmentID = rand64();
     if (text && !file) {
-        const reportComment = buildOptimisticAddCommentReportAction({text, reportID, reportActionID, delegateAccountIDParam: delegateAccountID});
+        const reportComment = buildOptimisticAddCommentReportAction({
+            text,
+            reportID,
+            reportActionID,
+            delegateAccountIDParam: delegateAccountID,
+            anchorCreatedToServer: isConciergeChat,
+            lastActionCreated,
+        });
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -908,7 +912,15 @@ function addActions({
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = buildOptimisticAddCommentReportAction({text, file, reportID, attachmentID, delegateAccountIDParam: delegateAccountID});
+        const attachment = buildOptimisticAddCommentReportAction({
+            text,
+            file,
+            reportID,
+            attachmentID,
+            delegateAccountIDParam: delegateAccountID,
+            anchorCreatedToServer: isConciergeChat,
+            lastActionCreated,
+        });
         attachmentAction = attachment.reportAction;
         cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
     }
@@ -999,7 +1011,6 @@ function addActions({
         idempotencyKey: Str.guid(),
     };
 
-    const isConciergeChat = isConciergeChatReport(reportForAction, conciergeReportID);
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChat) {
         parameters.isOldDotConciergeChat = true;
     }
@@ -1238,7 +1249,7 @@ function addComment({
 }
 
 function reportActionsExist(reportID: string): boolean {
-    return allReportActions?.[reportID] !== undefined;
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] !== undefined;
 }
 
 function updateChatName(reportID: string, oldReportName: string | undefined, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
@@ -2363,6 +2374,7 @@ function navigateToAndOpenReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     shouldDismissModal = true,
     shouldRevalidateExistingChat = false,
@@ -2389,6 +2401,7 @@ function navigateToAndOpenReport(
             personalDetails,
             newReportObject: fallbackChat,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             betas,
         });
 
@@ -4053,7 +4066,19 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal, false, linkToOptions);
+            navigateToAndOpenReport(
+                [CONST.EMAIL.CONCIERGE],
+                personalDetails,
+                currentUserAccountID,
+                introSelected,
+                isSelfTourViewed,
+                // TODO: Pass the correct hasCompletedGuidedSetupFlow from Onyx data in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+                undefined,
+                betas,
+                shouldDismissModal,
+                false,
+                linkToOptions,
+            );
         });
     } else if (shouldDismissModal) {
         const reportParams = {reportID: conciergeReportID, reportActionID};
@@ -4325,8 +4350,9 @@ function createNewReport(
     isTrackIntentUser: boolean | undefined,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
-    reportName?: string,
+    options: {managedCardTransactionID?: string; reportName?: string} = {},
 ) {
+    const {managedCardTransactionID, reportName} = options;
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
@@ -4357,6 +4383,7 @@ function createNewReport(
             reportActionID,
             reportPreviewReportActionID,
             ownerEmail: ownerPersonalDetails.login,
+            ...(managedCardTransactionID ? {managedCardTransactionID} : {}),
             ...(shouldDismissEmptyReportsConfirmation ? {shouldDismissEmptyReportsConfirmation} : {}),
             ...(reportName ? {reportName} : {}),
         },
@@ -8214,7 +8241,7 @@ function mergeReports({
         });
 
         // Mark comments on the source report as deleted
-        const reportActions = allReportActions?.[sourceReportID];
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`];
         deleteOptimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`,
@@ -8231,7 +8258,7 @@ function mergeReports({
         const parentReportID = sourceReport.parentReportID;
         const parentReportActionID = sourceReport.parentReportActionID;
         if (parentReportID && parentReportActionID) {
-            const parentReportAction = allReportActions?.[parentReportID]?.[parentReportActionID];
+            const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID];
             const {
                 optimisticData: parentOptimisticData,
                 successData: parentSuccessData,
