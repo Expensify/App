@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -170,24 +170,26 @@ function AnimatedSubmitButton({
                     exiting={buttonAnimation}
                 >
                     <Button
-                        success={success}
-                        text={showLoading ? text : translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted')}
+                        variant={success ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                         isLoading={showLoading}
-                        icon={!showLoading ? icon : undefined}
                         isDisabled
-                        shouldStayNormalOnDisable
-                    />
+                        stayNormalOnDisable
+                    >
+                        {!showLoading && !!icon && <Button.Icon src={icon} />}
+                        <Button.Text>{showLoading ? text : translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted')}</Button.Text>
+                    </Button>
                 </Animated.View>
             )}
             {!isAnimationRunning && (
                 <Button
-                    success={success}
-                    text={text}
+                    variant={success ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     onPress={onPress}
-                    icon={icon}
                     isDisabled={isDisabled}
                     sentryLabel={sentryLabel}
-                />
+                >
+                    {!!icon && <Button.Icon src={icon} />}
+                    <Button.Text>{text}</Button.Text>
+                </Button>
             )}
         </Animated.View>
     );

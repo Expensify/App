@@ -334,13 +334,14 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             onAskToUnfreezePress={() => {}}
                         >
                             <CardDetailsActionButton
-                                medium
-                                text={translate('workspace.common.viewTransactions')}
-                                icon={expensifyIcons.MoneySearch}
+                                size={CONST.BUTTON_SIZE.MEDIUM}
                                 onPress={navigateToTransactions}
                                 innerStyles={styles.ph2}
                                 style={styles.w100}
-                            />
+                            >
+                                <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
+                                <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
+                            </CardDetailsActionButton>
                         </FrozenCardHeader>
                     ) : (
                         <View style={[styles.walletCard, styles.mb3, styles.mt8]}>{workspaceCardImage}</View>
@@ -349,17 +350,17 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         <CardDetailsActionButtons>
                             {canManageCardFreeze && isCardOpen && !isCardFrozen(card) && (
                                 <CardDetailsActionButton
-                                    text={translate('cardPage.freezeCard')}
-                                    icon={expensifyIcons.FreezeCard}
                                     onPress={handleFreezePress}
                                     isDisabled={isOffline}
-                                />
+                                >
+                                    <CardDetailsActionButton.Icon src={expensifyIcons.FreezeCard} />
+                                    <CardDetailsActionButton.Text>{translate('cardPage.freezeCard')}</CardDetailsActionButton.Text>
+                                </CardDetailsActionButton>
                             )}
-                            <CardDetailsActionButton
-                                text={translate('workspace.common.viewTransactions')}
-                                icon={expensifyIcons.MoneySearch}
-                                onPress={navigateToTransactions}
-                            />
+                            <CardDetailsActionButton onPress={navigateToTransactions}>
+                                <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
+                                <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
+                            </CardDetailsActionButton>
                         </CardDetailsActionButtons>
                     )}
 

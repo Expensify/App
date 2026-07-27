@@ -202,20 +202,22 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         <CardDetailsActionButtons>
                             {canWriteCompanyCards && (
                                 <CardDetailsActionButton
-                                    text={translate('workspace.moreFeatures.companyCards.updateCard')}
-                                    icon={expensifyIcons.Sync}
                                     onPress={updateCard}
                                     isDisabled={isOffline || card?.isLoadingLastUpdated}
                                     isLoading={card?.isLoadingLastUpdated}
                                     style={styles.flexShrink0}
-                                />
+                                >
+                                    <CardDetailsActionButton.Icon src={expensifyIcons.Sync} />
+                                    <CardDetailsActionButton.Text>{translate('workspace.moreFeatures.companyCards.updateCard')}</CardDetailsActionButton.Text>
+                                </CardDetailsActionButton>
                             )}
                             <CardDetailsActionButton
-                                text={translate('workspace.common.viewTransactions')}
-                                icon={expensifyIcons.MoneySearch}
                                 onPress={navigateToTransactions}
                                 style={styles.flexShrink0}
-                            />
+                            >
+                                <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
+                                <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
+                            </CardDetailsActionButton>
                         </CardDetailsActionButtons>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback

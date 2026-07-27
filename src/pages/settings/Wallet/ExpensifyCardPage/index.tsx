@@ -344,13 +344,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         }
                     >
                         <CardDetailsActionButton
-                            medium
-                            text={translate('workspace.common.viewTransactions')}
-                            icon={expensifyIcons.MoneySearch}
+                            size={CONST.BUTTON_SIZE.MEDIUM}
                             onPress={navigateToTransactions}
                             innerStyles={styles.ph2}
                             style={styles.w100}
-                        />
+                        >
+                            <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
+                            <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
+                        </CardDetailsActionButton>
                     </FrozenCardHeader>
                 ) : (
                     <View style={[styles.flex1, styles.mb3, styles.mt8]}>
@@ -387,19 +388,21 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             <CardDetailsActionButtons style={styles.mb0}>
                                 {canManageCardFreeze && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !isCardFrozen(currentCard) && (
                                     <CardDetailsActionButton
-                                        text={translate('cardPage.freezeCard')}
-                                        icon={expensifyIcons.FreezeCard}
                                         onPress={handleFreezePress}
                                         isDisabled={isOffline}
                                         style={styles.flexShrink0}
-                                    />
+                                    >
+                                        <CardDetailsActionButton.Icon src={expensifyIcons.FreezeCard} />
+                                        <CardDetailsActionButton.Text>{translate('cardPage.freezeCard')}</CardDetailsActionButton.Text>
+                                    </CardDetailsActionButton>
                                 )}
                                 <CardDetailsActionButton
-                                    text={translate('workspace.common.viewTransactions')}
-                                    icon={expensifyIcons.MoneySearch}
                                     onPress={navigateToTransactions}
                                     style={styles.flexShrink0}
-                                />
+                                >
+                                    <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
+                                    <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
+                                </CardDetailsActionButton>
                             </CardDetailsActionButtons>
                         )}
                         {shouldShowChangePINRow && isCardPINBlocked && (
