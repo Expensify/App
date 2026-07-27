@@ -1802,7 +1802,6 @@
 "../../tests/ui/components/SettlementButtonTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/ui/components/TimePickerTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/ui/hooks/useHtmlPasteTest/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
-"../../tests/unit/APITest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	61
 "../../tests/unit/AddExistingExpenseSearchTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/AgentZeroStatusContextTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/AvatarButtonWithIconTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
