@@ -168,10 +168,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
             params: Object.keys({...copiedParams, ...queryParam}).length > 0 ? {...copiedParams, ...queryParam} : undefined,
         };
         const searchState = getRoutesWithIndex([searchRoute]);
-        return getTabNavigatorState({
-            name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-            state: searchState,
-        });
+        return getTabNavigatorState({name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: searchState});
     }
 
     if (RHP_TO_HOME[route.name]) {
