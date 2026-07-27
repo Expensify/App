@@ -5045,8 +5045,8 @@ ${amount} voor ${merchant} - ${date}`,
             defaultVendor: 'Standaardleverancier',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
-                    ? `Stel een standaardleverancier in die wordt toegepast op declarabele uitgaven waarvoor geen overeenkomende leverancier in Sage Intacct is.`
-                    : `Uitgaven die niet aan je Sage Intacct-leveranciers kunnen worden gekoppeld, worden standaard aan deze leverancier toegewezen.`,
+                    ? `Stel een standaardleverancier in die wordt toegepast op vergoedbare uitgaven waarvoor geen overeenkomende leverancier in Sage Intacct is.`
+                    : `Declaraties die niet overeenkomen met je Sage Intacct-leveranciers worden standaard aan deze leverancier toegewezen.`,
             exportDescription: 'Configureer hoe Expensify-gegevens worden geëxporteerd naar Sage Intacct.',
             exportPreferredExporterNote:
                 'De voorkeurs-exporteur kan elke werkruimtebeheerder zijn, maar moet ook een domeinbeheerder zijn als je in Domeininstellingen verschillende exportrekeningen instelt voor individuele bedrijfskaarten.',
@@ -6939,10 +6939,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             defaultVendor: 'Standaardleverancier',
             defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
                 isSet
-                    ? `Expenses that don't auto-match will default to this vendor.`
-                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
+                    ? `Declaraties die niet automatisch worden gematcht, worden standaard aan deze leverancier gekoppeld.`
+                    : `Bonnetjes die niet automatisch worden gekoppeld, worden standaard aan deze leverancier toegewezen. Anders worden ze geëxporteerd als Credit Card Misc.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
-                `Kies een standaard ${connectionName}-leverancier voor uitgaven die niet automatisch worden gekoppeld.`,
+                `Kies een standaard ${connectionName}-leverancier voor uitgaven die niet automatisch worden gematcht.`,
             defaultAccount: 'Standaardrekening',
             autoSync: 'Automatisch synchroniseren',
             autoSyncDescription: 'Synchroniseer NetSuite en Expensify automatisch, elke dag. Exporteer een afgerond rapport in realtime',

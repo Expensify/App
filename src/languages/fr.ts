@@ -5082,8 +5082,8 @@ ${amount} pour ${merchant} - ${date}`,
             defaultVendor: 'Fournisseur par défaut',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
-                    ? `Définissez un fournisseur par défaut qui sera appliqué aux dépenses remboursables ne disposant pas d’un fournisseur correspondant dans Sage Intacct.`
-                    : `Les dépenses qui ne peuvent pas être rapprochées de vos fournisseurs Sage Intacct seront par défaut attribuées à ce fournisseur.`,
+                    ? `Définissez un fournisseur par défaut qui s’appliquera aux dépenses remboursables n’ayant pas de fournisseur correspondant dans Sage Intacct.`
+                    : `Les dépenses qui ne peuvent pas être associées à vos fournisseurs Sage Intacct seront, par défaut, affectées à ce fournisseur.`,
             exportDescription: 'Configurez comment les données Expensify sont exportées vers Sage Intacct.',
             exportPreferredExporterNote:
                 'L’exportateur préféré peut être n’importe quel administrateur d’espace de travail, mais doit également être un administrateur de domaine si vous définissez des comptes d’exportation différents pour chaque carte d’entreprise individuelle dans les paramètres de domaine.',
@@ -6999,8 +6999,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             defaultVendor: 'Fournisseur par défaut',
             defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
                 isSet
-                    ? `Expenses that don't auto-match will default to this vendor.`
-                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
+                    ? `Les dépenses qui ne sont pas automatiquement rapprochées seront, par défaut, associées à ce fournisseur.`
+                    : `Les dépenses qui ne sont pas associées automatiquement seront attribuées par défaut à ce fournisseur. Sinon, elles seront exportées sous Crédit carte diverse.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Choisissez un fournisseur ${connectionName} par défaut pour les dépenses qui ne correspondent pas automatiquement.`,
             defaultAccount: 'Compte par défaut',
