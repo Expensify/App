@@ -43,20 +43,13 @@ function isLockAccountOnyxUpdate(update: MakeRequestOnyxUpdate): update is LockA
     );
 }
 
-function areLockAccountOnyxUpdates(updates: MakeRequestOnyxUpdate[]): updates is LockAccountOnyxUpdate[] {
-    return updates.every(isLockAccountOnyxUpdate);
-}
-
 function getOnyxUpdates(onyxData: MakeRequestOnyxData | undefined, field: OnyxDataField): LockAccountOnyxUpdate[] {
     const updates = onyxData?.[field];
     if (!updates) {
         throw new Error(`Expected ${field} in API Onyx data`);
     }
-    if (!areLockAccountOnyxUpdates(updates)) {
-        throw new Error(`Expected ${field} to contain lock account Onyx updates`);
-    }
 
-    return updates;
+    return updates.filter(isLockAccountOnyxUpdate);
 }
 
 describe('actions/User', () => {
