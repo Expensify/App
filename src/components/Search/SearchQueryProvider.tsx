@@ -1,5 +1,6 @@
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLoadSearchCategoryData from '@hooks/useLoadSearchCategoryData';
 import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -8,6 +9,7 @@ import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -42,6 +44,8 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const rawQueryParam = useRootNavigationState((state) => selectSearchRawQueryParam(state ?? navigation.getState()));
     const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
     const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
+    const shouldLoadCategoryData = currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) ?? false;
+    useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const {accountID, email} = useCurrentUserPersonalDetails();
