@@ -1683,24 +1683,29 @@ function buildPersonalDetailsOptions({
     return Object.values(personalDetails ?? {}).map((personalDetail) => {
         const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const report = reportMapForAccountIDs[accountID];
-        const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
-        const createFullOption = (): SearchOption<PersonalDetails | null> => ({
-            item: personalDetail,
-            ...createOption({
-                accountIDs: [accountID],
-                personalDetails,
-                report,
-                policy,
-                privateIsArchived,
-                config: {showPersonalDetails: true},
-                reportAttributesDerived,
-                policyTags: reportPolicyTags,
-                visibleReportActionsData,
-            }),
-        });
+        // Policy/tag/archive lookups live inside createFullOption so the lazy path skips them for
+        // contacts that never survive filtering/ranking and never get hydrated.
+        const createFullOption = (): SearchOption<PersonalDetails | null> => {
+            const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+            const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+            const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
+
+            return {
+                item: personalDetail,
+                ...createOption({
+                    accountIDs: [accountID],
+                    personalDetails,
+                    report,
+                    policy,
+                    privateIsArchived,
+                    config: {showPersonalDetails: true},
+                    reportAttributesDerived,
+                    policyTags: reportPolicyTags,
+                    visibleReportActionsData,
+                }),
+            };
+        };
 
         if (!lazyContactOptions) {
             return createFullOption();
