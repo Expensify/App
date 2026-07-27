@@ -134,6 +134,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyOwnerDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate})) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
+    const workspaceRulesPageURL = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const isReimburser =
@@ -263,7 +264,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 title: translate('workspace.rules.agentRules.unableToRemoveTitle'),
                 prompt: (
                     <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('workspace.rules.agentRules.unableToRemovePrompt', ROUTES.WORKSPACE_RULES.getRoute(policyID))} />
+                        <RenderHTML html={translate('workspace.rules.agentRules.unableToRemovePrompt', workspaceRulesPageURL)} />
                     </View>
                 ),
                 confirmText: translate('common.buttonConfirm'),

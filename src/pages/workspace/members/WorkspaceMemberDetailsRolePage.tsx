@@ -5,6 +5,7 @@ import type {ListItemType} from '@components/WorkspaceMemberRoleList';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,6 +40,8 @@ type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingPr
 function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: WorkspaceMemberDetailsRolePageProps) {
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
+    const {environmentURL} = useEnvironment();
+    const workspaceRulesPageURL = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -65,7 +68,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
                 title: translate('workspace.rules.agentRules.unableToChangeRoleTitle'),
                 prompt: (
                     <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('workspace.rules.agentRules.unableToChangeRolePrompt', ROUTES.WORKSPACE_RULES.getRoute(policyID))} />
+                        <RenderHTML html={translate('workspace.rules.agentRules.unableToChangeRolePrompt', workspaceRulesPageURL)} />
                     </View>
                 ),
                 confirmText: translate('common.buttonConfirm'),

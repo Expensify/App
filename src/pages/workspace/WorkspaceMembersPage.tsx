@@ -16,6 +16,7 @@ import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -139,6 +140,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
+    const {environmentURL} = useEnvironment();
+    const workspaceRulesPageURL = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler', 'EmptyShelves']);
@@ -275,7 +278,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 title: translate('workspace.rules.agentRules.unableToRemoveTitle'),
                 prompt: (
                     <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('workspace.rules.agentRules.unableToRemovePrompt', ROUTES.WORKSPACE_RULES.getRoute(policyID))} />
+                        <RenderHTML html={translate('workspace.rules.agentRules.unableToRemovePrompt', workspaceRulesPageURL)} />
                     </View>
                 ),
                 confirmText: translate('common.buttonConfirm'),
@@ -301,7 +304,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             removeUsers();
         });
-    }, [confirmModalPrompt, removeUsers, selectedEmployees, policyMemberEmailsToAccountIDs, policy, policyID, styles, showConfirmModal, translate]);
+    }, [confirmModalPrompt, removeUsers, selectedEmployees, policyMemberEmailsToAccountIDs, policy, workspaceRulesPageURL, styles, showConfirmModal, translate]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
@@ -518,7 +521,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 title: translate('workspace.rules.agentRules.unableToChangeRoleTitle'),
                 prompt: (
                     <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('workspace.rules.agentRules.unableToChangeRolePrompt', ROUTES.WORKSPACE_RULES.getRoute(policyID))} />
+                        <RenderHTML html={translate('workspace.rules.agentRules.unableToChangeRolePrompt', workspaceRulesPageURL)} />
                     </View>
                 ),
                 confirmText: translate('common.buttonConfirm'),
