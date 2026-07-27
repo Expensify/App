@@ -617,7 +617,8 @@
 "../../src/hooks/useWindowDimensions/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useWorkletStateMachine/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/languages/flattenObject.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/API/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/libs/API/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/libs/API/requestPipeline.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Accessibility/moveAccessibilityFocus/types.ts"	"@typescript-eslint/no-deprecated/ElementRef"	1
 "../../src/libs/AccountingUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/AttendeeUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
