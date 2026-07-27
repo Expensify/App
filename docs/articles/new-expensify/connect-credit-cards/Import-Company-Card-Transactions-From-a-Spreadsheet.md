@@ -30,9 +30,11 @@ Only **Workspace Admins** can import transactions for company cards.
 5. Choose **Import transactions from file**.
 6. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
 7. Enter a name for the card feed.
-8. Set your field mappings. Map either a **Card number** or a **Card name** (at least one is required so each transaction can be matched to a card), along with **Date**, **Merchant**, **Amount**, and **Currency**.
+8. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
 9. Assign cards to users based on the transactions in the file.
 10. Click **Import**.
+
+You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
 
 **Note:** Download the [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for an example of the recommended column structure and formatting for company card transaction imports.
 
@@ -92,7 +94,7 @@ Your file must include a way to identify each card so transactions can be matche
 
 ## How does matching transactions by card name work?
 
-Instead of a card number, you can map a **Card name** column, and Expensify will match each transaction to the assigned card whose name matches the value in that column. If a row's card name doesn't match an assigned card, that transaction won't be imported. You only need one card-identity column, so map a **Card number** column instead if you'd rather match by number.
+Instead of a **Card number**, you can map a **Card name** column, and Expensify groups each transaction under the card identified by that name. After you upload the file, those cards appear as entries you can assign to users — the name doesn't need to match a card you've already assigned. You only need one card-identity column, so map a **Card number** column instead if you'd rather identify cards by number.
 
 ## What happens if I map the same spreadsheet column twice?
 
