@@ -202,7 +202,6 @@ function SearchAddApproverPage() {
             }
             isLoadingReportData={false}
             policy={allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReports.at(0)?.policyID}`]}
-            initiallyFocusedOptionKey={selectedApproverEmail}
             shouldShowNotFoundViewLink={false}
             shouldShowNotFoundView={false}
             allApprovers={allApprovers}
