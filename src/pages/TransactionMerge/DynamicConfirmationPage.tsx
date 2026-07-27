@@ -138,10 +138,19 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                     isOffline,
                 );
 
-                if (!willTargetReportBeOneTransactionReport) {
+                // Only keep the RHP underneath when it actually belongs to the target. If the merge swapped target and
+                // source (e.g. merging a cash expense into a selected card/split expense), the RHP underneath is the
+                // source's, so we fall through to the full dismiss below instead of leaving that stale report stacked.
+                const topmostSearchReportID = Navigation.getTopmostSearchReportID();
+                const isTargetRhpUnderneath =
+                    topmostSearchReportID === targetTransactionThreadReportID ||
+                    topmostSearchReportID === targetTransaction.reportID ||
+                    Navigation.getTopmostSuperWideRHPReportID() === targetTransaction.reportID;
+
+                if (!willTargetReportBeOneTransactionReport && isTargetRhpUnderneath) {
                     // The report still has other expenses, so keep the RHP open and only open the thread if it isn't already.
                     Navigation.dismissToPreviousRHP();
-                    const isTargetThreadStillOpen = !!targetTransactionThreadReportID && Navigation.getTopmostSearchReportID() === targetTransactionThreadReportID;
+                    const isTargetThreadStillOpen = !!targetTransactionThreadReportID && topmostSearchReportID === targetTransactionThreadReportID;
                     if (!isTargetThreadStillOpen) {
                         Navigation.setNavigationActionToMicrotaskQueue(() => {
                             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
