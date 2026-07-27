@@ -14,6 +14,7 @@ import type {ReactNode} from 'react';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -35,6 +36,16 @@ function buildVisibleComment(reportActionID: string) {
 
 function buildActions(...reportActionIDs: string[]): ReportActions {
     return Object.fromEntries(reportActionIDs.map((id) => [id, buildVisibleComment(id)]));
+}
+
+/** Build an ADD_COMMENT action whispered to specific accounts (visible only to those accounts). */
+function buildWhisperedComment(reportActionID: string, whisperedTo: number[]) {
+    return getFakeReportAction(1, {
+        reportActionID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        message: [{html: 'hey', isDeletedParentAction: false, isEdited: false, text: 'test', type: 'COMMENT', whisperedTo}],
+        originalMessage: {whisperedTo},
+    });
 }
 
 function setReportActions(reportID: string, actions: ReportActions) {
@@ -127,5 +138,61 @@ describe('useReportActionsVisibility scopes VISIBLE_REPORT_ACTIONS per report', 
         expect(renders).toBeGreaterThan(rendersBefore);
 
         unmount();
+    });
+});
+
+describe('VISIBLE_REPORT_ACTIONS reflects deleted report actions', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
+    });
+
+    beforeEach(async () => {
+        await Onyx.clear();
+        TestHelper.signInWithTestUser(1, 'test@test.com');
+        await waitForBatchedUpdates();
+    });
+
+    it('recomputes visibility on a session change (account switch) even when no report action changed', async () => {
+        // Given report A holds a whisper targeted to account 1, and account 1 is signed in.
+        // (signInWithTestUser in beforeEach signs in accountID 1.)
+        await setReportActions(REPORT_A, {whisper: buildWhisperedComment('whisper', [1])});
+        await waitForBatchedUpdates();
+
+        // The whisper is visible to its target (account 1).
+        const visibleAsTarget = await getOnyxValue(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+        expect(visibleAsTarget?.[REPORT_A]?.whisper).toBe(true);
+
+        // When the session switches to a different user (account 2) without touching the report's actions
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 2});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the derived value is recomputed against the new user: the whisper now targets "others" and is hidden.
+        // This only flips if the SESSION delta forces a recompute despite REPORT_ACTIONS being unchanged.
+        const visibleAsOther = await getOnyxValue(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+        expect(visibleAsOther?.[REPORT_A]?.whisper).toBe(false);
+    });
+
+    it('drops a deleted action from the derived value via the incremental delta path', async () => {
+        // Given a report with two visible actions (so the derived value has a cached entry to update incrementally)
+        await setReportActions(REPORT_A, buildActions('a1', 'a2'));
+        await waitForBatchedUpdates();
+
+        const visibleBefore = await getOnyxValue(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+        expect(Object.keys(visibleBefore?.[REPORT_A] ?? {}).sort()).toEqual(['a1', 'a2']);
+
+        // When one action is deleted (a null tombstone merge, exactly how report action deletion works)
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_A}`, {a1: null});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the deleted action is gone from the derived visibility map (not left stale).
+        // The member-level delta no longer carries the per-action `null`, so this only passes
+        // because the changed report is rebuilt from its full current action set.
+        const visibleAfter = await getOnyxValue(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+        expect(Object.keys(visibleAfter?.[REPORT_A] ?? {})).toEqual(['a2']);
     });
 });
