@@ -7,6 +7,7 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
@@ -1479,6 +1480,14 @@ function hasManualDistanceOverride(transaction: OnyxEntry<OnyxTypes.Transaction>
     return Math.abs(quantity - routeQuantity) > 0.01;
 }
 
+/**
+ * Whether the transaction already has its receipt stored server-side, so a move command must not re-send the file.
+ */
+function hasUploadedReceipt(transaction: OnyxEntry<OnyxTypes.Transaction>): boolean {
+    const receipt = transaction?.receipt;
+    return !!receipt?.receiptID || (!!receipt?.source && !isLocalFile(receipt.source));
+}
+
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
     const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit} = convertTrackedExpenseParams;
     const {accountID: payerAccountID, email: payerEmail} = payerParams;
@@ -1791,7 +1800,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
                     ? {
-                          receipt: isFileUploadable(receipt) ? receipt : undefined,
+                          receipt:
+                              isFileUploadable(receipt) && !hasUploadedReceipt(getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`])
+                                  ? receipt
+                                  : undefined,
                           category,
                           tag,
                           taxCode,
@@ -2589,6 +2601,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
+    const sourceTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
 
     const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
@@ -2647,7 +2660,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2700,7 +2713,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2752,7 +2765,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isFileUploadable(trackedReceipt) && !hasUploadedReceipt(sourceTransaction) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -2992,6 +3005,7 @@ export {
     getNavigationUrlAfterTrackExpenseDelete,
     getTrackExpenseInformation,
     hasManualDistanceOverride,
+    hasUploadedReceipt,
     trackExpense,
     requestMoney,
 };
