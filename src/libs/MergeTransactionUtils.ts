@@ -372,25 +372,34 @@ function willReportBecomeOneTransactionReportAfterMerge(
         return false;
     }
 
-    const remainingTransactionIDs = new Set<string>();
-    const collectTransaction = (transaction: OnyxEntry<Transaction>) => {
-        if (!transaction || transaction.reportID !== reportID || transaction.transactionID === sourceTransactionID || (!isOffline && isTransactionPendingDelete(transaction))) {
-            return;
-        }
-        remainingTransactionIDs.add(transaction.transactionID);
-    };
-
-    for (const transaction of Object.values(reportTransactionsCollection ?? {})) {
-        collectTransaction(transaction);
-    }
+    // Merge both sources into one map keyed by transactionID before filtering. The Onyx copy overrides the snapshot
+    // one, so the optimistic reportID/pendingAction wins and a stale snapshot row can't slip past the filter below.
+    const transactionsByID = new Map<string, Transaction>();
     for (const [key, value] of Object.entries(searchResults?.data ?? {})) {
-        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) || !value) {
             continue;
         }
-        collectTransaction(value as Transaction);
+        const snapshotTransaction = value as Transaction;
+        transactionsByID.set(snapshotTransaction.transactionID, snapshotTransaction);
+    }
+    for (const transaction of Object.values(reportTransactionsCollection ?? {})) {
+        if (!transaction) {
+            continue;
+        }
+        transactionsByID.set(transaction.transactionID, transaction);
     }
 
-    return remainingTransactionIDs.size <= 1;
+    let remainingTransactions = 0;
+    for (const transaction of transactionsByID.values()) {
+        // Skip the source (merged away), expenses in other reports, and - unless we're offline - siblings being
+        // deleted. The Search report hides deleting rows only while online, so offline they still keep it open.
+        if (transaction.reportID !== reportID || transaction.transactionID === sourceTransactionID || (!isOffline && isTransactionPendingDelete(transaction))) {
+            continue;
+        }
+        remainingTransactions += 1;
+    }
+
+    return remainingTransactions <= 1;
 }
 
 /**

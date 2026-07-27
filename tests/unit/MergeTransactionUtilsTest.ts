@@ -1658,6 +1658,19 @@ describe('MergeTransactionUtils', () => {
             expect(result).toBe(false);
         });
 
+        it('lets the optimistic Onyx copy override a stale Search snapshot row', () => {
+            // Given a sibling pending deletion in Onyx that still appears (without the pending state) in the stale snapshot
+            const target = buildTransaction('target', REPORT_ID);
+            const deletingInOnyx = buildTransaction('deleting', REPORT_ID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            const deletingInSnapshot = buildTransaction('deleting', REPORT_ID);
+
+            // When we check while online
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletingInOnyx]), toSearchResults([target, deletingInSnapshot]), false);
+
+            // Then it should be true because the Onyx copy wins and the deleting sibling is excluded
+            expect(result).toBe(true);
+        });
+
         it('returns false for the unreported and split sentinel reports', () => {
             // Given a single expense in each sentinel report
             const unreported = buildTransaction('unreported', CONST.REPORT.UNREPORTED_REPORT_ID);
