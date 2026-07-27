@@ -148,6 +148,9 @@ function renderHtmlMock() {
  */
 function validateCodeCountdownMock() {
     function ImmediatelyFinishedCountdown({onCountdownFinish}: {onCountdownFinish: () => void}) {
+        // Babel memoizes this nested mock component while OXC does not detect it. Memoization is unnecessary here, so opt out to keep both compilers aligned.
+        'use no memo';
+
         useEffect(() => {
             onCountdownFinish();
         }, [onCountdownFinish]);
