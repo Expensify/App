@@ -69,6 +69,20 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [createInitEvent(), {type: 'CLOSE_MODAL'}, {type: 'MODAL_CLOSED'}, createInitEvent()],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.VALIDATING_DEVICE}`,
     },
+    // A resend is a self-transition, and a self-transition never lies on a shortest path, so only
+    // this journey drives the resend gesture through the real UI.
+    {
+        description: 'the resend journey requests a fresh code and still accepts the emailed code',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent(VALIDATE_DEVICE_DONE_EVENT_TYPE, {success: true}),
+            createActorDoneEvent(CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, false),
+            {type: 'RESEND_VALIDATE_CODE'},
+            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
+            createActorDoneEvent(REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`,
+    },
     {
         description: 'the invalid-code journey clears the inline error and accepts a corrected code',
         events: [
@@ -100,6 +114,7 @@ const MFA_GRAPH_EVENT_FIXTURES = {
     MODAL_CLOSED: [{type: 'MODAL_CLOSED'}],
     SOFT_PROMPT_APPROVED: [{type: 'SOFT_PROMPT_APPROVED'}],
     VALIDATE_CODE_ENTERED: [{type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE}],
+    RESEND_VALIDATE_CODE: [{type: 'RESEND_VALIDATE_CODE'}],
     CLEAR_CONTINUABLE_ERROR: [{type: 'CLEAR_CONTINUABLE_ERROR'}],
 } satisfies MfaEventFixtures;
 

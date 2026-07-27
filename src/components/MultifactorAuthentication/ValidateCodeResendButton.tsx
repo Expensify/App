@@ -64,6 +64,7 @@ function MultifactorAuthenticationValidateCodeResendButton({
             ) : (
                 <PressableWithFeedback
                     style={styles.mt5}
+                    testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.VALIDATE_CODE_RESEND_BUTTON}
                     onPress={onResendValidationCode}
                     disabled={shouldDisableResendCode}
                     hoverDimmingValue={1}

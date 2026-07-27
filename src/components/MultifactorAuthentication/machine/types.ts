@@ -74,6 +74,7 @@ type MfaEvent =
     | {type: 'MODAL_CLOSED'}
     | {type: 'SOFT_PROMPT_APPROVED'}
     | {type: 'VALIDATE_CODE_ENTERED'; validateCode: string}
+    | {type: 'RESEND_VALIDATE_CODE'}
     | {type: 'CLEAR_CONTINUABLE_ERROR'};
 
 /** Describes the input the machine passes to the device-check actor. */

@@ -62,8 +62,8 @@ const FATAL_REGISTRATION_CHALLENGE_RESPONSE = {
 
 // The graph-traversal suites generate their expectations from the machine, so a transition pointed at
 // a wrong target adjusts those expectations and still passes. This suite pins the registration
-// decision and the magic-code loop by hand, including that only the decision transition may send the
-// magic-code email.
+// decision and the magic-code loop by hand, including that only the decision transition and an
+// explicit resend request may send the magic-code email.
 
 describe('MFA magic code and registration decision', () => {
     beforeEach(() => {
@@ -96,6 +96,45 @@ describe('MFA magic code and registration decision', () => {
         sendCheckLocalCredentialsDone(actor, true);
 
         expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}})).toBe(true);
+        expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
+
+        actor.stop();
+    });
+
+    it('sends a fresh magic-code email and stays on the screen when the user requests a resend', () => {
+        const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE});
+
+        actor.start();
+        actor.send({type: 'RESEND_VALIDATE_CODE'});
+
+        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE})).toBe(true);
+        expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
+
+        actor.stop();
+    });
+
+    it('clears the inline error when the user requests a resend after a rejected code', () => {
+        const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE}, {continuableError: MFA_TEST_INVALID_CODE_ERROR});
+
+        actor.start();
+        actor.send({type: 'RESEND_VALIDATE_CODE'});
+
+        const result = actor.getSnapshot();
+        expect(result.matches({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE})).toBe(true);
+        expect(result.context.continuableError).toBeUndefined();
+        expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
+
+        actor.stop();
+    });
+
+    it('drops a resend request while the registration challenge request is in flight', () => {
+        const actor = createActorAtState({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_VALIDATE_CODE});
+
+        actor.start();
+        actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
+        actor.send({type: 'RESEND_VALIDATE_CODE'});
+
+        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE})).toBe(true);
         expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
 
         actor.stop();

@@ -61,6 +61,8 @@ jest.mock('@components/MultifactorAuthentication/machine/mfaActors', () => jest.
 jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').biometricsHookMock());
 // RenderHTML requires an ambient provider that this lifecycle test does not mount.
 jest.mock('@components/RenderHTML', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').renderHtmlMock());
+// The resend countdown is a real-time presentational timer; finishing it immediately keeps the resend button pressable for the walk.
+jest.mock('@components/ValidateCodeCountdown', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').validateCodeCountdownMock());
 // Browser and Android history synchronization is outside the contract between the machine and UI.
 jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').syncHistoryMock());
 // The test renderer runs no real navigation transitions, so the mock controls when the transition callbacks fire.
@@ -157,6 +159,10 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             fireEvent.changeText(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT), event.validateCode);
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(screen.getByTestId(TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON));
+            await waitForBatchedUpdatesWithAct();
+        },
+        RESEND_VALIDATE_CODE: async () => {
+            fireEvent.press(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON));
             await waitForBatchedUpdatesWithAct();
         },
         CLEAR_CONTINUABLE_ERROR: async () => {

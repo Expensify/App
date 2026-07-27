@@ -93,7 +93,8 @@ const MFAMachine = setup({
             Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE));
         },
         // Emails the user a magic code. Runs only on the decision transition into the magic-code
-        // screen, never on (re)entry, so the invalid-code retry loop cannot resend the email.
+        // screen and on an explicit resend request, never on (re)entry, so the invalid-code retry
+        // loop cannot resend the email.
         requestValidateCode: () => requestValidateCodeAction(),
         // Stores the submitted code. Same narrowing pattern as initFlow: only VALIDATE_CODE_ENTERED
         // is wired here, so the early return just satisfies the type checker.
@@ -218,10 +219,13 @@ const MFAMachine = setup({
                 },
                 // This branch shows the magic-code screen while a fresh registration waits for the
                 // emailed code. Submitting stores the code and starts the backend challenge request.
+                // A resend is accepted only here, so one fired while the challenge request is in
+                // flight is dropped instead of emailing a code the pending submission ignores.
                 [MFA_STATE.REQUESTING_VALIDATE_CODE]: {
                     id: MFA_STATE.REQUESTING_VALIDATE_CODE,
                     on: {
                         VALIDATE_CODE_ENTERED: {target: REGISTRATION_CHALLENGE_TARGET, actions: ['clearContinuableError', 'submitValidateCode']},
+                        RESEND_VALIDATE_CODE: {actions: ['clearContinuableError', 'requestValidateCode']},
                         CLEAR_CONTINUABLE_ERROR: {actions: 'clearContinuableError'},
                     },
                 },

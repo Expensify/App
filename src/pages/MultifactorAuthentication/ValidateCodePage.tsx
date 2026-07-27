@@ -23,14 +23,13 @@ import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 
 import {clearAccountMessages} from '@userActions/Session';
-import {clearValidateCodeActionError, requestValidateCodeAction} from '@userActions/User';
+import {clearValidateCodeActionError} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -53,7 +52,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const {requestCancel, submitValidateCode, clearContinuableError, state} = useMultifactorAuthenticationInternal();
+    const {requestCancel, submitValidateCode, resendValidateCode, clearContinuableError, state} = useMultifactorAuthenticationInternal();
     const {continuableError, isCancelConfirmVisible} = state;
 
     // Refs
@@ -65,7 +64,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const hasAccountError = !!account && !isEmptyObject(account?.errors);
     const hasContinuableError = !!continuableError;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
-    const shouldDisableResendCode = isOffline ?? account?.isLoading;
+    const shouldDisableResendCode = isOffline || !!validateActionCode?.isLoading;
     const validateCodeActionError = getLatestErrorField(validateActionCode, 'actionVerified');
     const hasValidateCodeActionError = !isEmptyObject(validateCodeActionError);
     const hasError = hasAccountError || hasContinuableError || hasValidateCodeActionError;
@@ -143,7 +142,7 @@ function MultifactorAuthenticationValidateCodePage() {
             clearValidateCodeActionError('actionVerified');
         }
         addMFABreadcrumb('Validate code resend requested');
-        requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY});
+        resendValidateCode();
         inputRef.current?.clear();
         setInputCode('');
         setFormError({});

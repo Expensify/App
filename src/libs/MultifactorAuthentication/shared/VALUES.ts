@@ -328,6 +328,7 @@ const SHARED_VALUES = {
         PROMPT_CONFIRM_BUTTON: 'MultifactorAuthenticationPromptConfirmButton',
         VALIDATE_CODE_INPUT: 'MultifactorAuthenticationValidateCodeInput',
         VALIDATE_CODE_SUBMIT_BUTTON: 'MultifactorAuthenticationValidateCodeSubmitButton',
+        VALIDATE_CODE_RESEND_BUTTON: 'MultifactorAuthenticationValidateCodeResendButton',
     },
 } as const;
 

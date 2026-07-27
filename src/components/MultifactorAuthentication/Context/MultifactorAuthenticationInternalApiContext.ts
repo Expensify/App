@@ -27,6 +27,9 @@ type MultifactorAuthenticationInternalApi = {
     /** Submit the magic code the user entered. The machine stores it and moves the flow forward. */
     submitValidateCode: (validateCode: string) => void;
 
+    /** Request a fresh magic-code email. The machine sends it only while the magic-code screen waits for a code. */
+    resendValidateCode: () => void;
+
     /** Clear the inline validate-code error, called when the user starts typing again. */
     clearContinuableError: () => void;
 

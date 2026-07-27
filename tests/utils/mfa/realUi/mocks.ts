@@ -11,6 +11,7 @@ import type {
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type Navigation from '@libs/Navigation/Navigation';
 
+import {useEffect} from 'react';
 import {fromPromise} from 'xstate';
 
 // This module keeps mutable mock state and factory bodies outside the test so the test stays focused on
@@ -141,6 +142,23 @@ function renderHtmlMock() {
     };
 }
 
+/**
+ * Replaces the resend countdown, a real-time presentational timer outside the modal lifecycle
+ * contract. Finishing it immediately keeps the resend button pressable for the walk.
+ */
+function validateCodeCountdownMock() {
+    function ImmediatelyFinishedCountdown({onCountdownFinish}: {onCountdownFinish: () => void}) {
+        useEffect(() => {
+            onCountdownFinish();
+        }, [onCountdownFinish]);
+        return null;
+    }
+    return {
+        __esModule: true,
+        default: ImmediatelyFinishedCountdown,
+    };
+}
+
 function syncHistoryMock() {
     return {
         __esModule: true,
@@ -187,6 +205,7 @@ export {
     userActionsMock,
     biometricsHookMock,
     renderHtmlMock,
+    validateCodeCountdownMock,
     syncHistoryMock,
     navigationMock,
 };
