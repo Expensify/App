@@ -8,23 +8,20 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {createGuidesEmailsByReportSelector} from '@selectors/PersonalDetails';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
+import useCollectionDelta from './useCollectionDelta';
 import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
-import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useReportAttributes from './useReportAttributes';
 import useResponsiveLayout from './useResponsiveLayout';
-
-type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 
 type SidebarOrderedReportsContextProviderProps = {
     children: React.ReactNode;
@@ -75,14 +72,6 @@ const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsA
     setStickyReportID: () => {},
 });
 
-const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
-    (policy && {
-        type: policy.type,
-        name: policy.name,
-        avatarURL: policy.avatarURL,
-        employeeList: policy.employeeList,
-    }) as PartialPolicyForSidebar;
-
 // This file does not compile with React Compiler (render-time ref cache below keeps referential
 // stability), so the manual useMemo/useCallback in this provider are load-bearing and must stay.
 function SidebarOrderedReportsContextProvider({
@@ -101,12 +90,18 @@ function SidebarOrderedReportsContextProvider({
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [inboxTab = CONST.INBOX_TAB.ALL] = useOnyx(ONYXKEYS.NVP_INBOX_TAB);
     const activeTab = inboxTab ?? CONST.INBOX_TAB.ALL;
-    const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);
-    const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const reportUpdates = useCollectionDelta(chatReports);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const policiesUpdates = useCollectionDelta(allPolicies);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const transactionsUpdates = useCollectionDelta(transactions);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const transactionViolationsUpdates = useCollectionDelta(transactionViolations);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const reportNameValuePairsUpdates = useCollectionDelta(reportNameValuePairs);
+    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const reportsDraftsUpdates = useCollectionDelta(reportsDrafts);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const computeGuidesEmailsByReport = useMemo(() => createGuidesEmailsByReportSelector(chatReports), [chatReports]);
     const guidesEmailsByReportSelector = useCallback(

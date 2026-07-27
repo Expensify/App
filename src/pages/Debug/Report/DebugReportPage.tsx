@@ -71,9 +71,8 @@ function DebugReportPage({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isOffline} = useNetwork();
-    const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID], [reportID]);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        selector: reportAttributesSelector,
+        selector: (attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID],
     });
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
@@ -85,16 +84,8 @@ function DebugReportPage({
     });
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: conciergePersonalDetailSelector,
-    });
-    const reportOwnerSelector = useCallback(
-        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsSelector(report?.ownerAccountID)(personalDetailsList),
-        [report?.ownerAccountID],
-    );
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: reportOwnerSelector,
-    });
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
     const participantAccountIDs = useMemo(() => Object.keys(report?.participants ?? {}).map(Number), [report?.participants]);
