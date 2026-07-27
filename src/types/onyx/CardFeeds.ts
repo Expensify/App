@@ -84,6 +84,9 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether any actions are pending */
     pending?: boolean;
 
+    /** Microsecond timestamp of when a CSV import for this feed started */
+    importStartedAt?: number;
+
     /** Determines if Automated Statement Reconciliation (ASR) is enabled for the cards */
     asrEnabled?: boolean;
 
