@@ -675,7 +675,6 @@ describe('domainSelectors', () => {
                     shared: null,
                 },
                 [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '789')]: {name: 'Group 3'},
-                // @ts-expect-error -- a non-prefix scalar entry is deliberately malformed runtime input.
                 otherKey: 'value',
             });
 
