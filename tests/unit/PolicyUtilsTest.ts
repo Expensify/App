@@ -40,6 +40,8 @@ import {
     getSubmitToEmail,
     getTagApproverRule,
     getTagGLCode,
+    getGLCodeFromPolicyTag,
+    getPolicyTagGLCode,
     getTagList,
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
@@ -73,7 +75,7 @@ import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, Transaction} from '@src/types/onyx';
 import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
@@ -1444,6 +1446,48 @@ describe('PolicyUtils', () => {
             expect(getTagGLCode(tagListsWithNumberGLCode, 'Engineering')).toBe('1234');
         });
     });
+
+    describe('getGLCodeFromPolicyTag', () => {
+        it('returns empty string when tag is undefined', () => {
+            expect(getGLCodeFromPolicyTag(undefined)).toBe('');
+        });
+
+        it('returns empty string when tag has no GL code', () => {
+            expect(getGLCodeFromPolicyTag({})).toBe('');
+        });
+
+        it('returns stripped GL code from tag', () => {
+            expect(getGLCodeFromPolicyTag({'GL Code': '"1234"'})).toBe('1234');
+        });
+    });
+
+    describe('getPolicyTagGLCode', () => {
+        const tags: PolicyTags = {
+            Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+            Marketing: {name: 'Marketing', enabled: true},
+        };
+
+        it('returns empty string when tags or tag name is missing', () => {
+            expect(getPolicyTagGLCode(undefined, 'Engineering')).toBe('');
+            expect(getPolicyTagGLCode(tags, undefined)).toBe('');
+        });
+
+        it('returns GL code for matching tag', () => {
+            expect(getPolicyTagGLCode(tags, 'Engineering')).toBe('1234');
+        });
+
+        it('returns empty string when tag has no GL code', () => {
+            expect(getPolicyTagGLCode(tags, 'Marketing')).toBe('');
+        });
+
+        it('strips wrapping quotes from GL code', () => {
+            const quotedTags: PolicyTags = {
+                Engineering: {name: 'Engineering', enabled: true, 'GL Code': '"5678"'},
+            };
+            expect(getPolicyTagGLCode(quotedTags, 'Engineering')).toBe('5678');
+        });
+    });
+
     describe('sortWorkspacesBySelected', () => {
         it('should order workspaces with selected workspace first', () => {
             const workspace1 = {policyID: '1', name: 'Workspace 1'};

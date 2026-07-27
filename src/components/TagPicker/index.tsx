@@ -82,6 +82,9 @@ function TagPicker({
     additionalTagsToInclude,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [shouldShowGLCode] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => !!policy?.showTagGLCodes && !!policy?.glCodes,
+    });
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -146,6 +149,7 @@ function TagPicker({
         recentlyUsedTags: policyRecentlyUsedTagsList,
         localeCompare,
         translate,
+        shouldShowGLCode,
     });
     const sections = shouldOrderListByTagName
         ? tagSections.map((option) => ({
