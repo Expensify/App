@@ -65,7 +65,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	104
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	98
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -285,10 +285,8 @@
 "../../src/components/MultifactorAuthentication/components/OutcomeScreen/OutcomeScreenBase.tsx"	"no-restricted-imports"	1
 "../../src/components/MultifactorAuthentication/config/scenarios/ChangePIN.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MultifactorAuthentication/config/scenarios/DefaultUserInterface.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Navigation/NavigationTabBar/InboxTabButton.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"no-restricted-imports"	2
-"../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/Navigation/TopLevelNavigationTabBar/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/NumberWithSymbolForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/NumberWithSymbolForm.tsx"	"react-hooks/set-state-in-effect"	2
@@ -502,7 +500,6 @@
 "../../src/components/VideoPlayerContexts/PlaybackContext/playbackContextReportIDUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/WalletStatementModal/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/WideRHPContextProvider/useShouldRenderOverlay.ts"	"react-hooks/set-state-in-effect"	1
-"../../src/components/WorkspaceConfirmationForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ZeroWidthView/index.tsx"	"no-restricted-syntax"	2
 "../../src/components/createOnyxContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/withCurrentUserPersonalDetails.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -680,7 +677,6 @@
 "../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/libs/Navigation/OnyxTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Navigation/PlatformStackNavigation/navigationOptions/animation/withAnimation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/libs/Navigation/guards/AIFeaturesPromoGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/guards/MigratedUserWelcomeModalGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1005,11 +1001,8 @@
 "../../src/pages/Debug/DebugDetails.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/pages/Debug/DebugJSON.tsx"	"no-restricted-imports"	1
 "../../src/pages/Debug/Report/DebugReportActions.tsx"	"no-restricted-imports"	1
-"../../src/pages/Debug/Report/DebugReportActions.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/Debug/Report/DebugReportPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/Debug/Report/DebugReportPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	2
 "../../src/pages/Debug/ReportAction/DebugReportActionCreatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/Debug/ReportAction/DebugReportActionPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/Debug/ReportAction/DebugReportActionPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/Debug/Transaction/DebugTransactionViolations.tsx"	"no-restricted-imports"	1
 "../../src/pages/Debug/Transaction/DebugTransactionViolations.tsx"	"no-restricted-syntax"	1
@@ -1058,10 +1051,7 @@
 "../../src/pages/MultifactorAuthentication/RevokePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/MultifactorAuthentication/ValidateCodePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/NewChatPage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/OnboardingAccounting/BaseOnboardingAccounting.tsx"	"no-restricted-imports"	1
 "../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"no-restricted-imports"	1
-"../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/OnboardingPrivateDomain/BaseOnboardingPrivateDomain.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/OnboardingWorkspaceConfirmation/BaseOnboardingWorkspaceConfirmation.tsx"	"no-restricted-imports"	1
 "../../src/pages/OnboardingWorkspaceCurrency/BaseOnboardingWorkspaceCurrency.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1137,11 +1127,14 @@
 "../../src/pages/TransactionDuplicate/Confirmation.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/refs"	12
 "../../src/pages/TransactionDuplicate/DuplicateTransactionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/TransactionMerge/ConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/TransactionMerge/DetailsReviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/TransactionDuplicate/Review.tsx"	"no-restricted-imports"	1
+"../../src/pages/TransactionMerge/DynamicConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/TransactionMerge/DynamicConfirmationPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/TransactionMerge/DynamicDetailsReviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/TransactionMerge/DynamicDetailsReviewPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/TransactionMerge/DynamicReceiptReviewPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionMerge/MergeTransactionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionMerge/MergeTransactionsListContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/TransactionMerge/ReceiptReviewPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionMerge/TransactionMergeReceipts.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/DynamicDomainPermissionInfoPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/DynamicDomainSelectorPage.tsx"	"no-restricted-imports"	1
@@ -1150,7 +1143,6 @@
 "../../src/pages/Travel/DynamicTravelUpgrade.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/ManageTrips.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/TravelUpgrade.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/Travel/TripDetailsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/Travel/WorkspaceConfirmationForTravelPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/TripChatNameEditPage.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/UnreportedExpenseListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1222,7 +1214,6 @@
 "../../src/pages/inbox/report/withReportOrNotFound.tsx"	"react-hooks/refs"	3
 "../../src/pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/CreateReportMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/CreateReportMenuItem.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/InvoiceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/NewWorkspaceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/QuickActionMenuItem.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	2
@@ -1358,7 +1349,6 @@
 "../../src/pages/settings/Wallet/ExpensifyCardPage/ChangePINPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/substeps/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/pages/settings/Wallet/InternationalDepositAccount/PersonalInfo/substeps/AddressStep.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1394,7 +1384,8 @@
 "../../src/pages/signin/SignUpWelcomeForm.tsx"	"no-restricted-imports"	1
 "../../src/pages/signin/ValidateCodeForm/BaseValidateCodeForm.tsx"	"no-restricted-imports"	1
 "../../src/pages/signin/ValidateCodeForm/BaseValidateCodeForm.tsx"	"react-hooks/set-state-in-effect"	4
-"../../src/pages/tasks/TaskShareDestinationSelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/tasks/DynamicNewTaskDetailsPage.tsx"	"rulesdir/no-useOnyx-dependencies-arg"	1
+"../../src/pages/tasks/DynamicTaskShareDestinationSelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/wallet/WalletStatementPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/DynamicWorkspaceConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
