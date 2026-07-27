@@ -12,6 +12,7 @@ import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsf
 import CompanyCardsEmptyStateGeneric from '@assets/images/companyCards/companycards-generic.svg';
 import CompanyCardsEmptyStateUKEU from '@assets/images/companyCards/companycards-uk_eu.svg';
 import CompanyCardsEmptyStateUSCA from '@assets/images/companyCards/companycards-us_ca.svg';
+import CardReconciliation from '@assets/images/companyCards/emptystate__card-reconciliation.svg';
 import LaptopAssignCard from '@assets/images/companyCards/emptystate__laptop-assign-card.svg';
 import LaptopReviewCard from '@assets/images/companyCards/emptystate__laptop-review-card.svg';
 import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
@@ -251,6 +252,7 @@ const Illustrations = {
     CompanyCardsEmptyStateGeneric,
     CompanyCardsEmptyStateUKEU,
     CompanyCardsEmptyStateUSCA,
+    CardReconciliation,
     LaptopAssignCard,
     LaptopReviewCard,
     ExpensifyCardCoins,
