@@ -4,7 +4,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
-import {queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,6 +13,7 @@ import Onyx from 'react-native-onyx';
 
 const mockQueueExportSearchItemsToCSV = jest.mocked(queueExportSearchItemsToCSV);
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
+const mockGetExportTemplates = jest.mocked(getExportTemplates);
 
 jest.mock('@libs/actions/Export', () => ({
     clearExportDownload: jest.fn(),
@@ -240,6 +241,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {};
         mockExcludedTransactions = {};
         mockSelectedReports = [];
+        mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
     });
@@ -335,6 +337,10 @@ describe('useSearchBulkActions - CSV export flow', () => {
     it('beginExportWithTemplate tracks the export', async () => {
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [{name: 'Custom template', templateName: 'custom-template', type: 'csv', policyID: undefined, description: ''}],
+            defaultTemplates: [],
+        });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
@@ -345,13 +351,45 @@ describe('useSearchBulkActions - CSV export flow', () => {
         const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
         const templateSubItem = exportOption?.subMenuItems?.find((item) => item.text !== 'export.basicExport' && item.text !== 'export.currentView');
 
-        if (templateSubItem?.onSelected) {
-            act(() => {
-                templateSubItem.onSelected?.();
-            });
+        expect(templateSubItem).toBeDefined();
+        act(() => {
+            templateSubItem?.onSelected?.();
+        });
 
-            expect(mockQueueExportSearchWithTemplate).toHaveBeenCalled();
-            expect(result.current.exportDownloadStatusModal).not.toBeNull();
-        }
+        expect(mockQueueExportSearchWithTemplate).toHaveBeenCalled();
+        expect(result.current.exportDownloadStatusModal).not.toBeNull();
+    });
+
+    it('hides template exports when an all-matching expense selection has exclusions', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction()};
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [{name: 'Custom template', templateName: 'custom-template', type: 'csv', policyID: undefined, description: ''}],
+            defaultTemplates: [
+                {name: 'Default template', templateName: 'default-template', type: 'csv', policyID: undefined, description: ''},
+                {
+                    name: 'export.basicExport',
+                    templateName: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
+                    type: 'csv',
+                    policyID: undefined,
+                    description: '',
+                },
+            ],
+        });
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        const exportItems = exportOption?.subMenuItems ?? [];
+
+        expect(exportItems.some((item) => item.text === 'Custom template')).toBe(false);
+        expect(exportItems.some((item) => item.text === 'Default template')).toBe(false);
+        expect(exportItems.some((item) => item.text === 'export.currentView')).toBe(true);
+        expect(exportItems.some((item) => item.text === 'export.basicExport')).toBe(true);
     });
 });

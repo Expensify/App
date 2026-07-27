@@ -1495,6 +1495,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 includeReportLevelExport,
                 !isGroupedSearch,
             );
+            const shouldHideTemplateExports = isExpenseType && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length > 0;
+            const availableCustomTemplates = shouldHideTemplateExports
+                ? customTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV)
+                : customTemplates;
+            const availableDefaultTemplates = shouldHideTemplateExports
+                ? defaultTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV)
+                : defaultTemplates;
 
             const exportOptions: PopoverMenuItem[] = [];
 
@@ -1650,10 +1657,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 };
 
                 // Add each group's templates separately so the icon and the group-boundary divider come from the group itself, not from an index into a combined list.
-                for (const [index, template] of customTemplates.entries()) {
+                for (const [index, template] of availableCustomTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, false, index === 0));
                 }
-                for (const [index, template] of defaultTemplates.entries()) {
+                for (const [index, template] of availableDefaultTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, true, index === 0));
                 }
             } else if (!isGroupedSearch) {
@@ -2204,6 +2211,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactionsKeys,
         hash,
         selectedTransactions,
+        excludedTransactions,
         queryJSON?.type,
         expensifyIcons,
         translate,
