@@ -9,14 +9,17 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchFilterSync from '@hooks/useSearchFilterSync';
+import useSearchFilterSync, {shouldDeferSearchFilterSync} from '@hooks/useSearchFilterSync';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -32,8 +35,12 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- advanced filters page is only rendered on the small screen
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter']);
+    const {isOffline} = useNetwork();
     const filterFormValues = useFilterFormValues(queryJSON);
-    useSearchFilterSync(queryJSON, filterFormValues);
+    const [areCategoriesLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED);
+    const [isLoadingCategories] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA);
+    const shouldDeferFilterSync = shouldDeferSearchFilterSync(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
+    useSearchFilterSync(queryJSON, filterFormValues, shouldDeferFilterSync);
 
     if (isSmallScreenWidth) {
         return (

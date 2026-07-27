@@ -17,10 +17,22 @@ function useLoadSearchCategoryData({shouldLoad = true, shouldRefresh = false}: U
     const [areCategoriesLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED);
     const [isLoadingCategories] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA);
     const hasRequestedCategoryDataRef = useRef(false);
+    const hasObservedCategoryRequestStateRef = useRef(!!areCategoriesLoaded || isLoadingCategories !== undefined);
 
     useEffect(() => {
+        if (areCategoriesLoaded || isLoadingCategories !== undefined) {
+            hasObservedCategoryRequestStateRef.current = true;
+        }
+
+        const wasCategoryRequestStateCleared = hasRequestedCategoryDataRef.current && hasObservedCategoryRequestStateRef.current && !areCategoriesLoaded && isLoadingCategories === undefined;
+        if (wasCategoryRequestStateCleared) {
+            hasRequestedCategoryDataRef.current = false;
+            hasObservedCategoryRequestStateRef.current = false;
+        }
+
         if (!shouldLoad) {
             hasRequestedCategoryDataRef.current = false;
+            hasObservedCategoryRequestStateRef.current = false;
             return;
         }
 
@@ -29,7 +41,7 @@ function useLoadSearchCategoryData({shouldLoad = true, shouldRefresh = false}: U
         }
         hasRequestedCategoryDataRef.current = true;
         openSearchCategoryFiltersPage();
-    }, [areCategoriesLoaded, isOffline, shouldLoad, shouldRefresh]);
+    }, [areCategoriesLoaded, isLoadingCategories, isOffline, shouldLoad, shouldRefresh]);
 
     const isLoadingInitialCategories = shouldLoad && !areCategoriesLoaded && !isOffline && isLoadingCategories !== false;
 

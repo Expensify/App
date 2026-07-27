@@ -246,6 +246,27 @@ describe('useAutocompleteSuggestions', () => {
         expect(mockedOpenSearchCategoryFiltersPage).not.toHaveBeenCalled();
     });
 
+    it('reloads category data when cache is cleared while a category query remains open', async () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = false;
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'second'},
+            ranges: [],
+        });
+
+        const {rerender} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'category:second'}));
+        await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1));
+
+        onyxData[ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA] = false;
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = true;
+        rerender();
+
+        delete onyxData[ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA];
+        delete onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED];
+        rerender();
+
+        await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(2));
+    });
+
     it('does not load category data while offline', () => {
         onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = false;
         mockedUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);

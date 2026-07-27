@@ -457,7 +457,7 @@ const ONYXKEYS = {
     /** Set whether we are loading the search filters card data */
     IS_SEARCH_FILTERS_CARD_DATA_LOADED: 'isSearchFiltersCardDataLoaded',
 
-    /** Set whether we are loading the search filters category data */
+    /** Set whether the search filters category data has loaded */
     IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED: 'isSearchFiltersCategoryDataLoaded',
 
     /** Set while search filter category data is loading */

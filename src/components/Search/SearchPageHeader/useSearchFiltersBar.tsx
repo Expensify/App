@@ -12,6 +12,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {shouldDeferSearchFilterSync} from '@hooks/useSearchFilterSync';
 
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
@@ -139,6 +140,8 @@ function FilterPopup({filterKey, searchAdvancedFiltersForm, closeOverlay, setPop
 
 function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarResult {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [areCategoriesLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED);
+    const [isLoadingCategories] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
@@ -201,11 +204,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         setFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
         setSearchContext(false);
     };
+    const isCategoryFilterLoading = shouldDeferSearchFilterSync(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
 
     return {
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
-        shouldShowFiltersBarLoading,
+        shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
         clearFilters,
     };
 }

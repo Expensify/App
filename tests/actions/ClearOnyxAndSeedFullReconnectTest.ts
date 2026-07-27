@@ -1,5 +1,6 @@
 import clearOnyxAndSeedFullReconnect from '@libs/actions/clearOnyxAndSeedFullReconnect';
 import DateUtils from '@libs/DateUtils';
+import {getLastSyncedQuerySignature, setLastSyncedQuerySignature} from '@libs/SearchFilterSyncState';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -41,6 +42,14 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 },
             });
         });
+    });
+
+    it('resets search filter sync state when Onyx is cleared', async () => {
+        setLastSyncedQuerySignature('type:expense category:SecondTesting');
+
+        await clearOnyxAndSeedFullReconnect([]);
+
+        expect(getLastSyncedQuerySignature()).toBeNull();
     });
 
     it('preserves keys passed in keysToPreserve and clears everything else', async () => {
