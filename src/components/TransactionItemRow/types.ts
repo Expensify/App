@@ -51,6 +51,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Policy to which the transaction belongs */
     policy?: Policy;
+
+    /** ID of the policy the transaction belongs to, provided on search transactions */
+    policyID?: string;
 };
 
 type TransactionItemRowProps = {

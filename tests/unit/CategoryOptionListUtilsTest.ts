@@ -1330,4 +1330,78 @@ describe('CategoryOptionListUtils', () => {
             {name: 'Normal:Category', enabled: true, pendingAction: undefined},
         ]);
     });
+
+    it('shows the parent category GL code when searching for a subcategory (regression #96808)', () => {
+        const categories: PolicyCategories = {
+            Lunch: {
+                enabled: true,
+                name: 'Lunch',
+                unencodedName: 'Lunch',
+                areCommentsRequired: false,
+                'GL Code': '4100',
+                externalID: '',
+                origin: '',
+                pendingAction: undefined,
+            },
+            'Lunch: Sushi': {
+                enabled: true,
+                name: 'Lunch: Sushi',
+                unencodedName: 'Lunch: Sushi',
+                areCommentsRequired: false,
+                'GL Code': '4200',
+                externalID: '',
+                origin: '',
+                pendingAction: undefined,
+            },
+        };
+
+        const sections = getCategoryListSections({
+            categories,
+            searchValue: 'sushi',
+            localeCompare,
+            translate: translateLocal,
+            shouldShowGLCode: true,
+        });
+        const rows = sections.flatMap((section) => section.data);
+        const parentRow = rows.find((row) => row.searchText === 'Lunch');
+        const childRow = rows.find((row) => row.searchText === 'Lunch: Sushi');
+
+        expect(parentRow?.alternateText).toBe('4100');
+        expect(childRow?.alternateText).toBe('4200');
+    });
+
+    it('does not show GL codes when the shouldShowGLCode flag is disabled', () => {
+        const categories: PolicyCategories = {
+            Lunch: {
+                enabled: true,
+                name: 'Lunch',
+                unencodedName: 'Lunch',
+                areCommentsRequired: false,
+                'GL Code': '4100',
+                externalID: '',
+                origin: '',
+                pendingAction: undefined,
+            },
+            'Lunch: Sushi': {
+                enabled: true,
+                name: 'Lunch: Sushi',
+                unencodedName: 'Lunch: Sushi',
+                areCommentsRequired: false,
+                'GL Code': '4200',
+                externalID: '',
+                origin: '',
+                pendingAction: undefined,
+            },
+        };
+
+        const sections = getCategoryListSections({
+            categories,
+            searchValue: 'sushi',
+            localeCompare,
+            translate: translateLocal,
+        });
+        const rows = sections.flatMap((section) => section.data);
+
+        expect(rows.every((row) => row.alternateText === undefined)).toBe(true);
+    });
 });
