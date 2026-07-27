@@ -1,0 +1,165 @@
+name: Android Smoke (agent-device · Phase 0)
+
+# Phase-0 build-health canary: proves the developmentDebug APK installs,
+# launches, and reaches a known JS-rendered screen on a fresh emulator.
+# Does NOT log in or run a tab tour — see contributingGuides for Phase 1
+# follow-up which adds an Onyx-seed login bypass.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths-ignore:
+      - docs/**
+      - help/**
+      - .github/**
+      - contributingGuides/**
+      - tests/**
+      - "**.md"
+      - "**.sh"
+  workflow_dispatch:
+
+# Newer pushes to the same PR cancel older smoke runs; protects the runner
+# pool from PR-churn pile-ups.
+concurrency:
+  group: smoke-android-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Android emulator smoke
+    if: ${{ github.actor != 'OSBotify' }}
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 35
+    env:
+      AGENT_DEVICE_VERSION: "0.15.2"
+
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: true
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Verify KVM / fix permissions if needed
+        run: |
+          if ! ls -la /dev/kvm 2>/dev/null; then
+            echo "::error::No /dev/kvm on this runner — emulator will fall back to TCG and the job will time out"
+            exit 1
+          fi
+          if [ ! -w /dev/kvm ]; then
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+              | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+            sudo udevadm control --reload-rules
+            sudo udevadm trigger --name-match=kvm
+          fi
+
+      - name: Setup Java
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: "false"
+
+      - name: Install agent-device CLI
+        # Pin — never @latest. A breaking selector/flag change in a
+        # downstream release would silently flip this canary into a
+        # confidence-eroding flake source.
+        run: npm install -g "agent-device@${AGENT_DEVICE_VERSION}"
+
+      - name: Configure AWS credentials (Rock S3 cache)
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Configure MapBox SDK
+        # Required because the JS bundle imports @rnmapbox/maps and Metro
+        # serves the bundle from this checkout — the gradle path is gated
+        # by the same token via the existing setup script.
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Install Android CMake 3.30.5 (Hermes pins this exact version)
+        # Defensive: if the Rock S3 fingerprint misses and Rock falls
+        # back to a local Gradle build, hermes-engine's
+        # configureCMakeRelease[x86_64] task fails with [CXX1300] when
+        # CMake 3.30.5 isn't on the runner. Install before Rock so we
+        # surface the real fingerprint-drift signal rather than a
+        # confusing CMake-not-found error.
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "cmake;3.30.5" 2>&1 | tail -5
+
+      - name: Build / fetch developmentDebug APK via Rock
+        # If fingerprint matches main, pulls the prebuilt APK from S3 in
+        # ~30s. If it misses (e.g. native deps shifted on this branch),
+        # Rock falls back to a local Gradle build — slower but still
+        # produces the same APK at the path the smoke script expects.
+        env:
+          STANDALONE_NEW_DOT: "true"
+        run: npx rock build:android --variant developmentDebug
+
+      - name: AVD cache
+        # adbkey* must be cached too — without them adb regenerates keys
+        # and the device shows up as unauthorized with no UI to accept
+        # the prompt. Cache key includes a v1 salt + a hash of this
+        # workflow so editing the file invalidates stale snapshots.
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+            ~/.android/adbkey
+            ~/.android/adbkey.pub
+          key: avd-pixel8-api35-x86_64-v1-${{ hashFiles('.github/workflows/smokeAndroid.yml') }}
+
+      - name: Prime AVD snapshot (cache miss only)
+        # First-run cost. Subsequent runs hit the cache and skip this
+        # step entirely. The script must wait for sys.boot_completed —
+        # exiting too early snapshots a half-booted system and the
+        # cached snapshot is unusable.
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_8
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: false
+          script: |
+            adb wait-for-device
+            until [ -n "$(adb shell getprop sys.boot_completed | tr -d '\r')" ]; do sleep 2; done
+            echo "AVD primed"
+
+      - name: Run smoke
+        # -no-snapshot-save preserves the cached cold-boot snapshot
+        # (otherwise this run would overwrite it with whatever post-test
+        # state we ended up in).
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_8
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: bash .github/scripts/agent-device-smoke.sh
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: smoke-android-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14
