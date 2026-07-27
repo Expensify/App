@@ -14,7 +14,7 @@ import type {Merge} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import {queueOnyxUpdates} from './QueuedOnyxUpdates';
+import {getCurrentFlushPromise, queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -194,7 +194,16 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
             });
 
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        return advanceLastUpdateIDAfterApply(applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID)));
+        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
+
+        // WRITE requests only stage their updates in memory here — the real Onyx write happens later in
+        // QueuedOnyxUpdates.flushQueue(). Gate the watermark on that flush, but detached from the returned promise:
+        // SequentialQueue only flushes after this promise settles, so awaiting the flush here would deadlock.
+        if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE) {
+            advanceLastUpdateIDAfterApply(applyPromise.then(() => getCurrentFlushPromise())).catch(() => {});
+            return applyPromise;
+        }
+        return advanceLastUpdateIDAfterApply(applyPromise);
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
         return advanceLastUpdateIDAfterApply(applyPusherOnyxUpdates(updates, Number(lastUpdateID)));

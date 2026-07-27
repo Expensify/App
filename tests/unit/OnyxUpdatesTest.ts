@@ -2,6 +2,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import * as OnyxUpdates from '@src/libs/actions/OnyxUpdates';
+import {flushQueue} from '@src/libs/actions/QueuedOnyxUpdates';
 import DateUtils from '@src/libs/DateUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -153,6 +154,72 @@ describe('OnyxUpdatesTest', () => {
                 },
             }),
         ).rejects.toThrow('storage write failed');
+        await waitForBatchedUpdates();
+
+        // Then the watermark is not advanced, so the next reconnect can refetch and reapply the missed updates
+        const lastUpdateID = await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+        expect(lastUpdateID).toBe(10);
+
+        updateSpy.mockRestore();
+    });
+
+    it('advances lastUpdateID for WRITE requests only after the queued updates are flushed', async () => {
+        // Given the client is caught up to update 10
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        const reportID = NumberUtils.rand64();
+        const reportValue = {reportID};
+
+        // When we apply a newer WRITE update (lastUpdateID 20), which only queues the updates in memory
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 20,
+            request: {command: 'AddComment', data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+            response: {
+                jsonCode: 200,
+                onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: reportValue}],
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // Then the watermark does not advance yet — the updates are only queued, not applied
+        let lastUpdateID = await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+        expect(lastUpdateID).toBe(10);
+
+        // When the sequential queue flushes the queued updates
+        await flushQueue();
+        await waitForBatchedUpdates();
+
+        // Then the updates are applied and the watermark advances to 20
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        lastUpdateID = await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+        expect(report).toStrictEqual(reportValue);
+        expect(lastUpdateID).toBe(20);
+    });
+
+    it('does not advance lastUpdateID for WRITE requests when the deferred flush fails', async () => {
+        // Given the client is caught up to update 10
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        // When we apply a newer WRITE update (lastUpdateID 20), which only queues the updates in memory
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 20,
+            request: {command: 'AddComment', data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+            response: {
+                jsonCode: 200,
+                onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}`, value: {}}],
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // And the deferred flush fails to apply the queued updates (e.g. a storage write error)
+        const updateSpy = jest.spyOn(Onyx, 'update').mockRejectedValueOnce(new Error('storage write failed'));
+        await expect(flushQueue()).rejects.toThrow('storage write failed');
         await waitForBatchedUpdates();
 
         // Then the watermark is not advanced, so the next reconnect can refetch and reapply the missed updates
