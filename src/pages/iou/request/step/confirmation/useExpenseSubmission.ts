@@ -638,6 +638,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                formatPhoneNumber,
                 isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;
@@ -744,6 +745,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     accountant: item.accountant,
                     newLogins,
                     newAccountIDs,
+                    formatPhoneNumber,
                 },
                 optimisticChatReportID: optimisticSelfDMReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,
@@ -846,6 +848,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             isTrackIntentUser,
             delegateAccountID,
             formatPhoneNumber,
+            participantsPolicyTags,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -968,6 +971,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     delegateAccountID,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    participantsPolicyTags,
                 });
             }
             markSubmitExpenseEnd();
@@ -1008,6 +1012,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     delegateAccountID,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    participantsPolicyTags,
                 });
             }
             markSubmitExpenseEnd();
@@ -1032,6 +1037,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
+                formatPhoneNumber,
                 delegateAccountID,
             });
             if (shouldHandleNavigation) {
