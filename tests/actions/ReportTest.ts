@@ -2684,6 +2684,74 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('saveReportActionDraft', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+
+        it('saves the draft under the given report when the edited action belongs to it', async () => {
+            const reportID = '9101';
+            const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+            const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, 'draft-local-action');
+
+            Report.saveReportActionDraft(reportID, reportAction, {[reportAction.reportActionID]: reportAction}, 'edited message');
+            await waitForBatchedUpdates();
+
+            const drafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
+            expect(drafts?.['draft-local-action']?.message).toBe('edited message');
+        });
+
+        it('saves the draft under the parent report when editing a thread parent message from the child thread', async () => {
+            const parentReportID = '9102';
+            const threadReportID = '9103';
+            const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+            const parentReportAction = {...TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, 'draft-thread-parent-action'), childReportID: threadReportID};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {reportID: threadReportID, parentReportID, parentReportActionID: parentReportAction.reportActionID});
+            await waitForBatchedUpdates();
+
+            // The parent message is not part of the child thread's own actions, so the draft must be stored under the parent report
+            Report.saveReportActionDraft(threadReportID, parentReportAction, {}, 'edited thread parent');
+            await waitForBatchedUpdates();
+
+            const parentDrafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${parentReportID}`);
+            expect(parentDrafts?.['draft-thread-parent-action']?.message).toBe('edited thread parent');
+            const threadDrafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${threadReportID}`);
+            expect(threadDrafts?.['draft-thread-parent-action']).toBeUndefined();
+        });
+
+        it('does nothing when reportAction is null', async () => {
+            const reportID = '9104';
+
+            Report.saveReportActionDraft(reportID, null, undefined, 'should not be saved');
+            await waitForBatchedUpdates();
+
+            const drafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
+            expect(drafts).toBeFalsy();
+        });
+    });
+
+    describe('toggleEmojiReaction', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+
+        it('adds the reaction to a thread parent message using the parent report actions', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const parentReportID = '9105';
+            const threadReportID = '9106';
+            const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+            const parentReportAction = {...TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, 'react-thread-parent-action'), childReportID: threadReportID};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {reportID: threadReportID, parentReportID, parentReportActionID: parentReportAction.reportActionID});
+            // Seed the parent report's actions so the reaction can resolve the action under its owning report
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportAction.reportActionID]: parentReportAction});
+            await waitForBatchedUpdates();
+
+            // The child thread's own actions do not contain the parent message, so the original report must be resolved from the thread's parent
+            toggleEmojiReaction(threadReportID, parentReportAction, {name: 'smile', code: '😄', hexcode: '1F604'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, {});
+            await waitForBatchedUpdates();
+
+            const reactions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${parentReportAction.reportActionID}`);
+            expect(reactions?.smile?.users?.[TEST_USER_ACCOUNT_ID]).toBeDefined();
+        });
+    });
+
     it('should create new report and "create report" quick action, when createNewReport gets called', async () => {
         const accountID = 1234;
         const policyID = '5678';

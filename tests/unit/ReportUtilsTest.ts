@@ -18842,6 +18842,34 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
             await waitForBatchedUpdates();
         });
+
+        it('should return the transaction thread report ID for a one-transaction report when the action is not in the passed reportActions', async () => {
+            const reportID = 'getOriginalReportID-one-transaction';
+            const transactionThreadReportID = 'getOriginalReportID-transaction-thread';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.EXPENSE});
+            await waitForBatchedUpdates();
+
+            // The report's only money request action, whose childReportID is the single transaction thread
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(21),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: transactionThreadReportID,
+                originalMessage: {
+                    IOUReportID: reportID,
+                    IOUTransactionID: 'txn-one-transaction',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                },
+            };
+            // The queried action is not part of the passed reportActions and is not a thread parent action
+            const reportAction = {...createRandomReportAction(22), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, childReportID: undefined};
+
+            expect(getOriginalReportID(reportID, reportAction, {[iouAction.reportActionID]: iouAction})).toBe(transactionThreadReportID);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('hasVisibleReportFieldViolations', () => {

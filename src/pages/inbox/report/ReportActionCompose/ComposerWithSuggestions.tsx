@@ -271,6 +271,7 @@ function ComposerWithSuggestions({
 
     const {editingState, editingReportActionID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
     const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const isEditing = editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF;
     const text = useComposerText();
@@ -289,10 +290,9 @@ function ComposerWithSuggestions({
     const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(
         useCallback(
             (comment: string) => {
-                // The edited action is always local to reportID, so a minimal actions map is enough for saveReportActionDraft's getOriginalReportID to resolve to reportID (avoids subscribing the composer to REPORT_ACTIONS).
-                saveReportActionDraft(reportID, editingReportAction, editingReportAction ? {[editingReportAction.reportActionID]: editingReportAction} : undefined, comment);
+                saveReportActionDraft(reportID, editingReportAction, reportActions, comment);
             },
-            [reportID, editingReportAction],
+            [reportID, editingReportAction, reportActions],
         ),
     );
 
@@ -565,9 +565,7 @@ function ComposerWithSuggestions({
                     return;
                 }
 
-                // The edited action is always local to reportID, so a minimal actions map is enough for saveReportActionDraft's getOriginalReportID to resolve to reportID (avoids subscribing the composer to REPORT_ACTIONS).
-                const editingReportActionForDraft = {reportActionID: editingReportActionID} as OnyxTypes.ReportAction;
-                saveReportActionDraft(reportID, editingReportActionForDraft, editingReportActionID ? {[editingReportActionID]: editingReportActionForDraft} : undefined, newCommentConverted);
+                saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, reportActions, newCommentConverted);
                 return;
             }
 
@@ -597,6 +595,7 @@ function ComposerWithSuggestions({
             setEditingMessage,
             reportID,
             editingReportActionID,
+            reportActions,
             debouncedSaveReportActionDraft,
             debouncedSaveComment,
             currentUserAccountID,
@@ -638,8 +637,7 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    // The edited action is always local to reportID, so a minimal actions map is enough for saveReportActionDraft's getOriginalReportID to resolve to reportID (avoids subscribing the composer to REPORT_ACTIONS).
-                    saveReportActionDraft(reportID, lastReportAction, {[lastReportAction.reportActionID]: lastReportAction}, Parser.htmlToMarkdown(message?.html ?? ''));
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -688,6 +686,7 @@ function ComposerWithSuggestions({
             onEnterKeyPress,
             lastReportAction,
             reportID,
+            reportActions,
             updateComment,
             setCurrentEditMessageSelection,
         ],
