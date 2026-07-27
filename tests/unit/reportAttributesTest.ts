@@ -451,10 +451,10 @@ describe('reportAttributes compute — policy change code flow', () => {
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
-        const policy1WithNameChange = {...policy1, name: 'New Policy Name'} as unknown as Policy;
+        const policy1WithUntrackedChange = {...policy1, description: 'New description'} as unknown as Policy;
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
-            [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithNameChange,
+            [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithUntrackedChange,
         };
 
         const existingValue: ReportAttributesDerivedValue = {
@@ -467,7 +467,7 @@ describe('reportAttributes compute — policy change code flow', () => {
 
         const result = config.compute(buildArgs(updatedPolicies), {
             currentValue: existingValue,
-            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithNameChange} as never},
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithUntrackedChange} as never},
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
