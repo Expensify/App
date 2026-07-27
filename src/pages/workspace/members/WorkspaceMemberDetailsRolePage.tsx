@@ -41,10 +41,11 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
     const {environmentURL} = useEnvironment();
-    const workspaceRulesPageURL = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
+    const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(policyID);
+    const workspaceRulesPageURL = `${environmentURL}/${workspaceRulesRoute}`;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
@@ -68,7 +69,13 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
                 title: translate('workspace.rules.agentRules.unableToChangeRoleTitle'),
                 prompt: (
                     <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('workspace.rules.agentRules.unableToChangeRolePrompt', workspaceRulesPageURL)} />
+                        <RenderHTML
+                            onLinkPress={() => {
+                                closeModal();
+                                Navigation.navigate(workspaceRulesRoute);
+                            }}
+                            html={translate('workspace.rules.agentRules.unableToChangeRolePrompt', workspaceRulesPageURL)}
+                        />
                     </View>
                 ),
                 confirmText: translate('common.buttonConfirm'),

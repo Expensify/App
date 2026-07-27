@@ -112,7 +112,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
 
     const routeAccountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
@@ -134,7 +134,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyOwnerDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate})) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
-    const workspaceRulesPageURL = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
+    const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(policyID);
+    const workspaceRulesPageURL = `${environmentURL}/${workspaceRulesRoute}`;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const isReimburser =
@@ -264,7 +265,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 title: translate('workspace.rules.agentRules.unableToRemoveTitle'),
                 prompt: (
                     <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('workspace.rules.agentRules.unableToRemovePrompt', workspaceRulesPageURL)} />
+                        <RenderHTML
+                            onLinkPress={() => {
+                                closeModal();
+                                Navigation.navigate(workspaceRulesRoute);
+                            }}
+                            html={translate('workspace.rules.agentRules.unableToRemovePrompt', workspaceRulesPageURL)}
+                        />
                     </View>
                 ),
                 confirmText: translate('common.buttonConfirm'),

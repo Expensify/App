@@ -56,7 +56,7 @@ function AgentsPage() {
     const switchToDelegator = useSwitchToDelegator();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const {environmentURL} = useEnvironment();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -151,13 +151,18 @@ function AgentsPage() {
     const askForConfirmationToDelete = async () => {
         const ruleBotEnforcedPolicy = selectedAgentKeys.map((accountIDString) => getRuleBotEnforcedPolicy(Number(accountIDString), allPolicies)).find(Boolean);
         if (ruleBotEnforcedPolicy) {
+            const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id);
             showConfirmModal({
                 shouldShowCancelButton: false,
                 title: translate('workspace.rules.agentRules.unableToDeleteAgentTitle'),
                 prompt: (
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML
-                            html={translate('workspace.rules.agentRules.unableToDeleteAgentPrompt', `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id)}`)}
+                            onLinkPress={() => {
+                                closeModal();
+                                Navigation.navigate(workspaceRulesRoute);
+                            }}
+                            html={translate('workspace.rules.agentRules.unableToDeleteAgentPrompt', `${environmentURL}/${workspaceRulesRoute}`)}
                         />
                     </View>
                 ),

@@ -45,7 +45,7 @@ function CloseAccountPage() {
     const {translate, formatPhoneNumber} = useLocalize();
     const {environmentURL} = useEnvironment();
 
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const showCloseAccountWarningModal = () => {
         return showConfirmModal({
             title: translate('closeAccountPage.closeAccountWarning'),
@@ -66,13 +66,18 @@ function CloseAccountPage() {
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
         if (ruleBotEnforcedPolicy) {
+            const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id);
             showConfirmModal({
                 shouldShowCancelButton: false,
                 title: translate('workspace.rules.agentRules.unableToCloseAccountTitle'),
                 prompt: (
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML
-                            html={translate('workspace.rules.agentRules.unableToCloseAccountPrompt', `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id)}`)}
+                            onLinkPress={() => {
+                                closeModal();
+                                Navigation.navigate(workspaceRulesRoute);
+                            }}
+                            html={translate('workspace.rules.agentRules.unableToCloseAccountPrompt', `${environmentURL}/${workspaceRulesRoute}`)}
                         />
                     </View>
                 ),

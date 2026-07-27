@@ -44,7 +44,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const {environmentURL} = useEnvironment();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
@@ -59,13 +59,18 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const handleDeletePress = async () => {
         const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(accountID, allPolicies);
         if (ruleBotEnforcedPolicy) {
+            const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id);
             showConfirmModal({
                 shouldShowCancelButton: false,
                 title: translate('workspace.rules.agentRules.unableToDeleteAgentTitle'),
                 prompt: (
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML
-                            html={translate('workspace.rules.agentRules.unableToDeleteAgentPrompt', `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id)}`)}
+                            onLinkPress={() => {
+                                closeModal();
+                                Navigation.navigate(workspaceRulesRoute);
+                            }}
+                            html={translate('workspace.rules.agentRules.unableToDeleteAgentPrompt', `${environmentURL}/${workspaceRulesRoute}`)}
                         />
                     </View>
                 ),

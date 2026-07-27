@@ -75,7 +75,7 @@ function SecuritySettingsPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const {environmentURL} = useEnvironment();
 
     const {isAccountLocked} = useLockedAccountState();
@@ -206,16 +206,18 @@ function SecuritySettingsPage() {
                     }
                     const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(session?.accountID, allPolicies);
                     if (ruleBotEnforcedPolicy) {
+                        const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id);
                         showConfirmModal({
                             shouldShowCancelButton: false,
                             title: translate('workspace.rules.agentRules.unableToDeleteAgentTitle'),
                             prompt: (
                                 <View style={[styles.renderHTML, styles.flexRow]}>
                                     <RenderHTML
-                                        html={translate(
-                                            'workspace.rules.agentRules.unableToDeleteAgentPrompt',
-                                            `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id)}`,
-                                        )}
+                                        onLinkPress={() => {
+                                            closeModal();
+                                            Navigation.navigate(workspaceRulesRoute);
+                                        }}
+                                        html={translate('workspace.rules.agentRules.unableToDeleteAgentPrompt', `${environmentURL}/${workspaceRulesRoute}`)}
                                     />
                                 </View>
                             ),
@@ -275,6 +277,7 @@ function SecuritySettingsPage() {
         showDelegateNoAccessModal,
         showLockedAccountModal,
         showConfirmModal,
+        closeModal,
         session?.accountID,
         stashedCredentials,
         stashedSession,
