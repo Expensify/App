@@ -28,10 +28,10 @@ Requirements:
 
 ## How to connect Expensify in ChatGPT
 
-1. Open ChatGPT and start a new conversation.
-2. Click the **+** button near the message composer.
-3. Select **More**.
-4. Search for **Expensify** in the connector directory.
+1. Open ChatGPT.
+2. Go to **Settings**.
+3. Select **Plugins**.
+4. Find **Expensify** in the list.
 5. Click **Connect**.
 6. Complete the OAuth sign-in and approval flow in your browser.
 7. Click **Allow**.
