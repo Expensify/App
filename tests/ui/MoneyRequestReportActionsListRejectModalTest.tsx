@@ -66,7 +66,18 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return ({listFooterComponent}: {listFooterComponent?: React.ReactElement}) => <View testID="MockMoneyRequestReportTransactionList">{listFooterComponent}</View>;
+    return ({listFooterComponent, isLoadingInitialActions}: {listFooterComponent?: React.ReactElement; isLoadingInitialActions: boolean}) => (
+        <View testID="MockMoneyRequestReportTransactionList">
+            {isLoadingInitialActions ? <View testID="MockInitialReportActionsSkeleton" /> : null}
+            {listFooterComponent}
+        </View>
+    );
+});
+
+jest.mock('@components/MoneyRequestReportView/SearchMoneyRequestReportEmptyState', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return () => <View testID="MockSearchMoneyRequestReportEmptyState" />;
 });
 
 jest.mock('@components/HoldOrRejectEducationalModal', () => {
@@ -197,12 +208,12 @@ const mockReportAction: ReportAction = {
     childReportID: 'CHILD_001',
 } as unknown as ReportAction;
 
-const renderComponent = () => {
+const renderComponent = (isReportLoadPending = false) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SearchContextProvider>
                 <ScreenWrapper testID="test">
-                    <MoneyRequestReportActionsList />
+                    <MoneyRequestReportActionsList isReportLoadPending={isReportLoadPending} />
                 </ScreenWrapper>
             </SearchContextProvider>
         </ComposeProviders>,
@@ -280,5 +291,58 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         // Modal should NOT be shown; original handler should be called directly
         expect(screen.queryByTestId('HoldOrRejectEducationalModal')).toBeNull();
         expect(mockOriginalRejectOnSelected).toHaveBeenCalled();
+    });
+
+    it('shows the empty state when only the stored loading flag is true', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent(false);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();
+        expect(screen.queryByTestId('MockMoneyRequestReportTransactionList')).toBeNull();
+    });
+
+    it('keeps the loading list mounted when only the report pending state is true', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent(true);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('MockMoneyRequestReportTransactionList')).toBeTruthy();
+        expect(screen.getByTestId('MockInitialReportActionsSkeleton')).toBeTruthy();
+        expect(screen.queryByTestId('MockSearchMoneyRequestReportEmptyState')).toBeNull();
+    });
+
+    it('shows a warm empty report without a skeleton or loading list while a report request is pending', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent(true);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();
+        expect(screen.queryByTestId('MockMoneyRequestReportTransactionList')).toBeNull();
+        expect(screen.queryByTestId('MockInitialReportActionsSkeleton')).toBeNull();
     });
 });

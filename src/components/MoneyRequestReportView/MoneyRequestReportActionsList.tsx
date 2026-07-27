@@ -90,11 +90,14 @@ const DELAY_FOR_SCROLLING_TO_END = 100;
 const BACKFILL_MIN_ACTIONS_THRESHOLD = 50;
 
 type MoneyRequestReportListProps = {
+    /** Whether the OpenReport request or its deferred updates are pending for this report */
+    isReportLoadPending: boolean;
+
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsList({isReportLoadPending, onLayout}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -156,6 +159,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     });
     const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs, reportIDFromRoute, isFocused);
     const showReportActionsLoadingState = reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
+    const isInitialReportLoadPending = isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions;
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
@@ -209,11 +213,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         return filteredActions.slice().reverse();
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
 
-    const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
+    const shouldShowOpenReportLoadingSkeleton = !isOffline && isInitialReportLoadPending && visibleReportActions.length === 0;
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'MoneyRequestReportActionsList',
         isOffline,
-        showReportActionsLoadingState: !!showReportActionsLoadingState,
+        isInitialReportLoadPending,
     };
     useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
 
@@ -707,7 +711,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         markOpenReportEnd(report, {warm: !shouldShowOpenReportLoadingSkeleton});
     }, [report, shouldShowOpenReportLoadingSkeleton]);
 
-    const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState;
+    const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !isInitialReportLoadPending;
     const showEmptyState = isReportEmpty;
 
     if (!report) {
@@ -776,7 +780,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         onEndReached={onEndReached}
                         onStartReached={onStartReached}
                         contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
-                        isLoadingInitialActions={!!showReportActionsLoadingState}
+                        isLoadingInitialActions={isInitialReportLoadPending}
                         skeletonReasonAttributes={skeletonReasonAttributes}
                     />
                 )}

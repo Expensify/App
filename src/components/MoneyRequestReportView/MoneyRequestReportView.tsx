@@ -153,7 +153,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
+    const isReportLoadPending = useIsReportLoadPending(reportID);
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
     }, [reportID]);
@@ -164,9 +164,9 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
 
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportLoadingState, isOffline);
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportLoadingState, isReportLoadPending, isOffline);
 
-    const shouldShowOpenReportLoadingSkeleton = !!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
+    const shouldShowOpenReportLoadingSkeleton = !!(isReportLoadPending && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
 
     const isEmptyTransactionReport = visibleTransactions?.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
@@ -215,7 +215,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     if (shouldShowOpenReportLoadingSkeleton) {
         const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'MoneyRequestReportView.InitialLoadingSkeleton',
-            isLoadingInitialReportActions: !!isLoadingInitialReportActions,
+            isLoadingInitialReportActions: isReportLoadPending,
             shouldWaitForTransactions,
         };
         return (
@@ -278,7 +278,10 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                     )}
                     <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                         {shouldDisplayMoneyRequestActionsList ? (
-                            <MoneyRequestReportActionsList onLayout={onLayout} />
+                            <MoneyRequestReportActionsList
+                                isReportLoadPending={isReportLoadPending}
+                                onLayout={onLayout}
+                            />
                         ) : (
                             <>
                                 <ReportActionsList

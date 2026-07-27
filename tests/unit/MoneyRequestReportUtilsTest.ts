@@ -1,9 +1,9 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getReportIDForTransaction, hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {getReportIDForTransaction, hasNonReimbursableTransactions, isBillableEnabledOnPolicy, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
 
 const policyBaseMock: Policy = {
     id: '123456789A',
@@ -186,6 +186,34 @@ describe('MoneyRequestReportUtils', () => {
             const reimbursable = {reimbursable: true} as unknown as Transaction;
             const nonReimbursable = {reimbursable: false} as unknown as Transaction;
             expect(hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
+        });
+    });
+
+    describe('shouldWaitForTransactions', () => {
+        const zeroTotalReport = {...reportBaseMock, total: 0};
+
+        test('ignores a stored loading flag when no report load is pending', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, false, false)).toBe(false);
+        });
+
+        test('waits for transactions when a report load is pending despite a false stored loading flag', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, true, false)).toBe(true);
+        });
+
+        test('does not wait after report actions have loaded successfully', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true};
+
+            expect(shouldWaitForTransactions(zeroTotalReport, [], reportLoadingState, true, false)).toBe(false);
+        });
+
+        test('still waits for a nonzero report total when no transactions are available', () => {
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
+
+            expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, false, false)).toBe(true);
         });
     });
 });

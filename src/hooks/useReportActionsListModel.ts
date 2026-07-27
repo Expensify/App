@@ -10,7 +10,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 
-import {useIsAppLoadPending} from './useInFlightRequests';
+import {useIsAppLoadPending, useIsReportLoadPending} from './useInFlightRequests';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -63,6 +63,7 @@ function useReportActionsListModel(reportID: string) {
     const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
 
     const isAppLoadPending = useIsAppLoadPending();
+    const isReportLoadPending = useIsReportLoadPending(reportID);
 
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
 
@@ -117,6 +118,7 @@ function useReportActionsListModel(reportID: string) {
         isReportTransactionThread,
         shouldBeAlignedToTop,
         isLoadingInitialReportActions,
+        isReportLoadPending,
         hasOnceLoadedReportActions,
         isLoadingApp: isAppLoadPending,
         reportActionsLength: reportActions.length,

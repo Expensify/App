@@ -169,6 +169,12 @@ describe('MoneyRequestReportView', () => {
         await Onyx.clear();
     });
 
+    it('passes report pending state to transaction readiness', () => {
+        renderMoneyRequestReportView(jest.fn());
+
+        expect(MoneyRequestReportUtils.shouldWaitForTransactions).toHaveBeenLastCalledWith(mockReport, [], mockReportLoadingState, false, false);
+    });
+
     it('mounts the chat list body and the typing listener (not the table view) for a transaction-thread report', () => {
         const onLayout = jest.fn();
 
@@ -189,6 +195,7 @@ describe('MoneyRequestReportView', () => {
         renderMoneyRequestReportView(jest.fn());
 
         expect(mockMoneyRequestReportActionsList).toHaveBeenCalled();
+        expect(mockMoneyRequestReportActionsList.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({isReportLoadPending: false}));
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockUserTypingEventListener).not.toHaveBeenCalled();
     });
