@@ -6,6 +6,8 @@ import {
     sortNavigationSuggestionItems,
     stripNavigationIntentPrefix,
 } from '@components/Search/SearchRouter/SearchRouterHelpers';
+import {buildCreateNavigationItems, replaceTopmostModalWithAction} from '@components/Search/SearchRouter/useCreateNavigationSuggestions';
+import type {CreateNavigationItem} from '@components/Search/SearchRouter/useCreateNavigationSuggestions';
 import {buildTopLevelNavigationItems} from '@components/Search/SearchRouter/useNavigationSuggestions';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,6 +18,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
+        dismissModal: jest.fn(),
+        isTopmostRouteModalScreen: jest.fn(() => false),
         navigate: jest.fn(),
     },
 }));
@@ -178,5 +182,62 @@ describe('top-level Search Router navigation source', () => {
         expect(getSpendRoute).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(4, ROUTES.WORKSPACES_LIST.route);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(5, ROUTES.SETTINGS);
+    });
+});
+
+describe('Create Search Router navigation source', () => {
+    const createAction = jest.fn();
+    const createItems: CreateNavigationItem[] = [
+        {visible: true, text: 'Create expense', icon: mockIcon, action: createAction, keyForList: 'create_expense'},
+        {visible: true, text: 'Create report', icon: mockIcon, action: createAction, keyForList: 'create_report'},
+        {visible: true, text: 'Track distance', icon: mockIcon, action: createAction, keyForList: 'create_trackDistance'},
+        {visible: true, text: 'New chat', icon: mockIcon, action: createAction, keyForList: 'create_chat'},
+        {visible: false, text: 'Create invoice', icon: mockIcon, action: createAction, keyForList: 'create_invoice'},
+        {visible: false, text: 'New workspace', icon: mockIcon, action: createAction, keyForList: 'create_workspace'},
+    ];
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('builds visible Create rows with direct action labels and excludes unavailable items', () => {
+        const items = buildCreateNavigationItems(createItems);
+
+        expect(items.map((item) => item.text)).toEqual(['Create expense', 'Create report', 'Track distance', 'New chat']);
+        expect(items.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat']);
+        expect(items.map((item) => item.singleIcon)).toEqual([mockIcon, mockIcon, mockIcon, mockIcon]);
+        expect(items.map((item) => item.matchTerms)).toEqual([['Create expense'], ['Create report'], ['Track distance'], ['New chat']]);
+        expect(items.some((item) => item.text?.startsWith('Go to'))).toBe(false);
+        expect(items.some((item) => item.keyForList === 'create_invoice' || item.keyForList === 'create_workspace')).toBe(false);
+        expect(items.some((item) => item.keyForList === 'create_travel' || item.keyForList === 'create_quickAction')).toBe(false);
+    });
+
+    it('matches Create rows through the existing navigation suggestion pipeline', () => {
+        const items = buildCreateNavigationItems(createItems);
+
+        expect(buildNavigationSuggestions('expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
+        expect(buildNavigationSuggestions('go to track distance', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_trackDistance']);
+        expect(buildNavigationSuggestions('go to create     expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
+    });
+
+    it('runs an action immediately when no RHP is open', () => {
+        jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(false);
+
+        replaceTopmostModalWithAction(createAction);
+
+        expect(createAction).toHaveBeenCalledTimes(1);
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
+    });
+
+    it('dismisses an existing RHP before running the Create action', () => {
+        jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(true);
+
+        replaceTopmostModalWithAction(createAction);
+
+        expect(createAction).not.toHaveBeenCalled();
+        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+        const afterTransition = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0)?.afterTransition;
+        afterTransition?.();
+        expect(createAction).toHaveBeenCalledTimes(1);
     });
 });

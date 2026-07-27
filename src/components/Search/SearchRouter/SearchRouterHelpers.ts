@@ -32,22 +32,22 @@ function isNavigationIntentOnlyQuery(query: string) {
     return /^go(?:\s+to)?$/i.test(query.trim());
 }
 
+function normalizeNavigationText(value: string) {
+    return StringUtils.normalizeAccents(value).toLowerCase().replaceAll(/\s+/g, ' ').trim();
+}
+
 function matchesNavigationQuery(query: string, ...values: Array<string | undefined>) {
-    const normalizedQuery = StringUtils.normalizeAccents(query).toLowerCase();
+    const normalizedQuery = normalizeNavigationText(query);
     if (!normalizedQuery) {
         return false;
     }
 
-    return values.some((value) =>
-        StringUtils.normalizeAccents(value ?? '')
-            .toLowerCase()
-            .includes(normalizedQuery),
-    );
+    return values.some((value) => normalizeNavigationText(value ?? '').includes(normalizedQuery));
 }
 
 function matchesNavigationQueryExactly(query: string, ...values: Array<string | undefined>) {
-    const normalizedQuery = StringUtils.normalizeAccents(query).toLowerCase();
-    return values.some((value) => StringUtils.normalizeAccents(value ?? '').toLowerCase() === normalizedQuery);
+    const normalizedQuery = normalizeNavigationText(query);
+    return values.some((value) => normalizeNavigationText(value ?? '') === normalizedQuery);
 }
 
 function sortNavigationSuggestionItems<T extends NavigationSuggestionSourceItem>(items: T[], localeCompare: LocaleContextProps['localeCompare']): T[] {

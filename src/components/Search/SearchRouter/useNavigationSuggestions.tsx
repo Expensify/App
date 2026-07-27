@@ -20,6 +20,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
 import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
+import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Gear', IconAsset>;
 
@@ -81,6 +82,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'ReceiptMultiple', 'Building', 'Gear']);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const createItems = useCreateNavigationSuggestions();
 
     const topLevelItems = buildTopLevelNavigationItems({
         labels: {
@@ -95,7 +97,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
 
-    return buildNavigationSuggestions(query, [topLevelItems], localeCompare);
+    return buildNavigationSuggestions(query, [topLevelItems, createItems], localeCompare);
 }
 
 export default useNavigationSuggestions;
