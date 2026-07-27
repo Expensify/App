@@ -31,6 +31,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
@@ -527,6 +528,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: 'Grafiek kan niet worden weergegeven',
         webGLNotSupported: 'Je browser ondersteunt WebGL niet. Schakel het in of gebruik een andere browser.',
         apiKey: 'API-sleutel',
+        exportsTo: 'Exporteert naar',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -4435,21 +4437,21 @@ ${amount} voor ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Hoi! Wist je dat je vluchten direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van handmatig een uitgave aanmaken en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Hoi! Wist je dat je vluchten rechtstreeks in Expensify kunt boeken en beheren? En dat bonnetjes automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Hoi! Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wist je dat je hotelovernachtingen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Hoi! Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wist je dat je hotelverblijven direct in Expensify kunt boeken en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Hoi! Wist je dat je autoverhuur direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Hoi! Wist je dat je rechtstreeks in Expensify auto\'s kunt huren en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Boek de volgende keer eenvoudig via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Hoi! Wist je dat je treinreizen gewoon in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van je uitgave handmatig aanmaken en boek simpelweg via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wist je dat je treinreizen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Hoi! Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat de bonnetjes automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     workspace: {
@@ -5769,6 +5771,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 },
                 csvColumns: {
                     cardNumber: 'Kaartnummer',
+                    cardName: 'Kaartnaam',
                     postedDate: 'Datum',
                     merchant: 'Handelaar',
                     amount: 'Bedrag',
@@ -5785,6 +5788,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     requiredColumns: (missingColumns: string) => `Wijs een kolom toe aan elk van de attributen: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) =>
                         `Oeps! Je hebt één enkel veld (“${duplicateColumn}”) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
+                    cardIdentityColumn: 'Koppel een kaartnummer of een kaartnaam zodat transacties aan een kaart kunnen worden gekoppeld.',
                 },
                 fileImportDescription: 'Een handmatige optie als je bank geen feed kan versturen.',
                 duplicateFeedModal: {title: 'Kaartfeed al verbonden', prompt: 'Je kunt dezelfde kaartfeed niet twee keer aan dezelfde workspace toevoegen.'},
@@ -5946,7 +5950,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             deleteFailureMessage: 'Er is een fout opgetreden bij het verwijderen van de categorie, probeer het opnieuw',
             categoryName: 'Categorienaam',
             requiresCategory: 'Leden moeten alle uitgaven categoriseren',
-            showCategoryGLCodes: 'Toon GL-codes bij het categoriseren van uitgaven',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle onkosten moeten worden gecategoriseerd om te kunnen exporteren naar ${connectionName}.`,
             subtitle: 'Krijg beter inzicht in waar geld wordt uitgegeven. Gebruik onze standaardcategorieën of voeg je eigen categorieën toe.',
             emptyCategories: {
@@ -6043,6 +6046,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             currentTravelSpendLabel: 'Huidige reiskosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Betaling van ${amount} staat in de wachtrij en wordt binnenkort verwerkt.`,
                             currentTravelSpendCta: 'Saldo betalen',
+                            viewOnSpend: 'Bekijken in Uitgaven',
                             currentTravelLimitLabel: 'Huidige reisl imiet',
                             settlementAccountLabel: 'Verrekeningsrekening',
                             settlementFrequencyLabel: 'Uitbetalingsfrequentie',
@@ -6235,6 +6239,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 defaultHourlyRate: 'Standaard uurtarief',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
+            vendors: {title: 'Leveranciers', subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -7050,6 +7055,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             amountPerUnit: (unit: string) => `Bedrag per ${unit}`,
             startDate: 'Startdatum',
             endDate: 'Einddatum',
+            autoGeneratedRateTooltip: 'Dit tarief is automatisch gegenereerd.',
         },
         editor: {
             descriptionInputLabel: 'Beschrijving',
@@ -7599,7 +7605,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             },
             customRules: {
                 title: 'Declaratiebeleid',
-                cardSubtitle: 'Hier staat het declaratiebeleid van je team, zodat iedereen hetzelfde beeld heeft van wat er wordt vergoed.',
+                cardSubtitle: 'Upload je onkostendeclaratiebeleid zodat iedereen weet wat ze wel en niet kunnen declareren.',
                 policyDocument: 'Beleidsdocument',
                 policyText: 'Beleidstekst',
             },
@@ -8788,6 +8794,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 title: 'Geen uitgaven om weer te geven',
                 subtitle: 'Geen resultaten. Pas je filters aan en probeer het opnieuw.',
             },
+            emptyViolationSnapshotResults: {
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
+                    `Overtredingen worden alleen bijgehouden vanaf ${formattedDate}. Probeer je datumfilters aan te passen.`,
+            },
             emptyUnapprovedResults: {
                 title: 'Geen declaraties om goed te keuren',
                 subtitle: 'Nul uitgaven. Maximale chill. Goed gedaan!',
@@ -8803,6 +8813,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',
         searchName: 'Zoeknaam',
         savedSearchesMenuItemTitle: 'Opgeslagen',
+        mySavedSearch: 'Mijn uitgaven',
         urlCopied: 'URL gekopieerd',
         groupedExpenses: 'gegroepeerde uitgaven',
         bulkActions: {
@@ -8903,6 +8914,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Geconsolideerde reisfacturatie',
             },
             is: 'Is',
+            has: {submittedViolation: 'Ingediende overtreding'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Verzenden',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Goedkeuren',
@@ -10143,7 +10155,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',
-        saveSearchTooltip: '<tooltip><strong>Hernoem hier je opgeslagen zoekopdrachten</strong>!</tooltip>',
         accountSwitcher: '<tooltip>Krijg hier toegang tot je <strong>Copilot-accounts</strong></tooltip>',
         outstandingFilter: '<tooltip>Filter voor uitgaven\ndie <strong>goedkeuring nodig hebben</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Stuur deze bon om\n<strong>de proefrit te voltooien!</strong></tooltip>',
@@ -10429,6 +10440,17 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         description: 'Laat het ons weten, zodat we je uitgavenervaring nog beter kunnen maken.',
         positiveButton: 'Ja!',
         negativeButton: 'Niet echt',
+    },
+    trialPaymentReminder: {
+        title: 'Blijf de deadline voor',
+        subtitle: 'Wacht niet tot het laatste moment, voeg vandaag nog je betaalmethode toe om doorlopende toegang tot je uitgaven op Expensify te garanderen.',
+        trialEndsInDays: () => ({
+            one: 'Proefperiode eindigt over 1 dag',
+            other: (pluralCount: number) => `Proefperiode eindigt over ${pluralCount} dagen`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Proefperiode eindigt over ${hours}u : ${minutes}m : ${seconds}s`,
+        closeButton: 'Sluiten',
+        addPaymentCardButton: 'Betaalkaart toevoegen',
     },
     monthPickerPage: {month: 'Maand', selectMonth: 'Selecteer een maand'},
     aiFeaturesPromoModal: {

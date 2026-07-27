@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingAccounting} from './CONST';
 import type {TranslationPaths} from './languages/types';
+import type {OnboardingFeatureMapItem} from './libs/actions/Welcome/OnboardingFeatures';
 import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
 import type Platform from './libs/getPlatform/types';
 import type {TransactionThreadNavigationDescriptor} from './libs/TransactionThreadNavigationUtils';
@@ -305,6 +306,9 @@ const ONYXKEYS = {
     /** ID associated with the payment card added by the user. */
     NVP_BILLING_FUND_ID: 'nvp_expensify_billingFundID',
 
+    /** ISO timestamp of the last time the trial payment reminder was dismissed */
+    NVP_DISMISSED_TRIAL_PAYMENT_REMINDER: 'nvp_dismissedTrialPaymentReminder',
+
     /** The user's freebie credits balance (in cents). */
     NVP_PRIVATE_FREEBIE_CREDITS: 'nvp_private_freebieCredits',
 
@@ -528,6 +532,12 @@ const ONYXKEYS = {
     /** Onboarding user reported integration selected by the user during Onboarding flow */
     ONBOARDING_USER_REPORTED_INTEGRATION: 'onboardingUserReportedIntegration',
 
+    /** Whether the user kept Accounting enabled during Onboarding feature selection */
+    ONBOARDING_ACCOUNTING_ENABLED: 'onboardingAccountingEnabled',
+
+    /** Onboarding interested features persisted before navigating to the Accounting step */
+    ONBOARDING_INTERESTED_FEATURES_MAP: 'onboardingInterestedFeaturesMap',
+
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_ADMINS_CHAT_REPORT_ID: 'onboardingAdminsChatReportID',
 
@@ -658,6 +668,9 @@ const ONYXKEYS = {
 
     /** Stores the information about the saved searches */
     SAVED_SEARCHES: 'nvp_savedSearches',
+
+    /** Tracks whether the "My expenses" saved search has been seeded for this account */
+    NVP_HAS_SEEDED_MY_EXPENSES_SEARCH: 'nvp_hasSeededMyExpensesSearch',
 
     /** Stores the information about the recent searches */
     RECENT_SEARCHES: 'nvp_recentSearches',
@@ -1498,6 +1511,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRY_NEW_DOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
+    [ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH]: boolean;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
     [ONYXKEYS.SEARCH_QUERY_BY_HASH]: Record<string, string>;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
@@ -1687,6 +1701,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
+    [ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER]: string;
     [ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
@@ -1742,6 +1757,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS]: Record<string, TransactionThreadNavigationDescriptor>;
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
+    [ONYXKEYS.ONBOARDING_ACCOUNTING_ENABLED]: boolean;
+    [ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP]: OnboardingFeatureMapItem[];
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.ExportTemplate>;
     [ONYXKEYS.NVP_EXPENSE_RULES]: OnyxTypes.ExpenseRule[];

@@ -56,6 +56,7 @@ import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-o
 import PendingTravel from '@assets/images/pending-travel.svg';
 // Product Illustrations
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
+import ArmWithCardPos from '@assets/images/product-illustrations/arm_with_card_pos.svg';
 import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
@@ -112,6 +113,7 @@ import ShareBank from '@assets/images/simple-illustrations/simple-illustration__
 import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
+import Briefcase from '@assets/images/simple-illustrations/simple-illustration__briefcase.svg';
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import BuildingCross from '@assets/images/simple-illustrations/simple-illustration__building_cross.svg';
@@ -271,6 +273,7 @@ const Illustrations = {
 
     // Product Illustrations
     Abracadabra,
+    ArmWithCardPos,
     BigVault,
     BrokenCompanyCardBankConnection,
     BrokenMagnifyingGlass,
@@ -379,6 +382,7 @@ const Illustrations = {
     Workflows,
     CarIce,
     BlueShield,
+    Briefcase,
     Pencil,
     ShareBank,
     Luggage,
