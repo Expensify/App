@@ -6529,6 +6529,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             peopleAdmins: 'People 管理者',
             paymentsAdmins: '支払い管理者',
             members: 'メンバー',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `${memberName}さんはExpensify カードをお持ちの間、このワークスペースから削除できません。ワークスペース > Expensify カードでカードを無効化してから、もう一度お試しください。`,
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',

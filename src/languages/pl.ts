@@ -6576,6 +6576,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             peopleAdmins: 'Administratorzy osób',
             paymentsAdmins: 'Administratorzy płatności',
             members: 'Członkowie',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Nie możesz usunąć użytkownika ${memberName} z tego workspace, dopóki ma Kartę Expensify. Dezaktywuj jego kartę w Workspace > Karta Expensify, a następnie spróbuj ponownie.`,
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
