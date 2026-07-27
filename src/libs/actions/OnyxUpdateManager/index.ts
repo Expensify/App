@@ -154,6 +154,9 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
     // we don't have base state of the app (reports, policies, etc.) setup. If we apply this update,
     // we'll only have them overwritten by the openApp response. So let's skip it and return.
     if (isLoadingApp) {
+        // If one of these onyx updates is for the authToken, update it now because our current authToken is probably invalid.
+        updateAuthTokenIfNecessary(onyxUpdatesFromServer);
+
         // When ONYX_UPDATES_FROM_SERVER is set, we pause the queue. Let's unpause
         // it so the app is not stuck forever without processing requests.
         unpauseSequentialQueue();
