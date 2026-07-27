@@ -6274,6 +6274,8 @@ const translations = {
                 setTransactionLiabilityDescription: 'When enabled, cardholders can delete card transactions. New transactions will follow this rule.',
                 emptyAddedFeedTitle: 'No cards in this feed',
                 emptyAddedFeedDescription: "Make sure there are cards in your bank's card feed.",
+                importingCardsTitle: 'Cards will appear in a moment...',
+                importingCardsDescription: 'Hang tight, new cards and transactions may take a few minutes to appear.',
                 pendingFeedTitle: `We're reviewing your request...`,
                 pendingFeedDescription: `We're currently reviewing your feed details. Once that's done, we'll reach out to you via`,
                 pendingBankTitle: 'Check your browser window',
