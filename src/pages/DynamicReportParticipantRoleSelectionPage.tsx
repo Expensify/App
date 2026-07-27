@@ -59,8 +59,10 @@ function DynamicReportParticipantRoleSelectionPage({report, route}: DynamicRepor
             showButton: true,
             text: translate('common.save'),
             onConfirm: saveAndGoBack,
+            // Nothing to persist while the selection still matches the currently saved role.
+            isDisabled: selectedRole === member?.role,
         }),
-        [saveAndGoBack, translate],
+        [saveAndGoBack, translate, selectedRole, member?.role],
     );
 
     if (!member) {

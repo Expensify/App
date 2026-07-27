@@ -80,8 +80,11 @@ function SearchEditMultipleBooleanPage() {
             showButton: true,
             text: translate('common.save'),
             onConfirm: saveAndGoBack,
+            // Save persists `selectedValue ?? null`, so disable it while that matches the currently persisted value
+            // (normalizing undefined/null, which both represent "no value").
+            isDisabled: (selectedValue ?? null) === (persistedValue ?? null),
         }),
-        [saveAndGoBack, translate],
+        [saveAndGoBack, translate, selectedValue, persistedValue],
     );
 
     return (
