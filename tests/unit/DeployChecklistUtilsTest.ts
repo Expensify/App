@@ -15,19 +15,25 @@ type OctokitListForRepo = Octokit['issues']['listForRepo'];
 type ListForRepoResponse = Awaited<ReturnType<OctokitListForRepo>>;
 type OctokitIssue = ListForRepoResponse['data'][number];
 type PullRequest = Exclude<Awaited<ReturnType<typeof GithubUtils.fetchAllPullRequests>>, void>[number];
+type InternalOctokit = NonNullable<typeof GithubUtils.internalOctokit>;
+type OctokitPaginate = InternalOctokit['paginate'];
+type OctokitGetPullRequest = Octokit['pulls']['get'];
+type GetPullRequestResponse = Awaited<ReturnType<OctokitGetPullRequest>>;
 
 const createListForRepoResponse = (data: OctokitIssue[]): ListForRepoResponse => createMock<ListForRepoResponse>({data});
 
 const mockListIssues = jest.fn<ReturnType<OctokitListForRepo>, Parameters<OctokitListForRepo>>();
 let listForRepoSpy: jest.SpiedFunction<OctokitListForRepo>;
+let internalOctokit: InternalOctokit;
 
 beforeAll(() => {
     GithubUtils.initOctokitWithToken('fake_token');
-    const internalOctokit = GithubUtils.internalOctokit;
-    if (!internalOctokit) {
+    const initializedOctokit = GithubUtils.internalOctokit;
+    if (!initializedOctokit) {
         throw new Error('Expected GithubUtils to initialize an Octokit client.');
     }
 
+    internalOctokit = initializedOctokit;
     listForRepoSpy = jest.spyOn(internalOctokit.rest.issues, 'listForRepo').mockImplementation(mockListIssues);
 });
 
@@ -171,6 +177,13 @@ describe('DeployChecklistUtils', () => {
                     tag: '-staging',
                 }),
             );
+        });
+
+        test('Test finding an open issue with malformed URL', async () => {
+            const malformedURLIssue = {...baseIssue, url: 'invalid-url'};
+
+            mockListIssues.mockResolvedValue(createListForRepoResponse([malformedURLIssue]));
+            await expect(getDeployChecklist()).rejects.toThrow(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue with correct data.`);
         });
 
         test('Test finding more than one issue', async () => {
@@ -344,27 +357,38 @@ describe('DeployChecklistUtils', () => {
             createMock<PullRequest>({number: 6, title: '[Internal QA] Another Test Internal QA PR', labels: [{name: 'InternalQA'}]}),
             createMock<PullRequest>({number: 7, title: '[Internal QA] Another Test Internal QA PR', labels: [{name: 'InternalQA'}]}),
         ];
-        const mockPullRequestsByRepo: Record<string, PullRequest[]> = {
-            [CONST.APP_REPO]: mockPRs,
-            [CONST.MOBILE_EXPENSIFY_REPO]: mockPRs,
-        };
-        const mockFetchAllPullRequests = jest.spyOn(GithubUtils, 'fetchAllPullRequests');
-        const mockGetPullRequestMergerLogin = jest.spyOn(GithubUtils, 'getPullRequestMergerLogin');
+        let paginateSpy: jest.SpiedFunction<OctokitPaginate>;
+        let getPullRequestSpy: jest.SpiedFunction<OctokitGetPullRequest>;
+
+        beforeAll(() => {
+            paginateSpy = jest.spyOn(internalOctokit, 'paginate');
+            getPullRequestSpy = jest.spyOn(internalOctokit.rest.pulls, 'get');
+        });
 
         beforeEach(() => {
-            mockFetchAllPullRequests.mockImplementation(async (pullRequestNumbers, repo = CONST.APP_REPO) => {
-                const pullRequests = mockPullRequestsByRepo[repo] ?? [];
-                return pullRequests.filter(({number}) => pullRequestNumbers.includes(number));
-            });
-            mockGetPullRequestMergerLogin.mockImplementation(async (pullRequestNumber) => {
-                const pullRequest = mockPRs.find(({number, labels}) => number === pullRequestNumber && labels.some(({name}) => name === CONST.LABELS.INTERNAL_QA));
-                return pullRequest ? 'octocat' : undefined;
+            paginateSpy.mockImplementation(async () => mockPRs);
+            getPullRequestSpy.mockImplementation(async (parameters) => {
+                if (!parameters) {
+                    throw new Error('Expected pull request parameters.');
+                }
+                const {pull_number} = parameters;
+                const pullRequest = mockPRs.find(({number, labels}) => number === pull_number && labels.some(({name}) => name === CONST.LABELS.INTERNAL_QA));
+                return createMock<GetPullRequestResponse>({
+                    data: {
+                        merged_by: pullRequest ? {login: 'octocat'} : null,
+                    },
+                });
             });
         });
 
         afterEach(() => {
-            mockFetchAllPullRequests.mockReset();
-            mockGetPullRequestMergerLogin.mockReset();
+            paginateSpy.mockReset();
+            getPullRequestSpy.mockReset();
+        });
+
+        afterAll(() => {
+            paginateSpy.mockRestore();
+            getPullRequestSpy.mockRestore();
         });
 
         const tag = '1.0.2-12';
@@ -428,7 +452,7 @@ describe('DeployChecklistUtils', () => {
             const issue = await generateDeployChecklistBodyAndAssignees({tag, PRList: basePRList, PRListMobileExpensify});
             expect(issue.issueBody).toContain('**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging');
             expect(issue.issueBody).toContain('**Mobile-Expensify PRs:**');
-            expect(mockFetchAllPullRequests).toHaveBeenCalledWith(PRListMobileExpensify, CONST.MOBILE_EXPENSIFY_REPO);
+            expect(paginateSpy).toHaveBeenCalledWith(GithubUtils.octokit.pulls.list, expect.objectContaining({repo: CONST.MOBILE_EXPENSIFY_REPO}), expect.any(Function));
         });
 
         test('Test no Mobile-Expensify compare link without Mobile-Expensify PRs', async () => {
