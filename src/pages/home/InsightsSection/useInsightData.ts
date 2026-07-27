@@ -32,8 +32,6 @@ function isChartView(view: SearchView): view is ChartView {
     return view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE;
 }
 
-const MIN_INSIGHT_DATA_POINTS = 2;
-
 function getInsightState(
     isOffline: boolean,
     searchResults: OnyxEntry<SearchResults>,
@@ -51,7 +49,7 @@ function getInsightState(
     if (!isDataLoaded) {
         return INSIGHT_STATE.LOADING;
     }
-    if ((sortedData?.length ?? 0) < MIN_INSIGHT_DATA_POINTS) {
+    if (!sortedData?.length) {
         return INSIGHT_STATE.HIDDEN;
     }
     return INSIGHT_STATE.READY;
