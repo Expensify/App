@@ -511,6 +511,7 @@ const translations = {
         headsUp: 'Heads up!',
         submitTo: 'Submit to',
         forwardTo: 'Forward to',
+        exportsTo: 'Exports to',
         approvalLimit: 'Approval limit',
         overLimitForwardTo: 'Over limit forward to',
         merge: 'Merge',
