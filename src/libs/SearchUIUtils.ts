@@ -4847,8 +4847,8 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
     const hasResponseSortMetadata = searchResults?.search?.sortBy !== undefined && searchResults.search.sortOrder !== undefined;
     const hasMatchingRequestedHash = searchResults?.search?.hash === queryJSON?.hash;
-    const isDatalessTerminalResponse = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED && searchResults?.data === undefined;
-    const canUseRequestedHash = state === CONST.SEARCH.SNAPSHOT_STATE.ERROR || isDatalessTerminalResponse || !hasResponseSortMetadata;
+    const isTerminalResponseWithoutData = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED && searchResults?.data === undefined;
+    const canUseRequestedHash = state === CONST.SEARCH.SNAPSHOT_STATE.ERROR || isTerminalResponseWithoutData || !hasResponseSortMetadata;
     const hasMatchingHash = (canUseRequestedHash && hasMatchingRequestedHash) || searchResults?.search?.hash === responseAdjustedQueryHash;
 
     return hasResolved && searchResults?.search?.type === queryJSON?.type && hasMatchingHash;

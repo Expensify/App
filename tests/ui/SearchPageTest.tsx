@@ -216,7 +216,7 @@ describe('SearchPageNarrow', () => {
         expect(renderedPage.UNSAFE_queryByType(SearchRowSkeleton)).toBeNull();
     });
 
-    it('renders the empty state when a dataless snapshot reached the terminal loaded state', async () => {
+    it('renders the empty state when a response without data reached the terminal loaded state', async () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
                 search: {
