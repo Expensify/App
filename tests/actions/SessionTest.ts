@@ -28,6 +28,7 @@ import type {Credentials, Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import {openAuthSessionAsync} from 'expo-web-browser';
 import Onyx from 'react-native-onyx';
 
@@ -792,6 +793,190 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(false);
+        });
+    });
+
+    describe('resendValidateCode', () => {
+        test('sends the login argument as the email param, independent of the CREDENTIALS Onyx cache', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // CREDENTIALS is empty (cleared in beforeEach), so a correct email here proves the value comes from the param, not the module cache.
+            SessionUtil.resendValidateCode({reasonCode: null}, 'passed-in@expensify.com');
+            await waitForBatchedUpdates();
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE);
+            expect(call?.at(1)).toEqual(expect.objectContaining({email: 'passed-in@expensify.com'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('forwards the reasonCode from reasonParams to the API call', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}, 'passed-in@expensify.com');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('sends an undefined email when the login argument is undefined', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.resendValidateCode({reasonCode: null}, undefined);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({email: undefined}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('optimistically sets loadingForm to RESEND_VALIDATE_CODE_FORM', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.resendValidateCode({reasonCode: null}, 'passed-in@expensify.com');
+            await waitForBatchedUpdates();
+
+            const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData: Array<{key: string; value: Record<string, unknown>}>};
+            const accountOptimistic = onyxData.optimisticData.find((d) => d.key === ONYXKEYS.ACCOUNT);
+            expect(accountOptimistic?.value.loadingForm).toBe(CONST.FORMS.RESEND_VALIDATE_CODE_FORM);
+
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('signUpUser', () => {
+        test('sends the login argument as the email param, independent of the CREDENTIALS Onyx cache', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // CREDENTIALS is empty (cleared in beforeEach), so a correct email here proves the value comes from the param, not the module cache.
+            SessionUtil.signUpUser('new-user@expensify.com', undefined);
+            await waitForBatchedUpdates();
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(WRITE_COMMANDS.SIGN_UP_USER);
+            expect(call?.at(1)).toEqual(expect.objectContaining({email: 'new-user@expensify.com'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('forwards the preferredLocale to the API call', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signUpUser('new-user@expensify.com', CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({preferredLocale: CONST.LOCALES.EN}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('includes hasSMSMarketingConsent when it is provided', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signUpUser('new-user@expensify.com', undefined, true);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({hasSMSMarketingConsent: true}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('omits hasSMSMarketingConsent when it is undefined', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signUpUser('new-user@expensify.com', undefined);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('hasSMSMarketingConsent');
+
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('setupNewDotAfterTransitionFromOldDot', () => {
+        const buildHybridAppSettings = (isDelegateAccess: boolean) => ({
+            [ONYXKEYS.HYBRID_APP]: {
+                // false so `clearOnyxIfSigningIn` resolves without hitting redirectToSignIn
+                useNewDotSignInPage: false,
+                delegateAccessData: {
+                    isDelegateAccess,
+                    oldDotCurrentUserEmail: 'delegate@od.com',
+                    oldDotCurrentAuthToken: 'odAuthToken',
+                    oldDotCurrentEncryptedAuthToken: 'odEncryptedAuthToken',
+                    oldDotCurrentAccountID: 999,
+                    oldDotAutoGeneratedLogin: 'odAutoLogin',
+                    oldDotAutoGeneratedPassword: 'odAutoPassword',
+                },
+            },
+        });
+
+        test('writes the passed credentials into CREDENTIALS and STASHED_CREDENTIALS instead of reading the module cache', async () => {
+            // Take the imported-state branch to avoid clearing Onyx / redirecting.
+            await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+            await waitForBatchedUpdates();
+
+            const onyxMultiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+
+            const credentialsParam = {login: 'nd@user.com', autoGeneratedLogin: 'ndAutoLogin', autoGeneratedPassword: 'ndAutoPassword'};
+            await SessionUtil.setupNewDotAfterTransitionFromOldDot(buildHybridAppSettings(true), undefined, credentialsParam);
+            await waitForBatchedUpdates();
+
+            expect(onyxMultiSetSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    [ONYXKEYS.STASHED_CREDENTIALS]: credentialsParam,
+                    [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'ndAutoLogin', autoGeneratedPassword: 'ndAutoPassword'},
+                }),
+            );
+
+            onyxMultiSetSpy.mockRestore();
+        });
+
+        test('falls back to the OldDot delegate credentials when the passed credentials are undefined', async () => {
+            await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+            await waitForBatchedUpdates();
+
+            const onyxMultiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+
+            await SessionUtil.setupNewDotAfterTransitionFromOldDot(buildHybridAppSettings(true), undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(onyxMultiSetSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'odAutoLogin', autoGeneratedPassword: 'odAutoPassword'},
+                }),
+            );
+
+            onyxMultiSetSpy.mockRestore();
+        });
+
+        test('does not stash the passed credentials when the transition is not a delegate access', async () => {
+            await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+            await waitForBatchedUpdates();
+
+            const onyxMultiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+
+            const credentialsParam = {login: 'nd@user.com', autoGeneratedLogin: 'ndAutoLogin', autoGeneratedPassword: 'ndAutoPassword'};
+            await SessionUtil.setupNewDotAfterTransitionFromOldDot(buildHybridAppSettings(false), undefined, credentialsParam);
+            await waitForBatchedUpdates();
+
+            expect(onyxMultiSetSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    [ONYXKEYS.STASHED_CREDENTIALS]: {},
+                }),
+            );
+
+            onyxMultiSetSpy.mockRestore();
         });
     });
 });
