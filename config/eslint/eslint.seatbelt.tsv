@@ -677,7 +677,6 @@
 "../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/libs/Navigation/OnyxTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Navigation/PlatformStackNavigation/navigationOptions/animation/withAnimation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/libs/Navigation/guards/AIFeaturesPromoGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/guards/MigratedUserWelcomeModalGuard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1052,10 +1051,7 @@
 "../../src/pages/MultifactorAuthentication/RevokePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/MultifactorAuthentication/ValidateCodePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/NewChatPage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/OnboardingAccounting/BaseOnboardingAccounting.tsx"	"no-restricted-imports"	1
 "../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"no-restricted-imports"	1
-"../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/OnboardingPrivateDomain/BaseOnboardingPrivateDomain.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/OnboardingWorkspaceConfirmation/BaseOnboardingWorkspaceConfirmation.tsx"	"no-restricted-imports"	1
 "../../src/pages/OnboardingWorkspaceCurrency/BaseOnboardingWorkspaceCurrency.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
