@@ -2006,7 +2006,7 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
 
     // If limit is 0 or negative, return N+1 empty arrays
     if (limit !== undefined && limit <= 0) {
-        return {options: Array(separators.length + 1).map(() => []), hasMore};
+        return {options: Array.from({length: separators.length + 1}, () => []), hasMore};
     }
 
     // Process each option

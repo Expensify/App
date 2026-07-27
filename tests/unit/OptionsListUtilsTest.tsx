@@ -4304,9 +4304,10 @@ describe('OptionsListUtils', () => {
             const options = createGroupedOptions(5);
             const comparator = jest.fn((option: OptionData) => option.lastVisibleActionCreated ?? '');
 
-            optionsOrderAndGroupBy(separators, options, comparator, 0);
+            const result = optionsOrderAndGroupBy(separators, options, comparator, 0);
 
             expect(comparator).not.toHaveBeenCalled();
+            expect(result.options).toStrictEqual([[], [], []]);
         });
     });
 
