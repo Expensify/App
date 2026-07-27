@@ -1325,6 +1325,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixture forwarding the real OptionData baseParams.participants already produced, with isDisabled overridden
                 participants: [{...baseParams.participants.at(0), isDisabled: true} as OptionData],
                 setDistanceRequestData: (participants) => {
                     capturedParticipants = participants;
@@ -1345,6 +1346,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixture forwarding the real OptionData baseParams.participants already produced, with isDisabled overridden
                 participants: [{...baseParams.participants.at(0), isDisabled: false} as OptionData],
                 setDistanceRequestData: (participants) => {
                     capturedParticipants = participants;

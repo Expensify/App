@@ -1351,6 +1351,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1418,6 +1419,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1477,6 +1479,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1529,6 +1532,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1581,6 +1585,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1636,6 +1641,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1701,6 +1707,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1751,6 +1758,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1795,6 +1803,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1842,6 +1851,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1895,6 +1905,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1963,6 +1974,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2032,6 +2044,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2084,6 +2097,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2147,6 +2161,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2320,6 +2335,7 @@ describe('actions/Duplicate', () => {
             isTrackIntentUser: false,
             delegateAccountID: undefined,
             formatPhoneNumber,
+            participantsPolicyTags: {},
             ...overrides,
         });
 
@@ -2891,6 +2907,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
