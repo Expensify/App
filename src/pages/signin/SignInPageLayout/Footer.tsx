@@ -161,7 +161,9 @@ function Footer({navigateFocus}: FooterProps) {
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, isMediumScreenWidth ? styles.w50 : styles.w25];
     const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
-    const getTextLinkStyle: (hovered: boolean) => StyleProp<TextStyle> = (hovered) => [styles.footerRow, hovered ? styles.textBlue : {}];
+    // In high-contrast themes, underline footer links so they are distinguishable by more than color (WCAG 1.4.1).
+    // styles.underline sets only textDecorationLine, so the underline inherits the link's text color (footerRow / textBlue on hover).
+    const getTextLinkStyle: (hovered: boolean) => StyleProp<TextStyle> = (hovered) => [styles.footerRow, hovered ? styles.textBlue : {}, theme.isHighContrast ? styles.underline : {}];
     return (
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
