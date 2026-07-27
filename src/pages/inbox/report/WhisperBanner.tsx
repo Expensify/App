@@ -33,7 +33,7 @@ function WhisperBanner({whisperedTo}: WhisperBannerProps) {
     const whisperedToPersonalDetails = Object.values(personalDetails ?? {}).filter((details) =>
         whisperedTo.includes(details?.accountID ?? CONST.DEFAULT_NUMBER_ID),
     ) as OnyxTypes.PersonalDetails[];
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant, localeCompare, formatPhoneNumber);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant, localeCompare, formatPhoneNumber, translate);
 
     return (
         <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>

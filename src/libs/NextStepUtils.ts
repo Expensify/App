@@ -427,7 +427,9 @@ function getReportNextStep(
         return reportNextStep;
     }
 
-    return currentNextStep;
+    // Prefer the report-embedded next step: the deprecated reportNextStep_* collection is only refreshed for the
+    // local actor, so a user viewing a report someone else acted on would otherwise keep seeing the stale message.
+    return moneyRequestReport?.nextStep ?? currentNextStep;
 }
 function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string) {
     const optimisticNextStep: ReportNextStepDeprecated = {
