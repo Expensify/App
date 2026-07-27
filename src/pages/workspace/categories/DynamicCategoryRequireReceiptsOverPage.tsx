@@ -57,8 +57,6 @@ function DynamicCategoryRequireReceiptsOverPage({
 
     const persistedOptionKey = getInitiallyFocusedOptionKey(isAlwaysSelected, isNeverSelected, isPolicyReceiptDisabled);
 
-    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
-    // persisted selection, so the change of context (persist + navigate) only happens when the user taps Save.
     const [draftOptionKey, setDraftOptionKey] = useState<ValueOf<typeof CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS>>();
     const selectedOptionKey = draftOptionKey ?? persistedOptionKey;
 
@@ -102,8 +100,6 @@ function DynamicCategoryRequireReceiptsOverPage({
         } else {
             setPolicyCategoryReceiptsRequired(policyData, categoryName, 0);
         }
-        // Queue the navigation so the optimistic Onyx update from the action above is delivered before we leave the page,
-        // otherwise the category settings page can briefly show the old threshold after Save.
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
     };
 
@@ -111,8 +107,6 @@ function DynamicCategoryRequireReceiptsOverPage({
         showButton: true,
         text: translate('common.save'),
         onConfirm: saveAndGoBack,
-        // Disable Save until the selection actually differs from the persisted value, so tapping Save without a real change
-        // doesn't re-persist the current value (and re-trigger the entangled cross-threshold logic).
         isDisabled: selectedOptionKey === persistedOptionKey,
     };
 
