@@ -1,3 +1,4 @@
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -32,7 +33,7 @@ type TableBodyListProps = TableBodyProps & {
 };
 
 /**
- * Renders the table body using FlashList when data rows are present.
+ * Renders the table body using FlashList when data rows or a scrolling page header are present.
  *
  * This component consumes the Table context to access processed data and FlashList props.
  * It automatically handles empty states, including a special "no results found" message
@@ -83,8 +84,11 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         contentContainerStyle: listContentContainerStyle,
         getItemType,
         keyExtractor,
+        onEndReached,
         onLoad,
         onScroll,
+        onStartReached,
+        onViewableItemsChanged,
         renderItem,
         stickyHeaderIndices,
         ...restListProps
@@ -95,10 +99,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         addOfflineIndicatorBottomSafeAreaPadding: true,
         style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
     });
-    const flattenedListContentContainerStyle = StyleSheet.flatten(listContentContainerStyle);
     const flattenedContentContainerStyle = StyleSheet.flatten(contentContainerStyle);
-    const listContentContainerStyleWithoutMinHeight = flattenedListContentContainerStyle ? {...flattenedListContentContainerStyle, minHeight: undefined} : undefined;
-    const contentContainerStyleWithoutMinHeight = flattenedContentContainerStyle ? {...flattenedContentContainerStyle, minHeight: undefined} : undefined;
     const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
@@ -107,7 +108,11 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const [previousHasRows, setPreviousHasRows] = useState(hasRows);
     if (previousHasRows !== hasRows) {
         setPreviousHasRows(hasRows);
-        setIsListLoaded(false);
+        // A table with a page header keeps the same FlashList mounted while its rows change.
+        // Tables without one still replace the list with the standalone empty layout.
+        if (!tableListMetadata.hasPageHeader) {
+            setIsListLoaded(false);
+        }
         setHasActivatedStickyHeader(false);
     }
 
@@ -118,13 +123,13 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     }
 
     useEffect(() => {
-        if (!tableListMetadata.shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
+        if (!hasRows || !tableListMetadata.shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
             return undefined;
         }
 
         const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(true));
         return () => cancelAnimationFrame(frame);
-    }, [hasActivatedStickyHeader, isListLoaded, tableListMetadata.shouldRenderStickyHeader]);
+    }, [hasActivatedStickyHeader, hasRows, isListLoaded, tableListMetadata.shouldRenderStickyHeader]);
 
     const renderListComponent = (component: typeof ListHeaderComponent | typeof ListEmptyComponent | typeof ListFooterComponent) => {
         if (!component) {
@@ -159,25 +164,22 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const emptyStateContent =
         tableListMetadata.hasPageHeader && tableListMetadata.isEmptyResult ? (noResultsStateElement ?? EmptyResultComponent) : (emptyStateElement ?? renderListComponent(ListEmptyComponent));
     const footerElement = renderListComponent(ListFooterComponent);
-    // Footer flex growth is useful below short FlashList rows, but the empty layout already gives
-    // its centered content the remaining space. Disable it here so the two siblings do not split it.
+    // Consumer footer flex growth is useful below normal rows, but inside the combined empty-state
+    // footer it can expand over the page header. Preserve the remaining style while disabling growth.
     const emptyStateFooterStyle = [ListFooterComponentStyle, styles.flexGrow0];
-    // A list minHeight includes its synthetic page-header row. In the empty layout that header is a
-    // separate sibling, so carrying the minHeight over would make the non-scrollable body overflow.
     const emptyStateContainerStyle = [
         styles.flex1,
-        tableListMetadata.hasPageHeader ? listContentContainerStyleWithoutMinHeight : listContentContainerStyle,
-        tableBodyContentContainerStyle,
-        tableListMetadata.hasPageHeader ? contentContainerStyleWithoutMinHeight : contentContainerStyle,
-        !tableListMetadata.hasPageHeader &&
-            shouldUseNarrowTableLayout &&
+        styles.mnh0,
+        listContentContainerStyle,
+        contentContainerStyle,
+        shouldUseNarrowTableLayout &&
             typeof contentMinHeight === 'number' &&
             typeof tableBodyBottomPadding === 'number' && {
                 minHeight: contentMinHeight + tableBodyBottomPadding,
             },
     ];
 
-    if (!hasRows) {
+    if (!hasRows && !tableListMetadata.hasPageHeader) {
         return (
             <View
                 ref={listContainerRef}
@@ -185,18 +187,46 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 onLayout={onLayout}
                 {...props}
             >
-                {tableListMetadata.hasPageHeader && pageHeaderElement}
                 <View style={emptyStateContainerStyle}>
-                    <View style={[styles.flex1, styles.justifyContentCenter]}>{emptyStateContent}</View>
-                    {!!footerElement && <View style={emptyStateFooterStyle}>{footerElement}</View>}
+                    {/* Keep empty content centered when it fits, but let it scroll when the keyboard
+                    or a short viewport leaves less space than the empty card needs. */}
+                    <ScrollView
+                        testID="table-empty-state-scroll-view"
+                        style={[styles.flex1, styles.mnh0]}
+                        contentContainerStyle={[styles.flexGrow1, tableBodyContentContainerStyle]}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={[styles.flexGrow1, styles.justifyContentCenter]}>{emptyStateContent}</View>
+                        {!!footerElement && <View style={emptyStateFooterStyle}>{footerElement}</View>}
+                    </ScrollView>
                 </View>
             </View>
         );
     }
 
-    const listData = buildTableListData<TableData>(filteredAndSortedData, tableListMetadata);
-    const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
-    const canRenderStickyHeader = !tableListMetadata.shouldRenderStickyHeader || (isListLoaded && hasActivatedStickyHeader);
+    // Keep the page-header row in one FlashList across rows -> no results -> rows transitions.
+    // Empty content follows it in the natural footer flow instead of becoming a recycled cell or
+    // remounting controls such as the search input. The footer must not flex-grow: FlashList lays
+    // footer cells independently, and growing one can visually cover the page-header row on native.
+    const renderedTableListMetadata = hasRows
+        ? tableListMetadata
+        : {
+              ...tableListMetadata,
+              shouldRenderStickyHeader: false,
+              syntheticRowsBeforeData: 1,
+              listDataRowOffset: 1,
+          };
+    const listData = buildTableListData<TableData>(filteredAndSortedData, renderedTableListMetadata);
+    const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(renderedTableListMetadata, stickyHeaderIndices);
+    const canRenderStickyHeader = !renderedTableListMetadata.shouldRenderStickyHeader || (isListLoaded && hasActivatedStickyHeader);
+    const shouldRenderEmptyStateInFooter = !hasRows && tableListMetadata.hasPageHeader;
+    const emptyStateListFooter = (
+        <View>
+            <View>{emptyStateContent}</View>
+            {!!footerElement && <View style={emptyStateFooterStyle}>{footerElement}</View>}
+        </View>
+    );
 
     const handleLoad: NonNullable<typeof onLoad> = (info) => {
         setIsListLoaded(true);
@@ -204,41 +234,42 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     };
 
     const renderListItem = (info: ListRenderItemInfo<TableData>) => {
-        const rowKind = getSyntheticRowKind(info.index, tableListMetadata);
+        const rowKind = getSyntheticRowKind(info.index, renderedTableListMetadata);
 
         switch (rowKind) {
             case 'pageHeader':
                 return pageHeaderElement;
             case 'tableHeader':
                 return <TableHeader isStickyListHeader />;
-            case 'emptyResult':
-                return noResultsStateElement ?? EmptyResultComponent;
-            case 'listEmpty':
-                return emptyStateElement ?? renderListComponent(ListEmptyComponent);
             case 'data':
             default:
-                return renderItem?.({...info, index: getDataIndex(info.index, tableListMetadata)}) ?? null;
+                return (
+                    renderItem?.({
+                        ...info,
+                        index: getDataIndex(info.index, renderedTableListMetadata),
+                    }) ?? null
+                );
         }
     };
 
     const keyExtractorForList = (item: TableData, index: number) => {
-        const rowKind = getSyntheticRowKind(index, tableListMetadata);
+        const rowKind = getSyntheticRowKind(index, renderedTableListMetadata);
 
         if (rowKind !== 'data') {
             return item.keyForList;
         }
 
-        return keyExtractor?.(item, getDataIndex(index, tableListMetadata)) ?? item.keyForList;
+        return keyExtractor?.(item, getDataIndex(index, renderedTableListMetadata)) ?? item.keyForList;
     };
 
     const getItemTypeForList = (item: TableData, index: number, extraData: unknown) => {
-        const rowKind = getSyntheticRowKind(index, tableListMetadata);
+        const rowKind = getSyntheticRowKind(index, renderedTableListMetadata);
 
         if (rowKind !== 'data') {
             return item.keyForList;
         }
 
-        return getItemType?.(item, getDataIndex(index, tableListMetadata), extraData);
+        return getItemType?.(item, getDataIndex(index, renderedTableListMetadata), extraData);
     };
 
     return (
@@ -255,22 +286,27 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListEmptyComponent={ListEmptyComponent}
-                ListFooterComponent={ListFooterComponent}
-                ListFooterComponentStyle={ListFooterComponentStyle}
+                ListFooterComponent={shouldRenderEmptyStateInFooter ? emptyStateListFooter : ListFooterComponent}
+                ListFooterComponentStyle={shouldRenderEmptyStateInFooter ? undefined : ListFooterComponentStyle}
                 onLoad={handleLoad}
-                stickyHeaderIndices={canRenderStickyHeader ? adjustedStickyHeaderIndices : undefined}
+                stickyHeaderIndices={hasRows && canRenderStickyHeader ? adjustedStickyHeaderIndices : undefined}
                 contentContainerStyle={[
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
                     shouldUseNarrowTableLayout &&
                         typeof contentMinHeight === 'number' &&
-                        typeof tableBodyBottomPadding === 'number' && {minHeight: contentMinHeight + tableBodyBottomPadding},
+                        typeof tableBodyBottomPadding === 'number' && {
+                            minHeight: contentMinHeight + tableBodyBottomPadding,
+                        },
                 ]}
                 keyboardShouldPersistTaps="handled"
                 renderItem={renderListItem}
                 keyExtractor={keyExtractorForList}
                 getItemType={getItemTypeForList}
+                onEndReached={hasRows ? onEndReached : undefined}
+                onStartReached={hasRows ? onStartReached : undefined}
+                onViewableItemsChanged={hasRows ? onViewableItemsChanged : undefined}
                 onScroll={(event) => {
                     trackScrollOffset(event);
                     onScroll?.(event);

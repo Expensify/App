@@ -36,8 +36,8 @@ export default function TableEmptyState({children, ...emptyStateProps}: TableEmp
         </>
     );
 
-    // TableBody owns the page-header flex layout and centers this content in the remaining space,
-    // so the empty state does not need a nested ScrollView.
+    // TableBody keeps page-header empty content in its scrolling list footer, so this state does
+    // not need a nested ScrollView.
     if (tableListMetadata.hasPageHeader) {
         return <View style={styles.flexShrink0}>{content}</View>;
     }

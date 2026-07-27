@@ -3,13 +3,13 @@ import type {ReactElement, ReactNode} from 'react';
 import React from 'react';
 
 function composeTableHeaderComponent(...components: ReactNode[]): ReactElement | undefined {
-    const headerContent = components.filter(Boolean);
-
-    if (headerContent.length === 0) {
+    if (!components.some(Boolean)) {
         return undefined;
     }
 
-    return React.createElement(React.Fragment, null, ...headerContent);
+    // Keep empty argument slots in place so toggling an optional earlier slot cannot shift and
+    // remount later stateful controls such as the table search input.
+    return React.createElement(React.Fragment, null, ...components);
 }
 
 export default composeTableHeaderComponent;

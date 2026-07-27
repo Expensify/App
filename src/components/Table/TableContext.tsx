@@ -72,9 +72,6 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Currently active search string. */
     activeSearchString: string;
 
-    /** Tracks mounted search bars so relocating the page header does not clear an active search. */
-    searchBarMountCountRef: React.RefObject<number>;
-
     /** Methods exposed by the Table component for programmatic control. */
     tableMethods: TableMethods<ColumnKey, FilterKey>;
 
@@ -117,7 +114,6 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
         order: 'asc',
     },
     activeSearchString: '',
-    searchBarMountCountRef: {current: 0},
     tableMethods: {} as TableMethods<string, string>,
     filterConfig: undefined,
     listProps: {} as SharedListProps<TableData>,
@@ -127,7 +123,6 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     tableListMetadata: {
         hasPageHeader: false,
         shouldRenderStickyHeader: false,
-        shouldRenderSyntheticEmptyRow: false,
         isEmptyResult: false,
         syntheticRowsBeforeData: 0,
         stickyTableHeaderIndex: 0,

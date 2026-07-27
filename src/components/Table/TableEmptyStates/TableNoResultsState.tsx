@@ -39,8 +39,8 @@ export default function TableNoResultsState(emptyStateProps: TableNoResultsState
         />
     );
 
-    // TableBody owns the page-header flex layout and centers this content in the remaining space,
-    // so the no-results state does not need a nested ScrollView.
+    // TableBody keeps page-header no-results content in its scrolling list footer, so this state
+    // does not need a nested ScrollView.
     if (tableListMetadata.hasPageHeader) {
         return <View style={styles.flexShrink0}>{content}</View>;
     }

@@ -254,8 +254,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
-    const searchBarMountCountRef = useRef(0);
-
     // Keeps the table search input visible above the keyboard when it is focused inside the
     // scrolling list (native only; the web variant of the hook is a no-op).
     const {isKeyboardShown} = useKeyboardState();
@@ -273,9 +271,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
     const shouldRenderStickyHeader = shouldUseStickyColumnHeader && !(shouldUseNarrowTableLayout && !title);
 
-    // When the page header scrolls with populated rows, TableBody owns the alternate flex layout
-    // used for empty states. They are extracted from the direct children here so they don't render
-    // a second time as siblings of the body.
+    // When the page header scrolls with the table, TableBody owns the list footer used for empty
+    // states. They are extracted from the direct children here so they don't render a second time
+    // as siblings of the body.
     const childrenArray = React.Children.toArray(children);
     const emptyStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableEmptyState);
     const noResultsStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableNoResultsState);
@@ -283,9 +281,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const tableListMetadata = getTableListMetadata({
         headerComponent,
         listHeaderComponent: listProps.ListHeaderComponent,
-        listEmptyComponent: listProps.ListEmptyComponent,
-        hasEmptyStateContent: !!emptyStateElement,
-        processedData,
         isEmptyResult,
         shouldRenderStickyHeader,
     });
@@ -315,7 +310,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         emptyStateElement,
         noResultsStateElement,
         listRef,
-        searchBarMountCountRef,
         listContainerRef,
         trackScrollOffset,
         scrollInputIntoView,

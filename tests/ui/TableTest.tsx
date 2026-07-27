@@ -1,6 +1,6 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Text from '@components/Text';
 
@@ -20,14 +20,28 @@ type MockFlashListProps<T> = {
     ListEmptyComponent?: React.ComponentType | React.ReactElement | null;
     ListFooterComponent?: React.ComponentType | React.ReactElement | null;
     ListFooterComponentStyle?: React.ComponentProps<typeof View>['style'];
+    contentContainerStyle?: React.ComponentProps<typeof View>['style'];
+    onEndReached?: () => void;
     onLoad?: (info: {elapsedTimeInMs: number}) => void;
     onScroll?: (event: {nativeEvent: {contentOffset: {y: number}}}) => void;
+    onStartReached?: () => void;
+    onViewableItemsChanged?: () => void;
     stickyHeaderIndices?: number[];
 };
 
 const mockFlashListScrollToIndex = jest.fn();
 const mockFlashListScrollToItem = jest.fn();
+const mockFlashListScrollToOffset = jest.fn();
+const mockFlashListMount = jest.fn();
+const mockFlashListUnmount = jest.fn();
+const mockTextInputFocus = jest.fn();
+const mockTextInputMount = jest.fn();
+const mockTextInputUnmount = jest.fn();
+const mockTextInputNativeFocus = jest.fn();
+const mockTextInputNativeBlur = jest.fn();
+let mockNextTextInputInstanceID = 0;
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
+let mockShouldUseNarrowLayout = false;
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -124,13 +138,27 @@ jest.mock('@shopify/flash-list', () => {
     };
 
     const FlashList = ReactLocal.forwardRef(
-        (props: MockFlashListProps<unknown>, ref: React.Ref<{scrollToIndex: typeof mockFlashListScrollToIndex; scrollToItem: typeof mockFlashListScrollToItem}>) => {
+        (
+            props: MockFlashListProps<unknown>,
+            ref: React.Ref<{
+                scrollToIndex: typeof mockFlashListScrollToIndex;
+                scrollToItem: typeof mockFlashListScrollToItem;
+                scrollToOffset: typeof mockFlashListScrollToOffset;
+            }>,
+        ) => {
             mockFlashListProps.push(props);
             const data = props.data ?? [];
 
+            ReactLocal.useEffect(() => {
+                mockFlashListMount();
+                return () => {
+                    mockFlashListUnmount();
+                };
+            }, []);
             ReactLocal.useImperativeHandle(ref, () => ({
                 scrollToIndex: mockFlashListScrollToIndex,
                 scrollToItem: mockFlashListScrollToItem,
+                scrollToOffset: mockFlashListScrollToOffset,
             }));
 
             return (
@@ -171,9 +199,9 @@ jest.mock('@hooks/useLocalize', () =>
 // Mock useThemeStyles hook
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
-        flexGrow1: {},
+        flexGrow1: {flexGrow: 1},
         flexGrow0: {flexGrow: 0},
-        flex1: {},
+        flex1: {flex: 1},
         flexColumn: {flexDirection: 'column'},
         flexShrink0: {flexShrink: 0},
         justifyContentCenter: {justifyContent: 'center'},
@@ -196,6 +224,8 @@ jest.mock('@hooks/useThemeStyles', () =>
         ph5: {},
         pt3: {},
         pb5: {},
+        pb4: {paddingBottom: 16},
+        pb20: {paddingBottom: 80},
         textNormal: {},
         colorMuted: {},
         getSelectionListPopoverHeight: jest.fn(() => ({})),
@@ -228,9 +258,12 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@components/EmptyStateComponent/GenericEmptyStateComponent', () => {
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const {View: RNView, Text: RNText} = jest.requireActual<typeof import('react-native')>('react-native');
-    function MockGenericEmptyStateComponent({title, subtitle}: {title?: string; subtitle?: string}) {
+    function MockGenericEmptyStateComponent({title, subtitle, minModalHeight = 400}: {title?: string; subtitle?: string; minModalHeight?: number}) {
         return (
-            <RNView testID="generic-empty-state">
+            <RNView
+                testID="generic-empty-state"
+                style={{minHeight: minModalHeight, flexGrow: 1, flexShrink: 0}}
+            >
                 <RNText>{title}</RNText>
                 <RNText>{subtitle}</RNText>
             </RNView>
@@ -259,23 +292,62 @@ jest.mock('@components/Icon', () => {
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
     default: () => ({
-        shouldUseNarrowLayout: false,
+        shouldUseNarrowLayout: mockShouldUseNarrowLayout,
         isMediumScreenWidth: false,
     }),
 }));
 
 // Mock TextInput component
 jest.mock('@components/TextInput', () => {
+    const ReactLocal = jest.requireActual<typeof React>('react');
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const {TextInput: RNTextInput, View: RNView} = jest.requireActual<typeof import('react-native')>('react-native');
-    function MockTextInput(props: {accessibilityLabel: string; value: string; onChangeText: (text: string) => void; onClearInput?: () => void}) {
+    type MockTextInputProps = {
+        accessibilityLabel: string;
+        value: string;
+        onChangeText: (text: string) => void;
+        onClearInput?: () => void;
+        onFocus?: () => void;
+        onBlur?: () => void;
+    };
+    const MockTextInput = ReactLocal.forwardRef((props: MockTextInputProps, ref: React.Ref<{focus: () => void; isFocused: () => boolean}>) => {
+        const isFocusedRef = ReactLocal.useRef(false);
+        const [nativeID] = ReactLocal.useState(() => `mock-search-input-${++mockNextTextInputInstanceID}`);
+        ReactLocal.useEffect(() => {
+            mockTextInputMount();
+            return () => {
+                mockTextInputUnmount();
+                if (isFocusedRef.current) {
+                    mockTextInputNativeBlur();
+                }
+            };
+        }, []);
+        ReactLocal.useImperativeHandle(ref, () => ({
+            focus: () => {
+                isFocusedRef.current = true;
+                mockTextInputFocus();
+            },
+            isFocused: () => isFocusedRef.current,
+        }));
+
         return (
             <RNView>
                 <RNTextInput
                     testID="search-input"
+                    nativeID={nativeID}
                     accessibilityLabel={props.accessibilityLabel}
                     value={props.value}
                     onChangeText={props.onChangeText}
+                    onFocus={() => {
+                        isFocusedRef.current = true;
+                        mockTextInputNativeFocus();
+                        props.onFocus?.();
+                    }}
+                    onBlur={() => {
+                        isFocusedRef.current = false;
+                        mockTextInputNativeBlur();
+                        props.onBlur?.();
+                    }}
                 />
                 {!!props.onClearInput && (
                     <RNTextInput
@@ -285,7 +357,7 @@ jest.mock('@components/TextInput', () => {
                 )}
             </RNView>
         );
-    }
+    });
     return MockTextInput;
 });
 
@@ -411,6 +483,7 @@ describe('Table', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockFlashListProps = [];
+        mockShouldUseNarrowLayout = false;
     });
 
     describe('rendering', () => {
@@ -470,7 +543,19 @@ describe('Table', () => {
                 </Table>,
             );
 
-            expect(screen.getByTestId('empty-state')).toBeTruthy();
+            const emptyStateScrollView = screen.getByTestId('table-empty-state-scroll-view');
+            expect(within(emptyStateScrollView).getByTestId('empty-state')).toBeTruthy();
+            expect(StyleSheet.flatten(emptyStateScrollView.parent?.props.style)).toEqual(
+                expect.not.objectContaining({
+                    paddingBottom: 16,
+                }),
+            );
+            expect(StyleSheet.flatten(emptyStateScrollView.props.contentContainerStyle)).toEqual(
+                expect.objectContaining({
+                    flexGrow: 1,
+                    paddingBottom: 16,
+                }),
+            );
         });
 
         it('should render with undefined data gracefully', () => {
@@ -586,6 +671,53 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
         });
 
+        it('should preserve a composed search slot when an earlier optional header slot toggles', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            const renderTable = (shouldShowOptionalHeader: boolean) => (
+                <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                    headerComponent={composeTableHeaderComponent(shouldShowOptionalHeader && <Text testID="optional-header">Optional header</Text>, <Table.FilterBar label="Search" />)}
+                >
+                    <Table.Body />
+                </Table>
+            );
+
+            const {rerender} = render(renderTable(false));
+            const searchInput = screen.getByTestId('search-input');
+            const searchInputNativeID: unknown = searchInput.props.nativeID;
+            fireEvent(searchInput, 'focus');
+            fireEvent.changeText(searchInput, 'apple');
+
+            rerender(renderTable(true));
+
+            expect(screen.getByTestId('optional-header')).toBeTruthy();
+            expect(screen.getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(tableRef.current?.getActiveSearchString()).toBe('apple');
+            expect(mockTextInputMount).toHaveBeenCalledTimes(1);
+            expect(mockTextInputUnmount).not.toHaveBeenCalled();
+            expect(mockTextInputNativeFocus).toHaveBeenCalledTimes(1);
+            expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
+            expect(mockTextInputFocus).not.toHaveBeenCalled();
+
+            rerender(renderTable(false));
+
+            expect(screen.queryByTestId('optional-header')).toBeNull();
+            expect(screen.getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(tableRef.current?.getActiveSearchString()).toBe('apple');
+            expect(mockTextInputMount).toHaveBeenCalledTimes(1);
+            expect(mockTextInputUnmount).not.toHaveBeenCalled();
+            expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
+            expect(mockTextInputFocus).not.toHaveBeenCalled();
+        });
+
         it('should activate the sticky table header after the first list layout', () => {
             const props = createDefaultProps();
             const renderTable = (data: TestItem[]) => (
@@ -602,20 +734,38 @@ describe('Table', () => {
             );
 
             const {rerender} = render(renderTable([]));
-            expect(screen.queryByTestId('flash-list')).toBeNull();
-            expect(mockFlashListProps).toHaveLength(0);
+            expect(screen.getByTestId('flash-list')).toBeTruthy();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            act(() => {
+                mockFlashListProps.at(-1)?.onLoad?.({elapsedTimeInMs: 1});
+            });
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            let animationFrameCallback: FrameRequestCallback | undefined;
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+                animationFrameCallback = callback;
+                return 1;
+            });
 
             rerender(renderTable(props.data));
-
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
 
-            activateStickyHeadersAfterListLoad();
+            if (!animationFrameCallback) {
+                throw new Error('Expected sticky-header activation to be scheduled when rows appear');
+            }
+
+            act(() => {
+                animationFrameCallback?.(0);
+            });
+            requestAnimationFrameSpy.mockRestore();
 
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
         });
 
-        it('should keep the sticky table header structure stable when search has no results', () => {
+        it('should temporarily remove the sticky table header while search has no results', () => {
             const props = createDefaultProps();
 
             render(
@@ -641,20 +791,33 @@ describe('Table', () => {
             activateStickyHeadersAfterListLoad();
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
-            const flashListRenderCount = mockFlashListProps.length;
 
             fireEvent.changeText(screen.getByTestId('search-input'), 'xyz123nonexistent');
 
-            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(screen.getByTestId('flash-list')).toBeTruthy();
             expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
-            expect(mockFlashListProps).toHaveLength(flashListRenderCount);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
+
+            let animationFrameCallback: FrameRequestCallback | undefined;
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+                animationFrameCallback = callback;
+                return 1;
+            });
 
             fireEvent.changeText(screen.getByTestId('search-input'), '');
 
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
 
-            activateStickyHeadersAfterListLoad();
+            if (!animationFrameCallback) {
+                throw new Error('Expected sticky-header activation to be rescheduled when rows return');
+            }
+
+            act(() => {
+                animationFrameCallback?.(0);
+            });
+            requestAnimationFrameSpy.mockRestore();
 
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
         });
@@ -687,7 +850,7 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
-        it('should restore scrollToIndex when rows return after the flex empty-state path', () => {
+        it('should preserve scrollToIndex when rows return after a page-header empty state', () => {
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
             const renderTable = (data: TestItem[]) => (
@@ -706,7 +869,8 @@ describe('Table', () => {
             );
 
             const {rerender} = render(renderTable([]));
-            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(screen.getByTestId('flash-list')).toBeTruthy();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
 
             rerender(renderTable(props.data));
             const scrollToIndex = tableRef.current?.scrollToIndex;
@@ -718,7 +882,10 @@ describe('Table', () => {
                 scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 2, animated: false});
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+                index: 2,
+                animated: false,
+            });
         });
 
         it('should defer sticky table header activation when sticky mode turns back on', () => {
@@ -797,7 +964,10 @@ describe('Table', () => {
                 scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 1, animated: false});
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+                index: 1,
+                animated: false,
+            });
         });
 
         it('should offset scrollToIndex calls when synthetic header rows are present', () => {
@@ -827,7 +997,10 @@ describe('Table', () => {
                 scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 2, animated: false});
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+                index: 2,
+                animated: false,
+            });
         });
 
         it('should forward scrollToIndex without offset when no synthetic rows are present', () => {
@@ -855,10 +1028,13 @@ describe('Table', () => {
                 scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 0, animated: false});
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+                index: 0,
+                animated: false,
+            });
         });
 
-        it('should render page-header empty state in a flex column without mounting FlashList', () => {
+        it('should render a page-header empty state in the persistent FlashList footer', () => {
             const props = createDefaultProps();
             const EmptyState = <Text testID="empty-state">No items found</Text>;
 
@@ -875,10 +1051,11 @@ describe('Table', () => {
                 </Table>,
             );
 
-            expect(screen.getByTestId('table-header-component')).toBeTruthy();
-            expect(screen.getByTestId('empty-state')).toBeTruthy();
-            expect(screen.queryByTestId('flash-list')).toBeNull();
-            expect(mockFlashListProps).toHaveLength(0);
+            const flashList = screen.getByTestId('flash-list');
+            expect(within(flashList).getByTestId('table-header-component')).toBeTruthy();
+            expect(within(flashList).getByTestId('empty-state')).toBeTruthy();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
+            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toBeUndefined();
         });
 
         it('should render ListEmptyComponent without mounting FlashList when only the sticky header keeps the body mounted', () => {
@@ -903,7 +1080,7 @@ describe('Table', () => {
             expect(mockFlashListProps).toHaveLength(0);
         });
 
-        it('should render Table.EmptyState in the flex empty-state layout when a page header is present', () => {
+        it('should render Table.EmptyState in the persistent list footer when a page header is present', () => {
             const props = createDefaultProps();
 
             render(
@@ -920,15 +1097,20 @@ describe('Table', () => {
                 </Table>,
             );
 
-            // The empty state renders exactly once below the page header without a FlashList cell.
+            // The empty state renders exactly once below the stable page-header row without
+            // becoming a recycled list cell.
+            const flashList = screen.getByTestId('flash-list');
             expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
-            expect(screen.getByTestId('table-header-component')).toBeTruthy();
-            expect(screen.queryByTestId('flash-list')).toBeNull();
-            expect(mockFlashListProps).toHaveLength(0);
+            expect(within(flashList).getByTestId('generic-empty-state')).toBeTruthy();
+            expect(within(flashList).getByTestId('table-header-component')).toBeTruthy();
+            expect(screen.queryByTestId('table-empty-state-scroll-view')).toBeNull();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
+            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toBeUndefined();
         });
 
-        it('should center a page-header empty state in the remaining flex space', () => {
+        it('should keep an oversized page-header empty state naturally scrollable without flexing the footer over the header', () => {
             const props = createDefaultProps();
+            mockShouldUseNarrowLayout = true;
 
             render(
                 <Table<TestItem, TestColumnKey>
@@ -939,53 +1121,151 @@ describe('Table', () => {
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
                     <Table.EmptyState title="No items yet" />
-                    <Table.Body testID="table-body" />
+                    <Table.Body />
                 </Table>,
             );
 
-            const emptyStateAncestorStyles: unknown[] = [];
-            let emptyStateAncestor = screen.getByTestId('generic-empty-state').parent;
-            while (emptyStateAncestor) {
-                emptyStateAncestorStyles.push(StyleSheet.flatten(emptyStateAncestor.props.style));
-                emptyStateAncestor = emptyStateAncestor.parent;
-            }
-
-            expect(emptyStateAncestorStyles).toEqual(expect.arrayContaining([expect.objectContaining({flexDirection: 'column'}), expect.objectContaining({justifyContent: 'center'})]));
-            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.contentContainerStyle)).toEqual(
+                expect.objectContaining({
+                    paddingBottom: 80,
+                }),
+            );
+            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.contentContainerStyle)).not.toEqual(expect.objectContaining({flexGrow: 1}));
+            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toBeUndefined();
+            const genericEmptyState = within(screen.getByTestId('flash-list')).getByTestId('generic-empty-state');
+            expect(StyleSheet.flatten(genericEmptyState.props.style)).toEqual(expect.objectContaining({minHeight: 400, flexGrow: 1, flexShrink: 0}));
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
+            expect(screen.queryByTestId('table-empty-state-scroll-view')).toBeNull();
         });
 
-        it('should render Table.NoResultsState in the flex empty-state layout when search matches nothing and a page header is present', () => {
+        it('should keep the focused search input mounted when a page-header table changes to no results', () => {
             const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            const onEndReached = jest.fn();
+            const onStartReached = jest.fn();
+            const onViewableItemsChanged = jest.fn();
 
             render(
                 <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
                     data={props.data}
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                    headerComponent={
+                        <>
+                            <Text testID="table-header-component">Page header</Text>
+                            <Table.FilterBar label="Search" />
+                        </>
+                    }
                     shouldUseStickyColumnHeader
+                    onEndReached={onEndReached}
+                    onStartReached={onStartReached}
+                    onViewableItemsChanged={onViewableItemsChanged}
                 >
-                    <Table.FilterBar label="Search" />
                     <Table.NoResultsState />
                     <Table.Body />
                 </Table>,
             );
 
-            const flashListRenderCount = mockFlashListProps.length;
-            fireEvent.changeText(screen.getByTestId('search-input'), 'no-match-search');
+            const searchInput = screen.getByTestId('search-input');
+            const searchInputNativeID: unknown = searchInput.props.nativeID;
+            expect(tableRef.current?.getActiveSearchString()).toBe('');
+            expect(mockFlashListMount).toHaveBeenCalledTimes(1);
+            expect(mockFlashListUnmount).not.toHaveBeenCalled();
+            expect(mockTextInputMount).toHaveBeenCalledTimes(1);
+            expect(mockTextInputUnmount).not.toHaveBeenCalled();
+            fireEvent(searchInput, 'focus');
+            expect(mockTextInputNativeFocus).toHaveBeenCalledTimes(1);
+            expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
+            expect(mockTextInputFocus).not.toHaveBeenCalled();
+            fireEvent.changeText(searchInput, 'no-match-search');
 
-            // The no-results state renders exactly once below the page header without a FlashList cell.
+            const flashList = screen.getByTestId('flash-list');
             expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
-            expect(screen.getByTestId('table-header-component')).toBeTruthy();
-            expect(screen.queryByTestId('flash-list')).toBeNull();
-            expect(mockFlashListProps).toHaveLength(flashListRenderCount);
+            expect(within(flashList).getByTestId('generic-empty-state')).toBeTruthy();
+            expect(within(flashList).getByTestId('table-header-component')).toBeTruthy();
+            expect(within(flashList).getByTestId('search-input').props.value).toBe('no-match-search');
+            expect(within(flashList).getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
+            expect(tableRef.current?.getActiveSearchString()).toBe('no-match-search');
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
+            expect(mockFlashListProps.at(-1)?.onEndReached).toBeUndefined();
+            expect(mockFlashListProps.at(-1)?.onStartReached).toBeUndefined();
+            expect(mockFlashListProps.at(-1)?.onViewableItemsChanged).toBeUndefined();
+            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
+            expect(mockFlashListMount).toHaveBeenCalledTimes(1);
+            expect(mockFlashListUnmount).not.toHaveBeenCalled();
+            expect(mockTextInputMount).toHaveBeenCalledTimes(1);
+            expect(mockTextInputUnmount).not.toHaveBeenCalled();
+            expect(mockTextInputNativeFocus).toHaveBeenCalledTimes(1);
+            expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
+            expect(mockTextInputFocus).not.toHaveBeenCalled();
+            expect(screen.queryByTestId('table-empty-state-scroll-view')).toBeNull();
+
+            fireEvent.changeText(searchInput, '');
+
+            expect(screen.getByTestId('flash-list')).toBeTruthy();
+            expect(screen.queryByTestId('generic-empty-state')).toBeNull();
+            expect(screen.getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
+            expect(tableRef.current?.getActiveSearchString()).toBe('');
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+            expect(mockFlashListProps.at(-1)?.onEndReached).toBe(onEndReached);
+            expect(mockFlashListProps.at(-1)?.onStartReached).toBe(onStartReached);
+            expect(mockFlashListProps.at(-1)?.onViewableItemsChanged).toBe(onViewableItemsChanged);
+            expect(mockFlashListMount).toHaveBeenCalledTimes(1);
+            expect(mockFlashListUnmount).not.toHaveBeenCalled();
+            expect(mockTextInputMount).toHaveBeenCalledTimes(1);
+            expect(mockTextInputUnmount).not.toHaveBeenCalled();
+            expect(mockTextInputNativeFocus).toHaveBeenCalledTimes(1);
+            expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
+            expect(mockTextInputFocus).not.toHaveBeenCalled();
+        });
+
+        it('should clear the query when the page-header search input is actually removed', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            const renderTable = (shouldShowSearch: boolean) => (
+                <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                    headerComponent={
+                        <>
+                            <Text testID="table-header-component">Page header</Text>
+                            {shouldShowSearch && <Table.FilterBar label="Search" />}
+                        </>
+                    }
+                >
+                    <Table.Body />
+                </Table>
+            );
+
+            const {rerender} = render(renderTable(true));
+            const searchInput = screen.getByTestId('search-input');
+            fireEvent(searchInput, 'focus');
+            fireEvent.changeText(searchInput, 'apple');
+            expect(tableRef.current?.getActiveSearchString()).toBe('apple');
+
+            rerender(renderTable(false));
+
+            expect(screen.queryByTestId('search-input')).toBeNull();
+            expect(tableRef.current?.getActiveSearchString()).toBe('');
+            expect(mockTextInputUnmount).toHaveBeenCalledTimes(1);
+            expect(mockTextInputNativeBlur).toHaveBeenCalledTimes(1);
+            expect(mockFlashListMount).toHaveBeenCalledTimes(1);
+            expect(mockFlashListUnmount).not.toHaveBeenCalled();
         });
 
         it('should preserve a styled list footer without letting it displace the no-results content', () => {
             const props = createDefaultProps();
-            const listFooterComponentStyle = {flexGrow: 1, justifyContent: 'flex-end' as const};
+            const listFooterComponentStyle = {
+                flexGrow: 1,
+                justifyContent: 'flex-end' as const,
+            };
 
             render(
                 <Table<TestItem, TestColumnKey>
@@ -1005,7 +1285,7 @@ describe('Table', () => {
                     shouldUseStickyColumnHeader
                 >
                     <Table.NoResultsState />
-                    <Table.Body contentContainerStyle={{minHeight: 600, paddingBottom: 12}} />
+                    <Table.Body contentContainerStyle={{flexGrow: 1, minHeight: 600, paddingBottom: 12}} />
                 </Table>,
             );
 
@@ -1014,9 +1294,18 @@ describe('Table', () => {
 
             fireEvent.changeText(screen.getByTestId('search-input'), 'no-match-search');
 
-            expect(screen.queryByTestId('flash-list')).toBeNull();
+            const flashList = screen.getByTestId('flash-list');
             expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
             expect(screen.getAllByTestId('list-footer')).toHaveLength(1);
+            expect(within(flashList).getByTestId('list-footer')).toBeTruthy();
+            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.contentContainerStyle)).toEqual(
+                expect.objectContaining({
+                    flexGrow: 1,
+                    minHeight: 600,
+                    paddingBottom: 12,
+                }),
+            );
+            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toBeUndefined();
             const footerAncestorStyles: unknown[] = [];
             let footerAncestor = screen.getByTestId('list-footer').parent;
             while (footerAncestor) {
@@ -1029,10 +1318,6 @@ describe('Table', () => {
                         flexGrow: 0,
                         justifyContent: listFooterComponentStyle.justifyContent,
                     }),
-                    expect.objectContaining({
-                        minHeight: undefined,
-                        paddingBottom: 12,
-                    }),
                 ]),
             );
 
@@ -1040,6 +1325,7 @@ describe('Table', () => {
 
             expect(screen.getByTestId('flash-list')).toBeTruthy();
             expect(screen.getAllByTestId('list-footer')).toHaveLength(1);
+            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toEqual(listFooterComponentStyle);
         });
 
         it('should render Table.EmptyState as a sibling when no page header is present', () => {
