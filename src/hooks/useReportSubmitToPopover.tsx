@@ -265,7 +265,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             >
                 <View
                     collapsable={false}
-                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.w100, styles.pt4]}
+                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, !isInLandscapeMode && styles.flex1, styles.w100, styles.pt4]}
                 >
                     <ReportSubmitToContent
                         key={submitToContentKey}
@@ -282,27 +282,28 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             </PopoverWithMeasuredContent>
         );
     }, [
-        StyleUtils,
-        styles.flexColumn,
-        styles.pt4,
-        styles.w100,
+        shouldRenderSubmitToPopover,
         innerContainerStyle,
         outerStyle,
-        submitToPopoverContentHeight,
-        shouldRenderSubmitToPopover,
         isVisible,
         closeReportSubmitToPopover,
         handleReportSubmitToPopoverModalHide,
         anchorPosition,
         anchorAlignment,
-        anchorRef,
+        StyleUtils,
+        submitToPopoverContentHeight,
+        styles.flexColumn,
+        styles.flex1,
+        styles.w100,
+        styles.pt4,
+        isInLandscapeMode,
+        submitToContentKey,
         report,
         policy,
         isLoadingReportData,
         handleCombinedSubmitSuccess,
         isSearchSubmitFlow,
         handleSearchSubmitWithManagerEmail,
-        submitToContentKey,
     ]);
 
     return {
