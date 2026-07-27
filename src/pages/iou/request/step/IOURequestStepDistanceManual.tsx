@@ -10,9 +10,9 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
-import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -23,7 +23,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getMoneyRequestParticipantOptions, setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -208,8 +208,8 @@ function IOURequestStepDistanceManual({
 
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
-    const participants = getMoneyRequestParticipantOptions(
-        currentUserAccountIDParam,
+    const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
+        currentUserAccountID: currentUserAccountIDParam,
         report,
         policy,
         personalDetails,
@@ -218,8 +218,7 @@ function IOURequestStepDistanceManual({
         reportAttributesDerived,
         reportDraft,
         translate,
-    );
-    const participantsPolicyTags = useParticipantsPolicyTags(participants);
+    });
 
     const navigateToNextPage = (amount: string) => {
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));

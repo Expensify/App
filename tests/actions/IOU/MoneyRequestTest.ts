@@ -1,5 +1,6 @@
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
+import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
@@ -783,7 +784,6 @@ describe('MoneyRequest', () => {
             transaction: fakeTransaction,
             reportID: '1',
             transactionID: '121',
-            reportAttributesDerived: {},
             personalDetails: {},
             waypoints: {},
             currentUserLogin: 'test@test.com',
@@ -808,14 +808,14 @@ describe('MoneyRequest', () => {
             amountOwed: 0,
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
-            conciergeReportID: undefined,
             action: CONST.IOU.ACTION.CREATE,
-            reportDraft: undefined,
             currentUserLocalCurrency: undefined,
             policyTagList: {},
             isTrackIntentUser: false,
             formatPhoneNumber,
             delegateAccountID: undefined,
+            participants: getMoneyRequestParticipantOptions(1, fakeReport, fakePolicy, {}, undefined, false, {}, undefined, translateLocal),
+            participantsPolicyTags: {},
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1303,48 +1303,29 @@ describe('MoneyRequest', () => {
             expect(lastCallArgs.at(5)).toBe(baseParams.currentUserAccountID);
         });
 
-        it('should pass conciergeReportID through to getMoneyRequestParticipantOptions when report exists', async () => {
-            const conciergeReportID = 'concierge789';
+        it('should call setDistanceRequestData with the provided participants when report exists', async () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
-                conciergeReportID,
-                delegateAccountID: undefined,
-            });
-
-            // When report exists and iouType is not CREATE, the function calls getMoneyRequestParticipantOptions
-            // with conciergeReportID, sets distance request data, and then navigates to confirmation page
-            await waitForBatchedUpdates();
-            expect(baseParams.setDistanceRequestData).toHaveBeenCalled();
-        });
-
-        it('should set distance request data when conciergeReportID is undefined', async () => {
-            handleMoneyRequestStepDistanceNavigation({
-                ...baseParams,
-                iouType: CONST.IOU.TYPE.SUBMIT,
-                shouldSkipConfirmation: false,
-                isArchivedExpenseReport: false,
-                draftTransactionIDs: [baseParams.transactionID],
-                conciergeReportID: undefined,
                 delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
-            expect(baseParams.setDistanceRequestData).toHaveBeenCalled();
+            expect(baseParams.setDistanceRequestData).toHaveBeenCalledWith(baseParams.participants);
         });
 
-        it('should pass reportDraft to getMoneyRequestParticipantOptions and mark participant as disabled', async () => {
-            let capturedParticipants: Participant[] = [];
+        it('should forward a participant marked as disabled to setDistanceRequestData', async () => {
+            let capturedParticipants: Array<Participant | OptionData> = [];
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
-                reportDraft: fakeReport,
+                participants: [{...baseParams.participants.at(0), isDisabled: true} as OptionData],
                 setDistanceRequestData: (participants) => {
                     capturedParticipants = participants;
                 },
@@ -1356,15 +1337,15 @@ describe('MoneyRequest', () => {
             expect(capturedParticipants.at(0)).toMatchObject({isDisabled: true});
         });
 
-        it('should not mark participant as disabled when reportDraft is undefined', async () => {
-            let capturedParticipants: Participant[] = [];
+        it('should forward a participant not marked as disabled to setDistanceRequestData', async () => {
+            let capturedParticipants: Array<Participant | OptionData> = [];
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
-                reportDraft: undefined,
+                participants: [{...baseParams.participants.at(0), isDisabled: false} as OptionData],
                 setDistanceRequestData: (participants) => {
                     capturedParticipants = participants;
                 },

@@ -2,11 +2,10 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
-import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 
-import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 
@@ -155,7 +154,7 @@ function useOdometerNavigation({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
-    const participants = getMoneyRequestParticipantOptions(
+    const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
         currentUserAccountID,
         report,
         policy,
@@ -165,8 +164,7 @@ function useOdometerNavigation({
         reportAttributesDerived,
         reportDraft,
         translate,
-    );
-    const participantsPolicyTags = useParticipantsPolicyTags(participants);
+    });
 
     const delegateAccountID = useDelegateAccountID();
     const {formatPhoneNumber} = useLocalize();

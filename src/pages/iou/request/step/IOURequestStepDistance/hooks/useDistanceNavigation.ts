@@ -2,11 +2,10 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
-import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 
-import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 
@@ -155,7 +154,7 @@ function useDistanceNavigation({
     const {formatPhoneNumber} = useLocalize();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
-    const participants = getMoneyRequestParticipantOptions(
+    const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
         currentUserAccountID,
         report,
         policy,
@@ -165,8 +164,7 @@ function useDistanceNavigation({
         reportAttributesDerived,
         reportDraft,
         translate,
-    );
-    const participantsPolicyTags = useParticipantsPolicyTags(participants);
+    });
 
     return () => {
         const optimisticTransactionID = rand64();

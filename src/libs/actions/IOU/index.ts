@@ -212,5 +212,7 @@ export {
     getAllTransactionDrafts,
     getCurrentUserPersonalDetails,
     getRecentAttendees,
+    getAllSnapshots,
+    getSearchQueryByHash,
     getPolicyTags,
 };
