@@ -843,9 +843,13 @@ describe('Session', () => {
             SessionUtil.resendValidateCode({reasonCode: null}, 'passed-in@expensify.com');
             await waitForBatchedUpdates();
 
-            const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData: Array<{key: string; value: Record<string, unknown>}>};
-            const accountOptimistic = onyxData.optimisticData.find((d) => d.key === ONYXKEYS.ACCOUNT);
-            expect(accountOptimistic?.value.loadingForm).toBe(CONST.FORMS.RESEND_VALIDATE_CODE_FORM);
+            expect(writeSpy.mock.calls.at(0)?.at(2)).toEqual(
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({key: ONYXKEYS.ACCOUNT, value: expect.objectContaining({loadingForm: CONST.FORMS.RESEND_VALIDATE_CODE_FORM})}),
+                    ]),
+                }),
+            );
 
             writeSpy.mockRestore();
         });
