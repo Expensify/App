@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useReportTransactions from '@hooks/useReportTransactions';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -65,8 +65,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
-    // Used to detect whether the target's report becomes a one-transaction thread report after the merge.
-    const targetReportTransactions = useReportTransactions(targetTransaction?.reportID);
+    // Used to detect whether the target's report becomes a one-transaction thread report after the merge. This reads
+    // the report-scoped derived value rather than filtering the whole transaction collection.
+    const targetReportTransactionsCollection = useReportTransactionsCollection(targetTransaction?.reportID);
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
@@ -128,7 +129,8 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 // Only real reports collapse into a one-transaction thread report. The unreported/split sentinels are
                 // shared across expenses, so counting transactions by them would match unrelated expenses app-wide.
                 const isRealTargetReport = targetTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && targetTransaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID;
-                const willTargetReportBeOneTransactionReport = isRealTargetReport && targetReportTransactions.length - (isSourceInTargetReport ? 1 : 0) <= 1;
+                const targetReportTransactionCount = Object.values(targetReportTransactionsCollection ?? {}).filter(Boolean).length;
+                const willTargetReportBeOneTransactionReport = isRealTargetReport && targetReportTransactionCount - (isSourceInTargetReport ? 1 : 0) <= 1;
 
                 if (!willTargetReportBeOneTransactionReport) {
                     // The report stays a multi-transaction report, so keep the wide/super wide RHP underneath open and
