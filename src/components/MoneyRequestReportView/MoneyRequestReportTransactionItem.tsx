@@ -149,11 +149,12 @@ function MoneyRequestReportTransactionItemBody({
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const shouldUseMediumNarrowLayout = isMediumScreenWidth && !shouldScrollHorizontally;
     const shouldUseNarrowTransactionRow = shouldUseNarrowLayout || shouldUseMediumNarrowLayout;
-    const transactionRowStyle = shouldUseNarrowLayout
-        ? [styles.p4, styles.noBorderRadius]
-        : shouldUseMediumNarrowLayout
-          ? [styles.p3, styles.pv2, styles.noBorderRadius]
-          : [styles.ph3, styles.noBorderRadius];
+    let transactionRowStyle = [styles.ph3, styles.noBorderRadius];
+    if (shouldUseNarrowLayout) {
+        transactionRowStyle = [styles.p4, styles.noBorderRadius];
+    } else if (shouldUseMediumNarrowLayout) {
+        transactionRowStyle = [styles.p3, styles.pv2, styles.noBorderRadius];
+    }
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
 

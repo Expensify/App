@@ -156,7 +156,10 @@ function TransactionItemRowWide({
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
     const hasValidationMessage = shouldShowErrors && (!!missingFieldError || !!violations?.length);
-    const fullHeightMainRowStyle = shouldUseFullHeightEditableCellHoverTarget ? (hasValidationMessage ? {minHeight: VALIDATION_ROW_MAIN_CONTENT_HEIGHT} : styles.tableRowHeight) : undefined;
+    let fullHeightMainRowStyle;
+    if (shouldUseFullHeightEditableCellHoverTarget) {
+        fullHeightMainRowStyle = hasValidationMessage ? {minHeight: VALIDATION_ROW_MAIN_CONTENT_HEIGHT} : styles.tableRowHeight;
+    }
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {
