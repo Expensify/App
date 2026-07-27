@@ -15,6 +15,8 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
+import getSearchHeaderIconSize from './getSearchHeaderIconSize';
+
 function SearchSaveButton() {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -27,6 +29,8 @@ function SearchSaveButton() {
     };
 
     if (shouldUseNarrowLayout || isMediumScreenWidth) {
+        const iconSize = getSearchHeaderIconSize(isMediumScreenWidth, shouldUseNarrowLayout);
+
         return (
             <PressableWithFeedback
                 accessibilityLabel={translate('common.save')}
@@ -39,10 +43,7 @@ function SearchSaveButton() {
                 <Icon
                     src={expensifyIcons.Bookmark}
                     fill={theme.icon}
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                    small={shouldUseNarrowLayout}
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                    extraSmall={isMediumScreenWidth}
+                    size={iconSize}
                 />
             </PressableWithFeedback>
         );

@@ -203,6 +203,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         currentUserEmailParam: 'existing@example.com',
         isASAPSubmitBetaEnabled: false,
         selfDMReport: undefined,
+        selfDMReportActions: undefined,
         delegateAccountID: undefined,
         isTrackIntentUser: false,
     });
@@ -321,6 +322,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            selfDMReportActions: undefined,
             isTrackIntentUser: false,
         });
 
@@ -439,6 +441,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            selfDMReportActions: undefined,
             isTrackIntentUser: false,
         });
 
@@ -542,6 +545,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            selfDMReportActions: undefined,
             isTrackIntentUser: false,
         });
 
@@ -707,6 +711,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            selfDMReportActions: undefined,
             isTrackIntentUser: false,
         });
 
@@ -813,6 +818,7 @@ describe('mergeTransactionRequest', () => {
             isASAPSubmitBetaEnabled: false,
             delegateAccountID: undefined,
             selfDMReport: undefined,
+            selfDMReportActions: undefined,
             isTrackIntentUser: false,
         });
 
@@ -1044,6 +1050,7 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport: undefined,
+                selfDMReportActions: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -1246,6 +1253,7 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport: undefined,
+                selfDMReportActions: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -1261,7 +1269,6 @@ describe('mergeTransactionRequest', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -1284,7 +1291,6 @@ describe('mergeTransactionRequest', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report).toBeFalsy();
@@ -1399,6 +1405,7 @@ describe('mergeTransactionRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 delegateAccountID: undefined,
                 selfDMReport,
+                selfDMReportActions: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -1408,7 +1415,6 @@ describe('mergeTransactionRequest', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report?.reportID).toBeFalsy();
@@ -1425,7 +1431,6 @@ describe('mergeTransactionRequest', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connection);
                         expect(report).toBeFalsy();
