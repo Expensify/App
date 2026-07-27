@@ -892,6 +892,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchKey,
         isTrackIntentUser,
         personalDetails,
+        delegateAccountID,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
