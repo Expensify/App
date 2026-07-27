@@ -83,6 +83,7 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
         showButton: true,
         text: translate('common.save'),
         onConfirm: saveVisibility,
+        isDisabled: selectedVisibility === report?.visibility,
     };
 
     return (

@@ -60,6 +60,7 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
         showButton: true,
         text: translate('common.save'),
         onConfirm: saveNotificationPreference,
+        isDisabled: selectedNotificationPreference === currentNotificationPreference,
     };
 
     return (

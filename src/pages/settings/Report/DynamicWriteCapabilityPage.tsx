@@ -52,6 +52,7 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
         showButton: true,
         text: translate('common.save'),
         onConfirm: saveWriteCapability,
+        isDisabled: selectedWriteCapability === currentWriteCapability,
     };
 
     return (
