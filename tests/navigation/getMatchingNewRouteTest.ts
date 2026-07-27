@@ -208,6 +208,18 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/e/123/details/shareCode')).toBe('/e/123/share-code');
     });
 
+    it('redirects old standalone merge-transaction routes to the dynamic route with a search base', () => {
+        expect(getMatchingNewRoute('/merge/123')).toBe('/search/merge/123');
+        expect(getMatchingNewRoute('/merge/123/receipt')).toBe('/search/merge/123/receipt');
+        expect(getMatchingNewRoute('/merge/123/details')).toBe('/search/merge/123/details');
+        expect(getMatchingNewRoute('/merge/123/confirmation')).toBe('/search/merge/123/confirmation');
+    });
+
+    it('preserves query params when redirecting old standalone merge-transaction routes', () => {
+        expect(getMatchingNewRoute('/merge/123?backTo=/home')).toBe('/search/merge/123?backTo=/home');
+        expect(getMatchingNewRoute('/merge/123/receipt?isOnSearch=true')).toBe('/search/merge/123/receipt?isOnSearch=true');
+    });
+
     it('redirects legacy standalone referral routes to a dynamic route with a home base', () => {
         expect(getMatchingNewRoute('/referral/shareCode')).toBe('/home/referral/shareCode');
     });
@@ -230,8 +242,27 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/new/task/title?backTo=/home')).toBe('/task-details/task-confirm/task-title?backTo=/home');
     });
 
-    it('does not redirect the unchanged new task share destination route', () => {
-        expect(getMatchingNewRoute('/new/task/share-destination')).toBe(undefined);
+    it('redirects legacy new task share destination route to the new nested dynamic route', () => {
+        expect(getMatchingNewRoute('/new/task/share-destination')).toBe('/task-details/task-confirm/task-share-destination');
+    });
+
+    // NOTE: the redirect appends the dynamic suffix (`/send-from`, `/company-info`) so a deep-link restores the actual substep,
+    // not just the confirmation entry. Query preservation is intentionally not asserted here: the OldRoutes matcher captures the
+    // trailing segment with a greedy `(.*)` that also swallows the query string, so a suffix cannot be appended after it while
+    // keeping `?backTo=…` at the end. This is acceptable because no call site produces these legacy paths with a query anymore
+    // (all navigations moved to `createDynamicRoute` without `backTo`).
+    it('redirects legacy invoice send-from substep to the new dynamic route including the suffix', () => {
+        expect(getMatchingNewRoute('/create/invoice/from/123/456')).toBe('/create/invoice/confirmation/123/456/send-from');
+    });
+
+    it('redirects legacy invoice company-info substep to the new dynamic route including the suffix', () => {
+        expect(getMatchingNewRoute('/create/invoice/company-info/123/456')).toBe('/create/invoice/confirmation/123/456/company-info');
+    });
+
+    it('does not redirect the already-migrated money request part 1 dynamic routes', () => {
+        expect(getMatchingNewRoute('/task-details/task-confirm/task-share-destination')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/invoice/confirmation/123/456/send-from')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/invoice/confirmation/123/456/company-info')).toBe(undefined);
     });
 
     it('redirects legacy profile avatar path to new avatar route', () => {
