@@ -143,7 +143,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                 // source's, so we fall through to the full dismiss below instead of leaving that stale report stacked.
                 const topmostSearchReportID = Navigation.getTopmostSearchReportID();
                 const isTargetRhpUnderneath =
-                    topmostSearchReportID === targetTransactionThreadReportID ||
+                    (!!targetTransactionThreadReportID && topmostSearchReportID === targetTransactionThreadReportID) ||
                     topmostSearchReportID === targetTransaction.reportID ||
                     Navigation.getTopmostSuperWideRHPReportID() === targetTransaction.reportID;
 
