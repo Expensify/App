@@ -6911,7 +6911,7 @@ function setPolicyReceiptVisibilityPublic(policyID: string, isReceiptVisibilityP
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    isReceiptVisibilityPublic: currentIsReceiptVisibilityPublic,
+                    isReceiptVisibilityPublic: currentIsReceiptVisibilityPublic ?? null,
                     pendingFields: {isReceiptVisibilityPublic: null},
                     errorFields: {isReceiptVisibilityPublic: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
