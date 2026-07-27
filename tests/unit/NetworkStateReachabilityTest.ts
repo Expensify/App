@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import type Middleware from '@src/libs/Middleware/types';
 import type * as NetworkState from '@src/libs/NetworkState';
 import type Request from '@src/types/onyx/Request';
@@ -355,6 +356,33 @@ describe('NetworkState — a successful request clears the INTERNET_UNREACHABLE 
 
         // Ping finally recovers: the app is already online, so the re-confirmation is ignored
         fireNetInfoState({isInternetReachable: true});
+        jest.runAllTimers();
+        expect(reconnectListener).toHaveBeenCalledTimes(1);
+    });
+
+    test('success while BOTH hard stops are set clears both and fires reconnect exactly once', async () => {
+        jest.useFakeTimers();
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        // Ping fails — INTERNET_UNREACHABLE hard stop
+        fireNetInfoState({isInternetReachable: false});
+        expect(getIsOffline()).toBe(true);
+
+        // Requests fail past both thresholds — SUSTAINED_FAILURES hard stop on top
+        const connectivityError = new Error(CONST.ERROR.FAILED_TO_FETCH);
+        for (let i = 0; i < CONST.NETWORK.SUSTAINED_FAILURE_THRESHOLD_COUNT - 1; i++) {
+            await expect(FailureTracking(Promise.reject(connectivityError), mockRequest, false)).rejects.toThrow();
+        }
+        jest.advanceTimersByTime(CONST.NETWORK.SUSTAINED_FAILURE_WINDOW_MS + 1);
+        await expect(FailureTracking(Promise.reject(connectivityError), mockRequest, false)).rejects.toThrow();
+        expect(getIsOffline()).toBe(true);
+
+        // One success clears both stops. The success listener resets the failure counters
+        // before recordSuccess reaches its early return, so the sustained-failure path
+        // must not schedule a second reconnect.
+        await FailureTracking(Promise.resolve({jsonCode: 200}), mockRequest, false);
+        expect(getIsOffline()).toBe(false);
         jest.runAllTimers();
         expect(reconnectListener).toHaveBeenCalledTimes(1);
     });
