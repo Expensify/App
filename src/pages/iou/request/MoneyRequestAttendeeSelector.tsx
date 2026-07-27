@@ -127,7 +127,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    const shouldShowErrorMessage = selectedOptions.length < 1;
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
+
+    const shouldShowErrorMessage = !shouldShowLoadingPlaceholder && selectedOptions.length < 1;
 
     const confirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
         if (shouldShowErrorMessage || (!selectedOptions.length && !option)) {
@@ -136,8 +138,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         onFinish(CONST.IOU.TYPE.SUBMIT);
     };
-
-    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
     const getFooterContent = () => {
         if (!shouldShowErrorMessage && !selectedOptions.length) {
