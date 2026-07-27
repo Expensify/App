@@ -1737,14 +1737,14 @@ describe('OptionsListUtils', () => {
             // and the heap comparator key (text -> alternateText -> login) read on the eager option, which also
             // guarantees identical tie-breaking for contacts with equal comparator keys
             expect(lazyList.personalDetails.length).toBe(eagerList.personalDetails.length);
-            eagerList.personalDetails.forEach((eagerOption, index) => {
+            for (const [index, eagerOption] of eagerList.personalDetails.entries()) {
                 const shell = lazyList.personalDetails.at(index);
                 expect(shell?.text).toBe(eagerOption.text);
                 expect(shell?.login).toBe(eagerOption.login);
                 expect(shell?.accountID).toBe(eagerOption.accountID);
                 expect(shell?.participantsList).toEqual(eagerOption.participantsList);
                 expect(shell?.text ?? shell?.alternateText ?? shell?.login).toBe(eagerOption.text ?? eagerOption.alternateText ?? eagerOption.login);
-            });
+            }
         });
 
         it('should produce results identical to eagerly built options with custom exclusions', () => {
