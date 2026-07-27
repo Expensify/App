@@ -63,13 +63,14 @@ jest.mock('@libs/TransactionUtils', () => {
         currentUserEmail: string,
         currentUserAccountID: number,
         iouReport: Report | undefined,
+        iouReportOwnerLogin: string | undefined,
         policy: Policy | undefined,
         shouldShowRterForSettledReport = true,
     ) =>
         mergeProhibitedViolations(
             transactionViolations.filter(
                 (violation) =>
-                    !mockIsViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
+                    !mockIsViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin) &&
                     mockShouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
             ),
         );

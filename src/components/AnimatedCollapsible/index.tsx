@@ -155,7 +155,7 @@ function AnimatedCollapsible({
                                 src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
                                 fill={theme.icon}
                                 additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                small
+                                size={CONST.ICON_SIZE.SMALL}
                             />
                         )}
                     </PressableWithFeedback>

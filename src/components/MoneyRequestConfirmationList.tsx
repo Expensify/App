@@ -71,7 +71,7 @@ import SelectionListWithSections from './SelectionList/SelectionListWithSections
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
-    onConfirm?: (selectedParticipants?: Participant[]) => void;
+    onConfirm?: () => void;
 
     /** When set, used in the new manual expense flow to open the parent-owned participant picker instead of navigating away */
     onOpenParticipantPicker?: () => void;
@@ -429,6 +429,7 @@ function MoneyRequestConfirmationList({
 
     const sections = useConfirmationSections({
         isTypeSplit,
+        isTypeInvoice,
         shouldHideToSection,
         shouldForceTopEmptySections,
         participantRowErrors,
@@ -481,6 +482,7 @@ function MoneyRequestConfirmationList({
         isDistanceRequest,
         isDistanceRequestWithPendingRoute,
         isPerDiemRequest,
+        isMovingTransactionFromTrackExpense,
         isTimeRequest,
         routeError,
         isNewManualExpenseFlowEnabled,
@@ -492,10 +494,8 @@ function MoneyRequestConfirmationList({
         iouType,
         policy,
         transactionID,
-        reportID,
         routeError,
         formError,
-        selectedParticipants,
         isDelegateAccessRestricted,
         validate,
         setFormError,
@@ -509,7 +509,7 @@ function MoneyRequestConfirmationList({
     const selectionListStyle = {
         containerStyle: [styles.flexBasisAuto],
         contentContainerStyle: isCompactMode ? [styles.flexGrow1] : undefined,
-        listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mv3] : [styles.mv3],
+        listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mb3] : [styles.mb3],
     };
 
     const footerContent = isReadOnly ? undefined : (

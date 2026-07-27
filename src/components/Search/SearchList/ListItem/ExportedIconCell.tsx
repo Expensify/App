@@ -85,14 +85,14 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
                 <Icon
                     src={icons.Table}
                     fill={theme.icon}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                 />
             )}
             {isExportedToCustomTemplate && (
                 <Icon
                     src={icons.TablePencil}
                     fill={theme.icon}
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                 />
             )}
             {isExportedToNetsuite && (

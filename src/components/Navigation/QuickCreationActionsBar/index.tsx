@@ -29,6 +29,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {Str} from 'expensify-common';
@@ -38,7 +39,7 @@ import {View} from 'react-native';
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'CarPlus', 'LuggageWithLinesPlus']);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'LocationAdd', 'LuggageWithLinesPlus']);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -59,11 +60,12 @@ function QuickCreationActionsBar() {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const groupPoliciesWithChatEnabledSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, email);
-    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPoliciesWithChatEnabledSelector}, [email, isSubmit2026BetaEnabled]);
+    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, email),
+    });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const defaultChatEnabledPolicy = useMemo(
         () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
@@ -101,6 +103,7 @@ function QuickCreationActionsBar() {
                 isASAPSubmitBetaEnabled,
                 defaultChatEnabledPolicy,
                 allBetas,
+                isTrackIntentUser,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -111,7 +114,7 @@ function QuickCreationActionsBar() {
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
@@ -224,7 +227,7 @@ function QuickCreationActionsBar() {
             />
             <Button
                 small
-                icon={icons.CarPlus}
+                icon={icons.LocationAdd}
                 text={translate('common.distance')}
                 onPress={handleDistance}
                 style={styles.quickCreationActionsBarButton}

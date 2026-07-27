@@ -1,3 +1,8 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+
+import Onyx from 'react-native-onyx';
+
 import DateUtils from './DateUtils';
 
 /**
@@ -9,6 +14,22 @@ import DateUtils from './DateUtils';
  * date strings from DateUtils.getDBTime(), which sort in the same order as the dates they represent,
  * so comparing them as strings is correct.
  */
+
+// The cutoff the client currently holds. Consumers that only need the value (not the change event,
+// which subscribeToFullReconnect owns) read it through getServerReconnectCutoff instead of opening
+// their own connection. Nothing in the UI shows it, so connectWithoutView is correct here. Do not
+// copy this into a component: use useOnyx there so the UI updates when the value changes.
+let currentServerReconnectCutoff = '';
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
+    callback: (value) => {
+        currentServerReconnectCutoff = value ?? '';
+    },
+});
+
+function getServerReconnectCutoff(): string {
+    return currentServerReconnectCutoff;
+}
 
 /**
  * An empty last reconnect time means the app has never reconnected, so this returns true. An empty
@@ -32,4 +53,25 @@ function getLastFullReconnectTimeToRecord(serverReconnectCutoff: string): string
     return now >= serverReconnectCutoff ? now : serverReconnectCutoff;
 }
 
-export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord};
+/**
+ * The response can deliver a newer cutoff than the one known when the request was built, and the
+ * held cutoff can be newer still (a Pusher update can overtake an in-flight response), so the
+ * recorded time satisfies whichever of the two is later. A time below either would read as stale
+ * and fire an extra reconnect right after the full download.
+ *
+ * The entry goes right before the delivered cutoff entry, so the reconnect subscription never sees
+ * a new cutoff next to an old reconnect time. That assumes Onyx broadcasts a batch's merges in
+ * array order: true today because both keys are cache-resident (see subscribeToFullReconnect.ts),
+ * and pinned by the SubscribeToFullReconnect e2e test. If it ever broke, the worst case is one
+ * transient extra reconnect, never a loop.
+ */
+function recordFullReconnectTimeFromResponse(responseOnyxData: AnyOnyxUpdate[], knownServerReconnectCutoff: string): void {
+    const cutoffIndex = responseOnyxData.findIndex((update) => update.key === ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE);
+    const deliveredCutoffValue: unknown = cutoffIndex === -1 ? undefined : responseOnyxData.at(cutoffIndex)?.value;
+    const deliveredCutoff = typeof deliveredCutoffValue === 'string' ? deliveredCutoffValue : '';
+    const cutoffToSatisfy = deliveredCutoff > knownServerReconnectCutoff ? deliveredCutoff : knownServerReconnectCutoff;
+    const insertionIndex = cutoffIndex === -1 ? responseOnyxData.length : cutoffIndex;
+    responseOnyxData.splice(insertionIndex, 0, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.LAST_FULL_RECONNECT_TIME, value: getLastFullReconnectTimeToRecord(cutoffToSatisfy)});
+}
+
+export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord, getServerReconnectCutoff, recordFullReconnectTimeFromResponse};

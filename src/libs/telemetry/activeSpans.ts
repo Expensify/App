@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
+import type {Span, SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 
 import {SPAN_STATUS_OK} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
@@ -94,6 +94,22 @@ function cancelSpansByPrefix(prefix: string) {
     }
 }
 
+/**
+ * Cancel a tracked span by its Sentry span instance rather than its id (e.g. from a lifecycle listener that
+ * only has the raw span). Optionally stamps attributes first. No-op if the span isn't tracked.
+ */
+function cancelSpanByInstance(target: Span, attributes?: Record<string, SpanAttributeValue>) {
+    for (const [spanID, entry] of activeSpans.entries()) {
+        if (entry.span === target) {
+            if (attributes) {
+                entry.span.setAttributes(attributes);
+            }
+            cancelSpan(spanID);
+            return;
+        }
+    }
+}
+
 function getSpan(spanId: string) {
     return activeSpans.get(spanId)?.span;
 }
@@ -104,4 +120,4 @@ function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAt
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};

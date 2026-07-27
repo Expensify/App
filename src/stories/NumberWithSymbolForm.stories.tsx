@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React from 'react';
 
@@ -42,13 +42,14 @@ Default.args = {
     containerStyle: defaultStyles.iouAmountTextInputContainer,
     footer: (
         <Button
-            success
-            large
-            text="Submit"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.LARGE}
             onPress={() => {
                 alert('Submitted');
             }}
-        />
+        >
+            <Button.Text>Submit</Button.Text>
+        </Button>
     ),
 };
 

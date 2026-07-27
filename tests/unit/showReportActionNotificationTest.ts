@@ -91,9 +91,10 @@ describe('showReportActionNotification', () => {
         Report.showReportActionNotification(
             REPORT_ID,
             reportAction as Parameters<typeof Report.showReportActionNotification>[1],
+            undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
-            REPORT_ATTRIBUTES as Parameters<typeof Report.showReportActionNotification>[4],
+            REPORT_ATTRIBUTES as Parameters<typeof Report.showReportActionNotification>[5],
         );
         await waitForBatchedUpdates();
 
@@ -115,7 +116,14 @@ describe('showReportActionNotification', () => {
             person: [{type: 'TEXT', style: 'strong', text: 'Other User'}],
         };
 
-        Report.showReportActionNotification(REPORT_ID, reportAction as Parameters<typeof Report.showReportActionNotification>[1], CURRENT_USER_ACCOUNT_ID, CURRENT_USER_LOGIN, undefined);
+        Report.showReportActionNotification(
+            REPORT_ID,
+            reportAction as Parameters<typeof Report.showReportActionNotification>[1],
+            undefined,
+            CURRENT_USER_ACCOUNT_ID,
+            CURRENT_USER_LOGIN,
+            undefined,
+        );
         await waitForBatchedUpdates();
 
         expect(mockShowModifiedExpenseNotification).toHaveBeenCalledTimes(1);
@@ -139,9 +147,10 @@ describe('showReportActionNotification', () => {
         Report.showReportActionNotification(
             REPORT_ID,
             reportAction as Parameters<typeof Report.showReportActionNotification>[1],
+            undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
-            REPORT_ATTRIBUTES as Parameters<typeof Report.showReportActionNotification>[4],
+            REPORT_ATTRIBUTES as Parameters<typeof Report.showReportActionNotification>[5],
         );
         await waitForBatchedUpdates();
 

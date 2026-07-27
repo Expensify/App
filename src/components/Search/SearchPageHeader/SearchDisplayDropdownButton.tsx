@@ -19,6 +19,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
+import getSearchHeaderIconSize from './getSearchHeaderIconSize';
+
 type SearchDisplayDropdownButtonProps = {
     queryJSON: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
@@ -53,6 +55,8 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
     );
 
     if (shouldUseNarrowLayout || isMediumScreenWidth) {
+        const iconSize = getSearchHeaderIconSize(isMediumScreenWidth, shouldUseNarrowLayout);
+
         return (
             <FilterPopupButton
                 PopoverComponent={displayPopup}
@@ -70,8 +74,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
                         <Icon
                             src={expensifyIcons.Gear}
                             fill={theme.icon}
-                            small={shouldUseNarrowLayout}
-                            extraSmall={isMediumScreenWidth}
+                            size={iconSize}
                         />
                     </PressableWithFeedback>
                 )}

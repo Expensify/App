@@ -48,7 +48,7 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
                 <Icon
                     src={src}
                     fill={fill}
-                    small={small}
+                    size={small ? CONST.ICON_SIZE.SMALL : undefined}
                 />
             </PressableWithFeedback>
         </Tooltip>

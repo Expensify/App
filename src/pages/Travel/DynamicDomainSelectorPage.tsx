@@ -13,7 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
@@ -72,7 +72,7 @@ function DynamicDomainSelectorPage({route}: DomainSelectorPageProps) {
             // Determine where to redirect after OTP validation
             const nextStep = isEmptyObject(policy?.address)
                 ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute())
-                : createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID));
+                : getTravelAcceptTermsRoute(domain, policyID, policy);
             setTravelProvisioningNextStep(nextStep);
             Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID));
             return;
@@ -82,7 +82,7 @@ function DynamicDomainSelectorPage({route}: DomainSelectorPageProps) {
             Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute()));
         } else {
             cleanupTravelProvisioningSession();
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID)));
+            Navigation.navigate(getTravelAcceptTermsRoute(domain, policyID, policy));
         }
     };
 

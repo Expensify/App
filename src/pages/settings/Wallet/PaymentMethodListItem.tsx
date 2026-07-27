@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
@@ -25,7 +26,7 @@ import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@userAc
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -269,7 +270,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                         small
                         success
                         text={translate('walletPage.addVirtualCardPersonalDetails.cta')}
-                        onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID)))}
+                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID))))}
                     />
                 </View>
             )}

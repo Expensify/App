@@ -1,18 +1,20 @@
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationState} from '@react-navigation/routers';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 import type {SearchQueryActionsValue, SearchQueryContextValue} from './types';
 
@@ -42,9 +44,12 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
-    const {accountID} = useCurrentUserPersonalDetails();
+    const {accountID, email} = useCurrentUserPersonalDetails();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const defaultCardFeedID = defaultCardFeed?.id;
-    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID);
+    // Only policy IDs are needed so Top Spenders matches the type menu hash; card feeds aren't used for that eligibility.
+    const topSpendersPolicyIDs = useMemo(() => getSuggestedSearchesVisibility(email, {}, policies, undefined).topSpendersPolicyIDs, [email, policies]);
+    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID, undefined, topSpendersPolicyIDs);
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;

@@ -8,6 +8,7 @@ import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -15,7 +16,7 @@ import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getCardIssuedMessage, getOriginalMessage, shouldShowActivateCard, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type {IssueNewCardOriginalMessage} from '@src/types/onyx/OriginalMessage';
@@ -60,7 +61,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
             {shouldShowAddMissingDetailsButton && (
                 <Button
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(expensifyCard.cardID)));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(expensifyCard.cardID))));
                     }}
                     success
                     style={[styles.alignSelfStart, styles.mt3]}

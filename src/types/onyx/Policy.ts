@@ -8,19 +8,38 @@ import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 
 import type * as OnyxTypes from '.';
+import type {CardFeedWithNumber} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
 
 /** Distance units */
 type Unit = 'mi' | 'km';
 
-/** Tax rate attributes of the policy distance rate */
-type TaxRateAttributes = {
+/** Snapshot of the government-published values at the time a government rate was copied onto the policy */
+type GovernmentRateSnapshot = {
+    /** Deterministic ID of the source government rate, derived from country and start date (e.g. "US_2026-01-01") */
+    sourceRateID?: string;
+
+    /** Government-published rate amount at the time the rate was copied */
+    rate?: number;
+
+    /** Government-published start date (ISO 8601) at the time the rate was copied, omitted if the source rate has none */
+    startDate?: string;
+
+    /** Government-published end date (ISO 8601) at the time the rate was copied, omitted if the source rate has none */
+    endDate?: string;
+};
+
+/** General-purpose optional attributes of the policy distance rate */
+type RateAttributes = {
     /** Percentage of the tax that can be reclaimable */
     taxClaimablePercentage?: number;
 
     /** External ID associated to this tax rate */
     taxRateExternalID?: string;
+
+    /** Snapshot of the government-published rate this rate was copied from. Only set on rates copied from the government rate table */
+    governmentRate?: GovernmentRateSnapshot;
 };
 
 /** Model of policy subrate */
@@ -59,8 +78,8 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Form fields that triggered the errors */
         errorFields?: OnyxCommon.ErrorFields;
 
-        /** Tax rate attributes of the policy */
-        attributes?: TaxRateAttributes;
+        /** General-purpose optional attributes of the rate, such as VAT reclaim fields and government-rate metadata */
+        attributes?: RateAttributes;
 
         /** Subrates of the given rate */
         subRates?: Subrate[];
@@ -74,7 +93,7 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** ISO 8601 date string for when this rate expires */
         endDate?: string | null;
     },
-    keyof TaxRateAttributes
+    keyof RateAttributes
 >;
 
 /** Custom unit attributes */
@@ -247,6 +266,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The old tax code of the tax rate when we edit the tax code */
     previousTaxCode?: string;
 
+    /** The old tax code kept only while a tax code edit is in flight, used to resolve the rate from the old code; cleared once the API resolves */
+    optimisticPreviousTaxCode?: string;
+
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
 
@@ -318,6 +340,9 @@ type MergeHRConnectionLastSync = ConnectionLastSync & {
 
     /** Status of the sync */
     syncStatus?: ValueOf<typeof CONST.MERGE_HR.SYNC_STATUS>;
+
+    /** Timestamps of the last few manual ("Sync now") syncs, used for blocking manual syncs client-side once the daily limit is reached */
+    manualSyncTimestamps?: string[];
 };
 
 /**
@@ -506,7 +531,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether employees can be invited */
     syncPeople: boolean;
 
-    /** TODO: Will be handled in another issue */
+    /** Whether QuickBooks Online items should be imported */
     syncItems: boolean;
 
     /** TODO: Will be handled in another issue */
@@ -647,6 +672,18 @@ type XeroTrackingCategory = {
     name: string;
 };
 
+/** Xero supplier contact imported into the workspace. */
+type XeroContact = {
+    /** Contact ID assigned by Xero */
+    id: string;
+
+    /** Display name of the contact */
+    name: string;
+
+    /** Contact's email address */
+    email: string;
+};
+
 /**
  * Data imported from Xero
  *
@@ -655,6 +692,9 @@ type XeroTrackingCategory = {
 type XeroConnectionData = {
     /** Collection of bank accounts */
     bankAccounts: Account[];
+
+    /** Supplier contacts keyed by their Xero contact ID. Undefined until Integration-Server has synced suppliers for the workspace. */
+    contacts?: Record<string, XeroContact>;
 
     /** TODO: Will be handled in another issue */
     countryCode: string;
@@ -783,6 +823,9 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** ID of Xero organization */
         tenantID: string;
+
+        /** Default supplier contact used as a fallback when a non-reimbursable card transaction has no contact set. */
+        defaultVendor?: string;
 
         /** TODO: Will be handled in another issue */
         errors?: OnyxCommon.Errors;
@@ -1570,12 +1613,12 @@ type RilletSubsidiary = {
 /**
  * Supported account statuses in Rillet.
  */
-type RilletAccountStatus = 'ACTIVE' | 'INACTIVE';
+type RilletAccountStatus = ValueOf<typeof CONST.RILLET_ACCOUNT_STATUS>;
 
 /**
  * Supported chart of account categories in Rillet.
  */
-type RilletAccountType = 'ASSET' | 'LIABILITY' | 'EQUITY' | 'EXPENSE' | 'INCOME';
+type RilletAccountType = ValueOf<typeof CONST.RILLET_ACCOUNT_TYPE>;
 
 /**
  * A chart of accounts entry in Rillet.
@@ -1713,22 +1756,22 @@ type RilletBankAccount = {
  */
 type RilletConnectionData = {
     /** Collection of subsidiaries. */
-    subsidiaries: RilletSubsidiary[];
+    subsidiaries?: RilletSubsidiary[];
 
     /** Collection of accounts. */
-    accounts: RilletAccount[];
+    accounts?: RilletAccount[];
 
     /** Collection of custom fields. */
-    fields: RilletField[];
+    fields?: RilletField[];
 
     /** Collection of tax rates. */
-    taxRates: RilletTaxRate[];
+    taxRates?: RilletTaxRate[];
 
     /** Collection of vendors. */
-    vendors: RilletVendor[];
+    vendors?: RilletVendor[];
 
     /** Collection of bank accounts. */
-    bankAccounts: RilletBankAccount[];
+    bankAccounts?: RilletBankAccount[];
 };
 
 /**
@@ -1738,7 +1781,7 @@ type RilletCoding = {
     /**
      * Mapping of Rillet field IDs to their configured mapping behavior.
      */
-    fieldMappings: Record<string, ValueOf<typeof CONST.RILLET_MAPPING_VALUE>>;
+    fieldMappings?: Record<string, ValueOf<typeof CONST.RILLET_MAPPING_VALUE>>;
 
     /** Whether tax rates should be synchronized from Rillet. */
     syncTaxRates: boolean;
@@ -1755,17 +1798,17 @@ type RilletCodingOfflineFeedbackKeys = keyof Omit<RilletCoding, 'fieldMappings'>
 /**
  * Available dates that can be used as the export date.
  */
-type RilletExportDate = 'LAST_EXPENSE' | 'REPORT_EXPORTED' | 'REPORT_SUBMITTED';
+type RilletExportDate = ValueOf<typeof CONST.RILLET_EXPORT_DATE>;
 
 /**
  * Export strategy for reimbursable expenses.
  */
-type RilletExportReimbursable = 'VENDOR_BILL';
+type RilletExportReimbursable = ValueOf<typeof CONST.RILLET_EXPORT_REIMBURSABLE>;
 
 /**
  * Export strategy for company card expenses.
  */
-type RilletExportCompanyCard = 'CREDIT_CARD';
+type RilletExportCompanyCard = ValueOf<typeof CONST.RILLET_EXPORT_COMPANY_CARD>;
 
 /**
  * Export configuration for sending accounting data to Rillet.
@@ -1798,11 +1841,19 @@ type RilletExport = {
     /**
      * Mapping of card program identifiers to account codes.
      */
-    cardProgramAccounts: Record<string, string>;
+    cardProgramAccounts: Record<CardFeedWithNumber, string>;
 
     /** Accounting method used during export. */
-    accountingMethod: string;
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
+
+/** Offline feedback key for card program account */
+type RilletExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `RilletCoding`
+ */
+type RilletExportOfflineFeedbackKeys = keyof Omit<RilletExport, 'cardProgramAccounts'> | RilletExportCardProgramAccountsOfflineFeedbackKey;
 
 /**
  * Automatic synchronization settings for Rillet.
@@ -1850,16 +1901,16 @@ type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         enableNewCategories: boolean;
 
         /** Coding settings */
-        coding: RilletCoding;
+        coding?: RilletCoding;
 
         /** Export settings */
-        export: RilletExport;
+        export?: RilletExport;
 
         /** Auto-sync settings */
         autoSync?: RilletAutoSync;
 
         /** Sync settings */
-        sync: RilletSync;
+        sync?: RilletSync;
 
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
@@ -1867,7 +1918,7 @@ type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    RilletCodingOfflineFeedbackKeys | keyof RilletExport | keyof RilletAutoSync | keyof RilletSync
+    RilletCodingOfflineFeedbackKeys | RilletExportOfflineFeedbackKeys | keyof RilletAutoSync | keyof RilletSync
 >;
 
 /** Gusto connection data */
@@ -2645,7 +2696,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         chatReportIDAnnounce?: string | number;
 
         /** All the integration connections attached to the policy */
-        connections?: Connections;
+        connections?: Partial<Connections>;
 
         /** Report fields attached to the policy */
         fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
@@ -2797,9 +2848,13 @@ type PolicyConnectionSyncProgress = {
     result?: HrSyncResult;
 };
 
+/** Workspace types a user can create directly (Team/Corporate/Submit), e.g. when creating a draft workspace on the fly. */
+type CreatableWorkspaceType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+
 export default Policy;
 
 export type {
+    CreatableWorkspaceType,
     AutoReportingOffset,
     PolicyReportField,
     PolicyReportFieldType,
@@ -2807,7 +2862,8 @@ export type {
     CustomUnit,
     Attributes,
     Rate,
-    TaxRateAttributes,
+    RateAttributes,
+    GovernmentRateSnapshot,
     TaxRate,
     TaxRates,
     TaxRatesWithDefault,
@@ -2869,4 +2925,14 @@ export type {
     ZenefitsConnectionConfig,
     Vendor,
     AgentRule,
+    RilletExportDate,
+    RilletVendor,
+    RilletAccount,
+    RilletCoding,
+    RilletConnectionsConfig,
+    RilletExport,
+    RilletBankAccount,
+    RilletAutoSync,
+    RilletSync,
+    RilletSubsidiary,
 };
