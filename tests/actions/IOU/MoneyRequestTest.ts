@@ -1,5 +1,6 @@
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 
@@ -60,6 +61,17 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
 }));
+
+jest.mock('@libs/ReportUtils', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- requireActual can't be typed without a restricted wildcard import of this module
+    const actualReportUtils = jest.requireActual('@libs/ReportUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actualReportUtils,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        getPolicyExpenseChat: jest.fn(actualReportUtils.getPolicyExpenseChat),
+    };
+});
 
 // Pass-through spy so behavior is unchanged but the call args (incl. currentUserAccountID) can be asserted.
 jest.mock('@libs/shouldUseDefaultExpensePolicy', () => {
@@ -1013,6 +1025,19 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
+                // getMoneyRequestParticipantOptions resolves reports via ReportUtils' internal Onyx cache, which isn't
+                // populated in this bare unit-test harness, so provide the policy-expense-chat participant directly.
+                participants: [
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal OptionData fixture, only the fields the assertions below check are needed
+                    {
+                        accountID: 0,
+                        selected: true,
+                        isSelected: true,
+                        allReportErrors: {},
+                        brickRoadIndicator: null,
+                        isPolicyExpenseChat: true,
+                    } as OptionData,
+                ],
                 delegateAccountID: undefined,
             });
 
@@ -1193,6 +1218,10 @@ describe('MoneyRequest', () => {
                 ...fakePolicy,
                 isPolicyExpenseChatEnabled: true,
             };
+
+            // getPolicyExpenseChat resolves reports via ReportUtils' internal Onyx cache, which isn't populated
+            // in this bare unit-test harness, so return the policy expense chat report directly.
+            jest.mocked(getPolicyExpenseChat).mockReturnValueOnce(fakeReport);
 
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
