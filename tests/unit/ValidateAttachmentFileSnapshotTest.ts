@@ -94,4 +94,33 @@ describe('validateAttachmentFile OS-backed file snapshot (web)', () => {
             createObjectURLSpy.mockRestore();
         }
     });
+
+    it('keeps the lazy File on iPadOS Safari in desktop mode (Macintosh user agent with touch points)', async () => {
+        const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-url');
+        const originalUserAgent = navigator.userAgent;
+        const originalMaxTouchPoints = navigator.maxTouchPoints;
+        Object.defineProperty(navigator, 'userAgent', {
+            value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+            configurable: true,
+        });
+        Object.defineProperty(navigator, 'maxTouchPoints', {value: 5, configurable: true});
+        try {
+            const file: FileObject = new File([new Blob(['content'], {type: 'text/plain'})], 'image.png', {type: 'image/png'});
+            const arrayBufferSpy = jest.fn();
+            Object.defineProperty(file, 'arrayBuffer', {value: arrayBufferSpy, configurable: true});
+
+            const result = await validateAttachmentFile(file);
+
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(arrayBufferSpy).not.toHaveBeenCalled();
+            expect(result.file).toBe(file);
+        } finally {
+            createObjectURLSpy.mockRestore();
+            Object.defineProperty(navigator, 'userAgent', {value: originalUserAgent, configurable: true});
+            Object.defineProperty(navigator, 'maxTouchPoints', {value: originalMaxTouchPoints, configurable: true});
+        }
+    });
 });
