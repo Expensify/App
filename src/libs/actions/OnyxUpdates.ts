@@ -20,6 +20,10 @@ import {getCurrentFlushPromise, queueOnyxUpdates} from './QueuedOnyxUpdates';
 // callback were triggered it would lead to duplicate processing of server updates.
 let lastUpdateIDAppliedToClient: number | undefined = 0;
 
+// Highest update ID staged for the deferred WRITE flush but not yet persisted. Gap detection treats these as
+// applied so queued WRITE responses don't look like gaps; reset if the flush fails so recovery can kick in.
+let lastUpdateIDPendingFlush = 0;
+
 // We have used `connectWithoutView` here because OnyxUpdates is not connected to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
@@ -133,7 +137,10 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
 function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
-    const isUpdateOld = lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient;
+    // Updates staged for the deferred WRITE flush count as applied for ordering purposes, otherwise they would
+    // get re-staged (and reapplied on flush) if the same update ID arrives again while the flush is pending.
+    const effectiveLastUpdateID = Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
+    const isUpdateOld = lastUpdateID && effectiveLastUpdateID && Number(lastUpdateID) <= effectiveLastUpdateID;
     const isOpenAppRequest = request?.command === WRITE_COMMANDS.OPEN_APP;
     const isFullReconnectRequest = request?.command === SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP && !request?.data?.updateIDFrom;
 
@@ -178,6 +185,10 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
                     lastUpdateIDAppliedToClient = Number(lastUpdateID);
                     Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
                 }
+                // The persisted watermark now covers the staged WRITE updates, so the pending marker is no longer needed
+                if (lastUpdateIDPendingFlush && lastUpdateIDPendingFlush <= Number(lastUpdateID)) {
+                    lastUpdateIDPendingFlush = 0;
+                }
                 return result;
             })
             .catch((error) => {
@@ -200,7 +211,14 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
         // QueuedOnyxUpdates.flushQueue(). Gate the watermark on that flush, but detached from the returned promise:
         // SequentialQueue only flushes after this promise settles, so awaiting the flush here would deadlock.
         if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE) {
-            advanceLastUpdateIDAfterApply(applyPromise.then(() => getCurrentFlushPromise())).catch(() => {});
+            if (shouldAdvanceLastUpdateID) {
+                lastUpdateIDPendingFlush = Math.max(lastUpdateIDPendingFlush, Number(lastUpdateID));
+            }
+            advanceLastUpdateIDAfterApply(applyPromise.then(() => getCurrentFlushPromise())).catch(() => {
+                // The staged updates never applied, so stop counting them as pending — the next gap check
+                // then sees the missing range against the persisted watermark and triggers recovery.
+                lastUpdateIDPendingFlush = 0;
+            });
             return applyPromise;
         }
         return advanceLastUpdateIDAfterApply(applyPromise);
@@ -247,7 +265,9 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesC
         return false;
     }
 
-    const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient;
+    // Updates staged for the deferred WRITE flush count as applied here, otherwise the responses of queued
+    // WRITE requests would look like gaps until the flush runs and needlessly pause the queue to refetch.
+    const lastUpdateIDFromClient = Math.max(clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
     if (!lastUpdateIDFromClient) {
