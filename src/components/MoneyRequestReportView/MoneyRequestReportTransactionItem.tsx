@@ -147,6 +147,13 @@ function MoneyRequestReportTransactionItemBody({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const shouldUseMediumNarrowLayout = isMediumScreenWidth && !shouldScrollHorizontally;
+    const shouldUseNarrowTransactionRow = shouldUseNarrowLayout || shouldUseMediumNarrowLayout;
+    const transactionRowStyle = shouldUseNarrowLayout
+        ? [styles.p4, styles.noBorderRadius]
+        : shouldUseMediumNarrowLayout
+          ? [styles.p3, styles.pv2, styles.noBorderRadius]
+          : [styles.ph3, styles.noBorderRadius];
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
 
@@ -244,12 +251,13 @@ function MoneyRequestReportTransactionItemBody({
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         shouldShowTooltip
-                        shouldUseNarrowLayout={shouldUseNarrowLayout || (isMediumScreenWidth && !shouldScrollHorizontally)}
+                        shouldUseNarrowLayout={shouldUseNarrowTransactionRow}
+                        shouldUseFullHeightEditableCellHoverTarget={!shouldUseNarrowTransactionRow}
                         shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                         onCheckboxPress={toggleTransaction}
                         columns={columns}
                         isDisabled={isPendingDelete}
-                        style={!shouldUseNarrowLayout ? [styles.ph3, styles.noBorderRadius] : [styles.p4, styles.noBorderRadius]}
+                        style={transactionRowStyle}
                         onButtonPress={() => {
                             handleOnPress(transaction.transactionID);
                         }}

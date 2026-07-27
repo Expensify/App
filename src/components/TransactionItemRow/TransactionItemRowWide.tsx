@@ -64,6 +64,8 @@ import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
 type TransactionItemRowWideProps = Omit<TransactionItemRowProps, 'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox'> &
     TransactionItemRowWideComputedData;
 
+const VALIDATION_ROW_MAIN_CONTENT_HEIGHT = 52;
+
 function TransactionItemRowWide({
     transactionItem,
     report,
@@ -101,6 +103,7 @@ function TransactionItemRowWide({
     checkboxSentryLabel,
     isActionColumnWide: isActionColumnWideProp,
     shouldRemoveTotalColumnFlex,
+    shouldUseFullHeightEditableCellHoverTarget = false,
     onEditDate,
     onEditMerchant,
     onEditDescription,
@@ -147,6 +150,8 @@ function TransactionItemRowWide({
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
+    const hasValidationMessage = shouldShowErrors && (!!missingFieldError || !!violations?.length);
+    const fullHeightMainRowStyle = shouldUseFullHeightEditableCellHoverTarget ? (hasValidationMessage ? {minHeight: VALIDATION_ROW_MAIN_CONTENT_HEIGHT} : styles.tableRowHeight) : undefined;
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {
@@ -657,10 +662,18 @@ function TransactionItemRowWide({
     return (
         <>
             <View
-                style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, styles.alignSelfStretch, bgActiveStyles, styles.mw100, style]}
+                style={[
+                    styles.expenseWidgetRadius,
+                    styles.flex1,
+                    !(shouldUseFullHeightEditableCellHoverTarget && hasValidationMessage) && styles.gap2,
+                    styles.alignSelfStretch,
+                    bgActiveStyles,
+                    styles.mw100,
+                    style,
+                ]}
                 testID="transaction-item-row"
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.tableRowHeight]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>
                     {!shouldShowRadioButton && (
                         <Checkbox
                             disabled={isDisabled}
@@ -714,6 +727,7 @@ function TransactionItemRowWide({
                         report={report}
                         missingFieldError={missingFieldError}
                         transactionThreadReportID={transactionThreadReportID}
+                        containerStyles={shouldUseFullHeightEditableCellHoverTarget ? [styles.pb2] : undefined}
                     />
                 )}
             </View>
