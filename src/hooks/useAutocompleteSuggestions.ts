@@ -259,6 +259,7 @@ function useAutocompleteSuggestions({
                 conciergeReportID,
                 excludeFromSuggestionsOnly: memberExclusions,
                 isTrackIntentUser,
+                translate,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
@@ -297,6 +298,7 @@ function useAutocompleteSuggestions({
                 sortedActions,
                 conciergeReportID,
                 isTrackIntentUser,
+                translate,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;

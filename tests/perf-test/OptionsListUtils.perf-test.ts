@@ -136,6 +136,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             getSearchOptions({
+                translate: translateLocal,
                 options,
                 betas: mockedBetas,
                 draftComments: {},
@@ -162,6 +163,7 @@ describe('OptionsListUtils', () => {
             MOCK_CURRENT_USER_EMAIL,
             undefined,
             ValidOptionsConfig,
+            translateLocal,
         );
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
@@ -178,6 +180,7 @@ describe('OptionsListUtils', () => {
             MOCK_CURRENT_USER_EMAIL,
             undefined,
             ValidOptionsConfig,
+            translateLocal,
         );
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
@@ -211,6 +214,7 @@ describe('OptionsListUtils', () => {
                     includeUserToInvite: false,
                     sortedActions: undefined,
                 },
+                translateLocal,
             ),
         );
     });
@@ -309,6 +313,7 @@ describe('OptionsListUtils', () => {
 
         await measureFunction(() =>
             getSearchOptions({
+                translate: translateLocal,
                 options: optionLists,
                 betas: mockedBetas,
                 draftComments: {},
