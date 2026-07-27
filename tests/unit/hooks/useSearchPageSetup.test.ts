@@ -59,17 +59,38 @@ function makeUnresolvedSearchResults(hash: number, isLoading: boolean): SearchRe
     return searchResults;
 }
 
+function makeCachedSearchResults(hash: number, isLoading: boolean, state: SearchResults['search']['state']): SearchResults {
+    return {
+        data: {personalDetailsList: {}},
+        search: {
+            hash,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            offset: 0,
+            hasMoreResults: false,
+            hasResults: false,
+            isLoading,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            state,
+        },
+    };
+}
+
+function getQueryJSON() {
+    const queryJSON = buildSearchQueryJSON('type:expense');
+    if (!queryJSON) {
+        throw new Error('Query JSON should be defined for test setup');
+    }
+    return queryJSON;
+}
+
 describe('useSearchPageSetup', () => {
     beforeEach(() => {
         mockSearch.mockClear();
     });
 
     it('retries an unresolved search when temporary search prevention clears', async () => {
-        const queryJSON = buildSearchQueryJSON('type:expense');
-        expect(queryJSON).toBeDefined();
-        if (!queryJSON) {
-            return;
-        }
+        const queryJSON = getQueryJSON();
 
         const {rerender} = renderHook(
             ({isLoading}) => {
@@ -84,5 +105,35 @@ describe('useSearchPageSetup', () => {
         rerender({isLoading: false});
 
         await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(2));
+    });
+
+    it('retries a cached snapshot whose request state is stranded loading', async () => {
+        const queryJSON = getQueryJSON();
+        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, false, CONST.SEARCH.SNAPSHOT_STATE.LOADING);
+
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({isLoading: false}));
+    });
+
+    it('retries a cached snapshot whose legacy isLoading flag is stranded true', async () => {
+        const queryJSON = getQueryJSON();
+        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, true, CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({isLoading: false}));
+    });
+
+    it('does not retry a cached snapshot that reached a terminal loaded state', async () => {
+        const queryJSON = getQueryJSON();
+        mockCurrentSearchResults = makeCachedSearchResults(queryJSON.hash, false, CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        await Promise.resolve();
+        expect(mockSearch).not.toHaveBeenCalled();
     });
 });

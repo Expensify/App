@@ -907,22 +907,10 @@ function deleteSavedSearch(hash: number) {
 }
 
 function openSearchPage(params?: OpenSearchPageParams) {
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED,
-            value: true,
-        },
-    ];
-
-    read(
-        READ_COMMANDS.OPEN_SEARCH_PAGE,
-        {
-            includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
-            includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
-        },
-        {successData},
-    );
+    read(READ_COMMANDS.OPEN_SEARCH_PAGE, {
+        includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
+        includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
+    });
 }
 
 function openSearchCardFiltersPage() {
@@ -1058,7 +1046,12 @@ function search({
 
     const startRequest = () =>
         makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
-            .then((result) => {
+            .then(async (result) => {
+                // The shared Onyx handler does not apply `failureData` for a 460 response. Apply it here so
+                // this search ends in `error` instead of staying in `loading` and running again.
+                if (result?.jsonCode === CONST.JSON_CODE.ADMIN_REQUIRED) {
+                    await Onyx.update(failureData ?? []);
+                }
                 const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
 
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.

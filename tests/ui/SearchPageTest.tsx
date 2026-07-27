@@ -5,6 +5,8 @@ import FullScreenBlockingViewContextProvider from '@components/FullScreenBlockin
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
+import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import useNetwork from '@hooks/useNetwork';
@@ -19,6 +21,7 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 
+import EmptySearchView from '@pages/Search/EmptySearchView';
 import SearchPage from '@pages/Search/SearchPage';
 
 import CONST from '@src/CONST';
@@ -203,12 +206,62 @@ describe('SearchPageNarrow', () => {
             });
         });
 
-        renderPage();
+        const renderedPage = renderPage();
 
         await act(async () => {
             jest.advanceTimersByTime(0);
         });
 
         expect(mockSearch).not.toHaveBeenCalled();
+        expect(renderedPage.UNSAFE_queryByType(SearchRowSkeleton)).toBeNull();
+    });
+
+    it('renders the empty state when a dataless snapshot reached the terminal loaded state', async () => {
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
+                search: {
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    offset: 0,
+                    hash: failedQueryJSON?.hash,
+                    isLoading: false,
+                    hasMoreResults: false,
+                    hasResults: false,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
+                },
+            });
+        });
+
+        const renderedPage = renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        expect(renderedPage.UNSAFE_queryByType(SearchLoadingSkeleton)).toBeNull();
+        expect(renderedPage.UNSAFE_getByType(EmptySearchView)).toBeTruthy();
+    });
+
+    it('renders the loading skeleton while the snapshot request state is loading', async () => {
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
+                search: {
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    offset: 0,
+                    hash: failedQueryJSON?.hash,
+                    isLoading: true,
+                    hasMoreResults: false,
+                    hasResults: false,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADING,
+                },
+            });
+        });
+
+        const renderedPage = renderPage();
+
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        expect(renderedPage.UNSAFE_getByType(SearchLoadingSkeleton)).toBeTruthy();
     });
 });

@@ -4,7 +4,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {openSearch, search} from '@libs/actions/Search';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
@@ -40,6 +40,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const isSnapshotDataLoaded = queryJSON ? isSearchDataLoaded(currentSearchResults, queryJSON) : false;
     // Keep `isLoading` as a dependency so an unresolved search retries when temporary search prevention changes it to false.
     const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
+    const isSnapshotSearchPending = isSearchPending(currentSearchResults);
 
     // Clear selected transactions when navigating to a different search query
     function clearOnHashChange() {
@@ -69,13 +70,14 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             lastSavedSearchHash = hash;
         }
 
-        // A persisted `isLoading` value may be stale after a reload. Only skip resolved snapshots and let `search()` ignore requests that are already running.
-        if (isSnapshotDataLoaded) {
+        // `isLoading` or `state` may stay set after a reload. Start the search again even if cached data
+        // exists. `search()` skips the call when the same request is already running.
+        if (isSnapshotDataLoaded && !isSnapshotSearchPending && !isSnapshotSearchLoading) {
             return;
         }
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
-    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, currentSearchKey, shouldCalculateTotals]);
+    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isSnapshotSearchPending, currentSearchKey, shouldCalculateTotals]);
 
     useFocusEffect(() => {
         openSearch();

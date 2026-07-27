@@ -69,12 +69,9 @@ type SearchResultsInfo = {
      * Optional because snapshots persisted before this field existed (and snapshots written by
      * non-search actions) may not carry it.
      *
-     * Nothing reads this field yet. The existing isLoading/type/status-based loading and error gates
-     * migrate to read it in a follow-up PR.
-     *
-     * Residual limitation: if the app is killed or reloaded mid-request, no cleanup runs, so `loading` can
-     * still be stranded on disk. The future read side must treat a `loading` state with no in-flight request
-     * as stale. */
+     * Search pages use this state to decide whether to show a loading skeleton. If the app reloads while
+     * the state is `loading`, `useSearchPageSetup` starts the search again. `search()` ignores the call when
+     * the same request is already running. */
     state?: ValueOf<typeof CONST.SEARCH.SNAPSHOT_STATE>;
 
     /** The number of results */

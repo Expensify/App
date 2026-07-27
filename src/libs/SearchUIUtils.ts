@@ -4832,7 +4832,7 @@ function isSearchPending(searchResults: SearchResults | undefined) {
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    const queryJSONHash =
+    const responseAdjustedQueryHash =
         queryJSON && searchResults?.search
             ? getQueryHashes({
                   ...queryJSON,
@@ -4845,8 +4845,13 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     // The type and hash checks below keep results from an earlier query out.
     const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || state === CONST.SEARCH.SNAPSHOT_STATE.ERROR;
     const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
+    const hasResponseSortMetadata = searchResults?.search?.sortBy !== undefined && searchResults.search.sortOrder !== undefined;
+    const hasMatchingRequestedHash = searchResults?.search?.hash === queryJSON?.hash;
+    const isDatalessTerminalResponse = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED && searchResults?.data === undefined;
+    const canUseRequestedHash = state === CONST.SEARCH.SNAPSHOT_STATE.ERROR || isDatalessTerminalResponse || !hasResponseSortMetadata;
+    const hasMatchingHash = (canUseRequestedHash && hasMatchingRequestedHash) || searchResults?.search?.hash === responseAdjustedQueryHash;
 
-    return hasResolved && searchResults?.search?.type === queryJSON?.type && searchResults?.search?.hash === queryJSONHash;
+    return hasResolved && searchResults?.search?.type === queryJSON?.type && hasMatchingHash;
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {

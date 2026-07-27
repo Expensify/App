@@ -54,7 +54,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
                 // Typically, this would only happen if a user attempts an API command that requires policy admin access when they aren't an admin.
                 // In this case, we don't want to apply failureData because it will likely result in a RedBrickRoad error on a policy field which is not accessible.
                 // Meaning that there's a red dot you can't dismiss.
-                if (response.jsonCode === 460) {
+                if (response.jsonCode === CONST.JSON_CODE.ADMIN_REQUIRED) {
                     Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
                     return Promise.resolve();
                 }

@@ -2472,6 +2472,7 @@ const CONST = {
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
         INCORRECT_MAGIC_CODE: 451,
+        ADMIN_REQUIRED: 460,
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
