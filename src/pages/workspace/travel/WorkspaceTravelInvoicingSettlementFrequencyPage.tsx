@@ -67,12 +67,15 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
         isSelected: frequency === selectedFrequency,
     }));
 
+    // React Compiler can't preserve the manual memoization when a nested field is read in the dependency array, so
+    // pull it into a local variable and depend on that instead.
+    const monthlySettlementDate = travelSettings?.monthlySettlementDate;
     const saveAndGoBack = useCallback(() => {
         if (selectedFrequency && (selectedFrequency !== currentFrequency || hasFrequencyError)) {
-            updateTravelInvoiceSettlementFrequency(workspaceAccountID, selectedFrequency, travelSettings?.monthlySettlementDate ? new Date(travelSettings.monthlySettlementDate) : undefined);
+            updateTravelInvoiceSettlementFrequency(workspaceAccountID, selectedFrequency, monthlySettlementDate ? new Date(monthlySettlementDate) : undefined);
         }
         Navigation.goBack();
-    }, [selectedFrequency, currentFrequency, hasFrequencyError, workspaceAccountID, travelSettings?.monthlySettlementDate]);
+    }, [selectedFrequency, currentFrequency, hasFrequencyError, workspaceAccountID, monthlySettlementDate]);
 
     const confirmButtonOptions = useMemo(
         () => ({
