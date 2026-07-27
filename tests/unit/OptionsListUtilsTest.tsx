@@ -1684,13 +1684,7 @@ describe('OptionsListUtils', () => {
     describe('getValidOptions() with lazy contact options', () => {
         const hydrateAllPersonalDetails = (list: OptionList): OptionList => ({
             ...list,
-            personalDetails: list.personalDetails.map((option) =>
-                hydrateLazyPersonalDetailOption(option, {
-                    personalDetails: PERSONAL_DETAILS,
-                    policiesCollection: allPolicies,
-                    reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
-                }),
-            ),
+            personalDetails: list.personalDetails.map(hydrateLazyPersonalDetailOption),
         });
 
         const buildOptionLists = () => {
@@ -1875,6 +1869,33 @@ describe('OptionsListUtils', () => {
             // Then hydration from the cached clone matches the fresh lazy build and the eager path
             expect(cachedResults.personalDetails).toEqual(firstResults.personalDetails);
             expect(cachedResults.personalDetails).toEqual(eagerResults.personalDetails);
+        });
+
+        it('should hydrate with the build-time inputs, keeping brickRoadIndicator without any caller-provided data', () => {
+            // Given a contact whose 1:1 DM report has a brick road status in the derived report attributes
+            const {lazyList: baseList} = buildOptionLists();
+            const dmReportID = baseList.personalDetails.find((option) => option.reportID)?.reportID;
+            expect(dmReportID).toBeTruthy();
+            const attributesWithError: Record<string, ReportAttributes> = {
+                ...MOCK_REPORT_ATTRIBUTES_DERIVED,
+                [String(dmReportID)]: {
+                    ...MOCK_REPORT_ATTRIBUTES_DERIVED[String(dmReportID)],
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                },
+            };
+            const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, attributesWithError, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true});
+            const shell = lazyList.personalDetails.find((option) => option.reportID === dmReportID);
+            expect(shell).toBeDefined();
+            if (!shell) {
+                return;
+            }
+
+            // When the shell is hydrated (hydration reads the inputs captured at build time, so no consumer
+            // - e.g. a getSearchOptions caller without report attributes in scope - can drop display data)
+            const hydrated = hydrateLazyPersonalDetailOption(shell);
+
+            // Then the RBR indicator matches what the eager build would have produced
+            expect(hydrated.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
         });
 
         it('should hydrate lazy shells when mixed with fully-built device contacts', () => {
@@ -3940,7 +3961,7 @@ describe('OptionsListUtils', () => {
 
             // Then the hydrated personal detail option for account 1 (Mister Fantastic) should have private_isArchived set
             const misterFantasticOption = result.personalDetails.find((pd) => pd.item?.accountID === 1);
-            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateLazyPersonalDetailOption(misterFantasticOption, {personalDetails: PERSONAL_DETAILS}) : undefined;
+            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateLazyPersonalDetailOption(misterFantasticOption) : undefined;
             expect(hydratedMisterFantasticOption?.private_isArchived).toBe(true);
         });
 
@@ -3971,8 +3992,8 @@ describe('OptionsListUtils', () => {
             // Then the hydrated personal detail options should have the correct private_isArchived values
             const misterFantasticOption = result.personalDetails.find((pd) => pd.item?.accountID === 1);
             const invisibleWomanOption = result.personalDetails.find((pd) => pd.item?.accountID === 5);
-            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateLazyPersonalDetailOption(misterFantasticOption, {personalDetails: PERSONAL_DETAILS}) : undefined;
-            const hydratedInvisibleWomanOption = invisibleWomanOption ? hydrateLazyPersonalDetailOption(invisibleWomanOption, {personalDetails: PERSONAL_DETAILS}) : undefined;
+            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateLazyPersonalDetailOption(misterFantasticOption) : undefined;
+            const hydratedInvisibleWomanOption = invisibleWomanOption ? hydrateLazyPersonalDetailOption(invisibleWomanOption) : undefined;
 
             expect(hydratedMisterFantasticOption?.private_isArchived).toBe(true);
             expect(hydratedInvisibleWomanOption?.private_isArchived).toBe(true);

@@ -208,6 +208,7 @@ import type {
     GetUserToInviteConfig,
     GetValidReportsConfig,
     IsValidReportsConfig,
+    LazyHydrationContext,
     MemberForList,
     OptionList,
     Options,
@@ -1662,14 +1663,15 @@ registerSessionCleanupCallback(() => filteredOptionListCache.clear());
  * Only filter/rank fields are computed here; getValidOptions hydrates survivors via hydrateLazyPersonalDetailOption.
  */
 function buildPersonalDetailsOptions({
-    personalDetails,
     reportMapForAccountIDs,
     privateIsArchivedMap,
+    context,
 }: {
-    personalDetails: OnyxEntry<PersonalDetailsList>;
     reportMapForAccountIDs: Record<number, Report>;
     privateIsArchivedMap: PrivateIsArchivedMap;
+    context: LazyHydrationContext;
 }): Array<SearchOption<PersonalDetails | null>> {
+    const {personalDetails} = context;
     return Object.values(personalDetails ?? {}).map((personalDetail) => {
         const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const report = reportMapForAccountIDs[accountID];
@@ -1690,6 +1692,7 @@ function buildPersonalDetailsOptions({
             lazyHydrationData: {
                 report,
                 privateIsArchived: report ? privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] : undefined,
+                context,
             },
             // The empty string default mirrors createOption, as many places test for reportID existence with truthiness operators.
             // eslint-disable-next-line rulesdir/no-default-id-values
@@ -1710,41 +1713,26 @@ function buildPersonalDetailsOptions({
 
 /**
  * Builds the full display option for a lightweight personal detail option produced by createFilteredOptionList.
- * Options without lazy hydration data are returned unchanged, so fully-built options (e.g. device contacts) can be passed safely.
+ * The createOption inputs come from the context captured at build time, so the result is exactly what the eager
+ * build would have produced. Options without lazy hydration data are returned unchanged, so fully-built options
+ * (e.g. device contacts) can be passed safely.
  */
-function hydrateLazyPersonalDetailOption(
-    option: SearchOption<PersonalDetails>,
-    {
-        personalDetails,
-        policiesCollection,
-        reportAttributesDerived,
-        allPolicyTags,
-        visibleReportActionsData = {},
-    }: {
-        personalDetails: OnyxEntry<PersonalDetailsList>;
-        policiesCollection?: OnyxCollection<Policy>;
-        reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-        allPolicyTags?: OnyxCollection<PolicyTagLists>;
-        visibleReportActionsData?: VisibleReportActionsDerivedValue;
-    },
-): SearchOption<PersonalDetails> {
+function hydrateLazyPersonalDetailOption(option: SearchOption<PersonalDetails>): SearchOption<PersonalDetails> {
     if (!option.lazyHydrationData) {
         return option;
     }
 
-    const {report, privateIsArchived} = option.lazyHydrationData;
+    const {report, privateIsArchived, context} = option.lazyHydrationData;
+    const {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData} = context;
     const accountID = option.item?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    // When the caller does not provide the personal details list, the option's own personal detail is enough
-    // to rebuild everything except the last actor details of the mapped report.
-    const personalDetailsData = personalDetails ?? (option.item ? {[accountID]: option.item} : undefined);
     const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    const reportPolicyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
+    const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
     return {
         item: option.item,
         ...createOption({
             accountIDs: [accountID],
-            personalDetails: personalDetailsData,
+            personalDetails,
             report,
             policy,
             privateIsArchived,
@@ -1899,9 +1887,9 @@ function createFilteredOptionList(
     // page of options that survives filtering and the maxElements cap in getValidOptions.
     const personalDetailsOptions = shouldBuildContacts
         ? buildPersonalDetailsOptions({
-              personalDetails,
               reportMapForAccountIDs,
               privateIsArchivedMap,
+              context: {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData},
           })
         : [];
 
@@ -2901,15 +2889,7 @@ function getValidOptions(
         const groupedPersonalDetails = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
         // Lightweight options from createFilteredOptionList get their full display fields only now, after the
         // heap selection reduced them to a single page, so the expensive work is done for a handful of options.
-        personalDetailsOptions = groupedPersonalDetails.options.map((personalDetailOption) =>
-            hydrateLazyPersonalDetailOption(personalDetailOption, {
-                personalDetails,
-                policiesCollection,
-                reportAttributesDerived,
-                allPolicyTags,
-                visibleReportActionsData,
-            }),
-        );
+        personalDetailsOptions = groupedPersonalDetails.options.map(hydrateLazyPersonalDetailOption);
 
         hasMore = hasMore || groupedPersonalDetails.hasMore;
 

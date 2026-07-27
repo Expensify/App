@@ -9,6 +9,7 @@ import type {
     Login,
     PersonalDetails,
     PersonalDetailsList,
+    Policy,
     PolicyTagLists,
     Report,
     ReportAction,
@@ -97,12 +98,28 @@ type SearchOptionData = Pick<
     | 'selected' // Duplicate of isSelected, kept for backwards compatibility
 >;
 
+/**
+ * The createOption inputs of one createFilteredOptionList run, captured so hydrating a lazy personal detail
+ * option reproduces exactly what the eager build would have produced. One object is shared by every shell of
+ * the run — these are references to app-wide Onyx snapshots, not copies.
+ */
+type LazyHydrationContext = {
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    policiesCollection: OnyxCollection<Policy>;
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+    policyTags: OnyxCollection<PolicyTagLists>;
+    visibleReportActionsData: VisibleReportActionsDerivedValue;
+};
+
 type PersonalDetailLazyHydrationData = {
     /** The 1:1 DM report mapped to the personal detail, used when building the full display option. */
     report?: Report;
 
     /** Archived state of the mapped report. */
     privateIsArchived?: boolean;
+
+    /** Build-time createOption inputs, shared across all shells of the same createFilteredOptionList run. */
+    context: LazyHydrationContext;
 };
 
 type SearchOption<T> = SearchOptionData & {
@@ -329,6 +346,7 @@ export type {
     GetOptionsConfig,
     GetUserToInviteConfig,
     GetValidReportsConfig,
+    LazyHydrationContext,
     MemberForList,
     Option,
     OptionWithKey,
