@@ -34,6 +34,7 @@ jest.mock('@libs/Navigation/linkingConfig/RELATIONS', () => {
             [SCREENS_MOCK.MONEY_REQUEST.DISTANCE_CREATE]: SCREENS_MOCK.SEARCH.ROOT,
             [SCREENS_MOCK.MONEY_REQUEST.START]: SCREENS_MOCK.SEARCH.ROOT,
             [SCREENS_MOCK.SUBMIT_EXPENSE]: SCREENS_MOCK.SEARCH.ROOT,
+            [SCREENS_MOCK.TRACK_EXPENSE]: SCREENS_MOCK.SEARCH.ROOT,
         },
         RHP_TO_SETTINGS: {},
         RHP_TO_SIDEBAR: {},
@@ -234,7 +235,7 @@ describe('getMatchingFullScreenRoute - deeplink-only search relations', () => {
         return result.state.routes.find((r) => r.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     };
 
-    it.each([SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DISTANCE_CREATE, SCREENS.MONEY_REQUEST.START, SCREENS.SUBMIT_EXPENSE])(
+    it.each([SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DISTANCE_CREATE, SCREENS.MONEY_REQUEST.START, SCREENS.SUBMIT_EXPENSE, SCREENS.TRACK_EXPENSE])(
         'resolves %s to the Search fullscreen when built from a path (isDeeplink=true)',
         (screenName) => {
             const route = {name: screenName};
@@ -248,7 +249,7 @@ describe('getMatchingFullScreenRoute - deeplink-only search relations', () => {
         },
     );
 
-    it.each([SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DISTANCE_CREATE, SCREENS.MONEY_REQUEST.START, SCREENS.SUBMIT_EXPENSE])(
+    it.each([SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DISTANCE_CREATE, SCREENS.MONEY_REQUEST.START, SCREENS.SUBMIT_EXPENSE, SCREENS.TRACK_EXPENSE])(
         'does not resolve %s to a fullscreen for in-app navigation (isDeeplink=false)',
         (screenName) => {
             const route = {name: screenName};
