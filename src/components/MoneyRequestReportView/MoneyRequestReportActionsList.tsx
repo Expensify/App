@@ -606,7 +606,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             const displayAsGroup =
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, indexWithinReportActions, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                 hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
-            const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
+            const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
             return (
                 <ReportActionIndexContext.Provider value={indexWithinReportActions}>
@@ -641,8 +641,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             linkedReportActionID,
             shouldShowHarvestCreatedAction,
             draftReportActionID,
+            isDraftPendingCompletion,
         ],
     );
+
+    const reportActionsExtraData = useMemo(() => [draftReportActionID, isDraftPendingCompletion], [draftReportActionID, isDraftPendingCompletion]);
 
     const scrollToLatestMessages = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
@@ -764,6 +767,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         isLoadingInitialReportActions={showReportActionsLoadingState}
                         visibleReportActions={visibleReportActions}
                         renderReportAction={renderReportAction}
+                        reportActionsExtraData={reportActionsExtraData}
                         linkedReportActionID={linkedReportActionID}
                         listRef={listRef}
                         onLastItemIndexChange={updateLastItemIndex}
