@@ -48,7 +48,8 @@ describe('domainSelectors', () => {
         it('Should ignore keys that do not start with the admin access prefix', () => {
             const domain = createMock<OnyxEntry<Domain>>({
                 [prefixedKey(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, '123')]: 321,
-                email: 'test@example.com',
+                // @ts-expect-error -- a non-prefix scalar entry is deliberately malformed runtime input.
+                somOtherProperty: 'value',
             });
 
             expect(adminAccountIDsSelector(domain)).toEqual([321]);
@@ -266,8 +267,10 @@ describe('domainSelectors', () => {
         it('Should ignore groups that do not have a shared property', () => {
             const domain = createMock<OnyxEntry<Domain>>({
                 [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {},
-                // @ts-expect-error -- a null shared value is a deliberately malformed runtime entry.
-                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '2')]: {shared: null},
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '2')]: {
+                    // @ts-expect-error -- a null shared value is a deliberately malformed runtime entry.
+                    shared: null,
+                },
                 [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '3')]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -600,7 +603,7 @@ describe('domainSelectors', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
                 [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    deleteGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    createGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             });
             expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(false);
@@ -618,8 +621,8 @@ describe('domainSelectors', () => {
         it('Should return true when at least one field-level pending action is delete', () => {
             const domainPendingActions = createMock<OnyxEntry<DomainPendingActions>>({
                 [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '1')]: {
-                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    enableRestrictedPrimaryPolicy: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    enableStrictPolicyRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             });
             expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(true);
@@ -666,10 +669,14 @@ describe('domainSelectors', () => {
         it('Should ignore keys that do not start with the security group prefix', () => {
             const domain = createMock<OnyxEntry<Domain>>({
                 [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '123')]: {name: 'Group 1', shared: {}},
-                // @ts-expect-error -- a null shared value is a deliberately malformed runtime entry.
-                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '456')]: {name: 'Group 2', shared: null},
+                [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '456')]: {
+                    name: 'Group 2',
+                    // @ts-expect-error -- a null shared value is a deliberately malformed runtime entry.
+                    shared: null,
+                },
                 [prefixedKey(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '789')]: {name: 'Group 3'},
-                email: 'other@example.com',
+                // @ts-expect-error -- a non-prefix scalar entry is deliberately malformed runtime input.
+                otherKey: 'value',
             });
 
             const expectedGroups = [{id: '123', details: {name: 'Group 1', shared: {}}}];
@@ -731,7 +738,10 @@ describe('domainSelectors', () => {
         });
 
         it('Should ignore keys that do not start with the vacation delegate prefix', () => {
-            const domain = createMock<OnyxEntry<Domain>>({domainValidationError: {delegate: 'wrong@example.com'}});
+            const domain = createMock<OnyxEntry<Domain>>({
+                // @ts-expect-error -- a non-prefix vacation-delegate entry is deliberately malformed runtime input.
+                private_otherPrefix_123: {delegate: 'wrong@example.com'},
+            });
 
             const selector = vacationDelegateSelector(userID1);
             expect(selector(domain)).toBeUndefined();
