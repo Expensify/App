@@ -17,7 +17,6 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import type en from './en';
 import type {
     ConciergeBrokenCardConnectionParams,
-    ConnectionDefaultVendorHelperTextParams,
     ConnectionDisplayNameParams,
     EmptyViolationSnapshotResultsSubtitleParams,
     PaidElsewhereParams,
@@ -4968,6 +4967,7 @@ ${amount} para ${merchant} - ${date}`,
                 isReimbursable
                     ? `Establece un proveedor predeterminado que se aplicará a los gastos reembolsables que no tengan un proveedor coincidente en Sage Intacct.`
                     : `Los gastos que no se puedan asignar a tus proveedores de Sage Intacct se asociarán por defecto a este proveedor.`,
+            creditCardMiscFallback: `De lo contrario, se exportarán como Credit Card Misc.`,
             exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Intacct.',
             exportPreferredExporterNote:
                 'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
@@ -6754,10 +6754,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             exportDate: 'Fecha de exportación',
             defaultVendor: 'Proveedor predeterminado',
-            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
-                isSet
-                    ? `Los gastos que no se asignen automáticamente se asociarán por defecto a este proveedor de ${connectionName}.`
-                    : `Los gastos que no se concilien automáticamente se asignarán por defecto a este proveedor de ${connectionName}. De lo contrario, se exportarán como Credit Card Misc.`,
+            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Los gastos que no se asignen automáticamente se asociarán por defecto a este proveedor de ${connectionName}.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Elige un proveedor predeterminado de ${connectionName} para los gastos que no se asignen automáticamente.`,
             defaultAccount: 'Cuenta predeterminada',

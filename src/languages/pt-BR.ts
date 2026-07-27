@@ -26,7 +26,6 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
-    ConnectionDefaultVendorHelperTextParams,
     ConnectionDisplayNameParams,
     ConnectionNameParams,
     DelegateRoleParams,
@@ -5039,6 +5038,7 @@ ${amount} para ${merchant} - ${date}`,
                 isReimbursable
                     ? `Defina um fornecedor padrão que será aplicado às despesas reembolsáveis que não tiverem um fornecedor correspondente no Sage Intacct.`
                     : `Despesas que não puderem ser correspondidas aos seus fornecedores do Sage Intacct serão atribuídas a este fornecedor por padrão.`,
+            creditCardMiscFallback: `Caso contrário, serão exportadas como Credit Card Misc.`,
             exportDescription: 'Configure como os dados do Expensify são exportados para o Sage Intacct.',
             exportPreferredExporterNote:
                 'O exportador preferencial pode ser qualquer administrador do espaço de trabalho, mas também deve ser um Administrador de Domínio se você definir diferentes contas de exportação para cartões corporativos individuais em Configurações de Domínio.',
@@ -6928,10 +6928,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             exportCompanyCard: 'Exportar despesas de cartão corporativo como',
             exportDate: 'Data de exportação',
             defaultVendor: 'Fornecedor padrão',
-            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
-                isSet
-                    ? `Despesas que não forem conciliadas automaticamente serão atribuídas por padrão a este fornecedor ${connectionName}.`
-                    : `As despesas que não corresponderem automaticamente serão associadas por padrão a este fornecedor ${connectionName}. Caso contrário, serão exportadas como Credit Card Misc.`,
+            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Despesas que não forem conciliadas automaticamente serão atribuídas por padrão a este fornecedor ${connectionName}.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Escolha um fornecedor padrão do ${connectionName} para despesas que não forem correspondidas automaticamente.`,
             defaultAccount: 'Conta padrão',

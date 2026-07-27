@@ -26,7 +26,6 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
-    ConnectionDefaultVendorHelperTextParams,
     ConnectionDisplayNameParams,
     ConnectionNameParams,
     DelegateRoleParams,
@@ -5033,6 +5032,7 @@ ${amount} dla ${merchant} - ${date}`,
                 isReimbursable
                     ? `Ustaw domyślnego dostawcę, który zostanie zastosowany do wydatków podlegających zwrotowi, nieposiadających pasującego dostawcy w Sage Intacct.`
                     : `Wydatki, których nie da się dopasować do twoich dostawców w Sage Intacct, zostaną domyślnie przypisane do tego dostawcy.`,
+            creditCardMiscFallback: `W przeciwnym razie zostaną wyeksportowane jako Credit Card Misc.`,
             exportDescription: 'Skonfiguruj sposób eksportu danych z Expensify do Sage Intacct.',
             exportPreferredExporterNote:
                 'Preferowanym eksporterem może być dowolny administrator przestrzeni roboczej, ale musi on również być administratorem domeny, jeśli w Ustawieniach domeny ustawisz różne konta eksportu dla poszczególnych kart firmowych.',
@@ -6916,10 +6916,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             exportCompanyCard: 'Eksportuj wydatki z firmowej karty jako',
             exportDate: 'Data eksportu',
             defaultVendor: 'Domyślny dostawca',
-            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
-                isSet
-                    ? `Wydatki, które nie zostaną automatycznie dopasowane, domyślnie trafią do tego dostawcy ${connectionName}.`
-                    : `Wydatki, które nie zostaną automatycznie dopasowane, domyślnie trafią do tego dostawcy ${connectionName}. W przeciwnym razie zostaną wyeksportowane jako Credit Card Misc.`,
+            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Wydatki, które nie zostaną automatycznie dopasowane, domyślnie trafią do tego dostawcy ${connectionName}.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Wybierz domyślnego dostawcę ${connectionName} dla wydatków, które nie zostaną dopasowane automatycznie.`,
             defaultAccount: 'Domyślne konto',

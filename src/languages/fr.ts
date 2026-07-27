@@ -26,7 +26,6 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
-    ConnectionDefaultVendorHelperTextParams,
     ConnectionDisplayNameParams,
     ConnectionNameParams,
     DelegateRoleParams,
@@ -5084,6 +5083,7 @@ ${amount} pour ${merchant} - ${date}`,
                 isReimbursable
                     ? `Définissez un fournisseur par défaut qui s’appliquera aux dépenses remboursables qui n’ont pas de fournisseur correspondant dans Sage Intacct.`
                     : `Les dépenses qui ne peuvent pas être rapprochées de vos fournisseurs Sage Intacct seront par défaut associées à ce fournisseur.`,
+            creditCardMiscFallback: `Sinon, elles seront exportées en tant que « Credit Card Misc ».`,
             exportDescription: 'Configurez comment les données Expensify sont exportées vers Sage Intacct.',
             exportPreferredExporterNote:
                 'L’exportateur préféré peut être n’importe quel administrateur d’espace de travail, mais doit également être un administrateur de domaine si vous définissez des comptes d’exportation différents pour chaque carte d’entreprise individuelle dans les paramètres de domaine.',
@@ -6995,10 +6995,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             exportCompanyCard: 'Exporter les dépenses de carte d’entreprise en tant que',
             exportDate: 'Date d’exportation',
             defaultVendor: 'Fournisseur par défaut',
-            defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
-                isSet
-                    ? `Les dépenses qui ne sont pas associées automatiquement seront par défaut rattachées à ce fournisseur ${connectionName}.`
-                    : `Les dépenses qui ne sont pas appariées automatiquement seront par défaut associées à ce fournisseur ${connectionName}. Sinon, elles seront exportées en tant que « Credit Card Misc ».`,
+            defaultVendorHelperText: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Les dépenses qui ne sont pas associées automatiquement seront par défaut rattachées à ce fournisseur ${connectionName}.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Choisissez un fournisseur ${connectionName} par défaut pour les dépenses qui ne correspondent pas automatiquement.`,
             defaultAccount: 'Compte par défaut',
