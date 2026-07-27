@@ -117,32 +117,28 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
         // If we're in search (or the topmost route is search), dismiss the modal and open the expense in the RHP
         if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
-            // When the expense stays in the same report, only the merge modal needs to be dismissed so the
-            // wide/super wide RHP underneath stays open.
+            // When the expense stays in the same report, we try to keep the wide/super wide RHP underneath open by
+            // only dismissing the merge modal (unless the report collapses into a one-transaction thread report).
             if (targetTransaction.reportID === mergeTransaction.reportID) {
-                Navigation.dismissToPreviousRHP();
-                const topmostSearchReportID = Navigation.getTopmostSearchReportID();
-                const topmostSuperWideReportID = Navigation.getTopmostSuperWideRHPReportID();
-
-                // The target expense is already visible when the topmost RHP is its transaction thread.
-                const isTargetThreadStillOpen = !!targetTransactionThreadReportID && topmostSearchReportID === targetTransactionThreadReportID;
-
-                // When the target's report is left with a single transaction after the merge (e.g. merging the only
-                // two expenses in a report), it renders as a one-transaction thread report showing the merged expense
-                // inline. In that case, if that report is the one revealed underneath — whether opened as a SEARCH_REPORT
-                // or as a super wide money request report — opening its transaction thread on top would just stack a
-                // redundant RHP.
+                // When the target's report is left with a single transaction after the merge (e.g. merging the only two
+                // expenses in a report), it becomes a one-transaction thread report. Keeping the previous wide/super wide
+                // RHP open would leave both that report and the merged expense's thread stacked, so in that case we fall
+                // through to the production path below (dismiss the whole modal, then open the merged expense).
                 const isSourceInTargetReport = sourceTransaction.reportID === targetTransaction.reportID;
                 const willTargetReportBeOneTransactionReport = targetReportTransactions.length - (isSourceInTargetReport ? 1 : 0) <= 1;
-                const isTargetReportStillOpen =
-                    willTargetReportBeOneTransactionReport && (topmostSearchReportID === targetTransaction.reportID || topmostSuperWideReportID === targetTransaction.reportID);
 
-                if (!isTargetThreadStillOpen && !isTargetReportStillOpen) {
-                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
-                    });
+                if (!willTargetReportBeOneTransactionReport) {
+                    // The report stays a multi-transaction report, so keep the wide/super wide RHP underneath open and
+                    // only open the merged expense's thread if it isn't already the topmost RHP.
+                    Navigation.dismissToPreviousRHP();
+                    const isTargetThreadStillOpen = !!targetTransactionThreadReportID && Navigation.getTopmostSearchReportID() === targetTransactionThreadReportID;
+                    if (!isTargetThreadStillOpen) {
+                        Navigation.setNavigationActionToMicrotaskQueue(() => {
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
+                        });
+                    }
+                    return;
                 }
-                return;
             }
 
             Navigation.dismissModal();
