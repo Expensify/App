@@ -53,7 +53,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const {requestCancel, submitValidateCode, resendValidateCode, clearContinuableError, state} = useMultifactorAuthenticationInternal();
-    const {continuableError, isCancelConfirmVisible} = state;
+    const {continuableError, isCancelConfirmVisible, isSubmittingValidateCode} = state;
 
     // Refs
     const inputRef = useRef<ValidateCodeInputHandle>(null);
@@ -64,7 +64,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const hasAccountError = !!account && !isEmptyObject(account?.errors);
     const hasContinuableError = !!continuableError;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
-    const shouldDisableResendCode = isOffline || !!validateActionCode?.isLoading;
+    const shouldDisableResendCode = isOffline || isSubmittingValidateCode || !!validateActionCode?.isLoading;
     const validateCodeActionError = getLatestErrorField(validateActionCode, 'actionVerified');
     const hasValidateCodeActionError = !isEmptyObject(validateCodeActionError);
     const hasError = hasAccountError || hasContinuableError || hasValidateCodeActionError;

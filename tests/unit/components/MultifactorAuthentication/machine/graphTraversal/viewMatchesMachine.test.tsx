@@ -220,6 +220,8 @@ const testConfig = {
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
             expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT)).toBeOnTheScreen();
             expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON)).toBeOnTheScreen();
+            // The countdown mock finishes immediately, so the resend button is rendered and must be pressable while the screen waits for a code.
+            expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeEnabled();
             expect(screen.getByText(translateLocal('multifactorAuthentication.letsVerifyItsYou'))).toBeOnTheScreen();
             expect(state.context.error).toBeUndefined();
             const inlineError = translateLocal('validateCodeForm.error.incorrectMagicCode');
@@ -234,6 +236,8 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
             expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT)).toBeOnTheScreen();
+            // The machine drops a resend while the challenge request is in flight, so the button must not offer one.
+            expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeDisabled();
             expect(state.context.validateCode).toBeDefined();
             expect(state.context.registrationChallenge).toBeUndefined();
             expect(state.context.error).toBeUndefined();

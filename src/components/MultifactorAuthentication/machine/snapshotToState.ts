@@ -10,7 +10,12 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 type MfaSnapshot = SnapshotFrom<typeof MFAMachine>;
 
 /** The machine-derived state consumers read: the wired context subset plus the modal lifecycle state. */
-type MfaState = MfaContext & {modalState: MfaModalState};
+type MfaState = MfaContext & {
+    modalState: MfaModalState;
+
+    /** Whether the entered code is being exchanged for a registration challenge. While true the machine drops further magic-code events. */
+    isSubmittingValidateCode: boolean;
+};
 
 function getModalState(snapshot: MfaSnapshot): MfaModalState {
     if (snapshot.matches(MFA_STATE.OPEN)) {
@@ -29,7 +34,11 @@ function getModalState(snapshot: MfaSnapshot): MfaModalState {
  * `@xstate/react` (a dedicated later PR), which retires this function and the `MfaState` bridge shape.
  */
 function snapshotToState(snapshot: MfaSnapshot): MfaState {
-    return {...snapshot.context, modalState: getModalState(snapshot)};
+    return {
+        ...snapshot.context,
+        modalState: getModalState(snapshot),
+        isSubmittingValidateCode: snapshot.matches({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}),
+    };
 }
 
 export default snapshotToState;
