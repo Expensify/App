@@ -99,6 +99,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                     keyForList: email,
                     isSelected: currentApprover?.overLimitForwardsTo === email,
                     login: email,
+                    value: email,
                     icons: [{source: avatar ?? expensifyIcons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: (
                         <MemberRightIcon
@@ -174,7 +175,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 subtitle={subtitle}
                 isLoadingReportData={isLoadingReportData}
                 policy={policy}
-                initiallyFocusedOptionKey={currentApprover?.overLimitForwardsTo}
                 shouldShowNotFoundView={shouldShowNotFoundView}
                 shouldShowNotFoundViewLink
                 allApprovers={allApprovers}

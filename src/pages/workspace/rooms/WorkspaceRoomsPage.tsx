@@ -55,13 +55,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
-    const [policyReports] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {
-            selector: policyChatRoomsSelector(policyID, reportNameValuePairs),
-        },
-        [policyID, reportNameValuePairs],
-    );
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatRoomsSelector(policyID, reportNameValuePairs)});
     const [hasReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: (reportActions) => {
             return policyReports?.reduce(
