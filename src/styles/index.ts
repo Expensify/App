@@ -5730,6 +5730,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 162,
         },
 
+        cardReconciliationIllustration: {
+            width: variables.cardReconciliationIllustrationWidth,
+            height: variables.cardReconciliationIllustrationHeight,
+        },
+
         computerIllustrationContainer: {
             width: 272,
             height: 188,

@@ -327,6 +327,8 @@ export default {
     agentsRulesEmptyStateIllustrationWidth: 268,
     agentsRulesEmptyStateIllustrationHeight: 194,
     cardRulesEmptyStateMaxWidth: 496,
+    cardReconciliationIllustrationWidth: 168,
+    cardReconciliationIllustrationHeight: 156,
     expensifyCardEmptyIllustrationWidth: 280,
     expensifyCardEmptyIllustrationHeight: 172,
     rulesNewMenuItemMinHeight: 84,
