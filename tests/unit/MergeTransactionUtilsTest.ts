@@ -1676,6 +1676,23 @@ describe('MergeTransactionUtils', () => {
             expect(result).toBe(true);
         });
 
+        it('excludes a superseded pending card authorization from the count', () => {
+            // Given a posted Expensify Card expense, its stale pending auth from the same chain, and the merge source
+            const target = buildTransaction('posted', REPORT_ID, {bank: CONST.EXPENSIFY_CARD.BANK, parentTransactionID: 'authRoot', status: CONST.TRANSACTION.STATUS.POSTED});
+            const supersededPendingAuth = buildTransaction('authPending', REPORT_ID, {
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                parentTransactionID: 'authRoot',
+                status: CONST.TRANSACTION.STATUS.PENDING,
+            });
+            const source = buildTransaction('source', REPORT_ID);
+
+            // When we check after the source is merged away
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, supersededPendingAuth, source]), undefined, false);
+
+            // Then it should be true because the superseded pending auth is hidden, leaving only the posted expense
+            expect(result).toBe(true);
+        });
+
         it('returns false for the unreported and split sentinel reports', () => {
             // Given a single expense in each sentinel report
             const unreported = buildTransaction('unreported', CONST.REPORT.UNREPORTED_REPORT_ID);

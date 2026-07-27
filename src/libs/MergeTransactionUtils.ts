@@ -30,6 +30,7 @@ import {
     getAttendeesListDisplayString,
     getCurrency,
     getReimbursable,
+    getSupersededPendingCardTransactionIDs,
     getTaxName,
     getWaypoints,
     hasValidModifiedAmount,
@@ -393,11 +394,20 @@ function willReportBecomeOneTransactionReportAfterMerge(
         transactionsByID.set(transaction.transactionID, transaction);
     }
 
+    // Match how the Search report decides what's visible: a stale pending Expensify Card auth is hidden once its
+    // posted counterpart is present, so it must not count towards keeping the report open.
+    const reportTransactions = [...transactionsByID.values()].filter((transaction) => transaction.reportID === reportID);
+    const supersededPendingCardTransactionIDs = getSupersededPendingCardTransactionIDs(reportTransactions);
+
     let remainingTransactions = 0;
-    for (const transaction of transactionsByID.values()) {
-        // Skip the source (merged away), expenses in other reports, and - unless we're offline - siblings being
+    for (const transaction of reportTransactions) {
+        // Skip the source (merged away), superseded pending card auths, and - unless we're offline - siblings being
         // deleted. The Search report hides deleting rows only while online, so offline they still keep it open.
-        if (transaction.reportID !== reportID || transaction.transactionID === sourceTransactionID || (!isOffline && isTransactionPendingDelete(transaction))) {
+        if (
+            transaction.transactionID === sourceTransactionID ||
+            supersededPendingCardTransactionIDs.has(transaction.transactionID) ||
+            (!isOffline && isTransactionPendingDelete(transaction))
+        ) {
             continue;
         }
         remainingTransactions += 1;
