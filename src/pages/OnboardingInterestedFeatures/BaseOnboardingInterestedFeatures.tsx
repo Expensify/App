@@ -263,10 +263,9 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 conciergeReportID,
                 reportNameValuePairs,
                 policyID,
-                adminsChatReportID,
                 // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
                 // See https://github.com/Expensify/App/issues/57167 for more details
-                (session?.email ?? '').includes('+'),
+                (session?.email ?? '').includes('+') ? conciergeReportID : adminsChatReportID,
                 rhpVariant,
             );
         } catch (error) {

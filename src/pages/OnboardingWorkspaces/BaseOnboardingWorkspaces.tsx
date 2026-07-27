@@ -117,7 +117,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             reportNameValuePairs,
             policy.automaticJoiningEnabled ? policy.policyID : undefined,
             undefined,
-            false,
         );
     };
 
