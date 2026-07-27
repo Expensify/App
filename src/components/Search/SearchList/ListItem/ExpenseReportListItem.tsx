@@ -118,7 +118,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
@@ -300,7 +299,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
-            allViolations,
+            // Pass the row-scoped, live violations (keyed by this report's snapshot transactions) instead of the
+            // whole TRANSACTION_VIOLATIONS collection, so the Approve action reads live data without re-rendering
+            // every row on unrelated violation changes.
+            allViolations: liveViolationsForSnapshotTransactions,
         });
     }, [
         currentSearchHash,
@@ -341,7 +343,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         isTrackIntentUser,
-        allViolations,
+        liveViolationsForSnapshotTransactions,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
