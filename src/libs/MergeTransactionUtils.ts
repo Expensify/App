@@ -365,7 +365,7 @@ function willReportBecomeOneTransactionReportAfterMerge(
     reportID: string | undefined,
     sourceTransactionID: string | undefined,
     reportTransactionsCollection: OnyxCollection<Transaction>,
-    searchResults: OnyxEntry<SearchResults>,
+    searchResultsData: SearchResults['data'] | undefined,
     isOffline: boolean,
 ): boolean {
     if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportID === CONST.REPORT.SPLIT_REPORT_ID) {
@@ -375,7 +375,7 @@ function willReportBecomeOneTransactionReportAfterMerge(
     // Merge both sources into one map keyed by transactionID before filtering. The Onyx copy overrides the snapshot
     // one, so the optimistic reportID/pendingAction wins and a stale snapshot row can't slip past the filter below.
     const transactionsByID = new Map<string, Transaction>();
-    for (const [key, value] of Object.entries(searchResults?.data ?? {})) {
+    for (const [key, value] of Object.entries(searchResultsData ?? {})) {
         if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) || !value) {
             continue;
         }

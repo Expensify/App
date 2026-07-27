@@ -1570,8 +1570,13 @@ describe('MergeTransactionUtils', () => {
         });
         const toCollection = (transactions: Transaction[]) =>
             Object.fromEntries(transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction])) as OnyxCollection<Transaction>;
-        const toSearchResults = (transactions: Transaction[]) =>
-            ({data: Object.fromEntries(transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]))}) as unknown as SearchResults;
+        const toSearchData = (transactions: Transaction[]): SearchResults['data'] => {
+            const data: SearchResults['data'] = {};
+            for (const transaction of transactions) {
+                data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+            }
+            return data;
+        };
 
         it('returns true when the report already holds a single expense and the source lives elsewhere', () => {
             // Given a report that only contains the target, and a source in another report
@@ -1616,7 +1621,7 @@ describe('MergeTransactionUtils', () => {
             const other = buildTransaction('other', REPORT_ID);
 
             // When we check after the source is merged away
-            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, {}, toSearchResults([target, source, other]), false);
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, {}, toSearchData([target, source, other]), false);
 
             // Then it should be false because the snapshot still shows the target and the other expense
             expect(result).toBe(false);
@@ -1628,7 +1633,7 @@ describe('MergeTransactionUtils', () => {
             const source = buildTransaction('source', REPORT_ID);
 
             // When we check after the source is merged away
-            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source]), toSearchResults([target, source]), false);
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source]), toSearchData([target, source]), false);
 
             // Then it should be true because the duplicated target is only counted once
             expect(result).toBe(true);
@@ -1665,7 +1670,7 @@ describe('MergeTransactionUtils', () => {
             const deletingInSnapshot = buildTransaction('deleting', REPORT_ID);
 
             // When we check while online
-            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletingInOnyx]), toSearchResults([target, deletingInSnapshot]), false);
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletingInOnyx]), toSearchData([target, deletingInSnapshot]), false);
 
             // Then it should be true because the Onyx copy wins and the deleting sibling is excluded
             expect(result).toBe(true);

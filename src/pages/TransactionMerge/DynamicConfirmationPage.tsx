@@ -134,7 +134,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                     targetTransaction.reportID,
                     sourceTransaction.transactionID,
                     targetReportTransactionsCollection,
-                    currentSearchResults,
+                    currentSearchResults?.data,
                     isOffline,
                 );
 
