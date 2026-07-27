@@ -12,12 +12,16 @@ import {
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
+    willReportBecomeOneTransactionReportAfterMerge,
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {isFromCreditCardImport} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchResults, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -1553,6 +1557,116 @@ describe('MergeTransactionUtils', () => {
 
             // Then amount should still be a conflict field (not auto-resolved by transactionType: 'card')
             expect(conflictFields).toContain('amount');
+        });
+    });
+
+    describe('willReportBecomeOneTransactionReportAfterMerge', () => {
+        const REPORT_ID = 'R1';
+        const buildTransaction = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction => ({
+            ...createRandomTransaction(0),
+            transactionID,
+            reportID,
+            ...overrides,
+        });
+        const toCollection = (transactions: Transaction[]) =>
+            Object.fromEntries(transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction])) as OnyxCollection<Transaction>;
+        const toSearchResults = (transactions: Transaction[]) =>
+            ({data: Object.fromEntries(transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]))}) as unknown as SearchResults;
+
+        it('returns true when the report already holds a single expense and the source lives elsewhere', () => {
+            // Given a report that only contains the target, and a source in another report
+            const target = buildTransaction('target', REPORT_ID);
+
+            // When we check if the report becomes a one-transaction report after the merge
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target]), undefined);
+
+            // Then it should be true because only the target is left
+            expect(result).toBe(true);
+        });
+
+        it('returns true when merging the only two expenses in a report', () => {
+            // Given a report with exactly the target and the source
+            const target = buildTransaction('target', REPORT_ID);
+            const source = buildTransaction('source', REPORT_ID);
+
+            // When we check after the source is merged away
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source]), undefined);
+
+            // Then it should be true because only the target remains
+            expect(result).toBe(true);
+        });
+
+        it('returns false when the report still has other expenses after the merge', () => {
+            // Given a report with the target, the source, and another expense
+            const target = buildTransaction('target', REPORT_ID);
+            const source = buildTransaction('source', REPORT_ID);
+            const other = buildTransaction('other', REPORT_ID);
+
+            // When we check after the source is merged away
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source, other]), undefined);
+
+            // Then it should be false because the target and the other expense remain
+            expect(result).toBe(false);
+        });
+
+        it('counts expenses from the Search snapshot when they are missing from Onyx', () => {
+            // Given a report whose expenses are only in the Search snapshot, not the Onyx collection
+            const target = buildTransaction('target', REPORT_ID);
+            const source = buildTransaction('source', REPORT_ID);
+            const other = buildTransaction('other', REPORT_ID);
+
+            // When we check after the source is merged away
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, {}, toSearchResults([target, source, other]));
+
+            // Then it should be false because the snapshot still shows the target and the other expense
+            expect(result).toBe(false);
+        });
+
+        it('dedupes expenses that appear in both Onyx and the Search snapshot', () => {
+            // Given the same target and source in both sources
+            const target = buildTransaction('target', REPORT_ID);
+            const source = buildTransaction('source', REPORT_ID);
+
+            // When we check after the source is merged away
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, source.transactionID, toCollection([target, source]), toSearchResults([target, source]));
+
+            // Then it should be true because the duplicated target is only counted once
+            expect(result).toBe(true);
+        });
+
+        it('ignores siblings that are pending deletion', () => {
+            // Given a report with the target and a sibling that is pending deletion
+            const target = buildTransaction('target', REPORT_ID);
+            const deletingSibling = buildTransaction('deleting', REPORT_ID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // When we check after the merge
+            const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletingSibling]), undefined);
+
+            // Then it should be true because the deleting sibling doesn't count
+            expect(result).toBe(true);
+        });
+
+        it('returns false for the unreported and split sentinel reports', () => {
+            // Given a single expense in each sentinel report
+            const unreported = buildTransaction('unreported', CONST.REPORT.UNREPORTED_REPORT_ID);
+            const split = buildTransaction('split', CONST.REPORT.SPLIT_REPORT_ID);
+
+            // When we check each sentinel report
+            const unreportedResult = willReportBecomeOneTransactionReportAfterMerge(CONST.REPORT.UNREPORTED_REPORT_ID, 'source', toCollection([unreported]), undefined);
+            const splitResult = willReportBecomeOneTransactionReportAfterMerge(CONST.REPORT.SPLIT_REPORT_ID, 'source', toCollection([split]), undefined);
+
+            // Then both should be false because those reportIDs are shared across expenses
+            expect(unreportedResult).toBe(false);
+            expect(splitResult).toBe(false);
+        });
+
+        it('returns false when the reportID is undefined', () => {
+            // Given no reportID
+            // When we check whether the report collapses to a single expense
+            const result = willReportBecomeOneTransactionReportAfterMerge(undefined, 'source', {}, undefined);
+
+            // Then it should be false
+            expect(result).toBe(false);
         });
     });
 });

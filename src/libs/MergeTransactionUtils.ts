@@ -378,13 +378,15 @@ function willReportBecomeOneTransactionReportAfterMerge(
         remainingTransactionIDs.add(transaction.transactionID);
     };
 
-    Object.values(reportTransactionsCollection ?? {}).forEach(collectTransaction);
-    Object.entries(searchResults?.data ?? {}).forEach(([key, value]) => {
+    for (const transaction of Object.values(reportTransactionsCollection ?? {})) {
+        collectTransaction(transaction);
+    }
+    for (const [key, value] of Object.entries(searchResults?.data ?? {})) {
         if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-            return;
+            continue;
         }
         collectTransaction(value as Transaction);
-    });
+    }
 
     return remainingTransactionIDs.size <= 1;
 }
