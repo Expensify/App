@@ -134,7 +134,9 @@ const renderMoneyRequestView = () =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <MoneyRequestView
-                transactionThreadReport={threadReport}
+                transactionThreadReportID={threadReport.reportID}
+                transactionThreadPolicyID={threadReport.policyID}
+                transactionThreadParentReportActionID={threadReport.parentReportActionID}
                 parentReportID={expenseReportID}
                 expensePolicy={expensePolicy}
                 shouldShowAnimatedBackground={false}
@@ -172,6 +174,8 @@ const setupTestData = async () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail, displayName: 'Test User'},
         });
+        // The component reads the transaction thread report from Onyx (by ID), so it must be seeded there.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, threadReport);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
             id: policyID,
             type: CONST.POLICY.TYPE.TEAM,

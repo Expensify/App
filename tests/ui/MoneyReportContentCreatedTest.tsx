@@ -49,7 +49,7 @@ const noopState: ShowContextMenuStateContextType = {
     anchor: null,
     report: undefined,
     action: undefined,
-    transactionThreadReport: undefined,
+    transactionThreadReportID: undefined,
     isDisabled: true,
     shouldDisplayContextMenu: false,
 };
@@ -63,7 +63,7 @@ const renderWithProps = (props: Partial<React.ComponentProps<typeof MoneyReportC
         report: undefined,
         policy: undefined,
         transaction: undefined,
-        transactionThreadReport: undefined,
+        transactionThreadReportID: undefined,
         action: undefined,
         shouldHideThreadDividerLine: false,
         threadDivider: null,
@@ -101,7 +101,7 @@ describe('MoneyReportContentCreated', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
         });
 
-        renderWithProps({report, transactionThreadReport: undefined});
+        renderWithProps({report, transactionThreadReportID: undefined});
         await waitForBatchedUpdatesWithAct();
 
         const lastCall = mockMoneyReportView.mock.calls.at(-1)?.at(0);
@@ -117,7 +117,7 @@ describe('MoneyReportContentCreated', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
         });
 
-        renderWithProps({report, transactionThreadReport: threadReport});
+        renderWithProps({report, transactionThreadReportID: threadReport.reportID});
         await waitForBatchedUpdatesWithAct();
 
         // In the combined branch the inline `MoneyReportView` is invoked with `isCombinedReport`
@@ -129,7 +129,7 @@ describe('MoneyReportContentCreated', () => {
     it('forwards isTotalPending=false when there are zero transactions', async () => {
         const report = buildExpenseReport();
 
-        renderWithProps({report, transactionThreadReport: undefined});
+        renderWithProps({report, transactionThreadReportID: undefined});
         await waitForBatchedUpdatesWithAct();
 
         const lastCall = mockMoneyReportView.mock.calls.at(-1)?.at(0);
@@ -146,7 +146,7 @@ describe('MoneyReportContentCreated', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${t2.transactionID}`, t2);
         });
 
-        renderWithProps({report, transactionThreadReport: undefined});
+        renderWithProps({report, transactionThreadReportID: undefined});
         await waitForBatchedUpdatesWithAct();
 
         const lastCall = mockMoneyReportView.mock.calls.at(-1)?.at(0);
@@ -161,7 +161,7 @@ describe('MoneyReportContentCreated', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherReportTransaction.transactionID}`, otherReportTransaction);
         });
 
-        renderWithProps({report, transactionThreadReport: undefined});
+        renderWithProps({report, transactionThreadReportID: undefined});
         await waitForBatchedUpdatesWithAct();
 
         const lastCall = mockMoneyReportView.mock.calls.at(-1)?.at(0);

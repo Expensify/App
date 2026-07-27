@@ -90,7 +90,7 @@ function WideRHPReceiptPanelGate() {
         <Animated.View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
             <ScrollView contentContainerStyle={styles.wideRHPMoneyRequestReceiptViewScrollViewContainer}>
                 <MoneyRequestReceiptView
-                    report={transactionThreadReport ?? report}
+                    reportID={(transactionThreadReport ?? report)?.reportID}
                     fillSpace
                     isDisplayedInWideRHP
                 />

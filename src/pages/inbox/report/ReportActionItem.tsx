@@ -106,8 +106,17 @@ type ReportActionItemProps = {
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** The transaction thread report associated with the report for this action, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    /** The ID of the transaction thread report associated with the report for this action, if any */
+    transactionThreadReportID?: string;
+
+    /** The policy ID of the transaction thread report */
+    transactionThreadPolicyID?: string;
+
+    /** The parent report action ID of the transaction thread report */
+    transactionThreadParentReportActionID?: string;
+
+    /** The parent report ID of the transaction thread report */
+    transactionThreadParentReportID?: string;
 
     /** The chat report associated with the report for this action (report.chatReportID) */
     chatReport: OnyxEntry<OnyxTypes.Report>;
@@ -167,7 +176,10 @@ type ReportActionItemProps = {
 function ReportActionItem({
     action,
     report,
-    transactionThreadReport,
+    transactionThreadReportID,
+    transactionThreadPolicyID,
+    transactionThreadParentReportActionID,
+    transactionThreadParentReportID,
     chatReport,
     linkedReportActionID,
     displayAsGroup,
@@ -256,6 +268,7 @@ function ReportActionItem({
     const dismissError = () => {
         const transactionIDToDismiss = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionIDToDismiss && reportID) {
+            const transactionThreadReport = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}` as const);
             const iouPolicy = OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}` as const);
             cleanUpMoneyRequest(transactionIDToDismiss, action, reportID, transactionThreadReport, report, chatReport, undefined, originalReportID, true, iouPolicy);
             return;
@@ -431,7 +444,10 @@ function ReportActionItem({
         anchor: popoverAnchorRef,
         report,
         action,
-        transactionThreadReport,
+        transactionThreadReportID,
+        transactionThreadPolicyID,
+        transactionThreadParentReportActionID,
+        transactionThreadParentReportID,
         isDisabled: false,
         shouldDisplayContextMenu: shouldDisplayContextMenuValue,
         originalReportID,

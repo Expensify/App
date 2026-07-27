@@ -146,7 +146,7 @@ function Confirmation() {
 
     const contextMenuStateValue = useMemo(
         () => ({
-            transactionThreadReport: report,
+            transactionThreadReportID: report?.reportID,
             action: reportAction,
             report,
             anchor: null,
@@ -209,7 +209,9 @@ function Confirmation() {
                         <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                             <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                                 <MoneyRequestView
-                                    transactionThreadReport={report}
+                                    transactionThreadReportID={report?.reportID}
+                                    transactionThreadPolicyID={report?.policyID}
+                                    transactionThreadParentReportActionID={report?.parentReportActionID}
                                     parentReportID={report?.parentReportID}
                                     expensePolicy={policy}
                                     shouldShowAnimatedBackground={false}

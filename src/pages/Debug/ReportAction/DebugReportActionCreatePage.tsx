@@ -137,7 +137,10 @@ function DebugReportActionCreatePage({
                             {!error && reportAction ? (
                                 <ReportActionItem
                                     action={reportAction}
-                                    transactionThreadReport={transactionThreadReport}
+                                    transactionThreadReportID={transactionThreadReport?.reportID}
+                                    transactionThreadPolicyID={transactionThreadReport?.policyID}
+                                    transactionThreadParentReportActionID={transactionThreadReport?.parentReportActionID}
+                                    transactionThreadParentReportID={transactionThreadReport?.parentReportID}
                                     report={report}
                                     chatReport={chatReport}
                                     parentReportAction={undefined}

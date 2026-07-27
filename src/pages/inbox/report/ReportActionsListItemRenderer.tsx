@@ -24,8 +24,17 @@ type ReportActionsListItemRendererProps = {
     /** Report for this action */
     report: OnyxEntry<Report>;
 
-    /** The transaction thread report associated with the report for this action, if any */
-    transactionThreadReport: OnyxEntry<Report>;
+    /** The ID of the transaction thread report associated with the report for this action, if any */
+    transactionThreadReportID?: string;
+
+    /** The policy ID of the transaction thread report */
+    transactionThreadPolicyID?: string;
+
+    /** The parent report action ID of the transaction thread report */
+    transactionThreadParentReportActionID?: string;
+
+    /** The parent report ID of the transaction thread report */
+    transactionThreadParentReportID?: string;
 
     /** The chat report associated with the report for this action (report.chatReportID) */
     chatReport?: OnyxEntry<Report>;
@@ -65,7 +74,10 @@ function ReportActionsListItemRenderer({
     reportAction,
     parentReportAction,
     report,
-    transactionThreadReport,
+    transactionThreadReportID,
+    transactionThreadPolicyID,
+    transactionThreadParentReportActionID,
+    transactionThreadParentReportID,
     chatReport,
     displayAsGroup,
     shouldHideThreadDividerLine,
@@ -163,7 +175,7 @@ function ReportActionsListItemRenderer({
                 reportID={report.reportID}
                 report={report}
                 action={action}
-                transactionThreadReport={transactionThreadReport}
+                transactionThreadReportID={transactionThreadReportID}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             />
@@ -175,7 +187,10 @@ function ReportActionsListItemRenderer({
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}
-            transactionThreadReport={transactionThreadReport}
+            transactionThreadReportID={transactionThreadReportID}
+            transactionThreadPolicyID={transactionThreadPolicyID}
+            transactionThreadParentReportActionID={transactionThreadParentReportActionID}
+            transactionThreadParentReportID={transactionThreadParentReportID}
             chatReport={chatReport}
             parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}

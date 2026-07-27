@@ -224,6 +224,7 @@ describe('MoneyRequestReceiptView', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_REPORT_ID}`, testReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_PARENT_REPORT_ID}`, {
                 [TEST_ACTION_ID]: testParentReportAction,
             });
@@ -245,7 +246,7 @@ describe('MoneyRequestReceiptView', () => {
             render(
                 <Wrapper>
                     <MoneyRequestReceiptView
-                        report={testReport}
+                        reportID={testReport.reportID}
                         fillSpace
                         isDisplayedInWideRHP
                     />
@@ -267,7 +268,7 @@ describe('MoneyRequestReceiptView', () => {
         it('does not show action buttons when transaction has no receipt', async () => {
             render(
                 <Wrapper>
-                    <MoneyRequestReceiptView report={testReport} />
+                    <MoneyRequestReceiptView reportID={testReport.reportID} />
                 </Wrapper>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -284,7 +285,7 @@ describe('MoneyRequestReceiptView', () => {
 
             render(
                 <Wrapper>
-                    <MoneyRequestReceiptView report={testReport} />
+                    <MoneyRequestReceiptView reportID={testReport.reportID} />
                 </Wrapper>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -301,7 +302,7 @@ describe('MoneyRequestReceiptView', () => {
 
             render(
                 <Wrapper>
-                    <MoneyRequestReceiptView report={testReport} />
+                    <MoneyRequestReceiptView reportID={testReport.reportID} />
                 </Wrapper>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -319,7 +320,7 @@ describe('MoneyRequestReceiptView', () => {
             render(
                 <Wrapper>
                     <MoneyRequestReceiptView
-                        report={testReport}
+                        reportID={testReport.reportID}
                         readonly
                     />
                 </Wrapper>,
@@ -338,7 +339,7 @@ describe('MoneyRequestReceiptView', () => {
 
             render(
                 <Wrapper>
-                    <MoneyRequestReceiptView report={testReport} />
+                    <MoneyRequestReceiptView reportID={testReport.reportID} />
                 </Wrapper>,
             );
             await waitForBatchedUpdatesWithAct();

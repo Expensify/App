@@ -145,7 +145,7 @@ describe('ReportActionItem', () => {
                         <ReportActionItem
                             chatReport={undefined}
                             report={undefined}
-                            transactionThreadReport={undefined}
+                            transactionThreadReportID={undefined}
                             parentReportAction={undefined}
                             action={action}
                             displayAsGroup={false}
@@ -440,7 +440,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -487,7 +487,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -538,7 +538,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -581,7 +581,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -654,7 +654,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={report}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -714,7 +714,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={report}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -796,7 +796,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={report}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -974,7 +974,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={report}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1020,7 +1020,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={report}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1067,7 +1067,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={report}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1118,7 +1118,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={report}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1166,7 +1166,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={report}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1215,7 +1215,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={report}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1266,7 +1266,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={report}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1421,7 +1421,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={report}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1599,7 +1599,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', policyID: 'pol123'}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1699,7 +1699,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport'}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1733,7 +1733,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1769,7 +1769,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1816,7 +1816,7 @@ describe('ReportActionItem', () => {
                                     parentReportActionID: 'parentAction',
                                     ownerAccountID: 0,
                                 }}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1851,7 +1851,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1890,7 +1890,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1927,7 +1927,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={undefined}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -1963,7 +1963,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={undefined}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -2002,7 +2002,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={undefined}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -2042,7 +2042,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={undefined}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -2166,7 +2166,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -2202,7 +2202,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', isWaitingOnBankAccount: true}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -2782,7 +2782,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'chatReport1', chatReportID: 'chatReport1', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -2835,7 +2835,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={{reportID: 'expenseReport1', chatReportID: 'workspaceChat1', type: CONST.REPORT.TYPE.EXPENSE}}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -2932,7 +2932,7 @@ describe('ReportActionItem', () => {
                         <PortalProvider>
                             <ReportActionItem
                                 chatReport={undefined}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 report={{reportID: HARVEST_REPORT_ID}}
                                 parentReportAction={undefined}
                                 action={action}
@@ -2974,7 +2974,7 @@ describe('ReportActionItem', () => {
                                 chatReport={undefined}
                                 report={{reportID: HARVEST_REPORT_ID}}
                                 parentReportAction={undefined}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 action={action}
                                 displayAsGroup={false}
                                 shouldDisplayNewMarker={false}
@@ -3021,7 +3021,7 @@ describe('ReportActionItem', () => {
                             <ReportActionItem
                                 chatReport={undefined}
                                 report={undefined}
-                                transactionThreadReport={undefined}
+                                transactionThreadReportID={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}

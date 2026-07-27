@@ -91,7 +91,7 @@ describe('ClearReportActionErrors UI', () => {
                         <ReportActionItem
                             report={report}
                             chatReport={undefined}
-                            transactionThreadReport={undefined}
+                            transactionThreadReportID={undefined}
                             parentReportAction={undefined}
                             action={action}
                             displayAsGroup={false}

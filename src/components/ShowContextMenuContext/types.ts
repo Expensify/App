@@ -9,7 +9,10 @@ type ShowContextMenuStateContextType = {
     anchor: RefObject<ContextMenuAnchor> | null;
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
-    transactionThreadReport?: OnyxEntry<Report>;
+    transactionThreadReportID?: string;
+    transactionThreadPolicyID?: string;
+    transactionThreadParentReportActionID?: string;
+    transactionThreadParentReportID?: string;
     isDisabled: boolean;
     shouldDisplayContextMenu?: boolean;
     originalReportID?: string;

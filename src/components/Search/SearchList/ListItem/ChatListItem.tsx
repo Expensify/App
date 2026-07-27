@@ -89,7 +89,10 @@ function ChatListItem<TItem extends ListItem>({
             <ReportActionItem
                 action={reportActionItem}
                 report={reportStable}
-                transactionThreadReport={transactionThreadReport}
+                transactionThreadReportID={transactionThreadReport?.reportID}
+                transactionThreadPolicyID={transactionThreadReport?.policyID}
+                transactionThreadParentReportActionID={transactionThreadReport?.parentReportActionID}
+                transactionThreadParentReportID={transactionThreadReport?.parentReportID}
                 chatReport={chatReportStable}
                 onPress={handlePress}
                 parentReportAction={undefined}

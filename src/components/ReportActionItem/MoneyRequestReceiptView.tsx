@@ -7,6 +7,7 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import ReceiptHoverZoom from '@components/ReceiptHoverZoom';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Tooltip from '@components/Tooltip';
 
 import useActiveRoute from '@hooks/useActiveRoute';
@@ -88,14 +89,17 @@ import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selecto
 import mapValues from 'lodash/mapValues';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 
 import HoveredDistanceEReceipt from './HoveredDistanceEReceipt';
 import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestReceiptViewProps = {
-    /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
+    /** The ID of the report currently being looked at */
+    reportID: string | undefined;
 
     /** Whether we should show Money Request with disabled all fields */
     readonly?: boolean;
@@ -129,7 +133,7 @@ const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
 const receiptFieldViolationNames = new Set<OnyxTypes.ViolationName>([CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE]);
 
 function MoneyRequestReceiptView({
-    report,
+    reportID,
     readonly = false,
     updatedTransaction,
     fillSpace = false,
@@ -137,6 +141,10 @@ function MoneyRequestReceiptView({
     isDisplayedInWideRHP = false,
     hasParentPendingAction = false,
 }: MoneyRequestReceiptViewProps) {
+    // Real-time data from Onyx first, then the search-results snapshot for reports that only exist there (e.g. the merge-from-search flow).
+    const [reportFromOnyx] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const {currentSearchResults} = useSearchResultsContext();
+    const report = reportFromOnyx ?? (reportID ? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : undefined);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();

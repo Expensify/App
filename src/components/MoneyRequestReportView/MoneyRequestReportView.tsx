@@ -267,7 +267,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                         <Animated.View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
                             <ScrollView contentContainerStyle={styles.wideRHPMoneyRequestReceiptViewScrollViewContainer}>
                                 <MoneyRequestReceiptView
-                                    report={transactionThreadReport}
+                                    reportID={transactionThreadReport?.reportID}
                                     fillSpace
                                     isDisplayedInWideRHP
                                     hasParentPendingAction={!!reportPendingAction}

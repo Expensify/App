@@ -136,7 +136,7 @@ function ReportActionItemImage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
-    const {report: contextReport, transactionThreadReport} = useShowContextMenuState();
+    const {report: contextReport, transactionThreadReportID} = useShowContextMenuState();
     const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
@@ -146,7 +146,7 @@ function ReportActionItemImage({
         deferReceiptNavigation(() => {
             Navigation.navigate(
                 ROUTES.TRANSACTION_RECEIPT.getRoute(
-                    transactionThreadReport?.reportID ?? contextReport?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
+                    transactionThreadReportID ?? contextReport?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
                     transaction?.transactionID,
                     readonly,
                     mergeTransactionID,

@@ -71,8 +71,17 @@ type AncestorReportActionItemProps = {
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine: boolean;
 
-    /** The transaction thread report associated with the current report, if any */
-    transactionThreadReport: OnyxEntry<Report>;
+    /** The ID of the transaction thread report associated with the current report, if any */
+    transactionThreadReportID?: string;
+
+    /** The policy ID of the transaction thread report */
+    transactionThreadPolicyID?: string;
+
+    /** The parent report action ID of the transaction thread report */
+    transactionThreadParentReportActionID?: string;
+
+    /** The parent report ID of the transaction thread report */
+    transactionThreadParentReportID?: string;
 };
 
 function AncestorReportActionItem({
@@ -91,7 +100,10 @@ function AncestorReportActionItem({
     linkedTransactionRouteError,
     parentReportAction,
     shouldUseThreadDividerLine,
-    transactionThreadReport,
+    transactionThreadReportID,
+    transactionThreadPolicyID,
+    transactionThreadParentReportActionID,
+    transactionThreadParentReportID,
 }: AncestorReportActionItemProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
@@ -159,7 +171,10 @@ function AncestorReportActionItem({
                 action={reportAction}
                 onPress={canOpenAncestorReport ? openAncestorReport : undefined}
                 parentReportAction={parentReportAction}
-                transactionThreadReport={transactionThreadReport}
+                transactionThreadReportID={transactionThreadReportID}
+                transactionThreadPolicyID={transactionThreadPolicyID}
+                transactionThreadParentReportActionID={transactionThreadParentReportActionID}
+                transactionThreadParentReportID={transactionThreadParentReportID}
                 chatReport={chatReport}
                 displayAsGroup={false}
                 shouldDisplayNewMarker={shouldDisplayNewMarker}

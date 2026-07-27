@@ -49,7 +49,7 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
     const {translate} = useLocalize();
     const contextMenuStateValue = useShowContextMenuState();
     const contextMenuActionsValue = useShowContextMenuActions();
-    const {report, action, transactionThreadReport} = contextMenuStateValue;
+    const {report, action, transactionThreadReportID, transactionThreadPolicyID, transactionThreadParentReportActionID, transactionThreadParentReportID} = contextMenuStateValue;
     const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
@@ -103,7 +103,9 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
                     <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                         <View>
                             <MoneyRequestView
-                                transactionThreadReport={report}
+                                transactionThreadReportID={report?.reportID}
+                                transactionThreadPolicyID={report?.policyID}
+                                transactionThreadParentReportActionID={report?.parentReportActionID}
                                 parentReportID={report?.parentReportID}
                                 expensePolicy={policy}
                                 shouldShowAnimatedBackground
@@ -157,7 +159,10 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
                 report={report}
                 policy={policy}
                 transaction={transaction}
-                transactionThreadReport={transactionThreadReport}
+                transactionThreadReportID={transactionThreadReportID}
+                transactionThreadPolicyID={transactionThreadPolicyID}
+                transactionThreadParentReportActionID={transactionThreadParentReportActionID}
+                transactionThreadParentReportID={transactionThreadParentReportID}
                 action={action}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 threadDivider={renderThreadDivider}

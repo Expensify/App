@@ -95,11 +95,17 @@ const expenseReportID = 'expense_mrv_123';
 const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
-const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: Record<string, unknown>) =>
-    render(
+const renderMoneyRequestView = async (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: Record<string, unknown>) => {
+    // The component reads the transaction thread report from Onyx (by ID), so it must be seeded there.
+    await act(async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, threadReport);
+    });
+    return render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <MoneyRequestView
-                transactionThreadReport={threadReport}
+                transactionThreadReportID={threadReport.reportID}
+                transactionThreadPolicyID={threadReport.policyID}
+                transactionThreadParentReportActionID={threadReport.parentReportActionID}
                 parentReportID={expenseReportID}
                 expensePolicy={
                     {
@@ -117,6 +123,7 @@ const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.get
             />
         </ComposeProviders>,
     );
+};
 
 describe('MoneyRequestView edit fields', () => {
     beforeAll(() => {
@@ -199,7 +206,7 @@ describe('MoneyRequestView edit fields', () => {
 
         await setupTestData();
 
-        renderMoneyRequestView(threadReport);
+        await renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -232,7 +239,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: false}});
+        await renderMoneyRequestView(threadReport, {tax: {trackingEnabled: false}});
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -251,7 +258,7 @@ describe('MoneyRequestView edit fields', () => {
         await setupTestData();
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: false}});
+        await renderMoneyRequestView(threadReport, {tax: {trackingEnabled: false}});
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -279,7 +286,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -297,7 +304,7 @@ describe('MoneyRequestView edit fields', () => {
 
         await setupTestData(true);
 
-        renderMoneyRequestView(threadReport);
+        await renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -325,7 +332,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport);
+        await renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -356,7 +363,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport);
+        await renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -389,7 +396,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport);
+        await renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -422,7 +429,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport);
+        await renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -451,7 +458,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -479,7 +486,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -508,7 +515,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -534,7 +541,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport, {
+        await renderMoneyRequestView(threadReport, {
             connections: {
                 [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                     config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
@@ -568,7 +575,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport, {
+        await renderMoneyRequestView(threadReport, {
             connections: {
                 [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                     config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
@@ -601,7 +608,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport, {
+        await renderMoneyRequestView(threadReport, {
             connections: {
                 [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                     config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},

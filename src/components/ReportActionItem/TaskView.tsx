@@ -113,7 +113,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
             anchor: null,
             report,
             action,
-            transactionThreadReport: undefined,
+            transactionThreadReportID: undefined,
             isDisabled: true,
             shouldDisplayContextMenu: false,
         }),

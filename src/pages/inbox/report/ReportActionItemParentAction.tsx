@@ -7,6 +7,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 
@@ -40,8 +41,8 @@ type ReportActionItemParentActionProps = {
     /** The current report is displayed */
     report: OnyxEntry<Report>;
 
-    /** The transaction thread report associated with the current report, if any */
-    transactionThreadReport: OnyxEntry<Report>;
+    /** The ID of the transaction thread report associated with the current report, if any */
+    transactionThreadReportID?: string;
 
     /** Report actions belonging to the report's parent */
     parentReportAction: OnyxEntry<ReportAction>;
@@ -56,10 +57,26 @@ type ReportActionItemParentActionProps = {
     shouldUseThreadDividerLine?: boolean;
 };
 
+/**
+ * Picks only the transaction-thread IDs the item subtree needs, so ancestor rows don't re-render
+ * on unrelated transaction-thread report changes.
+ */
+const transactionThreadIDsSelector = (report: OnyxEntry<Report>) => {
+    if (!report?.reportID) {
+        return undefined;
+    }
+    return {
+        reportID: report.reportID,
+        policyID: report.policyID,
+        parentReportActionID: report.parentReportActionID,
+        parentReportID: report.parentReportID,
+    };
+};
+
 function ReportActionItemParentAction({
     report,
     action,
-    transactionThreadReport,
+    transactionThreadReportID,
     parentReportAction,
     shouldHideThreadDividerLine = false,
     shouldDisplayReplyDivider,
@@ -67,6 +84,7 @@ function ReportActionItemParentAction({
     shouldUseThreadDividerLine = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
+    const [transactionThreadIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`, {selector: transactionThreadIDsSelector});
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
@@ -152,7 +170,10 @@ function ReportActionItemParentAction({
                         isReportArchived={isReportArchived}
                         isSelfTourViewed={isSelfTourViewed}
                         parentReportAction={parentReportAction}
-                        transactionThreadReport={transactionThreadReport}
+                        transactionThreadReportID={transactionThreadIDs?.reportID}
+                        transactionThreadPolicyID={transactionThreadIDs?.policyID}
+                        transactionThreadParentReportActionID={transactionThreadIDs?.parentReportActionID}
+                        transactionThreadParentReportID={transactionThreadIDs?.parentReportID}
                         isFirstVisibleReportAction={isFirstVisibleReportAction}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         linkedTransactionRouteError={linkedTransactionRouteError}

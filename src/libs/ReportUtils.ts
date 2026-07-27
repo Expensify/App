@@ -1817,6 +1817,14 @@ function isThread(report: OnyxInputOrEntry<Report>): report is Thread {
 }
 
 /**
+ * Returns true if the given parent IDs identify a thread (i.e. the report has a parent), without needing the report object itself.
+ * ID-based variant of `isThread`.
+ */
+function isThreadFromIDs(parentReportID: string | undefined, parentReportActionID: string | undefined): boolean {
+    return !!(parentReportID && parentReportActionID);
+}
+
+/**
  * Returns reportActions filtered to only policy expense chat reports (non-thread).
  */
 function getAllPolicyExpenseChatReportActions(reports: OnyxCollection<Report>, reportActions: OnyxCollection<ReportActions>) {
@@ -2696,6 +2704,22 @@ function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
  */
 function isTrackExpenseReportNew(report: OnyxInputOrEntry<Report>, parentReport: OnyxInputOrEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>): boolean {
     if (isThread(report)) {
+        return !isEmptyObject(parentReportAction) && isSelfDM(parentReport) && isTrackExpenseAction(parentReportAction);
+    }
+    return false;
+}
+
+/**
+ * ID-based variant of `isTrackExpenseReportNew`: same check, but the thread test is done on the report's
+ * parent IDs so callers don't need the transaction thread report object itself.
+ */
+function isTrackExpenseReportFromIDs(
+    parentReportID: string | undefined,
+    parentReportActionID: string | undefined,
+    parentReport: OnyxInputOrEntry<Report>,
+    parentReportAction: OnyxInputOrEntry<ReportAction>,
+): boolean {
+    if (isThreadFromIDs(parentReportID, parentReportActionID)) {
         return !isEmptyObject(parentReportAction) && isSelfDM(parentReport) && isTrackExpenseAction(parentReportAction);
     }
     return false;
@@ -10621,6 +10645,19 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived: 
     );
 }
 
+/** Fields of a report that canUserPerformWriteAction actually reads. */
+type ReportWritePermissionFields = Pick<Report, 'reportID' | 'type' | 'parentReportID' | 'parentReportActionID' | 'permissions' | 'writeCapability' | 'policyID' | 'errorFields'>;
+
+/**
+ * Field-limited variant of `canUserPerformWriteAction` so subscribers can use a projection that only
+ * contains the fields the check reads (see `reportWritePermissionFieldsSelector`) and stay
+ * identity-stable when unrelated report fields change. The cast is runtime-safe because
+ * `canUserPerformWriteAction` only reads the picked fields.
+ */
+function canUserPerformWriteActionOnFields(report: OnyxEntry<ReportWritePermissionFields>, isReportArchived: boolean | undefined) {
+    return canUserPerformWriteAction(report as OnyxEntry<Report>, isReportArchived);
+}
+
 /**
  * Returns ID of the original report from which the given reportAction is first created.
  */
@@ -14182,11 +14219,15 @@ export {
     hasHeldExpensesFromTransactions,
     canMergeReports,
     canModifyHoldStatus,
+    isThreadFromIDs,
+    isTrackExpenseReportFromIDs,
+    canUserPerformWriteActionOnFields,
 };
 
 export type {
     SortableColumnName,
     Ancestor,
+    ReportWritePermissionFields,
     DisplayNameWithTooltips,
     OptimisticAddCommentReportAction,
     OptimisticChatReport,

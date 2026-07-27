@@ -30,7 +30,10 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
         <ScrollView>
             <ReportActionItem
                 action={reportAction ?? ({} as ReportAction)}
-                transactionThreadReport={transactionThreadReport}
+                transactionThreadReportID={transactionThreadReport?.reportID}
+                transactionThreadPolicyID={transactionThreadReport?.policyID}
+                transactionThreadParentReportActionID={transactionThreadReport?.parentReportActionID}
+                transactionThreadParentReportID={transactionThreadReport?.parentReportID}
                 chatReport={chatReport}
                 report={report ?? ({} as Report)}
                 parentReportAction={undefined}

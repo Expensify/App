@@ -162,8 +162,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         selector: reportAttributesSelector,
     });
     const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
-
-    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
+    const getStableReportSelectorCall = (reportToSelect: OnyxEntry<OnyxTypes.Report>) => getStableReportSelector(reportToSelect);
+    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelectorCall});
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
 
     const linkedReportActionID = reportActionIDFromRoute;
@@ -353,6 +353,11 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     })();
 
+    const transactionThreadReportID = transactionThreadReport?.reportID;
+    const transactionThreadPolicyID = transactionThreadReport?.policyID;
+    const transactionThreadParentReportActionID = transactionThreadReport?.parentReportActionID;
+    const transactionThreadParentReportID = transactionThreadReport?.parentReportID;
+
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
         const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
 
@@ -363,7 +368,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     parentReportAction={parentReportAction}
                     parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                     report={reportStable}
-                    transactionThreadReport={transactionThreadReport}
+                    transactionThreadReportID={transactionThreadReportID}
+                    transactionThreadPolicyID={transactionThreadPolicyID}
+                    transactionThreadParentReportActionID={transactionThreadParentReportActionID}
+                    transactionThreadParentReportID={transactionThreadParentReportID}
                     chatReport={chatReportStable}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={

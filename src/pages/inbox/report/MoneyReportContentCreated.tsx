@@ -28,8 +28,17 @@ type MoneyReportContentCreatedProps = {
     /** The transaction associated with the parent CREATED action, when applicable */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    /** The transaction-thread report, if its data has already been subscribed via `useOnyx` */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    /** The ID of the transaction-thread report, if any */
+    transactionThreadReportID?: string;
+
+    /** The policy ID of the transaction-thread report */
+    transactionThreadPolicyID?: string;
+
+    /** The parent report action ID of the transaction-thread report */
+    transactionThreadParentReportActionID?: string;
+
+    /** The parent report ID of the transaction-thread report */
+    transactionThreadParentReportID?: string;
 
     /** The CREATED report action that this content belongs to */
     action: OnyxEntry<OnyxTypes.ReportAction>;
@@ -41,7 +50,18 @@ type MoneyReportContentCreatedProps = {
     threadDivider: React.ReactNode;
 };
 
-function MoneyReportContentCreated({report, policy, transaction, transactionThreadReport, action, shouldHideThreadDividerLine, threadDivider}: MoneyReportContentCreatedProps) {
+function MoneyReportContentCreated({
+    report,
+    policy,
+    transaction,
+    transactionThreadReportID,
+    transactionThreadPolicyID,
+    transactionThreadParentReportActionID,
+    transactionThreadParentReportID,
+    action,
+    shouldHideThreadDividerLine,
+    threadDivider,
+}: MoneyReportContentCreatedProps) {
     const styles = useThemeStyles();
     const reportTransactions = useReportTransactions(report?.reportID);
     const contextMenuStateValue = useShowContextMenuState();
@@ -54,9 +74,9 @@ function MoneyReportContentCreated({report, policy, transaction, transactionThre
     // `MoneyReportView` against the report's stale `total` (0) and flash "Total $0.00". When
     // we detect that state, forward `isTotalPending` so `MoneyReportView` renders its loading
     // indicator in place of the amount until the thread arrives.
-    const isPendingSingleExpenseThread = isSingleTransactionReport(report, reportTransactions) && !transactionThreadReport?.reportID;
+    const isPendingSingleExpenseThread = isSingleTransactionReport(report, reportTransactions) && !transactionThreadReportID;
 
-    const hasThread = !!transactionThreadReport?.reportID;
+    const hasThread = !!transactionThreadReportID;
 
     return (
         <OfflineWithFeedback pendingAction={action?.pendingAction}>
@@ -76,8 +96,10 @@ function MoneyReportContentCreated({report, policy, transaction, transactionThre
                         <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                             <View>
                                 <MoneyRequestView
-                                    transactionThreadReport={transactionThreadReport}
-                                    parentReportID={transactionThreadReport?.parentReportID}
+                                    transactionThreadReportID={transactionThreadReportID}
+                                    transactionThreadPolicyID={transactionThreadPolicyID}
+                                    transactionThreadParentReportActionID={transactionThreadParentReportActionID}
+                                    parentReportID={transactionThreadParentReportID}
                                     expensePolicy={policy}
                                     shouldShowAnimatedBackground={false}
                                 />

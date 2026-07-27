@@ -1,4 +1,5 @@
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
+import type {ReportWritePermissionFields} from '@libs/ReportUtils';
 import {
     canShowReportRecipientLocalTime,
     getPolicyIDsWithEmptyReportsForAccount,
@@ -209,6 +210,27 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
+/**
+ * Projection of exactly the fields `canUserPerformWriteActionOnFields` (ReportUtils) reads, so
+ * write-permission subscribers stay identity-stable when unrelated report fields (e.g. chat
+ * heartbeat `last*` fields) change.
+ */
+function reportWritePermissionFieldsSelector(report: OnyxEntry<Report>): ReportWritePermissionFields | undefined {
+    if (!report?.reportID) {
+        return undefined;
+    }
+    return {
+        reportID: report.reportID,
+        type: report.type,
+        parentReportID: report.parentReportID,
+        parentReportActionID: report.parentReportActionID,
+        permissions: report.permissions,
+        writeCapability: report.writeCapability,
+        policyID: report.policyID,
+        errorFields: report.errorFields,
+    };
+}
+
 export {
     getArchiveReason,
     getReportChatType,
@@ -220,6 +242,7 @@ export {
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
+    reportWritePermissionFieldsSelector,
 };
 
 export type {StableReport};
