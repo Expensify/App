@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -20,14 +21,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {buildMergedTransactionData, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getTransactionThreadReportID, willReportBecomeOneTransactionReportAfterMerge} from '@libs/MergeTransactionUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {findSelfDMReportID} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,9 +66,10 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
-    // Used to detect whether the target's report becomes a one-transaction thread report after the merge. This reads
-    // the report-scoped derived value rather than filtering the whole transaction collection.
+    // Expenses already in the target report, used to tell if only one will be left after merging.
     const targetReportTransactionsCollection = useReportTransactionsCollection(targetTransaction?.reportID);
+    // Reports opened from Search may not be in Onyx yet, so we also read the expenses from the Search snapshot.
+    const {currentSearchResults} = useSearchResultsContext();
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
@@ -123,27 +124,19 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
 
         // If we're in search (or the topmost route is search), dismiss the modal and open the expense in the RHP
         if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
-            // When the expense stays in the same report, we try to keep the wide/super wide RHP underneath open by
-            // only dismissing the merge modal (unless the report collapses into a one-transaction thread report).
+            // The expense stays in the same report, so we can keep the RHP underneath open by just closing the merge modal.
             if (targetTransaction.reportID === mergeTransaction.reportID) {
-                // When the target's report is left with a single transaction after the merge (e.g. merging the only two
-                // expenses in a report), it becomes a one-transaction thread report. Keeping the previous wide/super wide
-                // RHP open would leave both that report and the merged expense's thread stacked, so in that case we fall
-                // through to the production path below (dismiss the whole modal, then open the merged expense).
-                // Only real reports collapse into a one-transaction thread report. The unreported/split sentinels are
-                // shared across expenses, so counting transactions by them would match unrelated expenses app-wide.
-                const isRealTargetReport = targetTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && targetTransaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID;
-                // After the source is merged away, the report becomes a one-transaction thread report when only the
-                // target remains. Mirror the one-transaction detection by ignoring the source and any sibling that is
-                // pending deletion, so raw transaction count quirks don't make us misjudge the report.
-                const remainingTargetReportTransactions = Object.values(targetReportTransactionsCollection ?? {}).filter(
-                    (transaction) => !!transaction && transaction.transactionID !== sourceTransaction.transactionID && !isTransactionPendingDelete(transaction),
+                // But if the report is left with a single expense, it turns into a one-transaction thread report and
+                // keeping the RHP open would stack it on top of the expense thread. Fall through to the full dismiss below.
+                const willTargetReportBeOneTransactionReport = willReportBecomeOneTransactionReportAfterMerge(
+                    targetTransaction.reportID,
+                    sourceTransaction.transactionID,
+                    targetReportTransactionsCollection,
+                    currentSearchResults,
                 );
-                const willTargetReportBeOneTransactionReport = isRealTargetReport && remainingTargetReportTransactions.length <= 1;
 
                 if (!willTargetReportBeOneTransactionReport) {
-                    // The report stays a multi-transaction report, so keep the wide/super wide RHP underneath open and
-                    // only open the merged expense's thread if it isn't already the topmost RHP.
+                    // The report still has other expenses, so keep the RHP open and only open the thread if it isn't already.
                     Navigation.dismissToPreviousRHP();
                     const isTargetThreadStillOpen = !!targetTransactionThreadReportID && Navigation.getTopmostSearchReportID() === targetTransactionThreadReportID;
                     if (!isTargetThreadStillOpen) {

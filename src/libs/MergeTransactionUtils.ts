@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 
 import {SafeString} from 'expensify-common';
@@ -353,6 +353,40 @@ function getTransactionThreadReportID(transaction: OnyxEntry<Transaction>) {
     }
     const iouActionOfTargetTransaction = getIOUActionForReportID(getReportIDForExpense(transaction), transaction?.transactionID);
     return iouActionOfTargetTransaction?.childReportID;
+}
+
+/**
+ * Whether merging the source into the target leaves its report with a single expense (a one-transaction thread report).
+ * Looks at both Onyx and the Search snapshot, and skips the source and any expense that's being deleted. Unreported and
+ * split expenses share a reportID, so they never count as a single-expense report.
+ */
+function willReportBecomeOneTransactionReportAfterMerge(
+    reportID: string | undefined,
+    sourceTransactionID: string | undefined,
+    reportTransactionsCollection: OnyxCollection<Transaction>,
+    searchResults: OnyxEntry<SearchResults>,
+): boolean {
+    if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportID === CONST.REPORT.SPLIT_REPORT_ID) {
+        return false;
+    }
+
+    const remainingTransactionIDs = new Set<string>();
+    const collectTransaction = (transaction: OnyxEntry<Transaction>) => {
+        if (!transaction || transaction.reportID !== reportID || transaction.transactionID === sourceTransactionID || isTransactionPendingDelete(transaction)) {
+            return;
+        }
+        remainingTransactionIDs.add(transaction.transactionID);
+    };
+
+    Object.values(reportTransactionsCollection ?? {}).forEach(collectTransaction);
+    Object.entries(searchResults?.data ?? {}).forEach(([key, value]) => {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+            return;
+        }
+        collectTransaction(value as Transaction);
+    });
+
+    return remainingTransactionIDs.size <= 1;
 }
 
 /**
@@ -725,6 +759,7 @@ export {
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,
+    willReportBecomeOneTransactionReportAfterMerge,
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
