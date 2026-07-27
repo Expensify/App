@@ -28,7 +28,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import type {Reservation} from '@src/types/onyx/Transaction';
 
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -40,8 +39,8 @@ import FlightTripDetails from './FlightTripDetails';
 import HotelTripDetails from './HotelTripDetails';
 import TrainTripDetails from './TrainTripDetails';
 
-function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsList>, reservation: Reservation | undefined) {
-    return Object.values(personalDetails ?? {})?.find((personalDetail) => personalDetail?.login === reservation?.travelerPersonalInfo?.email);
+function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsList>, travelerEmail: string | undefined) {
+    return Object.values(personalDetails ?? {})?.find((personalDetail) => personalDetail?.login === travelerEmail);
 }
 
 type DynamicTripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_TRIP_DETAILS>;
@@ -85,9 +84,10 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
     const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
 
     const {reservation, prevReservation, reservationType, reservationIcon, isCancelled} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
-    const travelerPersonalDetailsSelector = (personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, reservation);
-
-    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: travelerPersonalDetailsSelector}, [travelerPersonalDetailsSelector]);
+    const travelerEmail = reservation?.travelerPersonalInfo?.email;
+    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, travelerEmail),
+    });
 
     return (
         <ScreenWrapper
