@@ -3,6 +3,7 @@ const {getDefaultConfig: getReactNativeDefaultConfig} = require('@react-native/m
 
 const {mergeConfig} = require('@react-native/metro-config');
 const {wrapWithReanimatedMetroConfig} = require('react-native-reanimated/metro-config');
+const {getBundleModeMetroConfig} = require('react-native-worklets/bundleMode');
 const {withSentryConfig} = require('@sentry/react-native/metro');
 const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tools/sentryMetroSerializer');
 
@@ -38,6 +39,7 @@ process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '
 
 const defaultConfig = getReactNativeDefaultConfig(__dirname);
 const expoConfig = getExpoDefaultConfig(__dirname);
+const noopExpoUpdatesPath = path.resolve(__dirname, 'src/setup/telemetry/noopExpoUpdates.ts');
 
 const isDev = process.env.ENVIRONMENT === undefined || process.env.ENVIRONMENT === 'development';
 
@@ -52,6 +54,11 @@ const defaultGetPolyfills = defaultConfig.serializer?.getPolyfills ?? (() => [])
 const config = {
     resolver: {
         assetExts: [...defaultConfig.resolver.assetExts, 'lottie'],
+        extraNodeModules: {
+            ...(defaultConfig.resolver.extraNodeModules ?? {}),
+            ...(expoConfig.resolver.extraNodeModules ?? {}),
+            'expo-updates': noopExpoUpdatesPath,
+        },
         sourceExts: [...defaultConfig.resolver.sourceExts, ...defaultConfig.watcher.additionalExts, 'jsx'],
     },
     // We are merging the default config from Expo and React Native and expo one is overriding the React Native one so inlineRequires is set to false so we want to set it to true
@@ -69,6 +76,6 @@ const config = {
     },
 };
 
-const mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
+const mergedConfig = getBundleModeMetroConfig(wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config)));
 
 module.exports = isDev ? mergedConfig : withSentryConfig(mergedConfig);
