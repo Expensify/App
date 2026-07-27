@@ -958,7 +958,6 @@ function addActions({
 
     for (const attachment of attachments) {
         cacheAttachment({uri: attachment.uri ?? '', attachmentID: attachment.attachmentID}).catch((error) => {
-            console.log('error', error);
             Log.hmmm('[AttachmentCache] Failed to cache markdown attachment', {message: (error as Error).message});
         });
     }

@@ -81,8 +81,8 @@ function useCachedAttachmentSource(source: ImageSource | undefined): ImageSource
         return source;
     }
 
-    // If cache fetch is still in progress and the current source
-    // is coming from local source i.e file://, return the current source
+    // If cache fetch is still in progress and the source is already a local
+    // file:// URL, return it as-is to avoid a blank flash while the cache resolves
     if (uri?.startsWith('file:') && !cachedUri) {
         return source;
     }

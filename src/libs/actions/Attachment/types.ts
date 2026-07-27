@@ -1,12 +1,12 @@
 type CacheAttachmentProps = {
     uri: string;
-    /** Attachment ID based on the data-attachment-id attribute (only required for non-auth remote attachments) */
+    /** Attachment ID based on the data-attachment-id attribute. Required for markdown and local file uploads; not needed for auth-protected remote attachments */
     attachmentID?: string;
 
-    /** Auth token for remote local attachments */
+    /** Auth token for protected remote attachments */
     authToken?: string;
 
-    /** MIME type of the given attachment (native-only) */
+    /** MIME type of the given attachment, used as a fallback when the URI doesn't reveal the type (native-only) */
     fileType?: string;
 };
 
@@ -15,13 +15,13 @@ type GetCachedAttachmentProps = {
     /** Attachment ID based on the data-attachment-id attribute */
     attachmentID?: string;
 
-    /** Remote source */
+    /** Remote source URL for markdown attachments, used to detect source changes and re-cache */
     remoteSource?: string;
 
-    /** Local path source for the cached attachment */
+    /** Onyx-stored file path from a previous cache, used to verify the file still exists (native-only) */
     localSource?: string;
 
-    /** Auth token for remote local attachments */
+    /** Auth token for protected remote attachments */
     authToken?: string;
 };
 
@@ -29,7 +29,7 @@ type RemoveCachedAttachmentProps = {
     /** Attachment ID based on the data-attachment-id attribute */
     attachmentID: string;
 
-    /** Local source of the attachment (for-native-only) */
+    /** Onyx-stored file path of the cached attachment (native-only) */
     localSource?: string;
 };
 

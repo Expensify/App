@@ -81,7 +81,7 @@ function useCachedAttachmentSource(source: ImageSource | undefined): ImageSource
         };
     }, [uri, authToken, attachmentID, attachment?.remoteSource, attachmentMetadata.status]);
 
-    // Skip if there's no attachmentID and auth token
+    // Skip if there is neither an attachmentID nor an auth token
     if (!authToken && !attachmentID) {
         return source;
     }
@@ -92,8 +92,8 @@ function useCachedAttachmentSource(source: ImageSource | undefined): ImageSource
         return source;
     }
 
-    // If cache fetch is still in progress and the current source
-    // is coming from local source i.e blob:, return the current source
+    // If cache fetch is still in progress and the source is already an in-memory
+    // blob: URL, return it as-is to avoid a blank flash while the cache resolves
     if (uri?.startsWith('blob:') && !cachedUri) {
         return source;
     }

@@ -69,7 +69,7 @@ async function cacheAttachment({uri, attachmentID, authToken}: CacheAttachmentPr
     const isAuthRemoteAttachment = authToken && !attachmentID;
     const isMarkdownAttachment = !authToken && !isLocalFile(uri);
 
-    // If both are empty, then return early
+    // If there is no auth token and no attachmentID, there is nothing to cache
     if (!isAuthRemoteAttachment && !attachmentID) {
         return;
     }
