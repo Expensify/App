@@ -511,6 +511,7 @@ const translations = {
         headsUp: 'Heads up!',
         submitTo: 'Submit to',
         forwardTo: 'Forward to',
+        exportsTo: 'Exports to',
         approvalLimit: 'Approval limit',
         overLimitForwardTo: 'Over limit forward to',
         merge: 'Merge',
@@ -4543,21 +4544,19 @@ const translations = {
         },
         nudge: {
             airfareManual:
-                'Hey there! Did you know you can book and manage flights right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Did you know you can book and manage flights right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Hey there! Did you know you can book and manage flights right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Did you know you can book and manage flights right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
-            hotelCard:
-                'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard: 'Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
-            carCard:
-                'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard: 'Did you know you can book and manage car rentals right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Hey there! Did you know you can book and manage train rides right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Did you know you can book and manage train rides right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Hey there! Did you know you can book and manage train rides right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Did you know you can book and manage train rides right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
         flightTo: 'Flight to',
         trainTo: 'Train to',
@@ -6163,6 +6162,7 @@ const translations = {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendPaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,
                             currentTravelSpendCta: 'Pay balance',
+                            viewOnSpend: 'View on Spend',
                             currentTravelLimitLabel: 'Current travel limit',
                             settlementAccountLabel: 'Settlement account',
                             settlementFrequencyLabel: 'Settlement frequency',
@@ -6314,6 +6314,10 @@ const translations = {
             taxes: {
                 title: 'Taxes',
                 subtitle: 'Document and reclaim eligible taxes.',
+            },
+            vendors: {
+                title: 'Vendors',
+                subtitle: 'Match card expenses to vendors imported from your accounting software.',
             },
             reportFields: {
                 title: 'Report fields',
@@ -6719,6 +6723,8 @@ const translations = {
                 `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `You can't remove ${memberName} from this workspace. Please set a new reimburser in Workflows > Make or track payments, then try again.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `You can't remove ${memberName} from this workspace while they have an Expensify Card. Please deactivate their card in Workspace > Expensify Card, then try again.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>

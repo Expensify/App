@@ -529,6 +529,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: 'Impossible d’afficher le graphique',
         webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
         apiKey: 'Clé API',
+        exportsTo: 'Exports vers',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -4466,21 +4467,21 @@ ${amount} pour ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Salut ! Saviez-vous que vous pouvez réserver et gérer vos vols directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Saviez-vous que vous pouvez réserver et gérer vos vols directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Salut ! Saviez-vous que vous pouvez réserver et gérer vos vols directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Saviez-vous que vous pouvez réserver et gérer vos vols directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Bonjour ! Saviez-vous que vous pouvez réserver et gérer vos séjours à l’hôtel directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Saviez-vous que vous pouvez réserver et gérer vos séjours à l’hôtel directement dans Expensify&nbsp;? La prochaine fois, évitez les tracas de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Bonjour ! Saviez-vous que vous pouvez réserver et gérer vos séjours à l’hôtel directement dans Expensify ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Saviez-vous que vous pouvez réserver et gérer vos séjours à l’hôtel directement dans Expensify ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Salut ! Saviez-vous que vous pouvez réserver et gérer des locations de voiture directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Saviez-vous que vous pouvez réserver et gérer vos locations de voiture directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Bonjour ! Saviez-vous que vous pouvez réserver et gérer des locations de voiture directement dans Expensify ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Saviez-vous que vous pouvez réserver et gérer vos locations de voiture directement dans Expensify&nbsp;? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Bonjour ! Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? La prochaine fois, évitez les tracas de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Salut ! Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     workspace: {
@@ -6094,6 +6095,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             currentTravelSpendLabel: 'Dépenses de voyage actuelles',
                             currentTravelSpendPaymentQueued: (amount: string) => `Le paiement de ${amount} est en file d’attente et sera traité bientôt.`,
                             currentTravelSpendCta: 'Payer le solde',
+                            viewOnSpend: 'Voir dans Dépenses',
                             currentTravelLimitLabel: 'Plafond de déplacement actuel',
                             settlementAccountLabel: 'Compte de règlement',
                             settlementFrequencyLabel: 'Fréquence de règlement',
@@ -6291,6 +6293,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 defaultHourlyRate: 'Taux horaire par défaut',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Pour désactiver les RH, veuillez d'abord déconnecter ${integration} de cet espace de travail.`},
+            vendors: {title: 'Fournisseurs', subtitle: 'Faites correspondre les dépenses de carte aux fournisseurs importés depuis votre logiciel de comptabilité.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -6650,6 +6653,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             peopleAdmins: 'Administrateurs des personnes',
             paymentsAdmins: 'Administrateurs des paiements',
             members: 'Membres',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Vous ne pouvez pas supprimer ${memberName} de cet espace de travail tant qu’iel possède une Carte Expensify. Veuillez désactiver sa carte dans Espace de travail > Carte Expensify, puis réessayer.`,
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',

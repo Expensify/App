@@ -529,6 +529,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: 'Diagram kann nicht angezeigt werden',
         webGLNotSupported: 'Ihr Browser unterstützt WebGL nicht. Bitte aktivieren Sie es oder wechseln Sie den Browser.',
         apiKey: 'API-Schlüssel',
+        exportsTo: 'Exportiert nach',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -4457,21 +4458,21 @@ ${amount} für ${merchant} – ${date}`,
         },
         nudge: {
             airfareManual:
-                'Wussten Sie schon, dass Sie Flüge direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wussten Sie, dass Sie Flüge direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Wussten Sie schon, dass Sie Flüge direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wussten Sie, dass Sie Flüge direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Hallo! Wussten Sie, dass Sie Hotelübernachtungen direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wussten Sie, dass Sie Hotelaufenthalte direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Wussten Sie schon, dass Sie Hotelaufenthalte direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wussten Sie, dass Sie Hotelaufenthalte direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Wussten Sie schon, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wussten Sie, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Sparen Sie sich das nächste Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Wussten Sie schon, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wussten Sie, dass Sie Mietwagen direkt in Expensify buchen und verwalten können? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Vermeiden Sie beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Sparen Sie sich das nächste Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Wussten Sie schon, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     workspace: {
@@ -6074,6 +6075,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                             currentTravelSpendLabel: 'Aktuelle Reisekosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Die Zahlung über ${amount} ist in der Warteschlange und wird in Kürze bearbeitet.`,
                             currentTravelSpendCta: 'Saldo bezahlen',
+                            viewOnSpend: 'In Ausgaben anzeigen',
                             currentTravelLimitLabel: 'Aktuelles Reisekontingent',
                             settlementAccountLabel: 'Verrechnungskonto',
                             settlementFrequencyLabel: 'Auszahlungsfrequenz',
@@ -6268,6 +6270,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 defaultHourlyRate: 'Standardstundensatz',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Um HR zu deaktivieren, trennen Sie bitte zuerst ${integration} von diesem Workspace.`},
+            vendors: {title: 'Lieferanten', subtitle: 'Ordnen Sie Kartenausgaben den aus Ihrer Buchhaltungssoftware importierten Lieferanten zu.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -6625,6 +6628,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             peopleAdmins: 'Personaladministratoren',
             paymentsAdmins: 'Zahlungsadmins',
             members: 'Mitglieder',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Sie können ${memberName} nicht aus diesem Workspace entfernen, solange diese Person eine Expensify Karte hat. Bitte deaktivieren Sie die Karte unter Workspace > Expensify Karte und versuchen Sie es dann erneut.`,
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
