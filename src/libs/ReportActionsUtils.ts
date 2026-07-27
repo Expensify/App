@@ -5008,4 +5008,4 @@ export {
     isPolicyCopyReportAction,
 };
 
-export type {LastVisibleMessage};
+export type {LastVisibleMessage, UpdateACHAccountOriginalMessage};

@@ -10,6 +10,7 @@ import ROUTES from '@src/ROUTES';
 
 import Onyx from 'react-native-onyx';
 
+import type {UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
 import type {Card, DecisionName, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
@@ -75,19 +76,12 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 type TakeControlAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
-type TakeControlOriginalMessageFixture = Pick<NonNullable<TakeControlAction['originalMessage']>, 'lastModified' | 'mentionedAccountIDs' | 'automaticAction'>;
+type TakeControlOriginalMessageFixture = NonNullable<TakeControlAction['originalMessage']>;
 
 type CompanyAddress = Exclude<Parameters<typeof ReportActionsUtils.formatAddressToString>[0], null | undefined>;
 type CompanyAddressOriginalMessageFixture = {
     newAddress: CompanyAddress;
     oldAddress?: CompanyAddress | null;
-};
-
-type UpdateACHAccountOriginalMessageFixture = {
-    bankAccountName?: string;
-    maskedBankAccountNumber?: string;
-    oldBankAccountName?: string;
-    oldMaskedBankAccountNumber?: string;
 };
 
 type LegacyReportActionFields = {
@@ -99,19 +93,18 @@ type ExportedToIntegrationAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE
 type CompanyAddressUpdateAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS>;
 type UpdateACHAccountAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT>;
 
-// These backend payloads are not accurately represented by the current ReportAction original-message map.
-// Keep that type-model gap at explicit test-fixture boundaries instead of changing production types in this cleanup.
 function buildTakeControlActionFixture(originalMessage: TakeControlOriginalMessageFixture, message?: TakeControlAction['message']): TakeControlAction {
-    const action: TakeControlAction = {
+    return {
         actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
         reportActionID: '1',
         created: '2025-09-29',
+        originalMessage,
         ...(message ? {message} : {}),
     };
-    Object.assign(action, {originalMessage});
-    return action;
 }
 
+// These backend payloads are not accurately represented by the current ReportAction original-message map.
+// Keep that type-model gap at explicit test-fixture boundaries instead of changing production types in this cleanup.
 function buildCompanyAddressUpdateActionFixture(originalMessage: CompanyAddressOriginalMessageFixture): CompanyAddressUpdateAction {
     const action: CompanyAddressUpdateAction = {
         actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
@@ -122,7 +115,7 @@ function buildCompanyAddressUpdateActionFixture(originalMessage: CompanyAddressO
     return action;
 }
 
-function buildUpdateACHAccountActionFixture(originalMessage: UpdateACHAccountOriginalMessageFixture): UpdateACHAccountAction {
+function buildUpdateACHAccountActionFixture(originalMessage: UpdateACHAccountOriginalMessage): UpdateACHAccountAction {
     const action: UpdateACHAccountAction = {
         actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
         reportActionID: '1',
