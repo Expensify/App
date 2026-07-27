@@ -1051,10 +1051,7 @@
 "../../src/pages/MultifactorAuthentication/RevokePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/MultifactorAuthentication/ValidateCodePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/NewChatPage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/OnboardingAccounting/BaseOnboardingAccounting.tsx"	"no-restricted-imports"	1
 "../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"no-restricted-imports"	1
-"../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/OnboardingPrivateDomain/BaseOnboardingPrivateDomain.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/OnboardingWorkspaceConfirmation/BaseOnboardingWorkspaceConfirmation.tsx"	"no-restricted-imports"	1
 "../../src/pages/OnboardingWorkspaceCurrency/BaseOnboardingWorkspaceCurrency.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
