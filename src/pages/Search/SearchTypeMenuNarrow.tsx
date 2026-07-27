@@ -22,7 +22,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getOverflowMenu, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,13 +80,18 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
     const {translate, localeCompare} = useLocalize();
-    const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections({
-        hash: queryJSON?.hash,
-        similarSearchHash: queryJSON?.similarSearchHash,
-        sortBy: queryJSON?.sortBy,
-        sortOrder: queryJSON?.sortOrder,
-        type: queryJSON?.type,
-    });
+    const styles = useThemeStyles();
+    const isFocused = useIsFocused();
+    const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections(
+        {
+            hash: queryJSON?.hash,
+            similarSearchHash: queryJSON?.similarSearchHash,
+            sortBy: queryJSON?.sortBy,
+            sortOrder: queryJSON?.sortOrder,
+            type: queryJSON?.type,
+        },
+        isFocused,
+    );
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -98,7 +103,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const isFocused = useIsFocused();
     const {counts: reportCounts} = useTodoCounts(isFocused);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
@@ -127,26 +131,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
     const {copiedHash, handleShare} = useShareSavedSearch();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Basket',
-        'CalendarSolid',
-        'Bookmark',
-        'Pencil',
-        'Trashcan',
-        'LinkCopy',
-        'Checkmark',
-        'Document',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([...SEARCH_TYPE_MENU_ICON_NAMES, 'Bookmark', 'Trashcan', 'LinkCopy', 'Checkmark']);
 
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
@@ -201,6 +186,8 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     icon: expensifyIcons[item.icon],
                     title,
                     badgeText,
+                    isBadgeCondensed: true,
+                    badgeStyles: styles.tabSelectorBadge,
                 });
                 queryMap.set(item.key, {query: item.searchQuery});
                 if (item.key === activeTypeMenuKey) {

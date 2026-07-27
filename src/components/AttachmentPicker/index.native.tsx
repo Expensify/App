@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import fileURIToPath from '@libs/fileURIToPath';
 import Log from '@libs/Log';
 import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 
@@ -128,7 +129,7 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
 
     const fileWithSize = fileResult.size
         ? Promise.resolve(fileResult)
-        : RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+        : RNFetchBlob.fs.stat(fileURIToPath(fileData.uri)).then((stats) => {
               fileResult.size = stats.size;
               return fileResult;
           });

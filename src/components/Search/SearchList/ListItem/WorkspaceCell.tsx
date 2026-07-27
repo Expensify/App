@@ -20,7 +20,7 @@ type WorkspaceCellProps = {
 function WorkspaceCell({policyID, report}: WorkspaceCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icon = getWorkspaceIcon(report);
+    const icon = getWorkspaceIcon(report, translate);
     const name = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
 
     if (report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
