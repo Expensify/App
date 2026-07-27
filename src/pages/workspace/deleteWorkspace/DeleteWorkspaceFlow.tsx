@@ -108,6 +108,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
     const hasTravelInvoicingEnabledOnWorkspace = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
+    // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards, block the delete up front instead of queuing one that will fail on reconnect.
     const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCardsEnabledOnWorkspace && !isEmptyObject(cardsList) && !!isOffline;
 
     const policyLatestErrorMessage = getLatestErrorMessage(policy);
@@ -162,9 +163,23 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
                 return;
             }
 
+            const prompt = CONST.HTML_TAG_REGEX.test(errorMessage) ? (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML
+                        html={errorMessage}
+                        onConciergeLinkPress={() => {
+                            closeModal();
+                            dismissDeleteWorkspaceFlow();
+                        }}
+                    />
+                </View>
+            ) : (
+                errorMessage
+            );
+
             showConfirmModal({
                 title: translate('workspace.common.delete'),
-                prompt: errorMessage,
+                prompt,
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
                 success: false,
@@ -173,7 +188,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
                 dismissDeleteWorkspaceFlow();
             });
         },
-        [dismissDeleteWorkspaceFlow, isFocused, showConfirmModal, translate],
+        [closeModal, dismissDeleteWorkspaceFlow, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate],
     );
 
     // Always invoked after a re-render (from the start effect below for normal deletes, or from usePayAndDowngrade for billed deletes),

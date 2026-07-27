@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectedReports} from '@components/Search/types';
 
 import * as API from '@libs/API';
@@ -652,6 +652,7 @@ function createExpenseByType({
     personalDetails,
     recentWaypoints,
     isTrackIntentUser,
+    formatPhoneNumber,
     participantsPolicyTags,
 }: {
     transactionType: string;
@@ -666,6 +667,7 @@ function createExpenseByType({
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 }) {
     switch (transactionType) {
@@ -703,6 +705,7 @@ function createExpenseByType({
                 customUnitPolicyID,
                 personalDetails,
                 recentWaypoints,
+                formatPhoneNumber,
                 participantsPolicyTags,
             };
             return createDistanceRequest(distanceParams);
@@ -718,6 +721,7 @@ function createExpenseByType({
                 hasViolations: false,
                 customUnitPolicyID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -755,6 +759,7 @@ type DuplicateExpenseTransactionParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
@@ -784,6 +789,7 @@ function duplicateExpenseTransaction({
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
+    formatPhoneNumber,
     participantsPolicyTags,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
@@ -898,6 +904,7 @@ function duplicateExpenseTransaction({
         personalDetails,
         recentWaypoints,
         isTrackIntentUser,
+        formatPhoneNumber,
         participantsPolicyTags,
     });
 }
@@ -925,6 +932,7 @@ type DuplicateReportParams = {
     shouldPlaySound?: boolean;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
@@ -951,6 +959,7 @@ function duplicateReport({
     shouldPlaySound = true,
     isTrackIntentUser,
     delegateAccountID,
+    formatPhoneNumber,
     participantsPolicyTags,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
@@ -958,17 +967,9 @@ function duplicateReport({
     }
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(
-        ownerPersonalDetails,
-        false,
-        isASAPSubmitBetaEnabled,
-        targetPolicy,
-        betas,
-        isTrackIntentUser,
-        false,
-        undefined,
-        newReportName,
-    );
+    const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, isTrackIntentUser, false, undefined, {
+        reportName: newReportName,
+    });
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 
@@ -1069,6 +1070,7 @@ function duplicateReport({
             personalDetails,
             recentWaypoints,
             isTrackIntentUser,
+            formatPhoneNumber,
             participantsPolicyTags,
         });
 
@@ -1104,6 +1106,7 @@ type BulkDuplicateExpensesParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
@@ -1129,6 +1132,7 @@ function bulkDuplicateExpenses({
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
+    formatPhoneNumber,
     participantsPolicyTags,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
@@ -1228,6 +1232,7 @@ function bulkDuplicateExpenses({
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            formatPhoneNumber,
             participantsPolicyTags,
         });
 
@@ -1266,6 +1271,7 @@ type BulkDuplicateReportsParams = {
     currentUserAccountID: number;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function bulkDuplicateReports({
@@ -1291,6 +1297,7 @@ function bulkDuplicateReports({
     currentUserAccountID,
     isTrackIntentUser,
     delegateAccountID,
+    formatPhoneNumber,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1370,6 +1377,7 @@ function bulkDuplicateReports({
             currentUserLogin,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
             participantsPolicyTags,
         });
     }

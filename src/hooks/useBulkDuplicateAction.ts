@@ -18,6 +18,7 @@ import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
+import useLocalize from './useLocalize';
 import useMoneyRequestPolicyTagsForReport from './useMoneyRequestPolicyTagsForReport';
 import useOnyx from './useOnyx';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
@@ -39,6 +40,7 @@ type UseBulkDuplicateActionParams = {
 function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate}: UseBulkDuplicateActionParams) {
     const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const {formatPhoneNumber} = useLocalize();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled} = usePermissions();
@@ -95,6 +97,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            formatPhoneNumber,
             participantsPolicyTags,
         });
 

@@ -117,6 +117,7 @@ import type {
     InvitedEmailsToAccountIDs,
     LastPaymentMethod,
     LastPaymentMethodType,
+    PersonalDetailsList,
     Policy,
     PolicyCategories,
     PolicyCategory,
@@ -151,7 +152,7 @@ import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDepreca
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
@@ -260,6 +261,9 @@ type BuildPolicyDataOptions = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam?: OnyxCollection<Report>;
+    /** The Concierge chat report, threaded so prepareOnboardingOnyxData no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
+    conciergeChat?: OnyxEntry<Report>;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
@@ -309,6 +313,7 @@ type SetWorkspaceApprovalModeAdditionalData = {
     reportNextSteps?: OnyxCollection<ReportNextStepDeprecated>;
     transactionViolations?: OnyxCollection<TransactionViolations>;
     betas?: Beta[];
+    personalDetailsList?: OnyxEntry<PersonalDetailsList>;
 };
 
 /**
@@ -425,6 +430,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     const filteredPolicies = Object.values(policies ?? {}).filter((p): p is Policy => p?.id !== policyID);
     const workspaceAccountID = policy?.policyAccountID;
 
+    // Offline pre-flight guard: we already know locally the workspace has active Expensify Cards, so surface the error instead of queuing a delete that the backend will reject on reconnect.
     if (hasDeleteWorkspaceExpensifyCardsError) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.deleteOpenExpensifyCardsError'),
@@ -880,6 +886,7 @@ function setWorkspaceApprovalMode(
     approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>,
     currentUserAccountID: number,
     currentUserEmail: string,
+    isTrackIntentUser: boolean | undefined,
     additionalData?: SetWorkspaceApprovalModeAdditionalData,
 ) {
     if (!policy) {
@@ -921,7 +928,8 @@ function setWorkspaceApprovalMode(
 
     const nextStepOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [];
     const nextStepFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [];
-    const shouldUpdateNextSteps = additionalData?.reportNextSteps != null && additionalData?.transactionViolations != null && additionalData?.betas != null;
+    const shouldUpdateNextSteps =
+        additionalData?.reportNextSteps != null && additionalData?.transactionViolations != null && additionalData?.betas != null && additionalData?.personalDetailsList;
 
     // We want to toggle off preventSelfApproval when the user turns off Approvals and has preventSelfApproval enabled.
     const shouldResetPreventSelfApproval = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && !!policy?.preventSelfApproval;
@@ -944,7 +952,17 @@ function setWorkspaceApprovalMode(
 
             const nextStepKey: `${typeof ONYXKEYS.COLLECTION.NEXT_STEP}${string}` = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
             const currentNextStep: OnyxEntry<ReportNextStepDeprecated> | null = resolvedReportNextSteps[nextStepKey] ?? null;
-            const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations, currentUserAccountID, currentUserEmail, undefined, undefined, report, updatedPolicy);
+            const hasViolations = ReportUtils.hasViolations(
+                reportID,
+                resolvedTransactionViolations,
+                currentUserAccountID,
+                currentUserEmail,
+                undefined,
+                undefined,
+                report,
+                PersonalDetailsUtils.getLoginByAccountID(report.ownerAccountID, additionalData.personalDetailsList),
+                updatedPolicy,
+            );
             const optimisticNextStep = buildNextStepNew({
                 report,
                 policy: updatedPolicy,
@@ -953,6 +971,7 @@ function setWorkspaceApprovalMode(
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
+                isTrackIntentUser,
             });
 
             nextStepOptimisticData.push({
@@ -1195,12 +1214,13 @@ function setWorkspaceReimbursement({
     ];
 
     if (bankAccountID !== undefined && bankAccountList !== undefined) {
-        const optimisticBankAccountList: BankAccountList = {};
+        const optimisticBankAccountList: NullishDeep<BankAccountList> = {};
         if (oldBankAccountID) {
             optimisticBankAccountList[oldBankAccountID] = {
                 ...optimisticBankAccountList[oldBankAccountID],
                 accountData: {
                     policyIDs: bankAccountList?.[oldBankAccountID]?.accountData?.policyIDs?.filter((id) => id !== policyID) ?? [],
+                    additionalData: {policyID: null},
                 },
             };
         }
@@ -1209,6 +1229,7 @@ function setWorkspaceReimbursement({
             ...optimisticBankAccountList[bankAccountID],
             accountData: {
                 policyIDs: [...new Set([...currentPolicyIDs, policyID])],
+                additionalData: {policyID},
             },
         };
 
@@ -1273,12 +1294,13 @@ function setWorkspaceReimbursement({
     ];
 
     if (bankAccountID !== undefined && bankAccountList !== undefined) {
-        const failureBankAccountList: BankAccountList = {};
+        const failureBankAccountList: NullishDeep<BankAccountList> = {};
         if (oldBankAccountID) {
             failureBankAccountList[oldBankAccountID] = {
                 ...failureBankAccountList[oldBankAccountID],
                 accountData: {
                     policyIDs: bankAccountList?.[oldBankAccountID]?.accountData?.policyIDs ?? [],
+                    additionalData: {policyID: bankAccountList?.[oldBankAccountID]?.accountData?.additionalData?.policyID ?? null},
                 },
             };
         }
@@ -1286,6 +1308,7 @@ function setWorkspaceReimbursement({
             ...failureBankAccountList[bankAccountID],
             accountData: {
                 policyIDs: bankAccountList?.[bankAccountID]?.accountData?.policyIDs ?? [],
+                additionalData: {policyID: bankAccountList?.[bankAccountID]?.accountData?.additionalData?.policyID ?? null},
             },
         };
         failureData.push({
@@ -2608,6 +2631,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         currency,
         file,
         shouldAddOnboardingTasks = true,
+        conciergeChat,
         companySize,
         userReportedIntegration,
         isAnnualSubscription = false,
@@ -3095,6 +3119,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
             isSelfTourViewed,
+            conciergeChat,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -4626,7 +4651,7 @@ function createWorkspaceFromIOUPayment({
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewMessage({reportOrID: expenseReport, policy: newWorkspace}),
+                            text: ReportUtils.getReportPreviewReportActionMessage({reportOrID: expenseReport, policy: newWorkspace}),
                         },
                     ],
                     created: DateUtils.getDBTime(),

@@ -5,11 +5,8 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
-import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
@@ -20,14 +17,12 @@ import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
-import type {Transaction} from '@src/types/onyx';
 
-import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData} from './MoneyRequestReportPreviewContext';
+import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewTransactionViolations} from './MoneyRequestReportPreviewContext';
+import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
 const ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
@@ -57,27 +52,24 @@ function SubmitActionButtonContent() {
     const {isBetaEnabled} = usePermissions();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
 
-    const {iouReportID} = useReportPreviewData();
+    const {iouReportID, transactions} = useReportPreviewData();
     const {isSubmittingAnimationRunning} = useReportPreviewAnimationState();
     const {stopAnimation, startSubmittingAnimation} = useReportPreviewActions();
 
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const {
+        iouReport,
+        policy,
+        ownerLogin: submitterLogin,
+        userBillingGracePeriodEnds,
+        iouReportNextStep,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        delegateEmail,
+    } = useReportPreviewActionButtonData(iouReportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const {isOffline} = useNetwork();
-    const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
-    const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
-        (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-    );
 
-    const [transactionViolations] = useReportTransactionViolations(transactions);
+    const {transactionViolations} = useReportPreviewTransactionViolations();
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail, undefined, transactions);

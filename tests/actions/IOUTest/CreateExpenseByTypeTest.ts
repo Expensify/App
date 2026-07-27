@@ -130,6 +130,7 @@ describe('actions/IOU/createExpenseByType', () => {
             betas: undefined,
             personalDetails: {},
             delegateAccountID: undefined,
+            isTrackIntentUser: undefined,
         };
 
         return {transaction, transactionDetails, params};
@@ -145,7 +146,8 @@ describe('actions/IOU/createExpenseByType', () => {
             quickAction: undefined,
             personalDetails: {},
             recentWaypoints: undefined,
-            policyTagList: {},
+            isTrackIntentUser: undefined,
+            formatPhoneNumber: (phoneNumber: string) => phoneNumber,
             ...overrides,
         });
     }
@@ -179,7 +181,7 @@ describe('actions/IOU/createExpenseByType', () => {
             expect(PerDiem.submitPerDiemExpense).not.toHaveBeenCalled();
         });
 
-        it('passes the original params plus the resolved policyTagList to requestMoney', () => {
+        it('passes the original params through unchanged to requestMoney', () => {
             const {transaction, transactionDetails, params} = buildBaseParams();
 
             callCreateExpenseByType({
@@ -189,10 +191,7 @@ describe('actions/IOU/createExpenseByType', () => {
                 transactionDetails,
             });
 
-            expect(TrackExpense.requestMoney).toHaveBeenCalledWith({
-                ...params,
-                policyParams: {policyTagList: {}},
-            });
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(params);
         });
 
         it('calls requestMoney for an unrecognized transaction type (fallthrough default)', () => {

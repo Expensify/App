@@ -19,6 +19,7 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
+import useSelectedExpenseReports from '@hooks/useSelectedExpenseReports';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -172,6 +173,7 @@ function ParticipantSearchResults({
     // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const getReportByID = useSelectedExpenseReports(participants);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -304,6 +306,7 @@ function ParticipantSearchResults({
             true,
             undefined,
             reportAttributesDerived,
+            getReportByID,
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
@@ -366,7 +369,15 @@ function ParticipantSearchResults({
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              personalDetails,
+                              userToInviteExpenseReport,
+                              userToInviteExpenseReportPolicy,
+                              translate,
+                              reportAttributesDerived,
+                          )
                         : getParticipantsOption(participant, personalDetails, translate);
                 }),
                 sectionIndex: 5,

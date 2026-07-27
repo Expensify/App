@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
@@ -168,6 +169,7 @@ function useOdometerNavigation({
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     const delegateAccountID = useDelegateAccountID();
+    const {formatPhoneNumber} = useLocalize();
 
     return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
@@ -217,6 +219,7 @@ function useOdometerNavigation({
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            formatPhoneNumber,
             participants,
             participantsPolicyTags,
         });

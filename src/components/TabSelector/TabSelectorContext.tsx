@@ -21,7 +21,7 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
         const width = event.nativeEvent.layout.width;
         containerLayoutRef.current.width = width;
 
-        const tabData = tabsRef.current[activeTabKey];
+        const tabData = activeTabKey ? tabsRef.current[activeTabKey] : undefined;
 
         if (!tabData) {
             return;
@@ -64,13 +64,13 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
 
     // Sync scroll position when the active tab changes externally (e.g. back/forward browser history buttons, not user tap)
     useEffect(() => {
-        if (!lastScrolledToTab.current || activeTabKey === lastScrolledToTab.current) {
+        if (!lastScrolledToTab.current || !activeTabKey || activeTabKey === lastScrolledToTab.current) {
             return;
         }
 
         lastScrolledToTab.current = activeTabKey;
 
-        const tabData = tabsRef.current[activeTabKey];
+        const tabData = activeTabKey ? tabsRef.current[activeTabKey] : undefined;
 
         if (!tabData) {
             return;

@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {setCustomUnitRateID, setMoneyRequestDistance, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
 import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
@@ -95,6 +97,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: PolicyTagLists;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participants: Array<Participant | OptionData>;
     participantsPolicyTags: ParticipantsPolicyTags;
 };
@@ -191,6 +194,7 @@ function handleMoneyRequestStepDistanceNavigation({
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
+    formatPhoneNumber,
     participants,
     participantsPolicyTags,
 }: MoneyRequestStepDistanceNavigationParams): void {
@@ -384,6 +388,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         },
                         isTrackIntentUser,
                         delegateAccountID,
+                        formatPhoneNumber,
                         participantsPolicyTags,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {

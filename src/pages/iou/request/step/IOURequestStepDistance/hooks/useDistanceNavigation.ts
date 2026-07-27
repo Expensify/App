@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
@@ -151,6 +152,7 @@ function useDistanceNavigation({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const delegateAccountID = useDelegateAccountID();
+    const {formatPhoneNumber} = useLocalize();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
     const participants = getMoneyRequestParticipantOptions(
@@ -211,6 +213,7 @@ function useDistanceNavigation({
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
+            formatPhoneNumber,
             participants,
             participantsPolicyTags,
         });
