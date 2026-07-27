@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -18,8 +19,8 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
@@ -48,7 +49,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt', 'AiBot']);
-    const isCategoryScopedCreate = !!categoryName;
+    const isCategoryScopedCreate = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW || !!categoryName;
 
     const newRuleOptions: NewRuleOption[] = [
         {
@@ -65,7 +66,12 @@ function RulesNewPage({route}: RulesNewPageProps) {
             icon: illustrations.Flag,
             title: translate('workspace.rules.newRule.flagForReview'),
             description: translate('workspace.rules.newRule.flagForReviewDescription'),
-            onPress: () => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, categoryName)),
+            onPress: () =>
+                Navigation.navigate(
+                    route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW
+                        ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_NEW.path)
+                        : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, categoryName),
+                ),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW,
         },
         {
@@ -73,7 +79,12 @@ function RulesNewPage({route}: RulesNewPageProps) {
             icon: illustrations.CheckboxText,
             title: translate('workspace.rules.newRule.requireFields'),
             description: translate('workspace.rules.newRule.requireFieldsDescription'),
-            onPress: () => Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, categoryName)),
+            onPress: () =>
+                Navigation.navigate(
+                    route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW
+                        ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_NEW.path)
+                        : ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, categoryName),
+                ),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_REQUIRE_FIELDS,
         },
         {

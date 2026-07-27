@@ -21,6 +21,7 @@ import {clearDraftFlagForReviewRule, setDraftFlagForReviewRule} from '@libs/acti
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, saveFlagForReviewRule} from '@libs/FlagForReviewRulesUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -30,7 +31,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES, getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 
@@ -45,6 +46,8 @@ type FlagForReviewRulePageBaseProps = {
     initialCategoryName?: string;
     /** When true, the category field is non-interactive (category-scoped create/edit). */
     isCategoryLocked?: boolean;
+    /** When true, nested create pages use category dynamic routes (keeps Categories underlay). */
+    isCategoryScopedFlow?: boolean;
     testID: string;
 };
 
@@ -56,7 +59,14 @@ function getValidationError(form: FlagForReviewRuleForm | null | undefined, tran
     return getFlagForReviewRuleAmountError(form[INPUT_IDS.MAX_EXPENSE_AMOUNT], translate) ?? '';
 }
 
-function FlagForReviewRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, testID}: FlagForReviewRulePageBaseProps) {
+function FlagForReviewRulePageBase({
+    policyID,
+    categoryName,
+    initialCategoryName,
+    isCategoryLocked: isCategoryLockedProp,
+    isCategoryScopedFlow = false,
+    testID,
+}: FlagForReviewRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
@@ -218,7 +228,16 @@ function FlagForReviewRulePageBase({policyID, categoryName, initialCategoryName,
                         description={translate('iou.amount')}
                         title={maxAmountMenuTitle ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle}) : undefined}
                         errorText={canWriteRules && shouldShowError ? getFlagForReviewRuleAmountError(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT], translate) : ''}
-                        onPress={canWriteRules ? () => Navigation.navigate(getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked)) : undefined}
+                        onPress={
+                            canWriteRules
+                                ? () =>
+                                      Navigation.navigate(
+                                          isCategoryScopedFlow
+                                              ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path)
+                                              : getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked),
+                                      )
+                                : undefined
+                        }
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
                         icon={icons.CoinsButton}
