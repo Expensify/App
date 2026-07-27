@@ -10,16 +10,18 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCompanyFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canModifyPlan, isCollectPolicy} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, canModifyPlan, isCollectPolicy} from '@libs/PolicyUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
+import CONST from '@src/CONST';
 import {downgradeToTeam} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,6 +44,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const policyID = route.params?.policyID;
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
     const [cardFeeds] = useCardFeeds(policyID);
@@ -49,6 +52,8 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const {showConfirmModal, closeModal} = useConfirmModal();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const canPerformDowngrade = () => canModifyPlan(ownerPolicies, policy);
     const isDowngraded = isCollectPolicy(policy);
@@ -93,7 +98,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             Navigation.dismissModal();
             return;
         }
-        downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled);
+        downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled, isRulesRevampEnabled && arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled));
     };
 
     if (!canPerformDowngrade()) {

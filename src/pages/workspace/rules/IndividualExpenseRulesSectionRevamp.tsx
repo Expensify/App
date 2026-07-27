@@ -30,8 +30,18 @@ type IndividualExpenseRulesSectionRevampProps = {
     canWriteRules: boolean;
 };
 
+const RULE_MENU_ITEM_KEYS = {
+    REQUIRE_FIELDS: 'requireFields',
+    BILLABLE_EXPENSES: 'billableExpenses',
+    EXPENSES_OLDER_THAN: 'expensesOlderThan',
+    EXPENSES_ABOVE_AMOUNT: 'expensesAboveAmount',
+    FLAG_RECEIPT_LINE_ITEMS: 'flagReceiptLineItems',
+    RECEIPT_REQUIREMENTS: 'receiptRequirements',
+    CASH_EXPENSES: 'cashExpenses',
+} as const;
+
 type BasicRuleMenuItem = {
-    key: string;
+    key: (typeof RULE_MENU_ITEM_KEYS)[keyof typeof RULE_MENU_ITEM_KEYS];
     title: string;
     description?: string;
     icon: IconAsset;
@@ -39,7 +49,7 @@ type BasicRuleMenuItem = {
     pendingAction?: PendingAction;
 };
 
-const COLLECT_ALLOWED_RULE_KEYS = new Set(['requireFields', 'billableExpenses']);
+const COLLECT_ALLOWED_RULE_KEYS = new Set<string>([RULE_MENU_ITEM_KEYS.REQUIRE_FIELDS, RULE_MENU_ITEM_KEYS.BILLABLE_EXPENSES]);
 
 function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: IndividualExpenseRulesSectionRevampProps) {
     const {convertToDisplayString} = useCurrencyListActions();
@@ -117,7 +127,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const policyControlItems: BasicRuleMenuItem[] = [
         {
-            key: 'expensesOlderThan',
+            key: RULE_MENU_ITEM_KEYS.EXPENSES_OLDER_THAN,
             title: translate('workspace.rules.generalTab.expensesOlderThan'),
             description: maxExpenseAgeText,
             icon: icons.CalendarSolid,
@@ -125,7 +135,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.maxExpenseAge,
         },
         {
-            key: 'expensesAboveAmount',
+            key: RULE_MENU_ITEM_KEYS.EXPENSES_ABOVE_AMOUNT,
             title: translate('workspace.rules.generalTab.expensesAboveAmount'),
             description: maxExpenseAmountText,
             icon: icons.Coins,
@@ -133,7 +143,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.maxExpenseAmount,
         },
         {
-            key: 'flagReceiptLineItems',
+            key: RULE_MENU_ITEM_KEYS.FLAG_RECEIPT_LINE_ITEMS,
             title: translate('workspace.rules.generalTab.flagReceiptLineItems'),
             description: prohibitedExpensesText,
             icon: icons.Receipt,
@@ -141,7 +151,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: !isEmptyObject(policy?.prohibitedExpenses?.pendingFields) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined,
         },
         {
-            key: 'receiptRequirements',
+            key: RULE_MENU_ITEM_KEYS.RECEIPT_REQUIREMENTS,
             title: translate('workspace.rules.generalTab.receiptRequirements'),
             description: receiptRequirementText,
             icon: icons.ReceiptCheck,
@@ -149,7 +159,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt ?? policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt,
         },
         {
-            key: 'requireFields',
+            key: RULE_MENU_ITEM_KEYS.REQUIRE_FIELDS,
             title: translate('workspace.rules.generalTab.requireFieldsForAllExpenses'),
             description: requiredFieldsList,
             icon: icons.Task,
@@ -160,7 +170,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const productDefaultItems: BasicRuleMenuItem[] = [
         {
-            key: 'cashExpenses',
+            key: RULE_MENU_ITEM_KEYS.CASH_EXPENSES,
             title: translate('workspace.rules.generalTab.cashExpenses'),
             description: reimbursableModeText,
             icon: icons.Cash,
@@ -168,7 +178,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             pendingAction: policy?.pendingFields?.defaultReimbursable,
         },
         {
-            key: 'billableExpenses',
+            key: RULE_MENU_ITEM_KEYS.BILLABLE_EXPENSES,
             title: translate('workspace.rules.generalTab.billableExpenses'),
             description: billableModeText,
             icon: icons.Cash,

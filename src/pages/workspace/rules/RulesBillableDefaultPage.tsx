@@ -1,9 +1,11 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -39,6 +41,7 @@ function RulesBillableDefaultPage({
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
+    const {showConfirmModal} = useConfirmModal();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const billableModes = [
@@ -71,6 +74,19 @@ function RulesBillableDefaultPage({
         return `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
     }, [environmentURL, policy?.areTagsEnabled, policyID]);
 
+    const promptEnableTagsToUnlockTrackBillable = async () => {
+        const {action} = await showConfirmModal({
+            title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
+            prompt: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt'),
+            confirmText: translate('common.buttonConfirm'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+    };
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -98,6 +114,7 @@ function RulesBillableDefaultPage({
                         isActive={isBillableTrackingEnabled}
                         disabled={isTrackBillableToggleDisabled}
                         showLockIcon={isTrackBillableToggleDisabled}
+                        disabledAction={isTrackBillableToggleDisabled ? promptEnableTagsToUnlockTrackBillable : undefined}
                         pendingAction={getBillableExpensesPendingAction(policy)}
                         onToggle={() => toggleBillableExpenses(policy)}
                     />

@@ -3203,7 +3203,7 @@ describe('actions/Policy', () => {
     });
 
     describe('enablePolicyRules', () => {
-        it('should enable billable tracking when policy rules are enabled', async () => {
+        it('should not auto-enable billable tracking when policy rules are enabled', async () => {
             mockFetch.pause();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy: PolicyType = {
@@ -3222,9 +3222,8 @@ describe('actions/Policy', () => {
 
             const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
             expect(policy?.areRulesEnabled).toBe(true);
-            expect(policy?.disabledFields?.defaultBillable).toBe(false);
+            expect(policy?.disabledFields?.defaultBillable).toBe(true);
             expect(policy?.disabledFields?.reimbursable).toBe(false);
-            expect(policy?.pendingFields?.disabledFields).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
             await mockFetch.resume();
         });
