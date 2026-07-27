@@ -285,12 +285,15 @@ export default createOnyxDerivedValueConfig({
                 for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
                     const prevPolicy = previousPolicies?.[key];
                     const nextPolicy = policies?.[key];
-                    if (!hasPolicyRelevantFieldChanged(prevPolicy, nextPolicy)) {
+                    // `name`/`achAccount` feed report names but aren't in hasPolicyRelevantFieldChanged, so a
+                    // name-only change (e.g. workspace rename) would be skipped and leave the cached name stale.
+                    const nameChanged = prevPolicy?.name !== nextPolicy?.name || prevPolicy?.achAccount?.accountNumber !== nextPolicy?.achAccount?.accountNumber;
+                    if (!hasPolicyRelevantFieldChanged(prevPolicy, nextPolicy) && !nameChanged) {
                         continue;
                     }
                     const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
                     changedPolicyIDs.add(policyID);
-                    if (prevPolicy?.name !== nextPolicy?.name || prevPolicy?.achAccount?.accountNumber !== nextPolicy?.achAccount?.accountNumber) {
+                    if (nameChanged) {
                         nameChangedPolicyIDs.add(policyID);
                     }
                 }
@@ -300,21 +303,26 @@ export default createOnyxDerivedValueConfig({
                         if (!report) {
                             continue;
                         }
-                        // The report's own policy — the sender workspace for an invoice.
-                        if (report.policyID && changedPolicyIDs.has(report.policyID)) {
-                            policyChangedReportKeys.push(reportKey);
-                            if (!nameChangedPolicyIDs.has(report.policyID)) {
-                                policyBadgeOnlyReportKeys.push(reportKey);
-                            }
-                            continue;
-                        }
                         // An invoice follows its receiver workspace. The invoice room carries the receiver
                         // on itself; a child invoice report doesn't, so we read it from its parent room
                         // (chatReportID) — the same place computeReportName looks for the invoice name.
                         const ownReceiverPolicyID = report.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
                         const room = report.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : undefined;
                         const roomReceiverPolicyID = room?.invoiceReceiver && 'policyID' in room.invoiceReceiver ? room.invoiceReceiver.policyID : undefined;
-                        if ((ownReceiverPolicyID && changedPolicyIDs.has(ownReceiverPolicyID)) || (roomReceiverPolicyID && changedPolicyIDs.has(roomReceiverPolicyID))) {
+                        const receiverPolicyChanged =
+                            (!!ownReceiverPolicyID && changedPolicyIDs.has(ownReceiverPolicyID)) || (!!roomReceiverPolicyID && changedPolicyIDs.has(roomReceiverPolicyID));
+
+                        // The report's own policy — the sender workspace for an invoice.
+                        if (report.policyID && changedPolicyIDs.has(report.policyID)) {
+                            policyChangedReportKeys.push(reportKey);
+                            // Reuse the cached name only for a badge-only sender change with no receiver
+                            // change — the invoice name reads the receiver's role/name too.
+                            if (!nameChangedPolicyIDs.has(report.policyID) && !receiverPolicyChanged) {
+                                policyBadgeOnlyReportKeys.push(reportKey);
+                            }
+                            continue;
+                        }
+                        if (receiverPolicyChanged) {
                             policyChangedReportKeys.push(reportKey);
                         }
                     }
