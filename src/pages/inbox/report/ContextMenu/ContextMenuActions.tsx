@@ -16,7 +16,6 @@ import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -339,6 +338,7 @@ type ContextMenuActionPayload = {
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     harvestReport?: OnyxEntry<ReportType>;
     harvestReportOriginalID?: string;
     introSelected: OnyxEntry<IntroSelected>;
@@ -935,6 +935,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 policyTags,
                 translate,
                 convertToDisplayString,
+                formatPhoneNumber,
                 harvestReport,
                 harvestReportOriginalID,
                 currentUserPersonalDetails,
@@ -1133,9 +1134,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         ),
                     );
                 } else if (isReimbursementQueuedAction(reportAction)) {
-                    Clipboard.setString(
-                        getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report, shouldUseShortDisplayName: false}),
-                    );
+                    Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber, report, shouldUseShortDisplayName: false}));
                 } else if (isActionableMentionWhisper(reportAction)) {
                     const targetAccountIDs = getOriginalMessage(reportAction)?.inviteeAccountIDs;
                     const mentionWhisperMessage = getActionableMentionWhisperMessage(translate, reportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails));

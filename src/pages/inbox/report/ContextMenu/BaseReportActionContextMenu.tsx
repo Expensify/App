@@ -164,7 +164,7 @@ function BaseReportActionContextMenu({
         'Trashcan',
     ]);
     const StyleUtils = useStyleUtils();
-    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, getLocalDateFromDatetime, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -433,6 +433,7 @@ function BaseReportActionContextMenu({
                                 policyTags,
                                 translate,
                                 convertToDisplayString,
+                                formatPhoneNumber,
                                 harvestReport,
                                 harvestReportOriginalID,
                                 introSelected,

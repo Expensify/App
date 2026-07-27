@@ -21,6 +21,7 @@ import WideRHPContextProvider from '@components/WideRHPContextProvider';
 
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -131,6 +132,7 @@ function AuthScreens() {
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -333,7 +335,7 @@ function AuthScreens() {
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
-                        {isOnboardingCompleted === false && !Navigation.isValidateLoginFlow() && (
+                        {isOnboardingCompleted === false && !shouldSuppressPromotionalUI && !Navigation.isValidateLoginFlow() && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
