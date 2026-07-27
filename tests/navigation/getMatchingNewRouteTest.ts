@@ -208,6 +208,18 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/e/123/details/shareCode')).toBe('/e/123/share-code');
     });
 
+    it('redirects old standalone merge-transaction routes to the dynamic route with a search base', () => {
+        expect(getMatchingNewRoute('/merge/123')).toBe('/search/merge/123');
+        expect(getMatchingNewRoute('/merge/123/receipt')).toBe('/search/merge/123/receipt');
+        expect(getMatchingNewRoute('/merge/123/details')).toBe('/search/merge/123/details');
+        expect(getMatchingNewRoute('/merge/123/confirmation')).toBe('/search/merge/123/confirmation');
+    });
+
+    it('preserves query params when redirecting old standalone merge-transaction routes', () => {
+        expect(getMatchingNewRoute('/merge/123?backTo=/home')).toBe('/search/merge/123?backTo=/home');
+        expect(getMatchingNewRoute('/merge/123/receipt?isOnSearch=true')).toBe('/search/merge/123/receipt?isOnSearch=true');
+    });
+
     it('redirects legacy standalone referral routes to a dynamic route with a home base', () => {
         expect(getMatchingNewRoute('/referral/shareCode')).toBe('/home/referral/shareCode');
     });

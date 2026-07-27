@@ -65,6 +65,7 @@ const oldRoutes: Record<string, string> = {
     '/flag/*/*': '/r/$1/flag/$1/$2',
     '/r/*/details/shareCode': '/r/$1/share-code',
     '/e/*/details/shareCode': '/e/$1/share-code',
+    '/merge/*': '/search/merge/$1',
     '/referral/*': '/home/referral/$1',
     '/a/*/avatar': '/avatar/$1',
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
