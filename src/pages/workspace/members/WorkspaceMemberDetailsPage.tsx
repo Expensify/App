@@ -364,7 +364,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 copyable
                             />
                             <MenuItemWithTopDescription
-                                disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser || !canManageSelectedMemberRole}
+                                disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                 title={translate(`workspace.common.roleName`, member?.role)}
                                 interactive={!isReimburser && canManageSelectedMemberRole}
                                 description={translate('common.role')}
