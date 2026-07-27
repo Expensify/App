@@ -68,23 +68,29 @@ function getContextualSearchAutocompleteKey(item: SearchQueryItem, policies: Ony
     }
 }
 
+function sanitizeContextualSearchValue(value: string) {
+    return value.includes(',') ? `"${value}"` : sanitizeSearchValue(value);
+}
+
 function getContextualSearchQuery(item: SearchQueryItem, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
     const baseQuery = `${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE}:${item.roomType}`;
     let additionalQuery = '';
 
     switch (item.roomType) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeSearchValue(item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : '')}`;
+            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeContextualSearchValue(
+                item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : '',
+            )}`;
             break;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${item.policyID}`;
             if (item.autocompleteID) {
-                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
+                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeContextualSearchValue(item.searchQuery ?? '')}`;
             }
             break;
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
-            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
+            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeContextualSearchValue(item.searchQuery ?? '')}`;
             break;
     }
     return baseQuery + additionalQuery;
