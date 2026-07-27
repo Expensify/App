@@ -1153,6 +1153,8 @@ const translations = {
             linkCompanyCardsSubText: 'Import expenses automatically',
             issueExpensifyCards: 'Issue Expensify cards',
             issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
+            setupTravel: 'Setup travel',
+            setupTravelSubText: 'Configure travel specific rules',
             configureApprovals: 'Configure approval workflow',
             configureApprovalsSubText: 'Define report approvals',
             setupRules: 'Set up spend rules',
