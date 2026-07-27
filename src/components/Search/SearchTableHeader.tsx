@@ -339,18 +339,17 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
 ];
 
 const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderIcons): SearchColumnConfig[] => {
-    const commonGroupHeaders: SearchColumnConfig[] = [
-        {
-            columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-            translationKey: 'common.expenses' as TranslationPaths,
-            isColumnSortable: true,
-        },
-        {
-            columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-            translationKey: 'common.total' as TranslationPaths,
-            isColumnSortable: true,
-        },
-    ];
+    const groupExpensesHeader: SearchColumnConfig = {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+        translationKey: 'common.expenses' as TranslationPaths,
+        isColumnSortable: true,
+    };
+    const groupTotalHeader: SearchColumnConfig = {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+        translationKey: 'common.total' as TranslationPaths,
+        isColumnSortable: true,
+    };
+    const commonGroupHeaders: SearchColumnConfig[] = [groupExpensesHeader, groupTotalHeader];
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return [
@@ -408,7 +407,18 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     translationKey: 'common.withdrawalID',
                 },
-                ...commonGroupHeaders,
+                groupExpensesHeader,
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    translationKey: 'common.amountDebited',
+                    isColumnSortable: false,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
+                    translationKey: 'common.amountReimbursed',
+                    isColumnSortable: false,
+                },
+                groupTotalHeader,
             ];
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return [

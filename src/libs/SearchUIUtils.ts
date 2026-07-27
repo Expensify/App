@@ -429,6 +429,11 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.ACTION,
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+
+    // Each side of a conversion is denominated in its own currency, so ordering the raw numbers would rank
+    // amounts that are not comparable.
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
 ]);
 
 function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
@@ -4459,6 +4464,10 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'common.expenses';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
             return 'common.total';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED:
+            return 'common.amountDebited';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED:
+            return 'common.amountReimbursed';
         case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
@@ -5768,6 +5777,32 @@ function getPolicyTagsForPolicyID(policyTags: PolicyTagsLookup | undefined, poli
     return policyTagsKey ? policyTags[policyTagsKey] : undefined;
 }
 
+// Only settlements that converted currencies carry these amounts, so each column stays hidden until a group reports one.
+const conversionAmountGroupColumns = {
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: {amount: 'debitedAmount', currency: 'debitedCurrency'},
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: {amount: 'creditedAmount', currency: 'creditedCurrency'},
+} as const satisfies Partial<Record<SearchColumnType, {amount: keyof SearchWithdrawalIDGroup; currency: keyof SearchWithdrawalIDGroup}>>;
+
+function isConversionAmountGroupColumn(column: SearchColumnType): column is keyof typeof conversionAmountGroupColumns {
+    return column in conversionAmountGroupColumns;
+}
+
+function hasConversionAmount(column: SearchColumnType, data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[]): boolean {
+    if (!isConversionAmountGroupColumn(column) || Array.isArray(data)) {
+        return !isConversionAmountGroupColumn(column);
+    }
+
+    const {amount, currency} = conversionAmountGroupColumns[column];
+    return Object.keys(data).some((key) => {
+        if (!isGroupEntry(key)) {
+            return false;
+        }
+
+        const group: Partial<SearchWithdrawalIDGroup> = data[key];
+        return !!group[amount] && !!group[currency];
+    });
+}
+
 /**
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
@@ -5926,7 +5961,7 @@ function getColumnsToShow({
                 result.push(col);
             }
 
-            return result;
+            return result.filter((column) => hasConversionAmount(column, data));
         }
     }
 

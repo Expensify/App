@@ -1941,6 +1941,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
                 columnWidth = {...getWidthStyle(variables.w130)};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED:
+                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:

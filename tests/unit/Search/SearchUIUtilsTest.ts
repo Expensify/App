@@ -9473,6 +9473,63 @@ describe('SearchUIUtils', () => {
             expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM);
         });
 
+        test('Should only show the conversion amount columns for withdrawal groups that converted currencies', () => {
+            const domesticGroup = {
+                entryID: 1,
+                count: 1,
+                total: -10000,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: CONST.BANK_NAMES.CHASE,
+                debitPosted: '2026-01-02',
+                state: 8,
+            };
+            const crossBorderGroup = {
+                ...domesticGroup,
+                entryID: 2,
+                debitedAmount: -10000,
+                debitedCurrency: 'USD',
+                creditedAmount: -9200,
+                creditedCurrency: 'EUR',
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const domesticData: OnyxTypes.SearchResults['data'] = {[`group_${domesticGroup.entryID}`]: domesticGroup};
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const crossBorderData: OnyxTypes.SearchResults['data'] = {...domesticData, [`group_${crossBorderGroup.entryID}`]: crossBorderGroup};
+
+            const domesticColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: domesticData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+
+            const crossBorderColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: crossBorderData, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+        });
+
+        test('Should hide a conversion amount column when its currency is missing', () => {
+            const groupMissingCreditedCurrency = {
+                entryID: 3,
+                count: 1,
+                total: -10000,
+                currency: 'USD',
+                accountNumber: '1234',
+                bankName: CONST.BANK_NAMES.CHASE,
+                debitPosted: '2026-01-02',
+                state: 8,
+                debitedAmount: -10000,
+                debitedCurrency: 'USD',
+                creditedAmount: -9200,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {[`group_${groupMissingCreditedCurrency.entryID}`]: groupMissingCreditedCurrency};
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data, visibleColumns: [], groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID});
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED);
+        });
+
         test('Should hide To for strict default expense columns', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
