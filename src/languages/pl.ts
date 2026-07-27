@@ -7743,9 +7743,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 unableToRemovePrompt: (rulesRoute: string) =>
                     `<a href="${rulesRoute}">Zasady agenta</a> egzekwowane przez RuleBot muszą najpierw zostać usunięte z przestrzeni roboczej, zanim będzie można usunąć tego agenta.`,
                 unableToCloseAccountTitle: 'Nie można zamknąć konta',
-                unableToCloseAccountPrompt: 'Zasady agenta egzekwowane przez RuleBot muszą najpierw zostać usunięte z przestrzeni roboczej, zanim będzie można zamknąć to konto.',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `<a href="${rulesRoute}">Zasady agenta</a> egzekwowane przez RuleBot muszą najpierw zostać usunięte z przestrzeni roboczej, zanim będzie można zamknąć to konto.`,
                 unableToDeleteAgentTitle: 'Nie można usunąć agenta',
-                unableToDeleteAgentPrompt: 'Zasady agenta egzekwowane przez RuleBot muszą najpierw zostać usunięte z przestrzeni roboczej, zanim będzie można usunąć tego agenta.',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `<a href="${rulesRoute}">Zasady agenta</a> egzekwowane przez RuleBot muszą najpierw zostać usunięte z przestrzeni roboczej, zanim będzie można usunąć tego agenta.`,
                 unableToChangeRoleTitle: 'Nie można zmienić roli',
                 unableToChangeRolePrompt: (rulesRoute: string) =>
                     `<a href="${rulesRoute}">Zasady agenta</a> egzekwowane przez RuleBot muszą najpierw zostać usunięte z przestrzeni roboczej, zanim będzie można zmienić rolę tego agenta.`,

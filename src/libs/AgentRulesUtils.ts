@@ -44,10 +44,18 @@ function isRuleBotEnforcingRules(accountID: number | undefined, policy: OnyxEntr
     return !!accountID && policy?.ruleBotAccountID === accountID && hasAgentRules(policy);
 }
 
-/** Whether the given account is the RuleBot agent enforcing Agent rules on any of the given policies. Such an account can't be deleted until its rules are removed. */
-function isRuleBotEnforcingRulesOnAnyPolicy(accountID: number | undefined, policies: OnyxCollection<Policy>): boolean {
-    return !!accountID && Object.values(policies ?? {}).some((policy) => isRuleBotEnforcingRules(accountID, policy));
+/** The first of the given policies on which the given account is the RuleBot agent enforcing Agent rules, if any. */
+function getRuleBotEnforcedPolicy(accountID: number | undefined, policies: OnyxCollection<Policy>): OnyxEntry<Policy> {
+    if (!accountID) {
+        return undefined;
+    }
+    return Object.values(policies ?? {}).find((policy) => isRuleBotEnforcingRules(accountID, policy)) ?? undefined;
 }
 
-export {getAgentRuleDisplayTitle, getVisibleAgentRules, isRuleBotEnforcingRules, isRuleBotEnforcingRulesOnAnyPolicy};
+/** Whether the given account is the RuleBot agent enforcing Agent rules on any of the given policies. Such an account can't be deleted until its rules are removed. */
+function isRuleBotEnforcingRulesOnAnyPolicy(accountID: number | undefined, policies: OnyxCollection<Policy>): boolean {
+    return !!getRuleBotEnforcedPolicy(accountID, policies);
+}
+
+export {getAgentRuleDisplayTitle, getVisibleAgentRules, getRuleBotEnforcedPolicy, isRuleBotEnforcingRules, isRuleBotEnforcingRulesOnAnyPolicy};
 export type {AgentRuleWithID};

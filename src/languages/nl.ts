@@ -7763,9 +7763,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 unableToRemovePrompt: (rulesRoute: string) =>
                     `De <a href="${rulesRoute}">agentregels</a> die door RuleBot worden afgedwongen, moeten eerst uit je werkruimte worden verwijderd voordat je deze agent kunt verwijderen.`,
                 unableToCloseAccountTitle: 'Account kan niet worden gesloten',
-                unableToCloseAccountPrompt: 'De agentregels die door RuleBot worden afgedwongen, moeten eerst uit je werkruimte worden verwijderd voordat je dit account kunt sluiten.',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `De <a href="${rulesRoute}">agentregels</a> die door RuleBot worden afgedwongen, moeten eerst uit je werkruimte worden verwijderd voordat je dit account kunt sluiten.`,
                 unableToDeleteAgentTitle: 'Agent kan niet worden verwijderd',
-                unableToDeleteAgentPrompt: 'De agentregels die door RuleBot worden afgedwongen, moeten eerst uit je werkruimte worden verwijderd voordat je deze agent kunt verwijderen.',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `De <a href="${rulesRoute}">agentregels</a> die door RuleBot worden afgedwongen, moeten eerst uit je werkruimte worden verwijderd voordat je deze agent kunt verwijderen.`,
                 unableToChangeRoleTitle: 'Rol kan niet worden gewijzigd',
                 unableToChangeRolePrompt: (rulesRoute: string) =>
                     `De <a href="${rulesRoute}">agentregels</a> die door RuleBot worden afgedwongen, moeten eerst uit je werkruimte worden verwijderd voordat je de rol van deze agent kunt wijzigen.`,

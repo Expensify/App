@@ -4,6 +4,7 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -11,6 +12,7 @@ import Section from '@components/Section';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -23,7 +25,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {deleteAgent} from '@libs/actions/Agent';
 import {disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
-import {isRuleBotEnforcingRulesOnAnyPolicy} from '@libs/AgentRulesUtils';
+import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {useIsAgentAccount} from '@libs/SessionUtils';
 import {hasDeviceManagementError} from '@libs/UserUtils';
@@ -74,6 +76,7 @@ function SecuritySettingsPage() {
     const privateSubscription = usePrivateSubscription();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const {showConfirmModal} = useConfirmModal();
+    const {environmentURL} = useEnvironment();
 
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -201,11 +204,21 @@ function SecuritySettingsPage() {
                         });
                         return;
                     }
-                    if (isRuleBotEnforcingRulesOnAnyPolicy(session?.accountID, allPolicies)) {
+                    const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(session?.accountID, allPolicies);
+                    if (ruleBotEnforcedPolicy) {
                         showConfirmModal({
                             shouldShowCancelButton: false,
                             title: translate('workspace.rules.agentRules.unableToDeleteAgentTitle'),
-                            prompt: translate('workspace.rules.agentRules.unableToDeleteAgentPrompt'),
+                            prompt: (
+                                <View style={[styles.renderHTML, styles.flexRow]}>
+                                    <RenderHTML
+                                        html={translate(
+                                            'workspace.rules.agentRules.unableToDeleteAgentPrompt',
+                                            `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id)}`,
+                                        )}
+                                    />
+                                </View>
+                            ),
                             confirmText: translate('common.buttonConfirm'),
                         });
                         return;
@@ -272,6 +285,9 @@ function SecuritySettingsPage() {
         waitForNavigate,
         translate,
         styles.sectionMenuItemTopDescription,
+        styles.renderHTML,
+        styles.flexRow,
+        environmentURL,
         hasEverRegisteredForMultifactorAuthentication,
         hasDeviceManagementErrorValue,
     ]);

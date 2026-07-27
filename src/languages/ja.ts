@@ -7689,9 +7689,11 @@ ${reportName}`,
                 unableToRemovePrompt: (rulesRoute: string) =>
                     `このエージェントを削除する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,
                 unableToCloseAccountTitle: 'アカウントを閉鎖できません',
-                unableToCloseAccountPrompt: 'このアカウントを閉鎖する前に、RuleBot が適用しているエージェントルールをワークスペースから削除する必要があります。',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `このアカウントを閉鎖する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,
                 unableToDeleteAgentTitle: 'エージェントを削除できません',
-                unableToDeleteAgentPrompt: 'このエージェントを削除する前に、RuleBot が適用しているエージェントルールをワークスペースから削除する必要があります。',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `このエージェントを削除する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,
                 unableToChangeRoleTitle: 'ロールを変更できません',
                 unableToChangeRolePrompt: (rulesRoute: string) =>
                     `このエージェントのロールを変更する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,

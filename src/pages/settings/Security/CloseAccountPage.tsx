@@ -3,16 +3,18 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
+import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -24,6 +26,7 @@ import {closeAccount} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
 
 import {Str} from 'expensify-common';
@@ -36,10 +39,11 @@ function CloseAccountPage() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     // The account being closed can be a workspace's RuleBot agent (e.g. when accessed via copilot). Closing it would leave the workspace's Agent rules without an enforcer, so it stays open until those rules are removed.
-    const isRuleBotWithRules = Object.values(policies ?? {}).some((policy) => isRuleBotEnforcingRules(session?.accountID, policy));
+    const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(session?.accountID, policies);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {environmentURL} = useEnvironment();
 
     const {showConfirmModal} = useConfirmModal();
     const showCloseAccountWarningModal = () => {
@@ -61,11 +65,17 @@ function CloseAccountPage() {
     useEffect(() => () => clearError(), []);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
-        if (isRuleBotWithRules) {
+        if (ruleBotEnforcedPolicy) {
             showConfirmModal({
                 shouldShowCancelButton: false,
                 title: translate('workspace.rules.agentRules.unableToCloseAccountTitle'),
-                prompt: translate('workspace.rules.agentRules.unableToCloseAccountPrompt'),
+                prompt: (
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML
+                            html={translate('workspace.rules.agentRules.unableToCloseAccountPrompt', `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id)}`)}
+                        />
+                    </View>
+                ),
                 confirmText: translate('common.buttonConfirm'),
             });
             return;

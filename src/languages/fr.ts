@@ -7832,10 +7832,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 unableToRemovePrompt: (rulesRoute: string) =>
                     `Les <a href="${rulesRoute}">règles d’agent</a> appliquées par RuleBot doivent d’abord être supprimées de votre espace de travail avant que vous puissiez retirer cet agent.`,
                 unableToCloseAccountTitle: 'Impossible de fermer le compte',
-                unableToCloseAccountPrompt: 'Les règles d’agent appliquées par RuleBot doivent d’abord être supprimées de votre espace de travail avant que vous puissiez fermer ce compte.',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `Les <a href="${rulesRoute}">règles d’agent</a> appliquées par RuleBot doivent d’abord être supprimées de votre espace de travail avant que vous puissiez fermer ce compte.`,
                 unableToDeleteAgentTitle: 'Impossible de supprimer l’agent',
-                unableToDeleteAgentPrompt:
-                    'Les règles d’agent appliquées par RuleBot doivent d’abord être supprimées de votre espace de travail avant que vous puissiez supprimer cet agent.',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `Les <a href="${rulesRoute}">règles d’agent</a> appliquées par RuleBot doivent d’abord être supprimées de votre espace de travail avant que vous puissiez supprimer cet agent.`,
                 unableToChangeRoleTitle: 'Impossible de changer le rôle',
                 unableToChangeRolePrompt: (rulesRoute: string) =>
                     `Les <a href="${rulesRoute}">règles d’agent</a> appliquées par RuleBot doivent d’abord être supprimées de votre espace de travail avant que vous puissiez changer le rôle de cet agent.`,

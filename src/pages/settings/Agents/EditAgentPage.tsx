@@ -4,11 +4,13 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useChatWithAgent from '@hooks/useChatWithAgent';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,7 +18,7 @@ import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearAgentAvatarUpdateError, clearAgentNameUpdateError, clearAgentPromptUpdateError, deleteAgent} from '@libs/actions/Agent';
-import {isRuleBotEnforcingRulesOnAnyPolicy} from '@libs/AgentRulesUtils';
+import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -43,6 +45,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {showConfirmModal} = useConfirmModal();
+    const {environmentURL} = useEnvironment();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
     const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
@@ -54,11 +57,18 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const handleEditNamePress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_NAME.getRoute(accountID));
     const handleEditPromptPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID));
     const handleDeletePress = async () => {
-        if (isRuleBotEnforcingRulesOnAnyPolicy(accountID, allPolicies)) {
+        const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(accountID, allPolicies);
+        if (ruleBotEnforcedPolicy) {
             showConfirmModal({
                 shouldShowCancelButton: false,
                 title: translate('workspace.rules.agentRules.unableToDeleteAgentTitle'),
-                prompt: translate('workspace.rules.agentRules.unableToDeleteAgentPrompt'),
+                prompt: (
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML
+                            html={translate('workspace.rules.agentRules.unableToDeleteAgentPrompt', `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id)}`)}
+                        />
+                    </View>
+                ),
                 confirmText: translate('common.buttonConfirm'),
             });
             return;

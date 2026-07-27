@@ -7782,9 +7782,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 unableToRemovePrompt: (rulesRoute: string) =>
                     `Le <a href="${rulesRoute}">regole agente</a> applicate da RuleBot devono essere rimosse dal tuo spazio di lavoro prima di poter rimuovere questo agente.`,
                 unableToCloseAccountTitle: 'Impossibile chiudere l’account',
-                unableToCloseAccountPrompt: 'Le regole agente applicate da RuleBot devono essere rimosse dal tuo spazio di lavoro prima di poter chiudere questo account.',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `Le <a href="${rulesRoute}">regole agente</a> applicate da RuleBot devono essere rimosse dal tuo spazio di lavoro prima di poter chiudere questo account.`,
                 unableToDeleteAgentTitle: 'Impossibile eliminare l’agente',
-                unableToDeleteAgentPrompt: 'Le regole agente applicate da RuleBot devono essere rimosse dal tuo spazio di lavoro prima di poter eliminare questo agente.',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `Le <a href="${rulesRoute}">regole agente</a> applicate da RuleBot devono essere rimosse dal tuo spazio di lavoro prima di poter eliminare questo agente.`,
                 unableToChangeRoleTitle: 'Impossibile modificare il ruolo',
                 unableToChangeRolePrompt: (rulesRoute: string) =>
                     `Le <a href="${rulesRoute}">regole agente</a> applicate da RuleBot devono essere rimosse dal tuo spazio di lavoro prima di poter modificare il ruolo di questo agente.`,

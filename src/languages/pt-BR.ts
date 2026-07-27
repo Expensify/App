@@ -7755,9 +7755,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 unableToRemovePrompt: (rulesRoute: string) =>
                     `As <a href="${rulesRoute}">regras de agente</a> aplicadas pelo RuleBot precisam ser removidas do seu espaço de trabalho antes que você possa remover este agente.`,
                 unableToCloseAccountTitle: 'Não é possível encerrar a conta',
-                unableToCloseAccountPrompt: 'As regras de agente aplicadas pelo RuleBot precisam ser removidas do seu espaço de trabalho antes que você possa encerrar esta conta.',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `As <a href="${rulesRoute}">regras de agente</a> aplicadas pelo RuleBot precisam ser removidas do seu espaço de trabalho antes que você possa encerrar esta conta.`,
                 unableToDeleteAgentTitle: 'Não é possível excluir o agente',
-                unableToDeleteAgentPrompt: 'As regras de agente aplicadas pelo RuleBot precisam ser removidas do seu espaço de trabalho antes que você possa excluir este agente.',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `As <a href="${rulesRoute}">regras de agente</a> aplicadas pelo RuleBot precisam ser removidas do seu espaço de trabalho antes que você possa excluir este agente.`,
                 unableToChangeRoleTitle: 'Não é possível alterar a função',
                 unableToChangeRolePrompt: (rulesRoute: string) =>
                     `As <a href="${rulesRoute}">regras de agente</a> aplicadas pelo RuleBot precisam ser removidas do seu espaço de trabalho antes que você possa alterar a função deste agente.`,
