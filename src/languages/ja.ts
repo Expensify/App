@@ -6874,7 +6874,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             defaultVendorHelperText: ({connectionName, isSet}: ConnectionDefaultVendorHelperTextParams) =>
                 isSet
                     ? `自動照合されない経費は、デフォルトでこの ${connectionName} のベンダーに紐づきます。`
-                    : `自動照合されない経費は、デフォルトでこの ${connectionName} の仕入先として処理されます。照合される場合は、「Credit Card Misc」としてエクスポートされます。`,
+                    : `自動照合されない経費は、デフォルトでこの ${connectionName} の仕入先として処理されます。デフォルトのベンダーが設定されていない場合は、「Credit Card Misc」としてエクスポートされます。`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `自動的に照合されない経費に対して使用する、デフォルトの ${connectionName} 仕入先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
