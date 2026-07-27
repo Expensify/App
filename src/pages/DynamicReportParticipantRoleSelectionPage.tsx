@@ -20,7 +20,7 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
-import React from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -42,6 +42,27 @@ function DynamicReportParticipantRoleSelectionPage({report, route}: DynamicRepor
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_ROLE.path);
     const member = report.participants?.[accountID];
 
+    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
+    // persisted role, so the change of context (persist + navigate) only happens when the user taps Save.
+    const [draftRole, setDraftRole] = useState<ValueOf<typeof CONST.REPORT.ROLE>>();
+    const selectedRole = draftRole ?? member?.role;
+
+    const saveAndGoBack = useCallback(() => {
+        if (selectedRole) {
+            updateGroupChatMemberRoles(report.reportID, [accountID], selectedRole);
+        }
+        Navigation.goBack(backPath);
+    }, [report.reportID, accountID, selectedRole, backPath]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveAndGoBack,
+        }),
+        [saveAndGoBack, translate],
+    );
+
     if (!member) {
         return <NotFoundPage />;
     }
@@ -50,21 +71,16 @@ function DynamicReportParticipantRoleSelectionPage({report, route}: DynamicRepor
         {
             value: CONST.REPORT.ROLE.ADMIN,
             text: translate('common.admin'),
-            isSelected: member?.role === CONST.REPORT.ROLE.ADMIN,
+            isSelected: selectedRole === CONST.REPORT.ROLE.ADMIN,
             keyForList: CONST.REPORT.ROLE.ADMIN,
         },
         {
             value: CONST.REPORT.ROLE.MEMBER,
             text: translate('common.member'),
-            isSelected: member?.role === CONST.REPORT.ROLE.MEMBER,
+            isSelected: selectedRole === CONST.REPORT.ROLE.MEMBER,
             keyForList: CONST.REPORT.ROLE.MEMBER,
         },
     ];
-
-    const changeRole = ({value}: ListItemType) => {
-        updateGroupChatMemberRoles(report.reportID, [accountID], value);
-        Navigation.goBack(backPath);
-    };
 
     return (
         <ScreenWrapper testID="DynamicReportParticipantRoleSelectionPage">
@@ -76,9 +92,10 @@ function DynamicReportParticipantRoleSelectionPage({report, route}: DynamicRepor
                 <SelectionList
                     data={items}
                     ListItem={SingleSelectListItem}
-                    onSelectRow={changeRole}
+                    onSelectRow={({value}: ListItemType) => setDraftRole(value)}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={items.find((item) => item.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={member.role}
                 />
             </View>
         </ScreenWrapper>

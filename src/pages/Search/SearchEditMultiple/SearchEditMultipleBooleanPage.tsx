@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type BooleanOption = ListItem & {
@@ -30,9 +30,15 @@ function SearchEditMultipleBooleanPage() {
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
 
     const isBillableScreen = route.name === SCREENS.SEARCH.EDIT_MULTIPLE_BILLABLE_RHP;
-    const selectedValue = isBillableScreen ? draftTransaction?.billable : draftTransaction?.reimbursable;
+    const persistedValue = isBillableScreen ? draftTransaction?.billable : draftTransaction?.reimbursable;
     const title = isBillableScreen ? translate('common.billable') : translate('common.reimbursable');
     const testID = isBillableScreen ? 'SearchEditMultipleBillablePage' : 'SearchEditMultipleReimbursablePage';
+
+    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
+    // persisted value, so the change of context (persist + navigate) only happens when the user taps Save. `null`
+    // represents an explicit "cleared" selection, mirroring the previous tap-again-to-clear behavior.
+    const [draftValue, setDraftValue] = useState<boolean | null>();
+    const selectedValue = draftValue === undefined ? persistedValue : draftValue;
 
     const items = useMemo(
         () => [
@@ -53,14 +59,30 @@ function SearchEditMultipleBooleanPage() {
     );
 
     const selectValue = (item: BooleanOption) => {
-        const shouldClear = selectedValue === item.value;
+        // Tapping the already-selected row clears the value, otherwise select the tapped value.
+        setDraftValue((prev) => {
+            const current = prev === undefined ? persistedValue : prev;
+            return current === item.value ? null : item.value;
+        });
+    };
+
+    const saveAndGoBack = useCallback(() => {
         if (isBillableScreen) {
-            updateBulkEditDraftTransaction({billable: shouldClear ? null : item.value});
+            updateBulkEditDraftTransaction({billable: selectedValue ?? null});
         } else {
-            updateBulkEditDraftTransaction({reimbursable: shouldClear ? null : item.value});
+            updateBulkEditDraftTransaction({reimbursable: selectedValue ?? null});
         }
         Navigation.goBack();
-    };
+    }, [isBillableScreen, selectedValue]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveAndGoBack,
+        }),
+        [saveAndGoBack, translate],
+    );
 
     return (
         <ScreenWrapper
@@ -78,6 +100,7 @@ function SearchEditMultipleBooleanPage() {
                     data={items}
                     ListItem={SingleSelectListItem}
                     onSelectRow={selectValue}
+                    confirmButtonOptions={confirmButtonOptions}
                 />
             </View>
         </ScreenWrapper>
