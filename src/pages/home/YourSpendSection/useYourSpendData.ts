@@ -133,7 +133,12 @@ const YOUR_SPEND_APPROVAL_COMMANDS = new Set<string>([
     WRITE_COMMANDS.APPROVE_MONEY_REQUEST,
     WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT,
 ]);
-const YOUR_SPEND_PAYMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.PAY_MONEY_REQUEST, WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET, WRITE_COMMANDS.CANCEL_PAYMENT]);
+const YOUR_SPEND_PAYMENT_COMMANDS = new Set<string>([
+    WRITE_COMMANDS.PAY_MONEY_REQUEST,
+    WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET,
+    WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED,
+    WRITE_COMMANDS.CANCEL_PAYMENT,
+]);
 
 type YourSpendPendingBuckets = {
     // A queued offline change would move the "Awaiting approval" (status:outstanding) total.
@@ -142,37 +147,64 @@ type YourSpendPendingBuckets = {
     payment: boolean;
 };
 
-// Status of each report the user owns on a paid group workspace, plus the totals an
-// amount change (edit / delete / reject; marked by `pendingFields.total`) would move.
-// Amount changes keep a report in the same bucket, so the report's current status
-// classifies them; state transitions are handled from the queue instead.
-type YourSpendReportsProjection = {
-    // reportID -> statusNum, used to scope queued commands to the user's own paid reports.
-    statusByID: Record<string, number>;
+// Which reports the user owns on a paid group workspace, plus the totals an amount
+// change (edit / delete / reject; marked by `pendingFields.total`) would move. Amount
+// changes keep a report in the same bucket, so the report's current status classifies
+// them; state transitions are handled from the queue instead.
+//
+// Reduced to primitives (a sorted ID signature, not a per-report map) because this is
+// the output Onyx deep-equals on every change to the REPORT collection.
+type YourSpendReportsSignature = {
+    // Sorted, comma-joined IDs of those reports, used to scope queued commands to them.
+    ownedReportIDs: string;
     amount: YourSpendPendingBuckets;
 };
 
-function projectYourSpendReports(reports: OnyxCollection<Report> | undefined, paidGroupPolicyIDs: string[], accountID: number): YourSpendReportsProjection {
-    const projection: YourSpendReportsProjection = {statusByID: {}, amount: {approval: false, payment: false}};
+function getYourSpendReportsSignature(reports: OnyxCollection<Report> | undefined, paidGroupPolicyIDs: string[], accountID: number): YourSpendReportsSignature {
+    const signature: YourSpendReportsSignature = {ownedReportIDs: '', amount: {approval: false, payment: false}};
     if (!reports || paidGroupPolicyIDs.length === 0) {
-        return projection;
+        return signature;
     }
     const policyIDSet = new Set(paidGroupPolicyIDs);
+    const ids: string[] = [];
     for (const report of Object.values(reports)) {
         if (report?.ownerAccountID !== accountID || !report?.policyID || !policyIDSet.has(report.policyID) || report.statusNum === undefined) {
             continue;
         }
-        projection.statusByID[report.reportID] = report.statusNum;
+        ids.push(report.reportID);
         if (report.pendingFields?.total == null) {
             continue;
         }
         if (report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            projection.amount.approval = true;
+            signature.amount.approval = true;
         } else if (report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) {
-            projection.amount.payment = true;
+            signature.amount.payment = true;
         }
     }
-    return projection;
+    signature.ownedReportIDs = ids.sort().join(',');
+    return signature;
+}
+
+// A queued "Your spend" command reduced to the only fields staleness needs. Full
+// requests carry large optimistic/success/failure payloads that Onyx would deep-equal
+// on every queue mutation.
+type QueuedSpendRequest = {
+    command: string;
+    reportID: string | undefined;
+};
+
+function projectQueuedSpendRequests(requests: AnyRequest[] | undefined): QueuedSpendRequest[] {
+    const projected: QueuedSpendRequest[] = [];
+    for (const request of requests ?? []) {
+        const command = request?.command;
+        if (!command || (!YOUR_SPEND_APPROVAL_COMMANDS.has(command) && !YOUR_SPEND_PAYMENT_COMMANDS.has(command))) {
+            continue;
+        }
+        // Report-level commands carry `reportID`; money-request commands (e.g. pay) carry `iouReportID`.
+        const rawReportID = request.data?.reportID ?? request.data?.iouReportID;
+        projected.push({command, reportID: typeof rawReportID === 'string' ? rawReportID : undefined});
+    }
+    return projected;
 }
 
 // Which "Your spend" totals a queued offline change would move. The totals come
@@ -184,23 +216,16 @@ function projectYourSpendReports(reports: OnyxCollection<Report> | undefined, pa
 // from the offline action queue: every queued command persists for the whole offline
 // session, so a report that was approved and then paid keeps BOTH signals. Amount
 // changes (edit / delete / reject) don't move a report between buckets, so they're
-// classified by the report's current status (see projectYourSpendReports).
-function getYourSpendPendingBuckets(projection: YourSpendReportsProjection, queuedRequests: AnyRequest[] | undefined): YourSpendPendingBuckets {
-    const buckets: YourSpendPendingBuckets = {approval: projection.amount.approval, payment: projection.amount.payment};
-    for (const request of queuedRequests ?? []) {
-        const isApprovalCommand = YOUR_SPEND_APPROVAL_COMMANDS.has(request.command);
-        const isPaymentCommand = YOUR_SPEND_PAYMENT_COMMANDS.has(request.command);
-        if (!isApprovalCommand && !isPaymentCommand) {
-            continue;
-        }
-        // Report-level commands carry `reportID`; money-request commands (e.g. pay) carry `iouReportID`.
-        const rawReportID = request.data?.reportID ?? request.data?.iouReportID;
-        const reportID = typeof rawReportID === 'string' ? rawReportID : undefined;
+// classified by the report's current status (see getYourSpendReportsSignature).
+function getYourSpendPendingBuckets(reportsSignature: YourSpendReportsSignature, queuedRequests: QueuedSpendRequest[] | undefined): YourSpendPendingBuckets {
+    const buckets: YourSpendPendingBuckets = {approval: reportsSignature.amount.approval, payment: reportsSignature.amount.payment};
+    const ownedReportIDs = new Set(reportsSignature.ownedReportIDs ? reportsSignature.ownedReportIDs.split(',') : []);
+    for (const {command, reportID} of queuedRequests ?? []) {
         // Only count commands acting on one of the user's own paid-group reports.
-        if (!reportID || projection.statusByID[reportID] === undefined) {
+        if (!reportID || !ownedReportIDs.has(reportID)) {
             continue;
         }
-        if (isApprovalCommand) {
+        if (YOUR_SPEND_APPROVAL_COMMANDS.has(command)) {
             buckets.approval = true;
         } else {
             buckets.payment = true;
@@ -260,16 +285,13 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // Which totals a queued offline change would move. When offline we can't
     // refresh the snapshots, so we grey only the affected total to signal it may
     // be stale rather than showing a value we know might be wrong.
-    const [reportsProjection] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => projectYourSpendReports(reports, paidGroupPolicyIDs, accountID),
+    const [reportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getYourSpendReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
-    const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {
-        selector: (requests) =>
-            (requests ?? []).filter((request) => !!request?.command && (YOUR_SPEND_APPROVAL_COMMANDS.has(request.command) || YOUR_SPEND_PAYMENT_COMMANDS.has(request.command))),
-    });
+    const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: projectQueuedSpendRequests});
     const pendingSpendBuckets = useMemo(
-        () => getYourSpendPendingBuckets(reportsProjection ?? {statusByID: {}, amount: {approval: false, payment: false}}, queuedSpendRequests),
-        [reportsProjection, queuedSpendRequests],
+        () => getYourSpendPendingBuckets(reportsSignature ?? {ownedReportIDs: '', amount: {approval: false, payment: false}}, queuedSpendRequests),
+        [reportsSignature, queuedSpendRequests],
     );
 
     // Destructure here so downstream memos depend only on the sub-records, not on
@@ -549,18 +571,20 @@ export {
     getOutstandingReportsSignature,
     getYourSpendApplicability,
     getYourSpendPendingBuckets,
+    getYourSpendReportsSignature,
     getYourSpendRowState,
-    projectYourSpendReports,
+    projectQueuedSpendRequests,
     useYourSpendData,
 };
 export type {
     GetYourSpendRowStateParams,
+    QueuedSpendRequest,
     UseYourSpendDataReturn,
     YourSpendApplicability,
     YourSpendCardKind,
     YourSpendCardRow,
     YourSpendPendingBuckets,
-    YourSpendReportsProjection,
+    YourSpendReportsSignature,
     YourSpendRowState,
     YourSpendRowTotals,
 };

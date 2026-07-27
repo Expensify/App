@@ -923,6 +923,14 @@ describe('useYourSpendData — per-row staleness', () => {
         expect(result.current.isPaymentStale).toBe(true);
     });
 
+    it('greys only Repaid for a queued MarkReportPaymentReceived', () => {
+        setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        setupQueue([{command: WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED, data: {reportID: 'r1'}}]);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.isApprovalStale).toBe(false);
+        expect(result.current.isPaymentStale).toBe(true);
+    });
+
     it('greys only Repaid for a queued CancelPayment', () => {
         setupReports([makeReport({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
         setupQueue([{command: WRITE_COMMANDS.CANCEL_PAYMENT, data: {reportID: 'r1'}}]);
