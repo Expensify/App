@@ -234,7 +234,7 @@ describe('getPrimaryAction', () => {
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
-    it('should return SUBMIT for workflow approver on OPEN expense report with stale managerID', async () => {
+    it('should not return SUBMIT as the primary action for a workflow approver who does not own the report', async () => {
         const SUBMITTER_ACCOUNT_ID = 2;
         const SUBMITTER_EMAIL = 'submitter@mail.com';
         const OWNER_ACCOUNT_ID = 3;
@@ -285,7 +285,7 @@ describe('getPrimaryAction', () => {
                 policy,
                 isChatReportArchived: false,
             }),
-        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+        ).toBe('');
     });
 
     it('should not return SUBMIT for workflow approver on Submit & Close policy', async () => {

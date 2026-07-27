@@ -64,7 +64,7 @@ function TravelCVVVerifyAccountPage() {
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
+            descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID: travelCard.cardID})}
             validateCodeActionErrorField="revealExpensifyCardDetails"
             handleSubmitForm={handleRevealCardDetails}
