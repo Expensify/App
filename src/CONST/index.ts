@@ -2219,6 +2219,8 @@ const CONST = {
         },
         // Attribute names
         ATTRIBUTE_DERIVED_TRIGGER: 'derived_trigger',
+        /** Value of derived_trigger for a derived value's first compute, which runs from scratch rather than from a delta. */
+        DERIVED_TRIGGER_INITIAL: 'initial',
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',
         ATTRIBUTE_IS_TRANSACTION_THREAD: 'is_transaction_thread',

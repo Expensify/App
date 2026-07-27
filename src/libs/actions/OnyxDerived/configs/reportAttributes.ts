@@ -53,6 +53,8 @@ const prepareReportKeys = (keys: string[]) => {
 
 // Keys that change without affecting the computed attributes: write-bookkeeping keys and loading flags
 // flip on every optimistic write / API call, and `connections` is large, volatile, and never read here.
+// Excluded at every nesting depth, not just the policy top level — nested bookkeeping (e.g. a member's
+// pendingAction/errors inside employeeList) is just as irrelevant to the attributes as the top-level kind.
 const POLICY_SIGNATURE_EXCLUDED_KEYS = new Set([
     'pendingAction',
     'pendingFields',
@@ -83,10 +85,10 @@ const stableStringify = (value: unknown): string => {
 
 // Signature of a policy's attribute-relevant content, stored in the derived value (like `locale`) so the
 // change-detection baseline survives app restarts. The serialized length is appended so a 32-bit hash
-// collision alone cannot mask a change. No format/version marker is needed: the serialized string encodes
-// its own shape (keys included), so any change to the exclusion set, stringify format, or hash function
-// alters signatures of affected policies — the resulting mismatch triggers a one-time scoped recompute
-// that also refreshes the stored baseline; identical signatures imply identical relevant content.
+// collision alone cannot mask a change. The serialized string encodes its own shape (keys included), so
+// identical signatures imply identical relevant content: any change to the exclusion set, stringify format,
+// or hash function alters signatures of affected policies — the resulting mismatch triggers a one-time
+// scoped recompute that also refreshes the stored baseline.
 const policyRelevantSignature = (policy: Policy | null | undefined): string | null => {
     if (!policy) {
         return null;
@@ -391,7 +393,8 @@ export default createOnyxDerivedValueConfig({
                 // Attributes exist but carry no signature baseline (value written by an older app version, or
                 // computed before policies loaded) — recompute the delivered policies' reports and snapshot the full baseline.
                 const deliveredPolicyIDs = new Set(Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, '')));
-                policyChangedReportKeys = collectReportKeysForPolicies(reports, deliveredPolicyIDs);
+                // A coalesced policy trigger can fire with an empty delta — skip the full report walk then.
+                policyChangedReportKeys = deliveredPolicyIDs.size > 0 ? collectReportKeysForPolicies(reports, deliveredPolicyIDs) : [];
                 canPersistSignaturesWithoutRecompute = !!reports && policyChangedReportKeys.length === 0;
                 if (reports) {
                     nextPolicySignatures = buildAllPolicySignatures();

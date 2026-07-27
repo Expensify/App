@@ -90,7 +90,14 @@ function init() {
                     name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
                     op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
                     parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-                    attributes: {derivedKey: key, [CONST.TELEMETRY.ATTRIBUTE_DERIVED_TRIGGER]: triggeredKeys.size > 0 ? [...triggeredKeys].join(',') : 'initial'},
+                    // Sorted so the same trigger combo serializes identically across derived keys, keeping
+                    // Sentry group-bys stable regardless of each config's dependency order. The first flush
+                    // computes from scratch regardless of which keys fired, so it is stamped as the initial
+                    // compute instead of listing them.
+                    attributes: {
+                        derivedKey: key,
+                        [CONST.TELEMETRY.ATTRIBUTE_DERIVED_TRIGGER]: hasFlushedOnce ? [...triggeredKeys].sort().join(',') : CONST.TELEMETRY.DERIVED_TRIGGER_INITIAL,
+                    },
                 });
 
                 try {

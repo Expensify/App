@@ -14,6 +14,8 @@ import createRandomTransaction from '../utils/collections/transaction';
 
 type ReportAttributesConfig = typeof reportAttributesModuleDefault;
 
+const triggeredBy = (...keys: OnyxKey[]) => new Set<OnyxKey>(keys);
+
 jest.mock('@libs/ReportUtils', () => ({
     generateReportAttributes: jest.fn(() => ({
         hasAnyViolations: false,
@@ -168,7 +170,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(), {
             currentValue: undefined,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.POLICY),
         });
 
         expect(result?.reports).toHaveProperty('r1');
@@ -197,7 +199,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(policies, reportsWithUnrelated), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.POLICY),
         });
 
         // r1/r2 reference the delivered policies → recomputed (default mock name).
@@ -225,7 +227,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1}},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.REPORT),
         });
 
         expect(result?.reports.r1?.reportName).toBe('Test Report');
@@ -263,7 +265,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(policies, reportsWithUnrelated), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.POLICY),
         });
 
         // r1's policy signature differs from the stored one → recomputed (default mock name).
@@ -317,7 +319,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(bothPolicies, invoiceReports), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}receiverPolicy`]: receiverPolicy}},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.POLICY),
         });
 
         // Both the room (own invoiceReceiver) and the child (receiver read from its parent room) recompute.
@@ -350,7 +352,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(updatedPolicies), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed} as never},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.POLICY),
         });
 
         // r1 (policy1 changed) should be recomputed with new name
@@ -383,7 +385,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(updatedPolicies), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithWriteNoise} as never},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.POLICY),
         });
 
         // No content change → return currentValue unchanged
@@ -412,7 +414,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(updatedPolicies), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Renamed} as never},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.POLICY),
         });
 
         // Report names embed the workspace name, so a rename recomputes that policy's reports.
@@ -441,7 +443,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const incrementalResult = config.compute(buildArgs(policies, undefined, null, 'conciergeNew'), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1}},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.REPORT),
         });
         expect(incrementalResult?.conciergeReportID).toBe('conciergeOld');
         expect(incrementalResult?.reports.r2?.reportName).toBe('Old Name 2');
@@ -450,7 +452,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const deliveryResult = config.compute(buildArgs(policies, undefined, null, 'conciergeNew'), {
             currentValue: incrementalResult,
             sourceValues: {[ONYXKEYS.CONCIERGE_REPORT_ID]: 'conciergeNew' as never},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CONCIERGE_REPORT_ID]),
+            triggeredKeys: triggeredBy(ONYXKEYS.CONCIERGE_REPORT_ID),
         });
         expect(deliveryResult?.conciergeReportID).toBe('conciergeNew');
         expect(deliveryResult?.reports.r2?.reportName).toBe('Test Report');
@@ -476,7 +478,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(policies, undefined, null, 'conciergeNew'), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.CONCIERGE_REPORT_ID]: 'conciergeNew' as never},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CONCIERGE_REPORT_ID]),
+            triggeredKeys: triggeredBy(ONYXKEYS.CONCIERGE_REPORT_ID),
         });
 
         // The delivery pass recomputes every report and advances the baseline.
@@ -505,7 +507,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(policies, undefined, null, 'conciergeNew'), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1}},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.REPORT),
         });
 
         // Seeded from this non-delivery pass alone, and only r1 (this pass's update) recomputes.
@@ -550,7 +552,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(argsWithoutReports, {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed} as never},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.POLICY),
         });
 
         // The scoped recompute could not run, so the old baseline must survive — the next delivery
@@ -581,7 +583,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(policiesWithExtra), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policyNoReports`]: policyNoReportsChanged} as never},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.POLICY),
         });
 
         // No report references the changed policy, so the recompute is vacuous — nothing recomputes,
@@ -595,7 +597,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(buildArgs(), {
             currentValue: undefined,
             sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1}},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.REPORT),
         });
 
         expect(result?.reports.r1?.reportName).toBe('Test Report');
@@ -631,7 +633,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         const result = config.compute(args, {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: transactionsUpdate},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.TRANSACTION]),
+            triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.TRANSACTION),
         });
 
         // The expense report is recomputed, and its parent workspace chat (where the to-do/GBR render) is too,
@@ -685,7 +687,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             const result = config.compute(args, {
                 currentValue: existingValue,
                 sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: transactionsUpdate},
-                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.TRANSACTION]),
+                triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.TRANSACTION),
             });
 
             // Skipping the propagation scan must not prevent a genuinely new error from reaching the parent.
@@ -745,7 +747,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             const result = config.compute(args, {
                 currentValue: existingValue,
                 sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: transactionsUpdate},
-                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.TRANSACTION]),
+                triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.TRANSACTION),
             });
 
             // expense1 losing its error must be detected (previous vs next differ) so the propagation loop
@@ -796,7 +798,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             const result = config.compute(args, {
                 currentValue: existingValue,
                 sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[`${ONYXKEYS.COLLECTION.REPORT}unrelated1`]: unrelatedReport}},
-                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+                triggeredKeys: triggeredBy(ONYXKEYS.COLLECTION.REPORT),
             });
 
             // The unrelated report is recomputed, and the untouched chat1/expense1 keep their prior
