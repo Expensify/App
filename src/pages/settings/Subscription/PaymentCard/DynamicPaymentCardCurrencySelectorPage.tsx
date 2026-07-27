@@ -22,7 +22,7 @@ import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 type Currency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 
@@ -61,22 +61,19 @@ function DynamicPaymentCardCurrencySelectorPage() {
             }));
     }, [selectedCurrency, isBetaEnabled]);
 
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         setDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {[INPUT_IDS.CURRENCY]: selectedCurrency});
         setPaymentMethodCurrency(selectedCurrency);
         Navigation.goBack(backPath);
-    }, [selectedCurrency, backPath]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAndGoBack,
-            // Nothing to save while the selection still matches the persisted currency.
-            isDisabled: selectedCurrency === currentCurrency,
-        }),
-        [saveAndGoBack, translate, selectedCurrency, currentCurrency],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+        // Nothing to save while the selection still matches the persisted currency.
+        isDisabled: selectedCurrency === currentCurrency,
+    };
 
     return (
         <ScreenWrapper

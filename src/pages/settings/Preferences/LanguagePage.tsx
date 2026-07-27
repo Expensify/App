@@ -14,7 +14,7 @@ import {setLocale} from '@userActions/App';
 import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import type Locale from '@src/types/onyx/Locale';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 type LanguageEntry = ListItem & {
     value: Locale;
@@ -41,34 +41,31 @@ function LanguagePage() {
         }));
     }, [preferredLocale, selectedLocale]);
 
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         if (selectedLocale && selectedLocale !== preferredLocale) {
             setLocale(selectedLocale, preferredLocale);
         }
         Navigation.goBack();
-    }, [selectedLocale, preferredLocale]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAndGoBack,
-            // Nothing to save while the selection still matches the persisted locale.
-            isDisabled: selectedLocale === preferredLocale,
-        }),
-        [saveAndGoBack, translate, selectedLocale, preferredLocale],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+        // Nothing to save while the selection still matches the persisted locale.
+        isDisabled: selectedLocale === preferredLocale,
+    };
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="LanguagePage"
         >
             <HeaderWithBackButton
                 title={translate('languagePage.language')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <FullPageOfflineBlockingView>
+            <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 <SelectionList
                     data={locales}
                     ListItem={SingleSelectListItem}
@@ -76,6 +73,7 @@ function LanguagePage() {
                     confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={preferredLocale}
+                    addBottomSafeAreaPadding
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
