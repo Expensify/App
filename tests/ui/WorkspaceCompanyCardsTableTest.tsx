@@ -25,6 +25,7 @@ const FEED_NAME = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#${DOMAIN_OR_WORKSP
 const BANK_NAME = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE as CompanyCardFeedWithNumber;
 
 const LOADED_METADATA = {status: 'loaded'} as const;
+const MICROSECONDS_PER_MILLISECOND = 1000;
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({}),
@@ -61,7 +62,7 @@ jest.mock('@components/Table', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const ReactMock = require('react');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {View} = require('react-native');
+    const {Text, View} = require('react-native');
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars
     const MockTable = ReactMock.forwardRef(({children}: {children?: React.ReactNode}, _ref: unknown) => <View testID="WorkspaceCompanyCardsTable">{children}</View>);
@@ -73,7 +74,12 @@ jest.mock('@components/Table', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.Body = () => <View testID="WorkspaceCompanyCardsTableBody" />;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    MockTable.EmptyState = () => <View testID="WorkspaceCompanyCardsTableEmptyState" />;
+    MockTable.EmptyState = ({title, subtitle}: {title?: string; subtitle?: string}) => (
+        <View testID="WorkspaceCompanyCardsTableEmptyState">
+            <Text testID="WorkspaceCompanyCardsTableEmptyStateTitle">{title}</Text>
+            <Text testID="WorkspaceCompanyCardsTableEmptyStateSubtitle">{subtitle}</Text>
+        </View>
+    );
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.NoResultsState = () => <View testID="WorkspaceCompanyCardsTableNoResultsState" />;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -210,5 +216,58 @@ describe('WorkspaceCompanyCardsTable loading suppression', () => {
 
         expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
         expect(screen.getByTestId('WorkspaceCompanyCardsTable')).toBeTruthy();
+    });
+});
+
+describe('WorkspaceCompanyCardsTable CSV import processing state', () => {
+    beforeEach(async () => {
+        await Onyx.clear();
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+        await waitForBatchedUpdates();
+    });
+
+    function buildLoadedFeedWithImportMarker(importStartedAt?: number): UseCompanyCardsResult {
+        return buildCompanyCards({
+            workspaceCardFeedsStatus: {
+                [DOMAIN_OR_WORKSPACE_ACCOUNT_ID]: {isLoading: false},
+            },
+            isNoFeed: false,
+            feedName: FEED_NAME,
+            bankName: BANK_NAME,
+            selectedFeed: {
+                feed: BANK_NAME,
+                importStartedAt,
+                status: {
+                    isLoading: false,
+                },
+            },
+        });
+    }
+
+    it('shows the importing empty state when the feed has a recent import marker and no cards', async () => {
+        renderTable(buildLoadedFeedWithImportMarker(Date.now() * MICROSECONDS_PER_MILLISECOND));
+
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('WorkspaceCompanyCardsTableEmptyStateTitle')).toHaveTextContent('Cards will appear in a moment...');
+        expect(screen.getByTestId('WorkspaceCompanyCardsTableEmptyStateSubtitle')).toHaveTextContent('Hang tight, new cards and transactions may take a few minutes to appear.');
+    });
+
+    it('shows the default empty state when the import marker is older than the processing window', async () => {
+        const expiredMarker = (Date.now() - CONST.COMPANY_CARDS.IMPORT_PROCESSING_WINDOW_MS - 1) * MICROSECONDS_PER_MILLISECOND;
+
+        renderTable(buildLoadedFeedWithImportMarker(expiredMarker));
+
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('WorkspaceCompanyCardsTableEmptyStateTitle')).toHaveTextContent('No cards in this feed');
+    });
+
+    it('shows the default empty state when the feed has no import marker', async () => {
+        renderTable(buildLoadedFeedWithImportMarker());
+
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('WorkspaceCompanyCardsTableEmptyStateTitle')).toHaveTextContent('No cards in this feed');
     });
 });
