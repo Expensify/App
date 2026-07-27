@@ -148,7 +148,8 @@ function useAutocompleteSuggestions({
         }
     }
 
-    useLoadSearchCategoryData({shouldLoad: autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY});
+    const shouldLoadCategoryData = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || ranges.some((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+    useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
     if (!autocompleteKey) {
         return [];

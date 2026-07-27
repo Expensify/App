@@ -942,6 +942,14 @@ function openSearchCardFiltersPage() {
 }
 
 function openSearchCategoryFiltersPage() {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
+            value: true,
+        },
+    ];
+
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -950,7 +958,15 @@ function openSearchCategoryFiltersPage() {
         },
     ];
 
-    read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {successData});
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {

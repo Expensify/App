@@ -15,6 +15,7 @@ type UseLoadSearchCategoryDataParams = {
 function useLoadSearchCategoryData({shouldLoad = true, shouldRefresh = false}: UseLoadSearchCategoryDataParams = {}) {
     const {isOffline} = useNetwork();
     const [areCategoriesLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED);
+    const [isLoadingCategories] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA);
     const hasRequestedCategoryDataRef = useRef(false);
 
     useEffect(() => {
@@ -30,7 +31,9 @@ function useLoadSearchCategoryData({shouldLoad = true, shouldRefresh = false}: U
         openSearchCategoryFiltersPage();
     }, [areCategoriesLoaded, isOffline, shouldLoad, shouldRefresh]);
 
-    return {areCategoriesLoaded, isOffline};
+    const isLoadingInitialCategories = shouldLoad && !areCategoriesLoaded && !isOffline && isLoadingCategories !== false;
+
+    return {areCategoriesLoaded, isLoadingInitialCategories, isOffline};
 }
 
 export default useLoadSearchCategoryData;

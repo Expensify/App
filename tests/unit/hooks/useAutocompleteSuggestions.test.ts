@@ -188,6 +188,21 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CATEGORY);
     });
 
+    it('loads category data when a pasted query contains a completed category filter', async () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = false;
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: null,
+            ranges: [
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 0, length: 12},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'SecondTesting', start: 13, length: 22},
+            ],
+        });
+
+        renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:expense category:SecondTesting'}));
+
+        await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1));
+    });
+
     it('retries loading category data when category autocomplete is reopened after a failure', async () => {
         onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = false;
         parseForAutocomplete.mockImplementation((query: string) => ({
