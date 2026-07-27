@@ -92,9 +92,9 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
             showButton: true,
             text: translate('common.save'),
             onConfirm: saveDayOfMonth,
-            isDisabled: userSelectedOffset === undefined,
+            isDisabled: selectedOffset === offset,
         }),
-        [saveDayOfMonth, translate, userSelectedOffset],
+        [saveDayOfMonth, translate, selectedOffset, offset],
     );
     const textInputOptions = useMemo(
         () => ({
