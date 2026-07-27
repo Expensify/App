@@ -101,6 +101,12 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
+                // Test builds skip the onboarding UI entirely; the flag is absent from production env files.
+                // Gate only the auto-entry into onboarding here so unrelated behaviour (e.g. hybrid-app transitions above) is unaffected.
+                if (CONFIG.SKIP_ONBOARDING) {
+                    return;
+                }
+
                 // Pause the onboarding redirect while required 2FA is in progress:
                 // 1) Overlay visible (pre-verify / cancel-resume) via shouldShowRequire2FAPage
                 // 2) Post-verify handoff window when requiresTwoFactorAuth is true, setupInProgress is still

@@ -291,6 +291,36 @@ function isActiveRoute(routePath: Route): boolean {
     return cleanRoutePath(activeRoute) === cleanRoutePath(routePath);
 }
 
+function startOpenReportSpan(route: Route) {
+    // Start a Sentry span for report navigation — only for exact report-open routes, not sub-pages.
+    // Matches: r/<id>, search/r/<id>, search/view/<id>, e/<id>
+    const reportOpenMatch = Str.cutAfter(route, '?').match(/^(search\/(?:r|view)|r|e)\/(\w+)$/);
+    if (!reportOpenMatch) {
+        return;
+    }
+
+    const routePrefix = reportOpenMatch.at(1);
+    const reportID = reportOpenMatch.at(2);
+    if (!reportID) {
+        return;
+    }
+
+    const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
+    let span = getSpan(spanId);
+    if (!span) {
+        const spanName = `/${routePrefix}/*`;
+        span = startSpan(spanId, {
+            name: spanName,
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
+    }
+    span?.setAttributes({
+        [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+        [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
+        [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
+    });
+}
+
 /**
  * Navigates to a specified route.
  * Main navigation method for redirecting to a route.
@@ -313,30 +343,7 @@ function navigate(route: Route, options?: LinkToOptions) {
         return;
     }
 
-    // Start a Sentry span for report navigation — only for exact report-open routes, not sub-pages.
-    // Matches: r/<id>, search/r/<id>, search/view/<id>, e/<id>
-    const reportOpenMatch = Str.cutAfter(route, '?').match(/^(search\/(?:r|view)|r|e)\/(\w+)$/);
-    if (reportOpenMatch) {
-        const routePrefix = reportOpenMatch.at(1);
-        const reportID = reportOpenMatch.at(2);
-        if (reportID) {
-            const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
-            let span = getSpan(spanId);
-            if (!span) {
-                const spanName = `/${routePrefix}/*`;
-                span = startSpan(spanId, {
-                    name: spanName,
-                    op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-                });
-            }
-            span?.setAttributes({
-                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
-            });
-        }
-    }
-
+    startOpenReportSpan(route);
     const runImmediately = !options?.waitForTransition;
     TransitionTracker.runAfterTransitions({
         callback: () => {
@@ -462,11 +469,11 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     }
 
     // Arms the one-shot inline with each dispatch — no window between "set flag" and dispatch for an early-return to leak it.
-    const dispatch = (dispatchable: NavigationAction) => {
+    const dispatch = (actionToDispatch: NavigationAction) => {
         if (options?.shouldSkipFocusRestore) {
             skipNextFocusRestore();
         }
-        navigationRef.current?.dispatch(dispatchable);
+        navigationRef.current?.dispatch(actionToDispatch);
     };
 
     // TabRouter does not handle POP or REPLACE (BaseRouter returns null). Switch tabs with jumpTo.
@@ -1256,11 +1263,58 @@ function getTopmostSearchReportID(state = navigationRef.getRootState()): string 
     return params?.reportID;
 }
 
+/**
+ * Native narrow-layout: open an expense (its transaction thread) with the parent report as a real
+ * stack entry beneath it, shown as a single forward slide.
+ *
+ * The ReportsSplitNavigator only renders its last two routes. Pushing the report and expense together
+ * shifts that window by two, leaving react-native-screens no shared anchor — so it animates a backward
+ * pop. Instead, push the expense alone first (a normal forward push, anchored by the chat), then on the
+ * next frame splice the parent report directly beneath it via a targeted reset. The expense keeps its
+ * key and stays on top, so the report slots in with no animation and the user sees only the expense
+ * slide. Back then pops expense -> report -> chat, since the real state is [..., chat, report, expense].
+ */
+function openExpenseOverParentReport(parentReportID: string, childReportID: string, backTo: string) {
+    const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(parentReportID, undefined, undefined, backTo);
+    const expenseRoute = ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute);
+
+    // Native only -- the caller (navigateToExpense) routes web to an RHP over the report instead, because a
+    // frozen report screen under the expense drops the first tap on hard-back, and web has no swipe-back
+    // gesture that would need a live report entry underneath.
+    navigate(expenseRoute);
+    setNavigationActionToMicrotaskQueue(() => {
+        const rootState = navigationRef.getRootState();
+        const tabNavigator = rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        const reportsSplitNavigator = tabNavigator?.state?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        const splitState = reportsSplitNavigator?.state;
+        const topRoute = splitState?.routes.at(-1);
+        if (!splitState?.key || !topRoute) {
+            return;
+        }
+        const topParams = topRoute.params;
+        const topReportID = topRoute.name === SCREENS.REPORT && !!topParams && 'reportID' in topParams ? topParams.reportID : undefined;
+        const belowRoute = splitState.routes.at(-2);
+        const belowParams = belowRoute?.params;
+        const belowReportID = belowRoute?.name === SCREENS.REPORT && !!belowParams && 'reportID' in belowParams ? belowParams.reportID : undefined;
+        // Only insert once the expense we pushed is actually on top, and not if the parent is already beneath it.
+        if (topReportID !== childReportID || belowReportID === parentReportID) {
+            return;
+        }
+        const routes = [...splitState.routes.slice(0, -1), {name: SCREENS.REPORT, params: {reportID: parentReportID, backTo}}, topRoute];
+        navigationRef.dispatch({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the inserted parent route is keyless; react-navigation mints its key on reset while every existing route (incl. the expense kept on top) retains its key, so nothing underneath remounts
+            ...CommonActions.reset({...splitState, routes, index: routes.length - 1} as Parameters<typeof CommonActions.reset>[0]),
+            target: splitState.key,
+        });
+    });
+}
+
 export default {
     setShouldPopToSidebar,
     getShouldPopToSidebar,
     popToSidebar,
     navigate,
+    openExpenseOverParentReport,
     setParams,
     dismissModal,
     dismissModalWithReport,
@@ -1307,4 +1361,4 @@ export default {
     navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen};
+export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, startOpenReportSpan};
