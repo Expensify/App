@@ -1563,13 +1563,13 @@ describe('useGettingStartedItems', () => {
         });
 
         describe('setup travel step', () => {
-            it('should insert setupTravel between customizeCategories and linkCompanyCards when travel is enabled', async () => {
+            it('should insert setupTravel after linkCompanyCards when both travel and company cards are enabled', async () => {
                 await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, areCompanyCardsEnabled: true}});
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
                 const keys = result.current.items.map((item) => item.key);
-                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'setupTravel', 'linkCompanyCards', 'inviteAccountant']);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'setupTravel', 'inviteAccountant']);
             });
 
             it('should not show setupTravel when travel is not enabled', async () => {
