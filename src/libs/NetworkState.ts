@@ -36,11 +36,18 @@ const reconnectListeners = new Set<() => void>();
 // the Ping could clear it — reads and side-effect commands bypass the paused queue, so the
 // app could keep succeeding at real requests while staying stuck offline.
 onSustainedFailureChange((active) => setSustainedFailures(active));
+// A resolved response proves connectivity just as strongly as a passing Ping, so clear both
+// hard stops and fire exactly one jittered reconnect. prevIsInternetReachable is left
+// untouched: it stays false, so steady Ping failure (false→false) cannot immediately
+// re-trigger the hard stop, and the next Ping success is ignored by the NetInfo listener
+// since the app is already online.
 onRequestSuccess(() => {
     if (!internetUnreachable) {
         return;
     }
-    clearHardStopsOnRequestSuccess();
+    Log.info('[NetworkState] INTERNET_UNREACHABLE cleared — a successful request proved connectivity');
+    clearHardStops();
+    scheduleJitteredReconnect();
 });
 
 function getIsOffline(): boolean {
@@ -170,20 +177,6 @@ function clearHardStops() {
     sustainedFailuresActive = false;
     resetFailureCounters();
     updateState();
-}
-
-/**
- * Called when a request succeeds while the INTERNET_UNREACHABLE hard stop is set —
- * a resolved response proves connectivity just as strongly as a passing Ping.
- * Clears both hard stops and fires exactly one jittered reconnect. Leaves
- * prevIsInternetReachable untouched: it stays false, so steady Ping failure
- * (false→false) cannot immediately re-trigger the hard stop, and the next
- * Ping success is ignored by the NetInfo listener since the app is already online.
- */
-function clearHardStopsOnRequestSuccess() {
-    Log.info('[NetworkState] INTERNET_UNREACHABLE cleared — a successful request proved connectivity');
-    clearHardStops();
-    scheduleJitteredReconnect();
 }
 
 /**
