@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {getSections, getSortedSections, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getSections, getSortedSections, isGroupedItemArray, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -95,9 +95,9 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
         onConfigChanged();
     }, [queryJSON?.hash, isOffline, isFocused]);
 
-    const sortedData =
+    const sortedSections =
         searchResults?.data && queryJSON && groupBy && login
-            ? (getSortedSections(
+            ? getSortedSections(
                   queryJSON.type,
                   getSections({
                       type: queryJSON.type,
@@ -118,8 +118,9 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
                   queryJSON.sortBy,
                   queryJSON.sortOrder,
                   groupBy,
-              ) as GroupedItem[])
+              )
             : undefined;
+    const sortedData = sortedSections && isGroupedItemArray(sortedSections) ? sortedSections : undefined;
 
     const state = config ? getInsightState(isOffline, searchResults, queryJSON, sortedData) : INSIGHT_STATE.HIDDEN;
 
