@@ -7776,11 +7776,9 @@ const translations = {
                 enableTagsToUnlockTitle: 'Enable tags?',
                 enableTagsToUnlockPrompt: 'Enable Tags (under More features) to unlock.',
                 enableTagsAndRequirePrompt: 'Are you sure you want to enable tags and require them for all expenses?',
-                enableTagsListToRequirePrompt: 'Enable at least one tag under Tags to require them on expenses.',
                 enableCategoriesToUnlockTitle: 'Enable categories?',
                 enableCategoriesToUnlockPrompt: 'Enable Categories (under More features) to unlock.',
                 enableCategoriesAndRequirePrompt: 'Are you sure you want to enable categories and require them for all expenses?',
-                enableCategoriesListToRequirePrompt: 'Enable at least one category under Categories to require them on expenses.',
             },
             expenseReportRules: {
                 title: 'Advanced',

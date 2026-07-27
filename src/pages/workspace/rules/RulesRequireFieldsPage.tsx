@@ -97,17 +97,19 @@ function RulesRequireFieldsPage({
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     }, [hasChanges, categoryRequired, initialCategoryRequired, tagRequired, initialTagRequired, policyData]);
 
+    // Lock UX only when the feature itself is off (or categories are accounting-controlled).
+    // Feature on but no enabled items: toggle stays disabled without lock/modal.
+    const shouldShowCategoryLock = isCategoryFeatureDisabled || isConnectedToAccounting;
+    const shouldShowTagLock = isTagFeatureDisabled;
+
     const categoryDisabledText = (() => {
-        if (!isCategoryToggleDisabled) {
+        if (!shouldShowCategoryLock) {
             return undefined;
         }
         if (isConnectedToAccounting) {
             return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
         }
-        if (isCategoryFeatureDisabled) {
-            return translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockPrompt');
-        }
-        return translate('workspace.rules.individualExpenseRules.enableCategoriesListToRequirePrompt');
+        return translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockPrompt');
     })();
 
     const promptEnableCategoriesForRequireCategory = useCallback(async () => {
@@ -125,62 +127,42 @@ function RulesRequireFieldsPage({
             return;
         }
 
-        if (isCategoryFeatureDisabled) {
-            const {action} = await showConfirmModal({
-                title: translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockTitle'),
-                prompt: translate('workspace.rules.individualExpenseRules.enableCategoriesAndRequirePrompt'),
-                confirmText: translate('common.ok'),
-                cancelText: translate('common.cancel'),
-            });
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            enablePolicyCategories(policyData, true, false);
-            setWorkspaceRequiresCategory(policyData, true);
-            setCategoryRequired(true);
+        if (!isCategoryFeatureDisabled) {
             return;
         }
 
         const {action} = await showConfirmModal({
             title: translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockTitle'),
-            prompt: translate('workspace.rules.individualExpenseRules.enableCategoriesListToRequirePrompt'),
+            prompt: translate('workspace.rules.individualExpenseRules.enableCategoriesAndRequirePrompt'),
             confirmText: translate('common.ok'),
             cancelText: translate('common.cancel'),
         });
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        enablePolicyCategories(policyData, true, false);
+        setWorkspaceRequiresCategory(policyData, true);
+        setCategoryRequired(true);
     }, [isCategoryFeatureDisabled, isConnectedToAccounting, policyData, policyID, showConfirmModal, translate]);
 
     const promptEnableTagsForRequireTag = useCallback(async () => {
-        if (isTagFeatureDisabled) {
-            const {action} = await showConfirmModal({
-                title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
-                prompt: translate('workspace.rules.individualExpenseRules.enableTagsAndRequirePrompt'),
-                confirmText: translate('common.ok'),
-                cancelText: translate('common.cancel'),
-            });
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            enablePolicyTags(policyData, true);
-            setPolicyRequiresTag(policyData, true);
-            setTagRequired(true);
+        if (!isTagFeatureDisabled) {
             return;
         }
 
         const {action} = await showConfirmModal({
             title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
-            prompt: translate('workspace.rules.individualExpenseRules.enableTagsListToRequirePrompt'),
+            prompt: translate('workspace.rules.individualExpenseRules.enableTagsAndRequirePrompt'),
             confirmText: translate('common.ok'),
             cancelText: translate('common.cancel'),
         });
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    }, [isTagFeatureDisabled, policyData, policyID, showConfirmModal, translate]);
+        enablePolicyTags(policyData, true);
+        setPolicyRequiresTag(policyData, true);
+        setTagRequired(true);
+    }, [isTagFeatureDisabled, policyData, showConfirmModal, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -212,9 +194,9 @@ function RulesRequireFieldsPage({
                         wrapperStyle={styles.pv3}
                         isActive={categoryRequired}
                         disabled={isCategoryToggleDisabled}
-                        showLockIcon={isCategoryToggleDisabled}
+                        showLockIcon={shouldShowCategoryLock}
                         disabledText={categoryDisabledText}
-                        disabledAction={isCategoryToggleDisabled ? promptEnableCategoriesForRequireCategory : undefined}
+                        disabledAction={shouldShowCategoryLock ? promptEnableCategoriesForRequireCategory : undefined}
                         pendingAction={policy?.pendingFields?.requiresCategory}
                         errors={policy?.errorFields?.requiresCategory ?? undefined}
                         onCloseError={() => clearPolicyErrorField(policyID, 'requiresCategory')}
@@ -228,17 +210,9 @@ function RulesRequireFieldsPage({
                         wrapperStyle={styles.pv3}
                         isActive={tagRequired}
                         disabled={isTagToggleDisabled}
-                        showLockIcon={isTagToggleDisabled}
-                        disabledText={
-                            isTagToggleDisabled
-                                ? translate(
-                                      isTagFeatureDisabled
-                                          ? 'workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt'
-                                          : 'workspace.rules.individualExpenseRules.enableTagsListToRequirePrompt',
-                                  )
-                                : undefined
-                        }
-                        disabledAction={isTagToggleDisabled ? promptEnableTagsForRequireTag : undefined}
+                        showLockIcon={shouldShowTagLock}
+                        disabledText={shouldShowTagLock ? translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt') : undefined}
+                        disabledAction={shouldShowTagLock ? promptEnableTagsForRequireTag : undefined}
                         pendingAction={policy?.pendingFields?.requiresTag}
                         errors={policy?.errorFields?.requiresTag ?? undefined}
                         onCloseError={() => clearPolicyErrorField(policyID, 'requiresTag')}
