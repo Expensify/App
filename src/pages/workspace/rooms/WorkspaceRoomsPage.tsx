@@ -21,7 +21,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -80,7 +80,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const rooms: WorkspaceRoomRowData[] = (policyReports ?? []).map((report) => ({
         keyForList: report.reportID,
         reportID: report.reportID,
-        name: deprecatedGetReportName(report, reportAttributes),
+        name: getReportName(report, reportAttributes?.[report.reportID]?.reportName),
         memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
         action: () => {
             if (isAdmin) {
