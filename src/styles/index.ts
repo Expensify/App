@@ -4481,7 +4481,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         assigneeTextStyle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeXxxSmall,
+            minHeight: variables.avatarSizeXxSmall,
         },
 
         taskRightIconContainer: {

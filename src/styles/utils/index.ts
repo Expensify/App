@@ -134,7 +134,7 @@ const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.XX_LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.componentBorderRadiusLarge,
-} satisfies Record<AvatarSizeName, number>;
+} as const satisfies Record<AvatarSizeName, number>;
 
 const avatarSizes = {
     [CONST.AVATAR_SIZE.XXXX_SMALL]: variables.avatarSizeXxxxSmall,
@@ -148,7 +148,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.XX_LARGE]: variables.avatarSizeXxLarge,
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.avatarSizeXxxLarge,
     [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.avatarSizeXxxxLarge,
-} satisfies Record<AvatarSizeName, number>;
+} as const satisfies Record<AvatarSizeName, number>;
 
 type AvatarSizeValue = ValueOf<typeof avatarSizes>;
 

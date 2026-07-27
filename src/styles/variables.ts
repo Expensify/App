@@ -26,7 +26,7 @@ const avatarSizes = {
     avatarBorderWidthSmall: 2,
     avatarBorderWidthDefault: 3,
     avatarBorderWidthLarge: 4,
-};
+} as const;
 
 export default {
     bottomTabHeight: 72,
