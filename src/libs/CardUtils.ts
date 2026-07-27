@@ -824,8 +824,11 @@ function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): strin
     return result;
 }
 
+const ANZ_NZ_COMMERCIAL_FEED_BASE = 'vcfanzfav';
+const ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME = 'ANZ NZ';
+
 const COMMERCIAL_FEED_DISPLAY_BASES = [
-    {base: 'vcfanzfav', displayName: 'ANZ NZ', shouldHideOne: false},
+    {base: ANZ_NZ_COMMERCIAL_FEED_BASE, displayName: ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME, shouldHideOne: false},
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX), shouldHideOne: true},
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA), shouldHideOne: true},
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD), shouldHideOne: true},
