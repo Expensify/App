@@ -531,6 +531,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: 'Diagram kann nicht angezeigt werden',
         webGLNotSupported: 'Ihr Browser unterstützt WebGL nicht. Bitte aktivieren Sie es oder wechseln Sie den Browser.',
         apiKey: 'API-Schlüssel',
+        exportsTo: 'Exportiert nach',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
