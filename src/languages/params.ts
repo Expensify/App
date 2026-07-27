@@ -100,6 +100,8 @@ type ExportPartialModalTitleParams = {
 
 type ExportPartialModalDescriptionParams = {
     integration: ConnectionName;
+    hasReportsOnOtherIntegrations: boolean;
+    hasIneligibleReports: boolean;
 };
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};

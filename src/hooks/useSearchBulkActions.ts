@@ -56,7 +56,6 @@ import {
     isIndividualInvoiceRoom,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
-    isExported,
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
@@ -92,7 +91,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
-import type {BillingGraceEndPeriod, ExportTemplate, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -1542,7 +1541,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // two actions behave identically. When applicable, the partial-export modal is shown first and,
             // only after it resolves, the existing "export again" modal — the two are never combined.
             const buildIntegrationHandleExportAction =
-                (integrationReportIDs: string[], integration: NonNullable<ReturnType<typeof getConnectedIntegration>>) => (exportAction: () => void) => {
+                (integrationReportIDs: string[], integration: NonNullable<ReturnType<typeof getConnectedIntegration>>, integrationGroupSize: number) => (exportAction: () => void) => {
                     const runExport = () => {
                         if (!hash) {
                             return;
@@ -1551,9 +1550,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         exportAction();
                     };
 
-                    // Detect already-exported reports from the report actions (the same source that drives the
-                    // "exported" icon in the search list), not the report's `isExportedToIntegration` field which
-                    // can be stale/false in the search snapshot.
                     const exportableReportNames: string[] = [];
                     const exportedReportNames: string[] = [];
                     let areAnyReportsExported = false;
@@ -1567,21 +1563,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             exportableReportNames.push(reportName);
                         }
 
-                        // Prefer live Onyx report actions, falling back to the search snapshot.
-                        const reportActions =
-                            allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ??
-                            (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] as OnyxEntry<ReportActions>);
-
-                        const wasExported =
-                            !!liveReport?.pendingFields?.export ||
-                            !!snapshotReport?.pendingFields?.export ||
-                            liveReport?.isExportedToIntegration === true ||
-                            snapshotReport?.isExportedToIntegration === true ||
-                            // Pass ONLY the report actions so `isExported` evaluates the actions instead of
-                            // short-circuiting on the (possibly stale) `isExportedToIntegration` field.
-                            isExported(reportActions);
-
-                        if (!wasExported) {
+                        // Align already-exported detection with the backend response, which sets
+                        // `pendingFields.export`/`isExportedToIntegration` on the report itself.
+                        const report = liveReport ?? snapshotReport;
+                        if (!report?.pendingFields?.export && !report?.isExportedToIntegration) {
                             continue;
                         }
 
@@ -1634,8 +1619,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             integration,
                         }),
                         // Fixed subtitle describes the partial scope; the scrollable prompt lists the report names
-                        // that will actually be exported for the chosen integration.
-                        subtitle: translate('workspace.exportPartialModal.description', {integration}),
+                        // that will actually be exported for the chosen integration. A partial export can happen for
+                        // two independent reasons: part of the selection belongs to other integrations, and/or some
+                        // reports in this integration are not eligible to export.
+                        subtitle: translate('workspace.exportPartialModal.description', {
+                            integration,
+                            hasReportsOnOtherIntegrations: integrationGroupSize < totalSelectedReportsCount,
+                            hasIneligibleReports: integrationReportIDs.length < integrationGroupSize,
+                        }),
                         prompt: exportableReportNames.join('\n'),
                         confirmText: translate('workspace.exportPartialModal.confirmText', {count: integrationReportIDs.length}),
                         cancelText: translate('workspace.exportPartialModal.cancelText'),
@@ -1651,18 +1642,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // Group each integration's actions together, listing its "Export to <integration>" option
             // immediately followed by its "Mark as exported" option, before moving on to the next integration.
             for (const [integration, reportsForIntegration] of reportsByIntegration) {
-                const integrationReportIDs = reportsForIntegration.map((report) => report.reportID).filter((reportID): reportID is string => reportID !== undefined);
-                if (integrationReportIDs.length === 0) {
-                    continue;
-                }
-                const handleExportAction = buildIntegrationHandleExportAction(integrationReportIDs, integration);
+                const integrationGroupSize = reportsForIntegration.length;
 
-                const canExportGroupToIntegration = reportsForIntegration.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION));
-                if (canExportGroupToIntegration) {
+                // Show the option when AT LEAST ONE report in the group is eligible, and act only on the eligible
+                // subset. Mixing eligible + ineligible reports naturally triggers the partial-export confirmation.
+                const exportableReportIDs = reportsForIntegration
+                    .filter((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION))
+                    .map((report) => report.reportID)
+                    .filter((reportID): reportID is string => reportID !== undefined);
+                if (exportableReportIDs.length > 0) {
+                    const handleExportAction = buildIntegrationHandleExportAction(exportableReportIDs, integration, integrationGroupSize);
                     exportOptions.push({
                         text: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration],
                         icon: getIntegrationIcon(integration, expensifyIcons),
-                        onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, integrationReportIDs, integration, currentSearchKey)),
+                        onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, exportableReportIDs, integration, currentSearchKey)),
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,
@@ -1670,12 +1663,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     });
                 }
 
-                const canMarkGroupAsExported = reportsForIntegration.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED));
-                if (canMarkGroupAsExported) {
+                const markableReportIDs = reportsForIntegration
+                    .filter((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED))
+                    .map((report) => report.reportID)
+                    .filter((reportID): reportID is string => reportID !== undefined);
+                if (markableReportIDs.length > 0) {
+                    const handleMarkAction = buildIntegrationHandleExportAction(markableReportIDs, integration, integrationGroupSize);
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
                         icon: getIntegrationIcon(integration, expensifyIcons),
-                        onSelected: () => handleExportAction(() => markAsManuallyExported(integrationReportIDs, integration)),
+                        onSelected: () => handleMarkAction(() => markAsManuallyExported(markableReportIDs, integration)),
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,

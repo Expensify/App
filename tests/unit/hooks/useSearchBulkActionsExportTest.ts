@@ -18,7 +18,6 @@ import Onyx from 'react-native-onyx';
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 import {createRandomReport} from '../../utils/collections/reports';
-import createMock from '../../utils/createMock';
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -77,7 +76,14 @@ jest.mock('@libs/actions/Search', () => ({
 // the report is undefined and canReportBeExported bails before ever calling it.
 const mockGetSecondaryExportReportActions = jest.fn((...args: Parameters<typeof ReportSecondaryActionUtilsModule.getReportAccountingExportActions>) => {
     const report = args[2];
-    return report ? [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED] : [];
+    if (!report) {
+        return [];
+    }
+    // A submitted (not yet approved) report is not eligible to export, so it drops out of the eligible subset.
+    if (report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        return [];
+    }
+    return [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED];
 });
 jest.mock('@libs/ReportSecondaryActionUtils', () => ({
     ...jest.requireActual<typeof ReportSecondaryActionUtilsModule>('@libs/ReportSecondaryActionUtils'),
@@ -318,16 +324,22 @@ function makeSnapshotReport(reportID: string = REPORT_ID, policyID: string = POL
     };
 }
 
-/** A report action that marks a report as exported to an integration (the source the "exported" icon reads). */
-function makeExportedReportActions(label: string = CONST.EXPORT_LABELS.NETSUITE): ReportActions {
-    return createMock<ReportActions>({
-        exportAction: {
-            reportActionID: 'exportAction',
-            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
-            created: '2024-01-01 00:00:00.000',
-            originalMessage: {label, markedManually: true},
-        },
-    });
+/** A complete snapshot report that has already been exported (backend sets `isExportedToIntegration`). */
+function makeExportedSnapshotReport(reportID: string = REPORT_ID, policyID: string = POLICY_ID): Report {
+    return {
+        ...makeSnapshotReport(reportID, policyID),
+        isExportedToIntegration: true,
+    };
+}
+
+/** A submitted (not yet approved) report — ineligible to export, so it is filtered out of the eligible subset. */
+function makeSubmittedReport(reportID: string = REPORT_ID, policyID: string = POLICY_ID): Report {
+    return {
+        ...makeSnapshotReport(reportID, policyID),
+        reportName: 'Submitted report',
+        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+    };
 }
 
 /** Build a minimal expense-report search snapshot containing the given reports (and optional report actions) keyed by their collection key. */
@@ -562,6 +574,51 @@ describe('useSearchBulkActions - report export options resolve from the search s
         );
     });
 
+    it('shows the export option for a mixed eligible/ineligible selection on one workspace and exports only the eligible report', async () => {
+        /**
+         * Given: two reports on the SAME NetSuite workspace — one approved (eligible to export) and one
+         *        submitted (not yet eligible).
+         *
+         * When: the export bulk-action menu is built and the user clicks "Export to NetSuite" and confirms.
+         *
+         * Then: the option still appears (at least one report is eligible), the partial-export modal is shown
+         *       for the eligible subset, and only the approved report is exported.
+         */
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSubmittedReport(REPORT_ID_2, POLICY_ID)]);
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // The option shows even though only one of the two selected reports is eligible.
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === NETSUITE_FRIENDLY_NAME)
+            ?.onSelected?.();
+
+        // Only the approved report (report1) is exported; the submitted report is skipped.
+        await waitFor(() => {
+            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+        });
+
+        // The partial-export modal is shown for the eligible subset (1 of 2 selected reports).
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: 'workspace.exportPartialModal.title',
+                subtitle: 'workspace.exportPartialModal.description',
+                prompt: 'Approved report',
+                shouldEnablePromptScroll: true,
+            }),
+        );
+    });
+
     it('aborts the export when the partial-export modal is cancelled', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
             id: POLICY_ID_2,
@@ -607,8 +664,8 @@ describe('useSearchBulkActions - report export options resolve from the search s
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
         });
 
-        // report1 is already exported (via its report actions), report2 is not.
-        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)], {[REPORT_ID]: makeExportedReportActions()});
+        // report1 is already exported (backend set `isExportedToIntegration`), report2 is not.
+        mockCurrentSearchResults = makeSearchResults([makeExportedSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)]);
         mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction(),
@@ -657,7 +714,7 @@ describe('useSearchBulkActions - report export options resolve from the search s
          * Then: only the export-again modal is shown (the export is not partial), and after confirming the
          *       report is exported.
          */
-        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()], {[REPORT_ID]: makeExportedReportActions()});
+        mockCurrentSearchResults = makeSearchResults([makeExportedSnapshotReport()]);
         mockSelectedReports = [makeSelectedReport()];
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
@@ -686,17 +743,17 @@ describe('useSearchBulkActions - report export options resolve from the search s
         );
     });
 
-    it('detects an already-exported report from report actions even when isExportedToIntegration is stale/false', async () => {
+    it('detects an already-exported report from a pending export field on the report', async () => {
         /**
-         * Given: a report whose `isExportedToIntegration` field is stale (false) in the snapshot but whose
-         *        report actions show it was exported — the same source that drives the search list icon.
+         * Given: a report the backend reports as mid-export via `pendingFields.export` (rather than
+         *        `isExportedToIntegration`). Detection is aligned with the backend response, which sets these
+         *        fields on the report itself.
          *
          * When: the user clicks "Export to NetSuite".
          *
-         * Then: the export-again modal is still shown, proving detection reads the report actions and does
-         *       not trust the stale `isExportedToIntegration` field.
+         * Then: the export-again modal is shown, proving detection reads the report's export fields.
          */
-        mockCurrentSearchResults = makeSearchResults([{...makeSnapshotReport(), isExportedToIntegration: false}], {[REPORT_ID]: makeExportedReportActions()});
+        mockCurrentSearchResults = makeSearchResults([{...makeSnapshotReport(), isExportedToIntegration: false, pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}]);
         mockSelectedReports = [makeSelectedReport()];
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
@@ -759,7 +816,7 @@ describe('useSearchBulkActions - report export options resolve from the search s
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
         });
 
-        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)], {[REPORT_ID]: makeExportedReportActions()});
+        mockCurrentSearchResults = makeSearchResults([makeExportedSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)]);
         mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction(),
