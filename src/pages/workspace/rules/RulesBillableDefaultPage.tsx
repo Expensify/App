@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type RulesBillableDefaultPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT>;
@@ -41,24 +41,44 @@ function RulesBillableDefaultPage({
     const {isBetaEnabled} = usePermissions();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
+    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
+    // persisted defaultBillable, so the change of context (persist + navigate) only happens when the user taps Save.
+    const [draftBillable, setDraftBillable] = useState<boolean>();
+    const selectedBillable = draftBillable ?? policy?.defaultBillable ?? false;
+
     const billableModes = [
         {
             value: true,
             text: translate(`workspace.rules.individualExpenseRules.billable`),
             alternateText: translate(`workspace.rules.individualExpenseRules.billableDescription`),
             keyForList: CONST.POLICY_BILLABLE_MODES.BILLABLE,
-            isSelected: policy?.defaultBillable,
+            isSelected: selectedBillable,
         },
         {
             value: false,
             text: translate(`workspace.rules.individualExpenseRules.nonBillable`),
             alternateText: translate(`workspace.rules.individualExpenseRules.nonBillableDescription`),
             keyForList: CONST.POLICY_BILLABLE_MODES.NON_BILLABLE,
-            isSelected: !policy?.defaultBillable,
+            isSelected: !selectedBillable,
         },
     ];
 
-    const initiallyFocusedOptionKey = policy?.defaultBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
+    const initiallyFocusedOptionKey = selectedBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
+
+    const saveAndGoBack = useCallback(() => {
+        setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
+        Navigation.goBack();
+    }, [policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveAndGoBack,
+        }),
+        [saveAndGoBack, translate],
+    );
+
     const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
     const isTrackBillableToggleDisabled = !policy?.areTagsEnabled;
     const shouldShowBillableModeList = !isRevamp || (isBillableTrackingEnabled && !isTrackBillableToggleDisabled);
@@ -107,9 +127,9 @@ function RulesBillableDefaultPage({
                         data={billableModes}
                         ListItem={SingleSelectListItem}
                         onSelectRow={(item) => {
-                            setPolicyBillableMode(policyID, item.value, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
-                            Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+                            setDraftBillable(item.value);
                         }}
+                        confirmButtonOptions={confirmButtonOptions}
                         shouldSingleExecuteRowSelect
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         addBottomSafeAreaPadding
