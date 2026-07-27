@@ -8432,6 +8432,11 @@ describe('SearchUIUtils', () => {
         it('should return false when queryJSON is undefined but searchResults has a concrete type and hash', () => {
             expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), undefined)).toBe(false);
         });
+
+        it('should return false when searchResults.search is undefined', () => {
+            const results = makeSearchResults({search: undefined});
+            expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(false);
+        });
     });
 
     describe('Test isSearchResultsEmpty', () => {
@@ -10732,7 +10737,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -10918,7 +10923,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID)).toBe(true);
         });
     });
     describe('getToFieldValueForTransaction', () => {
