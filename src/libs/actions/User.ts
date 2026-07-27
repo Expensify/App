@@ -797,7 +797,6 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
     });
 }
 
-let pongHasBeenMissed = false;
 let lastPingSentTimestamp = Date.now();
 let lastPongReceivedTimestamp = Date.now();
 function subscribeToPusherPong(currentUserAccountID: number) {
@@ -814,9 +813,6 @@ function subscribeToPusherPong(currentUserAccountID: number) {
         const pongEvent = pushJSON as PingPongEvent;
         const latency = Date.now() - Number(pongEvent.pingTimestamp);
         Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
-
-        // When any PONG event comes in, reset this flag so that checkForLatePongReplies will resume looking for missed PONGs
-        pongHasBeenMissed = false;
     });
 }
 
@@ -858,25 +854,15 @@ function checkForLatePongReplies() {
         return;
     }
 
-    if (pongHasBeenMissed) {
-        Log.info(`[Pusher PINGPONG] Skipped checking for late PONG events because a PONG has already been missed`);
-        return;
-    }
+    const now = Date.now();
+    const timeSinceLastPongReceived = now - lastPongReceivedTimestamp;
 
-    Log.info(`[Pusher PINGPONG] Checking for late PONG events`);
-    const timeSinceLastPongReceived = Date.now() - lastPongReceivedTimestamp;
-
-    // If the time since the last pong was received is more than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, the socket is presumed dead
-    // (HTTP still works since the client is not offline) so reconnect Pusher
+    // A missing PONG while HTTP still works (the client is not offline) means the socket is presumed dead, so reconnect Pusher
     if (timeSinceLastPongReceived > SOCKET_PRESUMED_DEAD_THRESHOLD_IN_SECONDS * 1000) {
         Log.info(`[Pusher PINGPONG] The server has not replied to the PING event in ${timeSinceLastPongReceived} ms so the socket is presumed dead and Pusher is being reconnected`);
 
-        // Reset the pingpong state so that the fresh socket gets a clean grace period, and keep pongHasBeenMissed set
-        // until a PONG arrives so we only reconnect once per episode
-        const now = Date.now();
-        lastPingSentTimestamp = now;
+        // Reset the PONG clock so the fresh socket gets a full grace period; retries stay unbounded (~1 reconnect every 2 minutes while PONGs are missing)
         lastPongReceivedTimestamp = now;
-        pongHasBeenMissed = true;
         Pusher.reconnect();
     } else {
         Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so the socket is presumed alive`);

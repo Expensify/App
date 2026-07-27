@@ -20,17 +20,15 @@ jest.mock('@libs/NetworkState', () => ({
     getIsOffline: () => false,
 }));
 
-const PING_INTERVAL_MS = 30_000;
+// The watchdog checks every 60s; each reconnect resets the PONG clock, so while PONGs stay missing it fires on every second check tick (~2 minutes)
 const CHECK_INTERVAL_MS = 60_000;
-// Enough to cross the 2x ping-interval late-pong threshold and hit a watchdog check tick
-const PAST_THRESHOLD_MS = 2 * PING_INTERVAL_MS + CHECK_INTERVAL_MS + 1_000;
 
 describe('Pusher PINGPONG watchdog', () => {
     let reconnectSpy: jest.SpyInstance;
-    let pongCallback: Parameters<typeof PusherUtils.subscribeToPrivateUserChannelEvent>[2] | undefined;
+    let pongCallback: Parameters<typeof PusherUtils.subscribeToPrivateUserChannelEvent>[2];
 
     beforeAll(() => {
-        // The React Native jest setup replaces the global timers after the globally-enabled fake timers are installed,
+        // jest/setupAfterEnv.ts calls jest.useRealTimers() after the globally-enabled fake timers are installed,
         // so they must be re-installed here for setInterval/setTimeout in User.ts to be controllable
         jest.useFakeTimers();
         Onyx.init({keys: ONYXKEYS});
@@ -38,25 +36,42 @@ describe('Pusher PINGPONG watchdog', () => {
 
         subscribeToUserEvents(123, 'test@example.com', () => undefined);
 
-        pongCallback = jest.mocked(PusherUtils.subscribeToPrivateUserChannelEvent).mock.calls.find(([eventName]) => eventName === Pusher.TYPE.PONG)?.[2];
-        expect(pongCallback).toBeDefined();
+        const callback = jest.mocked(PusherUtils.subscribeToPrivateUserChannelEvent).mock.calls.find(([eventName]) => eventName === Pusher.TYPE.PONG)?.[2];
+        if (!callback) {
+            throw new Error('The PONG subscription was not registered');
+        }
+        pongCallback = callback;
     });
 
-    it('reconnects Pusher once per episode when the PONG goes missing', async () => {
-        await jest.advanceTimersByTimeAsync(PAST_THRESHOLD_MS);
+    // Both tests share one continuous fake-timer timeline and must run in file order
+
+    it('reconnects once past the threshold and keeps retrying every second check tick while PONGs stay missing', async () => {
+        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS + 1_000);
         expect(reconnectSpy).toHaveBeenCalledTimes(1);
 
-        // Further check intervals must not reconnect again while the PONG is still missing
-        await jest.advanceTimersByTimeAsync(3 * CHECK_INTERVAL_MS);
+        // The check tick right after a reconnect lands inside the grace period
+        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
         expect(reconnectSpy).toHaveBeenCalledTimes(1);
+
+        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
+        expect(reconnectSpy).toHaveBeenCalledTimes(2);
+
+        await jest.advanceTimersByTimeAsync(2 * CHECK_INTERVAL_MS);
+        expect(reconnectSpy).toHaveBeenCalledTimes(3);
     });
 
-    it('re-arms and reconnects again after a PONG arrives and then goes missing again', async () => {
+    it('defers the next reconnect when a PONG arrives', async () => {
         reconnectSpy.mockClear();
 
-        pongCallback?.({pingID: '1', pingTimestamp: Date.now()});
+        // Let the in-grace check tick pass, then deliver a PONG
+        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
+        pongCallback({pingID: '1', pingTimestamp: Date.now()});
 
-        await jest.advanceTimersByTimeAsync(PAST_THRESHOLD_MS);
+        // Without the PONG resetting the clock, this next check tick would reconnect
+        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
+        expect(reconnectSpy).not.toHaveBeenCalled();
+
+        await jest.advanceTimersByTimeAsync(CHECK_INTERVAL_MS);
         expect(reconnectSpy).toHaveBeenCalledTimes(1);
     });
 });
