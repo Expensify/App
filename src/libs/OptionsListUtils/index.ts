@@ -222,7 +222,6 @@ import type {
     SectionForSearchTerm,
 } from './types';
 
-import {createLazyContactOption, hydrateLazyContactOptions} from './lazyContactOptions';
 import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from './searchMatchUtils';
 
 /**
@@ -1579,8 +1578,8 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
  *    thousands of reports while ensuring correct filtering.
  * 3. Search mode (`options.isSearching` true): uses the full pre-filtered report list with no recency sort and
  *    no `maxRecentReports` cap, so search can include all eligible reports.
- * 4. Lazy contacts (`options.lazyContactOptions` true): builds filter/rank shells via buildPersonalDetailsOptions
- *    and hydrates survivors in getValidOptions. Reports stay eager — their filters read fully-built fields.
+ * 4. Personal details are built as filter/rank shells (no icons / last-message / policy work). getValidOptions
+ *    hydrates survivors via hydrateLazyPersonalDetailOption. Reports stay eager — their filters read fully-built fields.
  *
  * @param options.isSearching - When true, skips the sort and top-N limit in step 2; when false, applies them.
  *
@@ -1625,17 +1624,18 @@ function cloneOptionList(optionList: OptionList): OptionList {
 // silently corrupting the cache for other screens. The clones' top-level objects stay mutable because
 // spreading a frozen object produces a new unfrozen one — which covers all mutations consumers do today.
 //
-// `item` and the members of `participantsList` are exempt: they are Onyx snapshot objects shared with the
-// whole app, not structures this cache created, and existing code still writes to them in place (e.g.
-// getPersonalDetailsForAccountIDs sets accountID during every option build), so freezing them would crash
-// unrelated flows in dev. Mutating them corrupts app-wide Onyx state, which is beyond this cache's invariant.
+// `item`, `lazyHydrationData`, and the members of `participantsList` are exempt: they hold Onyx snapshot
+// objects shared with the whole app (reports / personal details), not structures this cache created, and
+// existing code still writes to them in place (e.g. getPersonalDetailsForAccountIDs sets accountID during
+// every option build), so freezing them would crash unrelated flows in dev. Mutating them corrupts
+// app-wide Onyx state, which is beyond this cache's invariant.
 function deepFreeze(value: unknown) {
     if (typeof value !== 'object' || value === null || Object.isFrozen(value)) {
         return;
     }
     Object.freeze(value);
     for (const [key, child] of Object.entries(value)) {
-        if (key === 'item') {
+        if (key === 'item' || key === 'lazyHydrationData') {
             continue;
         }
         if (key === 'participantsList') {
@@ -1658,70 +1658,102 @@ function clearFilteredOptionListCache() {
 registerSessionCleanupCallback(() => filteredOptionListCache.clear());
 
 /**
- * Step 5 of createFilteredOptionList: one SearchOption per personal detail.
- * When lazyContactOptions is true, returns filter/rank shells; getValidOptions hydrates via hydrateLazyContactOptions.
+ * Step 5 of createFilteredOptionList: one lightweight SearchOption per personal detail.
+ * Only filter/rank fields are computed here; getValidOptions hydrates survivors via hydrateLazyPersonalDetailOption.
  */
 function buildPersonalDetailsOptions({
     personalDetails,
     reportMapForAccountIDs,
     privateIsArchivedMap,
-    policiesCollection,
-    policyTags,
-    reportAttributesDerived,
-    visibleReportActionsData,
-    lazyContactOptions,
 }: {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     reportMapForAccountIDs: Record<number, Report>;
     privateIsArchivedMap: PrivateIsArchivedMap;
-    policiesCollection: OnyxCollection<Policy>;
-    policyTags: OnyxCollection<PolicyTagLists> | undefined;
-    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
-    visibleReportActionsData: VisibleReportActionsDerivedValue;
-    lazyContactOptions: boolean;
 }): Array<SearchOption<PersonalDetails | null>> {
     return Object.values(personalDetails ?? {}).map((personalDetail) => {
         const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const report = reportMapForAccountIDs[accountID];
-
-        // Policy/tag/archive lookups live inside createFullOption so the lazy path skips them for
-        // contacts that never survive filtering/ranking and never get hydrated.
-        const createFullOption = (): SearchOption<PersonalDetails | null> => {
-            const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-            const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-            const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-
-            return {
-                item: personalDetail,
-                ...createOption({
-                    accountIDs: [accountID],
-                    personalDetails,
-                    report,
-                    policy,
-                    privateIsArchived,
-                    config: {showPersonalDetails: true},
-                    reportAttributesDerived,
-                    policyTags: reportPolicyTags,
-                    visibleReportActionsData,
-                }),
-            };
-        };
-
-        if (!lazyContactOptions) {
-            return createFullOption();
-        }
-
         // Same lookup createOption performs (also normalizes accountID in place).
         const detail = getPersonalDetailsForAccountIDs([accountID], personalDetails)[accountID];
-        return createLazyContactOption({
-            personalDetail,
-            accountID,
-            report,
-            detail,
-            personalDetails,
-            buildFullOption: createFullOption,
-        });
+        const formattedLogin = formatPhoneNumberPhoneUtils(detail?.login ?? '');
+        // Match createOption's showPersonalDetails reportName (translateLocal — same default createOption uses when translate is omitted).
+        const text =
+            getDisplayNameForParticipant({
+                accountID,
+                personalDetailsData: report ? undefined : (personalDetails ?? undefined),
+                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                translate: translateLocal,
+            }) || formattedLogin;
+
+        return {
+            item: personalDetail,
+            lazyHydrationData: {
+                report,
+                privateIsArchived: report ? privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] : undefined,
+            },
+            // The empty string default mirrors createOption, as many places test for reportID existence with truthiness operators.
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            reportID: report?.reportID ?? '',
+            keyForList: report ? String(report.reportID) : String(accountID),
+            text,
+            // Comparator fallback only; hydrated option recomputes the real alternateText.
+            alternateText: report && detail?.login ? detail.login : formattedLogin,
+            login: detail?.login,
+            accountID: Number(detail?.accountID),
+            participantsList: detail ? [detail] : [],
+            isSelected: false,
+            selected: false,
+            brickRoadIndicator: null,
+        };
     });
+}
+
+/**
+ * Builds the full display option for a lightweight personal detail option produced by createFilteredOptionList.
+ * Options without lazy hydration data are returned unchanged, so fully-built options (e.g. device contacts) can be passed safely.
+ */
+function hydrateLazyPersonalDetailOption(
+    option: SearchOption<PersonalDetails>,
+    {
+        personalDetails,
+        policiesCollection,
+        reportAttributesDerived,
+        allPolicyTags,
+        visibleReportActionsData = {},
+    }: {
+        personalDetails: OnyxEntry<PersonalDetailsList>;
+        policiesCollection?: OnyxCollection<Policy>;
+        reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+        allPolicyTags?: OnyxCollection<PolicyTagLists>;
+        visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    },
+): SearchOption<PersonalDetails> {
+    if (!option.lazyHydrationData) {
+        return option;
+    }
+
+    const {report, privateIsArchived} = option.lazyHydrationData;
+    const accountID = option.item?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    // When the caller does not provide the personal details list, the option's own personal detail is enough
+    // to rebuild everything except the last actor details of the mapped report.
+    const personalDetailsData = personalDetails ?? (option.item ? {[accountID]: option.item} : undefined);
+    const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const reportPolicyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
+
+    return {
+        item: option.item,
+        ...createOption({
+            accountIDs: [accountID],
+            personalDetails: personalDetailsData,
+            report,
+            policy,
+            privateIsArchived,
+            config: {showPersonalDetails: true},
+            reportAttributesDerived,
+            policyTags: reportPolicyTags,
+            visibleReportActionsData,
+        }),
+    };
 }
 
 function createFilteredOptionList(
@@ -1741,11 +1773,6 @@ function createFilteredOptionList(
          * empty state (contact pickers) must leave this false.
          */
         deferContactsUntilSearch?: boolean;
-        /**
-         * Defer full createOption builds for contacts until getValidOptions filters/ranks them.
-         * Only enable when every consumer routes personalDetails through getValidOptions/getSearchOptions.
-         */
-        lazyContactOptions?: boolean;
         locale?: Locale;
     } = {},
     policyTags?: OnyxCollection<PolicyTagLists>,
@@ -1754,7 +1781,7 @@ function createFilteredOptionList(
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
-    const {maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, lazyContactOptions = false, locale} = options;
+    const {maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
 
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
     // opts into deferral and is not actively searching, skip building them entirely; the empty state
@@ -1766,7 +1793,7 @@ function createFilteredOptionList(
     // full-account-sized arrays until sign-out — and any Onyx change invalidates them anyway.
     const shouldUseCache = !isSearching;
 
-    const cacheEntryKey = buildFilteredOptionListCacheKey([maxRecentReports, includeP2P, isSearching, deferContactsUntilSearch, lazyContactOptions]);
+    const cacheEntryKey = buildFilteredOptionListCacheKey([maxRecentReports, includeP2P, isSearching, deferContactsUntilSearch]);
     const cacheInputs = [
         personalDetails,
         reports,
@@ -1866,17 +1893,15 @@ function createFilteredOptionList(
         }
     }
 
-    // Step 5: Process personal details (all of them when built - needed for search functionality)
+    // Step 5: Process personal details (all of them when built - needed for search functionality).
+    // Only the fields used for filtering and sorting are computed here. The expensive display fields (icons,
+    // alternate text, last message preview) are built by hydrateLazyPersonalDetailOption, but only for the
+    // page of options that survives filtering and the maxElements cap in getValidOptions.
     const personalDetailsOptions = shouldBuildContacts
         ? buildPersonalDetailsOptions({
               personalDetails,
               reportMapForAccountIDs,
               privateIsArchivedMap,
-              policiesCollection,
-              policyTags,
-              reportAttributesDerived,
-              visibleReportActionsData,
-              lazyContactOptions,
           })
         : [];
 
@@ -2874,7 +2899,17 @@ function getValidOptions(
             ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), MIN_PERSONAL_DETAILS_SLOTS)
             : undefined;
         const groupedPersonalDetails = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
-        personalDetailsOptions = hydrateLazyContactOptions(groupedPersonalDetails.options);
+        // Lightweight options from createFilteredOptionList get their full display fields only now, after the
+        // heap selection reduced them to a single page, so the expensive work is done for a handful of options.
+        personalDetailsOptions = groupedPersonalDetails.options.map((personalDetailOption) =>
+            hydrateLazyPersonalDetailOption(personalDetailOption, {
+                personalDetails,
+                policiesCollection,
+                reportAttributesDerived,
+                allPolicyTags,
+                visibleReportActionsData,
+            }),
+        );
 
         hasMore = hasMore || groupedPersonalDetails.hasMore;
 
@@ -3539,6 +3574,7 @@ export {
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
     createFilteredOptionList,
+    hydrateLazyPersonalDetailOption,
     createOption,
     filterAndOrderOptions,
     filterReports,

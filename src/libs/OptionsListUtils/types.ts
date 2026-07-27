@@ -97,11 +97,23 @@ type SearchOptionData = Pick<
     | 'selected' // Duplicate of isSelected, kept for backwards compatibility
 >;
 
+type PersonalDetailLazyHydrationData = {
+    /** The 1:1 DM report mapped to the personal detail, used when building the full display option. */
+    report?: Report;
+
+    /** Archived state of the mapped report. */
+    privateIsArchived?: boolean;
+};
+
 type SearchOption<T> = SearchOptionData & {
     item: T;
 
-    /** Runs the full createOption build for a lazily-built contact; used by getValidOptions for top-N survivors. */
-    buildFullOption?: () => SearchOption<T>;
+    /**
+     * Present only on lightweight personal detail options built by createFilteredOptionList. Such options carry
+     * just the fields needed for filtering and sorting, and hydrateLazyPersonalDetailOption uses this data to
+     * build the full display option once the visible page of options has been selected.
+     */
+    lazyHydrationData?: PersonalDetailLazyHydrationData;
 };
 
 type OptionList = {

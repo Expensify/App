@@ -218,8 +218,6 @@ function useSearchSelectorBase({
         enabled: shouldInitialize,
         isSearching: isSearchingOptions,
         batchSize: maxResultsPerPage,
-        // Defer full createOption builds; all contexts below filter personalDetails via getValidOptions/getSearchOptions.
-        lazyContactOptions: true,
     });
     const areOptionsInitialized = !isLoadingOptions;
     const defaultOptions = filteredOptions ?? emptyOptionList;

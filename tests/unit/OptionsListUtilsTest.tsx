@@ -36,6 +36,7 @@ import {
     getSearchValueForPhoneOrEmail,
     getUserToInviteOption,
     getValidOptions,
+    hydrateLazyPersonalDetailOption,
     optionsOrderBy,
     orderOptions,
     orderPersonalDetailsOptions,
@@ -1681,47 +1682,57 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getValidOptions() with lazy contact options', () => {
+        const hydrateAllPersonalDetails = (list: OptionList): OptionList => ({
+            ...list,
+            personalDetails: list.personalDetails.map((option) =>
+                hydrateLazyPersonalDetailOption(option, {
+                    personalDetails: PERSONAL_DETAILS,
+                    policiesCollection: allPolicies,
+                    reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
+                }),
+            ),
+        });
+
         const buildOptionLists = () => {
-            const eagerList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true});
-            const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
-                isSearching: true,
-                lazyContactOptions: true,
-            });
+            const lazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {isSearching: true});
+            // Fully hydrate every shell so getValidOptions can be compared against a pre-built baseline
+            // (createFilteredOptionList always returns lightweight shells).
+            const eagerList = hydrateAllPersonalDetails(lazyList);
             return {eagerList, lazyList};
         };
 
         it('should defer the full option build for every contact', () => {
-            // Given an option list built with lazyContactOptions
+            // Given an option list from createFilteredOptionList
             const {lazyList} = buildOptionLists();
 
-            // Then every contact option is a lightweight one: it carries buildFullOption and skips expensive fields like icons
+            // Then every contact option is a lightweight one: it carries lazyHydrationData and skips expensive fields like icons
             expect(lazyList.personalDetails.length).toBeGreaterThan(0);
-            expect(lazyList.personalDetails.every((option) => typeof option.buildFullOption === 'function')).toBe(true);
+            expect(lazyList.personalDetails.every((option) => option.lazyHydrationData !== undefined)).toBe(true);
             expect(lazyList.personalDetails.every((option) => option.icons === undefined)).toBe(true);
         });
 
         it('should produce results identical to eagerly built options after hydration', () => {
-            // Given the same data built eagerly and lazily
+            // Given the same data as lightweight shells and as fully hydrated options
             const {eagerList, lazyList} = buildOptionLists();
 
             // When both lists go through getValidOptions with a top-N cap that exercises the heap
-            const config = {maxElements: 3};
+            const config = {maxElements: 3, personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
 
             // Then the surviving contacts are hydrated (createOption ran for them) and match the eager results exactly
             expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
             expect(lazyResults.personalDetails.every((option) => option.icons !== undefined)).toBe(true);
-            expect(lazyResults.personalDetails.every((option) => !('buildFullOption' in option))).toBe(true);
+            expect(lazyResults.personalDetails.every((option) => !('lazyHydrationData' in option))).toBe(true);
             expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
         });
 
         it('should produce results identical to eagerly built options when searching', () => {
-            // Given the same data built eagerly and lazily
+            // Given the same data as lightweight shells and as fully hydrated options
             const {eagerList, lazyList} = buildOptionLists();
 
             // When both lists go through getValidOptions with a search string (contact filtering reads text/login/participantsList)
-            const config = {searchString: 'spider'};
+            const config = {searchString: 'spider', personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
 
@@ -1729,12 +1740,12 @@ describe('OptionsListUtils', () => {
             expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
         });
 
-        it('should keep every shell filter and sort field identical to the eager option', () => {
-            // Given the same data built eagerly and lazily
+        it('should keep every shell filter and sort field identical to the hydrated option', () => {
+            // Given lightweight shells from createFilteredOptionList
             const {eagerList, lazyList} = buildOptionLists();
 
             // Then each shell carries the exact values the downstream filter (login/accountID/participantsList/text)
-            // and the heap comparator key (text -> alternateText -> login) read on the eager option, which also
+            // and the heap comparator key (text -> alternateText -> login) read on the hydrated option, which also
             // guarantees identical tie-breaking for contacts with equal comparator keys
             expect(lazyList.personalDetails.length).toBe(eagerList.personalDetails.length);
             for (const [index, eagerOption] of eagerList.personalDetails.entries()) {
@@ -1748,20 +1759,19 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not let createOption drift from the lazy shell on any filter- or rank-relevant field', () => {
-            // Drift guard for createLazyContactOption: the lazy shell hand-reproduces the subset of
-            // createOption's showPersonalDetails output that getValidOptions filters and ranks on. If
-            // createOption ever changes how one of those values is derived - or starts populating a new
-            // one (e.g. displayName / isOptimisticPersonalDetail, currently undefined on both paths) -
-            // the shell must be updated in lockstep or filtering/ranking will diverge from what is
-            // displayed after hydration. This asserts exact parity across every such field so that a
-            // one-sided change to createOption fails here.
+            // Drift guard for the lazy shell: it hand-reproduces the subset of createOption's showPersonalDetails
+            // output that getValidOptions filters and ranks on. If createOption ever changes how one of those
+            // values is derived - or starts populating a new one (e.g. displayName / isOptimisticPersonalDetail,
+            // currently undefined on both paths) - the shell must be updated in lockstep or filtering/ranking
+            // will diverge from what is displayed after hydration. This asserts exact parity across every such
+            // field so that a one-sided change to createOption fails here.
             //
             // When you add a field that the personal-details filter (see getValidOptions -> filteringFunction
             // / doesPersonalDetailMatchSearchTerm) or the heap comparator (personalDetailsComparator) reads,
-            // add it to this list AND reproduce it in createLazyContactOption.
+            // add it to this list AND reproduce it in buildPersonalDetailsOptions.
             const FILTER_AND_RANK_FIELDS = ['text', 'login', 'accountID', 'participantsList', 'displayName', 'isOptimisticPersonalDetail'] as const;
 
-            // Given the same data built eagerly and lazily
+            // Given lightweight shells and their hydrated counterparts
             const {eagerList, lazyList} = buildOptionLists();
 
             // Then every shell reproduces every filter/rank field exactly, and the resolved comparator key matches
@@ -1779,11 +1789,11 @@ describe('OptionsListUtils', () => {
         });
 
         it('should produce results identical to eagerly built options with custom exclusions', () => {
-            // Given the same data built eagerly and lazily
+            // Given the same data as lightweight shells and as fully hydrated options
             const {eagerList, lazyList} = buildOptionLists();
 
             // When both lists go through getValidOptions with a custom exclusion (filter reads shell.login)
-            const config = {excludeLogins: {'peterparker@expensify.com': true}};
+            const config = {excludeLogins: {'peterparker@expensify.com': true}, personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
 
@@ -1796,7 +1806,6 @@ describe('OptionsListUtils', () => {
             // Given a lazily built option list with no personal details
             const lazyList = createFilteredOptionList({}, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
                 isSearching: true,
-                lazyContactOptions: true,
             });
 
             // When it goes through getValidOptions
@@ -1812,7 +1821,9 @@ describe('OptionsListUtils', () => {
             const {lazyList} = buildOptionLists();
 
             // When it goes through getValidOptions
-            const {options: results} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
+            const {options: results} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+                personalDetails: PERSONAL_DETAILS,
+            });
 
             // Then every surviving contact has the properties SelectionList rendering and selection rely on,
             // so the deferred build introduces no missing fields
@@ -1829,35 +1840,34 @@ describe('OptionsListUtils', () => {
         });
 
         it('should produce results identical to eagerly built options when searching with a top-N cap', () => {
-            // Given the same data built eagerly and lazily
+            // Given the same data as lightweight shells and as fully hydrated options
             const {eagerList, lazyList} = buildOptionLists();
 
             // When both lists go through getValidOptions with search + maxElements together
             // (filter selects matches, then the heap keeps only the top-N survivors to hydrate)
-            const config = {searchString: 'man', maxElements: 3};
+            const config = {searchString: 'man', maxElements: 3, personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
 
             // Then filtering, ranking, and hydration match the eager path
             expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
             expect(lazyResults.personalDetails.every((option) => option.icons !== undefined)).toBe(true);
-            expect(lazyResults.personalDetails.every((option) => !('buildFullOption' in option))).toBe(true);
+            expect(lazyResults.personalDetails.every((option) => !('lazyHydrationData' in option))).toBe(true);
             expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
         });
 
         it('should hydrate correctly after a filtered option list cache hit', () => {
             // Given lazy contact options built while not searching (the only mode that uses the option-list cache)
             clearFilteredOptionListCache();
-            const lazyOptions = {lazyContactOptions: true as const};
-            const firstLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, lazyOptions);
-            const cachedLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, lazyOptions);
-            const eagerList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies);
+            const firstLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies);
+            const cachedLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies);
+            const eagerList = hydrateAllPersonalDetails(firstLazyList);
 
-            // Then the cache hit still returns shells with working buildFullOption closures
-            expect(cachedLazyList.personalDetails.every((option) => typeof option.buildFullOption === 'function')).toBe(true);
+            // Then the cache hit still returns shells with lazyHydrationData
+            expect(cachedLazyList.personalDetails.every((option) => option.lazyHydrationData !== undefined)).toBe(true);
 
             // When both the fresh and cached lazy lists go through getValidOptions
-            const config = {maxElements: 3};
+            const config = {maxElements: 3, personalDetails: PERSONAL_DETAILS};
             const {options: firstResults} = getValidOptions(firstLazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
             const {options: cachedResults} = getValidOptions(cachedLazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
@@ -1868,7 +1878,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should hydrate lazy shells when mixed with fully-built device contacts', () => {
-            // Given a fully-built device contact (no buildFullOption) appended onto eager and lazy lists,
+            // Given a fully-built device contact (no lazyHydrationData) appended onto eager and lazy lists,
             // matching useSearchSelector's contactOptions concat path
             const deviceContactLogin = '+15551234567';
             const deviceContact: SearchOption<PersonalDetails> = {
@@ -1914,14 +1924,14 @@ describe('OptionsListUtils', () => {
             };
 
             // When both mixed lists are filtered for the device contact
-            const config = {searchString: 'Device Contact Jane'};
+            const config = {searchString: 'Device Contact Jane', personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerWithContacts, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
             const {options: lazyResults} = getValidOptions(lazyWithContacts, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config);
 
             // Then the device contact survives hydrate unchanged, lazy shells hydrate, and results match eager
             expect(lazyResults.personalDetails.some((option) => option.login === deviceContactLogin)).toBe(true);
             expect(lazyResults.personalDetails.find((option) => option.login === deviceContactLogin)?.icons).toBeDefined();
-            expect(lazyResults.personalDetails.every((option) => !('buildFullOption' in option))).toBe(true);
+            expect(lazyResults.personalDetails.every((option) => !('lazyHydrationData' in option))).toBe(true);
             expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
         });
     });
@@ -3928,9 +3938,10 @@ describe('OptionsListUtils', () => {
             // When we call createFilteredOptionList with this privateIsArchivedMap
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {isSearching: true});
 
-            // Then the personal detail option for account 1 (Mister Fantastic) should have private_isArchived set
+            // Then the hydrated personal detail option for account 1 (Mister Fantastic) should have private_isArchived set
             const misterFantasticOption = result.personalDetails.find((pd) => pd.item?.accountID === 1);
-            expect(misterFantasticOption?.private_isArchived).toBe(true);
+            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateLazyPersonalDetailOption(misterFantasticOption, {personalDetails: PERSONAL_DETAILS}) : undefined;
+            expect(hydratedMisterFantasticOption?.private_isArchived).toBe(true);
         });
 
         it('should not set private_isArchived on personal details options when privateIsArchivedMap is empty', () => {
@@ -3957,12 +3968,14 @@ describe('OptionsListUtils', () => {
             // When we call createFilteredOptionList with this privateIsArchivedMap
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {isSearching: true});
 
-            // Then the personal detail options should have the correct private_isArchived values
+            // Then the hydrated personal detail options should have the correct private_isArchived values
             const misterFantasticOption = result.personalDetails.find((pd) => pd.item?.accountID === 1);
             const invisibleWomanOption = result.personalDetails.find((pd) => pd.item?.accountID === 5);
+            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateLazyPersonalDetailOption(misterFantasticOption, {personalDetails: PERSONAL_DETAILS}) : undefined;
+            const hydratedInvisibleWomanOption = invisibleWomanOption ? hydrateLazyPersonalDetailOption(invisibleWomanOption, {personalDetails: PERSONAL_DETAILS}) : undefined;
 
-            expect(misterFantasticOption?.private_isArchived).toBe(true);
-            expect(invisibleWomanOption?.private_isArchived).toBe(true);
+            expect(hydratedMisterFantasticOption?.private_isArchived).toBe(true);
+            expect(hydratedInvisibleWomanOption?.private_isArchived).toBe(true);
         });
 
         it('should set private_isArchived on report options when privateIsArchivedMap is provided', () => {
@@ -8888,16 +8901,19 @@ describe('OptionsListUtils', () => {
             const secondOption = second.personalDetails.at(0);
 
             // Same cache entry (nested objects are shared between clones), but each caller gets fresh top-level objects.
-            expect(secondOption?.icons).toBe(firstOption?.icons);
+            // Personal detail shells share participantsList; report options share icons.
+            expect(secondOption?.participantsList).toBe(firstOption?.participantsList);
             expect(secondOption).not.toBe(firstOption);
             expect(secondOption?.isSelected).toBeFalsy();
+            expect(second.reports.at(0)?.icons).toBe(first.reports.at(0)?.icons);
         });
 
         // The cached entry is frozen in dev, so a consumer that mutates a nested object shared with the
         // cache throws instead of silently corrupting the results returned to every other screen.
         it('should throw when a nested object shared with the cache is mutated', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined);
-            const icons = result.personalDetails.at(0)?.icons;
+            // Report options still carry fully-built icons; personal detail shells do not.
+            const icons = result.reports.at(0)?.icons;
 
             expect(icons?.length).toBeGreaterThan(0);
             expect(() => icons?.pop()).toThrow(TypeError);
@@ -8909,11 +8925,15 @@ describe('OptionsListUtils', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined);
             const personalDetailItem = result.personalDetails.at(0)?.item;
             const reportItem = result.reports.at(0)?.item;
+            const lazyReport = result.personalDetails.find((option) => option.lazyHydrationData?.report)?.lazyHydrationData?.report;
 
             expect(personalDetailItem).toBeDefined();
             expect(Object.isFrozen(personalDetailItem)).toBe(false);
             expect(reportItem).toBeDefined();
             expect(Object.isFrozen(reportItem)).toBe(false);
+            // lazyHydrationData.report is also a shared Onyx Report and must not be frozen.
+            expect(lazyReport).toBeDefined();
+            expect(Object.isFrozen(lazyReport)).toBe(false);
         });
     });
     describe('getValidOptions() with recentAttendees', () => {

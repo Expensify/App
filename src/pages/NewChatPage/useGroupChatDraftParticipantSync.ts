@@ -1,7 +1,7 @@
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useOnyx from '@hooks/useOnyx';
 
-import {getUserToInviteOption} from '@libs/OptionsListUtils';
+import {getUserToInviteOption, hydrateLazyPersonalDetailOption} from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,8 +54,12 @@ function useGroupChatDraftParticipantSync(
             if (participant.accountID === currentUserAccountID) {
                 return result;
             }
+            const foundOption = allPersonalDetailOptions.find((personalDetail) => personalDetail.accountID === participant.accountID);
+            // Options from useFilteredOptions are lightweight, but restored participants are rendered as selected
+            // rows, so the full display option is needed. Policy data is skipped because the displayed fields of a
+            // selected participant (name, login, avatar) do not depend on it.
             const option =
-                allPersonalDetailOptions.find((personalDetail) => personalDetail.accountID === participant.accountID) ??
+                (foundOption ? hydrateLazyPersonalDetailOption(foundOption, {personalDetails: allPersonalDetails}) : undefined) ??
                 getUserToInviteOption({
                     searchValue: participant?.login,
                     personalDetails: allPersonalDetails,

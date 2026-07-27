@@ -31,11 +31,6 @@ type UseFilteredOptionsConfig = {
      * an option per contact on open. Leave false for contact pickers (default: false).
      */
     deferContactsUntilSearch?: boolean;
-    /**
-     * When true, defer full createOption builds for contacts until getValidOptions filters/ranks them.
-     * Only enable when every consumer routes personalDetails through getValidOptions/getSearchOptions (default: false).
-     */
-    lazyContactOptions?: boolean;
 };
 
 type UseFilteredOptionsResult = {
@@ -80,7 +75,7 @@ type UseFilteredOptionsResult = {
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, isSearching = false, deferContactsUntilSearch = false, lazyContactOptions = false} = config;
+    const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, isSearching = false, deferContactsUntilSearch = false} = config;
 
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
@@ -116,7 +111,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                           includeP2P,
                           isSearching,
                           deferContactsUntilSearch,
-                          lazyContactOptions,
                           locale: preferredLocale,
                       },
                       undefined,
@@ -136,7 +130,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             includeP2P,
             isSearching,
             deferContactsUntilSearch,
-            lazyContactOptions,
             preferredLocale,
             isTrackIntentUser,
             sortedActions,
