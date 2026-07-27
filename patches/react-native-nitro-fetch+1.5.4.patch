@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-nitro-fetch/android/build.gradle b/node_modules/react-native-nitro-fetch/android/build.gradle
-index bd570da..eabe02a 100644
+index 45c0f78..2a3d84c 100644
 --- a/node_modules/react-native-nitro-fetch/android/build.gradle
 +++ b/node_modules/react-native-nitro-fetch/android/build.gradle
 @@ -139,6 +139,7 @@ dependencies {
@@ -197,11 +197,11 @@ index 0000000..a432432
 +    }
 +  }
 +}
-diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroCronet.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroCronet.kt
-index 3554aad..8e6fc4c 100644
---- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroCronet.kt
-+++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroCronet.kt
-@@ -64,6 +64,9 @@ class NitroCronet : HybridNitroCronetSpec() {
+diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroCronet.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroCronet.kt
+index 49443e8..1d19f04 100644
+--- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroCronet.kt
++++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroCronet.kt
+@@ -64,6 +64,9 @@ class HybridNitroCronet : HybridNitroCronetSpec() {
            (50 * 1024 * 1024).toLong()
          )
  
@@ -211,11 +211,11 @@ index 3554aad..8e6fc4c 100644
          val engine = builder.build()
          engineRef = engine
          return engine
-diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroFetch.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroFetch.kt
-index ff872eb..ee1de2a 100644
---- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroFetch.kt
-+++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroFetch.kt
-@@ -60,6 +60,9 @@ class NitroFetch : HybridNitroFetchSpec() {
+diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetch.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetch.kt
+index 1e5e0ff..55a83a6 100644
+--- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetch.kt
++++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetch.kt
+@@ -59,6 +59,9 @@ class HybridNitroFetch : HybridNitroFetchSpec() {
          // Prove DNS issues by mapping a host (TESTING ONLY, remove in prod):
          // builder.setExperimentalOptions("""{"HostResolverRules":{"host_resolver_rules":"MAP httpbin.org 54.167.17.38"}}""")
  
@@ -223,13 +223,13 @@ index ff872eb..ee1de2a 100644
 +        ExpensifyCertificatePins.apply(builder, app)
 +
          val engine = builder.build()
-         Log.i("NitroFetch", "CronetEngine initialized. Provider=${nativeProvider?.name ?: "Default"} Cache=${cacheDir.absolutePath}")
+         NitroLogger.i("NitroFetch", "CronetEngine initialized. Provider=${nativeProvider?.name ?: "Default"} Cache=${cacheDir.absolutePath}")
          engineRef = engine
-diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroFetchClient.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroFetchClient.kt
-index 308e465..9a59ee4 100644
---- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroFetchClient.kt
-+++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroFetchClient.kt
-@@ -107,6 +107,7 @@ class NitroFetchClient(private val engine: CronetEngine, private val executor: E
+diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetchClient.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetchClient.kt
+index 283bd37..24f7c22 100644
+--- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetchClient.kt
++++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetchClient.kt
+@@ -107,6 +107,7 @@ class HybridNitroFetchClient(private val engine: CronetEngine, private val execu
        onFail: (Throwable) -> Unit
      ): UrlRequest {
        val url = req.url
@@ -237,7 +237,7 @@ index 308e465..9a59ee4 100644
        val shouldFollowRedirects = req.followRedirects ?: true
        val omitCredentials = req.credentials == NitroRequestCredentials.OMIT
        val traceLabel = if (BuildConfig.NITRO_FETCH_TRACING) {
-@@ -250,6 +251,7 @@ class NitroFetchClient(private val engine: CronetEngine, private val executor: E
+@@ -250,6 +251,7 @@ class HybridNitroFetchClient(private val engine: CronetEngine, private val execu
          }
  
          override fun onFailed(request: UrlRequest, info: UrlResponseInfo?, error: CronetException) {
@@ -245,11 +245,11 @@ index 308e465..9a59ee4 100644
            if (BuildConfig.NITRO_FETCH_TRACING) {
              Trace.endAsyncSection(traceLabel, traceCookie)
            }
-diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroUrlRequestBuilder.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroUrlRequestBuilder.kt
-index 3937669..28c240b 100644
---- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroUrlRequestBuilder.kt
-+++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/NitroUrlRequestBuilder.kt
-@@ -120,6 +120,7 @@ class NitroUrlRequestBuilder(
+diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridUrlRequestBuilder.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridUrlRequestBuilder.kt
+index 48f2dc2..07806ba 100644
+--- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridUrlRequestBuilder.kt
++++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridUrlRequestBuilder.kt
+@@ -120,6 +120,7 @@ class HybridUrlRequestBuilder(
          info: CronetUrlResponseInfo?,
          error: CronetNativeException
        ) {
@@ -257,7 +257,7 @@ index 3937669..28c240b 100644
          if (devToolsEnabled) {
            DevToolsReporter.reportRequestFailed(devToolsRequestId, false)
          }
-@@ -229,6 +230,7 @@ class NitroUrlRequestBuilder(
+@@ -229,6 +230,7 @@ class HybridUrlRequestBuilder(
    }
  
    override fun build(): HybridUrlRequestSpec {
@@ -265,68 +265,3 @@ index 3937669..28c240b 100644
      val cronetRequest = builder.build()
      if (devToolsEnabled) {
        DevToolsReporter.reportRequestStart(
-diff --git a/node_modules/react-native-nitro-fetch/ios/HybridNitroCronet.swift b/node_modules/react-native-nitro-fetch/ios/HybridNitroCronet.swift
-index 344d1ef..fe11b64 100644
---- a/node_modules/react-native-nitro-fetch/ios/HybridNitroCronet.swift
-+++ b/node_modules/react-native-nitro-fetch/ios/HybridNitroCronet.swift
-@@ -11,7 +11,7 @@ class HybridNitroCronet: HybridNitroCronetSpec {
-       diskCapacity: 100 * 1024 * 1024,
-       diskPath: "nitrofetch_urlcache"
-     )
--    return URLSession(configuration: config)
-+    return ExpensifyPinnedURLSession.make(configuration: config)
-   }()
- 
-   // Shared executor queue
-diff --git a/node_modules/react-native-nitro-fetch/ios/NitroAutoPrefetcher.swift b/node_modules/react-native-nitro-fetch/ios/NitroAutoPrefetcher.swift
-index 84cf85c..606d595 100644
---- a/node_modules/react-native-nitro-fetch/ios/NitroAutoPrefetcher.swift
-+++ b/node_modules/react-native-nitro-fetch/ios/NitroAutoPrefetcher.swift
-@@ -319,7 +319,7 @@ public final class NitroAutoPrefetcher: NSObject {
-       request.httpBody = body.data(using: .utf8)
-     }
- 
--    let (data, response) = try await URLSession.shared.data(for: request)
-+    let (data, response) = try await ExpensifyPinnedURLSession.shared.data(for: request)
-     guard let http = response as? HTTPURLResponse,
-           (200...299).contains(http.statusCode) else {
-       throw NSError(domain: "NitroAutoPrefetcher", code: -2,
-diff --git a/node_modules/react-native-nitro-fetch/ios/NitroFetchClient.swift b/node_modules/react-native-nitro-fetch/ios/NitroFetchClient.swift
-index 8e2c84b..f808f4c 100644
---- a/node_modules/react-native-nitro-fetch/ios/NitroFetchClient.swift
-+++ b/node_modules/react-native-nitro-fetch/ios/NitroFetchClient.swift
-@@ -7,6 +7,25 @@ import UniformTypeIdentifiers
- private let fetchLog = OSLog(subsystem: "com.margelo.nitrofetch", category: "network")
- #endif
- 
-+/**
-+ * Expensify initializes TrustKit with URLSession delegate swizzling in release builds. TrustKit
-+ * cannot observe sessions created without a delegate, so all NitroFetch sessions must use this
-+ * delegate to keep certificate pinning active.
-+ */
-+final class ExpensifyPinnedURLSessionDelegate: NSObject, URLSessionDelegate {}
-+
-+enum ExpensifyPinnedURLSession {
-+  static let shared = make(configuration: .default)
-+
-+  static func make(configuration: URLSessionConfiguration) -> URLSession {
-+    return URLSession(
-+      configuration: configuration,
-+      delegate: ExpensifyPinnedURLSessionDelegate(),
-+      delegateQueue: nil
-+    )
-+  }
-+}
-+
- final class NitroFetchClient: HybridNitroFetchClientSpec {
- 
-   private var _lock = os_unfair_lock()
-@@ -101,7 +120,7 @@ final class NitroFetchClient: HybridNitroFetchClientSpec {
-     config.urlCache = URLCache(memoryCapacity: 32 * 1024 * 1024,
-                                diskCapacity: 100 * 1024 * 1024,
-                                diskPath: "nitrofetch_urlcache")
--    return URLSession(configuration: config)
-+    return ExpensifyPinnedURLSession.make(configuration: config)
-   }()
- 
-   private static func findPrefetchKey(_ req: NitroRequest) -> String? {

@@ -1,14 +1,13 @@
 # `react-native-nitro-fetch` patches
 
-### [react-native-nitro-fetch+1.5.0.patch](react-native-nitro-fetch+1.5.0.patch)
+### [react-native-nitro-fetch+1.5.4.patch](react-native-nitro-fetch+1.5.4.patch)
 
 - Reason:
 
     ```
     NitroFetch bypasses the app's existing certificate-pinning clients on mobile. This patch applies
     Expensify's public-key pins to both Android Cronet engines, supports monitor-only reporting via
-    a separate pinned Cronet probe, enforces pins on real traffic when enabled, and gives every iOS
-    URLSession a delegate so TrustKit can validate standard requests, startup prefetches, token
+    a separate pinned Cronet probe, enforces pins on real traffic when enabled, validates standard requests, startup prefetches, token
     refreshes, and streaming requests.
     ```
 
