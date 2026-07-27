@@ -1,0 +1,999 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js
+index d2095e8..0435bdd 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js
+@@ -21,7 +21,303 @@ function isJest() {
+ if (__DEV__ && !isWeb() && !isJest() && _htmlEntities.decode.__workletHash === undefined) {
+   throw new Error("[react-native-live-markdown] `parseExpensiMark` requires `html-entities` package to be workletized. Please add `'worklet';` directive at the top of `node_modules/html-entities/lib/index.js` using patch-package. Make sure you've installed `html-entities` version 2.5.3 exactly as otherwise there is no `lib/` directory.");
+ }
+-const MAX_PARSABLE_LENGTH = 4000;
++const CHECKPOINT_SIZE = 512;
++const FULL_RESCAN_CHANGE_LENGTH = 1024;
++let previousMarkdown = '';
++let previousMarkdownRanges = [];
++function findChangedRange(previousText, nextText) {
++  'worklet';
++
++  let start = 0;
++  while (start < previousText.length && start < nextText.length && previousText[start] === nextText[start]) {
++    start++;
++  }
++  let previousEnd = previousText.length;
++  let nextEnd = nextText.length;
++  while (previousEnd > start && nextEnd > start && previousText[previousEnd - 1] === nextText[nextEnd - 1]) {
++    previousEnd--;
++    nextEnd--;
++  }
++  return {
++    start,
++    previousEnd,
++    nextEnd,
++    delta: nextText.length - previousText.length
++  };
++}
++function isWhitespace(character) {
++  'worklet';
++
++  return !character || character === ' ' || character === '\n' || character === '\r' || character === '\t';
++}
++function isMentionCharacter(character) {
++  'worklet';
++
++  if (!character) {
++    return false;
++  }
++  const code = character.charCodeAt(0);
++  return character === '.' || character === '_' || character === '-' || character === '+' || code >= 48 && code <= 57 || code >= 65 && code <= 90 || code >= 97 && code <= 122;
++}
++function isUrlStart(markdown, index) {
++  'worklet';
++
++  return markdown.startsWith('http://', index) || markdown.startsWith('https://', index) || markdown.startsWith('www.', index);
++}
++function findLineEnd(markdown, index) {
++  'worklet';
++
++  const newlineIndex = markdown.indexOf('\n', index);
++  return newlineIndex === -1 ? markdown.length : newlineIndex;
++}
++function expandToFenceBoundary(markdown, parseWindow) {
++  'worklet';
++
++  const beforeStart = markdown.slice(0, parseWindow.start).split('```').length - 1;
++  let start = parseWindow.start;
++  let end = parseWindow.end;
++  if (beforeStart % 2 === 1) {
++    const openingFence = markdown.lastIndexOf('```', parseWindow.start);
++    start = openingFence === -1 ? start : openingFence;
++    const closingFence = markdown.indexOf('```', parseWindow.end);
++    end = closingFence === -1 ? markdown.length : findLineEnd(markdown, closingFence + 3);
++  }
++  return {
++    start,
++    end
++  };
++}
++function getSafeParseWindow(markdown, change) {
++  'worklet';
++
++  const start = Math.max(0, Math.floor(change.start / CHECKPOINT_SIZE) * CHECKPOINT_SIZE - CHECKPOINT_SIZE);
++  const end = Math.min(markdown.length, Math.ceil(change.nextEnd / CHECKPOINT_SIZE) * CHECKPOINT_SIZE + CHECKPOINT_SIZE);
++  return expandToFenceBoundary(markdown, {
++    start,
++    end
++  });
++}
++function findInlineClose(markdown, marker, start, end) {
++  'worklet';
++
++  let index = start + 1;
++  while (index < end) {
++    if (markdown[index] === marker && !isWhitespace(markdown[index - 1])) {
++      return index;
++    }
++    index++;
++  }
++  return -1;
++}
++function scanMarkdownRanges(markdown, parseWindow) {
++  'worklet';
++
++  const ranges = [];
++  let index = parseWindow.start;
++  while (index < parseWindow.end) {
++    const lineStart = index === 0 || markdown[index - 1] === '\n';
++    if (lineStart && markdown.startsWith('```', index)) {
++      const closingFence = markdown.indexOf('```', index + 3);
++      const blockEnd = closingFence === -1 ? parseWindow.end : Math.min(parseWindow.end, closingFence + 3);
++      ranges.push({
++        type: 'codeblock',
++        start: index,
++        length: blockEnd - index
++      });
++      ranges.push({
++        type: 'syntax',
++        start: index,
++        length: 3
++      });
++      if (blockEnd > index + 6) {
++        ranges.push({
++          type: 'pre',
++          start: index + 3,
++          length: blockEnd - index - 6
++        });
++      }
++      if (closingFence !== -1 && closingFence < parseWindow.end) {
++        ranges.push({
++          type: 'syntax',
++          start: closingFence,
++          length: 3
++        });
++      }
++      index = blockEnd;
++      continue;
++    }
++    if (lineStart && markdown.startsWith('# ', index)) {
++      const lineEnd = Math.min(parseWindow.end, findLineEnd(markdown, index));
++      ranges.push({
++        type: 'syntax',
++        start: index,
++        length: 2
++      });
++      ranges.push({
++        type: 'h1',
++        start: index + 2,
++        length: Math.max(0, lineEnd - index - 2)
++      });
++      index = lineEnd;
++      continue;
++    }
++    if (lineStart && markdown[index] === '>') {
++      const lineEnd = Math.min(parseWindow.end, findLineEnd(markdown, index));
++      ranges.push({
++        type: 'blockquote',
++        start: index,
++        length: lineEnd - index
++      });
++      index = lineEnd;
++      continue;
++    }
++    if (markdown[index] === '`') {
++      const closeIndex = markdown.indexOf('`', index + 1);
++      if (closeIndex !== -1 && closeIndex < parseWindow.end) {
++        ranges.push({
++          type: 'syntax',
++          start: index,
++          length: 1
++        });
++        ranges.push({
++          type: 'code',
++          start: index + 1,
++          length: closeIndex - index - 1
++        });
++        ranges.push({
++          type: 'syntax',
++          start: closeIndex,
++          length: 1
++        });
++        index = closeIndex + 1;
++        continue;
++      }
++    }
++    const imageOffset = markdown.startsWith('![', index) ? 1 : 0;
++    if (markdown[index + imageOffset] === '[') {
++      const labelStart = index + imageOffset;
++      const labelEnd = markdown.indexOf('](', labelStart + 1);
++      if (labelEnd !== -1 && labelEnd < parseWindow.end) {
++        const urlEnd = markdown.indexOf(')', labelEnd + 2);
++        if (urlEnd !== -1 && urlEnd < parseWindow.end) {
++          if (imageOffset === 1) {
++            ranges.push({
++              type: 'inline-image',
++              start: index,
++              length: urlEnd - index + 1
++            });
++            ranges.push({
++              type: 'syntax',
++              start: index,
++              length: 2
++            });
++          } else {
++            ranges.push({
++              type: 'syntax',
++              start: index,
++              length: 1
++            });
++          }
++          ranges.push({
++            type: 'syntax',
++            start: labelEnd,
++            length: 2
++          });
++          ranges.push({
++            type: 'link',
++            start: labelEnd + 2,
++            length: urlEnd - labelEnd - 2
++          });
++          ranges.push({
++            type: 'syntax',
++            start: urlEnd,
++            length: 1
++          });
++          index = urlEnd + 1;
++          continue;
++        }
++      }
++    }
++    if (isUrlStart(markdown, index)) {
++      let urlEnd = index;
++      while (urlEnd < parseWindow.end && !isWhitespace(markdown[urlEnd])) {
++        urlEnd++;
++      }
++      ranges.push({
++        type: 'link',
++        start: index,
++        length: urlEnd - index
++      });
++      index = urlEnd;
++      continue;
++    }
++    if (markdown[index] === '@' && isMentionCharacter(markdown[index + 1])) {
++      let mentionEnd = index + 1;
++      while (mentionEnd < parseWindow.end && isMentionCharacter(markdown[mentionEnd])) {
++        mentionEnd++;
++      }
++      const mentionText = markdown.slice(index, mentionEnd);
++      ranges.push({
++        type: mentionText.includes('@', 1) ? 'mention-user' : 'mention-short',
++        start: index,
++        length: mentionEnd - index
++      });
++      index = mentionEnd;
++      continue;
++    }
++    const marker = markdown[index];
++    if ((marker === '*' || marker === '_' || marker === '~') && !isWhitespace(markdown[index + 1])) {
++      const closeIndex = findInlineClose(markdown, marker, index, parseWindow.end);
++      if (closeIndex !== -1) {
++        const type = marker === '*' ? 'bold' : marker === '_' ? 'italic' : 'strikethrough';
++        ranges.push({
++          type: 'syntax',
++          start: index,
++          length: 1
++        });
++        ranges.push({
++          type,
++          start: index + 1,
++          length: closeIndex - index - 1
++        });
++        ranges.push({
++          type: 'syntax',
++          start: closeIndex,
++          length: 1
++        });
++        index = closeIndex + 1;
++        continue;
++      }
++    }
++    index++;
++  }
++  return ranges;
++}
++function mergeAndShiftRanges(previousRanges, nextRanges, previousWindow, delta) {
++  'worklet';
++
++  const mergedRanges = [];
++  previousRanges.forEach(range => {
++    const rangeEnd = range.start + range.length;
++    if (rangeEnd <= previousWindow.start) {
++      mergedRanges.push(range);
++      return;
++    }
++    if (range.start >= previousWindow.end) {
++      mergedRanges.push({
++        ...range,
++        start: range.start + delta
++      });
++    }
++  });
++  mergedRanges.push(...nextRanges);
++  return mergedRanges;
++}
++function shouldFullyRescan(change) {
++  'worklet';
++
++  return previousMarkdown === '' || change.nextEnd - change.start > FULL_RESCAN_CHANGE_LENGTH || change.previousEnd - change.start > FULL_RESCAN_CHANGE_LENGTH;
++}
+ function parseMarkdownToHTML(markdown) {
+   const parser = new _expensifyCommon.ExpensiMark();
+   const html = parser.replace(markdown, {
+@@ -234,18 +530,18 @@ function parseTreeToTextAndRanges(tree) {
+   return [text, ranges];
+ }
+ function parseExpensiMark(markdown) {
+-  if (markdown.length > MAX_PARSABLE_LENGTH) {
+-    return [];
+-  }
+-  const html = parseMarkdownToHTML(markdown);
+-  const tokens = parseHTMLToTokens(html);
+-  const tree = parseTokensToTree(tokens);
+-  const [text, ranges] = parseTreeToTextAndRanges(tree);
+-  if (text !== markdown) {
+-    console.error(`[react-native-live-markdown] Parsing error: the processed text does not match the original Markdown input. This may be caused by incorrect parsing functions or invalid input Markdown.\nProcessed input: '${JSON.stringify(text)}'\nOriginal input: '${JSON.stringify(markdown)}'`);
+-    return [];
+-  }
+-  let markdownRanges = (0, _rangeUtils.sortRanges)(ranges);
++  const change = findChangedRange(previousMarkdown, markdown);
++  const shouldRescan = shouldFullyRescan(change);
++  const parseWindow = shouldRescan ? {
++    start: 0,
++    end: markdown.length
++  } : getSafeParseWindow(markdown, change);
++  const previousWindow = {
++    start: Math.min(previousMarkdown.length, parseWindow.start),
++    end: Math.min(previousMarkdown.length, Math.max(parseWindow.start, parseWindow.end - change.delta))
++  };
++  const scannedRanges = scanMarkdownRanges(markdown, parseWindow);
++  let markdownRanges = (0, _rangeUtils.sortRanges)(shouldRescan ? scannedRanges : mergeAndShiftRanges(previousMarkdownRanges, scannedRanges, previousWindow, change.delta));
+ 
+   // Prevent italic, bold and strikethrough formatting inside emojis and inline code blocks
+   const rangesToExclude = (0, _rangeUtils.getRangesToExcludeFormatting)(markdownRanges);
+@@ -253,7 +549,9 @@ function parseExpensiMark(markdown) {
+   markdownRanges = (0, _rangeUtils.excludeRangeTypesFromFormatting)(markdownRanges, 'bold', rangesToExclude);
+   markdownRanges = (0, _rangeUtils.excludeRangeTypesFromFormatting)(markdownRanges, 'strikethrough', rangesToExclude);
+   const groupedRanges = (0, _rangeUtils.groupRanges)(markdownRanges);
++  previousMarkdown = markdown;
++  previousMarkdownRanges = groupedRanges;
+   return groupedRanges;
+ }
+ var _default = exports.default = parseExpensiMark;
+-//# sourceMappingURL=parseExpensiMark.js.map
+\ No newline at end of file
++//# sourceMappingURL=parseExpensiMark.js.map
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/parseExpensiMark.js b/node_modules/@expensify/react-native-live-markdown/lib/module/parseExpensiMark.js
+index 3d1511d..179a400 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/parseExpensiMark.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/parseExpensiMark.js
+@@ -17,7 +17,303 @@ function isJest() {
+ if (__DEV__ && !isWeb() && !isJest() && decode.__workletHash === undefined) {
+   throw new Error("[react-native-live-markdown] `parseExpensiMark` requires `html-entities` package to be workletized. Please add `'worklet';` directive at the top of `node_modules/html-entities/lib/index.js` using patch-package. Make sure you've installed `html-entities` version 2.5.3 exactly as otherwise there is no `lib/` directory.");
+ }
+-const MAX_PARSABLE_LENGTH = 4000;
++const CHECKPOINT_SIZE = 512;
++const FULL_RESCAN_CHANGE_LENGTH = 1024;
++let previousMarkdown = '';
++let previousMarkdownRanges = [];
++function findChangedRange(previousText, nextText) {
++  'worklet';
++
++  let start = 0;
++  while (start < previousText.length && start < nextText.length && previousText[start] === nextText[start]) {
++    start++;
++  }
++  let previousEnd = previousText.length;
++  let nextEnd = nextText.length;
++  while (previousEnd > start && nextEnd > start && previousText[previousEnd - 1] === nextText[nextEnd - 1]) {
++    previousEnd--;
++    nextEnd--;
++  }
++  return {
++    start,
++    previousEnd,
++    nextEnd,
++    delta: nextText.length - previousText.length
++  };
++}
++function isWhitespace(character) {
++  'worklet';
++
++  return !character || character === ' ' || character === '\n' || character === '\r' || character === '\t';
++}
++function isMentionCharacter(character) {
++  'worklet';
++
++  if (!character) {
++    return false;
++  }
++  const code = character.charCodeAt(0);
++  return character === '.' || character === '_' || character === '-' || character === '+' || code >= 48 && code <= 57 || code >= 65 && code <= 90 || code >= 97 && code <= 122;
++}
++function isUrlStart(markdown, index) {
++  'worklet';
++
++  return markdown.startsWith('http://', index) || markdown.startsWith('https://', index) || markdown.startsWith('www.', index);
++}
++function findLineEnd(markdown, index) {
++  'worklet';
++
++  const newlineIndex = markdown.indexOf('\n', index);
++  return newlineIndex === -1 ? markdown.length : newlineIndex;
++}
++function expandToFenceBoundary(markdown, parseWindow) {
++  'worklet';
++
++  const beforeStart = markdown.slice(0, parseWindow.start).split('```').length - 1;
++  let start = parseWindow.start;
++  let end = parseWindow.end;
++  if (beforeStart % 2 === 1) {
++    const openingFence = markdown.lastIndexOf('```', parseWindow.start);
++    start = openingFence === -1 ? start : openingFence;
++    const closingFence = markdown.indexOf('```', parseWindow.end);
++    end = closingFence === -1 ? markdown.length : findLineEnd(markdown, closingFence + 3);
++  }
++  return {
++    start,
++    end
++  };
++}
++function getSafeParseWindow(markdown, change) {
++  'worklet';
++
++  const start = Math.max(0, Math.floor(change.start / CHECKPOINT_SIZE) * CHECKPOINT_SIZE - CHECKPOINT_SIZE);
++  const end = Math.min(markdown.length, Math.ceil(change.nextEnd / CHECKPOINT_SIZE) * CHECKPOINT_SIZE + CHECKPOINT_SIZE);
++  return expandToFenceBoundary(markdown, {
++    start,
++    end
++  });
++}
++function findInlineClose(markdown, marker, start, end) {
++  'worklet';
++
++  let index = start + 1;
++  while (index < end) {
++    if (markdown[index] === marker && !isWhitespace(markdown[index - 1])) {
++      return index;
++    }
++    index++;
++  }
++  return -1;
++}
++function scanMarkdownRanges(markdown, parseWindow) {
++  'worklet';
++
++  const ranges = [];
++  let index = parseWindow.start;
++  while (index < parseWindow.end) {
++    const lineStart = index === 0 || markdown[index - 1] === '\n';
++    if (lineStart && markdown.startsWith('```', index)) {
++      const closingFence = markdown.indexOf('```', index + 3);
++      const blockEnd = closingFence === -1 ? parseWindow.end : Math.min(parseWindow.end, closingFence + 3);
++      ranges.push({
++        type: 'codeblock',
++        start: index,
++        length: blockEnd - index
++      });
++      ranges.push({
++        type: 'syntax',
++        start: index,
++        length: 3
++      });
++      if (blockEnd > index + 6) {
++        ranges.push({
++          type: 'pre',
++          start: index + 3,
++          length: blockEnd - index - 6
++        });
++      }
++      if (closingFence !== -1 && closingFence < parseWindow.end) {
++        ranges.push({
++          type: 'syntax',
++          start: closingFence,
++          length: 3
++        });
++      }
++      index = blockEnd;
++      continue;
++    }
++    if (lineStart && markdown.startsWith('# ', index)) {
++      const lineEnd = Math.min(parseWindow.end, findLineEnd(markdown, index));
++      ranges.push({
++        type: 'syntax',
++        start: index,
++        length: 2
++      });
++      ranges.push({
++        type: 'h1',
++        start: index + 2,
++        length: Math.max(0, lineEnd - index - 2)
++      });
++      index = lineEnd;
++      continue;
++    }
++    if (lineStart && markdown[index] === '>') {
++      const lineEnd = Math.min(parseWindow.end, findLineEnd(markdown, index));
++      ranges.push({
++        type: 'blockquote',
++        start: index,
++        length: lineEnd - index
++      });
++      index = lineEnd;
++      continue;
++    }
++    if (markdown[index] === '`') {
++      const closeIndex = markdown.indexOf('`', index + 1);
++      if (closeIndex !== -1 && closeIndex < parseWindow.end) {
++        ranges.push({
++          type: 'syntax',
++          start: index,
++          length: 1
++        });
++        ranges.push({
++          type: 'code',
++          start: index + 1,
++          length: closeIndex - index - 1
++        });
++        ranges.push({
++          type: 'syntax',
++          start: closeIndex,
++          length: 1
++        });
++        index = closeIndex + 1;
++        continue;
++      }
++    }
++    const imageOffset = markdown.startsWith('![', index) ? 1 : 0;
++    if (markdown[index + imageOffset] === '[') {
++      const labelStart = index + imageOffset;
++      const labelEnd = markdown.indexOf('](', labelStart + 1);
++      if (labelEnd !== -1 && labelEnd < parseWindow.end) {
++        const urlEnd = markdown.indexOf(')', labelEnd + 2);
++        if (urlEnd !== -1 && urlEnd < parseWindow.end) {
++          if (imageOffset === 1) {
++            ranges.push({
++              type: 'inline-image',
++              start: index,
++              length: urlEnd - index + 1
++            });
++            ranges.push({
++              type: 'syntax',
++              start: index,
++              length: 2
++            });
++          } else {
++            ranges.push({
++              type: 'syntax',
++              start: index,
++              length: 1
++            });
++          }
++          ranges.push({
++            type: 'syntax',
++            start: labelEnd,
++            length: 2
++          });
++          ranges.push({
++            type: 'link',
++            start: labelEnd + 2,
++            length: urlEnd - labelEnd - 2
++          });
++          ranges.push({
++            type: 'syntax',
++            start: urlEnd,
++            length: 1
++          });
++          index = urlEnd + 1;
++          continue;
++        }
++      }
++    }
++    if (isUrlStart(markdown, index)) {
++      let urlEnd = index;
++      while (urlEnd < parseWindow.end && !isWhitespace(markdown[urlEnd])) {
++        urlEnd++;
++      }
++      ranges.push({
++        type: 'link',
++        start: index,
++        length: urlEnd - index
++      });
++      index = urlEnd;
++      continue;
++    }
++    if (markdown[index] === '@' && isMentionCharacter(markdown[index + 1])) {
++      let mentionEnd = index + 1;
++      while (mentionEnd < parseWindow.end && isMentionCharacter(markdown[mentionEnd])) {
++        mentionEnd++;
++      }
++      const mentionText = markdown.slice(index, mentionEnd);
++      ranges.push({
++        type: mentionText.includes('@', 1) ? 'mention-user' : 'mention-short',
++        start: index,
++        length: mentionEnd - index
++      });
++      index = mentionEnd;
++      continue;
++    }
++    const marker = markdown[index];
++    if ((marker === '*' || marker === '_' || marker === '~') && !isWhitespace(markdown[index + 1])) {
++      const closeIndex = findInlineClose(markdown, marker, index, parseWindow.end);
++      if (closeIndex !== -1) {
++        const type = marker === '*' ? 'bold' : marker === '_' ? 'italic' : 'strikethrough';
++        ranges.push({
++          type: 'syntax',
++          start: index,
++          length: 1
++        });
++        ranges.push({
++          type,
++          start: index + 1,
++          length: closeIndex - index - 1
++        });
++        ranges.push({
++          type: 'syntax',
++          start: closeIndex,
++          length: 1
++        });
++        index = closeIndex + 1;
++        continue;
++      }
++    }
++    index++;
++  }
++  return ranges;
++}
++function mergeAndShiftRanges(previousRanges, nextRanges, previousWindow, delta) {
++  'worklet';
++
++  const mergedRanges = [];
++  previousRanges.forEach(range => {
++    const rangeEnd = range.start + range.length;
++    if (rangeEnd <= previousWindow.start) {
++      mergedRanges.push(range);
++      return;
++    }
++    if (range.start >= previousWindow.end) {
++      mergedRanges.push({
++        ...range,
++        start: range.start + delta
++      });
++    }
++  });
++  mergedRanges.push(...nextRanges);
++  return mergedRanges;
++}
++function shouldFullyRescan(change) {
++  'worklet';
++
++  return previousMarkdown === '' || change.nextEnd - change.start > FULL_RESCAN_CHANGE_LENGTH || change.previousEnd - change.start > FULL_RESCAN_CHANGE_LENGTH;
++}
+ function parseMarkdownToHTML(markdown) {
+   const parser = new ExpensiMark();
+   const html = parser.replace(markdown, {
+@@ -230,18 +526,18 @@ function parseTreeToTextAndRanges(tree) {
+   return [text, ranges];
+ }
+ function parseExpensiMark(markdown) {
+-  if (markdown.length > MAX_PARSABLE_LENGTH) {
+-    return [];
+-  }
+-  const html = parseMarkdownToHTML(markdown);
+-  const tokens = parseHTMLToTokens(html);
+-  const tree = parseTokensToTree(tokens);
+-  const [text, ranges] = parseTreeToTextAndRanges(tree);
+-  if (text !== markdown) {
+-    console.error(`[react-native-live-markdown] Parsing error: the processed text does not match the original Markdown input. This may be caused by incorrect parsing functions or invalid input Markdown.\nProcessed input: '${JSON.stringify(text)}'\nOriginal input: '${JSON.stringify(markdown)}'`);
+-    return [];
+-  }
+-  let markdownRanges = sortRanges(ranges);
++  const change = findChangedRange(previousMarkdown, markdown);
++  const shouldRescan = shouldFullyRescan(change);
++  const parseWindow = shouldRescan ? {
++    start: 0,
++    end: markdown.length
++  } : getSafeParseWindow(markdown, change);
++  const previousWindow = {
++    start: Math.min(previousMarkdown.length, parseWindow.start),
++    end: Math.min(previousMarkdown.length, Math.max(parseWindow.start, parseWindow.end - change.delta))
++  };
++  const scannedRanges = scanMarkdownRanges(markdown, parseWindow);
++  let markdownRanges = sortRanges(shouldRescan ? scannedRanges : mergeAndShiftRanges(previousMarkdownRanges, scannedRanges, previousWindow, change.delta));
+ 
+   // Prevent italic, bold and strikethrough formatting inside emojis and inline code blocks
+   const rangesToExclude = getRangesToExcludeFormatting(markdownRanges);
+@@ -249,7 +545,9 @@ function parseExpensiMark(markdown) {
+   markdownRanges = excludeRangeTypesFromFormatting(markdownRanges, 'bold', rangesToExclude);
+   markdownRanges = excludeRangeTypesFromFormatting(markdownRanges, 'strikethrough', rangesToExclude);
+   const groupedRanges = groupRanges(markdownRanges);
++  previousMarkdown = markdown;
++  previousMarkdownRanges = groupedRanges;
+   return groupedRanges;
+ }
+ export default parseExpensiMark;
+-//# sourceMappingURL=parseExpensiMark.js.map
+\ No newline at end of file
++//# sourceMappingURL=parseExpensiMark.js.map
+diff --git a/node_modules/@expensify/react-native-live-markdown/src/parseExpensiMark.ts b/node_modules/@expensify/react-native-live-markdown/src/parseExpensiMark.ts
+index ebb462d..923f433 100644
+--- a/node_modules/@expensify/react-native-live-markdown/src/parseExpensiMark.ts
++++ b/node_modules/@expensify/react-native-live-markdown/src/parseExpensiMark.ts
+@@ -23,10 +23,248 @@ if (__DEV__ && !isWeb() && !isJest() && (decode as WorkletFunction<unknown[], un
+   );
+ }
+ 
+-const MAX_PARSABLE_LENGTH = 4000;
++const CHECKPOINT_SIZE = 512;
++const FULL_RESCAN_CHANGE_LENGTH = 1024;
+ 
+ type Token = ['TEXT' | 'HTML', string];
+ type StackItem = {tag: string; children: Array<StackItem | string>};
++type ChangedRange = {
++  start: number;
++  previousEnd: number;
++  nextEnd: number;
++  delta: number;
++};
++type ParseWindow = {
++  start: number;
++  end: number;
++};
++
++let previousMarkdown = '';
++let previousMarkdownRanges: MarkdownRange[] = [];
++
++function findChangedRange(previousText: string, nextText: string): ChangedRange {
++  'worklet';
++
++  let start = 0;
++  while (start < previousText.length && start < nextText.length && previousText[start] === nextText[start]) {
++    start++;
++  }
++
++  let previousEnd = previousText.length;
++  let nextEnd = nextText.length;
++  while (previousEnd > start && nextEnd > start && previousText[previousEnd - 1] === nextText[nextEnd - 1]) {
++    previousEnd--;
++    nextEnd--;
++  }
++
++  return {
++    start,
++    previousEnd,
++    nextEnd,
++    delta: nextText.length - previousText.length,
++  };
++}
++
++function isWhitespace(character: string | undefined) {
++  'worklet';
++
++  return !character || character === ' ' || character === '\n' || character === '\r' || character === '\t';
++}
++
++function isMentionCharacter(character: string | undefined) {
++  'worklet';
++
++  if (!character) {
++    return false;
++  }
++  const code = character.charCodeAt(0);
++  return character === '.' || character === '_' || character === '-' || character === '+' || (code >= 48 && code <= 57) || (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
++}
++
++function isUrlStart(markdown: string, index: number) {
++  'worklet';
++
++  return markdown.startsWith('http://', index) || markdown.startsWith('https://', index) || markdown.startsWith('www.', index);
++}
++
++function findLineEnd(markdown: string, index: number) {
++  'worklet';
++
++  const newlineIndex = markdown.indexOf('\n', index);
++  return newlineIndex === -1 ? markdown.length : newlineIndex;
++}
++
++function expandToFenceBoundary(markdown: string, parseWindow: ParseWindow): ParseWindow {
++  'worklet';
++
++  const beforeStart = markdown.slice(0, parseWindow.start).split('```').length - 1;
++  let start = parseWindow.start;
++  let end = parseWindow.end;
++  if (beforeStart % 2 === 1) {
++    const openingFence = markdown.lastIndexOf('```', parseWindow.start);
++    start = openingFence === -1 ? start : openingFence;
++    const closingFence = markdown.indexOf('```', parseWindow.end);
++    end = closingFence === -1 ? markdown.length : findLineEnd(markdown, closingFence + 3);
++  }
++
++  return {start, end};
++}
++
++function getSafeParseWindow(markdown: string, change: ChangedRange): ParseWindow {
++  'worklet';
++
++  const start = Math.max(0, Math.floor(change.start / CHECKPOINT_SIZE) * CHECKPOINT_SIZE - CHECKPOINT_SIZE);
++  const end = Math.min(markdown.length, Math.ceil(change.nextEnd / CHECKPOINT_SIZE) * CHECKPOINT_SIZE + CHECKPOINT_SIZE);
++  return expandToFenceBoundary(markdown, {start, end});
++}
++
++function findInlineClose(markdown: string, marker: string, start: number, end: number) {
++  'worklet';
++
++  let index = start + 1;
++  while (index < end) {
++    if (markdown[index] === marker && !isWhitespace(markdown[index - 1])) {
++      return index;
++    }
++    index++;
++  }
++  return -1;
++}
++
++function scanMarkdownRanges(markdown: string, parseWindow: ParseWindow): MarkdownRange[] {
++  'worklet';
++
++  const ranges: MarkdownRange[] = [];
++  let index = parseWindow.start;
++
++  while (index < parseWindow.end) {
++    const lineStart = index === 0 || markdown[index - 1] === '\n';
++    if (lineStart && markdown.startsWith('```', index)) {
++      const closingFence = markdown.indexOf('```', index + 3);
++      const blockEnd = closingFence === -1 ? parseWindow.end : Math.min(parseWindow.end, closingFence + 3);
++      ranges.push({type: 'codeblock', start: index, length: blockEnd - index});
++      ranges.push({type: 'syntax', start: index, length: 3});
++      if (blockEnd > index + 6) {
++        ranges.push({type: 'pre', start: index + 3, length: blockEnd - index - 6});
++      }
++      if (closingFence !== -1 && closingFence < parseWindow.end) {
++        ranges.push({type: 'syntax', start: closingFence, length: 3});
++      }
++      index = blockEnd;
++      continue;
++    }
++
++    if (lineStart && markdown.startsWith('# ', index)) {
++      const lineEnd = Math.min(parseWindow.end, findLineEnd(markdown, index));
++      ranges.push({type: 'syntax', start: index, length: 2});
++      ranges.push({type: 'h1', start: index + 2, length: Math.max(0, lineEnd - index - 2)});
++      index = lineEnd;
++      continue;
++    }
++
++    if (lineStart && markdown[index] === '>') {
++      const lineEnd = Math.min(parseWindow.end, findLineEnd(markdown, index));
++      ranges.push({type: 'blockquote', start: index, length: lineEnd - index});
++      index = lineEnd;
++      continue;
++    }
++
++    if (markdown[index] === '`') {
++      const closeIndex = markdown.indexOf('`', index + 1);
++      if (closeIndex !== -1 && closeIndex < parseWindow.end) {
++        ranges.push({type: 'syntax', start: index, length: 1});
++        ranges.push({type: 'code', start: index + 1, length: closeIndex - index - 1});
++        ranges.push({type: 'syntax', start: closeIndex, length: 1});
++        index = closeIndex + 1;
++        continue;
++      }
++    }
++
++    const imageOffset = markdown.startsWith('![', index) ? 1 : 0;
++    if (markdown[index + imageOffset] === '[') {
++      const labelStart = index + imageOffset;
++      const labelEnd = markdown.indexOf('](', labelStart + 1);
++      if (labelEnd !== -1 && labelEnd < parseWindow.end) {
++        const urlEnd = markdown.indexOf(')', labelEnd + 2);
++        if (urlEnd !== -1 && urlEnd < parseWindow.end) {
++          if (imageOffset === 1) {
++            ranges.push({type: 'inline-image', start: index, length: urlEnd - index + 1});
++            ranges.push({type: 'syntax', start: index, length: 2});
++          } else {
++            ranges.push({type: 'syntax', start: index, length: 1});
++          }
++          ranges.push({type: 'syntax', start: labelEnd, length: 2});
++          ranges.push({type: 'link', start: labelEnd + 2, length: urlEnd - labelEnd - 2});
++          ranges.push({type: 'syntax', start: urlEnd, length: 1});
++          index = urlEnd + 1;
++          continue;
++        }
++      }
++    }
++
++    if (isUrlStart(markdown, index)) {
++      let urlEnd = index;
++      while (urlEnd < parseWindow.end && !isWhitespace(markdown[urlEnd])) {
++        urlEnd++;
++      }
++      ranges.push({type: 'link', start: index, length: urlEnd - index});
++      index = urlEnd;
++      continue;
++    }
++
++    if (markdown[index] === '@' && isMentionCharacter(markdown[index + 1])) {
++      let mentionEnd = index + 1;
++      while (mentionEnd < parseWindow.end && isMentionCharacter(markdown[mentionEnd])) {
++        mentionEnd++;
++      }
++      const mentionText = markdown.slice(index, mentionEnd);
++      ranges.push({type: mentionText.includes('@', 1) ? 'mention-user' : 'mention-short', start: index, length: mentionEnd - index});
++      index = mentionEnd;
++      continue;
++    }
++
++    const marker = markdown[index];
++    if ((marker === '*' || marker === '_' || marker === '~') && !isWhitespace(markdown[index + 1])) {
++      const closeIndex = findInlineClose(markdown, marker, index, parseWindow.end);
++      if (closeIndex !== -1) {
++        const type = marker === '*' ? 'bold' : marker === '_' ? 'italic' : 'strikethrough';
++        ranges.push({type: 'syntax', start: index, length: 1});
++        ranges.push({type, start: index + 1, length: closeIndex - index - 1});
++        ranges.push({type: 'syntax', start: closeIndex, length: 1});
++        index = closeIndex + 1;
++        continue;
++      }
++    }
++
++    index++;
++  }
++
++  return ranges;
++}
++
++function mergeAndShiftRanges(previousRanges: MarkdownRange[], nextRanges: MarkdownRange[], previousWindow: ParseWindow, delta: number): MarkdownRange[] {
++  'worklet';
++
++  const mergedRanges: MarkdownRange[] = [];
++  previousRanges.forEach((range) => {
++    const rangeEnd = range.start + range.length;
++    if (rangeEnd <= previousWindow.start) {
++      mergedRanges.push(range);
++      return;
++    }
++    if (range.start >= previousWindow.end) {
++      mergedRanges.push({...range, start: range.start + delta});
++    }
++  });
++  mergedRanges.push(...nextRanges);
++  return mergedRanges;
++}
++
++function shouldFullyRescan(change: ChangedRange) {
++  'worklet';
++
++  return previousMarkdown === '' || change.nextEnd - change.start > FULL_RESCAN_CHANGE_LENGTH || change.previousEnd - change.start > FULL_RESCAN_CHANGE_LENGTH;
++}
+ 
+ function parseMarkdownToHTML(markdown: string): string {
+   const parser = new ExpensiMark();
+@@ -239,22 +477,15 @@ function parseTreeToTextAndRanges(tree: StackItem): [string, MarkdownRange[]] {
+ }
+ 
+ function parseExpensiMark(markdown: string): MarkdownRange[] {
+-  if (markdown.length > MAX_PARSABLE_LENGTH) {
+-    return [];
+-  }
+-  const html = parseMarkdownToHTML(markdown);
+-  const tokens = parseHTMLToTokens(html);
+-  const tree = parseTokensToTree(tokens);
+-  const [text, ranges] = parseTreeToTextAndRanges(tree);
+-  if (text !== markdown) {
+-    console.error(
+-      `[react-native-live-markdown] Parsing error: the processed text does not match the original Markdown input. This may be caused by incorrect parsing functions or invalid input Markdown.\nProcessed input: '${JSON.stringify(
+-        text,
+-      )}'\nOriginal input: '${JSON.stringify(markdown)}'`,
+-    );
+-    return [];
+-  }
+-  let markdownRanges = sortRanges(ranges);
++  const change = findChangedRange(previousMarkdown, markdown);
++  const shouldRescan = shouldFullyRescan(change);
++  const parseWindow = shouldRescan ? {start: 0, end: markdown.length} : getSafeParseWindow(markdown, change);
++  const previousWindow = {
++    start: Math.min(previousMarkdown.length, parseWindow.start),
++    end: Math.min(previousMarkdown.length, Math.max(parseWindow.start, parseWindow.end - change.delta)),
++  };
++  const scannedRanges = scanMarkdownRanges(markdown, parseWindow);
++  let markdownRanges = sortRanges(shouldRescan ? scannedRanges : mergeAndShiftRanges(previousMarkdownRanges, scannedRanges, previousWindow, change.delta));
+ 
+   // Prevent italic, bold and strikethrough formatting inside emojis and inline code blocks
+   const rangesToExclude = getRangesToExcludeFormatting(markdownRanges);
+@@ -263,6 +494,8 @@ function parseExpensiMark(markdown: string): MarkdownRange[] {
+   markdownRanges = excludeRangeTypesFromFormatting(markdownRanges, 'strikethrough', rangesToExclude);
+ 
+   const groupedRanges = groupRanges(markdownRanges);
++  previousMarkdown = markdown;
++  previousMarkdownRanges = groupedRanges;
+   return groupedRanges;
+ }
+ 
