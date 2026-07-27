@@ -298,7 +298,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** The type of brick road indicator to show. */
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
-        /** Should render the content in HTML format */
+        /** Should render the content in HTML format. A title without HTML content is rendered as plain text even when this is set. */
         shouldRenderAsHTML?: boolean;
 
         /** Whether or not the text should be escaped */
@@ -752,6 +752,8 @@ function MenuItem({
         return Parser.replace(helperText, {shouldEscapeText});
     }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
+    const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && Parser.isHTML(title);
+
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
         if (shouldRenderAsHTML) {
@@ -1050,7 +1052,14 @@ function MenuItem({
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={[styles.renderHTMLTitle, styles.textAlignLeft, shouldApplyIconPaddingToHTMLTitle && iconLeftPadding]}>
-                                                                        <RenderHTML html={processedTitle} />
+                                                                        {/* Use Text instead of RenderHTML when the title is plain text.
+                                                                            Titles with shouldRenderAsHTML use baseFontStyle, which differs from combinedTitleTextStyle below.
+                                                                        */}
+                                                                        {shouldRenderTitleAsHTML || shouldParseTitle ? (
+                                                                            <RenderHTML html={processedTitle} />
+                                                                        ) : (
+                                                                            <Text style={styles.webViewStyles.baseFontStyle}>{convertToLTR(Parser.htmlToText(processedTitle))}</Text>
+                                                                        )}
                                                                     </View>
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (

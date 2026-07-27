@@ -136,6 +136,10 @@ function IOURequestStepDistanceRate({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const options = sortedRates.map((rate) => {
         const hasUnitMismatchForMovingTrackExpense = isMovingTransactionFromTrackExpense && transactionUnit !== rate.unit;
         const unit =
@@ -205,7 +209,7 @@ function IOURequestStepDistanceRate({
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
                 setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {customUnitRateID}, policy, personalPolicy?.outputCurrency);
-                navigateBack();
+                saveAndNavigateBack();
                 return;
             }
 
@@ -242,7 +246,7 @@ function IOURequestStepDistanceRate({
 
         setPendingRateID(undefined);
         setFormError('');
-        navigateBack();
+        saveAndNavigateBack();
     }
 
     return (
