@@ -118,6 +118,9 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const shouldShowPayButton = travelSpend > 0 && isMonthlySettlementFrequency && !hasPendingSettlement;
     const formattedSpend = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
 
+    // The spend label and its buttons only fit on one row on large screens; stack them below otherwise
+    const shouldStackButtons = !isLargeScreenWidth;
+
     // The pending settlement amount for the "payment queued" subtitle
     const formattedQueuedAmount = convertToDisplayString(pendingSettlementAmount, CONST.CURRENCY.USD);
     const formattedLimit = convertToDisplayString(travelLimit, CONST.CURRENCY.USD);
@@ -332,7 +335,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     />
                 </View>
             )}
-            <View style={[styles.dFlex, styles.mt6, styles.gap4, !isLargeScreenWidth ? styles.flexColumn : [styles.flexRow, styles.alignItemsCenter]]}>
+            <View style={[styles.dFlex, styles.mt6, shouldStackButtons ? [styles.flexColumn, styles.gap3, styles.mb2] : [styles.flexRow, styles.gap4, styles.alignItemsCenter]]}>
                 <View style={styles.flex1}>
                     <MenuItemWithTopDescription
                         description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendLabel')}
@@ -351,7 +354,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 <View style={[styles.dFlex, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                     <Button
                         onPress={handleViewOnSpend}
-                        style={!isLargeScreenWidth ? styles.flex1 : undefined}
+                        style={shouldStackButtons ? styles.flex1 : undefined}
                     >
                         <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.viewOnSpend')}</Button.Text>
                     </Button>
@@ -360,7 +363,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                             onPress={handlePayBalance}
                             isDisabled={isOffline}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            style={!isLargeScreenWidth ? styles.flex1 : undefined}
+                            style={shouldStackButtons ? styles.flex1 : undefined}
                         >
                             <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}</Button.Text>
                         </Button>
