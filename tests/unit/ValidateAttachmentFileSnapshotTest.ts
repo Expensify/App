@@ -1,3 +1,4 @@
+import {isMobile} from '@libs/Browser';
 import validateAttachmentFile from '@libs/validateAttachmentFile';
 
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -8,6 +9,12 @@ import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
 // Jest resolves the .native variant of platform-split modules; force the web implementation
 // since the OS-file snapshot behavior under test is web-only.
 jest.mock('@src/libs/snapshotPickedFile', () => jest.requireActual<{default: (file: File, name: string) => Promise<File>}>('@src/libs/snapshotPickedFile/index.ts'));
+
+// The web snapshot only copies bytes on desktop browsers; make the browser type controllable per test.
+jest.mock('@src/libs/Browser', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@src/libs/Browser'),
+    isMobile: jest.fn(() => false),
+}));
 
 // Mock only normalizeFileObject and validateImageForCorruption; keep the rest real
 jest.mock('@src/libs/fileDownload/FileUtils', () => {
@@ -26,6 +33,7 @@ describe('validateAttachmentFile OS-backed file snapshot (web)', () => {
         jest.clearAllMocks();
         mockFileUtils.normalizeFileObject.mockImplementation(async (file) => file);
         mockFileUtils.validateImageForCorruption.mockResolvedValue(undefined);
+        jest.mocked(isMobile).mockReturnValue(false);
     });
 
     it('snapshots the picked file bytes into a new memory-backed File', async () => {
@@ -63,5 +71,27 @@ describe('validateAttachmentFile OS-backed file snapshot (web)', () => {
             throw new Error('validateAttachmentFile should return an invalid result');
         }
         expect(result.error).toBe(CONST.FILE_VALIDATION_ERRORS.FILE_INVALID);
+    });
+
+    it('keeps the lazy OS-backed File on mobile browsers so a multi-file selection is not held in memory', async () => {
+        jest.mocked(isMobile).mockReturnValue(true);
+        const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-url');
+        try {
+            const file: FileObject = new File([new Blob(['content'], {type: 'text/plain'})], 'image.png', {type: 'image/png'});
+            const arrayBufferSpy = jest.fn();
+            Object.defineProperty(file, 'arrayBuffer', {value: arrayBufferSpy, configurable: true});
+
+            const result = await validateAttachmentFile(file);
+
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            // Mobile-picked files are sandboxed temp copies, so the bytes are not copied into memory.
+            expect(arrayBufferSpy).not.toHaveBeenCalled();
+            expect(result.file).toBe(file);
+        } finally {
+            createObjectURLSpy.mockRestore();
+        }
     });
 });
