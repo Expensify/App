@@ -7568,6 +7568,11 @@ ${reportName}`,
                 describeRuleForConcierge: '描述你的规则，Concierge 会帮你创建',
                 gotIt: '知道了',
                 createRule: '创建规则',
+                applyOffer: {
+                    message: ({ruleTitle, count}: {ruleTitle: string; count: number}) => `提议将代理规则“${ruleTitle}”应用于 ${count} 笔未处理的报销。要追溯应用吗？`,
+                    applyButtonText: '是，应用',
+                    dismissButtonText: '不用了',
+                },
             },
             tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '字段要求', flagForReview: '标记以供审核', agents: '代理人'},
             bulkActions: {

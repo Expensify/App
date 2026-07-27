@@ -8181,6 +8181,12 @@ const translations = {
                 emptySuggestionsTitle: 'No suggestions available',
                 emptySuggestionsSubtitle: 'Try writing your own rule.',
                 gotIt: 'Got it',
+                applyOffer: {
+                    message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
+                        `offered to apply the agent rule "${ruleTitle}" to ${count} open ${count === 1 ? 'expense' : 'expenses'}. Want it applied retroactively?`,
+                    applyButtonText: 'Yes, apply it',
+                    dismissButtonText: 'No thanks',
+                },
             },
         },
         planTypePage: {

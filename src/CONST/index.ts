@@ -1564,6 +1564,7 @@ const CONST = {
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
                 ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
+                ACTIONABLE_APPLY_AGENT_RULE: 'ACTIONABLEAPPLYAGENTRULE',
                 // Concierge message informing the user of a 3DS challenge - custom reportAction type because we want to translate it
                 ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL: 'ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL',
                 ACTIONABLE_CARD_FRAUD_ALERT: 'ACTIONABLECARDFRAUDALERT',
@@ -1816,6 +1817,10 @@ const CONST = {
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
             USER: 'CANCEL_REASON_USER',
+        },
+        ACTIONABLE_APPLY_AGENT_RULE_RESOLUTION: {
+            APPLY: 'apply',
+            NOTHING: 'nothing',
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',

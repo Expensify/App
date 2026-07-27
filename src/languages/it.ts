@@ -7840,6 +7840,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 describeRuleForConcierge: 'Descrivi la tua regola e Concierge la creerà',
                 gotIt: 'Capito',
                 createRule: 'Crea regola',
+                applyOffer: {
+                    message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
+                        `ha proposto di applicare la regola agente "${ruleTitle}" a ${count} ${count === 1 ? 'spesa aperta' : 'spese aperte'}. Vuoi applicarla retroattivamente?`,
+                    applyButtonText: 'Sì, applicala',
+                    dismissButtonText: 'No, grazie',
+                },
             },
             tabs: {
                 general: 'Generale',

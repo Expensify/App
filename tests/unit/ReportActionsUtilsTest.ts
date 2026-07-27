@@ -6052,4 +6052,31 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isPolicyCopyReportAction(undefined)).toBe(false);
         });
     });
+
+    describe('isActionableApplyAgentRule', () => {
+        function buildAction(actionName: ReportAction['actionName']): ReportAction {
+            return {
+                actionName,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-07-27 10:00:00.000',
+                message: [],
+            } as unknown as ReportAction;
+        }
+
+        it('returns true for the ACTIONABLEAPPLYAGENTRULE action', () => {
+            expect(ReportActionsUtils.isActionableApplyAgentRule(buildAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_APPLY_AGENT_RULE))).toBe(true);
+        });
+
+        it.each([CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE])(
+            'returns false for the non-offer action %s',
+            (actionName) => {
+                expect(ReportActionsUtils.isActionableApplyAgentRule(buildAction(actionName))).toBe(false);
+            },
+        );
+
+        it('returns false for an undefined action', () => {
+            expect(ReportActionsUtils.isActionableApplyAgentRule(undefined)).toBe(false);
+        });
+    });
 });

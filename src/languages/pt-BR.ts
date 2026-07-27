@@ -7813,6 +7813,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 describeRuleForConcierge: 'Descreva sua regra e o Concierge vai criá-la',
                 gotIt: 'Entendi',
                 createRule: 'Criar regra',
+                applyOffer: {
+                    message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
+                        `ofereceu aplicar a regra de agente "${ruleTitle}" a ${count} ${count === 1 ? 'despesa aberta' : 'despesas abertas'}. Quer aplicá-la retroativamente?`,
+                    applyButtonText: 'Sim, aplicar',
+                    dismissButtonText: 'Não, obrigado',
+                },
             },
             tabs: {
                 general: 'Geral',

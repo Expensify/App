@@ -7801,6 +7801,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 describeRuleForConcierge: 'Opisz swoją regułę, a Concierge ją utworzy',
                 gotIt: 'Jasne',
                 createRule: 'Utwórz regułę',
+                applyOffer: {
+                    message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
+                        `zaproponował zastosowanie reguły agenta „${ruleTitle}” do ${count} otwartych wydatków. Zastosować ją wstecznie?`,
+                    applyButtonText: 'Tak, zastosuj',
+                    dismissButtonText: 'Nie, dziękuję',
+                },
             },
             tabs: {
                 general: 'Ogólne',

@@ -7821,6 +7821,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
+                applyOffer: {
+                    message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
+                        `bood aan de agentregel "${ruleTitle}" toe te passen op ${count} openstaande ${count === 1 ? 'uitgave' : 'uitgaven'}. Wil je deze met terugwerkende kracht toepassen?`,
+                    applyButtonText: 'Ja, toepassen',
+                    dismissButtonText: 'Nee, bedankt',
+                },
             },
             tabs: {
                 general: 'Algemeen',

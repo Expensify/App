@@ -1142,6 +1142,14 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
 }
 
 /**
+ * Checks if a given report action corresponds to RuleBot's offer to retroactively apply an agent rule.
+ * @param reportAction
+ */
+function isActionableApplyAgentRule(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_APPLY_AGENT_RULE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_APPLY_AGENT_RULE);
+}
+
+/**
  * Checks if a given report action corresponds to an actionable mention whisper.
  * @param reportAction
  */
@@ -4830,6 +4838,7 @@ export {
     hasReasoning,
     hasRequestFromCurrentAccount,
     isActionOfType,
+    isActionableApplyAgentRule,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     getActionableJoinRequestPendingReportAction,

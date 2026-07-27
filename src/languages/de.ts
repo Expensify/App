@@ -7862,6 +7862,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
                 gotIt: 'Verstanden',
                 createRule: 'Regel erstellen',
+                applyOffer: {
+                    message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
+                        `bot an, die Agentenregel "${ruleTitle}" auf ${count} offene ${count === 1 ? 'Ausgabe' : 'Ausgaben'} anzuwenden. Soll sie rückwirkend angewendet werden?`,
+                    applyButtonText: 'Ja, anwenden',
+                    dismissButtonText: 'Nein, danke',
+                },
             },
             tabs: {
                 general: 'Allgemein',
