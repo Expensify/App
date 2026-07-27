@@ -12,7 +12,6 @@ import {
 } from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, NavigationRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
 import CONST from '@src/CONST';
@@ -32,6 +31,7 @@ import getDynamicRouteAdaptedState from './dynamicRoutesUtils/getDynamicRouteAda
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
+import getDefaultDeeplinkSearchQuery from './getDefaultDeeplinkSearchQuery';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import getStateFromPath from './getStateFromPath';
@@ -160,7 +160,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
         // defined query and can reveal a stale search when the RHP closes. Seed the canned expenses query
         // so these deeplinks resolve to Spend > Expenses.
         if (!queryParam.q && !matchingSearchScreen && matchingDeeplinkSearchScreen) {
-            queryParam = {q: buildCannedSearchQuery()};
+            queryParam = {q: getDefaultDeeplinkSearchQuery()};
         }
 
         const searchRoute = {
