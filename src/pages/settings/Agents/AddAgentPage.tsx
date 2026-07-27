@@ -173,7 +173,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
                             inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                         />
                     </View>
-                    <Text style={[styles.textLabelSupporting]}>{translate('addAgentPage.copilotNote')}</Text>
+                    <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
                 </View>
             </FormProvider>
         </ScreenWrapper>

@@ -3,6 +3,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -106,6 +107,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                     />
                 </View>
+                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             </FormProvider>
         </ScreenWrapper>
     );

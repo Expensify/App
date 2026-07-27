@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -232,6 +233,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     onFocus={handleInputFocus}
                 />
             </OfflineWithFeedback>
+            <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2, styles.mb3]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             <Button
                 success
                 text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}
