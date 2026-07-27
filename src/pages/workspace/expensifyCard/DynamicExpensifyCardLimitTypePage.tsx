@@ -4,8 +4,10 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
@@ -15,9 +17,12 @@ import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateExpensifyCardLimitType} from '@libs/actions/Card';
@@ -35,7 +40,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitTypeForm';
 import type {CardLimitType} from '@src/types/onyx/Card';
@@ -52,6 +57,9 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const {environmentURL} = useEnvironment();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     const defaultFundID = useDefaultFundID(policyID);
@@ -162,12 +170,22 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         }
     }
 
+    const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
+
     const data = [];
 
     data.push({
         value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
         label: translate('workspace.card.issueNewCard.smartLimit'),
-        description: translate(areApprovalsConfigured ? 'workspace.card.issueNewCard.smartLimitDescription' : 'workspace.card.issueNewCard.smartLimitDisabledDescription'),
+        description: areApprovalsConfigured ? translate('workspace.card.issueNewCard.smartLimitDescription') : undefined,
+        alternateTextComponent: areApprovalsConfigured ? undefined : <RenderHTML html={translate('workspace.card.issueNewCard.smartLimitDisabledDescription', workspaceWorkflowsPageURL)} />,
+        rightElement: areApprovalsConfigured ? undefined : (
+            <Icon
+                src={expensifyIcons.Lock}
+                fill={theme.icon}
+            />
+        ),
+        shouldHideSelectionButton: !areApprovalsConfigured,
         keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
         isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
         isDisabled: !areApprovalsConfigured,

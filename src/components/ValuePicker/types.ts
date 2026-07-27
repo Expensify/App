@@ -2,7 +2,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, ReactNode} from 'react';
 import type {View} from 'react-native';
 
 type ValuePickerListItem = ListItem & {
@@ -14,6 +14,15 @@ type ValuePickerItem = {
     value?: string;
     description?: string;
     isDisabled?: boolean | null;
+
+    /** Custom node rendered in place of the description (e.g. a description containing an inline link) */
+    alternateTextComponent?: ReactNode;
+
+    /** Element to show on the right side of the item */
+    rightElement?: ReactNode;
+
+    /** Whether to hide the selection button (radio) entirely */
+    shouldHideSelectionButton?: boolean;
 };
 
 type ValueSelectorModalProps = {

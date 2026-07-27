@@ -25,9 +25,12 @@ function ValueSelectionList({
         const mappedOptions = items.map((item) => ({
             value: item.value ?? '',
             alternateText: item.description,
+            alternateTextComponent: item.alternateTextComponent,
             text: item.label ?? '',
             keyForList: item.value ?? '',
             isDisabled: item.isDisabled,
+            rightElement: item.rightElement,
+            shouldHideSelectionButton: item.shouldHideSelectionButton,
         }));
         const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : []);
 

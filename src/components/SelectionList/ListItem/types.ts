@@ -42,6 +42,9 @@ type ListItem<K extends string | number = string> = {
     /** Alternate text to display */
     alternateText?: string | null;
 
+    /** Custom node rendered in place of the alternate text (e.g. a description containing an inline link). Takes precedence over `alternateText` when set. */
+    alternateTextComponent?: ReactNode;
+
     /** Whether to force hide the alternate text even if it exists */
     shouldHideAlternateText?: boolean;
 

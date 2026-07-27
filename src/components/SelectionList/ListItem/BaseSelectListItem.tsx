@@ -87,7 +87,8 @@ function BaseSelectListItem<TItem extends ListItem>({
                         numberOfLines={isMultilineSupported ? titleNumberOfLines : 1}
                     />
 
-                    {!!item.alternateText && (
+                    {!!item.alternateTextComponent && item.alternateTextComponent}
+                    {!item.alternateTextComponent && !!item.alternateText && (
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.alternateText}
