@@ -340,7 +340,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                             reasonAttributes={reasonAttributes}
                         />
                     ) : (
-                        <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
+                        <View style={[styles.appContentHeaderTitle, (!shouldUseNarrowLayout || isAgentReportInRHP) && !isLoading && styles.pl5]}>
                             {shouldShowBackButton && (
                                 <PressableWithoutFeedback
                                     ref={setBackButtonRef}
