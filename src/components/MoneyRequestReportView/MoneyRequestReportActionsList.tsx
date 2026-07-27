@@ -52,7 +52,6 @@ import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
-import ReportActionsListTailIndicator from '@pages/inbox/report/ReportActionsListTailIndicator';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
@@ -139,7 +138,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
-    const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
+    const {draftReportAction} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
@@ -224,7 +223,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const listRef = useActionListRef();
 
     const scrollingVerticalBottomOffset = useRef(0);
-    const tailIndicatorHeightRef = useRef(0);
     const readActionSkipped = useRef(false);
     const stickToBottomRef = useRef(false);
     const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -508,10 +506,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         resetKey: report?.reportID ?? reportIDFromRoute ?? '',
     });
 
-    useEffect(() => {
-        tailIndicatorHeightRef.current = 0;
-    }, [report?.reportID]);
-
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
      */
@@ -700,24 +694,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }
     };
 
-    const handleTailIndicatorLayout = useCallback(
-        (event: LayoutChangeEvent) => {
-            const previousHeight = tailIndicatorHeightRef.current;
-            const nextHeight = event.nativeEvent.layout.height;
-            tailIndicatorHeightRef.current = nextHeight;
-
-            if (previousHeight > 0 || nextHeight <= 0 || linkedReportActionID || !hasNewestReportAction || scrollOffsetRef.current >= CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD) {
-                return;
-            }
-
-            setIsFloatingMessageCounterVisible(false);
-            requestAnimationFrame(() => {
-                scrollToBottom();
-            });
-        },
-        [hasNewestReportAction, linkedReportActionID, scrollToBottom, scrollOffsetRef, setIsFloatingMessageCounterVisible],
-    );
-
     /**
      * Runs when the FlatList finishes laying out
      */
@@ -737,18 +713,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     if (!report) {
         return null;
     }
-
-    const listFooterComponent = (
-        <View
-            testID="money-request-report-tail-indicator"
-            onLayout={handleTailIndicatorLayout}
-        >
-            <ReportActionsListTailIndicator
-                reportID={report.reportID}
-                isDraftPendingCompletion={isDraftPendingCompletion}
-            />
-        </View>
-    );
 
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
@@ -814,7 +778,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
                         isLoadingInitialActions={!!showReportActionsLoadingState}
                         skeletonReasonAttributes={skeletonReasonAttributes}
-                        listFooterComponent={listFooterComponent}
                     />
                 )}
             </View>
