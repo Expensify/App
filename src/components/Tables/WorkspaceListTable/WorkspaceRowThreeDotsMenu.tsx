@@ -107,12 +107,15 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
         menuItems.push({
             icon: icons.Plus,
             text: translate('workspace.common.duplicateWorkspace'),
+            // After the popover hides so the 3-dot anchor is focused again and NavigationFocusReturn can capture it.
+            shouldCallAfterModalHide: true,
             onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
         });
         if (item.isEligibleToCopy) {
             menuItems.push({
                 icon: icons.Copy,
                 text: translate('workspace.copyPolicySettings.title'),
+                shouldCallAfterModalHide: true,
                 onSelected: () => {
                     if (!item.policyID) {
                         return;

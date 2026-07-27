@@ -1,5 +1,5 @@
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import {markActivePopoverLauncherDeactivated, setActivePopoverLauncher} from '@libs/LauncherStack';
+import {markActivePopoverLauncherDeactivated, pickLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import sharedTrapStack from '@libs/sharedTrapStack';
@@ -17,10 +17,12 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
             active={active}
             focusTrapOptions={{
                 onActivate: () => {
-                    // Capture for nav-back return — independent of shouldReturnFocus (which gates only focus-trap-react's same-screen return below).
-                    const launcher = document.activeElement;
+                    // Prefer the focused opener; if it was blurred before open (ThreeDotsMenu), fall back to LauncherStack.
+                    const activeElement = document.activeElement;
+                    const fromActive = activeElement instanceof HTMLElement && activeElement !== document.body ? activeElement : null;
+                    const launcher = fromActive ?? pickLauncher();
                     blurActiveElement();
-                    if (launcher instanceof HTMLElement && launcher !== document.body) {
+                    if (launcher && document.contains(launcher)) {
                         cachedLauncherRef.current = launcher;
                         setActivePopoverLauncher(launcher);
                     }

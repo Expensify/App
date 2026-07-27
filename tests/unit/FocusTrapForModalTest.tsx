@@ -2,13 +2,14 @@ import {render} from '@testing-library/react-native';
 
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal/index.web';
 
-import {markActivePopoverLauncherDeactivated, setActivePopoverLauncher} from '@libs/LauncherStack';
+import {markActivePopoverLauncherDeactivated, pickLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 
 import React from 'react';
 
 jest.mock('@libs/LauncherStack', () => ({
     setActivePopoverLauncher: jest.fn(),
     markActivePopoverLauncherDeactivated: jest.fn(),
+    pickLauncher: jest.fn(() => null),
 }));
 
 let capturedOptions: {onActivate?: () => void; onPostDeactivate?: () => void} | null = null;
@@ -48,6 +49,8 @@ describe('FocusTrapForModal — launcher capture', () => {
         capturedOptions = null;
         (setActivePopoverLauncher as jest.Mock).mockClear();
         (markActivePopoverLauncherDeactivated as jest.Mock).mockClear();
+        (pickLauncher as jest.Mock).mockReset();
+        (pickLauncher as jest.Mock).mockReturnValue(null);
         mockRestoreFocusWithModality.mockReset();
         document.body.innerHTML = '';
     });
@@ -111,7 +114,7 @@ describe('FocusTrapForModal — launcher capture', () => {
         expect(markActivePopoverLauncherDeactivated).toHaveBeenCalledWith(launcher);
     });
 
-    it('skips launcher capture when activeElement is document.body (nothing to capture)', () => {
+    it('skips launcher capture when activeElement is document.body and LauncherStack is empty', () => {
         render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
 
         withActiveElement(document.body, () => {
@@ -121,5 +124,21 @@ describe('FocusTrapForModal — launcher capture', () => {
 
         expect(setActivePopoverLauncher).not.toHaveBeenCalled();
         expect(markActivePopoverLauncherDeactivated).not.toHaveBeenCalled();
+    });
+
+    it('falls back to pickLauncher when activeElement is document.body (ThreeDots pre-blur)', () => {
+        const launcher = document.createElement('button');
+        document.body.appendChild(launcher);
+        (pickLauncher as jest.Mock).mockReturnValue(launcher);
+
+        render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
+
+        withActiveElement(document.body, () => {
+            capturedOptions?.onActivate?.();
+            capturedOptions?.onPostDeactivate?.();
+        });
+
+        expect(setActivePopoverLauncher).toHaveBeenCalledWith(launcher);
+        expect(markActivePopoverLauncherDeactivated).toHaveBeenCalledWith(launcher);
     });
 });

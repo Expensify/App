@@ -2,6 +2,9 @@
  * Stack of popover/modal launcher elements — the element that opened a focus trap. Top is the most recent.
  * pickLauncher prefers the topmost active entry, else the most recent deactivated-within-LAUNCHER_CLEAR_DELAY_MS.
  */
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
+
 import {LAUNCHER_CLEAR_DELAY_MS, LAUNCHER_STACK_MAX} from './focusReturnTimings';
 
 // deactivatedAt is set on trap close; entry lives LAUNCHER_CLEAR_DELAY_MS so deferred-nav popovers can still consume it.
@@ -10,6 +13,19 @@ type LauncherEntry = {element: HTMLElement; deactivatedAt?: number};
 // Stack (not slot) so nested + sequential traps retain correct launcher context.
 const launcherStack: LauncherEntry[] = [];
 let hasWarnedAboutOverflow = false;
+
+/** Resolve a RN View ref to its web host node for LauncherStack registration. No-op on native. */
+function resolvePopoverLauncherElement(ref: RefObject<View | null> | null | undefined): HTMLElement | null {
+    if (typeof document === 'undefined' || !ref?.current) {
+        return null;
+    }
+    // On web, RN View refs are DOM nodes; instanceof avoids an unsafe cast.
+    const node = ref.current;
+    if (!(node instanceof HTMLElement) || !document.contains(node)) {
+        return null;
+    }
+    return node;
+}
 
 // Two passes so nested traps resolve to the outer (active) launcher, not the just-closed inner.
 function pickLauncher(): HTMLElement | null {
@@ -97,4 +113,4 @@ function resetLauncherStackForTests(): void {
     hasWarnedAboutOverflow = false;
 }
 
-export {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests};
+export {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests, resolvePopoverLauncherElement};
