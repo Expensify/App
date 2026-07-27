@@ -1747,6 +1747,37 @@ describe('OptionsListUtils', () => {
             }
         });
 
+        it('should not let createOption drift from the lazy shell on any filter- or rank-relevant field', () => {
+            // Drift guard for createLazyContactOption: the lazy shell hand-reproduces the subset of
+            // createOption's showPersonalDetails output that getValidOptions filters and ranks on. If
+            // createOption ever changes how one of those values is derived - or starts populating a new
+            // one (e.g. displayName / isOptimisticPersonalDetail, currently undefined on both paths) -
+            // the shell must be updated in lockstep or filtering/ranking will diverge from what is
+            // displayed after hydration. This asserts exact parity across every such field so that a
+            // one-sided change to createOption fails here.
+            //
+            // When you add a field that the personal-details filter (see getValidOptions -> filteringFunction
+            // / doesPersonalDetailMatchSearchTerm) or the heap comparator (personalDetailsComparator) reads,
+            // add it to this list AND reproduce it in createLazyContactOption.
+            const FILTER_AND_RANK_FIELDS = ['text', 'login', 'accountID', 'participantsList', 'displayName', 'isOptimisticPersonalDetail'] as const;
+
+            // Given the same data built eagerly and lazily
+            const {eagerList, lazyList} = buildOptionLists();
+
+            // Then every shell reproduces every filter/rank field exactly, and the resolved comparator key matches
+            expect(lazyList.personalDetails.length).toBe(eagerList.personalDetails.length);
+            expect(lazyList.personalDetails.length).toBeGreaterThan(0);
+            for (const [index, eagerOption] of eagerList.personalDetails.entries()) {
+                const shell = lazyList.personalDetails.at(index);
+                for (const field of FILTER_AND_RANK_FIELDS) {
+                    expect(shell?.[field]).toEqual(eagerOption[field]);
+                }
+                // Comparator key: text -> alternateText -> login. alternateText is deliberately a fallback-only
+                // approximation on the shell, so compare the resolved key rather than alternateText directly.
+                expect(shell?.text ?? shell?.alternateText ?? shell?.login).toBe(eagerOption.text ?? eagerOption.alternateText ?? eagerOption.login);
+            }
+        });
+
         it('should produce results identical to eagerly built options with custom exclusions', () => {
             // Given the same data built eagerly and lazily
             const {eagerList, lazyList} = buildOptionLists();
