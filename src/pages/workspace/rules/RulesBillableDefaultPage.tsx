@@ -41,8 +41,6 @@ function RulesBillableDefaultPage({
     const {isBetaEnabled} = usePermissions();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
-    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
-    // persisted defaultBillable, so the change of context (persist + navigate) only happens when the user taps Save.
     const [draftBillable, setDraftBillable] = useState<boolean>();
     const persistedBillable = policy?.defaultBillable ?? false;
     const selectedBillable = draftBillable ?? persistedBillable;
@@ -69,8 +67,6 @@ function RulesBillableDefaultPage({
 
     const saveAndGoBack = () => {
         setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
-        // Queue the navigation so the optimistic Onyx update from setPolicyBillableMode runs before we return,
-        // otherwise the Rules page can briefly render the stale billable value.
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 

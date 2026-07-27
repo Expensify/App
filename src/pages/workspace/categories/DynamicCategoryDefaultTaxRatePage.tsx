@@ -40,8 +40,6 @@ function DynamicCategoryDefaultTaxRatePage({
 
     const persistedTaxRate = getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
 
-    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
-    // persisted tax rate, so the change of context (persist + navigate) only happens when the user taps Save.
     const [draftTaxRate, setDraftTaxRate] = useState<string>();
     const selectedTaxRate = draftTaxRate ?? persistedTaxRate;
 
@@ -65,8 +63,6 @@ function DynamicCategoryDefaultTaxRatePage({
     const saveAndGoBack = () => {
         if (selectedTaxRate && selectedTaxRate !== persistedTaxRate) {
             setPolicyCategoryTax(policy, categoryName, selectedTaxRate);
-            // Queue the navigation so the optimistic Onyx update from setPolicyCategoryTax runs before we return,
-            // otherwise the category settings page can briefly render the old tax rate.
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
             return;
         }
