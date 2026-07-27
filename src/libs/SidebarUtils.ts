@@ -152,7 +152,7 @@ import {
     isTagModificationAction,
     isTaskAction,
 } from './ReportActionsUtils';
-import {getReportName} from './ReportNameUtils';
+import {deprecatedGetReportName, getReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
@@ -1515,7 +1515,7 @@ function getRoomWelcomeMessage(
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    const reportName = getReportName(report ?? undefined, report?.reportID ? reportAttributes?.[report.reportID]?.reportName : undefined);
+    const reportName = deprecatedGetReportName(report ?? undefined, reportAttributes);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
