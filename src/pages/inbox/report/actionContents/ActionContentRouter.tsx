@@ -388,7 +388,7 @@ function ActionContentRouter({
         return (
             <ApplyAgentRuleContent
                 action={action}
-                reportID={reportID}
+                reportID={actionOwnerReportID}
             />
         );
     }

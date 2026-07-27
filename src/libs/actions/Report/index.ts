@@ -6155,6 +6155,8 @@ function resolveActionableApplyAgentRule(
         return;
     }
 
+    // errors is cleared explicitly so a retry after a failed resolution doesn't keep the stale
+    // error attached to the action once it succeeds.
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6165,6 +6167,7 @@ function resolveActionableApplyAgentRule(
                         resolution,
                     },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    errors: null,
                 },
             },
         },
@@ -6177,6 +6180,7 @@ function resolveActionableApplyAgentRule(
             value: {
                 [reportActionID]: {
                     pendingAction: null,
+                    errors: null,
                 },
             },
         },

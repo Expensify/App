@@ -8447,6 +8447,55 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('resolveActionableApplyAgentRule', () => {
+        it('optimistically records the resolution on the offer action and clears stale errors', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+
+            const REPORT_ID = '31';
+            const OFFER_ACTION_ID = '3101';
+
+            const offerAction = createMock<OnyxTypes.ReportAction>({
+                reportActionID: OFFER_ACTION_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_APPLY_AGENT_RULE,
+                created: '2026-07-27 08:04:13.730',
+                originalMessage: {
+                    policyID: 'ABC123DEF456ABCD',
+                    ruleID: '4242424242',
+                    ruleTitle: 'Receipts required',
+                    estimatedCount: 12,
+                },
+            });
+
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]: {
+                    [OFFER_ACTION_ID]: {
+                        ...offerAction,
+                        errors: {error1: 'Previous attempt failed'},
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            Report.resolveActionableApplyAgentRule(REPORT_ID, offerAction, CONST.REPORT.ACTIONABLE_APPLY_AGENT_RULE_RESOLUTION.APPLY);
+            await waitForBatchedUpdates();
+
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
+            const updatedAction = reportActions?.[OFFER_ACTION_ID];
+            expect((updatedAction?.originalMessage as {resolution?: string} | undefined)?.resolution).toBe(CONST.REPORT.ACTIONABLE_APPLY_AGENT_RULE_RESOLUTION.APPLY);
+            expect(Object.keys(updatedAction?.errors ?? {}).length).toBe(0);
+        });
+
+        it('does nothing without a reportID or reportAction', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+
+            Report.resolveActionableApplyAgentRule(undefined, undefined, CONST.REPORT.ACTIONABLE_APPLY_AGENT_RULE_RESOLUTION.NOTHING);
+            await waitForBatchedUpdates();
+
+            expect(global.fetch).not.toHaveBeenCalled();
+        });
+    });
+
     describe('resolveActionableMentionWhisper', () => {
         it('should optimistically add invited users to report.participants when resolution is INVITE', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();
