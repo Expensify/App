@@ -7,8 +7,8 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import type {DynamicRouteSuffix} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -23,7 +23,8 @@ import {
 type CategoryContextualRule = {
     key: string;
     summary: string;
-    route: Route;
+    /** Dynamic route suffix under category settings (keeps Categories underlay on refresh). */
+    dynamicRoutePath: DynamicRouteSuffix;
     pendingAction?: PendingAction;
 };
 
@@ -49,7 +50,7 @@ function getFlagForReviewContextualSummary(
 
 /**
  * Returns Rules Revamp rules scoped to a category for display in the category details RHP.
- * Each item navigates to the same edit route used from the centralized Rules page.
+ * Each item navigates via a category dynamic edit route so refresh keeps Categories as the central pane.
  */
 function getCategoryContextualRules({
     policy,
@@ -68,7 +69,6 @@ function getCategoryContextualRules({
         return [];
     }
 
-    const policyID = policy.id;
     const policyCurrency = policy.outputCurrency ?? CONST.CURRENCY.USD;
     const rules: CategoryContextualRule[] = [];
 
@@ -77,7 +77,7 @@ function getCategoryContextualRules({
         rules.push({
             key: `flag-for-review-${categoryName}`,
             summary: flagSummary,
-            route: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName, true),
+            dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT.path,
             pendingAction: category.pendingFields?.maxExpenseAmount,
         });
     }
@@ -89,7 +89,7 @@ function getCategoryContextualRules({
             rules.push({
                 key: `require-fields-${categoryName}`,
                 summary,
-                route: ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName, true),
+                dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_EDIT.path,
                 pendingAction: getRequireFieldsPendingActionForCategory(category),
             });
         }

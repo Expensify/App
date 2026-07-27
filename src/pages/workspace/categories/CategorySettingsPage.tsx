@@ -543,7 +543,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                         </>
                     )}
 
-                    {categoryRulesEnabled && isRulesRevampEnabled && (
+                    {categoryRulesEnabled && isRulesRevampEnabled && (contextualRules.length > 0 || canWriteRules) && (
                         <>
                             <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
@@ -558,7 +558,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                         title={rule.summary}
                                         numberOfLinesTitle={3}
                                         shouldShowBasicTitle
-                                        onPress={() => Navigation.navigate(rule.route)}
+                                        onPress={() => Navigation.navigate(createDynamicRoute(rule.dynamicRoutePath))}
                                         shouldShowRightIcon
                                     />
                                 </OfflineWithFeedback>
