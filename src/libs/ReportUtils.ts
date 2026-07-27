@@ -1896,10 +1896,7 @@ function getReportNotificationPreference(report: OnyxEntry<Report>): ValueOf<typ
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
-function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID: string | undefined): boolean {
-    // The deprecated Onyx.connect fallback stays until every conciergeReportID param in the createOptions chain is
-    // required and threaded (see the remaining #66411 TODOs) — removing it earlier would break Concierge detection
-    // on call paths that still omit the value.
+function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID?: string): boolean {
     return !!report && report?.reportID === (conciergeReportID ?? conciergeReportIDOnyxConnect);
 }
 

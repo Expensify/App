@@ -1255,8 +1255,6 @@ describe('actions/IOU/TrackExpense', () => {
 
         it('should post onboarding tasks to the threaded conciergeChat instead of the deprecated CONCIERGE_REPORT_ID fallback when tracking to a draft workspace', async () => {
             mockFetch?.pause?.();
-            // Given the deprecated Onyx.connect fallback points at a DIFFERENT report than the threaded param,
-            // so the assertions below fail if trackExpense stops forwarding conciergeChat to buildPolicyData (#66411)
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'deprecated-fallback-track');
 
             // And a draft workspace expense chat (getTrackExpenseInformation only creates the workspace for draft reports)
