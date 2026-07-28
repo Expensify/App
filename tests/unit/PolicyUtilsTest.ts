@@ -7,6 +7,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
+    canAccessPolicyBankAccount,
     canAccessSubmitWorkspaceFeatures,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -4099,5 +4100,51 @@ describe('getDefaultWorkspacePlanType', () => {
         },
     ])('returns $expected when $description', ({policies, expected}) => {
         expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
+    });
+});
+
+describe('canAccessPolicyBankAccount', () => {
+    const PAYER_EMAIL = 'payer@test.com';
+    const NON_PAYER_ADMIN_EMAIL = 'admin@test.com';
+    const POLICY_BANK_ACCOUNT_ID = 1111;
+
+    const policyWithBankAccount: Policy = {
+        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+        role: CONST.POLICY.ROLE.ADMIN,
+        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+        reimburser: PAYER_EMAIL,
+        achAccount: {
+            bankAccountID: POLICY_BANK_ACCOUNT_ID,
+            accountNumber: 'XXXXXX1111',
+            reimburser: PAYER_EMAIL,
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+        },
+        employeeList: {
+            [PAYER_EMAIL]: {email: PAYER_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+            [NON_PAYER_ADMIN_EMAIL]: {email: NON_PAYER_ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+        },
+    };
+
+    it('returns true for the designated payer even when the workspace account is missing from their bank account list', () => {
+        expect(canAccessPolicyBankAccount(policyWithBankAccount, PAYER_EMAIL, {})).toBe(true);
+    });
+
+    it('returns false for an admin who is not the payer and does not have the workspace account', () => {
+        expect(canAccessPolicyBankAccount(policyWithBankAccount, NON_PAYER_ADMIN_EMAIL, {})).toBe(false);
+    });
+
+    it('returns true for an admin who is not the payer but has the workspace account in their bank account list', () => {
+        const bankAccountList = {
+            [POLICY_BANK_ACCOUNT_ID]: {methodID: POLICY_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
+        };
+        expect(canAccessPolicyBankAccount(policyWithBankAccount, NON_PAYER_ADMIN_EMAIL, bankAccountList)).toBe(true);
+    });
+
+    it('returns false when the workspace has no connected bank account', () => {
+        expect(canAccessPolicyBankAccount({...policyWithBankAccount, achAccount: undefined}, PAYER_EMAIL, {})).toBe(false);
+    });
+
+    it('returns false when there is no policy', () => {
+        expect(canAccessPolicyBankAccount(undefined, PAYER_EMAIL, {})).toBe(false);
     });
 });

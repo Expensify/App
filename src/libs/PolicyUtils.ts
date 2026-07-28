@@ -7,6 +7,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import type {
+    BankAccountList,
     OnyxInputOrEntry,
     PersonalDetailsList,
     Policy,
@@ -695,6 +696,24 @@ function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: s
         policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
     return isReimbursementConfigured && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+}
+
+/**
+ * Whether the user can actually pay from the workspace's connected bank account.
+ *
+ * Any workspace admin can pay reports, but only the designated payer/owner and the members the account is shared with
+ * may use the workspace bank account itself. This gates every place that would otherwise default a payment to
+ * `policy.achAccount` — paying with, or displaying, an account the user has no access to is always wrong.
+ */
+function canAccessPolicyBankAccount(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined, bankAccountList: OnyxEntry<BankAccountList>): boolean {
+    const policyBankAccountID = policy?.achAccount?.bankAccountID;
+
+    if (!policyBankAccountID) {
+        return false;
+    }
+
+    // The designated payer/owner pays from the workspace account even when it isn't enumerated in their own bank account list.
+    return isPolicyPayer(policy, currentUserLogin) || !!bankAccountList?.[policyBankAccountID];
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */
@@ -3017,6 +3036,7 @@ export {
     isPolicyMember,
     isPolicyPayer,
     canAdminPayReport,
+    canAccessPolicyBankAccount,
     arePaymentsEnabled,
     isSubmitterAndApprover,
     isSubmitAndClose,

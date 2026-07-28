@@ -36,7 +36,14 @@ import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
-import {getAccountIDForSubmitManagerEmail, getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled, isSubmitPolicy} from '@libs/PolicyUtils';
+import {
+    canAccessPolicyBankAccount,
+    getAccountIDForSubmitManagerEmail,
+    getSubmitReportManagerAccountID,
+    getValidConnectedIntegration,
+    isDelayedSubmissionEnabled,
+    isSubmitPolicy,
+} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
@@ -94,6 +101,7 @@ import Onyx from 'react-native-onyx';
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 
+import {getBankAccountList} from './BankAccounts';
 import {getAllTransactionViolations} from './IOU';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
@@ -567,8 +575,11 @@ function getPayActionCallback({
     }
 
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        const hasVBBA = !!snapshotPolicy?.achAccount?.bankAccountID;
-        if (!hasVBBA) {
+        // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone who
+        // can use that account. Any workspace admin can pay, but a non-payer admin has to pay from an account of their
+        // own, so open the report and let them pick it instead of silently paying with (and reporting) the workspace one.
+        // Prefer the live policy so the role/reimburser used by the check is current; fall back to the search snapshot.
+        if (!canAccessPolicyBankAccount(policy ?? snapshotPolicy, currentUserLogin, getBankAccountList())) {
             goToItem();
             return;
         }
