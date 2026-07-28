@@ -314,6 +314,12 @@ describe('actions/Policy', () => {
             const fakePolicy = {
                 ...createRandomPolicy(10, CONST.POLICY.TYPE.PERSONAL),
                 employeeList: {},
+                areInvoicesEnabled: true,
+                invoice: {
+                    companyName: 'Source company',
+                    companyWebsite: 'https://source.company',
+                    bankAccount: {stripeConnectAccountID: 'acct_123'},
+                },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
@@ -373,6 +379,8 @@ describe('actions/Policy', () => {
             expect(policy?.areWorkflowsEnabled).toBe(true);
             expect(policy?.areDistanceRatesEnabled).toBe(true);
             expect(policy?.areInvoicesEnabled).toBe(true);
+            // The invoicing details are provisioned per workspace, so they must not be copied from the source policy
+            expect(policy?.invoice).toBeUndefined();
             expect(policy?.arePerDiemRatesEnabled).toBe(true);
             expect(policy?.approvalMode).toBe(fakePolicy.approvalMode);
             expect(policy?.approver).toBe(fakePolicy.approver);
