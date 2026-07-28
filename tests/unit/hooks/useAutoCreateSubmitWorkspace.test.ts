@@ -17,8 +17,10 @@ import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy as PolicyType} from '@src/types/onyx';
 
-import type {UseOnyxResult} from 'react-native-onyx';
+import type {OnyxCollection, UseOnyxOptions, UseOnyxResult} from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
 
@@ -32,10 +34,19 @@ jest.mock('@hooks/useLocalize');
 jest.mock('@hooks/usePreferredPolicy');
 jest.mock('@hooks/useOnboardingMessages');
 
-const mockTranslate: LocalizedTranslate = (...parameters) => parameters[0];
+const mockTranslate: LocalizedTranslate = (path, ...parameters) => {
+    return parameters.length > 0 ? path : path;
+};
 const mockFormatPhoneNumber = jest.fn((phone: string) => phone);
 
 const mockUseOnyx = jest.mocked(useOnyx);
+
+type PolicySelectorResult = number | boolean | string | undefined;
+type PolicyCollectionUseOnyxOptions = UseOnyxOptions<typeof ONYXKEYS.COLLECTION.POLICY, PolicySelectorResult>;
+
+function isPolicyCollectionOptions(options: unknown): options is PolicyCollectionUseOnyxOptions {
+    return typeof options === 'object' && options !== null && 'selector' in options && typeof options.selector === 'function';
+}
 
 const MOCK_SESSION = {
     accountID: 12345,
@@ -70,10 +81,12 @@ function setupDefaultMocks() {
         localCurrencyCode: 'USD',
     });
 
-    jest.mocked(useLocalize).mockReturnValue({
-        translate: mockTranslate,
-        formatPhoneNumber: mockFormatPhoneNumber,
-    });
+    jest.mocked(useLocalize).mockReturnValue(
+        createMock<ReturnType<typeof useLocalize>>({
+            translate: mockTranslate,
+            formatPhoneNumber: mockFormatPhoneNumber,
+        }),
+    );
 
     jest.mocked(usePreferredPolicy).mockReturnValue({
         isRestrictedToPreferredPolicy: false,
@@ -83,11 +96,13 @@ function setupDefaultMocks() {
 
     jest.mocked(useHasActiveAdminPolicies).mockReturnValue(false);
 
-    jest.mocked(useOnboardingMessages).mockReturnValue({
-        onboardingMessages: {
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: MOCK_ONBOARDING_MESSAGE,
-        },
-    });
+    jest.mocked(useOnboardingMessages).mockReturnValue(
+        createMock<ReturnType<typeof useOnboardingMessages>>({
+            onboardingMessages: {
+                [CONST.ONBOARDING_CHOICES.EMPLOYER]: MOCK_ONBOARDING_MESSAGE,
+            },
+        }),
+    );
 }
 
 describe('useAutoCreateSubmitWorkspace', () => {
@@ -291,26 +306,26 @@ describe('useAutoCreateSubmitWorkspace', () => {
     it('navigates to the existing Submit workspace when an already-onboarded caller skips creation', async () => {
         // Given an already-onboarded user (the Submit plan welcome modal passes shouldCompleteOnboarding = false)
         // who is an editor/admin of an existing Submit workspace, so no new workspace should be created
-        const existingSubmitPolicy = {
+        const existingSubmitPolicy = createMock<PolicyType>({
             id: 'existing-submit-policy-id',
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.ADMIN,
-        };
-        mockUseOnyx.mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
+        });
+        mockUseOnyx.mockImplementation((key: string, options?: unknown) => {
             if (key === 'session') {
                 return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
             }
             if (key === 'betas') {
                 return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
             }
-            if (key.startsWith('policy_')) {
-                // Run the hook's real selectors against a fake policy collection so both the
-                // hasEditableGroupPolicy and existingSubmitPolicyID subscriptions resolve correctly.
-                // Unrelated policy-collection selectors (e.g. useLastWorkspaceNumber's) expect extra
-                // arguments this mock doesn't provide, so fall back to undefined when they throw.
+            if (key === ONYXKEYS.COLLECTION.POLICY && isPolicyCollectionOptions(options)) {
+                const policyCollection: OnyxCollection<PolicyType> = {[`${ONYXKEYS.COLLECTION.POLICY}${existingSubmitPolicy.id}`]: existingSubmitPolicy};
                 try {
-                    const selectedPolicy = options?.selector?.({[`policy_${existingSubmitPolicy.id}`]: existingSubmitPolicy});
-                    return [selectedPolicy, {status: 'loaded'}] satisfies UseOnyxResult<typeof selectedPolicy>;
+                    const selectedPolicy = options.selector?.(policyCollection);
+                    if (selectedPolicy === null || selectedPolicy === undefined) {
+                        return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
+                    }
+                    return [selectedPolicy, {status: 'loaded'}] satisfies UseOnyxResult<NonNullable<typeof selectedPolicy>>;
                 } catch {
                     return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
                 }
@@ -332,22 +347,26 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('keeps the Home fallback for onboarding callers when creation is skipped', async () => {
         // Given an onboarding user who already has an editable group workspace, so creation is skipped
-        const existingSubmitPolicy = {
+        const existingSubmitPolicy = createMock<PolicyType>({
             id: 'existing-submit-policy-id',
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.ADMIN,
-        };
-        mockUseOnyx.mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
+        });
+        mockUseOnyx.mockImplementation((key: string, options?: unknown) => {
             if (key === 'session') {
                 return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
             }
             if (key === 'betas') {
                 return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
             }
-            if (key.startsWith('policy_')) {
+            if (key === ONYXKEYS.COLLECTION.POLICY && isPolicyCollectionOptions(options)) {
+                const policyCollection: OnyxCollection<PolicyType> = {[`${ONYXKEYS.COLLECTION.POLICY}${existingSubmitPolicy.id}`]: existingSubmitPolicy};
                 try {
-                    const selectedPolicy = options?.selector?.({[`policy_${existingSubmitPolicy.id}`]: existingSubmitPolicy});
-                    return [selectedPolicy, {status: 'loaded'}] satisfies UseOnyxResult<typeof selectedPolicy>;
+                    const selectedPolicy = options.selector?.(policyCollection);
+                    if (selectedPolicy === null || selectedPolicy === undefined) {
+                        return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
+                    }
+                    return [selectedPolicy, {status: 'loaded'}] satisfies UseOnyxResult<NonNullable<typeof selectedPolicy>>;
                 } catch {
                     return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
                 }

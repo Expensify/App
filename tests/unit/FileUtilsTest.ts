@@ -120,20 +120,23 @@ describe('FileUtils', () => {
     });
 
     describe('canvasFallback', () => {
+        type Canvas2DGetContext = (contextId: '2d', options?: CanvasRenderingContext2DSettings) => CanvasRenderingContext2D | null;
+        type Canvas2DCanvas = Pick<HTMLCanvasElement, 'width' | 'height' | 'toBlob'> & {getContext: Canvas2DGetContext};
+
         const mockCreateImageBitmap = jest.fn<ReturnType<typeof createImageBitmap>, Parameters<typeof createImageBitmap>>();
-        const mockCanvas = createMock<HTMLCanvasElement>({
+        const mockGetContext = jest.fn<ReturnType<Canvas2DGetContext>, Parameters<Canvas2DGetContext>>(() => null);
+        const mockCanvas = createMock<Canvas2DCanvas>({
             width: 0,
             height: 0,
-            getContext: () => null,
+            getContext: mockGetContext,
             toBlob: () => undefined,
         });
-        const mockGetContext = jest.spyOn(mockCanvas, 'getContext');
         const mockToBlob = jest.spyOn(mockCanvas, 'toBlob');
         const mockCtx = createMock<CanvasRenderingContext2D>({
             drawImage: jest.fn(),
         });
-        const mockCreateElement = jest.fn<ReturnType<Document['createElement']>, Parameters<Document['createElement']>>();
-        const mockDocument = {createElement: mockCreateElement} satisfies Pick<Document, 'createElement'>;
+        const mockCreateElement = jest.fn<Canvas2DCanvas, [tagName: string]>();
+        const mockDocument = {createElement: mockCreateElement} satisfies {createElement: (tagName: string) => Canvas2DCanvas};
         const mockURL = {
             createObjectURL: jest.fn<ReturnType<typeof URL.createObjectURL>, Parameters<typeof URL.createObjectURL>>(() => 'blob:mock-url'),
         } satisfies Pick<typeof URL, 'createObjectURL'>;
@@ -146,7 +149,7 @@ describe('FileUtils', () => {
             Object.defineProperty(globalThis, 'URL', {configurable: true, enumerable: true, value: mockURL, writable: true});
 
             mockCreateElement.mockReturnValue(mockCanvas);
-            mockGetContext.mockReturnValue(mockCtx);
+            mockGetContext.mockImplementation(() => mockCtx);
             mockCreateImageBitmap.mockResolvedValue(
                 createMock<Awaited<ReturnType<typeof createImageBitmap>>>({
                     width: 1000,
@@ -496,7 +499,9 @@ describe('FileUtils', () => {
     });
 
     describe('getFileValidationErrorText', () => {
-        const mockTranslate: LocaleContextProps['translate'] = (...parameters) => parameters[0];
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...parameters) => {
+            return parameters.length > 0 ? path : path;
+        };
 
         it('should return correct error text for IMAGE_DIMENSIONS_TOO_LARGE', () => {
             const result = getFileValidationErrorText(mockTranslate, {error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE});

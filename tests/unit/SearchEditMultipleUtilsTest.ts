@@ -41,9 +41,8 @@ function makeReport(reportID: string, policyID: string): Report {
 describe('SearchEditMultipleUtils', () => {
     describe('withSnapshotTransactions', () => {
         it('fills missing transactions from snapshot', () => {
-            const snapshotData = createMock<SearchResults['data']>({
-                [TRANSACTION_DATA_KEY_1]: makeTransaction(TRANSACTION_ID_1, REPORT_ID),
-            });
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[TRANSACTION_DATA_KEY_1] = makeTransaction(TRANSACTION_ID_1, REPORT_ID);
 
             const merged = withSnapshotTransactions(undefined, snapshotData);
 
@@ -54,9 +53,8 @@ describe('SearchEditMultipleUtils', () => {
             const existing = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID_1}`]: makeTransaction(TRANSACTION_ID_1, 'existingReport'),
             };
-            const snapshotData = createMock<SearchResults['data']>({
-                [TRANSACTION_DATA_KEY_1]: makeTransaction(TRANSACTION_ID_1, 'snapshotReport'),
-            });
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[TRANSACTION_DATA_KEY_1] = makeTransaction(TRANSACTION_ID_1, 'snapshotReport');
 
             const merged = withSnapshotTransactions(existing, snapshotData);
 
@@ -76,9 +74,8 @@ describe('SearchEditMultipleUtils', () => {
 
     describe('withSnapshotReports', () => {
         it('fills missing reports from snapshot', () => {
-            const snapshotData = createMock<SearchResults['data']>({
-                [REPORT_DATA_KEY]: makeReport(REPORT_ID, POLICY_A),
-            });
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[REPORT_DATA_KEY] = makeReport(REPORT_ID, POLICY_A);
 
             const merged = withSnapshotReports(undefined, snapshotData);
 
@@ -89,9 +86,8 @@ describe('SearchEditMultipleUtils', () => {
             const existing = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: makeReport(REPORT_ID, POLICY_A),
             };
-            const snapshotData = createMock<SearchResults['data']>({
-                [REPORT_DATA_KEY]: makeReport(REPORT_ID, POLICY_B),
-            });
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[REPORT_DATA_KEY] = makeReport(REPORT_ID, POLICY_B);
 
             const merged = withSnapshotReports(existing, snapshotData);
 
@@ -105,9 +101,8 @@ describe('SearchEditMultipleUtils', () => {
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID_1}`]: makeTransaction(TRANSACTION_ID_1, REPORT_ID),
             };
-            const snapshotData = createMock<SearchResults['data']>({
-                [REPORT_DATA_KEY]: makeReport(REPORT_ID, POLICY_A),
-            });
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[REPORT_DATA_KEY] = makeReport(REPORT_ID, POLICY_A);
 
             // Without snapshot merge — falls back to activePolicyID
             const withoutMerge = getSearchBulkEditPolicyID([TRANSACTION_ID_1], POLICY_B, allTransactions, undefined);
@@ -120,10 +115,9 @@ describe('SearchEditMultipleUtils', () => {
         });
 
         it('resolves policyID when transaction is only in snapshot', () => {
-            const snapshotData = createMock<SearchResults['data']>({
-                [TRANSACTION_DATA_KEY_1]: makeTransaction(TRANSACTION_ID_1, REPORT_ID),
-                [REPORT_DATA_KEY]: makeReport(REPORT_ID, POLICY_A),
-            });
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[TRANSACTION_DATA_KEY_1] = makeTransaction(TRANSACTION_ID_1, REPORT_ID);
+            snapshotData[REPORT_DATA_KEY] = makeReport(REPORT_ID, POLICY_A);
 
             const mergedTransactions = withSnapshotTransactions(undefined, snapshotData);
             const mergedReports = withSnapshotReports(undefined, snapshotData);

@@ -242,8 +242,9 @@ describe('actions/Workflow', () => {
             await mockFetch.resume();
 
             let updatedPolicy: Policy | undefined;
+            const policyKey: `${typeof ONYXKEYS.COLLECTION.POLICY}${string}` = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`;
             await getOnyxData({
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                key: policyKey,
                 callback: (val) => (updatedPolicy = val),
             });
 
