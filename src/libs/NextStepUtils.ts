@@ -396,21 +396,6 @@ function getReportNextStep(
     // local actor, so a user viewing a report someone else acted on would otherwise keep seeing the stale message.
     return moneyRequestReport?.nextStep ?? currentNextStep;
 }
-function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string) {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'alert',
-        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
-        iconFill,
-        message: [
-            {
-                text: "This report can't be submitted. Please review the comments to resolve.",
-                type: 'alert-text',
-            },
-        ],
-    };
-
-    return optimisticNextStep;
-}
 
 function buildOptimisticNextStepForDynamicExternalWorkflowApproveError(iconFill?: string) {
     const optimisticNextStep: ReportNextStepDeprecated = {
@@ -840,7 +825,6 @@ export {
     buildOptimisticNextStep,
     parseMessage,
     buildOptimisticFixIssueNextStep,
-    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDEWOffline,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,

@@ -1,13 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {
-    buildNextStepMessage,
-    buildNextStepNew,
-    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
-    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
-    getReportNextStep,
-    buildOptimisticNextStep,
-} from '@libs/NextStepUtils';
+import {buildNextStepMessage, buildNextStepNew, buildOptimisticNextStepForPreventSelfApprovalsEnabled, getReportNextStep, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -1081,27 +1074,6 @@ describe('libs/NextStepUtils', () => {
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
-            });
-        });
-    });
-
-    describe('buildOptimisticNextStepForDynamicExternalWorkflowSubmitError', () => {
-        test('should return alert next step with error message when DEW submit fails', () => {
-            // Given a scenario where Dynamic External Workflow submission has failed
-
-            // When buildOptimisticNextStepForDynamicExternalWorkflowSubmitError is called
-            const result = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError();
-
-            // Then it should return an alert-type next step with the appropriate error message and dot indicator icon
-            expect(result).toEqual({
-                type: 'alert',
-                icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
-                message: [
-                    {
-                        text: "This report can't be submitted. Please review the comments to resolve.",
-                        type: 'alert-text',
-                    },
-                ],
             });
         });
     });

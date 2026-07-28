@@ -1,11 +1,5 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {
-    buildOptimisticFixIssueNextStep,
-    buildOptimisticNextStepForDEWOffline,
-    buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
-    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
-    getReportNextStep,
-} from '@libs/NextStepUtils';
+import {buildOptimisticFixIssueNextStep, buildOptimisticNextStepForDEWOffline, buildOptimisticNextStepForDynamicExternalWorkflowApproveError, getReportNextStep} from '@libs/NextStepUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView, hasPendingDEWApprove, hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import {
@@ -88,7 +82,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
             const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject, reportTransactions);
 
             if (errors?.dewSubmitFailed) {
-                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme.danger);
+                optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
             } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
                 optimisticNextStep = buildOptimisticNextStepForDEWOffline();
             }
