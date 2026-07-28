@@ -1,10 +1,13 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import SearchAdvancedFiltersButton from '@components/Search/SearchPageHeader/SearchAdvancedFiltersButton';
 
 import {shouldDeferSearchFilterSync} from '@hooks/useSearchFilterSync';
 
+import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
@@ -29,19 +32,30 @@ jest.mock('@hooks/useThemeStyles', () =>
         buttonHoveredBG: {},
     })),
 );
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
 const mockedShouldDeferSearchFilterSync = jest.mocked(shouldDeferSearchFilterSync);
+const mockedNavigate = jest.mocked(Navigation.navigate);
 const queryJSON = buildSearchQueryJSON('type:expense category:Travel');
 
 describe('SearchAdvancedFiltersButton', () => {
-    it('disables the small-screen button while filter sync is deferred', () => {
+    it('enables the small-screen button after deferred filter sync finishes', () => {
         if (!queryJSON) {
             throw new Error('Expected query to parse');
         }
         mockedShouldDeferSearchFilterSync.mockReturnValue(true);
 
-        render(<SearchAdvancedFiltersButton queryJSON={queryJSON} />);
+        const {rerender} = render(<SearchAdvancedFiltersButton queryJSON={queryJSON} />);
 
         expect(screen.getByLabelText('search.filtersHeader')).toBeDisabled();
+
+        mockedShouldDeferSearchFilterSync.mockReturnValue(false);
+        rerender(<SearchAdvancedFiltersButton queryJSON={{...queryJSON}} />);
+
+        const filtersButton = screen.getByLabelText('search.filtersHeader');
+        expect(filtersButton).toBeEnabled();
+
+        fireEvent.press(filtersButton);
+        expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_ADVANCED_FILTERS);
     });
 });
