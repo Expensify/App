@@ -39573,6 +39573,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PROPOSAL_POLICE_MODEL = void 0;
 const CONST_1 = __importDefault(__nccwpck_require__(95405));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(11039));
 const ProposalUtils_1 = __nccwpck_require__(46077);
@@ -39591,6 +39592,7 @@ const date_fns_tz_1 = __nccwpck_require__(87793);
  * The model ProposalPolice uses for all Responses API calls, replacing the Assistant's GPT-4o.
  */
 const PROPOSAL_POLICE_MODEL = 'gpt-5.6-luna';
+exports.PROPOSAL_POLICE_MODEL = PROPOSAL_POLICE_MODEL;
 function isCommentCreatedEvent(payload) {
     return payload.action === CONST_1.default.ACTIONS.CREATED;
 }

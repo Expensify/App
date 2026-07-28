@@ -243,3 +243,4 @@ if (require.main === module) {
 }
 
 export default run;
+export {PROPOSAL_POLICE_MODEL};

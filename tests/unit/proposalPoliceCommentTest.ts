@@ -2,7 +2,7 @@
 /**
  * @jest-environment node
  */
-import run from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
+import run, {PROPOSAL_POLICE_MODEL} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 import GithubUtils from '@github/libs/GithubUtils';
 
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
@@ -129,6 +129,26 @@ describe('proposalPoliceComment', () => {
 
         expect(mockCreateComment).not.toHaveBeenCalled();
         expect(mockUpdateComment).not.toHaveBeenCalled();
+    });
+
+    it('uses PROPOSAL_POLICE_MODEL for the duplicate-check, template-check, and edit-check calls', async () => {
+        mockComments([makeComment({id: 2, created_at: '2025-12-31T00:00:00Z'})]);
+        setPayload({action: 'created'});
+        MockedOpenAIUtils.prototype.promptResponses
+            .mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'})
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl'});
+        await run();
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenNthCalledWith(1, expect.objectContaining({model: PROPOSAL_POLICE_MODEL}));
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenNthCalledWith(2, expect.objectContaining({model: PROPOSAL_POLICE_MODEL}));
+
+        jest.clearAllMocks();
+        setPayload({action: 'edited', comment: makeComment({body: `${VALID_PROPOSAL_BODY}\nedited`}), changes: {body: {from: VALID_PROPOSAL_BODY}}});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_edit'});
+        await run();
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledWith(expect.objectContaining({model: PROPOSAL_POLICE_MODEL}));
     });
 
     it('posts a template-required comment when a mandatory section is missing', async () => {
