@@ -9,7 +9,7 @@ import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
@@ -36,7 +36,24 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const hash = queryJSON?.hash;
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
 
-    // Depend on the values that can trigger a search instead of the whole snapshot, which gets a new reference after every Onyx merge.
+    // Tracks the jsonCode of the current query's most recent SEARCH response. It's the single source of
+    // truth for both fire paths (the page-level fire below and the user-driven re-search in
+    // SearchPage/SearchPageNarrow), so the error view can reliably tell an INVALID_SEARCH_QUERY apart from a
+    // retryable failure. `null` means no response has landed yet for the current query.
+    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
+
+    // Reset on query change so a stale code from a previous query (e.g. INVALID_SEARCH_QUERY) can't
+    // misclassify the new query's failure and wrongly hide/show the Retry button. Adjusting state during
+    // render (rather than in an effect) is the React-recommended pattern for resetting state on a prop
+    // change and avoids the extra committed render an effect would cost.
+    const [prevHash, setPrevHash] = useState(hash);
+    if (hash !== prevHash) {
+        setPrevHash(hash);
+        setSearchRequestResponseStatusCode(null);
+    }
+
+    // Derived primitives so effects do not depend on the whole snapshot object (new reference every
+    // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().
     const isSnapshotDataLoaded = queryJSON ? isSearchDataLoaded(currentSearchResults, queryJSON) : false;
     // Keep `isLoading` as a dependency so an unresolved search retries when temporary search prevention changes it to false.
     const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
@@ -74,7 +91,11 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             return;
         }
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
+        // Capture the response code so an invalid query opened directly (deep link / initial mount) is
+        // classified correctly, instead of leaving the status at `null` and offering a pointless Retry.
+        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites})?.then((jsonCode) =>
+            setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)),
+        );
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, currentSearchKey, shouldCalculateTotals]);
 
     useFocusEffect(() => {
@@ -87,6 +108,8 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         }
         openSearch();
     }, [isOffline, prevIsOffline]);
+
+    return {searchRequestResponseStatusCode, setSearchRequestResponseStatusCode};
 }
 
 export default useSearchPageSetup;
