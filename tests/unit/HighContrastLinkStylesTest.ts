@@ -3,6 +3,7 @@ import styles from '@styles/index';
 // eslint-disable-next-line no-restricted-imports
 import themes from '@styles/theme';
 import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 
 /**
