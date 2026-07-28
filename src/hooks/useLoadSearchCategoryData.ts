@@ -8,7 +8,10 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
 type UseLoadSearchCategoryDataParams = {
+    /** Whether category data should be loaded. */
     shouldLoad?: boolean;
+
+    /** Whether already loaded category data should be refreshed. */
     shouldRefresh?: boolean;
 };
 
