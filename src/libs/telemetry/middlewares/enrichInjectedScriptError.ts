@@ -101,13 +101,6 @@ const enrichInjectedScriptError: TelemetryBeforeSendError = (event: ErrorEvent, 
         }
         extra.loadedScriptHosts = Array.from(scriptHosts).sort().slice(0, MAX_HOSTS);
 
-        // Temporary debug logging to verify the enrichment output locally; remove before closing GH #93837.
-        // Dev-only so nothing extra ever reaches console breadcrumbs on user devices.
-        if (__DEV__) {
-            // eslint-disable-next-line no-console
-            console.log('[enrichInjectedScriptError] matched injected-script error, attaching', extra);
-        }
-
         return {
             ...event,
             extra: {...event.extra, ...extra},
