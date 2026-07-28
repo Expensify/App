@@ -16,7 +16,7 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
+import type {SearchColumnType, SearchQueryJSON, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 
 import Navigation from '@navigation/Navigation';
 
@@ -6793,6 +6793,41 @@ describe('SearchUIUtils', () => {
                     CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 ),
             ).toStrictEqual(transactionWithdrawalIDGroupListItemsSorted);
+        });
+
+        it('should sort withdrawal-id groups by each conversion amount, leaving the settlements that did not convert at the empty end', () => {
+            const withConversion = (keyForList: string, debitedAmount?: number, creditedAmount?: number): TransactionWithdrawalIDGroupListItemType => ({
+                bankName: CONST.BANK_NAMES.CHASE,
+                entryID,
+                accountNumber,
+                debitPosted: '2025-08-12 17:11:22',
+                count: 4,
+                currency: 'USD',
+                total: 40,
+                state: 8,
+                groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                formattedWithdrawalID: '5',
+                transactions: [],
+                transactionsQueryJSON: undefined,
+                shouldShowYearWithdrawn: true,
+                keyForList,
+                ...(debitedAmount ? {debitedAmount, debitedCurrency: 'USD'} : {}),
+                ...(creditedAmount ? {creditedAmount, creditedCurrency: 'GBP'} : {}),
+            });
+            const domestic = withConversion('group_domestic');
+            const smallConversion = withConversion('group_small', 1694, 1340);
+            const largeConversion = withConversion('group_large', 32200, 26886);
+            const groups = [smallConversion, domestic, largeConversion];
+
+            const sortGroups = (sortBy: SearchColumnType, sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, [...groups], localeCompare, translateLocal, sortBy, sortOrder, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID).map(
+                    (group) => group.keyForList,
+                );
+
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['group_domestic', 'group_small', 'group_large']);
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_large', 'group_small', 'group_domestic']);
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['group_domestic', 'group_small', 'group_large']);
+            expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_large', 'group_small', 'group_domestic']);
         });
 
         it('should sort category group data when type is EXPENSE and groupBy is category', () => {
