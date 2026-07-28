@@ -86,6 +86,11 @@ type CreateTaskAndNavigateParams = {
     taskCreatorAndAssigneeDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
+type DeleteTaskOptions = {
+    ancestors?: ReportUtils.Ancestor[];
+    shouldNavigateBack?: boolean;
+};
+
 /**
  * Clears out the task info from the store
  */
@@ -1218,8 +1223,7 @@ function deleteTask(
     conciergeReportID: string | undefined,
     delegateEmail: string | undefined,
     reportActions: OnyxEntry<OnyxTypes.ReportActions>,
-    ancestors: ReportUtils.Ancestor[] = [],
-    shouldNavigateBack = true,
+    {ancestors = [], shouldNavigateBack = true}: DeleteTaskOptions = {},
 ) {
     if (!report) {
         return;

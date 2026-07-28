@@ -198,7 +198,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         'Hashtag',
     ]);
     const navigateBackFromReportDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DETAILS.path);
-    const taskDeleteBackTo = (route.params as {backTo?: Route}).backTo;
+    const taskDeleteBackTo = Navigation.getTopmostSearchReportRouteParams()?.backTo;
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -996,8 +996,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 conciergeReportID,
                 delegateEmail,
                 reportActionsForOriginalReportID,
-                ancestors,
-                !taskDeleteBackTo,
+                {
+                    ancestors,
+                    shouldNavigateBack: !taskDeleteBackTo,
+                },
             );
             return;
         }
