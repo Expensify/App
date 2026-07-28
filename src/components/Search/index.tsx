@@ -181,6 +181,7 @@ function Search({
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0, areAllMatchingItemsSelected);
+
     // Retrying a failed page always resets pagination to the first page, so totals eligibility
     // must be evaluated as if we're on the first page rather than the (possibly paginated) offset.
     const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, hash, true, areAllMatchingItemsSelected);

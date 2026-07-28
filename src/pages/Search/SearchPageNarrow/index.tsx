@@ -56,9 +56,7 @@ type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
-    /** jsonCode of the current query's most recent SEARCH response (owned by useSearchPageSetup in the parent). */
     searchRequestResponseStatusCode: number | null;
-    /** Setter for the response status code, so user-driven re-searches update the same source of truth. */
     setSearchRequestResponseStatusCode: (statusCode: number | null) => void;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
