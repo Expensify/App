@@ -6,6 +6,7 @@ import useOnyx from './hooks/useOnyx';
 import FS from './libs/Fullstory';
 import Log from './libs/Log';
 import ONYXKEYS from './ONYXKEYS';
+import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 /**
  * Component that does not render anything but isolates the USER_METADATA Onyx subscription
@@ -14,9 +15,13 @@ import ONYXKEYS from './ONYXKEYS';
  */
 function FullstoryInitHandler() {
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
 
     useEffect(() => {
+        if (isLoadingOnyxValue(sessionMetadata)) {
+            return;
+        }
+
         FS.init(userMetadata, session);
         FS.getSessionURL()
             .then((url) => {
@@ -31,7 +36,7 @@ function FullstoryInitHandler() {
                 });
             });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userMetadata]);
+    }, [userMetadata, sessionMetadata]);
 
     return null;
 }
