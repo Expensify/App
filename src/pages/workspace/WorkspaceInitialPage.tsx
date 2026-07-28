@@ -548,7 +548,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    titleStyles={styles.textHeadlineH2}
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
                     policyAvatarSize={CONST.AVATAR_SIZE.SMALL}

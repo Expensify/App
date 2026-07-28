@@ -83,19 +83,17 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
                         <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>
                     </TopBarWithLoadingBar>
 
-                    <View style={[styles.flex1, styles.centeredContentWidthLimiter]}>
-                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
-                            <TabSelectorBase
-                                tabs={navigationOptions}
-                                activeTabKey={activeTabKey}
-                                onTabPress={onTabPress}
-                            />
-                            {shouldDisplayButtonsInSeparateLine && headerButton}
-                        </View>
-
-                        {children}
-                        {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
+                        <TabSelectorBase
+                            tabs={navigationOptions}
+                            activeTabKey={activeTabKey}
+                            onTabPress={onTabPress}
+                        />
+                        {shouldDisplayButtonsInSeparateLine && headerButton}
                     </View>
+
+                    {children}
+                    {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
                 </View>
             </View>
         </ScreenWrapper>
