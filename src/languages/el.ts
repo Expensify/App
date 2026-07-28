@@ -26,7 +26,9 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
     ConnectionNameParams,
+    DefaultVendorHelperTextParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -533,6 +535,7 @@ const translations: TranslationDeepObject<typeof en> = {
         supplier: 'Προμηθευτής',
         securityCode: 'Κωδικός ασφαλείας',
         exportsTo: 'Εξάγει σε',
+        expand: 'Ανάπτυξη',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -2663,6 +2666,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Χρησιμοποιήστε αυτήν την κάρτα για τις κρατήσεις σας στο Expensify Travel. Θα εμφανίζεται ως «Travel Card» κατά την πληρωμή.',
         },
         chaseAccountNumberDifferent: 'Γιατί ο αριθμός του λογαριασμού μου είναι διαφορετικός;',
+        cardLastSynced: (relativeDate: string) => `Συγχρονίστηκε ${relativeDate}`,
+        cardNeverSynced: 'Δεν συγχρονίστηκε ποτέ',
+        cardStatus: {
+            active: 'Ενεργό',
+            inactive: 'Ανενεργό',
+            fixConnection: 'Παρακαλούμε διορθώστε αυτήν τη σύνδεση',
+            fixConnectionIn: (companyCardsRoute: string) => `Παρακαλούμε διορθώστε αυτήν τη σύνδεση στις <a href="${companyCardsRoute}">εταιρικές κάρτες</a>`,
+            askAdminToFixConnection: 'Παρακαλούμε ζητήστε από έναν διαχειριστή να διορθώσει αυτήν τη σύνδεση',
+        },
+        bankAccountStatus: {
+            active: 'Ενεργό',
+            incomplete: 'Ημιτελές',
+            pending: 'Σε εκκρεμότητα',
+            verifying: 'Γίνεται επαλήθευση',
+            reviewingDocumentation: 'Εξετάζουμε τα δικαιολογητικά σας',
+            finishAddingBankAccount: 'Ολοκληρώστε την προσθήκη τραπεζικού λογαριασμού',
+            finish: 'Τερματισμός',
+            confirmTestTransactions: 'Παρακαλούμε επιβεβαιώστε τις δοκιμαστικές συναλλαγές',
+            accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
+            unlock: 'Ξεκλείδωμα',
+        },
     },
     cardPage: {
         expensifyCard: 'Κάρτα Expensify',
@@ -2997,7 +3021,7 @@ ${amount} για ${merchant} - ${date}`,
         }),
     },
     addAgentPage: {
-        title: 'Νέος εκπρόσωπος',
+        title: 'Δημιουργία προσαρμοσμένου agent',
         agentName: 'Όνομα αντιπροσώπου',
         instructions: 'Γράψτε προσαρμοσμένες οδηγίες',
         createAgent: 'Δημιουργία εκπροσώπου',
@@ -5169,7 +5193,9 @@ ${amount} για ${merchant} - ${date}`,
             creditCardAccount: 'Λογαριασμός πιστωτικής κάρτας',
             defaultVendor: 'Προεπιλεγμένος προμηθευτής',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Ορίστε έναν προεπιλεγμένο προμηθευτή που θα εφαρμόζεται στις ${isReimbursable ? '' : 'μη-'}αποζημιούμενες δαπάνες που δεν έχουν αντίστοιχο προμηθευτή στο Sage Intacct.`,
+                isReimbursable
+                    ? `Ορίστε έναν προεπιλεγμένο προμηθευτή που θα εφαρμόζεται σε αποζημιώσιμες δαπάνες που δεν έχουν αντίστοιχο προμηθευτή στο Sage Intacct.`
+                    : `Οι δαπάνες που δεν μπορούν να αντιστοιχιστούν στους προμηθευτές σας στο Sage Intacct θα αντιστοιχίζονται από προεπιλογή σε αυτόν τον προμηθευτή.`,
             exportDescription: 'Διαμορφώστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Sage Intacct.',
             exportPreferredExporterNote:
                 'Ο προτιμώμενος εξαγωγέας μπορεί να είναι οποιοσδήποτε διαχειριστής χώρου εργασίας, αλλά πρέπει επίσης να είναι διαχειριστής τομέα αν ορίσετε διαφορετικούς λογαριασμούς εξαγωγής για μεμονωμένες εταιρικές κάρτες στις ρυθμίσεις τομέα.',
@@ -7130,6 +7156,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Βεβαιωθείτε ότι αυτός ο λογαριασμός ταιριάζει με τον λογαριασμό διακανονισμού για τη συγκεντρωτική χρέωση ταξιδιών (καταλήγει σε ${lastFourPAN}) ώστε η συνεχής συμφωνία να λειτουργεί σωστά.`,
             },
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Οι δαπάνες που δεν αντιστοιχίζονται αυτόματα θα αντιστοιχίζονται από προεπιλογή σε αυτόν τον προμηθευτή.`
+                    : `Τα έξοδα που δεν αντιστοιχίζονται αυτόματα θα αντιστοιχίζονται από προεπιλογή σε αυτόν τον προμηθευτή. Διαφορετικά, θα εξαχθούν ως Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Επιλέξτε έναν προεπιλεγμένο προμηθευτή ${connectionName} για δαπάνες που δεν αντιστοιχίζονται αυτόματα.`,
         },
         hr: {
             title: 'HR',
@@ -8206,6 +8238,18 @@ ${reportName}`,
                 emptySuggestionsTitle: 'Δεν υπάρχουν διαθέσιμες προτάσεις',
                 emptySuggestionsSubtitle: 'Δοκιμάστε να γράψετε τον δικό σας κανόνα.',
                 gotIt: 'Κατάλαβα',
+                unableToRemoveTitle: 'Δεν είναι δυνατή η αφαίρεση',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `Οι <a href="${rulesRoute}">κανόνες πράκτορα</a> που επιβάλλονται από το RuleBot πρέπει πρώτα να αφαιρεθούν από τον χώρο εργασίας σας, προτού μπορέσετε να αφαιρέσετε αυτόν τον πράκτορα.`,
+                unableToCloseAccountTitle: 'Αδυναμία κλεισίματος λογαριασμού',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `Οι <a href="${rulesRoute}">κανόνες αντιπροσώπου</a> που εφαρμόζει το RuleBot πρέπει πρώτα να καταργηθούν από τον χώρο εργασίας σας προτού μπορέσετε να κλείσετε αυτόν τον λογαριασμό.`,
+                unableToDeleteAgentTitle: 'Αδυναμία διαγραφής εκπροσώπου',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `Οι <a href="${rulesRoute}">κανόνες πράκτορα</a> που επιβάλλονται από το RuleBot πρέπει πρώτα να αφαιρεθούν από τον χώρο εργασίας σας, προτού μπορέσετε να διαγράψετε αυτόν τον πράκτορα.`,
+                unableToChangeRoleTitle: 'Αδυναμία αλλαγής ρόλου',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `Οι <a href="${rulesRoute}">κανόνες πράκτορα</a> που εφαρμόζει το RuleBot πρέπει πρώτα να αφαιρεθούν από τον χώρο εργασίας σας προτού μπορέσετε να αλλάξετε τον ρόλο αυτού του πράκτορα.`,
             },
             agentRulesEmptyState: {
                 title: 'Δεν προστέθηκαν κανόνες πράκτορα',
@@ -9176,6 +9220,7 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Εξαγωγή',
             },
             has: {submittedViolation: 'Υποβληθείσα παράβαση'},
+            filterType: {label: 'Τύπος φίλτρου', has: {positive: 'έχει', negative: 'δεν έχει'}, is: {positive: 'είναι', negative: 'δεν είναι'}},
         },
         display: {
             label: 'Εμφάνιση',
@@ -10731,6 +10776,14 @@ ${reportName}`,
         trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Η δοκιμή λήγει σε ${hours}ω : ${minutes}λ : ${seconds}δ`,
         closeButton: 'Κλείσιμο',
         addPaymentCardButton: 'Προσθήκη κάρτας πληρωμής',
+    },
+    newAgentPage: {
+        title: 'Νέος agent',
+        buildCustomAgent: 'Δημιουργία προσαρμοσμένου agent',
+        orStartWithTemplate: 'Ή ξεκινήστε με ένα πρότυπο:',
+        role: 'Αντιπρόσωπος',
+        emptyTemplatesTitle: 'Δεν υπάρχουν ακόμη πρότυπα',
+        emptyTemplatesSubtitle: 'Δημιουργήστε έναν προσαρμοσμένο βοηθό για να ξεκινήσετε.',
     },
 };
 export default translations;
