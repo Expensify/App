@@ -5956,6 +5956,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 setTransactionLiabilityDescription: '启用后，持卡人可以删除卡片交易。新的交易将遵循此规则。',
                 emptyAddedFeedTitle: '此订阅源中没有卡片',
                 emptyAddedFeedDescription: '请确保在您银行的卡片交易流水中有可用的卡片。',
+                importingCardsTitle: '正在导入卡片…',
+                importingCardsDescription: '新卡片和交易可能需要一些时间才会显示，请稍候。',
                 pendingFeedTitle: `我们正在审核你的请求…`,
                 pendingFeedDescription: `我们目前正在审核您的导入信息。完成后，我们将通过以下方式与您联系：`,
                 pendingBankTitle: '检查你的浏览器窗口',

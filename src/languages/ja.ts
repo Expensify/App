@@ -6092,6 +6092,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 setTransactionLiabilityDescription: '有効にすると、カード保有者はカード取引を削除できるようになります。新しい取引にもこのルールが適用されます。',
                 emptyAddedFeedTitle: 'このフィードにはカードがありません',
                 emptyAddedFeedDescription: '銀行のカード明細フィードにカードが含まれていることを確認してください。',
+                importingCardsTitle: 'カードをインポートしています…',
+                importingCardsDescription: '新しいカードや取引が表示されるまでに時間がかかる場合があります。しばらくお待ちください。',
                 pendingFeedTitle: `リクエストを確認しています…`,
                 pendingFeedDescription: `現在、お客さまのフィードの詳細を確認しています。完了し次第、次の方法でご連絡します：`,
                 pendingBankTitle: 'ブラウザウィンドウを確認してください',

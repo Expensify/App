@@ -6149,6 +6149,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 setTransactionLiabilityDescription: 'Quando ativado, titulares de cartão podem excluir transações do cartão. Novas transações seguirão esta regra.',
                 emptyAddedFeedTitle: 'Nenhum cartão neste feed',
                 emptyAddedFeedDescription: 'Verifique se há cartões no feed de cartões do seu banco.',
+                importingCardsTitle: 'Importando cartões…',
+                importingCardsDescription: 'Novos cartões e transações podem levar algum tempo para aparecer, aguarde um momento.',
                 pendingFeedTitle: `Estamos analisando sua solicitação...`,
                 pendingFeedDescription: `No momento, estamos analisando os detalhes do seu feed. Quando isso for concluído, entraremos em contato com você por meio de`,
                 pendingBankTitle: 'Verifique a janela do seu navegador',

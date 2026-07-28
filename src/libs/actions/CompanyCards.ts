@@ -620,6 +620,21 @@ function resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID:
     });
 }
 
+/** Clears the importing state for a feed once its cards arrive or the fallback timeout elapses */
+function clearCompanyCardsFeedImportingState(domainOrWorkspaceAccountID: number, bankName: CompanyCardFeedWithNumber | undefined) {
+    if (!bankName) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`, {
+        feeds: {
+            [bankName]: {
+                isImporting: false,
+            },
+        },
+    });
+}
+
 function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeedWithNumber, lastScrapeResult?: number, breakConnection?: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST>> = [
         {
@@ -1268,11 +1283,27 @@ function importCSVCompanyCards({
 
     const transactionsCount = transactions.length;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED>> = [
+    const optimisticData: Array<
+        OnyxUpdate<
+            typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED | typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
             value: feedNameWithDomainID as CompanyCardFeedWithDomainID,
+        },
+        {
+            // Mark the feed as importing so the table shows an importing state while cards arrive
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${workspaceAccountID}`,
+            value: {
+                feeds: {
+                    [feedName]: {
+                        isImporting: true,
+                    },
+                },
+            },
         },
     ];
 
@@ -1288,15 +1319,33 @@ function importCSVCompanyCards({
     const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [getImportFinalModalOnyxData(importFinalModalID, importFinalModal)];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED | typeof ONYXKEYS.IMPORTED_SPREADSHEET>> =
-        [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
-                value: lastSelectedFeed ?? null,
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
+            | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED
+            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE
+            | typeof ONYXKEYS.IMPORTED_SPREADSHEET
+        >
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+            value: lastSelectedFeed ?? null,
+        },
+        {
+            // Upload failed, so clear the importing state set optimistically above
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${workspaceAccountID}`,
+            value: {
+                feeds: {
+                    [feedName]: {
+                        isImporting: false,
+                    },
+                },
             },
-            getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
-        ];
+        },
+        getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
+    ];
 
     if (shouldCreateFeed || shouldSetNickname) {
         optimisticData.push({
@@ -1438,6 +1487,7 @@ export {
     assignWorkspaceCompanyCard,
     unassignWorkspaceCompanyCard,
     resetFailedWorkspaceCompanyCardUnassignment,
+    clearCompanyCardsFeedImportingState,
     updateWorkspaceCompanyCard,
     updateCompanyCardName,
     updateCardTransactionStartDate,

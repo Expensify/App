@@ -16,7 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
+import {clearCompanyCardsFeedImportingState, resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -32,7 +32,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
@@ -144,6 +144,21 @@ function WorkspaceCompanyCardsTable({
 
     // If we already have fetched cards, then do not show a loading spinner (let the remaining updates refresh in the background), else show it
     const hasCards = (companyCardEntries ?? []).length > 0;
+
+    const isImportingCards = !!bankName && !!companyCardsLoadingState?.feeds?.[bankName]?.isImporting;
+
+    // Clear the importing state once cards arrive or the fallback timeout elapses
+    useEffect(() => {
+        if (!isImportingCards || !bankName) {
+            return;
+        }
+        if (hasCards) {
+            clearCompanyCardsFeedImportingState(domainOrWorkspaceAccountID, bankName);
+            return;
+        }
+        const timeoutID = setTimeout(() => clearCompanyCardsFeedImportingState(domainOrWorkspaceAccountID, bankName), CONST.COMPANY_CARDS.IMPORTING_CARDS_TIMEOUT_MS);
+        return () => clearTimeout(timeoutID);
+    }, [isImportingCards, hasCards, bankName, domainOrWorkspaceAccountID]);
 
     const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);
     const isLoadingOnyxPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
@@ -410,8 +425,12 @@ function WorkspaceCompanyCardsTable({
                         containerStyles={styles.mt5}
                         headerStyles={styles.emptyStateCardIllustrationContainer}
                         headerContentStyles={styles.pendingStateCardIllustration}
-                        title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
-                        subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
+                        title={translate(
+                            isImportingCards && !hasCards ? 'workspace.moreFeatures.companyCards.importingCardsTitle' : 'workspace.moreFeatures.companyCards.emptyAddedFeedTitle',
+                        )}
+                        subtitle={translate(
+                            isImportingCards && !hasCards ? 'workspace.moreFeatures.companyCards.importingCardsDescription' : 'workspace.moreFeatures.companyCards.emptyAddedFeedDescription',
+                        )}
                     >
                         {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
                     </Table.EmptyState>

@@ -6156,6 +6156,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 setTransactionLiabilityDescription: 'Indien ingeschakeld kunnen kaarthouders kaarttransacties verwijderen. Nieuwe transacties zullen deze regel volgen.',
                 emptyAddedFeedTitle: 'Geen kaarten in deze feed',
                 emptyAddedFeedDescription: 'Controleer of er kaarten in de kaartfeed van je bank staan.',
+                importingCardsTitle: 'Kaarten importeren…',
+                importingCardsDescription: 'Het kan even duren voordat nieuwe kaarten en transacties verschijnen. Even geduld alsjeblieft.',
                 pendingFeedTitle: `We beoordelen je aanvraag...`,
                 pendingFeedDescription: `We beoordelen momenteel je feedgegevens. Zodra dat klaar is, nemen we contact met je op via`,
                 pendingBankTitle: 'Controleer je browservenster',

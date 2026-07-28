@@ -6,6 +6,9 @@ import type {CardFeedWithNumber} from './CardFeeds';
 type CompanyCardsFeedLoadingState = {
     /** Whether this feed has been fetched at least once in this session */
     hasOnceLoaded?: boolean;
+
+    /** Whether a CSV upload for this feed is still being imported */
+    isImporting?: boolean;
 };
 
 /**
