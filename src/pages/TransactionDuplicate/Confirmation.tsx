@@ -233,14 +233,21 @@ function Confirmation() {
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => {
+                                // With every duplicate filtered out (e.g. all on approved/closed/reimbursed reports) there
+                                // is nothing to act on: merging would be rejected by Auth and resolving would only clear
+                                // the kept transaction, leaving the duplicate violation one-sided. Guard both paths.
+                                if (transactionsMergeParams.transactionIDList.length === 0) {
+                                    setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
+                                    return;
+                                }
                                 if (!isReportOwner) {
+                                    setMergeErrorMessage('');
                                     isDismissingRef.current = true;
                                     handleResolveDuplicates();
                                     return;
                                 }
-                                // Auth's MergeTransactions only accepts a merge when the kept expense's report is still
-                                // editable and there is at least one duplicate to merge, so block it here and explain
-                                // rather than failing server-side.
+                                // Auth's MergeTransactions also rejects a merge when the kept expense's report is no
+                                // longer editable, so block it here and explain rather than failing server-side.
                                 if (!TransactionUtils.canMergeDuplicates(iouReport, transactionsMergeParams.transactionIDList)) {
                                     setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
                                     return;
