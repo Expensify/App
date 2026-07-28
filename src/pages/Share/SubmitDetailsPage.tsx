@@ -128,6 +128,11 @@ function SubmitDetailsPage({
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
+    // Set when the destination report didn't exist at submit time (e.g. a brand-new recipient) — the expense create
+    // writes it optimistically, and we keep the confirm button in its loading state until it lands so dismissing doesn't flash the inbox.
+    const [pendingNavigationReportID, setPendingNavigationReportID] = useState<string | undefined>(undefined);
+    const [pendingNavigationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(pendingNavigationReportID)}`);
+    const hasStartedPendingNavigation = useRef(false);
     const formHasBeenSubmitted = useRef(false);
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
@@ -274,15 +279,33 @@ function SubmitDetailsPage({
     });
 
     // Empty draft skips REPORT_DRAFT fallback — report must be in COLLECTION.REPORT to render behind the share modal.
-    const destinationReportInCollection = transaction && postSubmitNavigationReportID ? getReportOrDraftReport(postSubmitNavigationReportID, undefined, undefined, {}) : undefined;
+    const hasNavigationDestination = !!transaction && !!postSubmitNavigationReportID;
+    const destinationReportInCollection = hasNavigationDestination ? getReportOrDraftReport(postSubmitNavigationReportID, undefined, undefined, {}) : undefined;
+    // Destination report isn't in COLLECTION.REPORT yet (e.g. a recipient with no existing chat) — it will only
+    // exist after the expense create writes it optimistically, so pre-mounting is impossible.
+    const isDestinationReportMissing = hasNavigationDestination && !destinationReportInCollection?.reportID;
     const preMountDestinationRoute =
-        transaction && postSubmitNavigationReportID && destinationReportInCollection?.reportID && Navigation.getTopmostReportId() !== postSubmitNavigationReportID
+        hasNavigationDestination && !isDestinationReportMissing && Navigation.getTopmostReportId() !== postSubmitNavigationReportID
             ? ROUTES.REPORT_WITH_ID.getRoute(postSubmitNavigationReportID)
             : undefined;
 
     const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
         shouldPreservePreInsertedRouteOnUnmount: () => formHasBeenSubmitted.current,
     });
+
+    // Once the optimistically created destination report lands in Onyx, reveal it directly over the modal —
+    // navigating before it exists would dismiss to the inbox and flash it while the report screen mounts.
+    useEffect(() => {
+        if (!pendingNavigationReportID || !pendingNavigationReport?.reportID || hasStartedPendingNavigation.current) {
+            return;
+        }
+        hasStartedPendingNavigation.current = true;
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(pendingNavigationReportID), {
+            afterTransition: () => {
+                setIsConfirming(false);
+            },
+        });
+    }, [pendingNavigationReportID, pendingNavigationReport?.reportID]);
 
     const finishRequestAndNavigate = (receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction || !participant) {
@@ -412,6 +435,16 @@ function SubmitDetailsPage({
                 setIsConfirming(false);
             });
             runExpenseCreateAndCleanup(false);
+            return;
+        }
+
+        // Pre-mount wasn't possible because the destination report doesn't exist yet. Create the expense without
+        // navigating — the optimistic write creates the report — and let the pending-navigation effect reveal it
+        // once it lands. isConfirming stays true until the reveal transition ends, so the confirm button keeps
+        // its loading state exactly like the pre-mounted path.
+        if (isDestinationReportMissing) {
+            runExpenseCreateAndCleanup(false);
+            setPendingNavigationReportID(postSubmitNavigationReportID);
             return;
         }
 
