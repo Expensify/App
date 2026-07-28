@@ -41,14 +41,14 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
+type DynamicConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE>;
 
-function ConfirmationPage({route}: ConfirmationPageProps) {
+function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
-    const {transactionID, isOnSearch, backTo} = route.params;
+    const {transactionID, isOnSearch} = route.params;
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -67,9 +67,13 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(targetTransactionThreadParentReport?.ownerAccountID)});
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsLoginSelector(targetTransactionThreadParentReport?.ownerAccountID),
+    });
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetTransactionThreadParentReport?.policyID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
 
     const selfDMReport = useSelfDMReport();
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReport?.reportID)}`);
@@ -147,7 +151,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.confirmationPage.header')}
                     onBackButtonPress={() => {
-                        Navigation.goBack(backTo);
+                        Navigation.goBack();
                     }}
                 />
                 <ScrollView>
@@ -177,4 +181,4 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     );
 }
 
-export default ConfirmationPage;
+export default DynamicConfirmationPage;

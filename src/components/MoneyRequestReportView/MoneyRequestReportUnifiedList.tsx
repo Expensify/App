@@ -82,6 +82,9 @@ type MoneyRequestReportUnifiedListProps = {
     /** Renders a single report action. */
     renderReportAction: (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => React.ReactElement;
 
+    /** Values outside the list data that should trigger report action rows to update. */
+    reportActionsExtraData: unknown;
+
     /** ID of the report action deep-linked to, if any. */
     linkedReportActionID: string | undefined;
 
@@ -141,6 +144,7 @@ function MoneyRequestReportUnifiedList({
     policy,
     visibleReportActions,
     renderReportAction,
+    reportActionsExtraData,
     linkedReportActionID,
     newTransactionID,
     listRef,
@@ -340,6 +344,7 @@ function MoneyRequestReportUnifiedList({
             accessibilityLabel={accessibilityLabel}
             testID="money-request-report-actions-list"
             data={data}
+            extraData={reportActionsExtraData}
             renderItem={dispatchRenderItem}
             keyExtractor={unifiedListKeyExtractor}
             getItemType={unifiedListItemType}
