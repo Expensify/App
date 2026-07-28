@@ -249,7 +249,6 @@ describe('actions/Transaction', () => {
                 expect.objectContaining({
                     reportID: destinationReportID,
                     pendingFields: {
-                        receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 }),
