@@ -12,18 +12,7 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    Onboarding,
-    PolicyJoinMember,
-    PolicyReportField,
-    Policy as PolicyType,
-    Report,
-    ReportAction,
-    ReportActions,
-    ReportNextStepDeprecated,
-    Transaction,
-    TransactionViolations,
-} from '@src/types/onyx';
+import type {Onboarding, PolicyJoinMember, PolicyReportField, Policy as PolicyType, Report, ReportAction, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Participant, ReportNextStep} from '@src/types/onyx/Report';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
