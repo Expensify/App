@@ -1,8 +1,10 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type {FilterPopupButtonProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SearchAdvancedFiltersButton from '@components/Search/SearchPageHeader/SearchAdvancedFiltersButton';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import {shouldDeferSearchFilterSync} from '@hooks/useSearchFilterSync';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,7 +15,13 @@ import ROUTES from '@src/ROUTES';
 import React from 'react';
 
 jest.mock('@components/Icon', () => jest.fn(() => null));
-jest.mock('@components/Search/FilterDropdowns/FilterPopupButton', () => jest.fn(({renderButton}) => renderButton({onPress: jest.fn(), ref: {current: null}, isExpanded: false})));
+jest.mock('@components/Search/FilterDropdowns/FilterPopupButton', () => {
+    function MockFilterPopupButton({renderButton}: Pick<FilterPopupButtonProps, 'renderButton'>) {
+        return renderButton({onPress: jest.fn(), ref: {current: null}, isExpanded: false});
+    }
+
+    return MockFilterPopupButton;
+});
 jest.mock('@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup', () => jest.fn(() => null));
 jest.mock('@hooks/useFilterFormValues', () => jest.fn(() => ({})));
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => ({Filter: 'filter'})}));
@@ -39,6 +47,19 @@ const mockedShouldDeferSearchFilterSync = jest.mocked(shouldDeferSearchFilterSyn
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockedNavigate = jest.mocked(Navigation.navigate);
 const queryJSON = buildSearchQueryJSON('type:expense category:Travel');
+const defaultResponsiveLayout: ResponsiveLayoutResult = {
+    shouldUseNarrowLayout: false,
+    isSmallScreenWidth: false,
+    isInNarrowPaneModal: false,
+    isExtraSmallScreenHeight: false,
+    isMediumScreenWidth: false,
+    isLargeScreenWidth: true,
+    isExtraLargeScreenWidth: false,
+    isExtraSmallScreenWidth: false,
+    isSmallScreen: false,
+    onboardingIsMediumOrLargerScreenWidth: true,
+    isInLandscapeMode: false,
+};
 
 describe('SearchAdvancedFiltersButton', () => {
     it.each([
@@ -49,7 +70,7 @@ describe('SearchAdvancedFiltersButton', () => {
         if (!queryJSON) {
             throw new Error('Expected query to parse');
         }
-        mockedUseResponsiveLayout.mockReturnValue({isSmallScreenWidth, isMediumScreenWidth});
+        mockedUseResponsiveLayout.mockReturnValue({...defaultResponsiveLayout, isSmallScreenWidth, isMediumScreenWidth});
         mockedShouldDeferSearchFilterSync.mockReturnValue(true);
 
         const {rerender} = render(<SearchAdvancedFiltersButton queryJSON={queryJSON} />);
