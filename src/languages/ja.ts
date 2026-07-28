@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -2575,6 +2577,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'このカードをExpensify Travelでの予約に使用してください。チェックアウト時には「Travel Card」と表示されます。',
         },
         chaseAccountNumberDifferent: '口座番号が異なるのはなぜですか？',
+        cardLastSynced: (relativeDate: string) => `${relativeDate} に同期しました`,
+        cardNeverSynced: '未同期',
+        cardStatus: {
+            active: 'アクティブ',
+            inactive: '無効',
+            fixConnection: 'この接続を修正してください',
+            fixConnectionIn: (companyCardsRoute: string) => `この接続を<a href="${companyCardsRoute}">会社カード</a>で修正してください`,
+            askAdminToFixConnection: '管理者にこの接続の修正を依頼してください',
+        },
+        bankAccountStatus: {
+            active: 'アクティブ',
+            incomplete: '未完了',
+            pending: '保留中',
+            verifying: '確認中',
+            reviewingDocumentation: '書類を審査しています',
+            finishAddingBankAccount: '銀行口座の追加を完了',
+            finish: '完了',
+            confirmTestTransactions: 'テスト取引を確認してください',
+            accountRequiresAttention: 'このアカウントには対応が必要です',
+            unlock: 'ロック解除',
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify カード',
@@ -5005,7 +5028,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             creditCardAccount: 'クレジットカード口座',
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Sage Intacct で対応する仕入先がない ${isReimbursable ? '' : '非'}立替精算費用に適用されるデフォルトの仕入先を設定します。`,
+                isReimbursable
+                    ? `Sage Intacct で一致する仕入先がない立替経費に適用するデフォルトの仕入先を設定します。`
+                    : `Sage Intacct の仕入先に照合できない経費は、デフォルトでこの仕入先に紐づけられます。`,
             exportDescription: 'Expensify のデータを Sage Intacct へエクスポートする方法を設定します。',
             exportPreferredExporterNote:
                 '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
@@ -6871,6 +6896,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             exportCompanyCard: '法人カード経費のエクスポート形式',
             exportDate: 'エクスポート日',
             defaultVendor: 'デフォルトのベンダー',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。`
+                    : `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。それ以外は「Credit Card Misc」としてエクスポートされます。`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `自動的に照合されない経費に対して使用する、デフォルトの ${connectionName} 仕入先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
             autoSyncDescription: 'NetSuite と Expensify を毎日自動で同期。確定したレポートをリアルタイムでエクスポート',
