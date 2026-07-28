@@ -33,6 +33,7 @@ import {
     getPolicyByCustomUnitID,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getReimburserEmail,
     getSubmitToAccountID,
     getSubmitToEmail,
     getTagApproverRule,
@@ -1437,6 +1438,57 @@ describe('PolicyUtils', () => {
             };
             const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy as unknown as Policy);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getReimburserEmail', () => {
+        it('should return undefined when reimbursement is disabled', () => {
+            const policy = {
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburser: 'reimburser@example.com',
+                achAccount: {reimburser: 'ach@example.com'},
+                owner: 'owner@example.com',
+            };
+            expect(getReimburserEmail(policy as unknown as Policy)).toBeUndefined();
+        });
+
+        it('should resolve the payer for manual (indirect) reimbursement from achAccount.reimburser', () => {
+            const policy = {
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                achAccount: {reimburser: 'ach@example.com'},
+                owner: 'owner@example.com',
+            };
+            expect(getReimburserEmail(policy as unknown as Policy)).toBe('ach@example.com');
+        });
+
+        it('should prefer policy.reimburser over achAccount.reimburser', () => {
+            const policy = {
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: 'reimburser@example.com',
+                achAccount: {reimburser: 'ach@example.com'},
+            };
+            expect(getReimburserEmail(policy as unknown as Policy)).toBe('reimburser@example.com');
+        });
+
+        it('should fall back to the owner for manual reimbursement when no reimburser is set', () => {
+            const policy = {
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                owner: 'owner@example.com',
+            };
+            expect(getReimburserEmail(policy as unknown as Policy)).toBe('owner@example.com');
+        });
+
+        it('should not fall back to the owner for auto reimbursement when no reimburser is set', () => {
+            const policy = {
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                owner: 'owner@example.com',
+            };
+            expect(getReimburserEmail(policy as unknown as Policy)).toBeUndefined();
         });
     });
 

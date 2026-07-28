@@ -657,6 +657,26 @@ function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined
     return !!policyEmployee && policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * Resolve the email of the workspace's Authorized Payer (reimburser), matching the canonical resolution used across the app.
+ * Returns undefined when reimbursement is disabled or no payer can be resolved.
+ */
+function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
+    if (!policy) {
+        return undefined;
+    }
+
+    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+
+    // Reimbursement is disabled for this workspace.
+    if (!isAutoReimbursement && !isManualReimbursement) {
+        return undefined;
+    }
+
+    return policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+}
+
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
     if (!policy) {
         return false;
@@ -671,7 +691,7 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
         return false;
     }
 
-    const reimburserEmail = policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+    const reimburserEmail = getReimburserEmail(policy);
 
     // No designated reimburser means any workspace admin can pay.
     if (!reimburserEmail) {
@@ -3002,6 +3022,7 @@ export {
     isPolicyOwner,
     isPolicyMember,
     isPolicyPayer,
+    getReimburserEmail,
     arePaymentsEnabled,
     isSubmitterAndApprover,
     isSubmitAndClose,
