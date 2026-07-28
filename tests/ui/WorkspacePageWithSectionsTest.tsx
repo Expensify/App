@@ -41,6 +41,9 @@ jest.mock('@react-navigation/native', () => {
 // Mock useResponsiveLayout hook
 jest.mock('@src/hooks/useResponsiveLayout');
 
+// Keep the Workspaces tab reported as focused so the not-found view isn't suppressed by the tab-focus guard.
+jest.mock('@hooks/useIsWorkspacesTabFocused', () => () => true);
+
 // Mock FullScreenLoadingIndicator
 jest.mock('@components/FullscreenLoadingIndicator', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -52,26 +55,26 @@ jest.mock('@components/FullscreenLoadingIndicator', () => {
 
 const mockPolicy: Policy = {...createRandomPolicy(POLICY_ID), type: CONST.POLICY.TYPE.CORPORATE, pendingAction: null, role: CONST.POLICY.ROLE.ADMIN};
 
-const renderWorkspacePageWithSections = (props = {}) => {
-    const defaultProps = {
-        headerText: 'Test Workspace',
-        route: {
-            key: 'test-route',
-            name: SCREENS.WORKSPACE.INITIAL,
-            params: {policyID: POLICY_ID.toString()},
-        },
-        policy: mockPolicy,
-        ...props,
-    };
+const getDefaultProps = (props = {}) => ({
+    headerText: 'Test Workspace',
+    route: {
+        key: 'test-route',
+        name: SCREENS.WORKSPACE.INITIAL,
+        params: {policyID: POLICY_ID.toString()},
+    },
+    policy: mockPolicy,
+    ...props,
+});
 
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <WorkspacePageWithSections {...defaultProps}>
-                <View />
-            </WorkspacePageWithSections>
-        </ComposeProviders>,
-    );
-};
+const renderWithProps = (props: ReturnType<typeof getDefaultProps>) => (
+    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <WorkspacePageWithSections {...props}>
+            <View />
+        </WorkspacePageWithSections>
+    </ComposeProviders>
+);
+
+const renderWorkspacePageWithSections = (props = {}) => render(renderWithProps(getDefaultProps(props)));
 
 describe('WorkspacePageWithSections', () => {
     describe('FullScreenLoadingIndicator behavior', () => {
@@ -123,6 +126,72 @@ describe('WorkspacePageWithSections', () => {
 
             // Then the FullScreenLoadingIndicator should be displayed
             expect(screen.getByTestId('FullScreenLoadingIndicator')).toBeTruthy();
+        });
+    });
+
+    describe('FullPageNotFoundView behavior when deleting a workspace', () => {
+        // The policy is read from Onyx via the withPolicy HOC (which overrides the `policy` prop), so these
+        // tests drive the workspace state through the Onyx policy collection to mirror the real delete flow.
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}` as const;
+
+        beforeEach(async () => {
+            // Render the page content (not the loading indicator) so we can assert on the not-found view directly.
+            setHasRadio(false);
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.HAS_LOADED_APP]: true,
+                    [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        afterEach(async () => {
+            jest.clearAllMocks();
+            await act(async () => {
+                await Onyx.clear();
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        it('should not flash the not-found page when the viewed workspace is deleted (pending delete -> removed from Onyx)', async () => {
+            // Given the workspace we're viewing is optimistically marked as pending delete
+            await act(async () => {
+                await Onyx.set(policyKey, {...mockPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+                await waitForBatchedUpdatesWithAct();
+            });
+            renderWorkspacePageWithSections();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the not-found page should not be shown during the pending-delete state
+            expect(screen.queryByTestId('FullPageNotFoundView')).toBeNull();
+
+            // When the backend confirms the deletion and the policy is removed from Onyx entirely
+            await act(async () => {
+                await Onyx.set(policyKey, null);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then the not-found page should still not be shown
+            expect(screen.queryByTestId('FullPageNotFoundView')).toBeNull();
+
+            // When the still-mounted screen re-renders again during the navigation/exit animation (prevPolicy is now empty)
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {isUsingExpensifyCard: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then the not-found page should remain suppressed by the latch
+            expect(screen.queryByTestId('FullPageNotFoundView')).toBeNull();
+        });
+
+        it('should still show the not-found page for a genuinely empty/inaccessible workspace with no preceding pending-delete state', async () => {
+            // Given a workspace that is empty from the start, without ever being pending delete
+            renderWorkspacePageWithSections();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the not-found page should be shown
+            expect(screen.getByTestId('FullPageNotFoundView')).toBeTruthy();
         });
     });
 });
