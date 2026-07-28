@@ -518,7 +518,11 @@ function openReportFromDeepLink(
         // handling below intentionally drops deep links for users who still need to onboard, so branch out first.
         if (route?.includes('secureKey=')) {
             Navigation.waitForProtectedRoutes().then(() => {
-                if (isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
+                // Secure links grant workspace + report access to a real account via JoinReportViaSecureLink, so an
+                // anonymous session can never fulfill them even though report routes are otherwise anonymous-accessible
+                // (canAnonymousUserAccessRoute would allow it). Force a real sign-in first; the deep link is re-processed
+                // after sign-in. Without this the user lands on /r/:id?secureKey with no join, stuck loading/404.
+                if (isAnonymousUser()) {
                     signOutAndRedirectToSignIn(true);
                     return;
                 }
