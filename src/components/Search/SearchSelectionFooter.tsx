@@ -35,8 +35,7 @@ type FooterCurrencyState = {
 };
 
 const EMPTY_REPORT_IDS: string[] = [];
-const EMPTY_REPORT_SOURCES: Record<string, number> = {};
-const EMPTY_GROUP_SOURCES: Record<string, number> = {};
+const EMPTY_SOURCES: Record<string, number> = {};
 
 function getGroupCount(group: unknown): number {
     if (group && typeof group === 'object' && 'count' in group && typeof group.count === 'number') {
@@ -179,7 +178,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const loadedGroupSourceByKey = useMemo(() => {
         const data = currentSearchResults?.data;
         if (!isGroupedSearch || !data) {
-            return EMPTY_GROUP_SOURCES;
+            return EMPTY_SOURCES;
         }
         const sources: Record<string, number> = {};
         for (const key of Object.keys(data)) {
@@ -195,7 +194,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     }, [currentSearchResults?.data, isGroupedSearch]);
     const reportSourceByID = useMemo(() => {
         if (!isReportsSearch) {
-            return EMPTY_REPORT_SOURCES;
+            return EMPTY_SOURCES;
         }
         const sources: Record<string, number> = {};
         for (const report of selectedReports) {

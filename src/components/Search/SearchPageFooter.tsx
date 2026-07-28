@@ -83,6 +83,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             searchPlaceholder={translate('common.search')}
             defaultValue={defaultCurrency}
             shouldShowList={isExpanded}
+            shouldUseFixedPopoverHeight
         />
     );
 
