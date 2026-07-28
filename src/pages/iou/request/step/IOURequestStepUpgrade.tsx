@@ -262,6 +262,7 @@ function IOURequestStepUpgrade({
         allReports,
         selfDMReportActions,
         isTrackIntentUser,
+        delegateAccountID,
     ]);
 
     const participant = transaction?.participants?.[0];
