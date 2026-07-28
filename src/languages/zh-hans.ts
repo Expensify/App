@@ -401,6 +401,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longReportID: '长报表 ID',
         withdrawalID: '提现编号',
         internationalReimbursementIDs: '国际报销 ID',
+        amountDebited: '扣款金额',
+        amountReimbursed: '报销金额',
         withdrawalStatus: '提现状态',
         paidStatus: '已付款状态',
         bankAccounts: '银行账户',

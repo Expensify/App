@@ -459,6 +459,8 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
         internationalReimbursementIDs: 'IDs de reembolso internacional',
+        amountDebited: 'Importe debitado',
+        amountReimbursed: 'Importe reembolsado',
         opensInNewTab: 'Se abre en una nueva pestaña',
         locked: 'Bloqueado',
         month: 'Monat',
