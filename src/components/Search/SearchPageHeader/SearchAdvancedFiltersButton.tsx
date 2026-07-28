@@ -72,6 +72,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                   hoverStyle={styles.buttonHoveredBG}
                   sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
                   onPress={onPress}
+                  disabled={shouldDeferFilterSync}
               >
                   <Icon
                       src={expensifyIcons.Filter}
@@ -88,6 +89,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                   text={translate('search.filtersHeader')}
                   icon={expensifyIcons.Filter}
                   onPress={onPress}
+                  isDisabled={shouldDeferFilterSync}
                   innerStyles={isExpanded ? styles.buttonDefaultHovered : undefined}
                   sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
               />
