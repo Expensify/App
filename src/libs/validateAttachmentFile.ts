@@ -76,8 +76,8 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
             // The backing file was already modified or deleted since it was picked.
             return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
         }
-        // Read the superseded URI from normalizedFile: updatedFile is always a fresh File that
-        // doesn't carry the custom .uri property.
+        // Read the superseded URI from normalizedFile: snapshotPickedFile may return a fresh File that
+        // doesn't carry the custom .uri property, so updatedFile.uri is not reliable for the previous URL.
         const previousUri = normalizedFile.uri;
         const inputSource = URL.createObjectURL(updatedFile);
         if (previousUri && previousUri !== inputSource && previousUri.startsWith('blob:')) {
