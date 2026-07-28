@@ -12954,16 +12954,17 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
         return true;
     }
 
-    // Fallback to checking actions for backward compatibility
+    // Fallback to checking actions for backward compatibility. Reconciled integration messages are informational
+    // (the export was already recorded in the integration), not errors.
     if (!reportActions) {
         return false;
     }
 
     if (Array.isArray(reportActions)) {
-        return reportActions.some((action) => isIntegrationMessageAction(action));
+        return reportActions.some((action) => isIntegrationMessageAction(action) && !getOriginalMessage(action)?.result?.reconciled);
     }
 
-    return Object.values(reportActions).some((action) => isIntegrationMessageAction(action));
+    return Object.values(reportActions).some((action) => isIntegrationMessageAction(action) && !getOriginalMessage(action)?.result?.reconciled);
 }
 
 function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>, shouldExcludeDeletedTransactions = false): boolean {

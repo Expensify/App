@@ -1575,6 +1575,9 @@ type OriginalMessageIntegrationMessage = {
     result: {
         /** Wether action was successful */
         success: boolean;
+
+        /** Whether the message is informational (the export was reconciled as already recorded in the integration) rather than an error */
+        reconciled?: boolean;
     };
 };
 
