@@ -30,7 +30,7 @@ import type {Credentials, Session} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {openAuthSessionAsync} from 'expo-web-browser';
-import {clearTokenRefresh, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
+import {clearTokenRefresh, removeAllFromAutoprefetch} from 'react-native-nitro-fetch';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
@@ -463,7 +463,7 @@ describe('Session', () => {
         await SessionUtil.signOut({authToken: 'testAuthToken'});
 
         expect(clearTokenRefresh).toHaveBeenCalledWith('fetch');
-        expect(removeFromAutoPrefetch).toHaveBeenCalledWith(WRITE_COMMANDS.RECONNECT_APP);
+        expect(removeAllFromAutoprefetch).toHaveBeenCalled();
 
         setHasRadio(true);
         await waitForBatchedUpdates();
@@ -471,16 +471,16 @@ describe('Session', () => {
 
     test('SignOut should clear native startup prefetch state before LOG_OUT', async () => {
         const clearTokenRefreshMock = jest.mocked(clearTokenRefresh);
-        const removeFromAutoPrefetchMock = jest.mocked(removeFromAutoPrefetch);
+        const removeAllFromAutoprefetchMock = jest.mocked(removeAllFromAutoprefetch);
         const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
 
         await SessionUtil.signOut({authToken: 'testAuthToken'});
 
         expect(clearTokenRefreshMock).toHaveBeenCalledWith('fetch');
-        expect(removeFromAutoPrefetchMock).toHaveBeenCalledWith(WRITE_COMMANDS.RECONNECT_APP);
+        expect(removeAllFromAutoprefetchMock).toHaveBeenCalled();
         expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'testAuthToken'}), {});
         expect(clearTokenRefreshMock.mock.invocationCallOrder.at(0)).toBeLessThan(makeRequestSpy.mock.invocationCallOrder.at(0) ?? 0);
-        expect(removeFromAutoPrefetchMock.mock.invocationCallOrder.at(0)).toBeLessThan(makeRequestSpy.mock.invocationCallOrder.at(0) ?? 0);
+        expect(removeAllFromAutoprefetchMock.mock.invocationCallOrder.at(0)).toBeLessThan(makeRequestSpy.mock.invocationCallOrder.at(0) ?? 0);
 
         makeRequestSpy.mockRestore();
     });

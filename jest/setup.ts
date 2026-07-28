@@ -320,6 +320,7 @@ jest.mock('react-native-nitro-fetch', () => ({
     registerTokenRefresh: jest.fn(),
     clearTokenRefresh: jest.fn(),
     removeFromAutoPrefetch: jest.fn(() => Promise.resolve()),
+    removeAllFromAutoprefetch: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@shopify/react-native-skia', () => ({

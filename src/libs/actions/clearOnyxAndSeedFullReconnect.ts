@@ -28,7 +28,11 @@ async function clearOnyxAndSeedFullReconnect(keysToPreserve: OnyxKey[], extraSee
         ...extraSeeds,
         [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: DateUtils.getDBTime(),
     };
-    return Onyx.multiSet(seeds).then(() => Onyx.clear([...keysToPreserve, ...(Object.keys(seeds) as OnyxKey[])]));
+    await Onyx.multiSet(seeds);
+    await Onyx.clear([...keysToPreserve, ...(Object.keys(seeds) as OnyxKey[])]);
+
+    // A request can be processed between the initial cleanup and the Onyx reset. Clear the queue again after the old credentials are gone.
+    await clearPrefetchOnAppStart();
 }
 
 export default clearOnyxAndSeedFullReconnect;
