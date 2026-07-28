@@ -1102,6 +1102,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: 'Praat met je accountmanager',
             forGuidedSetup: 'voor begeleide installatie.',
             configureApprovalsSubText: 'Definieer rapportgoedkeuringen',
+            setupTravel: 'Reizen instellen',
+            setupTravelSubText: 'Reisspecifieke regels instellen',
         },
         yourSpend: {
             title: 'Je uitgaven',

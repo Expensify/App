@@ -1060,6 +1060,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Habla con Concierge',
             forGuidedSetup: 'para la configuración guiada.',
             configureApprovalsSubText: 'Definir aprobaciones de informes',
+            setupTravel: 'Configurar viajes',
+            setupTravelSubText: 'Configura reglas específicas de viaje',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
