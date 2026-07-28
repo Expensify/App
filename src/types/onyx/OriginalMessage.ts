@@ -1632,6 +1632,9 @@ type IssueNewCardOriginalMessage = OriginalMessage<
 type OriginalMessageHomeAddressRequired = {
     /** ID of the policy whose commuter-exclusion change triggered the prompt */
     policyID: string;
+
+    /** Set once the member saves a home address, marking the prompt as satisfied */
+    resolution?: string | null;
 };
 
 /**
