@@ -1557,6 +1557,45 @@ describe('ReportActionsUtils', () => {
 
             expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceDefault'));
         });
+
+        it('should return a reconciled integrations message as-is, without the export error framing', () => {
+            const reconciledMessage = "A payment for this report already exists in NetSuite and the report is fully paid there, so there's nothing left to sync.";
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                originalMessage: {
+                    label: 'NetSuite',
+                    result: {
+                        messages: [reconciledMessage],
+                        reconciled: true,
+                    },
+                },
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(reconciledMessage);
+        });
+
+        it('should return an integrations error message with the export error framing when not reconciled', () => {
+            const errorMessage = 'NS0196 Sync Error: Could not mark expense reports as paid. This record already exists';
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                originalMessage: {
+                    label: 'NetSuite',
+                    result: {
+                        messages: [errorMessage],
+                    },
+                },
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.integrationsMessage', errorMessage, 'NetSuite', '', ''));
+        });
     });
 
     describe('getSendMoneyFlowAction', () => {
