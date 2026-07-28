@@ -1,4 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
 import type {
     ASTNode,
     Filter,
@@ -356,7 +358,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-            filterValueString += ` -${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE) {
             const rangeBoundaries = parseRangeQueryValue(queryFilter.value.toString());
             if (rangeBoundaries.from) {
@@ -545,13 +547,13 @@ function getQueryHashes(query: SearchQueryJSON) {
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
 
     const status = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
-    orderedQuery += ` ${status.isNegated ? '-' : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
+    orderedQuery += ` ${status.isNegated ? CONST.SEARCH.NOT_PREFIX : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
 
     const policyID = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     if (policyID.value) {
-        orderedQuery += ` ${policyID.isNegated ? '-' : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${policyID.value.join(',')} `;
+        orderedQuery += ` ${policyID.isNegated ? CONST.SEARCH.NOT_PREFIX : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${policyID.value.join(',')} `;
     }
 
     const filterSet = new Set<string>(orderedQuery);
@@ -908,7 +910,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 filterKey = filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
             }
 
-            const prefix = isNegated ? '-' : '';
+            const prefix = isNegated ? CONST.SEARCH.NOT_PREFIX : '';
 
             if (
                 (filterKey === FILTER_KEYS.MERCHANT ||
@@ -1025,9 +1027,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
                 if (keyInCorrectForm) {
-                    if (!isNegated && filterKey === FILTER_KEYS.TAG && filterValueArray.length === 1 && filterValueArray.at(0) === CONST.SEARCH.TAG_EMPTY_VALUE) {
-                        return `-${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}:${CONST.SEARCH.HAS_VALUES.TAG}`;
-                    }
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
             }
@@ -1337,21 +1336,7 @@ function buildFilterFormValuesFromQuery(
             }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            const validHasFilters = filterList.filter((item) => VALID_HAS_TYPES.has(item.value as HasFilterValue));
-            const positiveHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
-            const negatedHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
-            const hasNegatedTagFilter = negatedHasFilters.includes(CONST.SEARCH.HAS_VALUES.TAG);
-            const remainingNegatedHasFilters = negatedHasFilters.filter((hasType) => hasType !== CONST.SEARCH.HAS_VALUES.TAG);
-
-            if (hasNegatedTagFilter) {
-                filtersForm[FILTER_KEYS.TAG] = [CONST.SEARCH.TAG_EMPTY_VALUE];
-            }
-            if (positiveHasFilters.length > 0) {
-                filtersForm[FILTER_KEYS.HAS] = positiveHasFilters;
-            }
-            if (remainingNegatedHasFilters.length > 0) {
-                filtersForm[FILTER_KEYS.HAS_NOT] = remainingNegatedHasFilters;
-            }
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((isType) => VALID_IS_TYPES.has(isType as IsFilterValue)) as IsFilterValues;
@@ -2546,12 +2531,31 @@ function addNegation<T extends string>(filterKey: T, isNegated: boolean): T | `$
     return isNegated ? `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` : filterKey;
 }
 
-function removeNegation(filterKey: string) {
-    return filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
+type RemoveNegation<T extends string> = T extends `${infer S}${typeof CONST.SEARCH.NOT_MODIFIER}` ? S : T;
+
+function removeNegation<T extends string>(filterKey: T): RemoveNegation<T>;
+function removeNegation(filterKey: string): string {
+    return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER) ? filterKey.slice(0, -CONST.SEARCH.NOT_MODIFIER.length) : filterKey;
 }
 
 function isFilterNegatable(key: SearchAdvancedFiltersKey) {
     return NEGATABLE_FILTERS.has(removeNegation(key) as SearchNegatableFilterKeys);
+}
+
+function isFilterNegated(filterKey: SearchAdvancedFiltersKey) {
+    return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
+}
+
+function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
+    baseFilterKey: K,
+    value: SearchAdvancedFiltersForm[K] | undefined,
+    isNegated: boolean,
+): Partial<SearchAdvancedFiltersForm> {
+    const update: Partial<Record<K | `${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>> = {};
+    const negatedFilterKey = addNegation(baseFilterKey, true);
+    update[negatedFilterKey] = isNegated ? value : undefined;
+    update[baseFilterKey] = isNegated ? undefined : value;
+    return update;
 }
 
 export {
@@ -2603,8 +2607,11 @@ export {
     getParamsState,
     getRoutes,
     isSearchRootParams,
-    getFilterFromQuery,
+    isFilterNegated,
     isFilterNegatable,
+    removeNegation,
+    getFilterFormValues,
+    getFilterFromQuery,
 };
 
 export type {BuildUserReadableQueryStringParams};

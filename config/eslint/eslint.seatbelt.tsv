@@ -394,7 +394,6 @@
 "../../src/components/Search/SearchPageHeader/SearchAdvancedFiltersButton.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/SearchPageHeader/SearchFilterBar.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/Search/SearchPageHeader/SearchSaveButton.tsx"	"no-restricted-imports"	1
-"../../src/components/Search/SearchPageHeader/useSearchFiltersBar.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchPageHeader/useSearchPageInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchPageHeader/useSearchPageInput.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/Search/SearchQueryProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -766,9 +765,9 @@
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
-"../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	49
+"../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	48
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	2
-"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	76
+"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	71
 "../../src/libs/SearchUIUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/SelectionScraper/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	4

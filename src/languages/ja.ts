@@ -8871,6 +8871,7 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支払う',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
+            filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
         },
         display: {
             label: '表示',

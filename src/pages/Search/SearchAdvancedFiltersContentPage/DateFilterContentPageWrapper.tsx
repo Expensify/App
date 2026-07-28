@@ -10,7 +10,7 @@ import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-function DateFilterContentPageWrapper({filterKey, value: initialValue, hasFeed, onChange}: DateFilterContentWrapperProps) {
+function DateFilterContentPageWrapper({baseFilterKey, value: initialValue, hasFeed, onChange}: DateFilterContentWrapperProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -19,7 +19,7 @@ function DateFilterContentPageWrapper({filterKey, value: initialValue, hasFeed, 
     return (
         <View style={[styles.flex1]}>
             <DateFilterContent
-                filterKey={filterKey}
+                baseFilterKey={baseFilterKey}
                 value={value}
                 selectedDateModifier={selectedDateModifier}
                 hasFeed={hasFeed}
