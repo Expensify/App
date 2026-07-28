@@ -513,6 +513,26 @@ function openReportFromDeepLink(
 
     // Navigate to the report after sign-in/sign-up.
     waitForUserSignIn().then(() => {
+        // A Submit-via-PDF secure access link must reach the report regardless of onboarding status: the report screen
+        // is where JoinReportViaSecureLink runs, and onboarding is suppressed for secure-link visitors. The generic
+        // handling below intentionally drops deep links for users who still need to onboard, so branch out first.
+        if (route?.includes('secureKey=')) {
+            Navigation.waitForProtectedRoutes().then(() => {
+                if (isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
+                    signOutAndRedirectToSignIn(true);
+                    return;
+                }
+                // On cold launch the report is already the initial route; navigating again would stack a duplicate
+                // that renders "not found" until the join grants access. Only navigate when we're not already there.
+                if (Navigation.getTopmostReportId() === reportID) {
+                    return;
+                }
+                const secureKey = new URLSearchParams(route.split('?').at(1) ?? '').get('secureKey') ?? undefined;
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, undefined, secureKey), {waitForTransition: true});
+            });
+            return;
+        }
+
         // `false` when the user still had to onboard as this deep link was captured (fresh sign-up, or a
         // stale react-native-web URL); honoring it after onboarding flashes the "Not here" page (#91437).
         let initialHasCompletedGuidedSetupFlow: boolean | undefined;

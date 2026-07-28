@@ -154,6 +154,14 @@ function ReportFetchHandler() {
     const shouldDeferGuidedSetupOpenReport = !!isLoadingApp && (isRegularOnboardingPending || isPendingInviteOnboarding);
 
     const fetchReport = useEffectEvent(() => {
+        // For a Submit-via-PDF secure access link, JoinReportViaSecureLink grants access and returns the report.
+        // Calling the vanilla openReport before the join completes would 403 and latch the not-found page, so defer
+        // to the join while the secureKey is still on the route. Once the join grants access the secureKey is cleared,
+        // and normal fetching resumes.
+        if (secureKeyFromRoute) {
+            return;
+        }
+
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
             return;
         }
@@ -255,13 +263,16 @@ function ReportFetchHandler() {
         }
         joinedSecureLinkReportIDRef.current = reportIDFromRoute;
         joinReportViaSecureLink(reportIDFromRoute, secureKeyFromRoute);
-    }, [secureKeyFromRoute, reportIDFromRoute, isAnonymousUser]);
+    }, [secureKeyFromRoute, reportIDFromRoute, isAnonymousUser, route.name]);
 
     // Keep secureKey in the URL until the join has actually granted access to the report. Clearing it earlier would drop
     // the "secure-link visit" signal that suppresses onboarding, so a slow join could bounce a new user into onboarding
     // before they gain access. Once the report is accessible we clear it so it isn't reused or left in history.
     useEffect(() => {
-        if (!secureKeyFromRoute || joinedSecureLinkReportIDRef.current !== reportIDFromRoute || !report?.reportID || !!report?.errorFields?.notFound) {
+        // Clear the secureKey once the join has resolved either way: on success the report is accessible (reportID set),
+        // on failure it is marked not-found. Both release the fetchReport gate so the report loads or shows the 404.
+        const joinResolved = !!report?.reportID || !!report?.errorFields?.notFound;
+        if (!secureKeyFromRoute || joinedSecureLinkReportIDRef.current !== reportIDFromRoute || !joinResolved) {
             return;
         }
         navigation.setParams({secureKey: undefined});

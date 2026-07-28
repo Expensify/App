@@ -131,6 +131,12 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
+            // A Submit-via-PDF secure access link can arrive while the app is already running (warm), where
+            // getInitialURL() is empty. Record it so onboarding suppression has a session-sticky signal, the same
+            // way the cold path does via onInitialUrl above. Scoped to secure links so other deep links are unaffected.
+            if (state.url?.includes('secureKey=')) {
+                onInitialUrl(state.url as Route);
+            }
             openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
             trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });
