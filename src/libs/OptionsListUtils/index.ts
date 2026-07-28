@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getLoginByAccountID, getPersonalDetailByEmail, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
@@ -190,13 +190,12 @@ import type {
     Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 
-/* eslint-disable @typescript-eslint/prefer-for-of */
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import lodashOrderBy from 'lodash/orderBy';
@@ -209,7 +208,6 @@ import type {
     GetValidReportsConfig,
     IsValidReportsConfig,
     MemberForList,
-    Option,
     OptionList,
     Options,
     OptionsResult,
@@ -799,6 +797,8 @@ function getLastMessageTextForReport({
     } else if (isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessageWithHTML = getForReportAction({
             translate,
+            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+            convertToDisplayString,
             reportAction: lastReportAction,
             policy,
             movedFromReport,
@@ -1574,9 +1574,9 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
  *
  * Performance optimization approach:
  * 1. Pre-filters reports using shouldReportBeInOptionList with correct parameters (betas, etc.)
- * 2. Default (`options.isSearching` false): sorts by lastVisibleActionCreated (most recent first), limits to
- *    the top N reports (`maxRecentReports`), then processes only those reports. This avoids processing
- *    thousands of reports while ensuring correct filtering.
+ * 2. Default (`options.isSearching` false): pre-computes each report's sort key once, then uses a heap to
+ *    select the top N reports (`maxRecentReports`) by self-DM status, archived status, and recency. Only
+ *    those reports are processed in step 4, avoiding work on thousands of reports while ensuring correct filtering.
  * 3. Search mode (`options.isSearching` true): uses the full pre-filtered report list with no recency sort and
  *    no `maxRecentReports` cap, so search can include all eligible reports.
  *
@@ -1724,7 +1724,7 @@ function createFilteredOptionList(
         return !!report;
     });
 
-    // Step 2: Sort by lastVisibleActionCreated (most recent first) and limit to top N
+    // Step 2: Select the top N reports by priority (self-DM, then non-archived, then most recent).
     // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
     const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports).options;
 
@@ -1906,6 +1906,57 @@ const recentReportComparator = (option: SearchOptionData) => {
     return `${option.isSelfDM ? 1 : 0}_${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
 };
 
+type DecoratedOption<T> = {
+    key: number | string;
+    option: T;
+};
+
+type DecoratedOptionHeap<T> = {
+    /** Pushes the option (evicting the worst one if at capacity) and returns whether the heap was already at capacity, i.e. there are more options than the limit. */
+    pushAndCheckHasMore: (decoratedOption: DecoratedOption<T>) => boolean;
+    getOptionsFromDecoratedHeap: () => T[];
+};
+
+function getDecoratedOptionKey<T>(decoratedOption: DecoratedOption<T>) {
+    return decoratedOption.key;
+}
+
+/**
+ * Creates a heap that compares precomputed keys instead of re-running `comparator`
+ * on every O(log n) heap comparison.
+ */
+function createDecoratedOptionHeap<T>(reversed: boolean, limit?: number): DecoratedOptionHeap<T> {
+    const heap = reversed ? new MaxHeap<DecoratedOption<T>>(getDecoratedOptionKey) : new MinHeap<DecoratedOption<T>>(getDecoratedOptionKey);
+
+    return {
+        pushAndCheckHasMore(decoratedOption) {
+            if (limit === undefined || heap.size() < limit) {
+                heap.push(decoratedOption);
+                return false;
+            }
+
+            const peekedValue = heap.peek();
+            if (peekedValue === null) {
+                return true;
+            }
+
+            if (reversed ? decoratedOption.key < peekedValue.key : decoratedOption.key > peekedValue.key) {
+                heap.pop();
+                heap.push(decoratedOption);
+            }
+
+            return true;
+        },
+        getOptionsFromDecoratedHeap() {
+            return [...heap].reverse().map((decoratedOption) => decoratedOption.option);
+        },
+    };
+}
+
+function decorateOption<T>(option: T, comparator: (option: T) => number | string): DecoratedOption<T> {
+    return {key: comparator(option), option};
+}
+
 /**
  * Sort options by a given comparator and return first sorted options.
  * Function uses a min heap to efficiently get the first sorted options.
@@ -1917,33 +1968,9 @@ function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
     filter?: (option: T) => boolean | undefined,
     reversed = false,
 ): {options: T[]; hasMore: boolean} {
-    const heap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
-    let hasMore = false;
-
-    // If a limit is 0 or negative, return an empty array
-    if (limit !== undefined && limit <= 0) {
-        return {options: [], hasMore};
-    }
-
-    for (const option of options) {
-        if (filter && !filter(option)) {
-            continue;
-        }
-        if (limit !== undefined && heap.size() >= limit) {
-            hasMore = true;
-            const peekedValue = heap.peek();
-            if (!peekedValue) {
-                throw new Error('Heap is empty, cannot peek value');
-            }
-            if (reversed ? comparator(option) < comparator(peekedValue) : comparator(option) > comparator(peekedValue)) {
-                heap.pop();
-                heap.push(option);
-            }
-        } else {
-            heap.push(option);
-        }
-    }
-    return {options: [...heap].reverse(), hasMore};
+    // With no separators, every option lands in the single default group
+    const {options: groupedOptions, hasMore} = optionsOrderAndGroupBy<T>([], options, comparator, limit, filter, reversed);
+    return {options: groupedOptions.at(0) ?? [], hasMore};
 }
 
 /**
@@ -1961,18 +1988,15 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
     filter?: (option: T) => boolean | undefined,
     reversed = false,
 ): {options: T[][]; hasMore: boolean} {
-    // Create a heap for each separator + one default heap (N+1 total)
-    const heaps: Array<MinHeap<T> | MaxHeap<T>> = [];
     let hasMore = false;
-    for (let i = 0; i < separators.length; i++) {
-        heaps.push(reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator));
-    }
-    const defaultHeap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
 
     // If limit is 0 or negative, return N+1 empty arrays
     if (limit !== undefined && limit <= 0) {
-        return {options: Array(separators.length + 1).map(() => []), hasMore};
+        return {options: Array.from({length: separators.length + 1}, () => []), hasMore};
     }
+
+    const heaps = Array.from({length: separators.length}, () => createDecoratedOptionHeap<T>(reversed, limit));
+    const defaultHeap = createDecoratedOptionHeap<T>(reversed, limit);
 
     // Process each option
     for (const option of options) {
@@ -1981,8 +2005,10 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
             continue;
         }
 
+        const decoratedOption = decorateOption(option, comparator);
+
         // Find which group this option belongs to (first-match-wins)
-        let targetHeap: MinHeap<T> | MaxHeap<T> | null = null;
+        let targetHeap: DecoratedOptionHeap<T> | null = null;
 
         for (let i = 0; i < separators.length; i++) {
             if (separators[i](option)) {
@@ -1998,28 +2024,15 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
         }
 
         // Add to heap with limit logic (each heap has its own limit)
-        if (limit !== undefined && targetHeap.size() >= limit) {
+        if (targetHeap.pushAndCheckHasMore(decoratedOption)) {
             hasMore = true;
-            const peekedValue = targetHeap.peek();
-            if (!peekedValue) {
-                throw new Error('Heap is empty, cannot peek value');
-            }
-            if (comparator(option) > comparator(peekedValue)) {
-                targetHeap.pop();
-                targetHeap.push(option);
-            }
-        } else {
-            targetHeap.push(option);
         }
     }
 
     // Extract results from each heap and reverse (to get correct order)
     // Always return N+1 arrays (some may be empty)
-    const results: T[][] = [];
-    for (const heap of heaps) {
-        results.push([...heap].reverse());
-    }
-    results.push([...defaultHeap].reverse());
+    const results: T[][] = heaps.map((heap) => heap.getOptionsFromDecoratedHeap());
+    results.push(defaultHeap.getOptionsFromDecoratedHeap());
 
     return {options: results, hasMore};
 }
@@ -2968,13 +2981,16 @@ function getSearchOptions({
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEntry<PersonalDetails>, translate: LocalizedTranslate, amountText?: string): PayeePersonalDetails {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(
+    personalDetail: OnyxEntry<PersonalDetails>,
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    amountText?: string,
+): PayeePersonalDetails {
     const login = personalDetail?.login ?? '';
     return {
-        text: formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: login, translate})),
-        alternateText: formatPhoneNumberPhoneUtils(
-            login || temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate}),
-        ),
+        text: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: login, translate})),
+        alternateText: formatPhoneNumber(login || temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate})),
         icons: [
             {
                 source: personalDetail?.avatar ?? FallbackAvatar,
@@ -2989,51 +3005,6 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
         keyForList: String(personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID),
         isInteractive: false,
     };
-}
-
-function getFilteredRecentAttendees(
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    attendees: Attendee[],
-    recentAttendees: Attendee[],
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    translate: LocalizedTranslate,
-): Option[] {
-    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserEmail);
-    if (!recentAttendeeHasCurrentUser && currentUserEmail) {
-        const details = getPersonalDetailByEmail(currentUserEmail);
-        recentAttendees.push({
-            email: currentUserEmail,
-            displayName: details?.displayName ?? currentUserEmail,
-            avatarUrl: details?.avatarThumbnail ?? '',
-        });
-    }
-
-    // Deduplicate recentAttendees: use email for regular users, displayName for name-only attendees
-    const seenAttendees = new Set<string>();
-    const deduplicatedRecentAttendees = recentAttendees.filter((attendee) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const key = attendee.email || attendee.displayName || '';
-        if (seenAttendees.has(key)) {
-            return false;
-        }
-        seenAttendees.add(key);
-        return true;
-    });
-
-    const filteredRecentAttendees = deduplicatedRecentAttendees
-        .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
-        .map((attendee) => ({
-            ...attendee,
-            // Use || instead of ?? to handle empty string email for name-only attendees
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            login: attendee.email || attendee.displayName,
-            ...getPersonalDetailByEmail(attendee.email),
-            keyForList: `${currentUserAccountID}`,
-        }))
-        .map((attendee) => getParticipantsOption(attendee, personalDetails, translate));
-
-    return filteredRecentAttendees;
 }
 
 /**
@@ -3530,7 +3501,6 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getAlternateText,
-    getFilteredRecentAttendees,
     getEmptyOptions,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
@@ -3554,6 +3524,7 @@ export {
     isDisablingOrDeletingLastEnabledTag,
     isMakingLastRequiredTagListOptional,
     isPersonalDetailsReady,
+    optionsOrderAndGroupBy,
     optionsOrderBy,
     orderOptions,
     orderPersonalDetailsOptions,

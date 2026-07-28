@@ -6,6 +6,7 @@ import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -49,6 +50,11 @@ import ValidateCodeForm from './ValidateCodeForm';
 
 type SignInPageProps = {
     ref?: Ref<SignInPageRef>;
+
+    /** Whether to reset the browser tab title to the site title ("New Expensify") on focus. Only the public root
+     *  sign-in screen should do this. The reusable SignInModal instance renders this same component over an
+     *  anonymous-accessible report, where resetting would wrongly clear that report's tab title. */
+    shouldResetTabTitle?: boolean;
 };
 
 type SignInPageRef = {
@@ -163,7 +169,16 @@ function getRenderOptions({
     };
 }
 
-function SignInPage({ref}: SignInPageProps) {
+// Renders nothing; on focus it resets the browser tab title so it falls back to the site title ("New Expensify").
+// Authenticated pages set a page-specific title via useDocumentTitle, but nothing clears it on logout, so the tab
+// would otherwise stay stuck on the last visited page's title. Mounted only on the public root sign-in screen
+// (see SignInPage's shouldResetTabTitle), never in the reusable SignInModal instance. This is a no-op on native.
+function ResetTabTitleOnFocus() {
+    useDocumentTitle('');
+    return null;
+}
+
+function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
@@ -322,6 +337,7 @@ function SignInPage({ref}: SignInPageProps) {
 
     return (
         <ColorSchemeWrapper>
+            {shouldResetTabTitle && <ResetTabTitleOnFocus />}
             <CustomStatusBarAndBackground isNested />
             <LoginProvider>
                 <SignInPageLayout
@@ -363,7 +379,7 @@ function SignInPage({ref}: SignInPageProps) {
     );
 }
 
-function SignInPageWrapper({ref}: SignInPageProps) {
+function SignInPageWrapper({ref, shouldResetTabTitle}: SignInPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const safeAreaInsets = useSafeAreaInsets();
@@ -378,7 +394,10 @@ function SignInPageWrapper({ref}: SignInPageProps) {
             style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
             testID="SignInPageWrapper"
         >
-            <SignInPage ref={ref} />
+            <SignInPage
+                ref={ref}
+                shouldResetTabTitle={shouldResetTabTitle}
+            />
         </ScreenWrapper>
     );
 }
@@ -386,7 +405,7 @@ function SignInPageWrapper({ref}: SignInPageProps) {
 // WithTheme is a HOC that provides theme-related contexts (e.g. to the SignInPageWrapper component since these contexts are required for variable declarations).
 // The sign-in page always uses the dark theme, but respects the user's contrast preference (nvp_preferredTheme) which is preserved on sign-out.
 function WithTheme(Component: React.ComponentType<SignInPageProps>) {
-    function ThemedComponent({ref}: SignInPageProps) {
+    function ThemedComponent({ref, shouldResetTabTitle}: SignInPageProps) {
         const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
         const [highContrastIntent] = useOnyx(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT);
         const contrastThemes: string[] = [CONST.THEME.DARK_CONTRAST, CONST.THEME.LIGHT_CONTRAST, CONST.THEME.SYSTEM_CONTRAST];
@@ -397,7 +416,10 @@ function WithTheme(Component: React.ComponentType<SignInPageProps>) {
             <ThemeProvider theme={signInTheme}>
                 <ThemeStylesProvider>
                     <HTMLEngineProvider>
-                        <Component ref={ref} />
+                        <Component
+                            ref={ref}
+                            shouldResetTabTitle={shouldResetTabTitle}
+                        />
                     </HTMLEngineProvider>
                 </ThemeStylesProvider>
             </ThemeProvider>

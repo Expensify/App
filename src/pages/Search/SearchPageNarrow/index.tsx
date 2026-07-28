@@ -28,7 +28,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import variables from '@styles/variables';
@@ -39,7 +39,6 @@ import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
@@ -55,9 +54,10 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
-    metadata?: SearchResultsInfo;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
+    searchRequestResponseStatusCode: number | null;
+    setSearchRequestResponseStatusCode: (statusCode: number | null) => void;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
     searchOverlayContent: React.ReactNode;
@@ -75,7 +75,8 @@ function SearchPageNarrow({
     queryJSON,
     searchResults,
     isMobileSelectionModeEnabled,
-    metadata,
+    searchRequestResponseStatusCode,
+    setSearchRequestResponseStatusCode,
     onSortPressedCallback,
     searchOverlayContent,
     onSearchContentReady,
@@ -98,8 +99,6 @@ function SearchPageNarrow({
     const route = useRoute();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
-
-    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
@@ -154,13 +153,17 @@ function SearchPageNarrow({
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    const handleSearchAction = useCallback((value: SearchParams | string) => {
-        if (typeof value === 'string') {
-            searchInServer(value);
-        } else {
-            search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
-        }
-    }, []);
+    const handleSearchAction = useCallback(
+        (value: SearchParams | string) => {
+            if (typeof value === 'string') {
+                searchInServer(value);
+            } else {
+                setSearchRequestResponseStatusCode(null);
+                search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
+            }
+        },
+        [setSearchRequestResponseStatusCode],
+    );
 
     const navigation = useNavigation();
     // When pre-inserted behind the RHP (not focused), always start in static rendering
@@ -231,7 +234,8 @@ function SearchPageNarrow({
     }
 
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
+    // Use the request state because `isLoading` also covers temporary UI loading that should not keep this bar visible.
+    const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
 
     return (
