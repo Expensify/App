@@ -190,6 +190,7 @@ import {
     isFilterSupported,
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
+    withExactMatchFilterKeys,
 } from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
@@ -3073,7 +3074,11 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFi
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
     const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-    return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+    const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+    if (!specificGroupQueryJSON || filterKey !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        return specificGroupQueryJSON;
+    }
+    return withExactMatchFilterKeys(specificGroupQueryJSON, [filterKey]);
 }
 
 function buildEmptyTagGroupQuery(queryJSON: SearchQueryJSON): SearchQueryJSON | undefined {
@@ -5514,6 +5519,7 @@ function getDisplayValue(
         key === FILTER_KEYS.TAX_RATE ||
         key === FILTER_KEYS.IN ||
         key === FILTER_KEYS.BANK_ACCOUNT ||
+        key === FILTER_KEYS.FEED ||
         key === FILTER_KEYS.POLICY_ID ||
         key === FILTER_KEYS.POLICY_ID_NOT
     ) {

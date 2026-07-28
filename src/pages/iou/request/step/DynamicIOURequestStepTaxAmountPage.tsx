@@ -1,5 +1,6 @@
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -12,7 +13,7 @@ import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {setMoneyRequestCurrency, setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTaxAmount} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails} from '@libs/ReportUtils';
@@ -80,6 +81,7 @@ function DynamicIOURequestStepTaxAmountPage({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
