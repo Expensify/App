@@ -208,7 +208,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     // For selfDM expenses, the IOU action lives in the selfDM report, not in an expense report.
     const iouReportIDForActions = expenseReport?.reportID ?? (isSelfDM(draftTransactionReport) ? draftTransactionReport?.reportID : undefined);
-    const iouActions = getIOUActionForTransactions([originalTransactionID], iouReportIDForActions);
+    const iouActions = getIOUActionForTransactions([originalTransactionID], allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDForActions}`]);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
