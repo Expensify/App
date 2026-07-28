@@ -1684,7 +1684,6 @@
 "../../tests/actions/SubscriptionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/actions/TaskTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/TransactionTest.ts"	"no-restricted-imports"	1
-"../../tests/actions/UserTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	43
 "../../tests/actions/WorkflowTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../tests/actions/connections/NetSuite.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/actions/connections/QuickbooksDesktop.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
