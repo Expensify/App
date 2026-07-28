@@ -39,7 +39,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // Tracks the jsonCode of the current query's most recent SEARCH response. It's the single source of
     // truth for both fire paths (the page-level fire below and the user-driven re-search in
     // SearchPage/SearchPageNarrow), so the error view can reliably tell an INVALID_SEARCH_QUERY apart from a
-    // retriable failure. `null` means no response has landed yet for the current query.
+    // retryable failure. `null` means no response has landed yet for the current query.
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
     // Reset on query change so a stale code from a previous query (e.g. INVALID_SEARCH_QUERY) can't
