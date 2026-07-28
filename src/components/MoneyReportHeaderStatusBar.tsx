@@ -52,7 +52,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         return buildNextStepMessage(nextStep, translate, currentUserAccountID);
     }, [nextStep, translate, currentUserAccountID, currentUserEmail]);
 
-    // iconFill can be set by frontend optimistic updates (deprecated format) but backend never sends it in new format
+    // iconFill can be set by frontend optimistic updates but backend never sends it
     const iconFill = (nextStep && 'iconFill' in nextStep ? (nextStep as {iconFill?: string}).iconFill : undefined) ?? theme.icon;
 
     return (
