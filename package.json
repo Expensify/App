@@ -197,7 +197,7 @@
     "react-native-localize": "^3.5.4",
     "react-native-nitro-modules": "0.35.0",
     "react-native-nitro-sqlite": "9.6.0",
-    "react-native-onyx": "3.0.90",
+    "react-native-onyx": "git+https://github.com/callstack-internal/react-native-onyx.git#60c627e18ae8e2f9afbb6bab0266ca7f07744021",
     "react-native-pager-view": "8.0.0",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
