@@ -6,6 +6,12 @@ import {markActivePopoverLauncherDeactivated, pickActiveLauncher, pickLauncher, 
 
 import React from 'react';
 
+// useThemeStyles throws without a ThemeStylesProvider; these tests only exercise focus-trap options.
+jest.mock('@hooks/useThemeStyles', () => ({
+    __esModule: true,
+    default: () => ({dContents: {display: 'contents'}}),
+}));
+
 jest.mock('@libs/LauncherStack', () => ({
     setActivePopoverLauncher: jest.fn(),
     markActivePopoverLauncherDeactivated: jest.fn(),

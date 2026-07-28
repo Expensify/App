@@ -46,8 +46,10 @@ jest.mock('@hooks/usePopoverPosition', () => () => ({
     calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0})),
 }));
 
+let mockIsSafari = false;
 jest.mock('@libs/Browser', () => ({
     isMobile: () => false,
+    isSafari: () => mockIsSafari,
 }));
 
 jest.mock('@components/Pressable/PressableWithoutFeedback', () => {
@@ -109,6 +111,7 @@ function renderMenu(menuItems: PopoverMenuItem[]) {
 
 describe('ThreeDotsMenu focus restore handshake', () => {
     beforeEach(() => {
+        mockIsSafari = false;
         latestPopoverProps.current = null;
         jest.mocked(setActivePopoverLauncher).mockClear();
         jest.mocked(resolvePopoverLauncherElement).mockClear();
@@ -172,6 +175,30 @@ describe('ThreeDotsMenu focus restore handshake', () => {
         });
 
         // Non-deferred path must not flash focus back onto the 3-dot button on hide.
+        expect(restoreFocusWithModality).not.toHaveBeenCalled();
+    });
+
+    it('does not restore the anchor on hide for shouldCallAfterModalHide items in Safari (immediate path)', () => {
+        mockIsSafari = true;
+        renderMenu([{text: 'Duplicate', shouldCallAfterModalHide: true}]);
+
+        fireEvent.press(screen.getByTestId(TRIGGER_TEST_ID));
+
+        const safariItem = latestPopoverProps.current?.menuItems.at(0);
+        if (!safariItem) {
+            throw new Error('Expected Safari menu item');
+        }
+
+        act(() => {
+            latestPopoverProps.current?.onItemSelected?.(safariItem, 0);
+        });
+
+        expect(latestPopoverProps.current?.restoreFocusType).toBe(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
+
+        act(() => {
+            latestPopoverProps.current?.onModalHide?.();
+        });
+
         expect(restoreFocusWithModality).not.toHaveBeenCalled();
     });
 });

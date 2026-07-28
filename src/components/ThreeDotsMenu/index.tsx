@@ -15,7 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {isMobile} from '@libs/Browser';
+import {isMobile, isSafari} from '@libs/Browser';
 import {resolvePopoverLauncherElement, setActivePopoverLauncher} from '@libs/LauncherStack';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 
@@ -230,11 +230,14 @@ function ThreeDotsMenu({
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={(item) => {
-                    if (item.shouldCallAfterModalHide) {
+                    // Match PopoverMenu: Safari runs shouldCallAfterModalHide immediately (no defer),
+                    // so do not arm post-hide restore — that would refocus the anchor behind the destination.
+                    const willDeferSelection = !!item.shouldCallAfterModalHide && !isSafari();
+                    if (willDeferSelection) {
                         // Let the anchor regain focus before the deferred action (nav / confirm modal).
                         shouldRestoreAnchorOnHideRef.current = true;
                     } else {
-                        // Navigating immediately — skip flashing focus back onto the 3-dot button.
+                        // Immediate selection (incl. Safari) — skip flashing focus back onto the 3-dot button.
                         setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
                     }
                     hidePopoverMenu(item);
