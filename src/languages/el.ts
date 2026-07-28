@@ -31,6 +31,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
@@ -531,6 +532,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitViaPDF: 'Υποβολή μέσω PDF',
         supplier: 'Προμηθευτής',
         securityCode: 'Κωδικός ασφαλείας',
+        exportsTo: 'Εξάγει σε',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -1146,6 +1148,8 @@ const translations: TranslationDeepObject<typeof en> = {
             createExpenseSubText: 'Σαρώστε, σύρετε και αποθέστε ή καταχωρίστε χειροκίνητα μία δαπάνη χρησιμοποιώντας το κουμπί +',
             linkPersonalCard: 'Συνδέστε προσωπική κάρτα',
             linkPersonalCardSubText: 'Εισαγάγετε αυτόματα τις δαπάνες',
+            setupTravel: 'Ρύθμιση ταξιδιού',
+            setupTravelSubText: 'Ρύθμιση ειδικών κανόνων για ταξίδια',
         },
         upcomingTravel: 'Επερχόμενα ταξίδια',
         upcomingTravelSection: {
@@ -4537,21 +4541,21 @@ ${amount} για ${merchant} - ${date}`,
         nightsIn: 'διανυκτερεύσεις σε',
         nudge: {
             airfareManual:
-                'Γεια σας! Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε πτήσεις απευθείας στο Expensify; Την επόμενη φορά, αποφύγετε την ταλαιπωρία της χειροκίνητης δημιουργίας εξόδου και απλώς κλείστε μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε πτήσεις απευθείας στο Expensify; Την επόμενη φορά αποφύγετε την ταλαιπωρία της χειροκίνητης δημιουργίας του εξόδού σας και απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Γεια σας! Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε πτήσεις απευθείας στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε πτήσεις απευθείας μέσα στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κάντε την κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Γεια σας! Γνωρίζετε ότι μπορείτε να κλείνετε και να διαχειρίζεστε διαμονές σε ξενοδοχεία απευθείας στο Expensify; Την επόμενη φορά αποφύγετε την ταλαιπωρία της χειροκίνητης δημιουργίας της δαπάνης σας και απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Γνωρίζατε ότι μπορείτε να κάνετε κράτηση και να διαχειρίζεστε διαμονές σε ξενοδοχεία απευθείας στο Expensify; Την επόμενη φορά αποφύγετε τον μπελά της χειροκίνητης δημιουργίας της δαπάνης σας και απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Γεια σας! Γνωρίζατε ότι μπορείτε να κάνετε κράτηση και να διαχειρίζεστε διαμονές σε ξενοδοχεία απευθείας στο Expensify; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε διαμονές σε ξενοδοχεία απευθείας στο Expensify; Την επόμενη φορά απλώς κλείστε μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Γεια σας! Γνωρίζατε ότι μπορείτε να κάνετε κράτηση και να διαχειρίζεστε ενοικιάσεις αυτοκινήτων απευθείας στο Expensify; Την επόμενη φορά αποφύγετε τον κόπο να δημιουργήσετε την δαπάνη σας χειροκίνητα και απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ενοικιάσεις αυτοκινήτων απευθείας στο Expensify; Την επόμενη φορά αποφύγετε την ταλαιπωρία της χειροκίνητης δημιουργίας της δαπάνης σας και απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Γεια σας! Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ενοικιάσεις αυτοκινήτων απευθείας στο Expensify; Την επόμενη φορά απλώς κλείστε μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ενοικιάσεις αυτοκινήτων απευθείας στο Expensify; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Γεια σας! Γνωρίζετε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ταξίδια με τρένο κατευθείαν στο Expensify; Την επόμενη φορά αποφύγετε τον μπελά της χειροκίνητης δημιουργίας του εξόδου σας και απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε σιδηροδρομικά ταξίδια απευθείας στο Expensify; Την επόμενη φορά αποφύγετε την ταλαιπωρία της χειροκίνητης δημιουργίας του εξόδου σας και απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Γεια σας! Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε διαδρομές με τρένο απευθείας στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κλείστε μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ταξίδια με τρένο απευθείας στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     proactiveAppReview: {
@@ -5925,11 +5929,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     comment: 'Σχόλιο',
                     category: 'Κατηγορία',
                     tag: 'Ετικέτα',
+                    cardName: 'Όνομα κάρτας',
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Παρακαλούμε αντιστοιχίστε μια στήλη σε καθεμία από τις ιδιότητες: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) =>
                         `Ουπς! Έχετε αντιστοιχίσει ένα μόνο πεδίο («${duplicateColumn}») σε πολλές στήλες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+                    cardIdentityColumn: 'Παρακαλούμε αντιστοιχίστε έναν αριθμό κάρτας ή ένα όνομα κάρτας ώστε οι συναλλαγές να μπορούν να αντιστοιχιστούν σε μια κάρτα.',
                 },
             },
             statementCloseDate: {
@@ -6207,6 +6213,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                                 'Αν μειώσετε το όριο, τα μέλη που έχουν ήδη ξοδέψει περισσότερο από αυτό το ποσό δεν θα μπορούν να κάνουν νέες κρατήσεις ταξιδιών μέχρι τον επόμενο μήνα.',
                             provisioningError:
                                 'Δεν μπορέσαμε να ενεργοποιήσουμε ορισμένα μέλη του χώρου εργασίας σας για ενοποιημένη τιμολόγηση ταξιδιών. Δοκιμάστε ξανά αργότερα ή επικοινωνήστε με το Concierge για βοήθεια.',
+                            viewOnSpend: 'Προβολή στο Spend',
                         },
                     },
                     disableModal: {
@@ -6394,6 +6401,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 subtitle: 'Ορίστε χρέωση ανά ώρα για χρονοπαρακολούθηση.',
                 defaultHourlyRate: 'Προεπιλεγμένη ωριαία χρέωση',
             },
+            vendors: {title: 'Προμηθευτές', subtitle: 'Ταιριάξτε τα έξοδα κάρτας με προμηθευτές που έχουν εισαχθεί από το λογιστικό σας λογισμικό.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Παραδείγματα:',
@@ -6761,6 +6769,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 `Αν αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας, θα τον/την αντικαταστήσουμε ως τεχνική επαφή με τον/την ${workspaceOwner}, τον/την κάτοχο του χώρου εργασίας.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `Ο/Η ${memberName} έχει μία εκκρεμή αναφορά προς επεξεργασία που απαιτεί ενέργεια. Παρακαλούμε ζητήστε του/της να ολοκληρώσει την απαιτούμενη ενέργεια προτού τον/την αφαιρέσετε από τον χώρο εργασίας.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Δεν μπορείτε να αφαιρέσετε τον/την ${memberName} από αυτόν τον χώρο εργασίας όσο έχει Κάρτα Expensify. Απενεργοποιήστε πρώτα την κάρτα του/της στο Χώρος εργασίας > Κάρτα Expensify και δοκιμάστε ξανά.`,
         },
         card: {
             getStartedIssuing: 'Ξεκινήστε εκδίδοντας την πρώτη σας εικονική ή φυσική κάρτα.',
@@ -7316,6 +7326,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 amountRequired: 'Το ποσό είναι υποχρεωτικό',
                 startDateMustBeBeforeEndDate: 'Η ημερομηνία έναρξης πρέπει να είναι πριν από την ημερομηνία λήξης',
             },
+            autoGeneratedRateTooltip: 'Αυτός ο συντελεστής δημιουργείται αυτόματα.',
         },
         editor: {
             descriptionInputLabel: 'Περιγραφή',
@@ -8024,7 +8035,7 @@ ${reportName}`,
             },
             customRules: {
                 title: 'Πολιτική εξόδων',
-                cardSubtitle: 'Εδώ βρίσκεται η πολιτική εξόδων της ομάδας σας, ώστε όλοι να έχουν ξεκάθαρα τι καλύπτεται.',
+                cardSubtitle: 'Ανεβάστε την πολιτική εξόδων σας ώστε όλοι να γνωρίζουν τι μπορούν και τι δεν μπορούν να χρεώνουν ως έξοδα.',
                 policyDocument: 'Έγγραφο πολιτικής',
                 policyText: 'Κείμενο πολιτικής',
             },
@@ -9240,6 +9251,7 @@ ${reportName}`,
             pleaseSelectDatesForBothFromAndTo: 'Παρακαλούμε επιλέξτε ημερομηνίες και για το Από και για το Έως',
         },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
+        mySavedSearch: 'Οι δαπάνες μου',
     },
     genericErrorPage: {
         title: 'Ωχ, κάτι πήγε στραβά!',
@@ -10388,7 +10400,6 @@ ${reportName}`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Ξεκινήστε <strong>εδώ!</strong></tooltip>',
-        saveSearchTooltip: '<tooltip><strong>Μετονομάστε τις αποθηκευμένες αναζητήσεις σας</strong> εδώ!</tooltip>',
         accountSwitcher: '<tooltip>Αποκτήστε πρόσβαση στους <strong>λογαριασμούς Copilot</strong> σας εδώ</tooltip>',
         outstandingFilter: '<tooltip>Φιλτράρετε για δαπάνες\nπου <strong>χρειάζονται έγκριση</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Στείλτε αυτήν την απόδειξη για να\n<strong>ολοκληρώσετε τη δοκιμαστική χρήση!</strong></tooltip>',
@@ -10709,6 +10720,17 @@ ${reportName}`,
             title: 'Δημιουργήστε τους δικούς σας πράκτορες',
             description: `<muted-text>Δημιουργήστε προσαρμοσμένους agents για να ελέγχετε, να εγκρίνετε και να δρομολογείτε δαπάνες με βάση κανόνες που ορίζετε εσείς. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Μάθετε περισσότερα</a>.</muted-text>`,
         },
+    },
+    trialPaymentReminder: {
+        title: 'Μείνετε μπροστά από την προθεσμία',
+        subtitle: 'Μην περιμένετε μέχρι την τελευταία στιγμή· προσθέστε σήμερα τον τρόπο πληρωμής σας, ώστε να διασφαλίσετε αδιάλειπτη πρόσβαση στα έξοδά σας στο Expensify.',
+        trialEndsInDays: () => ({
+            one: 'Η δοκιμή λήγει σε 1 ημέρα',
+            other: (pluralCount: number) => `Η δοκιμή λήγει σε ${pluralCount} ημέρες`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Η δοκιμή λήγει σε ${hours}ω : ${minutes}λ : ${seconds}δ`,
+        closeButton: 'Κλείσιμο',
+        addPaymentCardButton: 'Προσθήκη κάρτας πληρωμής',
     },
 };
 export default translations;
