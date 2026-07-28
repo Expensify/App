@@ -16,6 +16,7 @@ describe('BaseListItem', () => {
         const mouseLeaveMock = jest.fn();
         mockedUseHover.mockReturnValue({
             hovered: false,
+            deviceHasHoverSupport: true,
             bind: {
                 onMouseEnter: mouseEnterMock,
                 onMouseLeave: mouseLeaveMock,
@@ -38,7 +39,7 @@ describe('BaseListItem', () => {
     });
 
     it('should use the accessibilityLabel prop as the row name when provided', () => {
-        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
@@ -54,7 +55,7 @@ describe('BaseListItem', () => {
     });
 
     it('should fall back to the item-derived label when accessibilityLabel is omitted', () => {
-        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
@@ -68,7 +69,7 @@ describe('BaseListItem', () => {
     });
 
     it('should keep the button role for a navigational row when shouldUseOptionRole is false', () => {
-        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
@@ -83,7 +84,7 @@ describe('BaseListItem', () => {
     });
 
     it('should resolve a single-select row to the option role by default', () => {
-        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
@@ -97,7 +98,7 @@ describe('BaseListItem', () => {
     });
 
     it('should be presentational (not a button) when accessible is false, so nested controls stay reachable', () => {
-        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
@@ -112,7 +113,7 @@ describe('BaseListItem', () => {
     });
 
     it('should drive the row selected state from the isSelected prop when selection is not on the item', () => {
-        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
@@ -127,7 +128,7 @@ describe('BaseListItem', () => {
     });
 
     it('should fall back to item.isSelected for the row selected state when the isSelected prop is omitted', () => {
-        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text', isSelected: true}}
