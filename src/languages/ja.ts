@@ -7358,6 +7358,12 @@ ${reportName}`,
                     `<muted-text>特別なワークスペースロールは Control プランでのみご利用いただけます（<strong>${formattedPrice}</strong> から、${hasTeam2025Pricing ? `メンバー1人あたり月額。` : `アクティブメンバー1人あたり／月`}）。</muted-text>`,
             },
             unlockFeatures: 'これらの機能をアンロックしましょう！',
+            publicReceiptVisibility: {
+                title: '公開領収書の可視性',
+                description: 'クライアントや外部の会計士など、誰でも領収書リンクにアクセスできるようにしたい場合に便利な機能です。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>領収書の公開可視性は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `有効メンバー1人あたり1か月ごとに。`}からのControlプランでのみご利用いただけます。</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7463,6 +7469,9 @@ ${reportName}`,
                 requireCompanyCard: 'すべての購入に会社カードを必須にする',
                 requireCompanyCardDescription: 'マイレージや日当経費を含む、すべての現金支出にフラグを付ける。',
                 requireCompanyCardDisabledTooltip: 'ロック解除するには、「その他の機能」内の「会社カード」を有効にしてください。',
+                publicReceiptVisibility: '公開領収書の可視性',
+                publicReceiptVisibilityHintEnabled: 'レシートは、URL を知っている人であれば誰でも閲覧できます。レシートが含まれるレポートへのアクセスは不要です。',
+                publicReceiptVisibilityHintDisabled: 'レシートは、そのレシートを含むレポートへのアクセス権を持つ Expensify のメンバーのみが閲覧できます。',
             },
             expenseReportRules: {
                 title: '詳細設定',

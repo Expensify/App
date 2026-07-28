@@ -7447,6 +7447,12 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     `<muted-text>I ruoli specializzati dello spazio di lavoro sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             unlockFeatures: 'Sblocca queste funzionalità!',
+            publicReceiptVisibility: {
+                title: 'Visibilità pubblica della ricevuta',
+                description: 'Se vuoi rendere i link alle tue ricevute accessibili a chiunque, ad esempio a un cliente o a un commercialista esterno, questa funzione fa per te.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La visibilità pubblica delle ricevute è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7553,6 +7559,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 requireCompanyCard: 'Richiedi le carte aziendali per tutti gli acquisti',
                 requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, inclusi chilometraggio e indennità giornaliere.',
                 requireCompanyCardDisabledTooltip: 'Abilita Carte aziendali (in Altre funzionalità) per sbloccare.',
+                publicReceiptVisibility: 'Visibilità pubblica della ricevuta',
+                publicReceiptVisibilityHintEnabled: 'Le ricevute sono visibili a chiunque abbia l’URL. Non è richiesto l’accesso al report che contiene la ricevuta.',
+                publicReceiptVisibilityHintDisabled: 'Le ricevute possono essere visualizzate solo dai membri di Expensify che hanno accesso al report che contiene la ricevuta.',
             },
             expenseReportRules: {
                 title: 'Avanzate',

@@ -7498,6 +7498,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     `<muted-text>Les rôles spécialisés dans l’espace de travail sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             unlockFeatures: 'Débloquez ces fonctionnalités !',
+            publicReceiptVisibility: {
+                title: 'Visibilité publique du reçu',
+                description:
+                    'Si vous souhaitez rendre les liens de vos reçus accessibles à toute personne, comme un client ou un comptable externe, cette fonctionnalité est faite pour vous.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La visibilité publique des reçus est uniquement disponible avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7603,6 +7610,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 requireCompanyCard: "Exiger l'utilisation de cartes d'entreprise pour tous les achats",
                 requireCompanyCardDescription: 'Signaler toutes les dépenses en espèces, y compris le kilométrage et les indemnités journalières.',
                 requireCompanyCardDisabledTooltip: 'Activez les cartes d’entreprise (dans Plus de fonctionnalités) pour déverrouiller.',
+                publicReceiptVisibility: 'Visibilité publique du reçu',
+                publicReceiptVisibilityHintEnabled: 'Les reçus sont visibles par toute personne disposant de l’URL. L’accès à la note de frais contenant le reçu n’est pas requis.',
+                publicReceiptVisibilityHintDisabled: 'Les reçus ne sont visibles que par les membres Expensify ayant accès à la note de frais contenant le reçu.',
             },
             expenseReportRules: {
                 title: 'Avancé',

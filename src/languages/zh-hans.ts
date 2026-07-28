@@ -7191,6 +7191,12 @@ ${reportName}`,
                     `<muted-text>专用工作区角色仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             unlockFeatures: '解锁这些功能！',
+            publicReceiptVisibility: {
+                title: '公开报销单可见性',
+                description: '如果你希望让你的收据链接对任何人可访问，例如客户或外部会计，那么这个功能就是为你准备的。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>公开收据可见性仅适用于 Control 方案，起价为<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7293,6 +7299,9 @@ ${reportName}`,
                 requireCompanyCard: '所有消费均需使用公司卡',
                 requireCompanyCardDescription: '标记所有现金支出，包括里程和每日津贴报销。',
                 requireCompanyCardDisabledTooltip: '启用“公司卡”（位于“更多功能”下）以解锁。',
+                publicReceiptVisibility: '公开报销单可见性',
+                publicReceiptVisibilityHintEnabled: '任何拥有该 URL 的人都可以查看收据。无需访问包含该收据的报表。',
+                publicReceiptVisibilityHintDisabled: '只有拥有包含该收据的报表访问权限的 Expensify 成员才能查看收据。',
             },
             expenseReportRules: {
                 title: '高级',

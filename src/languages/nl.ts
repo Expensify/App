@@ -7431,6 +7431,12 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     `<muted-text>Gespecialiseerde werkruimterollen zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             unlockFeatures: 'Ontgrendel deze functies!',
+            publicReceiptVisibility: {
+                title: 'Openbare bonzichtbaarheid',
+                description: 'Als je je bonlinks toegankelijk wilt maken voor iedereen, zoals een klant of externe boekhouder, dan is deze functie iets voor jou.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Publieke bonzichtbaarheid is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7537,6 +7543,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 requireCompanyCard: 'Verplicht bedrijfskaarten voor alle aankopen',
                 requireCompanyCardDescription: 'Markeer alle contante uitgaven, inclusief kilometer- en dagvergoedingen.',
                 requireCompanyCardDisabledTooltip: 'Schakel Bedrijfskaarten in (onder Meer functies) om te ontgrendelen.',
+                publicReceiptVisibility: 'Openbare bonzichtbaarheid',
+                publicReceiptVisibilityHintEnabled: 'Bonnetjes zijn zichtbaar voor iedereen met de URL. Toegang tot het rapport met het bonnetje is niet vereist.',
+                publicReceiptVisibilityHintDisabled: 'Bonnetjes zijn alleen zichtbaar voor Expensify-leden met toegang tot het rapport dat het bonnetje bevat.',
             },
             expenseReportRules: {
                 title: 'Geavanceerd',
