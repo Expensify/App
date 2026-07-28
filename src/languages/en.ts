@@ -14,11 +14,14 @@ import startCase from 'lodash/startCase';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
     ConnectionNameParams,
+    DefaultVendorHelperTextParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
@@ -474,6 +477,7 @@ const translations = {
         print: 'Print',
         help: 'Help',
         collapsed: 'Collapsed',
+        expand: 'Expand',
         expanded: 'Expanded',
         expenseReport: 'Expense Report',
         // @context Rate as a noun, not a verb
@@ -510,6 +514,7 @@ const translations = {
         headsUp: 'Heads up!',
         submitTo: 'Submit to',
         forwardTo: 'Forward to',
+        exportsTo: 'Exports to',
         approvalLimit: 'Approval limit',
         overLimitForwardTo: 'Over limit forward to',
         merge: 'Merge',
@@ -1151,6 +1156,8 @@ const translations = {
             linkCompanyCardsSubText: 'Import expenses automatically',
             issueExpensifyCards: 'Issue Expensify cards',
             issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
+            setupTravel: 'Setup travel',
+            setupTravelSubText: 'Configure travel specific rules',
             configureApprovals: 'Configure approval workflow',
             configureApprovalsSubText: 'Define report approvals',
             setupRules: 'Set up spend rules',
@@ -2655,6 +2662,27 @@ const translations = {
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
         cardInactive: 'Inactive',
+        cardLastSynced: (relativeDate: string) => `Synced ${relativeDate}`,
+        cardNeverSynced: 'Never synced',
+        cardStatus: {
+            active: 'Active',
+            inactive: 'Inactive',
+            fixConnection: 'Please fix this connection',
+            fixConnectionIn: (companyCardsRoute: string) => `Please fix this connection in <a href="${companyCardsRoute}">company cards</a>`,
+            askAdminToFixConnection: 'Please ask an admin to fix this connection',
+        },
+        bankAccountStatus: {
+            active: 'Active',
+            incomplete: 'Incomplete',
+            pending: 'Pending',
+            verifying: 'Verifying',
+            reviewingDocumentation: "We're reviewing your documentation",
+            finishAddingBankAccount: 'Finish adding bank account',
+            finish: 'Finish',
+            confirmTestTransactions: 'Please confirm test transactions',
+            accountRequiresAttention: 'This account requires attention',
+            unlock: 'Unlock',
+        },
         assignedCards: 'Cards',
         assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
         addVirtualCardPersonalDetails: {
@@ -3011,8 +3039,16 @@ const translations = {
             updateAvatar: "There was a problem updating this agent's avatar",
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'New agent',
+        buildCustomAgent: 'Build custom agent',
+        orStartWithTemplate: 'Or start with a template:',
+        role: 'Agent',
+        emptyTemplatesTitle: 'No templates yet',
+        emptyTemplatesSubtitle: 'Build a custom agent to get started.',
+    },
+    addAgentPage: {
+        title: 'Build custom agent',
         agentName: 'Agent name',
         instructions: 'Write custom instructions',
         createAgent: 'Create agent',
@@ -4542,21 +4578,19 @@ const translations = {
         },
         nudge: {
             airfareManual:
-                'Hey there! Did you know you can book and manage flights right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Did you know you can book and manage flights right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Hey there! Did you know you can book and manage flights right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Did you know you can book and manage flights right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
-            hotelCard:
-                'Hey there! Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Did you know you can book and manage hotel stays right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard: 'Did you know you can book and manage hotel stays right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
-            carCard:
-                'Hey there! Did you know you can book and manage car rentals right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Did you know you can book and manage car rentals right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard: 'Did you know you can book and manage car rentals right in Expensify? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Hey there! Did you know you can book and manage train rides right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Did you know you can book and manage train rides right in Expensify? Next time avoid the hassle of creating your expense manually and simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Hey there! Did you know you can book and manage train rides right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Did you know you can book and manage train rides right in Expensify? And it automatically uploads receipts for you? Next time simply book via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
         flightTo: 'Flight to',
         trainTo: 'Train to',
@@ -4569,6 +4603,17 @@ const translations = {
         description: 'Let us know so we can help make your expensing experience even better.',
         positiveButton: 'Yeah!',
         negativeButton: 'Not really',
+    },
+    trialPaymentReminder: {
+        title: 'Stay ahead of the deadline',
+        subtitle: "Don't wait until the last minute, add your payment method today to ensure continuous access to your expenses on Expensify.",
+        trialEndsInDays: () => ({
+            one: 'Trial ends in 1 day',
+            other: (pluralCount: number) => `Trial ends in ${pluralCount} days`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Trial ends in ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Close',
+        addPaymentCardButton: 'Add payment card',
     },
     workspace: {
         common: {
@@ -5168,7 +5213,9 @@ const translations = {
             creditCardAccount: 'Credit card account',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Set a default vendor that will apply to ${isReimbursable ? '' : 'non-'}reimbursable expenses that don't have a matching vendor in Sage Intacct.`,
+                isReimbursable
+                    ? `Set a default vendor that will apply to reimbursable expenses that don't have a matching vendor in Sage Intacct.`
+                    : `Expenses that can't be matched to your Sage Intacct vendors will default to this vendor.`,
             exportDescription: 'Configure how Expensify data exports to Sage Intacct.',
             exportPreferredExporterNote:
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
@@ -5876,6 +5923,7 @@ const translations = {
                 },
                 csvColumns: {
                     cardNumber: 'Card number',
+                    cardName: 'Card name',
                     postedDate: 'Date',
                     merchant: 'Merchant',
                     amount: 'Amount',
@@ -5891,6 +5939,7 @@ const translations = {
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Please assign a column to each of the attributes: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `Oops! You've mapped a single field ("${duplicateColumn}") to multiple columns. Please review and try again.`,
+                    cardIdentityColumn: 'Please map a card number or a card name so transactions can be matched to a card.',
                 },
             },
             statementCloseDate: {
@@ -6149,6 +6198,7 @@ const translations = {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendPaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,
                             currentTravelSpendCta: 'Pay balance',
+                            viewOnSpend: 'View on Spend',
                             currentTravelLimitLabel: 'Current travel limit',
                             settlementAccountLabel: 'Settlement account',
                             settlementFrequencyLabel: 'Settlement frequency',
@@ -6300,6 +6350,10 @@ const translations = {
             taxes: {
                 title: 'Taxes',
                 subtitle: 'Document and reclaim eligible taxes.',
+            },
+            vendors: {
+                title: 'Vendors',
+                subtitle: 'Match card expenses to vendors imported from your accounting software.',
             },
             reportFields: {
                 title: 'Report fields',
@@ -6705,6 +6759,8 @@ const translations = {
                 `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `You can't remove ${memberName} from this workspace. Please set a new reimburser in Workflows > Make or track payments, then try again.`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `You can't remove ${memberName} from this workspace while they have an Expensify Card. Please deactivate their card in Workspace > Expensify Card, then try again.`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -7052,6 +7108,11 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this vendor.`
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
             defaultAccount: 'Default account',
             autoSync: 'Auto-sync',
             autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day. Export finalized report in realtime',
@@ -7265,6 +7326,7 @@ const translations = {
             amountPerUnit: (unit: string) => `Amount per ${unit}`,
             startDate: 'Start date',
             endDate: 'End date',
+            autoGeneratedRateTooltip: 'This rate is auto-generated.',
             errors: {
                 rateNameRequired: 'Rate name is required',
                 existingRateName: 'A distance rate with this name already exists',
@@ -7955,7 +8017,7 @@ const translations = {
             },
             customRules: {
                 title: 'Expense policy',
-                cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered.",
+                cardSubtitle: 'Upload your expense policy to ensure everyone knows what they can and cannot expense.',
                 policyDocument: 'Policy document',
                 policyText: 'Policy text',
             },
@@ -8955,6 +9017,9 @@ const translations = {
                 title: 'No expenses to display',
                 subtitle: 'No results. Please try adjusting your filters.',
             },
+            emptyViolationSnapshotResults: {
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `Violations are only tracked from ${formattedDate} onwards. Try adjusting your date filters.`,
+            },
             emptyUnapprovedResults: {
                 title: 'No expenses to approve',
                 subtitle: 'Zero expenses. Maximum chill. Well done!',
@@ -8970,6 +9035,7 @@ const translations = {
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
+        mySavedSearch: 'My expenses',
         urlCopied: 'URL copied',
         spendOverTime: 'Spend over time',
         groupedExpenses: 'grouped expenses',
@@ -9075,11 +9141,25 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Consolidated Travel Billing',
             },
             is: 'Is',
+            has: {
+                submittedViolation: 'Submitted violation',
+            },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approve',
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pay',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
+            },
+            filterType: {
+                label: 'Filter type',
+                has: {
+                    positive: 'has',
+                    negative: "doesn't have",
+                },
+                is: {
+                    positive: 'is',
+                    negative: 'is not',
+                },
             },
         },
         display: {
@@ -10322,7 +10402,6 @@ const translations = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
-        saveSearchTooltip: '<tooltip><strong>Rename your saved searches</strong> here!</tooltip>',
         accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',

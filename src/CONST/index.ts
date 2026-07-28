@@ -147,9 +147,7 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-type NoneAccountingKey = 'none';
-
-type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | NoneAccountingKey | null;
+type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | (string & Record<never, never>) | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -894,7 +892,7 @@ const CONST = {
                 PROOF_OF_OWNERSHIP: 'proofOfBeneficialOwner',
                 COPY_OF_ID: 'copyOfIDForBeneficialOwner',
                 ADDRESS_PROOF: 'addressProofForBeneficialOwner',
-                CODICE_FISCALE: 'codiceFisclaleTaxID',
+                CODICE_FISCALE: 'codiceFiscaleTaxID',
                 FULL_NAME: 'fullName',
                 RESIDENTIAL_ADDRESS: 'residentialAddress',
             },
@@ -936,7 +934,7 @@ const CONST = {
                 PROOF_OF_DIRECTORS: 'proofOfDirectors',
                 COPY_OF_ID: 'signerCopyOfID',
                 ADDRESS_PROOF: 'signerAddressProof',
-                CODICE_FISCALE: 'signerCodiceFiscale',
+                CODICE_FISCALE: 'signerCodiceFiscaleTaxID',
                 DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             },
         },
@@ -989,9 +987,9 @@ const CONST = {
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
-        BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
+        WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
@@ -1811,6 +1809,7 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
+            AUTOSCROLL_TO_TOP_THRESHOLD: 250,
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
         },
@@ -2229,6 +2228,8 @@ const CONST = {
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
         ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
+        ATTRIBUTE_REPORT_ACTION_COUNT: 'report_action_count',
+        ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT: 'money_request_preview_count',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
@@ -2272,6 +2273,7 @@ const CONST = {
             REPORT_ACTIONS_APP_LOAD: 'report_actions_app_load',
             SKELETON_GUARD_LOADING: 'skeleton_guard_loading',
             SKELETON_GUARD_DERIVED_TIMING: 'skeleton_guard_derived_timing',
+            INBOX_TAB_DEFER: 'inbox_tab_defer',
         },
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
@@ -4452,6 +4454,9 @@ const CONST = {
         DEFAULT_RATE: 'Default Rate',
         NEW_RATE: 'New Rate',
         RATE_DECIMALS: 3,
+        // Rate amounts are stored as `Number(value) * 100` cents, which can introduce tiny floating-point errors. Meaningful
+        // amounts differ by at least 0.01 cents, so this tolerance safely absorbs the float noise when matching government rates.
+        GOVERNMENT_RATE_MATCH_TOLERANCE: 0.001,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         UNSET_DISTANCE_RATE_ID: '-1',
         MILES_TO_KILOMETERS: 1.609344,
@@ -6444,6 +6449,10 @@ const CONST = {
 
     VIDEO_PLAYER: {
         PLAYBACK_SPEEDS: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+        // Tolerance (in seconds) used when deciding whether a paused video is "at its end". `timeUpdate`
+        // samples every ~0.1s and stops firing once the video pauses at the end, so `currentTime` can
+        // freeze up to ~0.1s short of `duration`; comparing against `duration - this` absorbs that gap.
+        REPLAY_END_THRESHOLD_SECONDS: 0.15,
         HIDE_TIME_TEXT_WIDTH: 250,
         MIN_WIDTH: 170,
         MIN_HEIGHT: 120,
@@ -6484,6 +6493,11 @@ const CONST = {
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
+    TRIAL_REMINDER_VARIANT: {
+        BASIC: 'basic',
+        NEAR_END: 'nearEnd',
+        COUNTDOWN: 'countdown',
+    },
     ONBOARDING_ACCOUNTING_MAPPING,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
@@ -6675,6 +6689,7 @@ const CONST = {
             LINK: 'link',
             CATEGORY: 'category',
             TAG: 'tag',
+            SUBMITTED_VIOLATION: 'submitted-violation',
         },
         BULK_ACTION_TYPES: {
             EDIT: 'edit',
@@ -7303,7 +7318,6 @@ const CONST = {
         },
         NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
-        TAG_UNTAGGED_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         MERCHANT_EMPTY_VALUE: 'none',
@@ -7436,6 +7450,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
             };
         },
+        NOT_PREFIX: '-',
         NOT_MODIFIER: 'Not',
         DATE_MODIFIERS: {
             ON: 'On',
@@ -7918,6 +7933,7 @@ const CONST = {
         MERCHANT: 'merchant',
         TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category'] as const,
         CARD_NUMBER: 'cardNumber',
+        CARD_NAME: 'cardName',
         POSTED_DATE: 'postedDate',
         TAG: 'tag',
         COMMENT: 'comment',
@@ -8115,7 +8131,6 @@ const CONST = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
-        RENAME_SAVED_SEARCH: 'renameSavedSearch',
         OUTSTANDING_FILTER: 'outstandingFilter',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
@@ -8358,6 +8373,7 @@ const CONST = {
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
+            VICTORY_CHART_EXPAND_BUTTON: 'HTMLRenderer-VictoryChartExpandButton',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
@@ -8376,6 +8392,9 @@ const CONST = {
             BACK_BUTTON: 'HeaderView-BackButton',
             CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
+        },
+        BLOCKING_VIEW: {
+            RETRY_BUTTON: 'BlockingView-RetryButton',
         },
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
@@ -8450,6 +8469,7 @@ const CONST = {
             REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON: 'Report-ReportActionItemMessageEditCancelButton',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON: 'Report-ReportActionItemMessageEditSaveButton',
             REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON: 'Report-ReportActionItemSingleAvatarButton',
+            CONCIERGE_THINKING_AVATAR_BUTTON: 'Report-ConciergeThinkingAvatarButton',
             REPORT_ACTION_ITEM_SINGLE_ACTOR_BUTTON: 'Report-ReportActionItemSingleActorButton',
             REPORT_ACTION_ITEM_THREAD: 'Report-ReportActionItemThread',
             THREAD_DIVIDER: 'Report-ThreadDivider',
@@ -9192,16 +9212,16 @@ const CONST = {
                 publishedDate: '2026-07-20',
             },
             {
+                title: 'New feature: Consolidated travel billing',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
+                publishedDate: '2026-07-13',
+            },
+            {
                 title: 'More Concierge AI upgrades, plus agent beta',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
                 publishedDate: '2026-07-01',
-            },
-            {
-                title: 'Ask Concierge AI: charts, insights & more',
-                subtitle: 'Newsletter',
-                url: 'https://use.expensify.com/blog/ask-expensify-ai-anything',
-                publishedDate: '2026-06-30',
             },
         ],
     },

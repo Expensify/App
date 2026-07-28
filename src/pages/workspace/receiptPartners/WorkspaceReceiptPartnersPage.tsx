@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -226,14 +226,15 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                     }
                                     startIntegrationFlow({name: integration});
                                 }}
-                                text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
                                 innerStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
                                 hoverStyles={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
-                                small
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 isLoading={!policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners}
                                 isDisabled={canWriteMoreFeatures && isOffline}
-                            />
+                            >
+                                <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
+                            </Button>
                         );
                     }
 

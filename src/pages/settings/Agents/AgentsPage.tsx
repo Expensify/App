@@ -21,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -46,6 +47,7 @@ function AgentsPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
@@ -175,7 +177,7 @@ function AgentsPage() {
     const newAgentButton = (
         <Button
             variant="success"
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute())}
+            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_NEW.getRoute())}
         >
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
@@ -226,9 +228,9 @@ function AgentsPage() {
                 shouldDisplayHelpButton
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
             >
-                {!shouldUseNarrowLayout && headerButtons}
+                {!shouldDisplayButtonsInSeparateLine && headerButtons}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
+            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pb3]}>{headerButtons}</View>}
             {hasAgents && (
                 <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
                     <RenderHTML html={translate('agentsPage.subtitle')} />

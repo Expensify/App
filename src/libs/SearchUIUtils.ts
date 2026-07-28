@@ -2,7 +2,8 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import type {FilterComponentsProps} from '@components/Search/FilterComponents';
+import type {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {
@@ -30,6 +31,7 @@ import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import type {
     GroupedItem,
     QueryFilters,
+    ReportFieldKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
     SearchColumnType,
@@ -90,7 +92,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
@@ -110,6 +112,7 @@ import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard}
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
+import memoize from './memoize';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
 import {hasKey} from './ObjectUtils';
@@ -185,10 +188,12 @@ import {
     getDateRangeForPreset,
     getFilterFromQuery,
     getQueryHashes,
-    isFilterNegatable,
     isFilterSupported,
+    isFilterNegated,
     isSearchDatePreset,
+    removeNegation,
     sortOptionsWithEmptyValue,
+    withExactMatchFilterKeys,
 } from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
@@ -538,27 +543,28 @@ type SearchTypeMenuSection = {
     menuItems: SearchTypeMenuItem[];
 };
 
+const SEARCH_TYPE_MENU_ICON_NAMES = [
+    'Receipt',
+    'MoneyBag',
+    'CreditCard',
+    'MoneyHourglass',
+    'CreditCardHourglass',
+    'Bank',
+    'User',
+    'Folder',
+    'Basket',
+    'CalendarSolid',
+    'Document',
+    'Pencil',
+    'ThumbsUp',
+    'CheckCircle',
+] as const satisfies readonly ExpensifyIconName[];
+
 type SearchTypeMenuItem = {
     key: SearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
-    icon: Extract<
-        ExpensifyIconName,
-        | 'Receipt'
-        | 'MoneyBag'
-        | 'CreditCard'
-        | 'MoneyHourglass'
-        | 'CreditCardHourglass'
-        | 'Bank'
-        | 'User'
-        | 'Folder'
-        | 'Basket'
-        | 'CalendarSolid'
-        | 'Document'
-        | 'Pencil'
-        | 'ThumbsUp'
-        | 'CheckCircle'
-    >;
+    icon: TupleToUnion<typeof SEARCH_TYPE_MENU_ICON_NAMES>;
     searchQuery: string;
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
@@ -629,6 +635,11 @@ type GetSectionsParams = {
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
     isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
+    /**
+     * Callers may pass `undefined` for non-CHAT/TASK search types as a perf optimization (see `useSearchSnapshot`).
+     * Only `getReportActionsSections` (CHAT) and `getTaskSections` (TASK) read it — if you consume it in another
+     * branch, remove that gating in the caller first, otherwise it will silently be `undefined`.
+     */
     reportAttributesDerivedValue: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
 };
 
@@ -639,7 +650,7 @@ type GetSectionsParams = {
  */
 const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS]);
 
-const SKIPPED_SEARCH_FILTERS = new Set<SearchAdvancedFiltersKey>([
+const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.GROUP_BY,
     FILTER_KEYS.GROUP_CURRENCY,
     FILTER_KEYS.LIMIT,
@@ -2786,6 +2797,17 @@ function getReportActionsSections(
 }
 
 /**
+ * Merges the global personal details list with the search snapshot's one (snapshot entries win).
+ * Memoized by input references: both lists are referentially stable across the getSections recomputes
+ * of a single user action (e.g. PAY), so the expensive spread of two large objects runs once per
+ * actual data change instead of once per recompute.
+ */
+const mergePersonalDetailsLists = memoize(
+    (onyxList: OnyxTypes.PersonalDetailsList | undefined, dataList: OnyxTypes.PersonalDetailsList | undefined): OnyxTypes.PersonalDetailsList => ({...onyxList, ...dataList}),
+    {maxSize: 1, equality: 'shallow', monitoringName: 'SearchUIUtils.mergePersonalDetailsLists'},
+);
+
+/**
  * @private
  * Organizes data into List Sections grouped by report for display, for the TransactionGroupListItemType of Search Results.
  *
@@ -2834,7 +2856,7 @@ function getReportSections({
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
-    const mergedPersonalDetails = {...(onyxPersonalDetailsList ?? {}), ...(data.personalDetailsList ?? {})};
+    const mergedPersonalDetails = mergePersonalDetailsLists(onyxPersonalDetailsList, data.personalDetailsList);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
@@ -3055,37 +3077,11 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFi
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
     const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-    return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
-}
-
-function buildEmptyTagGroupQuery(queryJSON: SearchQueryJSON): SearchQueryJSON | undefined {
-    const newFlatFilters = queryJSON.flatFilters.reduce<QueryFilters>((filters, filter) => {
-        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-            return filters;
-        }
-
-        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            const remainingHasFilters = filter.filters.filter((item) => item.value !== CONST.SEARCH.HAS_VALUES.TAG);
-            if (remainingHasFilters.length > 0) {
-                filters.push({...filter, filters: remainingHasFilters});
-            }
-            return filters;
-        }
-
-        filters.push(filter);
-        return filters;
-    }, []);
-    newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.SEARCH.HAS_VALUES.TAG}]});
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-    return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
-}
-
-function buildTagGroupQuery(queryJSON: SearchQueryJSON, tag: string): SearchQueryJSON | undefined {
-    if (!tag || tag === CONST.SEARCH.TAG_EMPTY_VALUE || tag === CONST.SEARCH.TAG_UNTAGGED_VALUE) {
-        return buildEmptyTagGroupQuery(queryJSON);
+    const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+    if (!specificGroupQueryJSON || filterKey !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        return specificGroupQueryJSON;
     }
-
-    return buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, tag);
+    return withExactMatchFilterKeys(specificGroupQueryJSON, [filterKey]);
 }
 
 function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined): number[] {
@@ -3149,7 +3145,11 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
             case CONST.SEARCH.GROUP_BY.TAG: {
                 const tagGroup = group as SearchTagGroup;
                 if (tagGroup.tag !== undefined) {
-                    transactionsQueryJSON = buildTagGroupQuery(queryJSON, tagGroup.tag);
+                    transactionsQueryJSON = buildSpecificGroupQuery(
+                        queryJSON,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                        tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
+                    );
                 }
                 break;
             }
@@ -3470,11 +3470,18 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
         if (isGroupEntry(key)) {
             const tagGroup = data[key] as SearchTagGroup;
 
-            const transactionsQueryJSON = queryJSON && tagGroup.tag !== undefined ? buildTagGroupQuery(queryJSON, tagGroup.tag) : undefined;
+            const transactionsQueryJSON =
+                queryJSON && tagGroup.tag !== undefined
+                    ? buildSpecificGroupQuery(
+                          queryJSON,
+                          CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                          tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
+                      )
+                    : undefined;
 
             // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
             const rawTag = tagGroup.tag;
-            const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === CONST.SEARCH.TAG_UNTAGGED_VALUE;
+            const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
             const formattedTag = isEmptyTag ? translate('search.noTag') : getCommaSeparatedTagNameWithSanitizedColons(rawTag);
 
             tagSections[key] = {
@@ -4807,17 +4814,29 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !type || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
+/**
+ * Uses `search.state`, which tracks API requests, instead of `search.isLoading`, which also tracks temporary UI loading.
+ */
+function isSearchPending(searchResults: SearchResults | undefined) {
+    return searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADING;
+}
+
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    return (
-        (searchResults?.data != null || searchResults?.errors != null) &&
-        searchResults.search.type === queryJSON?.type &&
-        searchResults.search.hash ===
-            getQueryHashes({
-                ...queryJSON,
-                sortBy: searchResults.search.sortBy,
-                sortOrder: searchResults.search.sortOrder,
-            }).primaryHash
-    );
+    const queryJSONHash =
+        queryJSON && searchResults?.search
+            ? getQueryHashes({
+                  ...queryJSON,
+                  sortBy: searchResults.search.sortBy,
+                  sortOrder: searchResults.search.sortOrder,
+              }).primaryHash
+            : queryJSON?.hash;
+    const state = searchResults?.search?.state;
+    // A response can finish without writing data or errors, so `loaded` and `error` also count as resolved.
+    // The type and hash checks below keep results from an earlier query out.
+    const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || state === CONST.SEARCH.SNAPSHOT_STATE.ERROR;
+    const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
+
+    return hasResolved && searchResults?.search?.type === queryJSON?.type && searchResults?.search?.hash === queryJSONHash;
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
@@ -4848,6 +4867,7 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
                 {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
                 {text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
                 {text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+                {text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
             ];
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
@@ -5059,7 +5079,7 @@ function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, d
     };
 }
 
-const FILTER_TO_SYNTAX_KEY: Partial<Record<SearchAdvancedFiltersKey, Exclude<SearchDateFilterKeys, ReportFieldTextKey> | SearchAmountFilterKeys>> = {
+const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.DATE_ON]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
     [FILTER_KEYS.DATE_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
     [FILTER_KEYS.DATE_BEFORE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -5107,6 +5127,10 @@ const FILTER_TO_SYNTAX_KEY: Partial<Record<SearchAdvancedFiltersKey, Exclude<Sea
     [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
     [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
 };
+
+function isGroupedFilterKey(key: SearchAdvancedFiltersKey): key is keyof typeof FILTER_TO_SYNTAX_KEY {
+    return key in FILTER_TO_SYNTAX_KEY;
+}
 
 type FilterView = {
     labelKey: TranslationPaths;
@@ -5424,7 +5448,7 @@ function getDisplayValue(
             .join(', ');
     }
 
-    if (key === FILTER_KEYS.CURRENCY || key === FILTER_KEYS.PURCHASE_CURRENCY) {
+    if (key === FILTER_KEYS.CURRENCY || key === FILTER_KEYS.CURRENCY_NOT || key === FILTER_KEYS.PURCHASE_CURRENCY || key === FILTER_KEYS.PURCHASE_CURRENCY_NOT) {
         return form[key]?.sort(localeCompare).join(', ');
     }
 
@@ -5446,7 +5470,7 @@ function getDisplayValue(
         return getPaidStatusDisplayText(form[key], translate);
     }
 
-    if (key === FILTER_KEYS.STATUS) {
+    if (key === FILTER_KEYS.STATUS || key === FILTER_KEYS.STATUS_NOT) {
         const status = form[key];
         if (!status?.length) {
             return;
@@ -5458,19 +5482,34 @@ function getDisplayValue(
             .join(', ');
     }
 
-    if (key === FILTER_KEYS.IS || key === FILTER_KEYS.HAS) {
+    if (key === FILTER_KEYS.IS) {
         const formValue = form[key];
         return formValue?.map((option) => translate(`common.${option}`)).join(', ');
     }
 
+    if (key === FILTER_KEYS.HAS || key === FILTER_KEYS.HAS_NOT) {
+        const hasValues = form[key];
+        if (!hasValues?.length) {
+            return;
+        }
+        const hasOptions = getHasOptions(translate, type);
+        return hasOptions
+            .filter((option) => hasValues.includes(option.value))
+            .map((option) => option.text)
+            .join(', ');
+    }
+
     if (
         key === FILTER_KEYS.FROM ||
+        key === FILTER_KEYS.FROM_NOT ||
         key === FILTER_KEYS.TO ||
+        key === FILTER_KEYS.TO_NOT ||
         key === FILTER_KEYS.ATTENDEE ||
         key === FILTER_KEYS.ASSIGNEE ||
         key === FILTER_KEYS.TAX_RATE ||
         key === FILTER_KEYS.IN ||
         key === FILTER_KEYS.BANK_ACCOUNT ||
+        key === FILTER_KEYS.FEED ||
         key === FILTER_KEYS.POLICY_ID ||
         key === FILTER_KEYS.POLICY_ID_NOT
     ) {
@@ -5489,19 +5528,25 @@ function getDisplayValue(
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
 
-function getFilterNegatableValue<K extends FilterComponentsProps['filterKey']>(
-    filterKey: K,
+function getFilterNegatableValue<K extends ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
+    baseFilterKey: K,
     values: (Partial<SearchAdvancedFiltersForm> & Partial<Record<`${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>>) | undefined,
 ): {
     isNegated: boolean;
     value: SearchAdvancedFiltersForm[K] | undefined;
 } {
-    const negatedFilterKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as const;
-    if (!isFilterNegatable(filterKey) || !values || !hasKey(values, negatedFilterKey)) {
-        return {isNegated: false, value: values?.[filterKey]};
+    const negatedFilterKey = `${baseFilterKey}${CONST.SEARCH.NOT_MODIFIER}` as const;
+    const negatedValue = values?.[negatedFilterKey];
+    return {isNegated: !!negatedValue, value: negatedValue ?? values?.[baseFilterKey]};
+}
+
+function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths | undefined, translate: LocalizedTranslate) {
+    if (!labelKey) {
+        return undefined;
     }
 
-    return {isNegated: true, value: values[negatedFilterKey]};
+    const prefix = isFilterNegated(key) ? CONST.SEARCH.NOT_PREFIX : '';
+    return `${prefix}${translate(labelKey)}`;
 }
 
 function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined, key: SearchAdvancedFiltersKey, value: ValueOf<SearchAdvancedFiltersForm>, type: SearchDataTypes) {
@@ -5512,13 +5557,17 @@ function isTextFilterKey(key: string): key is SearchTextFilterKeys {
     return (TEXT_FILTER_KEYS as Set<string>).has(key);
 }
 
-const isAmountFilterKey = (key: SearchFilter['key']): key is SearchAmountFilterKeys => {
+function isAmountFilterKey(key: string): key is SearchAmountFilterKeys {
     return AMOUNT_FILTER_KEYS.includes(key as SearchAmountFilterKeys);
-};
+}
 
-const isDateFilterKey = (key: SearchFilter['key']): key is Exclude<SearchDateFilterKeys, ReportFieldTextKey> => {
+function isDateFilterKey(key: string): key is Exclude<SearchDateFilterKeys, ReportFieldTextKey> {
     return DATE_FILTER_KEYS.includes(key as SearchDateFilterKeys);
-};
+}
+
+function isReportFieldKey(key: string): key is ReportFieldKey {
+    return key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
+}
 
 type SearchFilter = {
     key: keyof typeof FILTER_VIEW_MAP;
@@ -5526,15 +5575,36 @@ type SearchFilter = {
     value: string | string[];
 };
 
+type MappedFilterKey = SearchFilter['key'] | Extract<SearchAdvancedFiltersKey, `${SearchFilter['key']}${typeof CONST.SEARCH.NOT_MODIFIER}`>;
+
+function isMappedFilterKey(key: string): key is MappedFilterKey {
+    return hasKey(FILTER_VIEW_MAP, removeNegation(key));
+}
+
+function mapFiltersFormToLabelValueList(
+    searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
+    translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+): SearchFilter[];
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
-    mapper?: (filterKey: SearchFilter['key']) => T,
-): Array<SearchFilter & T> {
-    const filters: Array<SearchFilter & T> = [];
+    mapper: (filterKey: MappedFilterKey) => T,
+): Array<SearchFilter & T>;
+function mapFiltersFormToLabelValueList(
+    searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
+    translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+    mapper?: (filterKey: MappedFilterKey) => Record<string, unknown>,
+): SearchFilter[] {
+    const filters: SearchFilter[] = [];
     const addedGroups = new Set<SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX>();
     const type = searchAdvancedFiltersForm.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -5545,8 +5615,8 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
         }
 
         // Handle grouped filters (date, amount) - only add once per group
-        const syntax = FILTER_TO_SYNTAX_KEY[key];
-        if (syntax) {
+        if (isGroupedFilterKey(key)) {
+            const syntax = FILTER_TO_SYNTAX_KEY[key];
             if (addedGroups.has(syntax)) {
                 continue;
             }
@@ -5558,8 +5628,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
 
             if (displayValue && label) {
                 addedGroups.add(syntax);
-                const extra = mapper?.(syntax) ?? ({} as T);
-                filters.push({key: syntax, label: translate(label), value: displayValue, ...extra});
+                filters.push({key: syntax, label: translate(label), value: displayValue, ...mapper?.(syntax)});
             }
             continue;
         }
@@ -5573,20 +5642,24 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
             const value = getReportFieldDisplayValue(searchAdvancedFiltersForm, translate);
             if (value) {
                 addedGroups.add(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
-                const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) ?? ({} as T);
+                const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);
                 filters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, label: translate('workspace.common.reportField'), value, ...extra});
             }
             continue;
         }
 
         // Handle regular filters
-        const label = key in FILTER_VIEW_MAP ? FILTER_VIEW_MAP[key as keyof typeof FILTER_VIEW_MAP].labelKey : undefined;
+        if (!isMappedFilterKey(key)) {
+            continue;
+        }
+
+        const baseKey = removeNegation(key);
+        const labelKey = FILTER_VIEW_MAP[baseKey].labelKey;
         const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare);
+        const label = getLabelValue(key, labelKey, translate);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
-            const filterLabelMapKey = key as keyof typeof FILTER_VIEW_MAP;
-            const extra = mapper?.(filterLabelMapKey) ?? ({} as T);
-            filters.push({key: filterLabelMapKey, label: translate(label), value, ...extra});
+            filters.push({key: baseKey, label, value, ...mapper?.(key)});
         }
     }
 
@@ -6364,6 +6437,7 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
+    currentUserAccountID: number,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -6388,7 +6462,7 @@ function shouldShowDeleteOption(
                       reportTransactions.push(item);
                   }
               }
-              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray);
+              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID);
           })
         : selectedTransactionsKeys.every((id) => {
               const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
@@ -6402,7 +6476,7 @@ function shouldShowDeleteOption(
                   Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                   selectedTransactions[id].reportAction;
 
-              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
+              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID);
           });
 }
 
@@ -6527,6 +6601,7 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    isSearchPending,
     getValidGroupBy,
     getTypeOptions,
     getSortByOptions,
@@ -6561,12 +6636,14 @@ export {
     getSelectedGroupFilterEntry,
     adjustTimeRangeToDateFilters,
     getDateDisplayValue,
+    getDisplayValue,
     getFilterNegatableValue,
     shouldShowFilter,
     mapFiltersFormToLabelValueList,
     isTextFilterKey,
     isAmountFilterKey,
     isDateFilterKey,
+    isReportFieldKey,
     getSingleSelectFilterOptions,
     getMultiSelectFilterOptions,
     TODO_SEARCH_KEYS,
@@ -6580,5 +6657,6 @@ export {
     splitGroupsIntoPairs,
     isEligibleForStatus,
     SKIPPED_SEARCH_FILTERS,
+    SEARCH_TYPE_MENU_ICON_NAMES,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};

@@ -15,7 +15,15 @@ import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
+import type {
+    ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
+    PaidElsewhereParams,
+    RemoveCopilotAccessConfirmationParams,
+    UnsupportedFormulaValueErrorParams,
+} from './params';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     common: {
@@ -391,6 +399,7 @@ const translations: TranslationDeepObject<typeof en> = {
         print: 'Imprimir',
         help: 'Ayuda',
         collapsed: 'Contraído',
+        expand: 'Expandir',
         expanded: 'Expandido',
         expenseReport: 'Informe de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
@@ -476,6 +485,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tagGLCode: 'Etiquetar código GL',
         off: 'Desactivado',
         noResultsFoundSubtitle: 'Sin resultados. Intenta ajustar tus filtros o la búsqueda.',
+        exportsTo: 'Exporta a',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -1053,6 +1063,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Habla con Concierge',
             forGuidedSetup: 'para la configuración guiada.',
             configureApprovalsSubText: 'Definir aprobaciones de informes',
+            setupTravel: 'Configurar viajes',
+            setupTravelSubText: 'Configura reglas específicas de viaje',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
@@ -2481,6 +2493,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Usa esta tarjeta para tus reservas de Expensify Travel. Aparecerá como “Travel Card” al pagar.',
         },
         chaseAccountNumberDifferent: '¿Por qué es diferente el número de mi cuenta?',
+        cardLastSynced: (relativeDate: string) => `Sincronizado ${relativeDate}`,
+        cardNeverSynced: 'Nunca sincronizado',
+        cardStatus: {
+            active: 'Activo',
+            inactive: 'Inactivo',
+            fixConnection: 'Por favor, corrige esta conexión',
+            fixConnectionIn: (companyCardsRoute) => `Por favor, corrige esta conexión en <a href="${companyCardsRoute}">tarjetas de la empresa</a>`,
+            askAdminToFixConnection: 'Pídele a un administrador que solucione esta conexión',
+        },
+        bankAccountStatus: {
+            active: 'Activo',
+            incomplete: 'Incompleto',
+            pending: 'Pendiente',
+            verifying: 'Verificando',
+            reviewingDocumentation: 'Estamos revisando tu documentación',
+            finishAddingBankAccount: 'Terminar de añadir cuenta bancaria',
+            finish: 'Finalizar',
+            confirmTestTransactions: 'Confirma las transacciones de prueba',
+            accountRequiresAttention: 'Esta cuenta requiere atención',
+            unlock: 'Desbloquear',
+        },
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -2801,8 +2834,16 @@ ${amount} para ${merchant} - ${date}`,
             updateAvatar: 'Hubo un problema al actualizar el avatar de este agente',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nuevo agente',
+        buildCustomAgent: 'Crear agente personalizado',
+        orStartWithTemplate: 'O empieza con una plantilla:',
+        role: 'Agente',
+        emptyTemplatesTitle: 'Aún no hay plantillas',
+        emptyTemplatesSubtitle: 'Crea un agente personalizado para empezar.',
+    },
+    addAgentPage: {
+        title: 'Crear agente personalizado',
         agentName: 'Nombre del agente',
         instructions: 'Escribe instrucciones personalizadas',
         createAgent: 'Crear agente',
@@ -4321,21 +4362,21 @@ ${amount} para ${merchant} - ${date}`,
         nightsIn: 'noches en',
         nudge: {
             airfareManual:
-                '¡Hola! ¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                '¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                '¡Hola! ¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                '¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? ¿Y que sube los recibos automáticamente por ti? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                '¡Hola! ¿Sabías que puedes reservar y gestionar estancias de hotel directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                '¿Sabías que puedes reservar y gestionar estancias de hotel directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                '¡Hola! ¿Sabías que puedes reservar y gestionar estancias en hoteles directamente en Expensify? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                '¿Sabías que puedes reservar y gestionar estancias en hoteles directamente en Expensify? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                '¡Hola! ¿Sabías que puedes reservar y gestionar alquileres de coche directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                '¿Sabías que puedes reservar y gestionar alquileres de coche directamente en Expensify? La próxima vez evita la molestia de crear tus gastos manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Hola, ¿sabías que puedes reservar y gestionar coches de alquiler directamente en Expensify? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                '¿Sabías que puedes reservar y gestionar alquileres de coche directamente en Expensify? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Hola, ¿sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                '¡Hola! ¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube automáticamente los recibos por ti? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     proactiveAppReview: {
@@ -4343,6 +4384,17 @@ ${amount} para ${merchant} - ${date}`,
         description: 'Dínoslo para que podamos ayudarte a mejorar tu experiencia de gestión de gastos.',
         positiveButton: '¡Sí!',
         negativeButton: 'No mucho',
+    },
+    trialPaymentReminder: {
+        title: 'Adelántate al plazo',
+        subtitle: 'No esperes hasta el último momento, añade tu método de pago hoy para asegurar el acceso continuo a tus gastos en Expensify.',
+        trialEndsInDays: () => ({
+            one: 'La prueba termina en 1 día',
+            other: (pluralCount: number) => `La prueba termina en ${pluralCount} días`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `La prueba termina en ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Cerrar',
+        addPaymentCardButton: 'Añadir tarjeta de pago',
     },
     workspace: {
         common: {
@@ -4944,8 +4996,10 @@ ${amount} para ${merchant} - ${date}`,
             travelInvoicingDescription: 'Los gastos de viaje se exportarán como cargos de tarjeta de crédito a la cuenta de Sage Intacct especificada a continuación.',
             creditCardAccount: 'Cuenta de tarjeta de crédito',
             defaultVendor: 'Proveedor por defecto',
-            defaultVendorDescription: (isReimbursable) =>
-                `Establezca un proveedor predeterminado que se aplicará a los gastos ${isReimbursable ? '' : 'no '}reembolsables que no tienen un proveedor coincidente en Sage Intacct.`,
+            defaultVendorDescription: (isReimbursable: boolean) =>
+                isReimbursable
+                    ? `Establece un proveedor predeterminado que se aplicará a los gastos reembolsables que no tengan un proveedor coincidente en Sage Intacct.`
+                    : `Los gastos que no se puedan conciliar con tus proveedores de Sage Intacct se asignarán por defecto a este proveedor.`,
             exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Intacct.',
             exportPreferredExporterNote:
                 'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
@@ -5621,6 +5675,7 @@ ${amount} para ${merchant} - ${date}`,
                 },
                 csvColumns: {
                     cardNumber: 'Número de la tarjeta',
+                    cardName: 'Nombre de la tarjeta',
                     postedDate: 'Fecha',
                     merchant: 'Comercio',
                     amount: 'Importe',
@@ -5636,6 +5691,7 @@ ${amount} para ${merchant} - ${date}`,
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Por favor, asigna una columna a cada uno de los atributos: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `¡Ups! Has asignado un solo campo ("${duplicateColumn}") a múltiples columnas. Por favor, revisa y vuelve a intentarlo.`,
+                    cardIdentityColumn: 'Asocia un número de tarjeta o un nombre de tarjeta para que las transacciones puedan vincularse a una tarjeta.',
                 },
                 duplicateFeedModal: {title: 'Feed de tarjeta ya conectado', prompt: 'No puedes añadir el mismo flujo de tarjeta al mismo espacio de trabajo dos veces.'},
             },
@@ -5899,6 +5955,7 @@ ${amount} para ${merchant} - ${date}`,
                             currentTravelSpendLabel: 'Gasto actual en viajes',
                             currentTravelSpendPaymentQueued: (amount: string) => `El pago de ${amount} está en cola y se procesará pronto.`,
                             currentTravelSpendCta: 'Pagar saldo',
+                            viewOnSpend: 'Ver en Gastos',
                             currentTravelLimitLabel: 'Límite actual de viajes',
                             settlementAccountLabel: 'Cuenta de liquidación',
                             settlementFrequencyLabel: 'Frecuencia de liquidación',
@@ -6054,6 +6111,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Impuestos',
                 subtitle: 'Documenta y reclama los impuestos aplicables.',
             },
+            vendors: {title: 'Proveedores', subtitle: 'Asocia los gastos de tarjeta con los proveedores importados de tu software de contabilidad.'},
             reportFields: {
                 title: 'Campos de informes',
                 subtitle: 'Configura campos personalizados para los gastos.',
@@ -6453,6 +6511,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             peopleAdmins: 'Administradores de personas',
             paymentsAdmins: 'Administradores de pagos',
             members: 'Miembros',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `No puedes eliminar a ${memberName} de este espacio de trabajo mientras tenga una Tarjeta Expensify. Desactiva su tarjeta en Espacio de trabajo > Tarjeta Expensify y vuelve a intentarlo.`,
         },
         accounting: {
             settings: 'configuración',
@@ -6730,6 +6790,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             exportDate: 'Fecha de exportación',
             defaultVendor: 'Proveedor predeterminado',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Los gastos que no se asignen automáticamente se asociarán por defecto a este proveedor.`
+                    : `Los gastos que no se concilien automáticamente se asignarán a este proveedor de forma predeterminada. En caso contrario, se exportarán como Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Elige un proveedor predeterminado de ${connectionName} para los gastos que no se asignen automáticamente.`,
             defaultAccount: 'Cuenta predeterminada',
             autoSync: 'Autosincronización',
             autoSyncDescription: 'Sincroniza NetSuite y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
@@ -7001,6 +7067,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             amountPerUnit: (unit: string) => `Importe por ${unit}`,
             startDate: 'Fecha de inicio',
             endDate: 'Fecha de fin',
+            autoGeneratedRateTooltip: 'Esta tasa se genera automáticamente.',
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -7563,7 +7630,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             },
             customRules: {
                 title: 'Reglas personalizadas',
-                cardSubtitle: 'Aquí es donde se definen las reglas de tu equipo, para que todos sepan lo que esta cubierto.',
+                cardSubtitle: 'Sube tu política de gastos para asegurarte de que todo el mundo sepa qué puede y qué no puede cargar como gasto.',
                 policyDocument: 'Documento de política',
                 policyText: 'Texto de política',
             },
@@ -8640,6 +8707,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 title: 'No hay gastos para mostrar',
                 subtitle: 'Sin resultados. Intenta ajustar tus filtros.',
             },
+            emptyViolationSnapshotResults: {
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
+                    `Las infracciones solo se registran a partir del ${formattedDate}. Intenta ajustar tus filtros de fecha.`,
+            },
             emptyUnapprovedResults: {
                 title: 'No hay gastos para aprobar',
                 subtitle: 'Cero gastos. Máxima relajación. ¡Bien hecho!',
@@ -8661,6 +8732,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         view: {label: 'Ver', table: 'Tabla', bar: 'Barra', line: 'Línea', pie: 'Circular'},
         saveView: 'Guardar vista',
         savedSearchesMenuItemTitle: 'Guardadas',
+        mySavedSearch: 'Mis gastos',
         urlCopied: 'URL copiada',
         spendOverTime: 'Evolución de gastos',
         searchName: 'Nombre de la búsqueda',
@@ -8763,6 +8835,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturación consolidada de viajes',
             },
             is: 'Es',
+            has: {submittedViolation: 'Infracción enviada'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',
@@ -8770,6 +8843,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
             reportField: (name, value) => `${name} es ${value}`,
+            filterType: {label: 'Tipo de filtro', has: {positive: 'tiene', negative: 'no tiene'}, is: {positive: 'es', negative: 'no es'}},
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
@@ -10345,7 +10419,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',
-        saveSearchTooltip: '<tooltip><strong>Renombra tus búsquedas guardadas</strong> aquí</tooltip>',
         accountSwitcher: '<tooltip>Accede a tus <strong>cuentas copiloto</strong> aquí</tooltip>',
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',

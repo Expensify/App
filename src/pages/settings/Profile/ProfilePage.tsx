@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemGroup from '@components/MenuItemGroup';
@@ -73,7 +74,7 @@ function ProfilePage() {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
-    const logins = useMemo(() => getContactMethodsOptions(translate, loginList, session?.email), [loginList, session?.email, translate]);
+    const logins = useMemo(() => getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email), [loginList, session?.email, translate, formatPhoneNumber]);
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -195,20 +196,22 @@ function ProfilePage() {
             testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('common.profile')}
-                onBackButtonPress={() => {
-                    if (route.params?.backTo) {
-                        Navigation.goBack(route.params?.backTo);
-                        return;
-                    }
-                    Navigation.goBack();
-                }}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                shouldUseHeadlineHeader
-            />
+            <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    title={translate('common.profile')}
+                    onBackButtonPress={() => {
+                        if (route.params?.backTo) {
+                            Navigation.goBack(route.params?.backTo);
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    shouldUseHeadlineHeader
+                />
+            </CollapsibleHeaderOnKeyboard>
             <ScrollView
                 ref={scrollViewRef}
                 style={styles.pt3}
