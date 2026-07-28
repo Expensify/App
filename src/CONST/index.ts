@@ -7318,7 +7318,6 @@ const CONST = {
         },
         NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
-        TAG_UNTAGGED_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         MERCHANT_EMPTY_VALUE: 'none',
@@ -7451,6 +7450,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
             };
         },
+        NOT_PREFIX: '-',
         NOT_MODIFIER: 'Not',
         DATE_MODIFIERS: {
             ON: 'On',
