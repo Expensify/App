@@ -1363,11 +1363,11 @@ const ROUTES = {
         getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`bank-account/${VERIFY_ACCOUNT}?policyID=${policyID}`, backTo),
     },
     BANK_ACCOUNT_PERSONAL: {
-        route: 'bank-account/personal/:subPage?/:action?',
+        route: 'bank-account/personal-info/:subPage?/:action?',
         getRoute: (subPage?: string, action?: 'edit') => {
             const subPagePart = subPage ? `/${subPage}` : '';
             const actionPart = action ? `/${action}` : '';
-            return `bank-account/personal${subPagePart}${actionPart}` as const;
+            return `bank-account/personal-info${subPagePart}${actionPart}` as const;
         },
     },
     // TODO: rename the route as no longer accepts step
