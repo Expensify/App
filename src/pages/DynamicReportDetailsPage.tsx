@@ -198,6 +198,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         'Hashtag',
     ]);
     const navigateBackFromReportDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DETAILS.path);
+    const taskDeleteBackTo = (route.params as {backTo?: Route}).backTo;
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -996,6 +997,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 delegateEmail,
                 reportActionsForOriginalReportID,
                 ancestors,
+                !taskDeleteBackTo,
             );
             return;
         }
@@ -1035,6 +1037,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         }
     }, [
         caseID,
+        taskDeleteBackTo,
         requestParentReportAction,
         iouTransaction,
         iouOriginalTransaction,
@@ -1067,6 +1070,11 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
+        if (caseID === CASES.DEFAULT && taskDeleteBackTo) {
+            Navigation.goBack(taskDeleteBackTo);
+            return;
+        }
+
         let urlToNavigateBack: string | undefined;
         // Only proceed with navigation logic if transaction was actually deleted
         if (!isEmptyObject(requestParentReportAction)) {
@@ -1133,6 +1141,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
         }
     }, [
+        caseID,
+        taskDeleteBackTo,
         requestParentReportAction,
         route.params.reportID,
         moneyRequestReport,

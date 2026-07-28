@@ -1219,6 +1219,7 @@ function deleteTask(
     delegateEmail: string | undefined,
     reportActions: OnyxEntry<OnyxTypes.ReportActions>,
     ancestors: ReportUtils.Ancestor[] = [],
+    shouldNavigateBack = true,
 ) {
     if (!report) {
         return;
@@ -1343,7 +1344,7 @@ function deleteTask(
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, undefined, true);
 
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions);
+    const urlToNavigateBack = shouldNavigateBack ? getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions) : undefined;
     if (urlToNavigateBack) {
         Navigation.goBack();
         return urlToNavigateBack;
