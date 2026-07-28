@@ -443,6 +443,7 @@ const translations: TranslationDeepObject<typeof en> = {
         print: 'Stampa',
         help: 'Aiuto',
         collapsed: 'Comprresso',
+        expand: 'Espandi',
         expanded: 'Espanso',
         expenseReport: 'Nota spese',
         rateOutOfPolicy: 'Tariffa fuori dalla policy',
