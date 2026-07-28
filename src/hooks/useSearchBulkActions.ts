@@ -1663,16 +1663,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     });
                 }
 
-                const markableReportIDs = reportsForIntegration
+                const reportIDsToMark = reportsForIntegration
                     .filter((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED))
                     .map((report) => report.reportID)
                     .filter((reportID): reportID is string => reportID !== undefined);
-                if (markableReportIDs.length > 0) {
-                    const handleMarkAction = buildIntegrationHandleExportAction(markableReportIDs, integration, integrationGroupSize);
+                if (reportIDsToMark.length > 0) {
+                    const handleMarkAction = buildIntegrationHandleExportAction(reportIDsToMark, integration, integrationGroupSize);
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
                         icon: getIntegrationIcon(integration, expensifyIcons),
-                        onSelected: () => handleMarkAction(() => markAsManuallyExported(markableReportIDs, integration)),
+                        onSelected: () => handleMarkAction(() => markAsManuallyExported(reportIDsToMark, integration)),
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,
