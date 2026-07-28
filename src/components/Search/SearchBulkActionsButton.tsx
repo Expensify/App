@@ -126,7 +126,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType, searchData]);
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
-    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
+    const hasSearchErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0;
+    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !hasSearchErrors;
     let selectionButtonText: string;
     if (areAllMatchingItemsSelected) {
         selectionButtonText =

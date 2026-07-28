@@ -957,10 +957,24 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
     write(WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList}, {optimisticData, successData});
 }
 
-// Tracks in-flight search requests by hash+offset to prevent duplicate API calls
+// Tracks in-flight search requests by hash+offset+totals to prevent duplicate API calls
 // when both page-level (useSearchPageSetup) and Search-internal (handleSearch) effects
 // fire for the same query. Cleared when the request completes.
 const inFlightSearchRequests = new Set<string>();
+
+/**
+ * Every request for a given hash writes the same snapshot, so `search.isLoading` belongs to the snapshot
+ * rather than to any single request. Used to keep it set until the last overlapping request settles.
+ */
+function hasInFlightSearchRequestForHash(hash: number) {
+    const prefix = `${hash}_`;
+    for (const key of inFlightSearchRequests) {
+        if (key.startsWith(prefix)) {
+            return true;
+        }
+    }
+    return false;
+}
 
 let shouldPreventSearchAPI = false;
 function handlePreventSearchAPI(hash: number | undefined) {
@@ -1016,13 +1030,14 @@ function search({
         return;
     }
 
-    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}_${shouldCalculateTotals}`;
-    if (inFlightSearchRequests.has(dedupeKey)) {
+    const pageKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const dedupeKey = `${pageKey}_${shouldCalculateTotals ? 'totals' : 'noTotals'}`;
+    if (inFlightSearchRequests.has(dedupeKey) || (!shouldCalculateTotals && inFlightSearchRequests.has(`${pageKey}_totals`))) {
         return;
     }
     inFlightSearchRequests.add(dedupeKey);
 
-    const {optimisticData, successData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
+    const {optimisticData, successData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {exactMatchFilterKeys, flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
@@ -1057,7 +1072,7 @@ function search({
     }
 
     const startRequest = () =>
-        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
+        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, failureData})
             .then((result) => {
                 const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
 
@@ -1103,10 +1118,15 @@ function search({
                 // this still rejects for any caller relying on that.
                 Onyx.update(failureData ?? []);
                 throw error;
-            })
-            .finally(() => {
-                inFlightSearchRequests.delete(dedupeKey);
             });
+
+    const releaseRequest = () => {
+        inFlightSearchRequests.delete(dedupeKey);
+
+        if (!hasInFlightSearchRequestForHash(queryJSON.hash)) {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {isLoading: false}});
+        }
+    };
 
     // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
     // in SearchPage/SearchPageNarrow) is covered without a separate catch each. Failure state is already
@@ -1119,10 +1139,10 @@ function search({
     };
 
     if (skipWaitForWrites) {
-        return startRequest().catch(handleSearchError);
+        return startRequest().catch(handleSearchError).finally(releaseRequest);
     }
 
-    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest).catch(handleSearchError);
+    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest).catch(handleSearchError).finally(releaseRequest);
 }
 
 function submitMoneyRequestOnSearch(

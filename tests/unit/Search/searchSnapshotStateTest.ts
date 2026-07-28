@@ -44,6 +44,10 @@ function getCapturedSearchOnyxData(): NonNullable<Parameters<typeof makeRequestW
  * Replays a captured search request the way applyHTTPSOnyxUpdates does: optimisticData first, then any server
  * onyxData, then successData (jsonCode 200) or failureData (non-200), and finallyData last regardless of jsonCode.
  * This lets us assert the terminal snapshot state that the real API application order would produce.
+ *
+ * search() withholds finallyData so that overlapping requests can't settle the shared snapshot early — it clears
+ * `isLoading` itself once the last one finishes — so that step is a no-op here. It stays in the replay because this
+ * helper mirrors the API layer's order rather than any one caller's payload.
  */
 async function simulateResolvedRequest({jsonCode, serverOnyxData}: {jsonCode: number; serverOnyxData?: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>}) {
     const {optimisticData, successData, failureData, finallyData} = getCapturedSearchOnyxData();
@@ -113,7 +117,7 @@ describe('search snapshot terminal state', () => {
         await simulateResolvedRequest({jsonCode: FAILURE_JSON_CODE});
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
-        // finallyData runs after failureData; the error state must survive it.
+        // The error state is terminal and must survive the rest of the response application order.
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.ERROR);
         expect(snapshot?.search?.hash).toBe(queryJSON.hash);
     });
