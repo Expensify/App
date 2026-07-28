@@ -4,6 +4,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -17,6 +18,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
+import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -27,7 +29,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {PopoverMenuItem} from './PopoverMenu';
@@ -65,9 +67,12 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
     const buttonRef = useRef<View>(null);
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
+    const {calculatePopoverPosition} = usePopoverPosition();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
+    // Measured from the Switch button so the menu opens directly below it, rather than a fixed position.
+    const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
@@ -108,10 +113,36 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         switchAccount();
     };
 
+    // Anchor the menu to the bottom-right of the Switch button so it opens directly below it.
+    const measureDelegatorMenuPosition = useCallback(
+        () =>
+            calculatePopoverPosition(buttonRef, {
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+            }),
+        [calculatePopoverPosition],
+    );
+
     const onPressSwitcher = () => {
         hideProductTrainingTooltip();
-        setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
+        if (shouldShowDelegatorMenu) {
+            setShouldShowDelegatorMenu(false);
+            return;
+        }
+        // Measure the button before opening so the menu renders at the right spot on the first frame.
+        measureDelegatorMenuPosition().then((position) => {
+            setPopoverPosition(position);
+            setShouldShowDelegatorMenu(true);
+        });
     };
+
+    // Keep the menu anchored to the button if the window is resized while it is open.
+    useLayoutEffect(() => {
+        if (!shouldShowDelegatorMenu) {
+            return;
+        }
+        measureDelegatorMenuPosition().then(setPopoverPosition);
+    }, [shouldShowDelegatorMenu, windowWidth, windowHeight, measureDelegatorMenuPosition]);
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
@@ -299,9 +330,9 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     onClose={hideDelegatorMenu}
                     onItemSelected={hideDelegatorMenu}
                     anchorRef={buttonRef}
-                    anchorPosition={CONST.POPOVER_ACCOUNT_SWITCHER_POSITION}
+                    anchorPosition={popoverPosition ?? CONST.POPOVER_ACCOUNT_SWITCHER_POSITION}
                     anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     }}
                     menuItems={menuItems()}
