@@ -217,7 +217,7 @@ const testConfig = {
             expect(state.context.accountID).toBeDefined();
             expect(state.context.error).toBeUndefined();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.REQUESTING_VALIDATE_CODE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
@@ -234,7 +234,7 @@ const testConfig = {
                 expect(screen.queryByText(inlineError)).not.toBeOnTheScreen();
             }
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);

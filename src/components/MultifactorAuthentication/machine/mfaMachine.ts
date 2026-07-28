@@ -24,8 +24,7 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
 const PROMPT_TARGET = `#${MFA_STATE.PROMPT}` as const;
 const SOFT_PROMPT_CHECK_TARGET = `#${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}` as const;
-const MAGIC_CODE_TARGET = `#${MFA_STATE.REQUESTING_VALIDATE_CODE}` as const;
-const REGISTRATION_CHALLENGE_TARGET = `#${MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}` as const;
+const MAGIC_CODE_TARGET = `#${MFA_STATE.MAGIC_CODE}` as const;
 
 // Which prompt variant the screen renders is a device property, resolved once per platform.
 const PROMPT_TYPE = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[deviceVerificationType];
@@ -190,7 +189,7 @@ const MFAMachine = setup({
                                 // A returning user's credentials are already registered, so only a fresh registration asks for a code.
                                 onDone: [
                                     {guard: ({event}) => event.output, target: SOFT_PROMPT_CHECK_TARGET},
-                                    {target: MAGIC_CODE_TARGET, actions: ['requestValidateCode', 'navigateToMagicCode']},
+                                    {target: MAGIC_CODE_TARGET, actions: 'requestValidateCode'},
                                 ],
                                 onError: {
                                     target: OUTCOME_TARGET,
@@ -218,49 +217,51 @@ const MFAMachine = setup({
                         },
                     },
                 },
-                // This branch shows the magic-code screen while a fresh registration waits for the
-                // emailed code. Submitting stores the code and starts the backend challenge request.
-                // A resend is accepted only here, so one fired while the challenge request is in
-                // flight is dropped instead of emailing a code the pending submission ignores.
-                [MFA_STATE.REQUESTING_VALIDATE_CODE]: {
-                    id: MFA_STATE.REQUESTING_VALIDATE_CODE,
-                    on: {
-                        VALIDATE_CODE_ENTERED: {target: REGISTRATION_CHALLENGE_TARGET, actions: ['clearContinuableError', 'submitValidateCode']},
-                        RESEND_VALIDATE_CODE: {actions: ['clearContinuableError', 'requestValidateCode']},
-                        CLEAR_CONTINUABLE_ERROR: {actions: 'clearContinuableError'},
-                    },
-                },
-                // The magic-code screen stays mounted while the backend exchanges the code for a
-                // registration challenge. Only a real challenge advances the flow; an invalid code
-                // returns to the same screen with an inline error.
-                [MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE]: {
-                    id: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE,
-                    invoke: {
-                        id: 'requestRegistrationChallenge',
-                        src: 'requestRegistrationChallenge',
-                        input: ({context}) => {
-                            if (context.validateCode === undefined) {
-                                throw new Error('MFA validate code must be stored before requesting a registration challenge');
-                            }
-                            return {validateCode: context.validateCode};
+                [MFA_STATE.MAGIC_CODE]: {
+                    id: MFA_STATE.MAGIC_CODE,
+                    entry: 'navigateToMagicCode',
+                    initial: MFA_STATE.AWAITING_VALIDATE_CODE,
+                    states: {
+                        // Waits for the emailed code. A resend is accepted only here, so one fired
+                        // while the challenge request is in flight is dropped instead of emailing a
+                        // code the pending submission ignores.
+                        [MFA_STATE.AWAITING_VALIDATE_CODE]: {
+                            on: {
+                                VALIDATE_CODE_ENTERED: {target: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE, actions: 'submitValidateCode'},
+                                RESEND_VALIDATE_CODE: {actions: ['clearContinuableError', 'requestValidateCode']},
+                                CLEAR_CONTINUABLE_ERROR: {actions: 'clearContinuableError'},
+                            },
                         },
-                        onDone: [
-                            {
-                                guard: ({event}) => event.output.success,
-                                target: SOFT_PROMPT_CHECK_TARGET,
-                                actions: assign({registrationChallenge: ({event}) => (event.output.success ? event.output.challenge : undefined)}),
+                        [MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE]: {
+                            entry: 'clearContinuableError',
+                            invoke: {
+                                id: 'requestRegistrationChallenge',
+                                src: 'requestRegistrationChallenge',
+                                input: ({context}) => {
+                                    if (context.validateCode === undefined) {
+                                        throw new Error('MFA validate code must be stored before requesting a registration challenge');
+                                    }
+                                    return {validateCode: context.validateCode};
+                                },
+                                onDone: [
+                                    {
+                                        guard: ({event}) => event.output.success,
+                                        target: SOFT_PROMPT_CHECK_TARGET,
+                                        actions: assign({registrationChallenge: ({event}) => (event.output.success ? event.output.challenge : undefined)}),
+                                    },
+                                    {
+                                        guard: ({event}) =>
+                                            !event.output.success && getMFAFailureError(event.output).reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
+                                        target: MFA_STATE.AWAITING_VALIDATE_CODE,
+                                        actions: assign({continuableError: ({event}) => getMFAFailureError(event.output)}),
+                                    },
+                                    {target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
+                                ],
+                                onError: {
+                                    target: OUTCOME_TARGET,
+                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Registration challenge request', event.error)}),
+                                },
                             },
-                            {
-                                guard: ({event}) =>
-                                    !event.output.success && getMFAFailureError(event.output).reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
-                                target: MAGIC_CODE_TARGET,
-                                actions: assign({continuableError: ({event}) => getMFAFailureError(event.output)}),
-                            },
-                            {target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
-                        ],
-                        onError: {
-                            target: OUTCOME_TARGET,
-                            actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Registration challenge request', event.error)}),
                         },
                     },
                 },
