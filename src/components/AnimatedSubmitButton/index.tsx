@@ -110,7 +110,6 @@ function AnimatedSubmitButton({
         [buttonDuration, stretchOutY],
     );
     const icons = useMemoizedLazyExpensifyIcons(['Send']);
-    const icon = isAnimationRunning ? icons.Send : null;
 
     useEffect(() => {
         if (!isAnimationRunning) {
@@ -159,6 +158,7 @@ function AnimatedSubmitButton({
 
     // eslint-disable-next-line react-hooks/refs
     const showLoading = isShowingLoading || (isAnimationRunning && (!viewRef.current || (isDEWSubmission && !isDEWSubmissionComplete)));
+    const isShowingSubmittedState = isAnimationRunning && !showLoading;
 
     return (
         <Animated.View style={[containerStyles, {minWidth}]}>
@@ -175,8 +175,9 @@ function AnimatedSubmitButton({
                         isDisabled
                         stayNormalOnDisable
                     >
-                        {!showLoading && !!icon && <Button.Icon src={icon} />}
-                        <Button.Text>{showLoading ? text : translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted')}</Button.Text>
+                        {/* Transparent loading content still affects layout. Mount the icon only after loading so it does not widen the button. */}
+                        {isShowingSubmittedState && <Button.Icon src={icons.Send} />}
+                        <Button.Text>{isShowingSubmittedState ? translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted') : text}</Button.Text>
                     </Button>
                 </Animated.View>
             )}
@@ -187,7 +188,6 @@ function AnimatedSubmitButton({
                     isDisabled={isDisabled}
                     sentryLabel={sentryLabel}
                 >
-                    {!!icon && <Button.Icon src={icon} />}
                     <Button.Text>{text}</Button.Text>
                 </Button>
             )}
