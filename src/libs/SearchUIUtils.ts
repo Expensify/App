@@ -367,9 +367,8 @@ const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithd
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'debitPosted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'state' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
-    // The conversion amounts are each denominated in their own currency, so the backend ranks them by a hidden key
-    // that converts every group to one currency. Leaving them unmapped keeps that order instead of re-sorting the
-    // page by raw numbers that are not comparable.
+    // Each conversion amount is denominated in its own currency, so the backend ranks those two columns by a key that
+    // converts every group to one currency. Leaving them unmapped keeps that order instead of re-sorting raw numbers.
     ...transactionGroupBaseSortingProperties,
 };
 
@@ -5785,11 +5784,7 @@ function isConversionAmountGroupColumn(column: SearchColumnType): column is keyo
     return column in conversionAmountGroupColumns;
 }
 
-function hasConversionAmount(column: SearchColumnType, data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[]): boolean {
-    if (!isConversionAmountGroupColumn(column) || Array.isArray(data)) {
-        return !isConversionAmountGroupColumn(column);
-    }
-
+function hasGroupWithConversionAmount(column: keyof typeof conversionAmountGroupColumns, data: OnyxTypes.SearchResults['data']): boolean {
     const {amount, currency} = conversionAmountGroupColumns[column];
     return Object.keys(data).some((key) => {
         if (!isGroupEntry(key)) {
@@ -5959,7 +5954,11 @@ function getColumnsToShow({
                 result.push(col);
             }
 
-            return result.filter((column) => hasConversionAmount(column, data));
+            if (Array.isArray(data)) {
+                return result;
+            }
+
+            return result.filter((column) => !isConversionAmountGroupColumn(column) || hasGroupWithConversionAmount(column, data));
         }
     }
 

@@ -93,8 +93,6 @@ function WithdrawalIDListItemHeaderImpl({
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
-    // A settlement that converted currencies moved a different amount on each side, each in its own currency, so
-    // neither side is shown without the currency it is denominated in.
     const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = withdrawalIDItem;
 
     const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
@@ -181,6 +179,7 @@ function WithdrawalIDListItemHeaderImpl({
                 <TextCell text={String(withdrawalIDItem.count)} />
             </View>
         ),
+        // A settlement that did not convert currencies reports neither amount, and an amount says nothing without the currency it moved in.
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED}
