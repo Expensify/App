@@ -8,7 +8,7 @@ import Onyx from 'react-native-onyx';
 
 import {getCommandURL} from './ApiUtils';
 import getEnvironment from './Environment/getEnvironment';
-import {onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
+import {onSuccess as onRequestSuccess, onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
 import Log from './Log';
 
 let hasRadio = true;
@@ -32,8 +32,23 @@ let configuredReachabilityUrl: string | undefined;
 const listeners = new Set<() => void>();
 const reconnectListeners = new Set<() => void>();
 
-// Wire FailureTracker → NetworkState so sustained failures trigger offline state.
+// Wire FailureTracker → NetworkState so sustained failures trigger offline state and a
+// successful request clears the INTERNET_UNREACHABLE hard stop. Without the latter only
+// the Ping could clear it. Reads and side-effect commands bypass the paused queue, so the
+// app could keep succeeding at real requests while staying stuck offline.
 onSustainedFailureChange((active) => setSustainedFailures(active));
+// A server response proves the network works, same as a passing Ping.
+// prevIsInternetReachable stays false on purpose: the Ping may keep failing, and a repeated
+// false does not re-set the hard stop. When the Ping finally passes, the NetInfo listener
+// sees the app is already online and does nothing.
+onRequestSuccess(() => {
+    if (!internetUnreachable) {
+        return;
+    }
+    Log.info('[NetworkState] INTERNET_UNREACHABLE cleared — a successful request proved connectivity');
+    clearHardStops();
+    scheduleJitteredReconnect();
+});
 
 function getIsOffline(): boolean {
     return !hasRadio || internetUnreachable || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
@@ -144,12 +159,24 @@ function setSustainedFailures(active: boolean) {
         // A reconnect that coincides with one already in flight is collapsed at push time by the
         // reconnect coverage resolver (resolveReconnectDuplicationConflictAction): a redundant one is
         // dropped, a wider one runs after. It consults the ongoing request and the waiting queue.
-
-        // Jitter (0–5s) staggers reconnection across clients after a server-wide outage
-        // to avoid a stampede of ReconnectApp calls hitting the backend simultaneously.
-        const jitter = Math.floor(Math.random() * CONST.NETWORK.RECONNECT_STAMPEDE_JITTER_MS);
-        setTimeout(() => notifyReconnectListeners(), jitter);
+        scheduleJitteredReconnect();
     }
+}
+
+/**
+ * Jitter (0–5s) staggers reconnection across clients after a server-wide outage
+ * to avoid a stampede of ReconnectApp calls hitting the backend simultaneously.
+ */
+function scheduleJitteredReconnect() {
+    const jitter = Math.floor(Math.random() * CONST.NETWORK.RECONNECT_STAMPEDE_JITTER_MS);
+    setTimeout(() => notifyReconnectListeners(), jitter);
+}
+
+function clearHardStops() {
+    internetUnreachable = false;
+    sustainedFailuresActive = false;
+    resetFailureCounters();
+    updateState();
 }
 
 /**
@@ -205,10 +232,7 @@ function setFailAllRequests(failAll: boolean) {
 function onReachabilityRestored() {
     Log.info('[NetworkState] Internet reachability restored — clearing hard stops');
     hasRadio = true;
-    internetUnreachable = false;
-    sustainedFailuresActive = false;
-    resetFailureCounters();
-    updateState();
+    clearHardStops();
 
     // Notify reconnect listeners (Reconnect.ts will handle app data sync)
     notifyReconnectListeners();

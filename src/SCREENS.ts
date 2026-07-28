@@ -134,6 +134,7 @@ const SCREENS = {
 
         AGENTS: {
             ROOT: 'Settings_Agents',
+            NEW: 'Settings_Agents_New',
             ADD: 'Settings_Agents_Add',
             ADD_AVATAR: 'Settings_Agents_Add_Avatar',
             EDIT: 'Settings_Agents_Edit',
@@ -355,10 +356,10 @@ const SCREENS = {
         STATE_SELECTOR: 'Money_Request_State_Selector',
         DYNAMIC_STEP_ATTENDEES: 'Dynamic_Money_Request_Attendee',
         STEP_ACCOUNTANT: 'Money_Request_Accountant',
-        STEP_DESTINATION: 'Money_Request_Destination',
+        DYNAMIC_STEP_DESTINATION: 'Dynamic_Money_Request_Destination',
         STEP_TIME: 'Money_Request_Time',
         STEP_SUBRATE: 'Money_Request_SubRate',
-        STEP_DESTINATION_EDIT: 'Money_Request_Destination_Edit',
+        DYNAMIC_STEP_DESTINATION_EDIT: 'Dynamic_Money_Request_Destination_Edit',
         STEP_TIME_EDIT: 'Money_Request_Time_Edit',
         STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
         STEP_REPORT: 'Money_Request_Report',

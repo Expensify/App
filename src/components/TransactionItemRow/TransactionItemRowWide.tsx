@@ -26,6 +26,7 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
     getAmount,
     getConvertedAmount,
@@ -71,6 +72,7 @@ type TransactionItemRowWideProps = Omit<
 function TransactionItemRowWide({
     transactionItem,
     report,
+    chatReport,
     policy,
     policyCategories,
     policyTagLists,
@@ -333,6 +335,7 @@ function TransactionItemRowWide({
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
                                 amount={getReimbursableTotal(report)}
+                                chatReport={chatReport}
                                 shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
                                 isMarkAsDone={isMarkAsDone}
                             />
@@ -669,8 +672,8 @@ function TransactionItemRowWide({
                     {!shouldShowRadioButton && (
                         <Checkbox
                             disabled={isDisabled}
-                            onPress={() => {
-                                onCheckboxPress(transactionItem.transactionID);
+                            onPress={(event) => {
+                                onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
