@@ -7,6 +7,7 @@ import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {hasOnceLoadedReportActionsSelector} from '@src/selectors/ReportMetaData';
 
 import {useRoute} from '@react-navigation/native';
 
@@ -50,9 +51,9 @@ function useReportActionsListModel(reportID: string) {
 
     const parentReportAction = useParentReportAction(report);
 
-    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
-    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
-    const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
+    const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {
+        selector: hasOnceLoadedReportActionsSelector,
+    });
 
     const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
     const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
@@ -117,7 +118,6 @@ function useReportActionsListModel(reportID: string) {
         isReportArchived,
         isReportTransactionThread,
         shouldBeAlignedToTop,
-        isLoadingInitialReportActions,
         isReportLoadPending,
         hasOnceLoadedReportActions,
         isLoadingApp: isAppLoadPending,

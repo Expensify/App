@@ -215,7 +215,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     if (shouldShowOpenReportLoadingSkeleton) {
         const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'MoneyRequestReportView.InitialLoadingSkeleton',
-            isLoadingInitialReportActions: isReportLoadPending,
+            isReportLoadPending,
             shouldWaitForTransactions,
         };
         return (

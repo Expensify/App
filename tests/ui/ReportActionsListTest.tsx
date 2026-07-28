@@ -19,6 +19,7 @@ import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasOnceLoadedReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
@@ -241,7 +242,7 @@ describe('ReportActionsList (body)', () => {
         mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false, hadMessagesAtSessionStart: false});
         mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
-        mockUseOnyx.mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key: string, options) => {
             // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
             // which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
             // directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
@@ -253,7 +254,7 @@ describe('ReportActionsList (body)', () => {
                 return [false, {status: 'loaded'}];
             }
             if (key.includes('reportLoadingState')) {
-                return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
             }
             if (key.includes('reportActions')) {
                 return [[], {status: 'loaded'}];
@@ -279,7 +280,7 @@ describe('ReportActionsList (body)', () => {
                 isOffline: false,
             });
 
-            mockUseOnyx.mockImplementation((key: string) => {
+            mockUseOnyx.mockImplementation((key: string, options) => {
                 if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [true, {status: 'loaded'}];
                 }
@@ -287,7 +288,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -320,7 +321,7 @@ describe('ReportActionsList (body)', () => {
                 isOffline: false,
             });
 
-            mockUseOnyx.mockImplementation((key: string) => {
+            mockUseOnyx.mockImplementation((key: string, options) => {
                 if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [false, {status: 'loaded'}];
                 }
@@ -328,7 +329,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -355,7 +356,7 @@ describe('ReportActionsList (body)', () => {
                 isOffline: true,
             });
 
-            mockUseOnyx.mockImplementation((key: string) => {
+            mockUseOnyx.mockImplementation((key: string, options) => {
                 if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [true, {status: 'loaded'}];
                 }
@@ -363,7 +364,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -387,7 +388,7 @@ describe('ReportActionsList (body)', () => {
                 isOffline: true,
             });
 
-            mockUseOnyx.mockImplementation((key: string) => {
+            mockUseOnyx.mockImplementation((key: string, options) => {
                 if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [false, {status: 'loaded'}];
                 }
@@ -395,7 +396,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -419,7 +420,7 @@ describe('ReportActionsList (body)', () => {
         it('fires markOpenReportEnd with warm:false while the initial skeleton shows', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
 
-            mockUseOnyx.mockImplementation((key: string) => {
+            mockUseOnyx.mockImplementation((key: string, options) => {
                 if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
                     return [true, {status: 'loaded'}];
                 }
@@ -427,7 +428,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -501,7 +502,7 @@ describe('ReportActionsList (body)', () => {
         const setupConciergeMocks = () => {
             jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
-            mockUseOnyx.mockImplementation((key: string) => {
+            mockUseOnyx.mockImplementation((key: string, options) => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
                     return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
                 }
@@ -512,7 +513,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -662,7 +663,7 @@ describe('ReportActionsList (body)', () => {
             mockUseConciergeSessionState.mockReturnValue({sessionStartTime, showFullHistory, hadMessagesAtSessionStart: false});
             mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
 
-            mockUseOnyx.mockImplementation((key: string) => {
+            mockUseOnyx.mockImplementation((key: string, options) => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
                     return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
                 }
@@ -673,7 +674,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions}, {status: 'loaded'}];
+                    return [options?.selector === hasOnceLoadedReportActionsSelector ? hasOnceLoadedReportActions : false, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];

@@ -36,7 +36,6 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
         isReportArchived: false,
         isReportTransactionThread: false,
         shouldBeAlignedToTop: false,
-        isLoadingInitialReportActions: false,
         isReportLoadPending: false,
         hasOnceLoadedReportActions: false,
         isLoadingApp: false,
@@ -53,10 +52,9 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
 }
 
 describe('computeReportActionsSkeletonState', () => {
-    it('shows the initial skeleton for a pending OpenReport matching this report when the stored flag is false', () => {
+    it('shows the initial skeleton for a pending OpenReport matching this report', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
-                isLoadingInitialReportActions: false,
                 isReportLoadPending: true,
             }),
         );
@@ -64,10 +62,9 @@ describe('computeReportActionsSkeletonState', () => {
         expect(state.shouldShowInitialSkeleton).toBe(true);
     });
 
-    it('ignores a stranded stored flag when no OpenReport matching this report is pending', () => {
+    it('does not show the initial skeleton when no OpenReport matching this report is pending', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
-                isLoadingInitialReportActions: true,
                 isReportLoadPending: false,
             }),
         );
@@ -89,7 +86,6 @@ describe('computeReportActionsSkeletonState', () => {
     it('releases the initial skeleton after a terminal OpenReport failure', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
-                isLoadingInitialReportActions: false,
                 isReportLoadPending: false,
             }),
         );
@@ -97,13 +93,12 @@ describe('computeReportActionsSkeletonState', () => {
         expect(state.shouldShowInitialSkeleton).toBe(false);
     });
 
-    it('releases the unread initial load when only the stored loading flag is true', () => {
+    it('releases the unread initial load when no report load is pending', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
                 report: unreadReport,
                 isMissingReportActions: false,
                 reportActionsLength: 1,
-                isLoadingInitialReportActions: true,
                 isReportLoadPending: false,
             }),
         );
@@ -111,14 +106,13 @@ describe('computeReportActionsSkeletonState', () => {
         expect(state.shouldShowLoadingSkeleton).toBe(false);
     });
 
-    it('preserves the unread initial load when only the report pending state is true', () => {
+    it('preserves the unread initial load when the report load is pending', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
                 report: unreadReport,
                 isMissingReportActions: false,
                 reportActionsLength: 1,
                 shouldBeAlignedToTop: true,
-                isLoadingInitialReportActions: false,
                 isReportLoadPending: true,
             }),
         );
@@ -126,14 +120,13 @@ describe('computeReportActionsSkeletonState', () => {
         expect(state.shouldShowLoadingSkeleton).toBe(true);
     });
 
-    it('releases the linked message skeleton when only the stored loading flag is true', () => {
+    it('releases the linked message skeleton when no report load is pending', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
                 report: readReport,
                 reportActionIDFromRoute: '5678',
                 isMissingReportActions: false,
                 reportActionsLength: 2,
-                isLoadingInitialReportActions: true,
                 isReportLoadPending: false,
             }),
         );
@@ -141,14 +134,13 @@ describe('computeReportActionsSkeletonState', () => {
         expect(state.shouldShowInitialSkeleton).toBe(false);
     });
 
-    it('preserves the linked message skeleton when only the report pending state is true', () => {
+    it('preserves the linked message skeleton when the report load is pending', () => {
         const state = computeReportActionsSkeletonState(
             createReadinessSignals({
                 report: readReport,
                 reportActionIDFromRoute: '5678',
                 isMissingReportActions: false,
                 reportActionsLength: 2,
-                isLoadingInitialReportActions: false,
                 isReportLoadPending: true,
             }),
         );
