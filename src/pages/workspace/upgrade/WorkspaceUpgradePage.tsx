@@ -6,7 +6,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,7 +16,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {
-    canAccessSubmitWorkspaceFeatures as canAccessSubmitWorkspaceFeaturesUtils,
     canEditWorkspaceSettings,
     canModifyPlan,
     getDefaultApprover,
@@ -25,6 +23,7 @@ import {
     getUserFriendlyWorkspaceType,
     isControlPolicy,
     isPaidGroupPolicy,
+    isSubmitPolicy,
 } from '@libs/PolicyUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -85,9 +84,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyID = route.params?.policyID;
     const reportID = route.params?.reportID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const canAccessSubmitWorkspaceFeatures = canAccessSubmitWorkspaceFeaturesUtils(policy, isSubmit2026BetaEnabled);
+    // A submit2026 policy can only be upgraded via the UpgradeSubmit command (the server rejects
+    // UpgradeToCorporate for it with a 402), and its owner holds the editor role, so the upgrade
+    // flow below must key off the policy type rather than the SUBMIT_2026 beta or admin checks.
+    const isUpgradingFromSubmitPolicy = isSubmitPolicy(policy);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
     const upgradingFromSubmitLatchPolicyIDRef = useRef<string | undefined>(undefined);
     // upgradePlanType comes from the URL, so only honor the plans we explicitly support upgrading to.
@@ -106,8 +106,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         // eslint-disable-next-line react-hooks/set-state-in-effect -- latch submit-plan snapshot once when policy loads; sticky across upgrade
-        setUpgradingFromSubmit((previous) => (previous !== undefined ? previous : canAccessSubmitWorkspaceFeatures));
-    }, [policyID, policy?.type, canAccessSubmitWorkspaceFeatures]);
+        setUpgradingFromSubmit((previous) => (previous !== undefined ? previous : isUpgradingFromSubmitPolicy));
+    }, [policyID, policy?.type, isUpgradingFromSubmitPolicy]);
 
     const feature = featureNameAlias
         ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
@@ -125,7 +125,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
-    const canPerformUpgrade = canModifyPlan(ownerPolicies, policy) || canAccessSubmitWorkspaceFeatures;
+    const canPerformUpgrade = canModifyPlan(ownerPolicies, policy) || isUpgradingFromSubmitPolicy;
     const policyData = usePolicyData(policyID);
     const policyDataRef = useRef(policyData);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -186,7 +186,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
 
-        if (canAccessSubmitWorkspaceFeatures) {
+        if (isUpgradingFromSubmitPolicy) {
             const targetType = upgradePlanType ?? (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
             upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
             return;
