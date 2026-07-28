@@ -72,6 +72,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         anchorAlignment = defaultAnchorAlignment,
         buttonRef,
         onPress,
+        onPrimaryPress,
         options,
         onOptionSelected,
         onSubItemSelected,
@@ -167,7 +168,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     setIsMenuVisible(!isMenuVisible);
                     return;
                 }
-                if (selectedItem?.onSelected) {
+                if (onPrimaryPress) {
+                    onPrimaryPress();
+                } else if (selectedItem?.onSelected) {
                     selectedItem.onSelected();
                 } else if (selectedItem?.value) {
                     onPress(e, selectedItem.value);
@@ -196,6 +199,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (!isSplitButton) {
             setIsMenuVisible(!isMenuVisible);
+        } else if (onPrimaryPress) {
+            onPrimaryPress();
         } else if (selectedItem?.onSelected) {
             // Honor the item's own handler (as the dropdown menu does) so the main split-button press performs the exact
             // action of the defaulted item — e.g. paying directly with a specific bank account — instead of the generic
