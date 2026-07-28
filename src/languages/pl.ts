@@ -5816,6 +5816,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             directFeed: 'Bezpośredni kanał',
             whoNeedsCardAssigned: 'Kto potrzebuje przypisanej karty?',
             chooseTheCardholder: 'Wybierz posiadacza karty',
+            pleaseSelectACardholder: 'Wybierz posiadacza karty, aby kontynuować',
             chooseCard: 'Wybierz kartę',
             chooseCardFor: (assignee: string) => `Wybierz kartę dla <strong>${assignee}</strong>. Nie możesz znaleźć karty, której szukasz? <concierge-link>Daj nam znać.</concierge-link>`,
             noActiveCards: 'Brak aktywnych kart w tym kanale',

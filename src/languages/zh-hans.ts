@@ -5653,6 +5653,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             directFeed: '直接连接',
             whoNeedsCardAssigned: '谁需要分配一张卡？',
             chooseTheCardholder: '选择持卡人',
+            pleaseSelectACardholder: '请选择持卡人以继续',
             chooseCard: '选择一张卡片',
             chooseCardFor: (assignee: string) => `为 <strong>${assignee}</strong> 选择一张卡片。找不到需要的卡片？<concierge-link>告诉我们。</concierge-link>`,
             noActiveCards: '此信息源中没有活动卡片',

@@ -5866,6 +5866,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             directFeed: 'Direktfeed',
             whoNeedsCardAssigned: 'Wer braucht eine zugewiesene Karte?',
             chooseTheCardholder: 'Wähle den Karteninhaber',
+            pleaseSelectACardholder: 'Bitte wähle einen Karteninhaber aus, um fortzufahren',
             chooseCard: 'Wähle eine Karte',
             chooseCardFor: (assignee: string) => `Wähle eine Karte für <strong>${assignee}</strong>. Du findest die gesuchte Karte nicht? <concierge-link>Gib uns Bescheid.</concierge-link>`,
             noActiveCards: 'Keine aktiven Karten in diesem Feed',

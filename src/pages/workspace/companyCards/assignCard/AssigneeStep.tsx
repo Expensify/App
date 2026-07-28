@@ -1,3 +1,4 @@
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -57,6 +58,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const [selectedAssignee, setSelectedAssignee] = useState<ListItem | undefined>();
+    const [shouldShowError, setShouldShowError] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
 
@@ -153,6 +156,19 @@ function AssigneeStep({route}: AssigneeStepProps) {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
     };
 
+    const handleSelectRow = (assignee: ListItem) => {
+        setSelectedAssignee(assignee);
+        setShouldShowError(false);
+    };
+
+    const handleSubmit = () => {
+        if (!selectedAssignee) {
+            setShouldShowError(true);
+            return;
+        }
+        submit(selectedAssignee);
+    };
+
     const handleBackButtonPress = () => {
         if (isEditing) {
             setAssignCardStepAndData({
@@ -176,7 +192,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 alternateText: email,
                 login: email,
                 accountID: personalDetail?.accountID,
-                isSelected: assignCard?.cardToAssign?.email === email,
+                isSelected: selectedAssignee?.login === email,
                 icons: [
                     {
                         source: personalDetail?.avatar ?? icons.FallbackAvatar,
@@ -210,6 +226,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         assignees = options.map((option) => ({
             ...option,
             keyForList: option.keyForList ?? option.login ?? '',
+            isSelected: !!selectedAssignee?.login && selectedAssignee.login === option.login,
         }));
     } else if (debouncedSearchTerm) {
         assignees = [];
@@ -258,15 +275,25 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseTheCardholder')}</Text>
                 <SelectionList
                     data={assignees}
-                    onSelectRow={submit}
+                    onSelectRow={handleSelectRow}
                     ListItem={UserListItem}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={assignCard?.cardToAssign?.email}
+                    initiallyFocusedItemKey={selectedAssignee?.keyForList}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
                     disableMaintainingScrollPosition
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
+                    footerContent={
+                        <FormAlertWithSubmitButton
+                            buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                            onSubmit={handleSubmit}
+                            isAlertVisible={shouldShowError}
+                            containerStyles={[!shouldShowError && styles.mt5]}
+                            message={translate('workspace.companyCards.pleaseSelectACardholder')}
+                            shouldShowLoadingImmediatelyOnPress={false}
+                        />
+                    }
                 />
             </InteractiveStepWrapper>
         </AccessOrNotFoundWrapper>

@@ -326,6 +326,101 @@ describe('AssignCardFeed', () => {
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
+
+        it('should not auto-advance when a cardholder is selected and should navigate only after pressing Next', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const navigateSpy = jest.spyOn(Navigation, 'navigate');
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
+                },
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: false,
+                });
+            });
+
+            const {unmount} = renderAssigneeStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Selecting a cardholder should not navigate immediately (no auto-advance)
+            await waitFor(() => {
+                expect(screen.getByText('testaccount+1@gmail.com')).toBeOnTheScreen();
+            });
+            fireEvent.press(screen.getByText('testaccount+1@gmail.com'));
+            await waitForBatchedUpdatesWithAct();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // Pressing Next should advance the flow
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+            expect(navigateSpy).toHaveBeenCalled();
+
+            unmount();
+            navigateSpy.mockRestore();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should show an error and not navigate when pressing Next without selecting a cardholder', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const navigateSpy = jest.spyOn(Navigation, 'navigate');
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
+                },
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: false,
+                });
+            });
+
+            const {unmount} = renderAssigneeStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Pressing Next with no selection should surface the error and stay on the step
+            await waitFor(() => {
+                expect(screen.getByText('Next')).toBeOnTheScreen();
+            });
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Please select a cardholder to continue')).toBeOnTheScreen();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            unmount();
+            navigateSpy.mockRestore();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     describe('ConfirmationStep - Commercial feed card assignment', () => {

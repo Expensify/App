@@ -5877,6 +5877,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             directFeed: 'Flux direct',
             whoNeedsCardAssigned: 'Qui doit se voir assigner une carte ?',
             chooseTheCardholder: 'Choisir le titulaire de la carte',
+            pleaseSelectACardholder: 'Veuillez sélectionner un titulaire de carte pour continuer',
             chooseCard: 'Choisir une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Dites-le-nous.</concierge-link>`,

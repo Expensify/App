@@ -5834,6 +5834,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             directFeed: 'Directe feed',
             whoNeedsCardAssigned: 'Wie moet er een kaart toegewezen krijgen?',
             chooseTheCardholder: 'Kies de kaarthouder',
+            pleaseSelectACardholder: 'Selecteer een kaarthouder om door te gaan',
             chooseCard: 'Kies een kaart',
             chooseCardFor: (assignee: string) =>
                 `Kies een kaart voor <strong>${assignee}</strong>. Kun je de kaart die je zoekt niet vinden? <concierge-link>Laat het ons weten.</concierge-link>`,

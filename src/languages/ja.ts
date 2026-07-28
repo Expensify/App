@@ -5780,6 +5780,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
             chooseTheCardholder: 'カード名義人を選択',
+            pleaseSelectACardholder: '続行するにはカード名義人を選択してください',
             chooseCard: 'カードを選択',
             chooseCardFor: (assignee: string) =>
                 `<strong>${assignee}</strong> に割り当てるカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,

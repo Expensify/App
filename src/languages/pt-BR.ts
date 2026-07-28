@@ -5824,6 +5824,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             directFeed: 'Feed direto',
             whoNeedsCardAssigned: 'Quem precisa de um cartão atribuído?',
             chooseTheCardholder: 'Escolha o titular do cartão',
+            pleaseSelectACardholder: 'Selecione um titular do cartão para continuar',
             chooseCard: 'Escolha um cartão',
             chooseCardFor: (assignee: string) =>
                 `Escolha um cartão para <strong>${assignee}</strong>. Não encontra o cartão que está procurando? <concierge-link>Conte para a gente.</concierge-link>`,

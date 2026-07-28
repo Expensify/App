@@ -5949,6 +5949,7 @@ const translations = {
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',
+            pleaseSelectACardholder: 'Please select a cardholder to continue',
             chooseCard: 'Choose a card',
             chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',
