@@ -469,6 +469,48 @@ describe('WorkspaceMembers', () => {
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
+
+        it('should hide the Make workspace admin option when the selected member is a Payments Admin who is the Authorized Payer', async () => {
+            // Given a Payments Admin who is also the Authorized Payer. PAYMENTS_ADMIN is the only non-admin
+            // role with write access to WORKFLOWS_PAYMENTS, so it is the sole role that can hold the payer
+            // role without already being an admin — which makes it the only path that can reach the
+            // "Make workspace admin" option. Every other role-change option is already gated on the payer,
+            // but adminOption was not, so it was wrongly offered for this payer.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    reimburser: userEmail,
+                    employeeList: {
+                        [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                    },
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+
+            // When that payer is bulk-selected and the actions dropdown is opened
+            selectCheckboxByMemberName('Member');
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Remove option is still available
+            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
+            await waitFor(() => {
+                expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+            });
+
+            // ...but "Make workspace admin" is hidden for the payer, even though their role is not admin
+            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     describe('Removing members who are approvers and non-approvers', () => {
