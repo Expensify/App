@@ -491,6 +491,26 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense tag:Engineering');
         });
 
+        test('builds Violations by submitter query from filter form values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
+                view: CONST.SEARCH.VIEW.TABLE,
+                limit: String(CONST.SEARCH.TOP_SEARCH_LIMIT),
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues, {
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            });
+
+            expect(result).toEqual(
+                `sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES} sortOrder:${CONST.SEARCH.SORT_ORDER.DESC} type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:${CONST.SEARCH.GROUP_BY.FROM} view:${CONST.SEARCH.VIEW.TABLE} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION} date:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH} limit:${CONST.SEARCH.TOP_SEARCH_LIMIT}`,
+            );
+        });
+
         test('empty filter values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {};
 
