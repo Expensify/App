@@ -7197,8 +7197,16 @@ ${reportName}`,
         exportPartialModal: {
             title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
                 `${exportableCount}/${selectedCount} Berichte nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} exportieren?`,
-            description: ({integration}: ExportPartialModalDescriptionParams) =>
-                `Nur mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} verbundene Berichte werden exportiert. Der Rest deiner Auswahl gehört zu anderen Integrationen und wird übersprungen.\n\nDie folgenden Berichte werden exportiert:`,
+            description: ({integration, hasReportsOnOtherIntegrations, hasIneligibleReports}: ExportPartialModalDescriptionParams) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Nur mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} verbundene Berichte werden exportiert.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Nur exportierbare Berichte werden exportiert.`);
+                }
+                return `${reasons.join('\n\n')}\n\nDie folgenden Berichte werden exportiert:`;
+            },
             confirmText: ({count}: {count: number}) => ({
                 one: `${count} Bericht exportieren`,
                 other: `${count} Berichte exportieren`,

@@ -7115,8 +7115,16 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         },
         exportPartialModal: {
             title: ({exportableCount, selectedCount, integration}) => `¿Exportar ${exportableCount}/${selectedCount} informes a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
-            description: ({integration}) =>
-                `Solo se exportarán los informes conectados a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}. El resto de tu selección pertenece a otras integraciones y se omitirá.\n\nSe exportarán los siguientes informes:`,
+            description: ({integration, hasReportsOnOtherIntegrations, hasIneligibleReports}) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Solo se exportarán los informes conectados a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Solo se exportarán los informes aptos para la exportación.`);
+                }
+                return `${reasons.join('\n\n')}\n\nSe exportarán los siguientes informes:`;
+            },
             confirmText: ({count}) => ({
                 one: `Exportar ${count} informe`,
                 other: `Exportar ${count} informes`,

@@ -7140,8 +7140,16 @@ ${reportName}`,
         exportPartialModal: {
             title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
                 `Wyeksportować ${exportableCount}/${selectedCount} raportów do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
-            description: ({integration}: ExportPartialModalDescriptionParams) =>
-                `Wyeksportowane zostaną tylko raporty połączone z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}. Reszta zaznaczenia należy do innych integracji i zostanie pominięta.\n\nWyeksportowane zostaną następujące raporty:`,
+            description: ({integration, hasReportsOnOtherIntegrations, hasIneligibleReports}: ExportPartialModalDescriptionParams) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Wyeksportowane zostaną tylko raporty połączone z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Wyeksportowane zostaną tylko raporty kwalifikujące się do eksportu.`);
+                }
+                return `${reasons.join('\n\n')}\n\nWyeksportowane zostaną następujące raporty:`;
+            },
             confirmText: ({count}: {count: number}) => ({
                 one: `Wyeksportuj ${count} raport`,
                 other: `Wyeksportuj ${count} raportów`,

@@ -6933,8 +6933,16 @@ ${reportName}`,
         exportPartialModal: {
             title: ({exportableCount, selectedCount, integration}: ExportPartialModalTitleParams) =>
                 `将 ${exportableCount}/${selectedCount} 份报表导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}？`,
-            description: ({integration}: ExportPartialModalDescriptionParams) =>
-                `只有连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} 的报表会被导出。所选的其余报表属于其他集成，将被跳过。\n\n将导出以下报表：`,
+            description: ({integration, hasReportsOnOtherIntegrations, hasIneligibleReports}: ExportPartialModalDescriptionParams) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`只有连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} 的报表会被导出。`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`只有符合导出条件的报表会被导出。`);
+                }
+                return `${reasons.join('\n\n')}\n\n将导出以下报表：`;
+            },
             confirmText: ({count}: {count: number}) => ({
                 one: `导出 ${count} 份报表`,
                 other: `导出 ${count} 份报表`,
