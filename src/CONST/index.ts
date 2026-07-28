@@ -8396,6 +8396,9 @@ const CONST = {
             CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
         },
+        BLOCKING_VIEW: {
+            RETRY_BUTTON: 'BlockingView-RetryButton',
+        },
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
             TRANSACTION_GROUP_LIST_ITEM: 'Search-TransactionGroupListItem',
@@ -9212,16 +9215,16 @@ const CONST = {
                 publishedDate: '2026-07-20',
             },
             {
+                title: 'New feature: Consolidated travel billing',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
+                publishedDate: '2026-07-13',
+            },
+            {
                 title: 'More Concierge AI upgrades, plus agent beta',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
                 publishedDate: '2026-07-01',
-            },
-            {
-                title: 'Ask Concierge AI: charts, insights & more',
-                subtitle: 'Newsletter',
-                url: 'https://use.expensify.com/blog/ask-expensify-ai-anything',
-                publishedDate: '2026-06-30',
             },
         ],
     },
