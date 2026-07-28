@@ -1,5 +1,6 @@
-import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
+
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
 

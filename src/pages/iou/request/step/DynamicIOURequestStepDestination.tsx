@@ -9,6 +9,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -40,8 +41,8 @@ import {clearSubrates} from '@userActions/IOU/PerDiem';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -63,23 +64,30 @@ type IOURequestStepDestinationRef = {
     focus?: () => void;
 };
 
-type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> & {
+type DynamicIOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<
+    typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT | typeof SCREENS.MONEY_REQUEST.CREATE
+> &
+    WithFullTransactionOrNotFoundProps<
+        typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT | typeof SCREENS.MONEY_REQUEST.CREATE
+    > & {
         openedFromStartPage?: boolean;
         explicitPolicyID?: string;
         ref: ForwardedRef<IOURequestStepDestinationRef>;
     };
 
-function IOURequestStepDestination({
+function DynamicIOURequestStepDestination({
     report,
     route: {
-        params: {transactionID, backTo, action, iouType, reportID, backToReport},
+        params: {transactionID, action, iouType, reportID, backToReport},
+        name,
     },
     transaction,
     openedFromStartPage = false,
     explicitPolicyID,
     ref,
-}: IOURequestStepDestinationProps) {
+}: DynamicIOURequestStepDestinationProps) {
+    const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT;
+    const backPath = useDynamicBackPath(isEditPage ? DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path : DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -120,7 +128,7 @@ function IOURequestStepDestination({
     };
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
@@ -155,7 +163,7 @@ function IOURequestStepDestination({
             clearSubrates(transactionID);
         }
 
-        if (backTo) {
+        if (isEditPage) {
             navigateBack();
         } else {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport));
@@ -215,11 +223,11 @@ function IOURequestStepDestination({
             shouldShowOfflineIndicator={false}
         >
             <StepScreenWrapper
-                headerTitle={backTo ? translate('common.destination') : tabTitles[iouType]}
+                headerTitle={isEditPage ? translate('common.destination') : tabTitles[iouType]}
                 onBackButtonPress={navigateBack}
                 shouldShowWrapper={!openedFromStartPage}
                 shouldShowNotFoundPage={shouldShowNotFoundPage}
-                testID="IOURequestStepDestination"
+                testID="DynamicIOURequestStepDestination"
             >
                 {isLoading && (
                     <ActivityIndicator
@@ -268,7 +276,7 @@ function IOURequestStepDestination({
     );
 }
 
-const IOURequestStepDestinationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDestination);
+const DynamicIOURequestStepDestinationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepDestination);
 
-const IOURequestStepDestinationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDestinationWithFullTransactionOrNotFound);
-export default IOURequestStepDestinationWithWritableReportOrNotFound;
+const DynamicIOURequestStepDestinationWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepDestinationWithFullTransactionOrNotFound);
+export default DynamicIOURequestStepDestinationWithWritableReportOrNotFound;
