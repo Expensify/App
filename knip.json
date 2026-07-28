@@ -30,7 +30,13 @@
                 ".storybook/**/*.{js,ts,tsx}",
                 ".github/actions/javascript/**/*.ts"
             ],
-            "ignore": [".github/actions/**/index.js", "tests/perf-test/**", "web/snippets/gib.js", "src/libs/actions/connections/FinancialForce.ts"],
+            "ignore": [
+                ".github/actions/**/index.js",
+                "tests/perf-test/**",
+                "web/snippets/gib.js",
+                "src/libs/actions/connections/FinancialForce.ts",
+                "src/setup/telemetry/noopExpoUpdates.ts"
+            ],
             "eslint": {
                 "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
             },
@@ -65,6 +71,7 @@
         "babel-plugin-module-resolver",
         "babel-plugin-react-compiler",
         "babel-plugin-transform-remove-console",
+        "html-entities",
         "@fullstory/babel-plugin-react-native",
         "@fullstory/babel-plugin-annotate-react",
         "eslint-config-airbnb-typescript",

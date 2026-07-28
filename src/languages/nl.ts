@@ -31,6 +31,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
@@ -119,7 +120,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rotate: 'Draaien',
         zoom: 'Zoom',
         password: 'Wachtwoord',
-        magicCode: 'Magische code',
+        securityCode: 'Beveiligingscode',
         digits: 'cijfers',
         twoFactorCode: 'Tweeledige verificatiecode',
         workspaces: 'Werkruimtes',
@@ -527,6 +528,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: 'Grafiek kan niet worden weergegeven',
         webGLNotSupported: 'Je browser ondersteunt WebGL niet. Schakel het in of gebruik een andere browser.',
         apiKey: 'API-sleutel',
+        exportsTo: 'Exporteert naar',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -700,14 +702,14 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Gezicht/vingerafdruk & passkeys',
             explanation:
-                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op één of meer apparaten. Toegang intrekken betekent dat er op dat apparaat bij de volgende verificatie een magische code nodig is.',
-            confirmationPrompt: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op dat apparaat.',
+                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op één of meer apparaten. Toegang intrekken betekent dat er bij de volgende verificatie op dat apparaat een beveiligingscode nodig is.',
+            confirmationPrompt: 'Weet je het zeker? Je hebt een beveiligingscode nodig voor de volgende verificatie op dat apparaat.',
             cta: 'Toegang intrekken',
             noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkeys-verificatie. Als je er een registreert, kun je die toegang hier intrekken.',
             dismiss: 'Begrepen',
             error: 'Aanvraag mislukt. Probeer het later opnieuw.',
             revoke: 'Intrekken',
-            confirmationPromptAll: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat.',
+            confirmationPromptAll: 'Weet je het zeker? Je hebt een beveiligingscode nodig voor de volgende verificatie op elk apparaat.',
             ctaAll: 'Alles intrekken',
             thisDevice: 'Dit apparaat',
             otherDevices: (otherDeviceCount?: number) => {
@@ -715,8 +717,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} andere ${otherDeviceCount === 1 ? 'apparaat' : 'apparaten'}`;
             },
-            confirmationPromptThisDevice: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op dit apparaat.',
-            confirmationPromptMultiple: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op die apparaten.',
+            confirmationPromptThisDevice: 'Weet je het zeker? Je hebt een beveiligingscode nodig voor de volgende verificatie op dit apparaat.',
+            confirmationPromptMultiple: 'Weet je het zeker? Je hebt een beveiligingscode nodig voor de volgende verificatie op die apparaten.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Niet-ondersteund apparaat',
@@ -735,7 +737,7 @@ const translations: TranslationDeepObject<typeof en> = {
             je bent ingelogd!
         `),
         successfulSignInDescription: 'Ga terug naar je oorspronkelijke tabblad om verder te gaan.',
-        title: 'Hier is je magische code',
+        title: 'Hier is je beveiligingscode',
         description: Str.dedent(`
             Voer de code in op het apparaat
             waar deze oorspronkelijk is aangevraagd
@@ -746,7 +748,7 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         or: ', of',
         signInHere: 'meld je hier gewoon aan',
-        expiredCodeTitle: 'Magic code verlopen',
+        expiredCodeTitle: 'Beveiligingscode verlopen',
         expiredCodeDescription: 'Ga terug naar het oorspronkelijke apparaat en vraag een nieuwe code aan',
         successfulNewCodeRequest: 'Code aangevraagd. Controleer je apparaat.',
         tfaRequiredTitle: Str.dedent(`
@@ -789,7 +791,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Je betalingen komen net zo snel bij je aan als jij je punt kunt maken.',
         enterPassword: 'Voer uw wachtwoord in',
         welcomeNewFace: (login: string) => `${login}, het is altijd leuk om een nieuw gezicht hier te zien!`,
-        welcomeEnterMagicCode: (login: string) => `Voer de magische code in die naar ${login} is gestuurd. Deze zou binnen een tot twee minuten moeten aankomen.`,
+        welcomeEnterSecurityCode: (login: string) => `Voer de beveiligingscode in die naar ${login} is gestuurd. Deze zou binnen een minuut of twee moeten aankomen.`,
     },
     login: {
         hero: {
@@ -799,9 +801,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Ga verder met inloggen via single sign-on:',
-        orContinueWithMagicCode: 'Je kunt ook inloggen met een magische code',
+        orContinueWithSecurityCode: 'Je kunt ook inloggen met een beveiligingscode',
         useSingleSignOn: 'Single sign-on gebruiken',
-        useMagicCode: 'Gebruik magische code',
+        useSecurityCode: 'Beveiligingscode gebruiken',
         launching: 'Opstarten...',
         oneMoment: 'Een moment terwijl we je doorsturen naar het single sign-onportaal van je bedrijf.',
     },
@@ -1100,6 +1102,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: 'Praat met je accountmanager',
             forGuidedSetup: 'voor begeleide installatie.',
             configureApprovalsSubText: 'Definieer rapportgoedkeuringen',
+            setupTravel: 'Reizen instellen',
+            setupTravelSubText: 'Reisspecifieke regels instellen',
         },
         yourSpend: {
             title: 'Je uitgaven',
@@ -2110,7 +2114,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Voeg meer manieren toe om in te loggen en bonnetjes naar Expensify te sturen.<br/><br/>Voeg een e-mailadres toe om bonnetjes door te sturen naar <a href="mailto:${email}">${email}</a> of voeg een telefoonnummer toe om bonnetjes te sms'en naar 47777 (alleen voor Amerikaanse nummers).`,
         pleaseVerify: 'Verifieer deze contactmethode.',
         getInTouch: 'We gebruiken deze methode om contact met je op te nemen.',
-        enterMagicCode: (contactMethod: string) => `Voer de magische code in die naar ${contactMethod} is verzonden. Deze zou binnen een minuut of twee moeten aankomen.`,
+        enterSecurityCode: (contactMethod: string) => `Voer de beveiligingscode in die is verstuurd naar ${contactMethod}. Die zou binnen één à twee minuten moeten aankomen.`,
         setAsDefault: 'Instellen als standaard',
         yourDefaultContactMethod:
             'Dit is je huidige standaardcontactmethode. Voordat je deze kunt verwijderen, moet je een andere contactmethode kiezen en op ‘Instellen als standaard’ klikken.',
@@ -2118,8 +2122,8 @@ const translations: TranslationDeepObject<typeof en> = {
         removeAreYouSure: 'Weet je zeker dat je deze contactmethode wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
         failedNewContact: 'Het toevoegen van deze contactmethode is mislukt.',
         genericFailureMessages: {
-            requestContactMethodValidateCode: 'Nieuw magische code verzenden is mislukt. Wacht even en probeer het opnieuw.',
-            validateSecondaryLogin: 'Onjuiste of ongeldige magische code. Probeer het opnieuw of vraag een nieuwe code aan.',
+            requestContactMethodValidateCode: 'Versturen van een nieuwe beveiligingscode is mislukt. Wacht even en probeer het opnieuw.',
+            validateSecondaryLogin: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
             deleteContactMethod: 'Verwijderen van contactmethode mislukt. Neem contact op met Concierge voor hulp.',
             setDefaultContactMethod: 'Het instellen van een nieuwe standaardcontactmethode is mislukt. Neem contact op met Concierge voor hulp.',
             addContactMethod: 'Het is niet gelukt om deze contactmethode toe te voegen. Neem contact op met Concierge voor hulp.',
@@ -2284,9 +2288,9 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmMerge: 'Weet je zeker dat je accounts wilt samenvoegen?',
             lossOfUnsubmittedData: (login: string) =>
                 `Het samenvoegen van je accounts is onomkeerbaar en zal leiden tot het verlies van alle niet-ingediende uitgaven voor <strong>${login}</strong>.`,
-            enterMagicCode: (login: string) => `Om door te gaan, voer de magische code in die is verzonden naar <strong>${login}</strong>.`,
+            enterSecurityCode: (login: string) => `Om door te gaan, voer de beveiligingscode in die is verzonden naar <strong>${login}</strong>.`,
             errors: {
-                incorrectMagicCode: 'Onjuiste of ongeldige magische code. Probeer het opnieuw of vraag een nieuwe code aan.',
+                incorrectSecurityCode: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
                 fallback: 'Er is iets misgegaan. Probeer het later opnieuw.',
             },
         },
@@ -2642,8 +2646,8 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Toegevoegd aan ${platform}-wallet`,
         cardDetailsLoadingFailure: 'Er is een fout opgetreden bij het laden van de kaartgegevens. Controleer je internetverbinding en probeer het opnieuw.',
         validateCardTitle: 'We willen zeker weten dat jij het bent',
-        enterMagicCode: (contactMethod: string) =>
-            `Voer de magische code in die naar ${contactMethod} is gestuurd om je kaartgegevens te bekijken. Deze zou binnen één à twee minuten moeten aankomen.`,
+        enterSecurityCode: (contactMethod: string) =>
+            `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om je kaartgegevens te bekijken. Deze zou binnen één à twee minuten moeten aankomen.`,
         unexpectedError: 'Er is een fout opgetreden bij het ophalen van de gegevens van je Expensify-kaart. Probeer het opnieuw.',
         cardFraudAlert: {
             confirmButtonText: 'Ja, dat doe ik',
@@ -3075,7 +3079,7 @@ ${amount} voor ${merchant} - ${date}`,
         license: `Geldtransfers worden verzorgd door ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) volgens diens <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenties</a>.`,
     },
     validateCodeForm: {
-        magicCodeNotReceived: 'Geen magische code ontvangen?',
+        securityCodeNotReceived: 'Geen beveiligingscode ontvangen?',
         avoidScamsMessage: '<strong>Voorkom oplichting. Deel je code met niemand.</strong> Ons team zal je nooit bellen, sms’en of e-mailen om deze code te vragen.',
         enterAuthenticatorCode: 'Voer je authenticatiecode in',
         enterRecoveryCode: 'Voer uw herstelcode in',
@@ -3085,8 +3089,8 @@ ${amount} voor ${merchant} - ${date}`,
         timeRemainingAnnouncement: ({timeRemaining}) => `Resterende tijd: ${timeRemaining} ${timeRemaining === 1 ? 'seconde' : 'seconden'}`,
         timeExpiredAnnouncement: 'De tijd is verstreken',
         error: {
-            pleaseFillMagicCode: 'Voer je magische code in',
-            incorrectMagicCode: 'Onjuiste of ongeldige magische code. Probeer het opnieuw of vraag een nieuwe code aan.',
+            pleaseFillSecurityCode: 'Voer je beveiligingscode in',
+            incorrectSecurityCode: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
             pleaseFillTwoFactorAuth: 'Voer je twee-factor-authenticatiecode in',
         },
     },
@@ -3187,7 +3191,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Verifieer je werk-e-mailadres',
-            magicCodeSent: (workEmail: string | undefined) => `Voer de magische code in die is verzonden naar ${workEmail}. Deze zou binnen een of twee minuten moeten aankomen.`,
+            securityCodeSent: (workEmail: string | undefined) => `Voer de beveiligingscode in die is verzonden naar ${workEmail}. Die zou binnen een of twee minuten moeten aankomen.`,
         },
         workEmailValidationError: {
             publicEmail: 'Voer een geldig zakelijk e-mailadres in van een privédomein, bijv. mitch@company.com',
@@ -3513,12 +3517,12 @@ ${amount} voor ${merchant} - ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link is opnieuw verzonden',
-        weSentYouMagicSignInLink: (login: string, loginType: string) => `Ik heb een magische inloglink naar ${login} gestuurd. Controleer je ${loginType} om in te loggen.`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) => `Ik heb een beveiligde inloglink naar ${login} gestuurd. Controleer je ${loginType} om in te loggen.`,
         resendLink: 'Link opnieuw verzenden',
     },
     unlinkLoginForm: {
         toValidateLogin: (primaryLogin: string, secondaryLogin: string) =>
-            `Om ${secondaryLogin} te verifiëren, stuur de magische code opnieuw vanuit de Accountinstellingen van ${primaryLogin}.`,
+            `Om ${secondaryLogin} te bevestigen, stuur de beveiligingscode dan opnieuw vanuit de Accountinstellingen van ${primaryLogin}.`,
         noLongerHaveAccess: (primaryLogin: string) => `Als je geen toegang meer hebt tot ${primaryLogin}, koppel dan je accounts los.`,
         unlink: 'Koppeling verbreken',
         linkSent: 'Link verzonden!',
@@ -3539,7 +3543,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `We kunnen geen sms-berichten afleveren naar ${login}, dus hebben we deze tijdelijk geblokkeerd. Probeer je nummer te valideren:`,
-        validationSuccess: 'Je nummer is gevalideerd! Klik hieronder om een nieuwe magische inlogcode te versturen.',
+        validationSuccess: 'Je nummer is gevalideerd! Klik hieronder om een nieuwe beveiligingsaanmeldcode te versturen.',
         validationFailed: ({
             timeData,
         }: {
@@ -4435,21 +4439,21 @@ ${amount} voor ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Hoi! Wist je dat je vluchten direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van handmatig een uitgave aanmaken en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Hoi! Wist je dat je vluchten rechtstreeks in Expensify kunt boeken en beheren? En dat bonnetjes automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Hoi! Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wist je dat je hotelovernachtingen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Hoi! Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wist je dat je hotelverblijven direct in Expensify kunt boeken en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Hoi! Wist je dat je autoverhuur direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Hoi! Wist je dat je rechtstreeks in Expensify auto\'s kunt huren en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Boek de volgende keer eenvoudig via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Hoi! Wist je dat je treinreizen gewoon in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van je uitgave handmatig aanmaken en boek simpelweg via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wist je dat je treinreizen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Hoi! Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat de bonnetjes automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     workspace: {
@@ -5769,6 +5773,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 },
                 csvColumns: {
                     cardNumber: 'Kaartnummer',
+                    cardName: 'Kaartnaam',
                     postedDate: 'Datum',
                     merchant: 'Handelaar',
                     amount: 'Bedrag',
@@ -5785,6 +5790,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     requiredColumns: (missingColumns: string) => `Wijs een kolom toe aan elk van de attributen: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) =>
                         `Oeps! Je hebt één enkel veld (“${duplicateColumn}”) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
+                    cardIdentityColumn: 'Koppel een kaartnummer of een kaartnaam zodat transacties aan een kaart kunnen worden gekoppeld.',
                 },
                 fileImportDescription: 'Een handmatige optie als je bank geen feed kan versturen.',
                 duplicateFeedModal: {title: 'Kaartfeed al verbonden', prompt: 'Je kunt dezelfde kaartfeed niet twee keer aan dezelfde workspace toevoegen.'},
@@ -6042,6 +6048,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             currentTravelSpendLabel: 'Huidige reiskosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Betaling van ${amount} staat in de wachtrij en wordt binnenkort verwerkt.`,
                             currentTravelSpendCta: 'Saldo betalen',
+                            viewOnSpend: 'Bekijken in Uitgaven',
                             currentTravelLimitLabel: 'Huidige reisl imiet',
                             settlementAccountLabel: 'Verrekeningsrekening',
                             settlementFrequencyLabel: 'Uitbetalingsfrequentie',
@@ -6234,6 +6241,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 defaultHourlyRate: 'Standaard uurtarief',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
+            vendors: {title: 'Leveranciers', subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -6589,6 +6597,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             peopleAdmins: 'People-beheerders',
             paymentsAdmins: 'Betalingsbeheerders',
             members: 'Leden',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Je kunt ${memberName} niet uit deze werkruimte verwijderen zolang diegene een Expensify Kaart heeft. Deactiveer eerst hun kaart in Werkruimte > Expensify Kaart en probeer het daarna opnieuw.`,
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -7049,6 +7059,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             amountPerUnit: (unit: string) => `Bedrag per ${unit}`,
             startDate: 'Startdatum',
             endDate: 'Einddatum',
+            autoGeneratedRateTooltip: 'Dit tarief is automatisch gegenereerd.',
         },
         editor: {
             descriptionInputLabel: 'Beschrijving',
@@ -7598,7 +7609,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             },
             customRules: {
                 title: 'Declaratiebeleid',
-                cardSubtitle: 'Hier staat het declaratiebeleid van je team, zodat iedereen hetzelfde beeld heeft van wat er wordt vergoed.',
+                cardSubtitle: 'Upload je onkostendeclaratiebeleid zodat iedereen weet wat ze wel en niet kunnen declareren.',
                 policyDocument: 'Beleidsdocument',
                 policyText: 'Beleidstekst',
             },
@@ -8787,6 +8798,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 title: 'Geen uitgaven om weer te geven',
                 subtitle: 'Geen resultaten. Pas je filters aan en probeer het opnieuw.',
             },
+            emptyViolationSnapshotResults: {
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
+                    `Overtredingen worden alleen bijgehouden vanaf ${formattedDate}. Probeer je datumfilters aan te passen.`,
+            },
             emptyUnapprovedResults: {
                 title: 'Geen declaraties om goed te keuren',
                 subtitle: 'Nul uitgaven. Maximale chill. Goed gedaan!',
@@ -8802,6 +8817,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',
         searchName: 'Zoeknaam',
         savedSearchesMenuItemTitle: 'Opgeslagen',
+        mySavedSearch: 'Mijn uitgaven',
         urlCopied: 'URL gekopieerd',
         groupedExpenses: 'gegroepeerde uitgaven',
         bulkActions: {
@@ -8902,6 +8918,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Geconsolideerde reisfacturatie',
             },
             is: 'Is',
+            has: {submittedViolation: 'Ingediende overtreding'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Verzenden',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Goedkeuren',
@@ -10014,9 +10031,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         removeCopilotConfirmation: 'Weet je zeker dat je deze copilot wilt verwijderen?',
         changeAccessLevel: 'Toegangsniveau wijzigen',
         makeSureItIsYou: 'We willen zeker weten dat jij het bent',
-        enterMagicCode: (contactMethod: string) =>
-            `Voer de magische code in die naar ${contactMethod} is gestuurd om een copiloot toe te voegen. Deze zou binnen een of twee minuten moeten aankomen.`,
-        enterMagicCodeUpdate: (contactMethod: string) => `Voer de magische code in die naar ${contactMethod} is gestuurd om je copiloot bij te werken.`,
+        enterSecurityCode: (contactMethod: string) =>
+            `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om een copiloot toe te voegen. Deze zou binnen een of twee minuten moeten aankomen.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om je copilot bij te werken.`,
         notAllowed: 'Niet zo snel...',
         noAccessMessage: Str.dedent(`
             Als copiloot heb je geen toegang tot
@@ -10142,7 +10159,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',
-        saveSearchTooltip: '<tooltip><strong>Hernoem hier je opgeslagen zoekopdrachten</strong>!</tooltip>',
         accountSwitcher: '<tooltip>Krijg hier toegang tot je <strong>Copilot-accounts</strong></tooltip>',
         outstandingFilter: '<tooltip>Filter voor uitgaven\ndie <strong>goedkeuring nodig hebben</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Stuur deze bon om\n<strong>de proefrit te voltooien!</strong></tooltip>',
@@ -10428,6 +10444,17 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         description: 'Laat het ons weten, zodat we je uitgavenervaring nog beter kunnen maken.',
         positiveButton: 'Ja!',
         negativeButton: 'Niet echt',
+    },
+    trialPaymentReminder: {
+        title: 'Blijf de deadline voor',
+        subtitle: 'Wacht niet tot het laatste moment, voeg vandaag nog je betaalmethode toe om doorlopende toegang tot je uitgaven op Expensify te garanderen.',
+        trialEndsInDays: () => ({
+            one: 'Proefperiode eindigt over 1 dag',
+            other: (pluralCount: number) => `Proefperiode eindigt over ${pluralCount} dagen`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Proefperiode eindigt over ${hours}u : ${minutes}m : ${seconds}s`,
+        closeButton: 'Sluiten',
+        addPaymentCardButton: 'Betaalkaart toevoegen',
     },
     monthPickerPage: {month: 'Maand', selectMonth: 'Selecteer een maand'},
     aiFeaturesPromoModal: {
