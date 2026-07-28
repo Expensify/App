@@ -13,7 +13,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
-import useSearchAutoRefetch from '@hooks/useSearchHighlightAndScroll';
+import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';

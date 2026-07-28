@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 
-import useSearchAutoRefetch from '@hooks/useSearchHighlightAndScroll';
-import type {UseSearchAutoRefetch} from '@hooks/useSearchHighlightAndScroll';
+import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
+import type {UseSearchAutoRefetch} from '@hooks/useSearchAutoRefetch';
 
 import {search} from '@libs/actions/Search';
 
