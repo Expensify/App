@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -1069,6 +1071,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: '联系您的客户经理',
             forGuidedSetup: '以获取引导式设置。',
             configureApprovalsSubText: '定义报表审批',
+            setupTravel: '设置差旅',
+            setupTravelSubText: '配置差旅专用规则',
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
@@ -4303,18 +4307,15 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         nightsIn: '入住晚数',
         taxID: {title: '税号', subtitle: '请输入您法人的税号，以便我们以本地货币为您设置差旅结算。', inputLabel: '法人税号', error: {required: '请输入您的法人税号。'}},
         nudge: {
-            airfareManual: '嗨！你知道吗？你可以直接在 Expensify 中预订和管理机票。下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
-            airfareCard:
-                '嗨！你知道吗？你可以直接在 Expensify 里预订和管理航班，而且还能自动帮你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+            airfareManual: '你知道吗？你可以直接在 Expensify 中预订和管理机票！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+            airfareCard: '你知道吗？你可以直接在 Expensify 预订和管理机票，而且还能自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
             hotelManual:
-                '嗨！你知道吗，现在你可以直接在 Expensify 预订和管理酒店住宿？下次就不用再手动创建报销，直接通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订就行了 🏨',
-            hotelCard: '嗨！你知道吗？你可以直接在 Expensify 中预订和管理酒店住宿。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 进行预订即可 🏨',
-            carManual: '嗨！你知道吗？你可以直接在 Expensify 里预订和管理租车。下次就不用再手动创建报销，直接通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
-            carCard: '嗨！你知道吗？你可以直接在 Expensify 中预订和管理租车服务。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
-            railManual:
-                '嗨！你知道吗？你可以直接在 Expensify 里预订和管理火车行程。下次就不用再手动创建报销了，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
-            railCard:
-                '嗨！你知道吗？你可以直接在 Expensify 里预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
+                '你知道吗？你可以直接在 Expensify 中预订和管理酒店住宿！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 完成预订即可 🏨',
+            hotelCard: '你知道吗？你可以直接在 Expensify 中预订和管理酒店住宿！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🏨',
+            carManual: '你知道吗？你可以直接在 Expensify 中预订和管理租车服务。下次就不用再手动创建报销了，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
+            carCard: '你知道吗？你可以直接在 Expensify 中预订和管理租车！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
+            railManual: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
+            railCard: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
         },
     },
     workspace: {
@@ -4889,7 +4890,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingDescription: '差旅费用将作为信用卡费用导出到下面指定的 Sage Intacct 账户。',
             creditCardAccount: '信用卡账户',
             defaultVendor: '默认供应商',
-            defaultVendorDescription: (isReimbursable: boolean) => `为没有在 Sage Intacct 中匹配供应商的${isReimbursable ? '' : '非'}可报销费用设置一个默认供应商。`,
+            defaultVendorDescription: (isReimbursable: boolean) =>
+                isReimbursable ? `为可报销但在 Sage Intacct 中没有匹配供应商的报销费用设置一个默认供应商。` : `无法与 Sage Intacct 供应商匹配的报销将默认归到此供应商名下。`,
             exportDescription: '配置 Expensify 数据导出到 Sage Intacct 的方式。',
             exportPreferredExporterNote: '首选导出人可以是任意工作区管理员，但如果你在“域设置”中为各个公司卡设置了不同的导出账户，则该导出人还必须是域管理员。',
             exportPreferredExporterSubNote: '设置完成后，首选导出人将在其账户中看到可供导出的报表。',
@@ -5858,6 +5860,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             currentTravelSpendLabel: '当前差旅支出',
                             currentTravelSpendPaymentQueued: (amount: string) => `金额为 ${amount} 的付款已排队，稍后将被处理。`,
                             currentTravelSpendCta: '支付余额',
+                            viewOnSpend: '在支出中查看',
                             currentTravelLimitLabel: '当前出行限额',
                             settlementAccountLabel: '结算账户',
                             settlementFrequencyLabel: '结算频率',
@@ -6036,6 +6039,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 defaultHourlyRate: '默认时薪',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要禁用人力资源功能，请先将此工作区与 ${integration} 断开连接。`},
+            vendors: {title: '供应商', subtitle: '将卡片报销与从您的会计软件导入的供应商进行匹配。'},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6377,6 +6381,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             peopleAdmins: '人员管理员',
             paymentsAdmins: '付款管理员',
             members: '成员',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `在 ${memberName} 仍持有 Expensify 卡时，您无法将其从此工作区中移除。请在“工作区 > Expensify 卡”中停用其卡片后重试。`,
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -6712,6 +6718,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             exportCompanyCard: '导出公司卡费用为',
             exportDate: '导出日期',
             defaultVendor: '默认供应商',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet ? `未自动匹配的报销将默认归属到此供应商。` : `未自动匹配的报销将默认为此供应商，否则将以“信用卡杂项”导出。`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `为未能自动匹配的报销选择一个默认的 ${connectionName} 供应商。`,
             defaultAccount: '默认账户',
             autoSync: '自动同步',
             autoSyncDescription: '每天自动同步 NetSuite 和 Expensify。实时导出已完成报表',
