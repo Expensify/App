@@ -6403,7 +6403,8 @@ function getParentNavigationSubtitle(
  *
  * @param isInSidePanel - Whether the report is rendered inside the Side Panel. A Side Panel report is not part of the
  * navigation state (`SidePanelReport` renders `ReportScreen` with a synthetic route), so the active route belongs to
- * whichever screen sits behind the panel. In that case the details route has to be anchored to the report itself.
+ * whichever screen sits behind the panel. In that case the destination (details or profile, since the Side Panel shows
+ * either the admins room or the 1:1 Concierge chat) has to be anchored to the report itself.
  * Everywhere else the active route is used on purpose, so details opens within the current context (Search, workspace
  * rooms, …) rather than jumping to the report — see https://github.com/Expensify/App/pull/90113.
  */
@@ -6412,13 +6413,14 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, isInSidePanel = false)
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
+    const basePath = isInSidePanel && report?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(report.reportID) : undefined;
+
     if (isSelfDMReport || isOneOnOneChatReport) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0))));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0)), basePath));
         return;
     }
 
     if (report?.reportID) {
-        const basePath = isInSidePanel ? ROUTES.REPORT_WITH_ID.getRoute(report.reportID) : undefined;
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, basePath));
     }
 }
