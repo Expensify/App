@@ -11,7 +11,6 @@ function SearchRouterPage() {
     return (
         <ScreenWrapper
             testID="SearchRouterPage"
-            keyboardAvoidingViewBehavior="height"
             shouldEnableMaxHeight
             enableEdgeToEdgeBottomSafeAreaPadding
             includePaddingTop
