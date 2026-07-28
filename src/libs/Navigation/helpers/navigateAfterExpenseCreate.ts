@@ -58,12 +58,17 @@ type NavigateToCreatedExpenseParams = {
  * - Inbox tab, wide layout, tracked/unreported expense (no expense report): the transaction thread RHP directly
  */
 function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: NavigateToCreatedExpenseParams) {
-    const backTo = Navigation.getActiveRoute();
     const openOnInbox = isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
 
     // When a report/expense is already open in the RHP the app's convention is to replace it rather than stack a second
     // report RHP on top of it.
     const forceReplace = isReportOpenInRHP(navigationRef.getRootState());
+    const currentRouteParams = navigationRef.current?.getCurrentRoute()?.params;
+    const currentRouteBackTo =
+        typeof currentRouteParams === 'object' && currentRouteParams !== null && 'backTo' in currentRouteParams && typeof currentRouteParams.backTo === 'string'
+            ? currentRouteParams.backTo
+            : undefined;
+    const backTo = forceReplace ? currentRouteBackTo : Navigation.getActiveRoute();
 
     if (!openOnInbox) {
         setActiveTransactionIDs([transactionID]).then(() => {
