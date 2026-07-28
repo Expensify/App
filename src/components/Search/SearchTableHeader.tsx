@@ -428,7 +428,6 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     isColumnSortable: true,
                 },
                 ...commonGroupHeaders,
-                x,
             ];
         case CONST.SEARCH.GROUP_BY.MERCHANT:
             return [
