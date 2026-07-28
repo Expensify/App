@@ -1274,6 +1274,13 @@ function isSmartLimitEnabled(cardsList: CardList) {
     return hasAssignedCardMatching(cardsList, (card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
 
+function hasActiveExpensifyCardAssigned(workspaceCards: CardList | undefined, accountID: number): boolean {
+    return hasAssignedCardMatching(
+        workspaceCards,
+        (card) => card.accountID === accountID && card.bank === CONST.EXPENSIFY_CARD.BANK && !isTravelCard(card) && card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+}
+
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV];
 
 function collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards: CompanyFeeds | undefined, csvPrefix: string): number[] {
@@ -2082,6 +2089,7 @@ export {
     getDomainByFundID,
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
+    hasActiveExpensifyCardAssigned,
     hasAssignedCardMatching,
     forEachAssignedCard,
     isActiveCard,

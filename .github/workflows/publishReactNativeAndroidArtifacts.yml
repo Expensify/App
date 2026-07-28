@@ -1,184 +1,57 @@
 name: Publish React Native Android Artifacts
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      build_standalone:
-        description: 'Build Standalone artifacts'
-        required: false
-        type: boolean
-      build_hybridapp:
-        description: 'Build HybridApp artifacts'
-        required: false
-        type: boolean
-      app_pull_request_url:
-        description: 'The Expensify/App pull request URL.'
-        required: false
-        default: ''
-      mobile_expensify_pull_request_url:
-        description: 'The Expensify/Mobile-Expensify pull request URL to check out the submodule.'
-        required: false
-        default: ''
-      reviewed_code:
-        description: I reviewed this pull request and verified that it does not contain any malicious code.
-        type: boolean
+      build_targets:
+        description: JSON array of `is_hybrid` values to build (e.g. ["true","false"]).
         required: true
-        default: false
-  push:
-    branches:
-      - main
-    paths:
-      - package.json
-      - patches/react-native+*.patch
-      - patches/@react-native+*.patch
-      - patches/react-native/react-native+*.patch
-      - patches/react-native/@react-native+*.patch
-      - Mobile-Expensify
+        type: string
+      app_ref:
+        description: Expensify/App ref to checkout (empty = triggering ref).
+        required: false
+        type: string
+        default: ''
+      mobile_expensify_ref:
+        description: Mobile-Expensify ref to checkout for hybrid builds (empty = pinned submodule).
+        required: false
+        type: string
+        default: ''
+    secrets:
+      OS_BOTIFY_TOKEN:
+        description: Token used to checkout private submodules.
+        required: true
+      SLACK_WEBHOOK:
+        description: Webhook used to announce failures.
+        required: true
 
 jobs:
-  verifyPatches:
-    name: Verify React Native Patches
-    runs-on: 'blacksmith-4vcpu-ubuntu-2404'
-    outputs:
-      build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
-    steps:
-      - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
-        with:
-          submodules: true
-          ref: ${{ github.event.before || 'main' }}
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Get previous patches hash
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        id: getOldPatchesHash
-        run: |
-          echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-          echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
-
-      - name: Get previous react-native version
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        id: getOldVersion
-        run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout new ref
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        run: |
-          git fetch origin ${{ github.event.after }} --depth=1
-          git checkout ${{ github.event.after }}
-          git submodule update
-
-      - name: Get new patches hash
-        id: getNewPatchesHash
-        run: |
-          echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-          echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
-
-      - name: Get new react-native version
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        id: getNewVersion
-        run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
-
-      - name: Check if version changed
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        id: didVersionChange
-        run: |
-          readonly DID_VERSION_CHANGE=${{ steps.getOldVersion.outputs.VERSION != steps.getNewVersion.outputs.VERSION && 'true' || 'false' }}
-          echo "DID_VERSION_CHANGE=$DID_VERSION_CHANGE" >> "$GITHUB_OUTPUT"
-          if [[ "$DID_VERSION_CHANGE" == 'true' ]]; then
-            echo "::notice::Detected react-native version bump (${{ steps.getOldVersion.outputs.VERSION }} -> ${{ steps.getNewVersion.outputs.VERSION }})"
-          fi
-
-      - name: Check if patches changed
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        id: didPatchesChange
-        run: |
-          readonly DID_HYBRID_APP_PATCHES_CHANGE=${{ steps.getOldPatchesHash.outputs.HYBRID_APP_HASH != steps.getNewPatchesHash.outputs.HYBRID_APP_HASH && 'true' || 'false' }}
-          readonly DID_STANDALONE_APP_PATCHES_CHANGE=${{ steps.getOldPatchesHash.outputs.STANDALONE_APP_HASH != steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH && 'true' || 'false' }}
-          echo "DID_HYBRID_APP_PATCHES_CHANGE=$DID_HYBRID_APP_PATCHES_CHANGE" >> "$GITHUB_OUTPUT"
-          echo "DID_STANDALONE_APP_PATCHES_CHANGE=$DID_STANDALONE_APP_PATCHES_CHANGE" >> "$GITHUB_OUTPUT"
-
-          if [[ "$DID_HYBRID_APP_PATCHES_CHANGE" == 'true' ]]; then
-            echo "::notice::Detected changes in HybridApp patches (${{ steps.getOldPatchesHash.outputs.HYBRID_APP_HASH }} -> ${{ steps.getNewPatchesHash.outputs.HYBRID_APP_HASH }})"
-          fi
-
-          if [[ "$DID_STANDALONE_APP_PATCHES_CHANGE" == 'true' ]]; then
-            echo "::notice::Detected changes in Standalone NewDot patches (${{ steps.getOldPatchesHash.outputs.STANDALONE_APP_HASH }} -> ${{ steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH }})"
-          fi
-
-      - name: Get artifact build targets
-        id: getArtifactBuildTargets
-        run: |
-          if [[ '${{ github.event_name }}' == 'workflow_dispatch' ]]; then
-            BUILD_TARGETS=()
-
-            if [[ '${{ inputs.build_standalone }}' == 'true' ]]; then
-              BUILD_TARGETS+=(false)
-            fi
-
-            if [[ '${{ inputs.build_hybridapp }}' == 'true' ]]; then
-              BUILD_TARGETS+=(true)
-            fi
-
-            if [[ ${#BUILD_TARGETS[@]} -ne 0 ]]; then
-              echo "BUILD_TARGETS=$(printf '%s\n' "${BUILD_TARGETS[@]}" | jq -R . | jq -c -s .)" >> "$GITHUB_OUTPUT"
-            fi
-            exit 0
-          fi
-
-          # When there is a version change or standalone app patches change, we need to build for both hybrid and standalone
-          if [[ '${{ steps.didVersionChange.outputs.DID_VERSION_CHANGE }}' == 'true' || '${{ steps.didPatchesChange.outputs.DID_STANDALONE_APP_PATCHES_CHANGE }}' == 'true' ]]; then
-            echo "BUILD_TARGETS=[\"true\", \"false\"]" >> "$GITHUB_OUTPUT"
-          elif [[ '${{ steps.didPatchesChange.outputs.DID_HYBRID_APP_PATCHES_CHANGE }}' == 'true' ]]; then
-            echo "BUILD_TARGETS=[\"true\"]" >> "$GITHUB_OUTPUT"
-          fi
-
-  # Validates the actor and that they reviewed the PR before any token is used or untrusted App PR code is checked out.
-  prep:
-    uses: ./.github/workflows/validateBuildRequest.yml
-    with:
-      REVIEWED_CODE: ${{ inputs.reviewed_code || false }}
-    secrets:
-      OS_BOTIFY_COMMIT_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
-  resolveRefs:
-    name: Resolve build refs
-    needs: [prep]
-    uses: ./.github/workflows/resolveBuildRefs.yml
-    with:
-      APP_PULL_REQUEST_URL: ${{ inputs.app_pull_request_url }}
-      MOBILE_EXPENSIFY_PULL_REQUEST_URL: ${{ inputs.mobile_expensify_pull_request_url }}
-    secrets:
-      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
   buildAndPublishReactNativeArtifacts:
     name: Build and Publish React Native Artifacts
     runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-16vcpu-ubuntu-2404' || 'blacksmith-2vcpu-ubuntu-2404' }}
-    needs: [verifyPatches, prep, resolveRefs]
-    if: needs.verifyPatches.outputs.build_targets != ''
     strategy:
       # Disable fail-fast to prevent cancelling both jobs when only one needs to be stopped due to concurrency limits
       fail-fast: false
       matrix:
         # Dynamically build the matrix based on the build targets
-        is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
+        is_hybrid: ${{ fromJSON(inputs.build_targets) }}
     concurrency:
-      group: ${{ github.workflow }}-${{ github.job }}-${{ matrix.is_hybrid }}
+      group: ${{ github.workflow }}-android-build-${{ matrix.is_hybrid }}
       cancel-in-progress: true
     steps:
       - name: Checkout Code
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
-          ref: ${{ needs.resolveRefs.outputs.APP_REF }}
+          ref: ${{ inputs.app_ref }}
           submodules: ${{ matrix.is_hybrid }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Checkout Mobile-Expensify to specified branch or commit
-        if: ${{ matrix.is_hybrid == 'true' && needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF != '' }}
+        if: ${{ matrix.is_hybrid == 'true' && inputs.mobile_expensify_ref != '' }}
         run: |
           cd Mobile-Expensify
-          git fetch origin ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
-          git checkout ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
+          git fetch origin ${{ inputs.mobile_expensify_ref }}
+          git checkout ${{ inputs.mobile_expensify_ref }}
 
       # Recompute the patches hash from the actually checked-out tree (which may include a custom Mobile-Expensify
       # ref) so the published artifact is tagged with a hash that consumers will match against.
@@ -216,6 +89,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+          ARTIFACT_ID: react-android
 
       - name: Build and publish React Native artifacts
         working-directory: ${{ matrix.is_hybrid == 'true' && 'Mobile-Expensify/Android' || 'android' }}

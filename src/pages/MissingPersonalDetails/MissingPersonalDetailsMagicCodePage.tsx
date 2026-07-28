@@ -107,7 +107,7 @@ function MissingPersonalDetailsMagicCodePage({
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
+            descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="personalDetails"
             handleSubmitForm={handleSubmitForm}
