@@ -2590,34 +2590,29 @@ function removeTransactionFromDuplicateTransactionViolation(
 }
 
 /**
- * Keeps only transactions that Auth's MergeTransactions command would accept, i.e. those whose report is still
- * open or awaiting first-level approval. Anything approved, closed (Submit & Close), or reimbursed is rejected
- * server-side, so filtering here prevents sending a merge request that would fail.
+ * Whether a report is still editable for a duplicate merge, i.e. one that Auth's MergeTransactions command would
+ * accept. A report is mergeable when it is open, awaiting first-level approval, or unresolved (unreported expenses
+ * stay editable in Auth). Anything approved, closed (Submit & Close), or reimbursed is rejected server-side.
+ */
+function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
+    return !report || isOpenReport(report) || isProcessingReport(report);
+}
+
+/**
+ * Keeps only transactions that Auth's MergeTransactions command would accept, so filtering here prevents sending a
+ * merge request that would fail server-side.
  */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => {
-        if (!transaction) {
-            return false;
-        }
-        const report = getReportOrDraftReport(transaction.reportID);
-
-        // Unreported expenses (no resolvable report) stay editable in Auth, so keep them. Only exclude
-        // transactions whose report exists but is past first approval (approved, closed, or reimbursed).
-        if (!report) {
-            return true;
-        }
-        return isOpenReport(report) || isProcessingReport(report);
-    }) as Transaction[];
+    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID))) as Transaction[];
 }
 
 /**
  * Whether a duplicate merge can be submitted. Auth's MergeTransactions rejects the merge when the kept expense's
  * report is no longer editable or when there are no duplicates left to merge, so callers should block the request
- * in those cases. An unresolved/unreported kept report stays editable in Auth, mirroring removeSettledAndApprovedTransactions.
+ * in those cases.
  */
 function canMergeDuplicates(keptReport: OnyxEntry<Report>, transactionIDList: string[]): boolean {
-    const isKeptReportMergeable = !keptReport || isOpenReport(keptReport) || isProcessingReport(keptReport);
-    return isKeptReportMergeable && transactionIDList.length > 0;
+    return isReportMergeableForDuplicates(keptReport) && transactionIDList.length > 0;
 }
 
 /**
