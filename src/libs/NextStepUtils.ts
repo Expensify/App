@@ -397,20 +397,6 @@ function getReportNextStep(
     return moneyRequestReport?.nextStep ?? currentNextStep;
 }
 
-function buildOptimisticNextStepForDEWOffline() {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'neutral',
-        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: 'Waiting for you to come back online to determine next steps.',
-            },
-        ],
-    };
-
-    return optimisticNextStep;
-}
-
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
  * Need to rename this function and remove the buildNextStep function above after migrating to this function
@@ -809,7 +795,6 @@ export {
     buildOptimisticNextStep,
     parseMessage,
     buildOptimisticFixIssueNextStep,
-    buildOptimisticNextStepForDEWOffline,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildNextStepNew,
 };

@@ -1,5 +1,5 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {buildOptimisticFixIssueNextStep, buildOptimisticNextStepForDEWOffline, getReportNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticFixIssueNextStep, getReportNextStep} from '@libs/NextStepUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView, hasPendingDEWApprove, hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import {
@@ -83,8 +83,6 @@ function useOptimisticNextStep(reportID: string | undefined) {
 
             if (errors?.dewSubmitFailed) {
                 optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
-            } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
-                optimisticNextStep = buildOptimisticNextStepForDEWOffline();
             }
         } else if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
             const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, currentUserLogin ?? '', accountID, undefined, isArchivedReport);
@@ -92,8 +90,6 @@ function useOptimisticNextStep(reportID: string | undefined) {
             const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
             if (hasDEWApproveFailed && isCurrentUserTheApprover) {
                 optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
-            } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
-                optimisticNextStep = buildOptimisticNextStepForDEWOffline();
             }
         }
     }
