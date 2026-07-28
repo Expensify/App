@@ -49,7 +49,6 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const defaultCardFeedID = defaultCardFeed?.id;
     // Only policy IDs are needed so Top Spenders matches the type menu hash; card feeds aren't used for that eligibility.
     const topSpendersPolicyIDs = useMemo(() => getSuggestedSearchesVisibility(email, {}, policies, undefined).topSpendersPolicyIDs, [email, policies]);
-    // Pass the active workspace's Expensify Card feed so the Card accruals hash here matches the type menu's (see useSearchTypeMenuSections).
     const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID, undefined, topSpendersPolicyIDs, activeExpensifyCardFeedID);
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
