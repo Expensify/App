@@ -1601,17 +1601,14 @@ describe('actions/IOU/ReportWorkflow', () => {
             }
             expect(optimisticReportValue.nextStep.actorAccountID).toBe(ruleApproverAccountID);
 
-            const nextStepKey = `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`;
-            const optimisticDeprecatedNextStepUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', nextStepKey, Onyx.METHOD.MERGE, true);
-            const optimisticDeprecatedNextStep = optimisticDeprecatedNextStepUpdate.value;
-            if (!Array.isArray(optimisticDeprecatedNextStep.message)) {
-                throw new Error('Expected optimistic next-step messages.');
-            }
-            const strongMessage: unknown = optimisticDeprecatedNextStep.message.find((message) => isObject(message) && message.type === 'strong');
-            if (!isObject(strongMessage)) {
-                throw new Error('Expected a strong optimistic next-step message.');
-            }
-            expect(strongMessage.text).toBe(ruleApproverEmail);
+            const reportkey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+            const optimisticReortUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportkey, Onyx.METHOD.MERGE, true);
+            const optimisticReortUpdateValue = optimisticReortUpdate.value;
+            expect(optimisticReortUpdateValue.nextStep).toEqual({
+                actorAccountID: ruleApproverAccountID,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+            });
         });
 
         it('keeps the workspace chat outstanding when an admin submits after approver changes', async () => {
@@ -3345,16 +3342,19 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
 
-            // Get the optimistic next step
-            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+            // Get the report
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
 
-            // The next step message should be defined
-            expect(nextStep?.message).toBeDefined();
+            // The next step should be defined
+            expect(report?.nextStep).toBeDefined();
 
             // Since take control was invalidated by resubmission, the normal approval chain applies
             // The next step should indicate waiting for the senior manager to approve
-            const fullMessage = nextStep?.message?.map((part) => part.text).join('');
-            expect(fullMessage).toBe('Waiting for Senior Manager User to approve %expenses.');
+            expect(report?.nextStep).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: seniorManagerAccountID,
+            });
         });
 
         it('should mention an admin to pay expenses in optimistic next step message when admin takes control and approves', async () => {
@@ -3388,17 +3388,19 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             await waitForBatchedUpdates();
 
-            // Get the optimistic next step
-            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+            // Get the report
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
 
-            // The next step message should be defined
-            expect(nextStep?.message).toBeDefined();
+            // The next step should be defined
+            expect(report?.nextStep).toBeDefined();
 
             // Since the report is fully approved when admin takes control and approves,
-            // the next step should be about payment, which should mention "you" since the admin is the payer
-            // The message should equal "Waiting for you to pay %expenses."
-            const fullMessage = nextStep?.message?.map((part) => part.text).join('');
-            expect(fullMessage).toBe('Waiting for you to pay %expenses.');
+            // the next step should be about payment,
+            expect(report?.nextStep).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: -1,
+            });
         });
     });
 
