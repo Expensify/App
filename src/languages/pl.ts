@@ -2944,8 +2944,16 @@ ${amount} dla ${merchant} - ${date}`,
             updateAvatar: 'Wystąpił problem z aktualizacją awatara tego agenta',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nowy agent',
+        buildCustomAgent: 'Utwórz własnego agenta',
+        orStartWithTemplate: 'Lub zacznij od szablonu:',
+        role: 'Agent',
+        emptyTemplatesTitle: 'Brak szablonów',
+        emptyTemplatesSubtitle: 'Utwórz własnego agenta, aby rozpocząć.',
+    },
+    addAgentPage: {
+        title: 'Utwórz własnego agenta',
         agentName: 'Nazwa agenta',
         instructions: 'Napisz niestandardowe instrukcje',
         createAgent: 'Utwórz agenta',

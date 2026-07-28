@@ -134,6 +134,7 @@ const SCREENS = {
 
         AGENTS: {
             ROOT: 'Settings_Agents',
+            NEW: 'Settings_Agents_New',
             ADD: 'Settings_Agents_Add',
             ADD_AVATAR: 'Settings_Agents_Add_Avatar',
             EDIT: 'Settings_Agents_Edit',
