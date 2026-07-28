@@ -14,7 +14,6 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnit,
@@ -1160,13 +1159,8 @@ function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): A
     const creatorDisplayName = creatorDetails?.displayName ?? creatorLogin;
     return {
         email: creatorLogin,
-        login: creatorLogin,
         displayName: creatorDisplayName,
-        accountID: creatorDetails?.accountID,
-        text: creatorDisplayName,
-        searchText: creatorDisplayName,
         avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
-        selected: true,
     };
 }
 
@@ -1216,7 +1210,7 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsA
  * Strips the SMS domain so phone-login attendees render the same as in the rendered pills.
  */
 function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): string {
-    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.login ?? '');
+    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.email ?? '');
     const ordered = localeCompare
         ? // Lowercase to match sortAlphabetically (the pill sort) so joined string and pill order never disagree on case.
           [...attendees].sort((a, b) => localeCompare(getName(a).toLowerCase(), getName(b).toLowerCase()))
@@ -1263,17 +1257,14 @@ function hasDisplayableMCC(mcc: number | string | null | undefined): boolean {
     return getMCCForDisplay(mcc) !== '';
 }
 
-/**
- * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
- */
-/**
- * Whether a draft holds tab-entered input that is lost when the flow is abandoned (drafts are not restored on the next open).
- * Forward-navigation fields (amount, receipt, ...) are deliberately excluded; extend per-field as new tabs persist input to the draft.
- */
+/** Whether the draft holds tab-entered input (waypoints) that is lost when the flow is abandoned. */
 function doesMoneyRequestDraftHaveUserInput(transaction: OnyxEntry<Transaction>): boolean {
     return Object.keys(getValidWaypoints(getWaypoints(transaction))).length > 0;
 }
 
+/**
+ * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
+ */
 function getWaypoints(transaction: OnyxEntry<Transaction>): WaypointCollection | undefined {
     return transaction?.modifiedWaypoints ?? transaction?.comment?.waypoints;
 }
@@ -1647,6 +1638,7 @@ function getTransactionViolations(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
 ): TransactionViolations | undefined {
     if (!transaction || !transactionViolations) {
@@ -1655,7 +1647,7 @@ function getTransactionViolations(
 
     const violations =
         transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter(
-            (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+            (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
         ) ?? [];
 
     return violations;
@@ -1690,10 +1682,11 @@ function hasAnyPendingRTERViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     report: OnyxEntry<Report>,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
 ): boolean {
     return transactions.some((t) => {
-        const filteredViolations = getTransactionViolations(t, allTransactionViolations, currentUserEmail, currentUserAccountID, report, policy);
+        const filteredViolations = getTransactionViolations(t, allTransactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
         return hasPendingRTERViolation(filteredViolations);
     });
 }
@@ -1714,9 +1707,10 @@ function hasBrokenConnectionViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     report: OnyxEntry<Report>,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
 ): boolean {
-    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy);
+    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
     return !!violations?.find((violation) => isBrokenConnectionViolation(violation));
 }
 
@@ -1758,6 +1752,7 @@ function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report>, policy: 
 function shouldShowBrokenConnectionViolationForMultipleTransactions(
     transactions: Transaction[],
     report: OnyxEntry<Report>,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserEmail: string,
@@ -1775,7 +1770,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy)) {
+            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy)) {
                 return false;
             }
 
@@ -1826,7 +1821,7 @@ function getVisibleTransactionViolations(
     return mergeProhibitedViolations(
         transactionViolations.filter(
             (violation) =>
-                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin) &&
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy) &&
                 shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
         ),
     );
@@ -1882,6 +1877,7 @@ function allHavePendingRTERViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     report: OnyxEntry<Report>,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
 ): boolean {
     if (!transactions) {
@@ -1890,9 +1886,10 @@ function allHavePendingRTERViolation(
 
     const transactionsWithRTERViolations = transactions.map((transaction) => {
         // Get violations not dismissed by current user
-        const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy)?.filter((violation) =>
-            // Further filter to only violations visible to the current user
-            shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction),
+        const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy)?.filter(
+            (violation) =>
+                // Further filter to only violations visible to the current user
+                shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction),
         );
         // Check if there is pending rter violation in the filtered violations
         return hasPendingRTERViolation(filteredTransactionViolations);
@@ -1909,12 +1906,13 @@ function hasAnyTransactionWithoutRTERViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     report: OnyxEntry<Report>,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
 ): boolean {
     return (
         transactions.length > 0 &&
         transactions.some((transaction) => {
-            return !hasBrokenConnectionViolation(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy);
+            return !hasBrokenConnectionViolation(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
         })
     );
 }
@@ -2041,8 +2039,8 @@ function isDuplicate(
         currentUserEmail,
         currentUserAccountID,
         iouReport,
-        policy,
         iouReportOwnerLogin,
+        policy,
     );
 
     return hasDuplicatedTransactionViolation && !isDuplicatedTransactionViolationDismissed;
@@ -2068,8 +2066,8 @@ function isViolationDismissed(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
-    iouReportOwnerLogin?: string,
 ): boolean {
     if (!transaction || !violation) {
         return false;
@@ -2100,11 +2098,8 @@ function isViolationDismissed(
     const isSubmitter = iouReport.ownerAccountID === currentUserAccountID;
     const shouldViewAsSubmitter = !isSubmitter && isOpenExpenseReport(iouReport);
 
-    if (shouldViewAsSubmitter && iouReport.ownerAccountID) {
-        const reportOwnerEmail = iouReportOwnerLogin ?? getLoginsByAccountIDs([iouReport.ownerAccountID]).at(0);
-        if (reportOwnerEmail && dismissedByEmails.includes(reportOwnerEmail)) {
-            return true;
-        }
+    if (shouldViewAsSubmitter && iouReportOwnerLogin && dismissedByEmails.includes(iouReportOwnerLogin)) {
+        return true;
     }
 
     return false;
@@ -2129,6 +2124,7 @@ function hasViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
 ): boolean {
@@ -2141,7 +2137,7 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }
 
@@ -2181,6 +2177,7 @@ function hasNoticeTypeViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
 ): boolean {
@@ -2193,7 +2190,7 @@ function hasNoticeTypeViolation(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }
 
@@ -2206,6 +2203,7 @@ function hasWarningTypeViolation(
     currentUserEmail: string,
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
+    iouReportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
 ): boolean {
@@ -2219,7 +2217,7 @@ function hasWarningTypeViolation(
             (violation: TransactionViolation) =>
                 violation.type === CONST.VIOLATION_TYPES.WARNING &&
                 (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
         ) ?? [];
 
     return warningTypeViolations.length > 0;
@@ -3049,10 +3047,32 @@ function hasSubmissionBlockingViolations(
     currentUserEmail: string,
     currentUserAccountID: number,
     report: OnyxEntry<Report>,
+    reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
 ): boolean {
-    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy);
+    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
     return hasSubmissionBlockingViolationInList(violations);
+}
+
+function isTransactionSubmittable(
+    transaction: Transaction,
+    report: OnyxEntry<Report>,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    currentUserEmail: string | undefined,
+    currentUserAccountID: number | undefined,
+    reportOwnerLogin: string | undefined,
+    policy: OnyxEntry<Policy>,
+    isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning,
+): boolean {
+    if (isTransactionScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report)) {
+        return false;
+    }
+
+    if (transactionViolations && currentUserEmail && currentUserAccountID !== undefined) {
+        return !hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
+    }
+
+    return true;
 }
 
 /**
@@ -3232,6 +3252,7 @@ export {
     isPartialTransaction,
     isScanningTransaction,
     isScanning,
+    isTransactionSubmittable,
     isCategoryBeingAnalyzed,
     getOriginalTransactionWithSplitInfo,
     shouldRedirectDeleteToSplitExpenseEdit,

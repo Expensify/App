@@ -1,5 +1,4 @@
 import ComposeProviders from '@components/ComposeProviders';
-import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import GPSInProgressModal from '@components/GPSInProgressModal';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
@@ -22,6 +21,7 @@ import WideRHPContextProvider from '@components/WideRHPContextProvider';
 
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -67,6 +67,7 @@ import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavi
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
+import SubmitPlanWelcomeModalNavigator from './Navigators/SubmitPlanWelcomeModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
@@ -131,6 +132,7 @@ function AuthScreens() {
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -178,7 +180,6 @@ function AuthScreens() {
                         KYCWallContextProvider,
                         WideRHPContextProvider,
                         KeyboardDismissibleFlatListContextProvider,
-                        CurrencyListContextProvider,
                         SidebarOrderedReportsContextProvider,
                         SearchContextProvider,
                         LockedAccountModalProvider,
@@ -301,7 +302,10 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.SHARE_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.fullScreen}
+                            options={{
+                                ...rootNavigatorScreenOptions.fullScreen,
+                                gestureEnabled: true,
+                            }}
                             component={ShareModalStackNavigator}
                             listeners={modalScreenListeners}
                         />
@@ -309,6 +313,11 @@ function AuthScreens() {
                             name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
                             options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={MigratedUserWelcomeModalNavigator}
+                        />
+                        <RootStack.Screen
+                            name={NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
+                            component={SubmitPlanWelcomeModalNavigator}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR}
@@ -326,7 +335,7 @@ function AuthScreens() {
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
-                        {isOnboardingCompleted === false && !Navigation.isValidateLoginFlow() && (
+                        {isOnboardingCompleted === false && !shouldSuppressPromotionalUI && !Navigation.isValidateLoginFlow() && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}

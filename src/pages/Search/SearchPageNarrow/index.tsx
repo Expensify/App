@@ -16,7 +16,7 @@ import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
-import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
+import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -28,7 +28,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import variables from '@styles/variables';
@@ -39,7 +39,6 @@ import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
@@ -55,7 +54,6 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
-    metadata?: SearchResultsInfo;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
     onSortPressedCallback: () => void;
@@ -75,7 +73,6 @@ function SearchPageNarrow({
     queryJSON,
     searchResults,
     isMobileSelectionModeEnabled,
-    metadata,
     onSortPressedCallback,
     searchOverlayContent,
     onSearchContentReady,
@@ -231,7 +228,8 @@ function SearchPageNarrow({
     }
 
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
+    // Use the request state because `isLoading` also covers temporary UI loading that should not keep this bar visible.
+    const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
 
     return (

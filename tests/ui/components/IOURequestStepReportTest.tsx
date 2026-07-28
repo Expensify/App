@@ -62,6 +62,7 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
@@ -91,14 +92,9 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
     comment: {
         attendees: [
             {
-                accountID: ACCOUNT_ID,
                 avatarUrl: '',
                 displayName: '',
                 email: ACCOUNT_LOGIN,
-                login: ACCOUNT_LOGIN,
-                reportID: REPORT_ID_1,
-                selected: true,
-                text: ACCOUNT_LOGIN,
             },
         ],
     },

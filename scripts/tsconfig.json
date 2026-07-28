@@ -20,9 +20,5 @@
             "@src/*": ["../src/*"],
             "@userActions/*": ["../src/libs/actions/*"]
         }
-    },
-    "ts-node": {
-        "require": ["tsconfig-paths/register", "./stubReactNative.js"],
-        "transpileOnly": true
     }
 }

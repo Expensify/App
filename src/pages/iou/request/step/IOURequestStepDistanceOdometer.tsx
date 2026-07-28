@@ -41,6 +41,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getOdometerImageIdentity} from '@libs/OdometerUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -51,6 +52,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -121,6 +123,8 @@ function IOURequestStepDistanceOdometer({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const policy = usePolicy(report?.policyID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
@@ -178,6 +182,7 @@ function IOURequestStepDistanceOdometer({
     });
 
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {
         startReading,
@@ -402,6 +407,7 @@ function IOURequestStepDistanceOdometer({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportOwnerLogin,
                     distance: calculatedDistance,
                     odometerStart: start,
                     odometerEnd: end,
@@ -417,6 +423,8 @@ function IOURequestStepDistanceOdometer({
                     parentReportNextStep,
                     recentWaypoints,
                     delegateAccountID,
+                    reportPolicyTags,
+                    isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 });
             }
