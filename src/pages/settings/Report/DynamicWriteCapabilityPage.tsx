@@ -17,23 +17,25 @@ import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNo
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {WriteCapability} from '@src/types/onyx/Report';
 
-import type {ValueOf} from 'type-fest';
-
-import React, {useCallback} from 'react';
+import React, {useState} from 'react';
 
 type DynamicWriteCapabilityPageProps = WithReportOrNotFoundProps;
 
 function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path);
     const {translate} = useLocalize();
+    const currentWriteCapability = report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
+
+    const [draftWriteCapability, setDraftWriteCapability] = useState<WriteCapability | undefined>(undefined);
+    const selectedWriteCapability = draftWriteCapability ?? currentWriteCapability;
     const writeCapabilityOptions = Object.values(CONST.REPORT.WRITE_CAPABILITIES).map((value) => ({
         value,
         text: translate(`writeCapabilityPage.writeCapability.${value}`),
         keyForList: value,
-        isSelected: value === (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL),
+        isSelected: value === selectedWriteCapability,
     }));
-    const selectedOptionKey = writeCapabilityOptions.find((locale) => locale.isSelected)?.keyForList;
     const isReportArchived = useReportIsArchived(report.reportID);
     const isAbleToEdit = canEditWriteCapability(report, policy, isReportArchived);
 
@@ -41,13 +43,17 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
         Navigation.goBack(backPath);
     };
 
-    const updateWriteCapability = useCallback(
-        (newValue: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>) => {
-            updateWriteCapabilityUtil(report, newValue);
-            goBack();
-        },
-        [report, goBack],
-    );
+    const saveWriteCapability = () => {
+        updateWriteCapabilityUtil(report, selectedWriteCapability);
+        goBack();
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveWriteCapability,
+        isDisabled: selectedWriteCapability === currentWriteCapability,
+    };
 
     return (
         <ScreenWrapper
@@ -63,9 +69,11 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
                 <SelectionList
                     data={writeCapabilityOptions}
                     ListItem={SingleSelectListItem}
-                    onSelectRow={(option) => updateWriteCapability(option.value)}
+                    onSelectRow={(option) => setDraftWriteCapability(option.value)}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={selectedOptionKey}
+                    initiallyFocusedItemKey={currentWriteCapability}
+                    addBottomSafeAreaPadding
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

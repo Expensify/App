@@ -144,20 +144,24 @@ const picker = (theme: ThemeColors) =>
 const link = (theme: ThemeColors) =>
     ({
         color: theme.link,
-        textDecorationColor: theme.link,
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
-        // We do not want to have underline on links
-        textDecorationLine: 'none',
+        // In high-contrast themes, underline links so they are distinguishable by more than color (WCAG 1.4.1).
+        // Otherwise we do not want an underline on links. We deliberately omit textDecorationColor so the
+        // underline inherits the link's text color, keeping the two in sync in every context.
+        textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const emailLink = (theme: ThemeColors) =>
     ({
         color: theme.link,
-        textDecorationColor: theme.link,
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
         fontWeight: FontUtils.fontWeight.bold,
+        // In high-contrast themes, underline links so they are distinguishable by more than color (WCAG 1.4.1).
+        // Otherwise we do not want an underline on links. We deliberately omit textDecorationColor so the
+        // underline inherits the link's text color, keeping the two in sync in every context.
+        textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const baseCodeTagStyles = (theme: ThemeColors) =>
@@ -5211,6 +5215,12 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: CONST.ADVANCED_FILTERS_CONTENT_WIDTH,
         },
 
+        negatableFilterButtons: {
+            flexDirection: 'row',
+            minWidth: 180,
+            borderRadius: variables.buttonBorderRadius,
+        },
+
         searchActionsBarContainer: {
             marginTop: 12,
             marginBottom: 16,
@@ -6384,6 +6394,9 @@ const staticStyles = (theme: ThemeColors) =>
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
+        },
+        chartExpandedContent: {
+            transformOrigin: 'top left',
         },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,

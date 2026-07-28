@@ -1,4 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {TextInputFilterContentProps} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
 import type {
     ASTNode,
     Filter,
@@ -356,7 +358,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-            filterValueString += ` -${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE) {
             const rangeBoundaries = parseRangeQueryValue(queryFilter.value.toString());
             if (rangeBoundaries.from) {
@@ -545,16 +547,22 @@ function getQueryHashes(query: SearchQueryJSON) {
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
 
     const status = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
-    orderedQuery += ` ${status.isNegated ? '-' : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
+    orderedQuery += ` ${status.isNegated ? CONST.SEARCH.NOT_PREFIX : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
 
     const policyID = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     if (policyID.value) {
-        orderedQuery += ` ${policyID.isNegated ? '-' : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${policyID.value.join(',')} `;
+        orderedQuery += ` ${policyID.isNegated ? CONST.SEARCH.NOT_PREFIX : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${policyID.value.join(',')} `;
     }
 
     const filterSet = new Set<string>(orderedQuery);
+    const exactMatchFilterKeys = [...(query.exactMatchFilterKeys ?? [])].sort();
+    if (exactMatchFilterKeys.length > 0) {
+        const exactMatchIdentity = `exactMatch:${exactMatchFilterKeys.join(',')}`;
+        orderedQuery += ` ${exactMatchIdentity}`;
+        filterSet.add(exactMatchIdentity);
+    }
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
     // actually filter out results
@@ -607,6 +615,17 @@ function getQueryHashes(query: SearchQueryJSON) {
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
+}
+
+function withExactMatchFilterKeys(queryJSON: Readonly<SearchQueryJSON>, exactMatchFilterKeys: SearchFilterKey[]): SearchQueryJSON {
+    const queryWithExactMatches = {...queryJSON, exactMatchFilterKeys};
+    const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(queryWithExactMatches);
+    return {
+        ...queryWithExactMatches,
+        hash: primaryHash,
+        recentSearchHash,
+        similarSearchHash,
+    };
 }
 
 /**
@@ -891,7 +910,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 filterKey = filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
             }
 
-            const prefix = isNegated ? '-' : '';
+            const prefix = isNegated ? CONST.SEARCH.NOT_PREFIX : '';
 
             if (
                 (filterKey === FILTER_KEYS.MERCHANT ||
@@ -1008,9 +1027,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
                 if (keyInCorrectForm) {
-                    if (!isNegated && filterKey === FILTER_KEYS.TAG && filterValueArray.length === 1 && filterValueArray.at(0) === CONST.SEARCH.TAG_EMPTY_VALUE) {
-                        return `-${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}:${CONST.SEARCH.HAS_VALUES.TAG}`;
-                    }
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
             }
@@ -1320,21 +1336,7 @@ function buildFilterFormValuesFromQuery(
             }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            const validHasFilters = filterList.filter((item) => VALID_HAS_TYPES.has(item.value as HasFilterValue));
-            const positiveHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
-            const negatedHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
-            const hasNegatedTagFilter = negatedHasFilters.includes(CONST.SEARCH.HAS_VALUES.TAG);
-            const remainingNegatedHasFilters = negatedHasFilters.filter((hasType) => hasType !== CONST.SEARCH.HAS_VALUES.TAG);
-
-            if (hasNegatedTagFilter) {
-                filtersForm[FILTER_KEYS.TAG] = [CONST.SEARCH.TAG_EMPTY_VALUE];
-            }
-            if (positiveHasFilters.length > 0) {
-                filtersForm[FILTER_KEYS.HAS] = positiveHasFilters;
-            }
-            if (remainingNegatedHasFilters.length > 0) {
-                filtersForm[FILTER_KEYS.HAS_NOT] = remainingNegatedHasFilters;
-            }
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((isType) => VALID_IS_TYPES.has(isType as IsFilterValue)) as IsFilterValues;
@@ -2468,22 +2470,26 @@ function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdva
  * should be treated as a substring/partial match (`contains`) when querying the backend.
  * This allows searches like `merchant:coffee` to match "Coffee shop".
  */
-const TEXT_SEARCH_FIELDS = new Set<string>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
+function isTextSearchField(key: string): key is SearchFilterKey {
+    return key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION;
+}
 
 /**
  * Recursively traverses a search AST and replaces the `eq` operator with `contains`
  * for free-text filter fields (merchant, description). This enables partial/substring
  * matching on the backend for text searches while preserving the user-facing `:` syntax.
+ * Keys in `exactMatchFilterKeys` keep their original `eq` operator.
  */
-function applyContainsOperatorToTextFields(node: ASTNode): ASTNode {
-    if (typeof node.left === 'string' && TEXT_SEARCH_FIELDS.has(node.left) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+function applyContainsOperatorToTextFields(node: ASTNode, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>): ASTNode {
+    const filterKey = typeof node.left === 'string' && isTextSearchField(node.left) ? node.left : undefined;
+    if (filterKey && !exactMatchFilterKeys?.has(filterKey) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
         return {...node, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
     }
 
     return {
         ...node,
-        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left) : node.left,
-        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right) : node.right,
+        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left, exactMatchFilterKeys) : node.left,
+        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right, exactMatchFilterKeys) : node.right,
     };
 }
 
@@ -2505,13 +2511,14 @@ function getDateModifierTitle(modifier: ValueOf<typeof CONST.SEARCH.DATE_MODIFIE
  * Serializes a query object to a JSON string for backend commands (Search, export, CSV).
  * Applies text-field operator normalization (`eq` → `contains`) for `merchant` and `description`
  * so all backend commands use consistent partial-match semantics — matching what the search view shows.
+ * Keys in `exactMatchFilterKeys` keep exact-match semantics for generated filters.
  * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
  */
-function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T): string {
-    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters) : queryData.filters;
+function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>): string {
+    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters, exactMatchFilterKeys) : queryData.filters;
     const normalizedRawFilterList = queryData.rawFilterList
         ? queryData.rawFilterList.map((filter) => {
-              if (TEXT_SEARCH_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+              if (isTextSearchField(filter.key) && !exactMatchFilterKeys?.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                   return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
               }
               return filter;
@@ -2524,12 +2531,31 @@ function addNegation<T extends string>(filterKey: T, isNegated: boolean): T | `$
     return isNegated ? `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` : filterKey;
 }
 
-function removeNegation(filterKey: string) {
-    return filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
+type RemoveNegation<T extends string> = T extends `${infer S}${typeof CONST.SEARCH.NOT_MODIFIER}` ? S : T;
+
+function removeNegation<T extends string>(filterKey: T): RemoveNegation<T>;
+function removeNegation(filterKey: string): string {
+    return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER) ? filterKey.slice(0, -CONST.SEARCH.NOT_MODIFIER.length) : filterKey;
 }
 
 function isFilterNegatable(key: SearchAdvancedFiltersKey) {
     return NEGATABLE_FILTERS.has(removeNegation(key) as SearchNegatableFilterKeys);
+}
+
+function isFilterNegated(filterKey: SearchAdvancedFiltersKey) {
+    return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
+}
+
+function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey']>(
+    baseFilterKey: K,
+    value: SearchAdvancedFiltersForm[K] | undefined,
+    isNegated: boolean,
+): Partial<SearchAdvancedFiltersForm> {
+    const update: Partial<Record<K | `${K}${typeof CONST.SEARCH.NOT_MODIFIER}`, SearchAdvancedFiltersForm[K]>> = {};
+    const negatedFilterKey = addNegation(baseFilterKey, true);
+    update[negatedFilterKey] = isNegated ? value : undefined;
+    update[baseFilterKey] = isNegated ? undefined : value;
+    return update;
 }
 
 export {
@@ -2537,6 +2563,7 @@ export {
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
     getQueryHashes,
+    withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
     getDateFilterRange,
@@ -2580,8 +2607,11 @@ export {
     getParamsState,
     getRoutes,
     isSearchRootParams,
-    getFilterFromQuery,
+    isFilterNegated,
     isFilterNegatable,
+    removeNegation,
+    getFilterFormValues,
+    getFilterFromQuery,
 };
 
 export type {BuildUserReadableQueryStringParams};

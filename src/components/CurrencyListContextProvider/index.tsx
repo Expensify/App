@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {createContext, useCallback, useContext, useMemo} from 'react';
+import React, {createContext, useCallback, useMemo} from 'react';
 
 import type {CurrencyListActionsContextType, CurrencyListStateContextType} from './types';
 
@@ -103,13 +103,5 @@ function CurrencyListContextProvider({children}: React.PropsWithChildren) {
     );
 }
 
-function useCurrencyListState(): CurrencyListStateContextType {
-    return useContext(CurrencyListStateContext);
-}
-
-function useCurrencyListActions(): CurrencyListActionsContextType {
-    return useContext(CurrencyListActionsContext);
-}
-
-export {CurrencyListContextProvider, useCurrencyListState, useCurrencyListActions};
-export type {CurrencyListActionsContextType} from './types';
+export {CurrencyListContextProvider, CurrencyListStateContext, CurrencyListActionsContext};
+export type {CurrencyListActionsContextType, CurrencyListStateContextType} from './types';
