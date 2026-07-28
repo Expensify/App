@@ -42,7 +42,6 @@ docs/assets/Files/merchant-rule-import-template.csv
    - **Update Merchant** — Replace the merchant name (optional).
    - **Update Category** — Apply a category (optional).
    - **Update Tag** — Apply a tag (optional).
-   - **Update Tax** — Apply a tax rate (optional).
    - **Update Description** — Apply a description (optional).
    - **Update Reimbursable** — Set reimbursable status to **True** or **False** (optional).
    - **Update Billable** — Set billable status to **True** or **False** (optional).
