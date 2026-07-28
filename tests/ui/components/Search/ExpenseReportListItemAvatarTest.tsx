@@ -14,7 +14,6 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -222,6 +221,7 @@ const onyxState = {
 function buildSearchListItem(report: Report, policyForReport: typeof policy): ExpenseReportListItemType {
     const avatarProps = getSearchReportAvatarProps(report, formatPhoneNumber, translateLocal, personalDetails, policyForReport);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return {
         keyForList: report.reportID,
         isDisabled: false,
@@ -328,6 +328,7 @@ describe('ExpenseReportListItemAvatar', () => {
         it('returns nothing when primaryAvatar is undefined', async () => {
             render(
                 <ExpenseReportListItemAvatar
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                     item={{keyForList: 'empty', isDisabled: false} as ExpenseReportListItemType}
                     showTooltip={false}
                 />,
@@ -341,6 +342,7 @@ describe('ExpenseReportListItemAvatar', () => {
 
         it('returns nothing when primaryAvatar is undefined but secondaryAvatar is provided', async () => {
             const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const {images} = await retrieveAvatarData({
                 keyForList: expenseReport.reportID,
                 isDisabled: false,
@@ -354,6 +356,7 @@ describe('ExpenseReportListItemAvatar', () => {
 
         it('renders single avatar when avatarType is SINGLE even if secondaryAvatar is provided', async () => {
             const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const {images, fragments} = await retrieveAvatarData({
                 keyForList: expenseReport.reportID,
                 isDisabled: false,

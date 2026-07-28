@@ -1,4 +1,4 @@
-import {getDefaultWorkspaceAvatar, getIcons} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {getSearchReportAvatarProps} from '@libs/SearchUIUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 
@@ -6,7 +6,6 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
 
