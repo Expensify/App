@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -2611,6 +2613,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Utilisez cette carte pour vos réservations Expensify Travel. Elle apparaîtra comme “Travel Card” lors du paiement.',
         },
         chaseAccountNumberDifferent: 'Pourquoi mon numéro de compte est-il différent ?',
+        cardLastSynced: (relativeDate: string) => `Synchronisé le ${relativeDate}`,
+        cardNeverSynced: 'Jamais synchronisé',
+        cardStatus: {
+            active: 'Actif',
+            inactive: 'Inactif',
+            fixConnection: 'Veuillez corriger cette connexion',
+            fixConnectionIn: (companyCardsRoute: string) => `Veuillez corriger cette connexion dans <a href="${companyCardsRoute}">cartes d’entreprise</a>`,
+            askAdminToFixConnection: 'Veuillez demander à un administrateur de corriger cette connexion',
+        },
+        bankAccountStatus: {
+            active: 'Actif',
+            incomplete: 'Incomplet',
+            pending: 'En attente',
+            verifying: 'Vérification en cours',
+            reviewingDocumentation: 'Nous examinons votre documentation',
+            finishAddingBankAccount: 'Terminer l’ajout du compte bancaire',
+            finish: 'Terminer',
+            confirmTestTransactions: 'Veuillez confirmer les transactions de test',
+            accountRequiresAttention: 'Ce compte nécessite une attention particulière',
+            unlock: 'Déverrouiller',
+        },
     },
     cardPage: {
         expensifyCard: 'Carte Expensify',
@@ -5081,7 +5104,9 @@ ${amount} pour ${merchant} - ${date}`,
             creditCardAccount: 'Compte de carte de crédit',
             defaultVendor: 'Fournisseur par défaut',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Définissez un fournisseur par défaut qui s’appliquera aux ${isReimbursable ? '' : 'non-'}dépenses remboursables qui n’ont pas de fournisseur correspondant dans Sage Intacct.`,
+                isReimbursable
+                    ? `Définissez un fournisseur par défaut qui s’appliquera aux dépenses remboursables n’ayant pas de fournisseur correspondant dans Sage Intacct.`
+                    : `Les dépenses qui ne peuvent pas être associées à vos fournisseurs Sage Intacct seront, par défaut, affectées à ce fournisseur.`,
             exportDescription: 'Configurez comment les données Expensify sont exportées vers Sage Intacct.',
             exportPreferredExporterNote:
                 'L’exportateur préféré peut être n’importe quel administrateur d’espace de travail, mais doit également être un administrateur de domaine si vous définissez des comptes d’exportation différents pour chaque carte d’entreprise individuelle dans les paramètres de domaine.',
@@ -6997,6 +7022,12 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             exportCompanyCard: 'Exporter les dépenses de carte d’entreprise en tant que',
             exportDate: 'Date d’exportation',
             defaultVendor: 'Fournisseur par défaut',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Les dépenses qui ne sont pas automatiquement rapprochées seront, par défaut, associées à ce fournisseur.`
+                    : `Les dépenses qui ne sont pas associées automatiquement seront attribuées par défaut à ce fournisseur. Sinon, elles seront exportées sous Crédit carte diverse.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Choisissez un fournisseur ${connectionName} par défaut pour les dépenses qui ne correspondent pas automatiquement.`,
             defaultAccount: 'Compte par défaut',
             autoSync: 'Synchronisation automatique',
             autoSyncDescription: 'Synchronisez automatiquement NetSuite et Expensify, chaque jour. Exportez les notes de frais finalisées en temps réel',
