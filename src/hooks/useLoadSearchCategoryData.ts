@@ -39,6 +39,11 @@ function useLoadSearchCategoryData({shouldLoad = true, shouldRefresh = false}: U
             return;
         }
 
+        if (isLoadingCategories) {
+            hasRequestedCategoryDataRef.current = true;
+            return;
+        }
+
         if (isOffline || hasRequestedCategoryDataRef.current || (areCategoriesLoaded && !shouldRefresh)) {
             return;
         }
