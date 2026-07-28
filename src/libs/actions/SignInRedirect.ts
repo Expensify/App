@@ -75,7 +75,7 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
-    // When the user is in the middle of a 2FA sign-in flow (they've entered their magic code but not yet completed
+    // When the user is in the middle of a 2FA sign-in flow (they've entered their validateCode but not yet completed
     // 2FA), we want to preserve their credentials and account state so that after a page refresh they are still
     // prompted to enter their 2FA code rather than being sent back to the initial sign-in page.
     const isIncompleteSignIn = !currentSessionAuthToken && !!currentCredentialsValidateCode;

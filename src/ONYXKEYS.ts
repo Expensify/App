@@ -139,7 +139,7 @@ const ONYXKEYS = {
     /** Object containing contact method that's going to be added */
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
-    /** Store the information of magic code */
+    /** Store the information of validateCode */
     VALIDATE_ACTION_CODE: 'validateActionCode',
 
     /** Stores 2FA code validation errors in domain 2FA settings */
@@ -1562,7 +1562,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGINS]: OnyxTypes.Logins;
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
-    [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
+    [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.VerifyValidateCodeAction;
     [ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE]: OnyxTypes.ValidateDomainTwoFactorCode;
     [ONYXKEYS.JOINABLE_POLICIES]: OnyxTypes.JoinablePolicies;
     [ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES]: OnyxTypes.ValidateUserAndGetAccessiblePolicies;
