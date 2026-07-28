@@ -218,7 +218,6 @@ function createPolicyTag({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                ...policyRequiresTagOptimisticData,
                 pendingRequiresTagRestore: null,
             },
         });
