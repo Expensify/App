@@ -151,6 +151,7 @@ function useTrialPaymentReminder() {
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [billingFundID, billingFundIDResult] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [dismissedTimestamp, dismissedTimestampResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
 
     const [readinessState, setReadinessState] = useState<ReadinessState>(READINESS_STATE.LOADING);
 
@@ -219,6 +220,9 @@ function useTrialPaymentReminder() {
     }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID]);
 
     const isEligibleToShow = useMemo(() => {
+        if (!hasLoadedApp) {
+            return false;
+        }
         if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
             return false;
         }
@@ -245,7 +249,7 @@ function useTrialPaymentReminder() {
             }
         }
         return true;
-    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, billingFundIDResult, readinessState, currentVariation, dismissedTimestamp, dismissedTimestampResult]);
+    }, [hasLoadedApp, firstDayFreeTrial, lastDayFreeTrial, billingFundID, billingFundIDResult, readinessState, currentVariation, dismissedTimestamp, dismissedTimestampResult]);
 
     // Run the 1s countdown only while the countdown modal is actually eligible to show, so we don't tick every
     // second in the background when it isn't rendered.

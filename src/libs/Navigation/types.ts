@@ -2260,14 +2260,12 @@ type MoneyRequestNavigatorParamList = {
         upgradePath?: ValueOf<typeof CONST.UPGRADE_PATHS>;
         shouldSubmitExpense?: boolean;
     };
-    [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         backToReport?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes | undefined;
     };
     [SCREENS.MONEY_REQUEST.STEP_TIME]: {
         action: IOUAction;
@@ -2288,13 +2286,12 @@ type MoneyRequestNavigatorParamList = {
         pageIndex: string;
         transactionID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_DESTINATION_EDIT]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes | undefined;
+        backToReport?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: {
         action: IOUAction;
@@ -2359,6 +2356,7 @@ type MoneyRequestNavigatorParamList = {
 type WorkspaceConfirmationNavigatorParamList = {
     [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT]: undefined;
     [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: undefined;
+    [SCREENS.WORKSPACE_CONFIRMATION.PLAN_TYPE_SELECTOR]: undefined;
     [SCREENS.WORKSPACE_CONFIRMATION.SUCCESS]: undefined;
     [SCREENS.CURRENCY.DYNAMIC_SELECTION]: undefined;
 };
@@ -2585,28 +2583,20 @@ type TransactionDuplicateNavigatorParamList = {
 };
 
 type MergeTransactionNavigatorParamList = {
-    [SCREENS.MERGE_TRANSACTION.LIST_PAGE]: {
+    [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE]: {
         transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
         isOnSearch?: boolean;
     };
-    [SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE]: {
+    [SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE]: {
         transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
         isOnSearch?: boolean;
     };
-    [SCREENS.MERGE_TRANSACTION.DETAILS_PAGE]: {
+    [SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE]: {
         transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
         isOnSearch?: boolean;
     };
-    [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: {
+    [SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE]: {
         transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
         isOnSearch?: boolean;
     };
 };
@@ -3053,7 +3043,14 @@ type WorkspaceNavigatorParamList = {
 
 type TabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
-    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]:
+        | (NavigatorScreenParams<ReportsSplitNavigatorParamList> & {
+              shouldDeferInitialReportActions?: true;
+          })
+        | {
+              shouldDeferInitialReportActions?: true;
+          }
+        | undefined;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;

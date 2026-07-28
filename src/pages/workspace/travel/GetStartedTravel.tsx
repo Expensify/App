@@ -1,5 +1,5 @@
 import BookTravelButton from '@components/BookTravelButton';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FeatureList from '@components/FeatureList';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -47,16 +47,17 @@ function GetStartedTravel({policyID, canWriteTravelFeature, showReadOnlyModal}: 
                     />
                 ) : (
                     <Button
-                        text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
                         onPress={showReadOnlyModal}
                         accessibilityLabel={translate('travel.bookTravel')}
                         style={styles.w100}
                         innerStyles={styles.buttonOpacityDisabled}
                         hoverStyles={styles.buttonOpacityDisabled}
-                        success
-                        large
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.moreFeatures.travel.getStarted.ctaText')}</Button.Text>
+                    </Button>
                 )
             }
         />
