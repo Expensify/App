@@ -107,9 +107,7 @@ function SearchTypeMenuWide() {
     };
 
     const handleTypeMenuItemPress = singleExecution((searchKey: SearchKey, searchQuery: string) => {
-        const query = getValidLastQuery(searchFilters?.[searchKey], searchQuery);
-        setCurrentSearchKey(searchKey, buildSearchQueryJSON(query)?.hash !== currentSearchHash);
-        navigateToCannedSpendSearch(query, clearSelectedTransactions);
+        navigateToCannedSpendSearch(searchKey, searchQuery, searchFilters?.[searchKey], currentSearchHash, clearSelectedTransactions, setCurrentSearchKey);
     });
 
     useLayoutEffect(() => {
