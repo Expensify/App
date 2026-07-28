@@ -47,6 +47,9 @@ describe('CategorySelector', () => {
             if (key === ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED) {
                 return [true];
             }
+            if (key === ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA) {
+                return [undefined];
+            }
             if (key === ONYXKEYS.PERSONAL_POLICY_ID) {
                 return [undefined];
             }
