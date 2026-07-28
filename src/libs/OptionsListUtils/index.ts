@@ -1331,6 +1331,7 @@ function getReportDisplayOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
+    translate: LocalizedTranslate,
     currentUserAccountID: number,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
@@ -1383,6 +1384,7 @@ function getPolicyExpenseReportOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     expenseReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    translate: LocalizedTranslate,
     currentUserAccountID: number,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
@@ -3129,6 +3131,7 @@ function formatSectionsFromSearchTerm(
                                   personalDetails,
                                   expenseReport,
                                   expenseReportPolicy,
+                                  translate,
                                   currentUserAccountID,
                                   reportAttributesDerived,
                               );
@@ -3169,6 +3172,7 @@ function formatSectionsFromSearchTerm(
                               personalDetails,
                               expenseReport,
                               expenseReportPolicy,
+                              translate,
                               currentUserAccountID,
                               reportAttributesDerived,
                           );

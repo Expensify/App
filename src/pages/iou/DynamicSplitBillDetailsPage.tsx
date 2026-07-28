@@ -82,6 +82,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                 personalDetails,
                 report,
                 policy,
+                translate,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 reportAttributesDerived,
             ),
