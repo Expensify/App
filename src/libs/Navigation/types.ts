@@ -2144,6 +2144,13 @@ type MoneyRequestNavigatorParamList = {
         imageType: OdometerImageType;
         isEditingConfirmation?: string;
     };
+    [SCREENS.MONEY_REQUEST.GPS_TRIP_EDIT]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backToReport?: string;
+    };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
         reportID: string;
