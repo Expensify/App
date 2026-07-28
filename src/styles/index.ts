@@ -585,7 +585,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textHero: {
-            ...textVariants.hero,
+            ...textVariants.introHeadline,
         },
 
         textStrong: {

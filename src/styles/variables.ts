@@ -76,7 +76,7 @@ export default {
     fontSizeSignInHeroXSmall: 26,
     fontSizeSignInHeroSmall: 28,
     fontSizeSignInHeroBody: 20,
-    lineHeightHero: 45,
+    lineHeightHero: 44,
     iconSizeAgentsPromoBanner: 48,
     iconSizeXXXSmall: 4,
     iconSizeXXSmall: 8,

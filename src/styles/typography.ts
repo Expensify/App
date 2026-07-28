@@ -16,7 +16,7 @@ const fontScale = {
     pageHeader: variables.fontSizeLarge,
     h2: variables.fontSizeH2,
     h1: variables.fontSizeXLarge,
-    hero: variables.fontSizeHero,
+    introHeadline: variables.fontSizeHero,
 } as const;
 
 const lineHeightScale = {
@@ -26,7 +26,7 @@ const lineHeightScale = {
     pageHeader: variables.lineHeightXLarge,
     h2: variables.lineHeightSizeH2,
     h1: variables.lineHeightSizeH1,
-    hero: variables.lineHeightHero,
+    introHeadline: variables.lineHeightHero,
 } as const;
 
 const fontFamilyScale = {
@@ -36,9 +36,9 @@ const fontFamilyScale = {
 } as const;
 
 /**
- * Semantic text styles, named 1:1 after the `Product/*` text styles in the Figma library
- * (`hero` is code-only; it has no Figma counterpart yet). Type only — color is attached where a
- * variant is used (theme-aware styles or the `color` prop), never here.
+ * Semantic text styles, named 1:1 after the `Product/*` text styles in the Figma library.
+ * Type only — color is attached where a variant is used (theme-aware styles or the `color` prop),
+ * never here.
  */
 const textVariants = {
     micro: {
@@ -84,10 +84,10 @@ const textVariants = {
         fontSize: fontScale.h1,
         lineHeight: lineHeightScale.h1,
     },
-    hero: {
+    introHeadline: {
         ...fontFamilyScale.heading,
-        fontSize: fontScale.hero,
-        lineHeight: lineHeightScale.hero,
+        fontSize: fontScale.introHeadline,
+        lineHeight: lineHeightScale.introHeadline,
     },
 } as const satisfies Record<string, TextStyle>;
 
