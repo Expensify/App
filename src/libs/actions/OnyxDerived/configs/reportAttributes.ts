@@ -273,8 +273,9 @@ export default createOnyxDerivedValueConfig({
             hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);
 
         const policyChangedReportKeys: string[] = [];
-        // Reports whose only policy change is in badge fields — their name can't have changed, so they reuse the cached one.
-        const policyBadgeOnlyReportKeys: string[] = [];
+        // Reports whose policy change touched only fields that don't feed the report name (type, approvalMode,
+        // role, etc.) — their name can't have changed, so they skip computeReportName and reuse the cached one.
+        const nameSkipPolicyReportKeys: string[] = [];
         if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, triggeredKeys)) {
             if (!needsFullRecompute) {
                 // Policy updated — only recompute reports whose relevant fields actually changed
@@ -335,7 +336,7 @@ export default createOnyxDerivedValueConfig({
                             const isEmptyNameAffected =
                                 emptyNameChangedPolicyIDs.has(report.policyID) && !report.reportName && (report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.IOU);
                             if (!nameChangedPolicyIDs.has(report.policyID) && !receiverPolicyChanged && !isThreadNameAffected && !isEmptyNameAffected) {
-                                policyBadgeOnlyReportKeys.push(reportKey);
+                                nameSkipPolicyReportKeys.push(reportKey);
                             }
                             continue;
                         }
@@ -395,8 +396,8 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        // Sources that can move a report's name. A report pulled in purely by a policy badge change is absent
-        // here, so it keeps its cached name and skips the expensive computeReportName.
+        // Sources that can move a report's name. A report pulled in purely by a name-irrelevant policy change is
+        // absent here, so it keeps its cached name and skips the expensive computeReportName.
         const nonPolicyUpdates = [
             ...Object.keys(reportUpdates),
             ...Object.keys(reportMetadataUpdates),
@@ -408,11 +409,11 @@ export default createOnyxDerivedValueConfig({
 
         const updates = [...nonPolicyUpdates, ...policyChangedReportKeys];
 
-        // Keys that reuse their cached name. Starts as the badge-only reports; every other change source
-        // (report/action/nvp/personal-details updates here, transactions and policy tags below) deletes its
-        // keys, so a report skips computeReportName only when a badge-field change is its sole reason to be here.
-        // Parent-chat enqueues don't delete: a child update never feeds the parent chat's own name.
-        const nameSkipKeys = new Set(prepareReportKeys(policyBadgeOnlyReportKeys));
+        // Keys that reuse their cached name. Starts as the name-irrelevant policy reports; every other change
+        // source (report/action/nvp/personal-details updates here, transactions and policy tags below) deletes
+        // its keys, so a report skips computeReportName only when a name-irrelevant policy change is its sole
+        // reason to be here. Parent-chat enqueues don't delete: a child update never feeds the parent chat's own name.
+        const nameSkipKeys = new Set(prepareReportKeys(nameSkipPolicyReportKeys));
         for (const key of prepareReportKeys(nonPolicyUpdates)) {
             nameSkipKeys.delete(key);
         }
