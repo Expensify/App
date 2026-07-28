@@ -22,8 +22,8 @@ import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from '
 import {scheduleOnRN} from 'react-native-worklets';
 
 type AnimatedSubmitButtonProps = WithSentryLabel & {
-    // Whether to show the success state
-    success: boolean | undefined;
+    // Visual variant of the button (only success is supported)
+    variant?: typeof CONST.BUTTON_VARIANT.SUCCESS;
 
     // Text to show on the button
     text: string;
@@ -53,7 +53,7 @@ type AnimatedSubmitButtonProps = WithSentryLabel & {
 const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingExpenseAction;
 
 function AnimatedSubmitButton({
-    success,
+    variant,
     text,
     onPress,
     isSubmittingAnimationRunning,
@@ -170,7 +170,7 @@ function AnimatedSubmitButton({
                     exiting={buttonAnimation}
                 >
                     <Button
-                        variant={success ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
+                        variant={variant}
                         isLoading={showLoading}
                         isDisabled
                         stayNormalOnDisable
@@ -182,7 +182,7 @@ function AnimatedSubmitButton({
             )}
             {!isAnimationRunning && (
                 <Button
-                    variant={success ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
+                    variant={variant}
                     onPress={onPress}
                     isDisabled={isDisabled}
                     sentryLabel={sentryLabel}

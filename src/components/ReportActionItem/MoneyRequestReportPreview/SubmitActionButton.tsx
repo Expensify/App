@@ -129,7 +129,7 @@ function SubmitActionButtonContent() {
 
     return (
         <AnimatedSubmitButton
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
             isMarkAsDone={shouldUseMarkAsDoneCopy}
             onPress={handleSubmit}
