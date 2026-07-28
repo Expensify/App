@@ -6,10 +6,11 @@ import CONST from '@src/CONST';
 
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-type MenuItemRightLabelVariant = (typeof CONST.MENU_ITEM.RIGHT_LABEL_VARIANT)[keyof typeof CONST.MENU_ITEM.RIGHT_LABEL_VARIANT];
+type MenuItemRightLabelVariant = ValueOf<typeof CONST.MENU_ITEM.RIGHT_LABEL_VARIANT>;
 
 type MenuItemRightLabelProps = PropsWithChildren & {
     /** Style variant. `label` (default) is the classic `rightLabel` look; `subtitle` is the classic `subtitle` look. */
