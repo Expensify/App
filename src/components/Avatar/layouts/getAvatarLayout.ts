@@ -81,4 +81,3 @@ function getAvatarLayout({icons, avatarType, shouldStackHorizontally = false, ha
 }
 
 export default getAvatarLayout;
-export type {AvatarLayout, AvatarLayoutResult, GetAvatarLayoutParams};
