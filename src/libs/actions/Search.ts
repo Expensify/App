@@ -990,7 +990,7 @@ function handlePreventSearchAPI(hash: number | undefined) {
  * columns to a backend-supported date sort.
  */
 function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
-    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const {exactMatchFilterKeys, flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
               ...queryJSONWithoutFlatFilters,
@@ -1056,7 +1056,7 @@ function search({
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
-    const jsonQuery = serializeQueryJSONForBackend(query);
+    const jsonQuery = serializeQueryJSONForBackend(query, exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined);
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
