@@ -2579,6 +2579,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: '让我们确认一下是你本人',
         enterSecurityCode: (contactMethod: string) => `请输入发送到 ${contactMethod} 的安全码以查看您的卡片详情。验证码应会在一两分钟内送达。`,
         unexpectedError: '尝试获取您的 Expensify 卡片详情时出错。请重试。',
+        shipCardError: ({reason}: {reason: string}) => `无法寄送 Expensify 卡片：${reason}`,
         cardFraudAlert: {
             confirmButtonText: '是的，我愿意',
             reportFraudButtonText: '不，这不是我',

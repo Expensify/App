@@ -14,7 +14,7 @@ import {
 } from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {normalizeCountryCode} from '@libs/CountryUtils';
-import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getLatestError, getMicroSecondOnyxErrorWithMessage, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -99,9 +99,12 @@ function MissingPersonalDetailsMagicCodePage({
                     });
                 return;
             }
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
+            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode, Number(cardID)).catch((error: {reason?: string}) => {
+                const message = error?.reason ? translate('cardPage.shipCardError', {reason: error.reason}) : translate('cardPage.unexpectedError');
+                setRevealCardError(getMicroSecondOnyxErrorWithMessage(message));
+            });
         },
-        [countryCode, values, isVirtualCard, cardID],
+        [countryCode, values, isVirtualCard, cardID, translate],
     );
 
     return (

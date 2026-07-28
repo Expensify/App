@@ -2563,6 +2563,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'Asegurémonos de que eres tú',
         enterSecurityCode: (contactMethod: string) => `Introduce el código de seguridad enviado a ${contactMethod} para ver los datos de tu tarjeta. Debería llegar en uno o dos minutos.`,
         unexpectedError: 'Se produjo un error al intentar obtener los detalles de tu tarjeta Expensify. Vuelve a intentarlo.',
+        shipCardError: ({reason}: {reason: string}) => `No se pudo enviar la Tarjeta Expensify: ${reason}`,
         cardFraudAlert: {
             confirmButtonText: 'Sí, lo hago',
             reportFraudButtonText: 'No, no fui yo',

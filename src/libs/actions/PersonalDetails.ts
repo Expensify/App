@@ -20,6 +20,7 @@ import type {LetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {translateLocal} from '@libs/Localize';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -30,6 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails} from '@src/types/onyx';
+import type Card from '@src/types/onyx/Card';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {CurrentUserPersonalDetails, SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -695,31 +697,64 @@ function setPersonalDetailsAndRevealExpensifyCard(
     });
 }
 
-function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
-    const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
-        ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
-        validateCode,
-    };
+function updatePersonalDetailsAndShipExpensifyCards(
+    values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>,
+    validateCode: string,
+    countryCode: number,
+    targetCardID: number,
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
+            ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
+            validateCode,
+        };
 
-    API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    isLoading: true,
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    value: {
+                        isLoading: true,
+                    },
                 },
-            },
-        ],
-        finallyData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    isLoading: false,
+            ],
+            finallyData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    value: {
+                        isLoading: false,
+                    },
                 },
-            },
-        ],
+            ],
+        })
+            .then((response) => {
+                // The command returns 200 and still saves the personal details even when a card fails to ship. The per-card
+                // failures come back in cardShipmentErrors, so show each failed card's reason on its own wallet card (RBR).
+                const cardShipmentErrors = response?.cardShipmentErrors ?? [];
+                if (cardShipmentErrors.length > 0) {
+                    const cardListErrors: Record<number, Pick<Card, 'errors'>> = {};
+                    for (const {cardID, error} of cardShipmentErrors) {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        cardListErrors[cardID] = {errors: ErrorUtils.getMicroSecondOnyxErrorWithMessage(translateLocal('cardPage.shipCardError', {reason: error}))};
+                    }
+                    Onyx.merge(ONYXKEYS.CARD_LIST, cardListErrors);
+                }
+
+                // Only block this flow when the card the user is completing details for failed to ship; other cards'
+                // failures are surfaced as an RBR on those cards above. Reject with that card's reason so the modal shows it.
+                const targetCardError = cardShipmentErrors.find(({cardID}) => cardID === targetCardID);
+                if (targetCardError) {
+                    // eslint-disable-next-line prefer-promise-reject-errors
+                    reject({reason: targetCardError.error});
+                    return;
+                }
+                resolve();
+            })
+            // eslint-disable-next-line prefer-promise-reject-errors
+            .catch(() => reject({}));
     });
 }
 

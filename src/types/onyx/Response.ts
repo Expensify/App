@@ -123,6 +123,19 @@ type Response<TKey extends OnyxKey> = {
 
     /** Transactions pending 3DS review returned from GetTransactionsPending3DSReview */
     transactionsPending3DSReview?: TransactionsPending3DSReview;
+
+    /** Per-card shipment failures returned from SetPersonalDetailsAndShipExpensifyCards(WithPIN); empty when all cards shipped */
+    cardShipmentErrors?: CardShipmentError[];
+};
+
+/** A single card's shipment failure returned from SetPersonalDetailsAndShipExpensifyCards(WithPIN) */
+type CardShipmentError = {
+    /** ID of the card that failed to ship */
+    cardID: number;
+
+    /** Human-readable reason the card could not be shipped (status code already stripped by the backend) */
+    error: string;
 };
 
 export default Response;
+export type {CardShipmentError};
