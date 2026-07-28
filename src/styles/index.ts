@@ -1217,6 +1217,7 @@ const staticStyles = (theme: ThemeColors) =>
             maxWidth: variables.productMarketingWindowWidth,
         },
         productMarketingWindowIllustrationContainer: {
+            width: '100%',
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.componentBorderRadiusNormal,

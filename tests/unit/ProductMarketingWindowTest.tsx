@@ -653,6 +653,7 @@ describe('ProductMarketingWindowManager', () => {
             padding: 20,
         });
         expect(screen.getByTestId('ProductMarketingWindowVisual')).toHaveStyle({
+            width: '100%',
             aspectRatio: variables.productMarketingWindowVisualAspectRatio,
         });
     });
