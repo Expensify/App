@@ -217,6 +217,33 @@ describe('SearchQueryProvider', () => {
             });
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
         });
+
+        it('keeps the current key when the target query resolves to a different key but shares its hash', () => {
+            const OTHER_SAVED_SEARCH_ID = '200';
+            const sharedQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`;
+            // Two saved searches with the exact same query. getInitialCurrentSearchKey resolves to the first
+            // one (id 100), but the current key is the second (id 200) and both share the same default query hash.
+            mockOnyx({
+                [ONYXKEYS.SAVED_SEARCHES]: {
+                    [SAVED_SEARCH_ID]: {query: sharedQuery, name: 'First'},
+                    [OTHER_SAVED_SEARCH_ID]: {query: sharedQuery, name: 'Second'},
+                },
+            });
+            mockNavigationQuery(sharedQuery);
+            const {result} = renderProvider();
+
+            act(() => {
+                result.current.setCurrentSearchKey(savedSearchIDToSearchKey(OTHER_SAVED_SEARCH_ID));
+            });
+            expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(OTHER_SAVED_SEARCH_ID));
+
+            // Resetting to a query whose hash equals the current key's default query must NOT switch the key,
+            // even though getInitialCurrentSearchKey would pick the first saved search (id 100).
+            act(() => {
+                result.current.resetSearchKey(false, buildSearchQueryJSON(sharedQuery));
+            });
+            expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(OTHER_SAVED_SEARCH_ID));
+        });
     });
 
     describe('pending search key', () => {
