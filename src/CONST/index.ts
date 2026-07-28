@@ -989,6 +989,7 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
+        WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
@@ -7317,7 +7318,6 @@ const CONST = {
         },
         NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
-        TAG_UNTAGGED_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         MERCHANT_EMPTY_VALUE: 'none',
@@ -7450,6 +7450,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
             };
         },
+        NOT_PREFIX: '-',
         NOT_MODIFIER: 'Not',
         DATE_MODIFIERS: {
             ON: 'On',
@@ -8391,6 +8392,9 @@ const CONST = {
             CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
         },
+        BLOCKING_VIEW: {
+            RETRY_BUTTON: 'BlockingView-RetryButton',
+        },
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
             TRANSACTION_GROUP_LIST_ITEM: 'Search-TransactionGroupListItem',
@@ -9207,16 +9211,16 @@ const CONST = {
                 publishedDate: '2026-07-20',
             },
             {
+                title: 'New feature: Consolidated travel billing',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
+                publishedDate: '2026-07-13',
+            },
+            {
                 title: 'More Concierge AI upgrades, plus agent beta',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
                 publishedDate: '2026-07-01',
-            },
-            {
-                title: 'Ask Concierge AI: charts, insights & more',
-                subtitle: 'Newsletter',
-                url: 'https://use.expensify.com/blog/ask-expensify-ai-anything',
-                publishedDate: '2026-06-30',
             },
         ],
     },
