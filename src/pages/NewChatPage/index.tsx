@@ -466,7 +466,10 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (!personalData?.login || !personalData.accountID) {
             return;
         }
-        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option) => ({
+        // Read from the latest-selection ref (not the render snapshot): the Next button stays tappable while the
+        // deferred selection transition is still pending, so tapping "Add to group" then quickly Next must not rebuild
+        // the draft from a stale selectedOptions that drops the just-added participant.
+        const selectedParticipants: SelectedParticipant[] = latestSelectedOptionsRef.current.map((option) => ({
             login: option?.login,
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
         }));

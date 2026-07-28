@@ -10,9 +10,9 @@ import React from 'react';
 
 const TEST_ID = `${CONST.SELECTION_BUTTON_TEST_ID}Test User`;
 
-const buildItem = (isSelected: boolean): ListItem => ({
+const buildItem = (isSelected: boolean, keyForList = 'test-user'): ListItem => ({
     text: 'Test User',
-    keyForList: 'test-user',
+    keyForList,
     isSelected,
 });
 
@@ -93,6 +93,28 @@ describe('ListSelectionButton', () => {
 
         // A second rapid press (still no prop change) reverts the optimistic checkmark.
         fireEvent.press(screen.getByTestId(TEST_ID));
+        expect(getCheckedState()).toBe(false);
+    });
+
+    it('drops the optimistic value when the row is recycled to a different item', () => {
+        const {rerender} = render(
+            <ListCheckbox
+                item={buildItem(false, 'user-a')}
+                onSelectRow={jest.fn()}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId(TEST_ID));
+        expect(getCheckedState()).toBe(true);
+
+        // FlashList recycles the cell to a different, still-unselected item (same isSelected, new keyForList).
+        // The optimistic checkmark from the previous row must not leak onto the recycled one.
+        rerender(
+            <ListCheckbox
+                item={buildItem(false, 'user-b')}
+                onSelectRow={jest.fn()}
+            />,
+        );
         expect(getCheckedState()).toBe(false);
     });
 

@@ -53,11 +53,14 @@ function ListSelectionButton<TItem extends ListItem>({
     // Paint the checkmark immediately on press, even when the parent defers the (expensive) selection-state
     // update in a transition. The optimistic value is dropped as soon as the item prop catches up
     // (state-adjustment-during-render, see https://react.dev/reference/react/useState#storing-information-from-previous-renders).
+    // Track the row identity (keyForList) alongside isSelected: SelectionList rows render through FlashList and are
+    // recycled, so the same component instance can receive a different item with the same isSelected value - resetting
+    // on identity change prevents a stale optimistic checkmark from leaking onto the recycled row.
     const isCheckedProp = item.isSelected ?? false;
-    const [prevCheckedProp, setPrevCheckedProp] = useState(isCheckedProp);
+    const [prevItem, setPrevItem] = useState({key: item.keyForList, checked: isCheckedProp});
     const [optimisticChecked, setOptimisticChecked] = useState<boolean | null>(null);
-    if (prevCheckedProp !== isCheckedProp) {
-        setPrevCheckedProp(isCheckedProp);
+    if (prevItem.key !== item.keyForList || prevItem.checked !== isCheckedProp) {
+        setPrevItem({key: item.keyForList, checked: isCheckedProp});
         setOptimisticChecked(null);
     }
     const isChecked = optimisticChecked ?? isCheckedProp;
