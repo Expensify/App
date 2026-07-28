@@ -1,0 +1,131 @@
+name: Check Rock remote cache
+
+# Reusable workflow that reports whether Rock's remote cache already holds an artifact for the current native
+# `fingerprint` and the given traits. A build whose only purpose is to seed that cache has nothing to do when it
+# does, so its caller can skip it.
+#
+# Rock computes the answer, so there is nothing here to keep in sync with `rock.config.mjs`. If the lookup is
+# wrong or fails, this reports that a build is needed and the build repeats the same lookup itself and stops
+# early, so the worst case is one cheap job that did not need to run, never a cache that silently stops being
+# seeded.
+#
+# With `expect-cached`, the same lookup becomes an assertion instead of a question: run it after a seed build to
+# prove the seed actually wrote something. Without it, a seed that stops uploading - because an action bump moved
+# the gate its upload step sits behind, say - keeps reporting success while the cache quietly goes cold.
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        description: "'ios' or 'android'"
+        type: string
+        required: true
+      traits:
+        description: "Comma separated Rock traits identifying the variant, e.g. 'device,AdHoc' on iOS or 'Adhoc' on Android"
+        type: string
+        required: true
+      expect-cached:
+        description: Fail when the cache holds nothing, instead of reporting that a build is needed. Use after a seed build to verify it landed.
+        type: string
+        default: 'false'
+    # Named rather than inherited: a lookup needs the submodule and the bucket, and nothing else. Callers of the
+    # build workflows have to inherit, because a build needs most of the vault.
+    secrets:
+      OS_BOTIFY_TOKEN:
+        description: Token used to check out the Mobile-Expensify submodule, whose native sources the fingerprint covers.
+        required: true
+      AWS_ACCESS_KEY_ID:
+        description: Key for the bucket backing Rock's remote cache.
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: Secret for the bucket backing Rock's remote cache.
+        required: true
+    outputs:
+      NEEDS_BUILD:
+        description: Whether the cache holds no artifact for this fingerprint, so a build would do real work.
+        value: ${{ jobs.check.outputs.NEEDS_BUILD }}
+      FINGERPRINT:
+        description: The fingerprint this lookup used, so a build can confirm it computed the same one on its own host.
+        value: ${{ jobs.check.outputs.FINGERPRINT }}
+
+jobs:
+  check:
+    name: Check Rock remote cache
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    # Nothing here should take more than a couple of minutes. Without a bound, a hung install or S3 call would
+    # hold a runner for the default six hours on every push to main.
+    timeout-minutes: 15
+    outputs:
+      NEEDS_BUILD: ${{ steps.check.outputs.NEEDS_BUILD }}
+      FINGERPRINT: ${{ steps.check.outputs.FINGERPRINT }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        with:
+          ref: ${{ github.sha }}
+          # The fingerprint covers the HybridApp native sources, which live in the submodule.
+          submodules: true
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+
+      - name: Configure AWS Credentials
+        # v6
+        uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Look up an artifact for this fingerprint
+        id: check
+        env:
+          # Seeds are HybridApp builds, so the fingerprint has to be computed over the same sources they use.
+          IS_HYBRID_APP: 'true'
+          PLATFORM: ${{ inputs.platform }}
+          TRAITS: ${{ inputs.traits }}
+          EXPECT_CACHED: ${{ inputs.expect-cached }}
+        run: |
+          # With no cache provider configured at all, Rock's lookup prints nothing and exits 0, which reads here as
+          # "not cached" and would quietly turn this from a gate into a rubber stamp that seeds on every push. That
+          # can only mean `rock.config.mjs` is broken, never a transient fault, so fail rather than guess. Missing
+          # credentials are a different story and need no check: the bucket refuses anonymous ListObjects, so the
+          # lookup below fails loudly and takes the warn-and-seed path instead of answering wrongly.
+          PROVIDER=$(npx rock remote-cache get-provider-name) || PROVIDER=''
+          if [ "$PROVIDER" != 'S3' ]; then
+            echo "::error::Expected the S3 remote cache provider, got '${PROVIDER:-none}'. This lookup cannot answer without it."
+            exit 1
+          fi
+
+          # Exported so a seed build can confirm it computed the same fingerprint on its own host. `--raw` puts the
+          # hash on stdout and the full source list on stderr, which stays in the log for comparisons.
+          FINGERPRINT=$(npx rock fingerprint -p "$PLATFORM" --raw) || FINGERPRINT=''
+          echo "FINGERPRINT=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "### Rock remote cache: \`$PLATFORM\` \`$TRAITS\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Fingerprint: \`${FINGERPRINT:-unknown}\`" >> "$GITHUB_STEP_SUMMARY"
+
+          # A lookup that errors out may just be a bad minute for S3, so warn and let the build decide for itself.
+          if ! OUTPUT=$(npx rock remote-cache list -p "$PLATFORM" --traits "$TRAITS" --json); then
+            echo "::warning::Could not query the remote cache, so assuming a build is needed"
+            echo "- Lookup failed, assuming a build is needed" >> "$GITHUB_STEP_SUMMARY"
+            echo "NEEDS_BUILD=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -n "$OUTPUT" ]; then
+            ARTIFACT_NAME=$(echo "$OUTPUT" | jq -r '.name')
+            echo "Already cached: $ARTIFACT_NAME"
+            echo "- Cached as \`$ARTIFACT_NAME\`, no build needed" >> "$GITHUB_STEP_SUMMARY"
+            echo "NEEDS_BUILD=false" >> "$GITHUB_OUTPUT"
+          elif [ "$EXPECT_CACHED" == 'true' ]; then
+            echo "::error::A seed build for traits '$TRAITS' just ran, but nothing is cached at fingerprint ${FINGERPRINT:-unknown}. Seeding has stopped working: check whether the build still reaches its upload step."
+            echo "- **A seed just ran and the cache is still empty.** Seeding has stopped working." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "Nothing cached for traits '$TRAITS' at this fingerprint"
+            echo "- Nothing cached, a build would do real work" >> "$GITHUB_STEP_SUMMARY"
+            echo "NEEDS_BUILD=true" >> "$GITHUB_OUTPUT"
+          fi
