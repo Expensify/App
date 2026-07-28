@@ -237,7 +237,7 @@ describe('useSearchHighlightAndScroll', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
-    it('should return multiple new search result keys when there are multiple new expenses', () => {
+    it('should clear the scroll trigger when the first new expense is already first', () => {
         const {rerender, result} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
             initialProps: baseProps,
         });
@@ -267,6 +267,24 @@ describe('useSearchHighlightAndScroll', () => {
         // @ts-expect-error
         rerender(updatedProps);
         expect(result.current.newSearchResultKeys?.size).toBe(2);
+
+        const scrollToIndex = jest.fn();
+        const ref: NonNullable<Parameters<typeof result.current.handleSelectionListScroll>[1]> = {
+            scrollAndHighlightItem: jest.fn(),
+            scrollToIndex,
+            updateFocusedIndex: jest.fn(),
+            scrollToFocusedInput: jest.fn(),
+            focusTextInput: jest.fn(),
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        result.current.handleSelectionListScroll([{transactionID: '1'}, {transactionID: '2'}], ref);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        result.current.handleSelectionListScroll([{transactionID: '2'}, {transactionID: '1'}], ref);
+
+        expect(scrollToIndex).not.toHaveBeenCalled();
     });
 
     it('should return new search result keys for manually highlighted expenses', async () => {

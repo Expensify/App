@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -455,20 +455,22 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                         />
                     </View>
                     <Button
-                        text={translate('workspace.rules.merchantRules.previewMatches')}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={previewMatches}
                         style={[styles.mb4]}
-                        large
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.rules.merchantRules.previewMatches')}</Button.Text>
+                    </Button>
                     {isEditing && (
                         <Button
-                            text={translate('workspace.rules.merchantRules.deleteRule')}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             onPress={handleDelete}
                             style={[styles.mb4]}
-                            large
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
-                        />
+                        >
+                            <Button.Text>{translate('workspace.rules.merchantRules.deleteRule')}</Button.Text>
+                        </Button>
                     )}
                 </>
             }
