@@ -1,0 +1,115 @@
+import useLetterAvatars from '@hooks/useLetterAvatars';
+import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
+
+import type {AvatarSizeName} from '@styles/utils';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import Avatar from './Avatar';
+import {PressableWithFeedback} from './Pressable';
+import Text from './Text';
+import UserInitialsAvatar from './UserInitialsAvatar';
+
+type AvatarSelectorProps = {
+    /** Currently selected avatar ID */
+    selectedID?: string;
+
+    /** Called when an avatar is selected */
+    onSelect: (id: string) => void;
+
+    /** Optional: size of avatars in grid */
+    size?: AvatarSizeName;
+
+    /** Optional label to display above the grid */
+    label?: string;
+};
+
+const SPACER_SIZE = 10;
+
+/**
+ * AvatarSelector — renders a grid of selectable avatars.
+ */
+function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.MEDIUM}: AvatarSelectorProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {initials, options: letterAvatarOptions} = useLetterAvatars();
+
+    const iconSize = StyleUtils.getAvatarSize(size);
+
+    return (
+        <>
+            {!!label && letterAvatarOptions.length > 0 && (
+                <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre, styles.ph2])}>{label}</Text>
+            )}
+            <View style={styles.avatarSelectorListContainer}>
+                {USER_AVATARS.ordered.map(({id, local}) => {
+                    const isSelected = selectedID === id;
+
+                    return (
+                        <PressableWithFeedback
+                            key={id}
+                            accessible
+                            accessibilityRole="button"
+                            accessibilityLabel={translate('avatarPage.selectAvatar')}
+                            onPress={() => onSelect(id)}
+                            style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
+                        >
+                            <Avatar
+                                type={CONST.ICON_TYPE_AVATAR}
+                                source={local}
+                                size={size}
+                                containerStyles={styles.avatarSelectorContainer}
+                                testID={`AvatarSelector_${id}`}
+                            />
+                        </PressableWithFeedback>
+                    );
+                })}
+                {letterAvatarOptions.map(({id, colors}) => {
+                    const isSelected = selectedID === id;
+
+                    return (
+                        <PressableWithFeedback
+                            key={id}
+                            accessible
+                            accessibilityRole="button"
+                            accessibilityLabel={translate('avatarPage.selectAvatar')}
+                            onPress={() => onSelect(id)}
+                            style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
+                        >
+                            <View
+                                style={styles.avatarSelectorContainer}
+                                testID={`AvatarSelector_${id}`}
+                            >
+                                <UserInitialsAvatar
+                                    text={initials}
+                                    colors={colors}
+                                    size={iconSize}
+                                />
+                            </View>
+                        </PressableWithFeedback>
+                    );
+                })}
+                {/* We need to add several invisible items at the end of the avatar list to guarantee that the last row avatars are aligned properly */}
+                {[...Array(SPACER_SIZE).keys()].map((i) => (
+                    <View
+                        key={`spacer-${i}`}
+                        style={[styles.avatarSelectorWrapper]}
+                    >
+                        <View style={{width: iconSize, height: iconSize}} />
+                    </View>
+                ))}
+            </View>
+        </>
+    );
+}
+
+export type {AvatarSelectorProps};
+export default AvatarSelector;

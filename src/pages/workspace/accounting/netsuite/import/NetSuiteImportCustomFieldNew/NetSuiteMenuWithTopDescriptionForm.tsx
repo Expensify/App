@@ -1,0 +1,23 @@
+import type {MenuItemProps} from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
+import React from 'react';
+
+type NetSuiteMenuWithTopDescriptionFormProps = MenuItemProps & {
+    /** The value of the menu item */
+    value?: string;
+
+    /** Callback to format the value */
+    valueRenderer?: (value?: string) => string | undefined;
+};
+
+function NetSuiteMenuWithTopDescriptionForm({value, valueRenderer, ...props}: NetSuiteMenuWithTopDescriptionFormProps) {
+    return (
+        <MenuItemWithTopDescription
+            {...props}
+            title={valueRenderer ? valueRenderer(value) : value}
+        />
+    );
+}
+
+export default NetSuiteMenuWithTopDescriptionForm;

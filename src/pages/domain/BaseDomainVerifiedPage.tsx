@@ -1,0 +1,90 @@
+import ConfirmationPage from '@components/ConfirmationPage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LottieAnimations from '@components/LottieAnimations';
+import RenderHTML from '@components/RenderHTML';
+import ScreenWrapper from '@components/ScreenWrapper';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import {isAdminSelector} from '@src/selectors/Domain';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {Str} from 'expensify-common';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
+type BaseDomainVerifiedPageProps = {
+    /** The accountID of the domain */
+    domainAccountID: number;
+
+    /** Route to redirect to when trying to access the page for an unverified domain */
+    redirectTo: Route;
+
+    /** Route to navigate to when the user confirms verification success */
+    confirmDestination?: Route;
+};
+
+function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination = ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID)}: BaseDomainVerifiedPageProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const isAdmin = isAdminSelector(currentUserAccountID)(domain);
+    const doesDomainExist = !!domain;
+
+    useEffect(() => {
+        if (!doesDomainExist || domain?.validated) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
+    }, [domainAccountID, domain?.validated, doesDomainExist, redirectTo]);
+
+    if (isLoadingOnyxValue(domainMetadata)) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'BaseDomainVerifiedPage',
+            isLoadingDomain: isLoadingOnyxValue(domainMetadata),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+
+    if (!domain || !isAdmin) {
+        return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
+    }
+
+    return (
+        <ScreenWrapper
+            testID="BaseDomainVerifiedPage"
+            shouldShowOfflineIndicator={false}
+        >
+            <HeaderWithBackButton title={translate('domain.domainVerified.title')} />
+            <ConfirmationPage
+                illustration={LottieAnimations.Fireworks}
+                heading={translate('domain.domainVerified.header')}
+                descriptionComponent={
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML html={translate('domain.domainVerified.description', {domainName: Str.extractEmailDomain(domain.email)})} />
+                    </View>
+                }
+                innerContainerStyle={styles.p10}
+                buttonText={translate('common.buttonConfirm')}
+                shouldShowButton
+                onButtonPress={() => Navigation.navigate(confirmDestination)}
+            />
+        </ScreenWrapper>
+    );
+}
+
+export default BaseDomainVerifiedPage;

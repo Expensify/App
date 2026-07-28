@@ -1,0 +1,104 @@
+import Button from '@components/ButtonComposed';
+import HeaderPageLayout from '@components/HeaderPageLayout';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {LockAccountOnyxKey} from '@userActions/User';
+import {lockAccount} from '@userActions/User';
+
+import CONST from '@src/CONST';
+import type Response from '@src/types/onyx/Response';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+type BaseLockAccountComponentProps = {
+    confirmModalPrompt: React.JSX.Element | string;
+    lockAccountPagePrompt: React.JSX.Element | string;
+    testID: string;
+    onBackButtonPress: () => void;
+    handleLockRequestFinish: (response: void | Response<LockAccountOnyxKey>) => void;
+    domainAccountID?: number;
+    domainName?: string;
+    accountID?: number;
+    lockButtonText?: string;
+};
+function LockAccountPageBase({
+    confirmModalPrompt,
+    lockAccountPagePrompt,
+    testID,
+    onBackButtonPress,
+    handleLockRequestFinish,
+    domainAccountID,
+    domainName,
+    accountID,
+    lockButtonText,
+}: BaseLockAccountComponentProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const [isLoading, setIsLoading] = useState(false);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const {showConfirmModal} = useConfirmModal();
+
+    const handleReportSuspiciousActivity = async () => {
+        if (!accountID && !currentUserPersonalDetails.accountID) {
+            return;
+        }
+        const modalResult = await showConfirmModal({
+            danger: true,
+            title: translate('lockAccountPage.reportSuspiciousActivity'),
+            prompt: confirmModalPrompt,
+            confirmText: translate('lockAccountPage.lockAccount'),
+            cancelText: translate('common.cancel'),
+            shouldDisableConfirmButtonWhenOffline: true,
+            shouldShowCancelButton: true,
+            isConfirmLoading: isLoading,
+        });
+
+        if (modalResult.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
+        setIsLoading(true);
+        const response = await lockAccount(currentUserPersonalDetails.accountID, accountID, domainAccountID, domainName);
+        setIsLoading(false);
+
+        handleLockRequestFinish(response);
+    };
+
+    const lockAccountButton = (
+        <Button
+            variant={CONST.BUTTON_VARIANT.DANGER}
+            isLoading={isLoading}
+            isDisabled={isOffline}
+            size={CONST.BUTTON_SIZE.LARGE}
+            style={styles.mt6}
+            onPress={handleReportSuspiciousActivity}
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{lockButtonText ?? translate('lockAccountPage.reportSuspiciousActivity')}</Button.Text>
+        </Button>
+    );
+
+    return (
+        <HeaderPageLayout
+            onBackButtonPress={onBackButtonPress}
+            title={translate('lockAccountPage.reportSuspiciousActivity')}
+            testID={testID}
+            footer={lockAccountButton}
+            childrenContainerStyles={[styles.pt3, styles.gap6]}
+            shouldShowOfflineIndicatorInWideScreen
+        >
+            <View style={[styles.flex1, styles.gap4, styles.mh5]}>{lockAccountPagePrompt}</View>
+        </HeaderPageLayout>
+    );
+}
+
+export default LockAccountPageBase;

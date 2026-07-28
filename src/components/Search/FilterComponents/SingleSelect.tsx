@@ -1,0 +1,163 @@
+import type {SearchFilterCommonProps} from '@components/Search/types';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem, TextInputOptions} from '@components/SelectionList/types';
+
+import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialValue from '@hooks/useInitialValue';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+
+import variables from '@styles/variables';
+
+import React, {Activity, useState} from 'react';
+
+import ListFilterWrapper from './ListFilterViewWrapper';
+
+type SingleSelectItem<T> = {
+    text: string;
+    value: T;
+    searchableText?: string;
+};
+
+type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefined> & {
+    /** The list of all items to show up in the list */
+    items: Array<SingleSelectItem<T>>;
+
+    /** Whether the search input should be displayed */
+    isSearchable?: boolean;
+
+    /** Search input place holder */
+    searchPlaceholder?: string;
+
+    /** Whether SelectionList of popup should stay mounted when popup is not visible. */
+    shouldShowList?: boolean;
+
+    /** Custom height for each item in the list */
+    itemHeight?: number;
+
+    allowDeselect?: boolean;
+    hasTitle?: boolean;
+    hasHeader?: boolean;
+};
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function SingleSelectImpl({
+    value,
+    items,
+    isSearchable,
+    searchPlaceholder,
+    selectionListTextInputStyle,
+    selectionListStyle,
+    shouldShowList = true,
+    hasTitle,
+    hasHeader,
+    itemHeight,
+    footer,
+    allowDeselect,
+    onChange,
+}: SingleSelectProps<string>) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const [selectedItem, setSelectedItem] = useState(value);
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+
+    // Snapshot the value selected when the filter first opened so it can be floated to the top of a long list on
+    // first render without repinning the row when the selection is changed afterwards. moveInitialSelectionToTop gates
+    // on the list length, so it only pins once the list is long enough to require scrolling.
+    const initialSelectedValues = useInitialValue(() => (value ? [value.value] : []));
+    const orderedItems = moveInitialSelectionToTop(items, initialSelectedValues);
+
+    const {options, noResultsFound} = (() => {
+        if (isSearchable) {
+            const searchLower = debouncedSearchTerm.toLowerCase();
+            const allOptions = orderedItems
+                .filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower))
+                .map((item) => ({
+                    text: item.text,
+                    keyForList: item.value,
+                    isSelected: selectedItem?.value === item.value,
+                }));
+            const isEmpty = allOptions.length === 0;
+            return {
+                options: allOptions,
+                noResultsFound: isEmpty,
+            };
+        }
+
+        return {
+            options: orderedItems.map((item) => ({
+                text: item.text,
+                keyForList: item.value,
+                isSelected: item.value === selectedItem?.value,
+            })),
+            noResultsFound: false,
+        };
+    })();
+
+    const updateSelectedItem = (item: ListItem) => {
+        const newItem = items.find((i) => i.value === item.keyForList);
+        if (!newItem) {
+            return;
+        }
+
+        if (allowDeselect && newItem.value === selectedItem?.value) {
+            setSelectedItem(undefined);
+            onChange(undefined);
+            return;
+        }
+        setSelectedItem(newItem);
+        onChange(newItem);
+    };
+
+    const textInputOptions: TextInputOptions = {
+        value: searchTerm,
+        label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
+        onChangeText: setSearchTerm,
+        headerMessage: noResultsFound ? translate('common.noResultsFound') : undefined,
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
+    };
+
+    return (
+        <ListFilterWrapper
+            itemCount={options.length}
+            hasHeader={hasHeader}
+            hasTitle={hasTitle}
+            isSearchable={isSearchable}
+            itemHeight={itemHeight ?? variables.optionRowHeightCompact}
+        >
+            <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
+                <SelectionList
+                    data={options}
+                    shouldSingleExecuteRowSelect
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={updateSelectedItem}
+                    textInputOptions={textInputOptions}
+                    style={{
+                        contentContainerStyle: [styles.pb0],
+                        ...selectionListStyle,
+                        listItemWrapperStyle: [{minHeight: itemHeight ?? variables.optionRowHeightCompact}, selectionListStyle?.listItemWrapperStyle],
+                    }}
+                    shouldUpdateFocusedIndex
+                    initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
+                    shouldShowLoadingPlaceholder={!noResultsFound}
+                    footerContent={footer}
+                />
+            </Activity>
+        </ListFilterWrapper>
+    );
+}
+
+function SingleSelect<T extends string>(props: SingleSelectProps<T>) {
+    return <SingleSelectImpl {...(props as SingleSelectProps<string>)} />;
+}
+
+export type {SingleSelectItem};
+export default SingleSelect;

@@ -1,0 +1,58 @@
+import RootNavigatorExtraContent from '@components/Navigation/RootNavigatorExtraContent';
+
+import addRootHistoryRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension';
+import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
+import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
+import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
+import type {
+    CustomEffectsHookProps,
+    PlatformStackNavigationEventMap,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationState,
+    PlatformStackRouterFactory,
+} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
+
+import {createNavigatorFactory} from '@react-navigation/native';
+
+import RootStackRouter from './RootStackRouter';
+import useCustomRootStackNavigatorState from './useCustomRootStackNavigatorState';
+
+function RootStackNavigatorEffects(props: CustomEffectsHookProps) {
+    useNavigationResetOnLayoutChange(props);
+    // Returning null makes Babel skip memoization for this Effects slot; an empty fragment is required.
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
+}
+
+const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('RootStackNavigator', {
+    createRouter: addRootHistoryRouterExtension(RootStackRouter as PlatformStackRouterFactory<ParamListBase>),
+    defaultScreenOptions: defaultPlatformStackScreenOptions,
+    Effects: RootStackNavigatorEffects,
+    getCustomState: useCustomRootStackNavigatorState,
+    ExtraContent: RootNavigatorExtraContent,
+});
+
+function createRootStackNavigator<
+    const ParamList extends ParamListBase,
+    const NavigatorID extends string | undefined = undefined,
+    const TypeBag extends NavigatorTypeBagBase = {
+        ParamList: ParamList;
+        NavigatorID: NavigatorID;
+        State: PlatformStackNavigationState<ParamList>;
+        ScreenOptions: PlatformStackNavigationOptions;
+        EventMap: PlatformStackNavigationEventMap;
+        NavigationList: {
+            [RouteName in keyof ParamList]: NavigationProp<ParamList, RouteName, NavigatorID>;
+        };
+        Navigator: typeof RootStackNavigatorComponent;
+    },
+    const Config extends StaticConfig<TypeBag> = StaticConfig<TypeBag>,
+>(config?: Config): TypedNavigator<TypeBag, Config> {
+    // In React Navigation 7 createNavigatorFactory returns any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return createNavigatorFactory(RootStackNavigatorComponent)(config);
+}
+
+export default createRootStackNavigator;

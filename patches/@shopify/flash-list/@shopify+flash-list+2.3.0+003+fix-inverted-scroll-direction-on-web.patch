@@ -1,0 +1,191 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index dd2d3bc..d7a3d84 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -2,8 +2,8 @@
+  * RecyclerView is a high-performance list component that efficiently renders and recycles list items.
+  * It's designed to handle large lists with optimal memory usage and smooth scrolling.
+  */
+-import React, { useCallback, useLayoutEffect, useMemo, useRef, forwardRef, useState, useId, } from "react";
+-import { Animated, I18nManager, } from "react-native";
++import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, forwardRef, useState, useId, } from "react";
++import { Animated, I18nManager, Platform, } from "react-native";
+ import { ErrorMessages } from "../errors/ErrorMessages";
+ import { WarningMessages } from "../errors/WarningMessages";
+ import { areDimensionsNotEqual, measureFirstChildLayout, measureItemLayout, measureParentSize, } from "./utils/measureLayout";
+@@ -66,6 +66,66 @@ const RecyclerViewComponent = (props, ref) => {
+     // Hook to detect when scrolling reaches list bounds
+     const { checkBounds } = useBoundDetection(recyclerViewManager, scrollViewRef);
+     const isHorizontalRTL = I18nManager.isRTL && horizontal;
++    // Web-only: Fix inverted scroll direction.
++    useEffect(() => {
++        if (!inverted || Platform.OS !== "web") {
++            return;
++        }
++        const scrollRef = scrollViewRef.current;
++        if (!scrollRef || typeof scrollRef.getScrollableNode !== "function") {
++            return;
++        }
++        const node = scrollRef.getScrollableNode();
++        if (!node) {
++            return;
++        }
++        const wheelHandler = (ev) => {
++            const target = ev.target;
++            const deltaX = ev.deltaX || ev.wheelDeltaX || 0;
++            const deltaY = ev.deltaY || ev.wheelDeltaY || 0;
++            // Compute scroll limits from the DOM node for overscroll recoil prevention.
++            const nodeScrollOffset = horizontal ? node.scrollLeft : node.scrollTop;
++            const nodeScrollLength = horizontal ? node.scrollWidth : node.scrollHeight;
++            const nodeClientLength = horizontal ? node.clientWidth : node.clientHeight;
++            const isOnScrollLimit = nodeScrollOffset <= 0 || Math.ceil(nodeScrollOffset) >= nodeScrollLength - nodeClientLength;
++            const scrollOffset = horizontal ? target.scrollLeft : target.scrollTop;
++            const scrollLength = horizontal ? target.scrollWidth : target.scrollHeight;
++            const clientLength = horizontal ? target.clientWidth : target.clientHeight;
++            const isEventTargetScrollable = scrollLength > clientLength;
++            const delta = horizontal ? deltaX : deltaY;
++            let leftoverDelta = delta;
++            if (isEventTargetScrollable) {
++                leftoverDelta = delta < 0
++                    ? Math.min(delta + scrollOffset, 0)
++                    : Math.max(delta - (scrollLength - clientLength - scrollOffset), 0);
++            }
++            const targetDelta = delta - leftoverDelta;
++            if (horizontal) {
++                if (Math.abs(deltaX) > Math.abs(deltaY)) {
++                    target.scrollLeft += targetDelta;
++                    node.scrollLeft = node.scrollLeft - leftoverDelta;
++                    ev.preventDefault();
++                    ev.stopPropagation();
++                }
++            }
++            else {
++                // Prevent overscroll recoil/rubber band at scroll boundaries.
++                if (isOnScrollLimit && Math.abs(deltaY) > 0) {
++                    ev.preventDefault();
++                }
++                if (Math.abs(deltaY) > Math.abs(deltaX)) {
++                    target.scrollTop += targetDelta;
++                    node.scrollTop = node.scrollTop - leftoverDelta;
++                    ev.preventDefault();
++                    ev.stopPropagation();
++                }
++            }
++        };
++        node.addEventListener("wheel", wheelHandler, { passive: false });
++        return () => {
++            node.removeEventListener("wheel", wheelHandler);
++        };
++    }, [inverted, horizontal]);
+     /**
+      * Initialize the RecyclerView by measuring and setting up the window size
+      * This effect runs when the component mounts or when layout changes
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+index 34722d4..ea801d2 100644
+--- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+@@ -5,6 +5,7 @@
+ import React, {
+   RefObject,
+   useCallback,
++  useEffect,
+   useLayoutEffect,
+   useMemo,
+   useRef,
+@@ -17,6 +18,7 @@ import {
+   I18nManager,
+   NativeScrollEvent,
+   NativeSyntheticEvent,
++  Platform,
+ } from "react-native";
+ 
+ import { FlashListRef } from "../FlashListRef";
+@@ -158,6 +160,88 @@ const RecyclerViewComponent = <T,>(
+ 
+   const isHorizontalRTL = I18nManager.isRTL && horizontal;
+ 
++  /**
++   * Web-only: Fix inverted scroll direction.
++   * When a list is visually inverted via scaleY/scaleX: -1, the browser's native
++   * wheel scroll goes in the wrong visual direction. This effect attaches a wheel
++   * event listener that negates the delta to correct the scroll direction.
++   * Mirrors the fix in react-native-web's VirtualizedList.
++   */
++  useEffect(() => {
++    if (!inverted || Platform.OS !== "web") {
++      return;
++    }
++    const scrollRef = scrollViewRef.current;
++    if (!scrollRef || typeof (scrollRef as any).getScrollableNode !== "function") {
++      return;
++    }
++    const node = (scrollRef as any).getScrollableNode() as HTMLElement;
++    if (!node) {
++      return;
++    }
++
++    const wheelHandler = (ev: WheelEvent) => {
++      const target = ev.target as HTMLElement;
++      const deltaX = ev.deltaX || (ev as any).wheelDeltaX || 0;
++      const deltaY = ev.deltaY || (ev as any).wheelDeltaY || 0;
++
++      // Compute scroll limits from the DOM node for overscroll recoil prevention.
++      const nodeScrollOffset = horizontal ? node.scrollLeft : node.scrollTop;
++      const nodeScrollLength = horizontal ? node.scrollWidth : node.scrollHeight;
++      const nodeClientLength = horizontal ? node.clientWidth : node.clientHeight;
++      const isOnScrollLimit =
++        nodeScrollOffset <= 0 ||
++        Math.ceil(nodeScrollOffset) >= nodeScrollLength - nodeClientLength;
++
++      const scrollOffset = horizontal ? target.scrollLeft : target.scrollTop;
++      const scrollLength = horizontal ? target.scrollWidth : target.scrollHeight;
++      const clientLength = horizontal ? target.clientWidth : target.clientHeight;
++      const isEventTargetScrollable = scrollLength > clientLength;
++      const delta = horizontal ? deltaX : deltaY;
++
++      // Calculate how much delta the event target can consume vs leftover for parent
++      let leftoverDelta = delta;
++      if (isEventTargetScrollable) {
++        leftoverDelta =
++          delta < 0
++            ? Math.min(delta + scrollOffset, 0)
++            : Math.max(
++                delta - (scrollLength - clientLength - scrollOffset),
++                0
++              );
++      }
++      const targetDelta = delta - leftoverDelta;
++
++      // Only adjust scroll and consume the event when the dominant axis
++      // matches the list orientation. stopPropagation prevents parent
++      // inverted lists from also handling this event.
++      if (horizontal) {
++        if (Math.abs(deltaX) > Math.abs(deltaY)) {
++          target.scrollLeft += targetDelta;
++          node.scrollLeft = node.scrollLeft - leftoverDelta;
++          ev.preventDefault();
++          ev.stopPropagation();
++        }
++      } else {
++        // Prevent overscroll recoil/rubber band at scroll boundaries.
++        if (isOnScrollLimit && Math.abs(deltaY) > 0) {
++          ev.preventDefault();
++        }
++        if (Math.abs(deltaY) > Math.abs(deltaX)) {
++          target.scrollTop += targetDelta;
++          node.scrollTop = node.scrollTop - leftoverDelta;
++          ev.preventDefault();
++          ev.stopPropagation();
++        }
++      }
++    };
++
++    node.addEventListener("wheel", wheelHandler, { passive: false });
++    return () => {
++      node.removeEventListener("wheel", wheelHandler);
++    };
++  }, [inverted, horizontal]);
++
+   /**
+    * Initialize the RecyclerView by measuring and setting up the window size
+    * This effect runs when the component mounts or when layout changes

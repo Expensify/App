@@ -1,0 +1,46 @@
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
+import getIconForAction from '@libs/getIconForAction';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+
+import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
+
+import React from 'react';
+
+const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.EXPENSE;
+
+type ExpenseMenuItemProps = {
+    reportID: string;
+};
+
+function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle']);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+
+    return (
+        <FABFocusableMenuItem
+            itemId={ITEM_ID}
+            pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE}
+            icon={getIconForAction(CONST.IOU.TYPE.CREATE, icons)}
+            title={translate('iou.createExpense')}
+            onPress={() =>
+                interceptAnonymousUser(() => {
+                    startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
+                })
+            }
+            shouldCallAfterModalHide={shouldUseNarrowLayout}
+        />
+    );
+}
+
+export default ExpenseMenuItem;

@@ -1,0 +1,15 @@
+name: Get Java version
+description: Reads the Java version from .java-version file
+
+outputs:
+  version:
+    description: The Java version from .java-version file
+    value: ${{ steps.getVersion.outputs.VERSION }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get Java version
+      id: getVersion
+      shell: bash
+      run: echo "VERSION=$(cat .java-version | tr -d '\n')" >> "$GITHUB_OUTPUT"

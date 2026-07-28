@@ -1,0 +1,89 @@
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
+import type {TranslationPaths} from '@src/languages/types';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import BlockingView from './BlockingView';
+import ForceFullScreenView from './ForceFullScreenView';
+
+type FullPageErrorViewProps = {
+    /** TestID for test */
+    testID?: string;
+
+    /** Child elements */
+    children?: React.ReactNode;
+
+    /** If true, child components are replaced with a blocking "error page" view */
+    shouldShow?: boolean;
+
+    /** The title text to be displayed */
+    title?: string;
+
+    /** The subtitle text to be displayed */
+    subtitle?: string;
+
+    /** Whether we should force the full page view */
+    shouldForceFullScreen?: boolean;
+
+    /** The style of the subtitle message */
+    subtitleStyle?: StyleProp<TextStyle>;
+
+    containerStyle?: StyleProp<ViewStyle>;
+
+    /** Translation key for an optional CTA button rendered below the subtitle */
+    buttonTranslationKey?: TranslationPaths;
+
+    /** Function to call when pressing the CTA button. The button only renders when this and `buttonTranslationKey` are both provided */
+    onButtonPress?: () => void;
+};
+
+function FullPageErrorView({
+    testID,
+    children = null,
+    shouldShow = false,
+    title = '',
+    subtitle = '',
+    shouldForceFullScreen = false,
+    subtitleStyle,
+    containerStyle,
+    buttonTranslationKey,
+    onButtonPress,
+}: FullPageErrorViewProps) {
+    const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
+
+    if (shouldShow) {
+        return (
+            <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
+                <View
+                    style={[styles.flex1, styles.searchBlockingErrorViewContainer]}
+                    testID={testID}
+                >
+                    <BlockingView
+                        icon={illustrations.BrokenMagnifyingGlass}
+                        iconWidth={variables.errorPageIconWidth}
+                        iconHeight={variables.errorPageIconHeight}
+                        title={title}
+                        titleStyles={[styles.mt0, styles.mb2]}
+                        subtitle={subtitle}
+                        subtitleStyle={subtitleStyle}
+                        containerStyle={[styles.gap5, containerStyle]}
+                        buttonTranslationKey={buttonTranslationKey}
+                        onButtonPress={onButtonPress}
+                    />
+                </View>
+            </ForceFullScreenView>
+        );
+    }
+
+    return children;
+}
+
+export default FullPageErrorView;

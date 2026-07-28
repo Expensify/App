@@ -1,0 +1,75 @@
+import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef} from 'react';
+import {FlatList} from 'react-native';
+
+import type {CustomFlatListProps} from './types';
+
+// FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
+// CustomFlatList saves the offset and use it for scrollToOffset() when unfrozen.
+function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMomentumScrollEnd, onScroll, shouldHideContent = false, ...props}: CustomFlatListProps<T>) {
+    const lastScrollOffsetRef = useRef(0);
+    const styles = useThemeStyles();
+
+    const onScreenFocus = useCallback(() => {
+        if (typeof ref === 'function') {
+            return;
+        }
+        if (!ref?.current || !lastScrollOffsetRef.current) {
+            return;
+        }
+        if (ref.current && lastScrollOffsetRef.current) {
+            ref.current.scrollToOffset({offset: lastScrollOffsetRef.current, animated: false});
+        }
+    }, [ref]);
+
+    const handleScrollEnd = useCallback(
+        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            onMomentumScrollEnd?.(event);
+            lastScrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+        },
+        [onMomentumScrollEnd],
+    );
+
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        lastScrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+        onScroll?.(event);
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            onScreenFocus();
+        }, [onScreenFocus]),
+    );
+
+    const contentContainerStyle = [props.contentContainerStyle, shouldHideContent && styles.opacity0];
+
+    if (enableAnimatedKeyboardDismissal) {
+        return (
+            <KeyboardDismissibleFlatList
+                {...props}
+                ref={ref}
+                onScroll={handleScroll}
+                onMomentumScrollEnd={handleScrollEnd}
+                contentContainerStyle={contentContainerStyle}
+            />
+        );
+    }
+
+    return (
+        <FlatList<T>
+            {...props}
+            ref={ref}
+            onScroll={handleScroll}
+            onMomentumScrollEnd={handleScrollEnd}
+            contentContainerStyle={contentContainerStyle}
+        />
+    );
+}
+
+export default CustomFlatList;

@@ -1,0 +1,118 @@
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ForwardedRef} from 'react';
+import type {ViewStyle} from 'react-native';
+
+import React, {useImperativeHandle, useState} from 'react';
+import {View} from 'react-native';
+
+import InteractiveStepButton from './InteractiveStepButton';
+
+type InteractiveStepSubHeaderProps = {
+    /** List of the Route Name to navigate when the step is selected */
+    stepNames: readonly string[];
+
+    /** Function to call when a step is selected */
+    onStepSelected?: (stepName: string) => void;
+
+    /** The index of the step to start with */
+    startStepIndex?: number;
+
+    /** Description of the current step, appended to its accessibility label */
+    currentStepAccessibilityDescription: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<InteractiveStepSubHeaderHandle>;
+};
+
+type InteractiveStepSubHeaderHandle = {
+    /** Move to the next step */
+    moveNext: () => void;
+
+    /** Move to the previous step */
+    movePrevious: () => void;
+
+    /** Move to a specific step */
+    moveTo: (step: number) => void;
+};
+
+const MIN_AMOUNT_FOR_EXPANDING = 3;
+const MIN_AMOUNT_OF_STEPS = 2;
+
+function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAccessibilityDescription, onStepSelected, ref}: InteractiveStepSubHeaderProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
+
+    if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
+        throw new Error(`stepNames list must have at least ${MIN_AMOUNT_OF_STEPS} elements.`);
+    }
+
+    const [currentStep, setCurrentStep] = useState(startStepIndex);
+    useImperativeHandle(
+        ref,
+        () => ({
+            moveNext: () => {
+                setCurrentStep((actualStep) => actualStep + 1);
+            },
+            movePrevious: () => {
+                setCurrentStep((actualStep) => actualStep - 1);
+            },
+            moveTo: (step: number) => {
+                setCurrentStep(step);
+            },
+        }),
+        [],
+    );
+
+    const amountOfUnions = stepNames.length - 1;
+
+    return (
+        <View style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}>
+            {stepNames.map((stepName, index) => {
+                const isCompletedStep = currentStep > index;
+                const isLockedStep = currentStep < index;
+                const isLockedLine = currentStep < index + 1;
+                const hasUnion = index < amountOfUnions;
+                const isCurrentStep = currentStep === index;
+
+                const moveToStep = () => {
+                    if (isLockedStep || !onStepSelected) {
+                        return;
+                    }
+                    setCurrentStep(index);
+                    const step = stepNames.at(index);
+                    if (step) {
+                        onStepSelected(step);
+                    }
+                };
+
+                return (
+                    <View
+                        style={[styles.interactiveStepHeaderStepContainer, hasUnion && styles.flex1]}
+                        key={stepName}
+                    >
+                        <InteractiveStepButton
+                            stepNumber={index + 1}
+                            stepLabel={translate('stepCounter', {
+                                step: index + 1,
+                                total: stepNames.length,
+                            })}
+                            currentStepDescription={isCurrentStep ? currentStepAccessibilityDescription : undefined}
+                            isCurrentStep={isCurrentStep}
+                            isLockedStep={isLockedStep}
+                            isCompletedStep={isCompletedStep}
+                            onPress={onStepSelected ? moveToStep : undefined}
+                        />
+                        {hasUnion ? <View style={[styles.interactiveStepHeaderStepLine, isLockedLine && styles.interactiveStepHeaderLockedStepLine]} /> : null}
+                    </View>
+                );
+            })}
+        </View>
+    );
+}
+
+export type {InteractiveStepSubHeaderProps, InteractiveStepSubHeaderHandle};
+
+export default InteractiveStepSubHeader;
