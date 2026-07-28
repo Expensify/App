@@ -170,10 +170,15 @@ function AssigneeStep({route}: AssigneeStepProps) {
     };
 
     const handleBackButtonPress = () => {
+        // When editing the cardholder from the Confirmation step, the assignee step is the only screen left in the RHP
+        // stack, so a bare goBack() would dismiss the whole modal. Navigate back to Confirmation explicitly instead
+        // (mirroring CardSelectionStep). Plain wizard back-navigation (isEditing false) falls through to goBack().
         if (isEditing) {
             setAssignCardStepAndData({
                 isEditing: false,
             });
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
+            return;
         }
         Navigation.goBack();
     };
