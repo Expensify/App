@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -441,6 +443,7 @@ const translations: TranslationDeepObject<typeof en> = {
         print: 'Drucken',
         help: 'Hilfe',
         collapsed: 'Eingeklappt',
+        expand: 'Erweitern',
         expanded: 'Ausgeklappt',
         expenseReport: 'Spesenabrechnung',
         rateOutOfPolicy: 'Satz außerhalb der Richtlinie',
@@ -2606,6 +2609,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Verwende diese Karte für deine Expensify Travel-Buchungen. Sie wird beim Bezahlen als “Travel Card” angezeigt.',
         },
         chaseAccountNumberDifferent: 'Warum ist meine Kontonummer anders?',
+        cardLastSynced: (relativeDate: string) => `Synchronisiert am ${relativeDate}`,
+        cardNeverSynced: 'Nie synchronisiert',
+        cardStatus: {
+            active: 'Aktiv',
+            inactive: 'Inaktiv',
+            fixConnection: 'Bitte beheben Sie diese Verbindung',
+            fixConnectionIn: (companyCardsRoute: string) => `Bitte beheben Sie diese Verbindung in <a href="${companyCardsRoute}">Firmenkarten</a>`,
+            askAdminToFixConnection: 'Bitte bitten Sie eine(n) Admin, diese Verbindung zu reparieren',
+        },
+        bankAccountStatus: {
+            active: 'Aktiv',
+            incomplete: 'Unvollständig',
+            pending: 'Ausstehend',
+            verifying: 'Wird überprüft',
+            reviewingDocumentation: 'Wir prüfen Ihre Unterlagen',
+            finishAddingBankAccount: 'Hinzufügen des Bankkontos abschließen',
+            finish: 'Fertig',
+            confirmTestTransactions: 'Bitte bestätigen Sie Testtransaktionen',
+            accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
+            unlock: 'Entsperren',
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify Karte',
@@ -2941,8 +2965,16 @@ ${amount} für ${merchant} – ${date}`,
             updateAvatar: 'Beim Aktualisieren des Avatars dieser Vertretung ist ein Problem aufgetreten',
         },
     },
+    newAgentPage: {
+        title: 'Neue:r Agent:in',
+        buildCustomAgent: 'Eigenen Agenten erstellen',
+        orStartWithTemplate: 'Oder mit einer Vorlage beginnen:',
+        role: 'Agent',
+        emptyTemplatesTitle: 'Noch keine Vorlagen',
+        emptyTemplatesSubtitle: 'Erstelle einen benutzerdefinierten Agenten, um zu beginnen.',
+    },
     addAgentPage: {
-        title: 'Neue Kontaktperson',
+        title: 'Eigenen Agenten erstellen',
         agentName: 'Name der Ansprechperson',
         instructions: 'Eigene Anweisungen schreiben',
         createAgent: 'Agent erstellen',
@@ -5071,7 +5103,9 @@ ${amount} für ${merchant} – ${date}`,
             creditCardAccount: 'Kreditkartenkonto',
             defaultVendor: 'Standardanbieter',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Legen Sie einen Standardlieferanten fest, der auf ${isReimbursable ? '' : 'nicht-'}erstattungsfähige Ausgaben angewendet wird, für die in Sage Intacct kein übereinstimmender Lieferant vorhanden ist.`,
+                isReimbursable
+                    ? `Legen Sie einen Standardlieferanten fest, der auf erstattungsfähige Ausgaben angewendet wird, für die es keinen passenden Lieferanten in Sage Intacct gibt.`
+                    : `Ausgaben, die keinen Ihrer Sage Intacct-Lieferanten zugeordnet werden können, werden standardmäßig diesem Lieferanten zugewiesen.`,
             exportDescription: 'Konfigurieren Sie, wie Expensify Daten nach Sage Intacct exportiert.',
             exportPreferredExporterNote:
                 'Der bevorzugte Exporteur kann jede Workspace-Adminperson sein, muss jedoch auch Domain-Admin sein, wenn du in den Domaineinstellungen unterschiedliche Exportkonten für einzelne Firmenkarten festlegst.',
@@ -6970,6 +7004,12 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             exportCompanyCard: 'Firmenkartenausgaben exportieren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standardanbieter',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Spesen, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Anbieter zugeordnet.`
+                    : `Ausgaben, die nicht automatisch abgeglichen werden, werden standardmäßig diesem Lieferanten zugeordnet. Andernfalls werden sie als „Credit Card Misc.“ exportiert.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Wählen Sie einen Standard-${connectionName}-Lieferanten für Ausgaben, die nicht automatisch zugeordnet werden.`,
             defaultAccount: 'Standardkonto',
             autoSync: 'Automatische Synchronisierung',
             autoSyncDescription: 'NetSuite und Expensify automatisch jeden Tag synchronisieren. Finalisierte Berichte in Echtzeit exportieren',
@@ -7807,6 +7847,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 editRuleTitle: 'Regel bearbeiten',
                 deleteRule: 'Regel löschen',
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
+                unableToRemoveTitle: 'Entfernen nicht möglich',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `Die von RuleBot durchgesetzten <a href="${rulesRoute}">Agentenregeln</a> müssen zuerst aus Ihrem Workspace entfernt werden, bevor Sie diese Agentin/diesen Agenten entfernen können.`,
+                unableToCloseAccountTitle: 'Konto kann nicht geschlossen werden',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `Die von RuleBot durchgesetzten <a href="${rulesRoute}">Agentenregeln</a> müssen zuerst aus Ihrem Workspace entfernt werden, bevor Sie dieses Konto schließen können.`,
+                unableToDeleteAgentTitle: 'Agent kann nicht gelöscht werden',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `Die von RuleBot durchgesetzten <a href="${rulesRoute}">Agentenregeln</a> müssen zuerst aus Ihrem Workspace entfernt werden, bevor Sie diese Agentin/diesen Agenten löschen können.`,
+                unableToChangeRoleTitle: 'Rolle kann nicht geändert werden',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `Die von RuleBot durchgesetzten <a href="${rulesRoute}">Agentenregeln</a> müssen zuerst aus Ihrem Workspace entfernt werden, bevor Sie die Rolle dieser Agentin/dieses Agenten ändern können.`,
                 describeRuleTitle: 'Beschreiben Sie die Regel, der Ihre KI-Agentin/Ihr KI-Agent folgen soll',
                 describeRuleHeadline: 'Beschreibe deine Regel',
                 disclaimer: 'KI-Agenten können Fehler machen.',
@@ -8972,6 +9024,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Bezahlen',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
+            filterType: {label: 'Filtertyp', has: {positive: 'hat', negative: 'hat nicht'}, is: {positive: 'ist', negative: 'ist nicht'}},
         },
         display: {
             label: 'Anzeige',

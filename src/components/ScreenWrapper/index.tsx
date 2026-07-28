@@ -207,7 +207,7 @@ function ScreenWrapper({
     // overlaid above the single NewDot entry, and each MFA screen renders its own ScreenWrapper. Navigation.getActiveRouteWithoutParams()
     // still reports the underlying NewDot route while the overlay is up, so initialURLMatchesActiveRoute is true on the MFA screens too.
     // usePreventRemove calls e.preventDefault() unconditionally whenever the guard is active, so guarding these instances would consume the
-    // MFA navigator's own stack actions (e.g. replacing the magic-code page with the Face ID prompt, or popping the outcome screen on close),
+    // MFA navigator's own stack actions (e.g. replacing the validateCode page with the Face ID prompt, or popping the outcome screen on close),
     // blocking transitions within the flow. Guard only the outer NewDot ScreenWrapper, never the ScreenWrappers inside the MFA overlay.
     // NavigationRouteContext is undefined when tests mock @react-navigation/native without re-exporting it, so fall back to a noop context to keep useContext valid.
     const route = useContext(NavigationRouteContext ?? FallbackRouteContext);

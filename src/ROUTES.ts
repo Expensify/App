@@ -225,8 +225,8 @@ const DYNAMIC_ROUTES = {
             return `missing-personal-details/${cardID}/${subPage}${action ? `/${action}` : ''}` as const;
         },
     },
-    MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: {
-        path: 'missing-personal-details/:cardID/confirm-magic-code',
+    MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE: {
+        path: 'missing-personal-details/:cardID/confirm-validate-code',
         entryScreens: [
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
@@ -237,7 +237,15 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.WALLET.DOMAIN_CARD,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
         ],
-        getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-magic-code` as const,
+        getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-validate-code` as const,
+    },
+    MONEY_REQUEST_STEP_DESTINATION: {
+        path: 'per-diem-destination',
+        entryScreens: [SCREENS.MONEY_REQUEST.CREATE],
+    },
+    MONEY_REQUEST_STEP_DESTINATION_EDIT: {
+        path: 'per-diem-destination-edit',
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
     },
     PROFILE: {
         path: 'a/:accountID',
@@ -813,7 +821,12 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_COMPANY_CARD_EXPORT: {
         path: 'edit/export/:feed/:cardID',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS, SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS, SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST],
+        entryScreens: [
+            SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+            SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS,
+            SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS,
+            SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST,
+        ],
         getRoute: (feed: CardFeedWithDomainID, cardID: string) => `edit/export/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
@@ -829,8 +842,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER,
         ],
     },
-    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: {
-        path: 'confirm-magic-code',
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE: {
+        path: 'confirm-validate-code',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION: {
@@ -1464,9 +1477,9 @@ const ROUTES = {
         route: 'settings/security/merge-accounts',
         getRoute: (email?: string) => `settings/security/merge-accounts${email ? `?email=${encodeURIComponent(email)}` : ''}` as const,
     },
-    SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE: {
-        route: 'settings/security/merge-accounts/:login/magic-code',
-        getRoute: (login: string) => `settings/security/merge-accounts/${encodeURIComponent(login)}/magic-code` as const,
+    SETTINGS_MERGE_ACCOUNTS_VALIDATE_CODE: {
+        route: 'settings/security/merge-accounts/:login/validate-code',
+        getRoute: (login: string) => `settings/security/merge-accounts/${encodeURIComponent(login)}/validate-code` as const,
     },
     SETTINGS_MERGE_ACCOUNTS_RESULT: {
         route: 'settings/security/merge-accounts/:login/result/:result',
@@ -1487,7 +1500,7 @@ const ROUTES = {
         route: 'settings/security/delegate/:login/update-role/:currentRole',
         getRoute: (login: string, currentRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${currentRole}` as const,
     },
-    SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE: {
+    SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE: {
         route: 'settings/security/delegate/:login/confirm-role/:newRole',
         getRoute: (login: string, newRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/confirm-role/${newRole}` as const,
     },
@@ -1495,9 +1508,9 @@ const ROUTES = {
         route: 'settings/security/delegate/:login/role/:role/confirm',
         getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
     },
-    SETTINGS_DELEGATE_CONFIRM_MAGIC_CODE: {
-        route: 'settings/security/delegate/:login/role/:role/confirm/magic-code',
-        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm/magic-code` as const,
+    SETTINGS_DELEGATE_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/security/delegate/:login/role/:role/confirm/validate-code',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm/validate-code` as const,
     },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
@@ -1527,9 +1540,9 @@ const ROUTES = {
         route: 'settings/wallet/personal-card/:cardID/edit/transaction-start-date',
         getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/edit/transaction-start-date` as const,
     },
-    SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE: {
-        route: 'settings/wallet/card/:cardID/confirm-magic-code',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-magic-code` as const,
+    SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/wallet/card/:cardID/confirm-validate-code',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-validate-code` as const,
     },
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
@@ -1539,9 +1552,9 @@ const ROUTES = {
         route: 'settings/card/:cardID/update-address',
         getRoute: (cardID: string) => `settings/card/${cardID}/update-address` as const,
     },
-    SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE: {
-        route: 'settings/card/:cardID/confirm-magic-code',
-        getRoute: (cardID: string) => `settings/card/${cardID}/confirm-magic-code` as const,
+    SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/card/:cardID/confirm-validate-code',
+        getRoute: (cardID: string) => `settings/card/${cardID}/confirm-validate-code` as const,
     },
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',
@@ -1654,10 +1667,10 @@ const ROUTES = {
         getRoute: (cardID: string, isFromDomainCardDetail?: boolean) =>
             `settings/wallet/card/${cardID}/report-card-lost-or-damaged${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
     },
-    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: {
-        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-magic-code',
+    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-validate-code',
         getRoute: (cardID: string, reason: ReplacementReason, isFromDomainCardDetail?: boolean) =>
-            `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-magic-code${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
+            `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-validate-code${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
     },
     SETTINGS_WALLET_CARD_CHANGE_PIN: {
         route: 'settings/wallet/card/:cardID/change-pin',
@@ -1674,7 +1687,7 @@ const ROUTES = {
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_AGENTS: 'settings/agents',
-    SETTINGS_AGENTS_ADD: {
+    SETTINGS_AGENTS_NEW: {
         route: 'settings/agents/new',
         getRoute: ({policyID}: {policyID?: string} = {}) => {
             const params = new URLSearchParams();
@@ -1685,7 +1698,18 @@ const ROUTES = {
             return `settings/agents/new${query ? `?${query}` : ''}` as const;
         },
     },
-    SETTINGS_AGENTS_ADD_AVATAR: 'settings/agents/new/avatar',
+    SETTINGS_AGENTS_ADD: {
+        route: 'settings/agents/new/custom',
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
+            const params = new URLSearchParams();
+            if (policyID) {
+                params.set('policyID', policyID);
+            }
+            const query = params.toString();
+            return `settings/agents/new/custom${query ? `?${query}` : ''}` as const;
+        },
+    },
+    SETTINGS_AGENTS_ADD_AVATAR: 'settings/agents/new/custom/avatar',
     SETTINGS_AGENTS_EDIT: {
         route: 'settings/agents/:accountID/edit',
         getRoute: (accountID: number) => `settings/agents/${accountID}/edit` as const,
@@ -1720,7 +1744,7 @@ const ROUTES = {
         route: 'settings/profile/private-personal-details',
         getRoute: (fieldToFocus?: string) => `settings/profile/private-personal-details${fieldToFocus ? `?fieldToFocus=${encodeURIComponent(fieldToFocus)}` : ''}` as const,
     },
-    SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'settings/profile/private-personal-details/confirm',
+    SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE: 'settings/profile/private-personal-details/confirm',
     SETTINGS_ADDRESS_STATE: {
         route: 'settings/profile/address/state',
 
@@ -1749,13 +1773,13 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
     },
-    SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
-        route: 'settings/profile/contact-methods/new/confirm-magic-code',
+    SETTINGS_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/profile/contact-methods/new/confirm-validate-code',
         getRoute: (backTo?: string) => {
             // TODO this backTo comes from drilling it through settings screens
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
 
-            return getUrlWithBackToParam(`settings/profile/contact-methods/new/confirm-magic-code`, backTo);
+            return getUrlWithBackToParam(`settings/profile/contact-methods/new/confirm-validate-code`, backTo);
         },
     },
     SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM: {
@@ -1998,11 +2022,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/vendor/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
-    MONEY_REQUEST_STEP_DESTINATION: {
-        route: ':action/:iouType/destination/:transactionID/:reportID/:backToReport?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/destination/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}`, backTo),
-    },
     MONEY_REQUEST_STEP_TIME: {
         route: ':action/:iouType/time/:transactionID/:reportID/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string, backTo = '') =>
@@ -2012,11 +2031,6 @@ const ROUTES = {
         route: ':action/:iouType/subrate/:transactionID/:reportID/:backToReport?/:pageIndex',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/0`, backTo),
-    },
-    MONEY_REQUEST_STEP_DESTINATION_EDIT: {
-        route: ':action/:iouType/destination/:transactionID/:reportID/edit',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/destination/${transactionID}/${reportID}/edit`, backTo),
     },
     MONEY_REQUEST_STEP_TIME_EDIT: {
         route: ':action/:iouType/time/:transactionID/:reportID/edit',

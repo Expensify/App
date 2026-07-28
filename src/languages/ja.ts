@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -440,6 +442,7 @@ const translations: TranslationDeepObject<typeof en> = {
         print: '印刷',
         help: 'ヘルプ',
         collapsed: '折りたたみ',
+        expand: '展開',
         expanded: '展開',
         expenseReport: '経費精算書',
         rateOutOfPolicy: 'ポリシー外の料率',
@@ -2575,6 +2578,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'このカードをExpensify Travelでの予約に使用してください。チェックアウト時には「Travel Card」と表示されます。',
         },
         chaseAccountNumberDifferent: '口座番号が異なるのはなぜですか？',
+        cardLastSynced: (relativeDate: string) => `${relativeDate} に同期しました`,
+        cardNeverSynced: '未同期',
+        cardStatus: {
+            active: 'アクティブ',
+            inactive: '無効',
+            fixConnection: 'この接続を修正してください',
+            fixConnectionIn: (companyCardsRoute: string) => `この接続を<a href="${companyCardsRoute}">会社カード</a>で修正してください`,
+            askAdminToFixConnection: '管理者にこの接続の修正を依頼してください',
+        },
+        bankAccountStatus: {
+            active: 'アクティブ',
+            incomplete: '未完了',
+            pending: '保留中',
+            verifying: '確認中',
+            reviewingDocumentation: '書類を審査しています',
+            finishAddingBankAccount: '銀行口座の追加を完了',
+            finish: '完了',
+            confirmTestTransactions: 'テスト取引を確認してください',
+            accountRequiresAttention: 'このアカウントには対応が必要です',
+            unlock: 'ロック解除',
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify カード',
@@ -2904,8 +2928,16 @@ ${date} の ${merchant} への ${amount}`,
             updateAvatar: 'このエージェントのアバターを更新する際に問題が発生しました',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: '新しいエージェント',
+        buildCustomAgent: 'カスタムエージェントを作成',
+        orStartWithTemplate: 'または、テンプレートから始める：',
+        role: 'エージェント',
+        emptyTemplatesTitle: 'テンプレートはまだありません',
+        emptyTemplatesSubtitle: 'カスタムエージェントを作成して始めましょう。',
+    },
+    addAgentPage: {
+        title: 'カスタムエージェントを作成',
         agentName: 'エージェント名',
         instructions: 'カスタム指示を作成',
         createAgent: 'エージェントを作成',
@@ -5005,7 +5037,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             creditCardAccount: 'クレジットカード口座',
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Sage Intacct で対応する仕入先がない ${isReimbursable ? '' : '非'}立替精算費用に適用されるデフォルトの仕入先を設定します。`,
+                isReimbursable
+                    ? `Sage Intacct で一致する仕入先がない立替経費に適用するデフォルトの仕入先を設定します。`
+                    : `Sage Intacct の仕入先に照合できない経費は、デフォルトでこの仕入先に紐づけられます。`,
             exportDescription: 'Expensify のデータを Sage Intacct へエクスポートする方法を設定します。',
             exportPreferredExporterNote:
                 '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
@@ -6871,6 +6905,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             exportCompanyCard: '法人カード経費のエクスポート形式',
             exportDate: 'エクスポート日',
             defaultVendor: 'デフォルトのベンダー',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。`
+                    : `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。それ以外は「Credit Card Misc」としてエクスポートされます。`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `自動的に照合されない経費に対して使用する、デフォルトの ${connectionName} 仕入先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
             autoSyncDescription: 'NetSuite と Expensify を毎日自動で同期。確定したレポートをリアルタイムでエクスポート',
@@ -7690,6 +7729,18 @@ ${reportName}`,
                 editRuleTitle: 'ルールを編集',
                 deleteRule: 'ルールを削除',
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
+                unableToRemoveTitle: '削除できません',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `このエージェントを削除する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,
+                unableToCloseAccountTitle: 'アカウントを閉鎖できません',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `このアカウントを閉鎖する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,
+                unableToDeleteAgentTitle: 'エージェントを削除できません',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `このエージェントを削除する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,
+                unableToChangeRoleTitle: 'ロールを変更できません',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `このエージェントのロールを変更する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,
                 describeRuleTitle: 'AI エージェントに従わせるルールを記述してください',
                 describeRuleHeadline: 'ルールを説明する',
                 disclaimer: 'AI エージェントは間違える場合があります。',
@@ -8841,6 +8892,7 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支払う',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
+            filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
         },
         display: {
             label: '表示',

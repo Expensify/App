@@ -14,7 +14,9 @@ import startCase from 'lodash/startCase';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
     ConnectionNameParams,
+    DefaultVendorHelperTextParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -475,6 +477,7 @@ const translations = {
         print: 'Print',
         help: 'Help',
         collapsed: 'Collapsed',
+        expand: 'Expand',
         expanded: 'Expanded',
         expenseReport: 'Expense Report',
         // @context Rate as a noun, not a verb
@@ -2659,6 +2662,27 @@ const translations = {
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
         cardInactive: 'Inactive',
+        cardLastSynced: (relativeDate: string) => `Synced ${relativeDate}`,
+        cardNeverSynced: 'Never synced',
+        cardStatus: {
+            active: 'Active',
+            inactive: 'Inactive',
+            fixConnection: 'Please fix this connection',
+            fixConnectionIn: (companyCardsRoute: string) => `Please fix this connection in <a href="${companyCardsRoute}">company cards</a>`,
+            askAdminToFixConnection: 'Please ask an admin to fix this connection',
+        },
+        bankAccountStatus: {
+            active: 'Active',
+            incomplete: 'Incomplete',
+            pending: 'Pending',
+            verifying: 'Verifying',
+            reviewingDocumentation: "We're reviewing your documentation",
+            finishAddingBankAccount: 'Finish adding bank account',
+            finish: 'Finish',
+            confirmTestTransactions: 'Please confirm test transactions',
+            accountRequiresAttention: 'This account requires attention',
+            unlock: 'Unlock',
+        },
         assignedCards: 'Cards',
         assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
         addVirtualCardPersonalDetails: {
@@ -3015,8 +3039,16 @@ const translations = {
             updateAvatar: "There was a problem updating this agent's avatar",
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'New agent',
+        buildCustomAgent: 'Build custom agent',
+        orStartWithTemplate: 'Or start with a template:',
+        role: 'Agent',
+        emptyTemplatesTitle: 'No templates yet',
+        emptyTemplatesSubtitle: 'Build a custom agent to get started.',
+    },
+    addAgentPage: {
+        title: 'Build custom agent',
         agentName: 'Agent name',
         instructions: 'Write custom instructions',
         createAgent: 'Create agent',
@@ -5181,7 +5213,9 @@ const translations = {
             creditCardAccount: 'Credit card account',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Set a default vendor that will apply to ${isReimbursable ? '' : 'non-'}reimbursable expenses that don't have a matching vendor in Sage Intacct.`,
+                isReimbursable
+                    ? `Set a default vendor that will apply to reimbursable expenses that don't have a matching vendor in Sage Intacct.`
+                    : `Expenses that can't be matched to your Sage Intacct vendors will default to this vendor.`,
             exportDescription: 'Configure how Expensify data exports to Sage Intacct.',
             exportPreferredExporterNote:
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
@@ -7074,6 +7108,11 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this vendor.`
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
             defaultAccount: 'Default account',
             autoSync: 'Auto-sync',
             autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day. Export finalized report in realtime',
@@ -8128,6 +8167,18 @@ const translations = {
                 editRuleTitle: 'Edit rule',
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
+                unableToRemoveTitle: 'Unable to remove',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can remove this agent.`,
+                unableToCloseAccountTitle: 'Unable to close account',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can close this account.`,
+                unableToDeleteAgentTitle: 'Unable to delete agent',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can delete this agent.`,
+                unableToChangeRoleTitle: 'Unable to change role',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can change this agent's role.`,
                 describeRuleTitle: 'Describe the rule for your AI agent to follow',
                 describeRuleHeadline: 'Describe your rule',
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
@@ -9110,6 +9161,17 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approve',
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pay',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
+            },
+            filterType: {
+                label: 'Filter type',
+                has: {
+                    positive: 'has',
+                    negative: "doesn't have",
+                },
+                is: {
+                    positive: 'is',
+                    negative: 'is not',
+                },
             },
         },
         display: {
