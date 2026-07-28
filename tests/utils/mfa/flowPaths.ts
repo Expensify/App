@@ -254,6 +254,7 @@ export default getWalkedPaths;
 export {
     CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE,
     CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE,
+    createActorDoneEvent,
     getDrivingJourneyPaths,
     getMfaShortestPaths,
     isAutoDrivenEvent,
