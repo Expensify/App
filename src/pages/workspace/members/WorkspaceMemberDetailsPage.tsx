@@ -378,6 +378,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             />
                             <MenuItemWithTopDescription
                                 disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser || !canManageSelectedMemberRole}
+                                shouldGreyOutWhenDisabled={false}
                                 title={translate(`workspace.common.roleName`, member?.role)}
                                 interactive={!isReimburser && canManageSelectedMemberRole}
                                 description={translate('common.role')}
