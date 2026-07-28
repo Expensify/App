@@ -701,14 +701,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
-            const itemRouteDistanceMeters = item.comment?.customUnit?.routeDistanceMeters;
             const itemDistanceUnit = item.comment?.customUnit?.distanceUnit;
             const originalItemDistance =
-                isGPSDistanceRequest && itemRouteDistanceMeters != null && itemDistanceUnit
-                    ? DistanceRequestUtils.convertDistanceUnit(itemRouteDistanceMeters, itemDistanceUnit)
+                isModifiedGPSDistanceRequest && gpsDraftDetails?.distanceInMeters && itemDistanceUnit
+                    ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.distanceInMeters, itemDistanceUnit)
                     : itemDistance;
-            const modifiedItemDistance =
-                isGPSDistanceRequest && originalItemDistance != null && itemDistance != null && Math.abs(originalItemDistance - itemDistance) > 0.01 ? itemDistance : undefined;
+            const modifiedItemDistance = isModifiedGPSDistanceRequest ? transactionDistance : undefined;
 
             const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({

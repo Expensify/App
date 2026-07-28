@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {applyTrimmedTrip, resetTripTrim} from '@libs/actions/GPSDraftDetails';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {calculateTrimmedEndPoint, getGpsPoints, getTrimmedGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {calculateTrimmedEndPoint, getGpsPoints, getTrimmedGpsTrip, gpsPointsToMapboxCoordinates} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import useGPSWaypointMarkers from '@pages/iou/request/step/IOURequestStepDistanceGPS/useGPSWaypointMarkers';
@@ -23,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -48,15 +49,24 @@ function IOURequestStepGPSTripEdit({
     const totalDistanceMeters = gpsDraftDetails?.distanceInMeters ?? 0;
 
     const [isSaving, setIsSaving] = useState(false);
-    const [trimmedEndPoint, setTrimmedEndPoint] = useState(gpsDraftDetails?.trimmedEndPoint);
-    const [trimmedDistance, setTrimmedDistance] = useState(gpsDraftDetails?.modifiedDistance ?? gpsDraftDetails?.distanceInMeters ?? 0);
-    const [trimmedDirectionCoords, setTrimmedDirectionCoords] = useState<Coordinate[][]>(() => {
-        if (!trimmedEndPoint) {
-            return gpsPoints.map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
+    // The trim the user is dragging out right now; undefined until they touch the slider
+    const [pendingTrim, setPendingTrim] = useState<{endPoint: TrimmedGPSPoint; distance: number} | undefined>();
+
+    const trimmedEndPoint = pendingTrim?.endPoint ?? gpsDraftDetails?.trimmedEndPoint;
+    const trimmedDistance = pendingTrim?.distance ?? gpsDraftDetails?.modifiedDistance ?? totalDistanceMeters;
+    const trimmedDirectionCoords = gpsPointsToMapboxCoordinates(getTrimmedGpsTrip(gpsPoints, trimmedEndPoint));
+
+    const updateTrimmedRoute = (ratio: number) => {
+        if (!gpsPoints.length || !totalDistanceMeters) {
+            return;
         }
-        const trimmedCoords = getTrimmedGpsTrip(gpsPoints, trimmedEndPoint);
-        return trimmedCoords.map((seg): Coordinate[] => seg.map(({lat, long}) => [long, lat]));
-    });
+        const distance = ratio * totalDistanceMeters;
+        const endPoint = calculateTrimmedEndPoint(gpsPoints, distance);
+        if (!endPoint) {
+            return;
+        }
+        setPendingTrim({endPoint, distance});
+    };
 
     useEffect(() => {
         initMapboxToken();
@@ -66,26 +76,6 @@ function IOURequestStepGPSTripEdit({
     const goBackRoute = ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(action, iouType, transactionID, reportID, backToReport);
     const navigateBack = () => {
         Navigation.goBack(goBackRoute);
-    };
-
-    const updateTrimmedRoute = (ratio: number) => {
-        if (!gpsPoints || !totalDistanceMeters) {
-            return;
-        }
-
-        const newTrimmedDistance = ratio * totalDistanceMeters;
-        setTrimmedDistance(newTrimmedDistance);
-
-        const newTrimmedEndPoint = calculateTrimmedEndPoint(gpsPoints, newTrimmedDistance);
-
-        if (!newTrimmedEndPoint) {
-            return;
-        }
-
-        setTrimmedEndPoint(newTrimmedEndPoint);
-
-        const trimmedCoords = getTrimmedGpsTrip(gpsPoints, newTrimmedEndPoint);
-        setTrimmedDirectionCoords(trimmedCoords.map((seg): Coordinate[] => seg.map(({lat, long}) => [long, lat])));
     };
 
     const gpsWaypointMarkers = useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint});

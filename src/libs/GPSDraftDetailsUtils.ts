@@ -1,3 +1,5 @@
+import type {Coordinate} from '@components/MapView/MapViewTypes';
+
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 
@@ -215,7 +217,7 @@ function getFirstGpsPoint(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoin
 }
 
 function calculateTrimmedEndPoint(gpsPoints: GPSPoint[][], targetDistanceMeters: number): TrimmedGPSPoint | null {
-    let cumulativeDistance = 0;
+    let distanceTraveled = 0;
 
     for (let segmentIndex = 0; segmentIndex < gpsPoints.length; segmentIndex++) {
         const segment = gpsPoints.at(segmentIndex);
@@ -225,25 +227,25 @@ function calculateTrimmedEndPoint(gpsPoints: GPSPoint[][], targetDistanceMeters:
         }
 
         for (let pointIndex = 1; pointIndex < segment.length; pointIndex++) {
-            const prev = segment.at(pointIndex - 1);
-            const curr = segment.at(pointIndex);
+            const previousPoint = segment.at(pointIndex - 1);
+            const currentPoint = segment.at(pointIndex);
 
-            if (!prev || !curr) {
+            if (!previousPoint || !currentPoint) {
                 continue;
             }
-            const segmentDistance = geodesicDistance(prev, curr);
+            const distanceBetweenPoints = geodesicDistance(previousPoint, currentPoint);
 
-            if (cumulativeDistance + segmentDistance >= targetDistanceMeters) {
-                const t = segmentDistance === 0 ? 0 : (targetDistanceMeters - cumulativeDistance) / segmentDistance;
-                const interpolated = {
-                    lat: prev.lat + t * (curr.lat - prev.lat),
-                    long: prev.long + t * (curr.long - prev.long),
+            if (distanceTraveled + distanceBetweenPoints >= targetDistanceMeters) {
+                const fractionToInclude = distanceBetweenPoints === 0 ? 0 : (targetDistanceMeters - distanceTraveled) / distanceBetweenPoints;
+                const interpolatedPoint = {
+                    lat: previousPoint.lat + fractionToInclude * (currentPoint.lat - previousPoint.lat),
+                    long: previousPoint.long + fractionToInclude * (currentPoint.long - previousPoint.long),
                 };
 
-                return {...interpolated, segmentIndex, precedingPointIndex: pointIndex - 1};
+                return {...interpolatedPoint, segmentIndex, precedingPointIndex: pointIndex - 1};
             }
 
-            cumulativeDistance += segmentDistance;
+            distanceTraveled += distanceBetweenPoints;
         }
     }
 
@@ -274,6 +276,10 @@ function getTrimmedGpsTrip(gpsData: GPSPoint[][] | GpsDraftDetails | undefined, 
     return gpsPoints.slice(0, trimmedEndPointSegment).concat([updatedSegment]);
 }
 
+function gpsPointsToMapboxCoordinates(coordinates: GPSPoint[][]): Coordinate[][] {
+    return coordinates.map((segment): Coordinate[] => segment.map(({lat, long}) => [long, lat]));
+}
+
 export {
     getGPSRoutes,
     getGPSWaypoints,
@@ -290,4 +296,5 @@ export {
     calculateTrimmedEndPoint,
     getEffectiveDistance,
     getEffectiveEndPoint,
+    gpsPointsToMapboxCoordinates,
 };

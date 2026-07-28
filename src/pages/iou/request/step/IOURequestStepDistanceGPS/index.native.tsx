@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates, getTrimmedGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates, getTrimmedGpsTrip, gpsPointsToMapboxCoordinates} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -201,7 +201,7 @@ function IOURequestStepDistanceGPS({
 
     const gpsWaypointMarkers = useGPSWaypointMarkers({gpsDraftDetails});
 
-    const directionCoordinates: Coordinate[][] = getTrimmedGpsTrip(gpsDraftDetails).map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
+    const directionCoordinates = gpsPointsToMapboxCoordinates(getTrimmedGpsTrip(gpsDraftDetails));
 
     return (
         <StepScreenWrapper
