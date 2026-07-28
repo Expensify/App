@@ -1,5 +1,7 @@
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
@@ -109,14 +111,12 @@ type LazyHydrationContext = {
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
     policyTags: OnyxCollection<PolicyTagLists>;
     visibleReportActionsData: VisibleReportActionsDerivedValue;
+    privateIsArchivedMap: PrivateIsArchivedMap;
 };
 
 type PersonalDetailLazyHydrationData = {
     /** The 1:1 DM report mapped to the personal detail, used when building the full display option. */
     report?: Report;
-
-    /** Archived state of the mapped report. */
-    privateIsArchived?: boolean;
 
     /** Build-time createOption inputs, shared across all shells of the same createFilteredOptionList run. */
     context: LazyHydrationContext;

@@ -57,14 +57,14 @@ function useGroupChatDraftParticipantSync(
             const foundOption = allPersonalDetailOptions.find((personalDetail) => personalDetail.accountID === participant.accountID);
             // Options from useFilteredOptions are lightweight, but restored participants are rendered as selected
             // rows, so the full display option is needed.
-            const option =
-                (foundOption ? hydrateLazyPersonalDetailOption(foundOption) : undefined) ??
-                getUserToInviteOption({
-                    searchValue: participant?.login,
-                    personalDetails: allPersonalDetails,
-                    loginList,
-                    currentUserEmail,
-                });
+            const option = foundOption
+                ? hydrateLazyPersonalDetailOption(foundOption)
+                : getUserToInviteOption({
+                      searchValue: participant?.login,
+                      personalDetails: allPersonalDetails,
+                      loginList,
+                      currentUserEmail,
+                  });
             if (option) {
                 result.push({...option, isSelected: true});
             }

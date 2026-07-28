@@ -1090,6 +1090,29 @@ type CreateOptionParams = {
 /**
  * Creates a report list option - optimized for SearchOption context
  */
+/**
+ * Display name for a personal detail option built with showPersonalDetails. Shared by createOption and the
+ * lazy shell in buildPersonalDetailsOptions, which must produce the identical `text` so filtering and
+ * ranking of shells match the hydrated options. Mirrors createOption's historical asymmetry: the
+ * personal details data is only passed through when there is no report.
+ */
+function getPersonalDetailOptionText(
+    accountID: number | undefined,
+    hasReport: boolean,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    login: string | undefined,
+    translate: LocalizedTranslate,
+): string {
+    return (
+        getDisplayNameForParticipant({
+            accountID,
+            personalDetailsData: hasReport ? undefined : (personalDetails ?? undefined),
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            translate,
+        }) || formatPhoneNumberPhoneUtils(login ?? '')
+    );
+}
+
 function createOption({
     accountIDs,
     personalDetails,
@@ -1215,18 +1238,9 @@ function createOption({
 
         const computedReportName = deprecatedGetReportName(report, reportAttributesDerived);
 
-        reportName = showPersonalDetails
-            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, translate: translateFn}) ||
-              formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
-            : computedReportName;
+        reportName = showPersonalDetails ? getPersonalDetailOptionText(accountIDs.at(0), true, personalDetails, personalDetail?.login, translateFn) : computedReportName;
     } else {
-        reportName =
-            getDisplayNameForParticipant({
-                accountID: accountIDs.at(0),
-                personalDetailsData: personalDetails ?? undefined,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                translate: translateFn,
-            }) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
+        reportName = getPersonalDetailOptionText(accountIDs.at(0), false, personalDetails, personalDetail?.login, translateFn);
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = formatPhoneNumberPhoneUtils(personalDetails?.[accountIDs[0]]?.login ?? '');
@@ -1662,15 +1676,7 @@ registerSessionCleanupCallback(() => filteredOptionListCache.clear());
  * Step 5 of createFilteredOptionList: one lightweight SearchOption per personal detail.
  * Only filter/rank fields are computed here; getValidOptions hydrates survivors via hydrateLazyPersonalDetailOption.
  */
-function buildPersonalDetailsOptions({
-    reportMapForAccountIDs,
-    privateIsArchivedMap,
-    context,
-}: {
-    reportMapForAccountIDs: Record<number, Report>;
-    privateIsArchivedMap: PrivateIsArchivedMap;
-    context: LazyHydrationContext;
-}): Array<SearchOption<PersonalDetails | null>> {
+function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Report>, context: LazyHydrationContext): Array<SearchOption<PersonalDetails | null>> {
     const {personalDetails} = context;
     return Object.values(personalDetails ?? {}).map((personalDetail) => {
         const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -1678,22 +1684,12 @@ function buildPersonalDetailsOptions({
         // Same lookup createOption performs (also normalizes accountID in place).
         const detail = getPersonalDetailsForAccountIDs([accountID], personalDetails)[accountID];
         const formattedLogin = formatPhoneNumberPhoneUtils(detail?.login ?? '');
-        // Match createOption's showPersonalDetails reportName (translateLocal — same default createOption uses when translate is omitted).
-        const text =
-            getDisplayNameForParticipant({
-                accountID,
-                personalDetailsData: report ? undefined : (personalDetails ?? undefined),
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                translate: translateLocal,
-            }) || formattedLogin;
+        // Same text createOption computes (translateLocal — the default createOption uses when translate is omitted).
+        const text = getPersonalDetailOptionText(accountID, !!report, personalDetails, detail?.login, translateLocal);
 
         return {
             item: personalDetail,
-            lazyHydrationData: {
-                report,
-                privateIsArchived: report ? privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] : undefined,
-                context,
-            },
+            lazyHydrationData: {report, context},
             // The empty string default mirrors createOption, as many places test for reportID existence with truthiness operators.
             // eslint-disable-next-line rulesdir/no-default-id-values
             reportID: report?.reportID ?? '',
@@ -1722,9 +1718,10 @@ function hydrateLazyPersonalDetailOption(option: SearchOption<PersonalDetails>):
         return option;
     }
 
-    const {report, privateIsArchived, context} = option.lazyHydrationData;
-    const {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData} = context;
+    const {report, context} = option.lazyHydrationData;
+    const {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData, privateIsArchivedMap} = context;
     const accountID = option.item?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const privateIsArchived = report ? privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] : undefined;
     const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
@@ -1886,11 +1883,7 @@ function createFilteredOptionList(
     // alternate text, last message preview) are built by hydrateLazyPersonalDetailOption, but only for the
     // page of options that survives filtering and the maxElements cap in getValidOptions.
     const personalDetailsOptions = shouldBuildContacts
-        ? buildPersonalDetailsOptions({
-              reportMapForAccountIDs,
-              privateIsArchivedMap,
-              context: {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData},
-          })
+        ? buildPersonalDetailsOptions(reportMapForAccountIDs, {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData, privateIsArchivedMap})
         : [];
 
     const result: OptionList = {
