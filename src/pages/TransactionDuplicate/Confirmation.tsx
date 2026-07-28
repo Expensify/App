@@ -241,7 +241,7 @@ function Confirmation() {
                                 // Auth's MergeTransactions only accepts a merge when the kept expense's report is still
                                 // editable and there is at least one duplicate to merge, so block it here and explain
                                 // rather than failing server-side.
-                                const isKeptReportMergeable = ReportUtils.isOpenReport(iouReport) || ReportUtils.isProcessingReport(iouReport);
+                                const isKeptReportMergeable = !iouReport || ReportUtils.isOpenReport(iouReport) || ReportUtils.isProcessingReport(iouReport);
                                 if (!isKeptReportMergeable || transactionsMergeParams.transactionIDList.length === 0) {
                                     setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
                                     return;

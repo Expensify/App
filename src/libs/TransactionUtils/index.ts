@@ -2600,6 +2600,12 @@ function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Tran
             return false;
         }
         const report = getReportOrDraftReport(transaction.reportID);
+
+        // Unreported expenses (no resolvable report) stay editable in Auth, so keep them. Only exclude
+        // transactions whose report exists but is past first approval (approved, closed, or reimbursed).
+        if (!report) {
+            return true;
+        }
         return isOpenReport(report) || isProcessingReport(report);
     }) as Transaction[];
 }
