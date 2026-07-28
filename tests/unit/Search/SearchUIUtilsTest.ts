@@ -16,7 +16,7 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
+import type {SelectedTransactionInfo} from '@components/Search/types';
 
 import Navigation from '@navigation/Navigation';
 
@@ -5038,11 +5038,11 @@ describe('SearchUIUtils', () => {
             expect(result.some((item) => item.tag === CONST.SEARCH.TAG_EMPTY_VALUE)).toBe(true);
         });
 
-        it('should handle backend untagged value', () => {
+        it('should handle "(untagged)" value from backend', () => {
             const dataWithUntagged: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
                 [`${CONST.SEARCH.GROUP_PREFIX}untagged` as const]: {
-                    tag: CONST.SEARCH.TAG_UNTAGGED_VALUE,
+                    tag: '(untagged)',
                     count: 3,
                     currency: 'USD',
                     total: 100,
@@ -5067,45 +5067,7 @@ describe('SearchUIUtils', () => {
             );
 
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.tag).toBe(CONST.SEARCH.TAG_UNTAGGED_VALUE);
-        });
-
-        it('should build missing tag query for empty tag group drill-down', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense has:receipt groupBy:tag');
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const dataWithEmptyTag: OnyxTypes.SearchResults['data'] = {
-                personalDetailsList: {},
-                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {
-                    tag: '',
-                    count: 2,
-                    currency: 'USD',
-                    total: 50,
-                },
-            };
-
-            const [result] = getSectionsByType(
-                SearchUIUtils.getSections({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    data: dataWithEmptyTag,
-                    currentAccountID: 2074551,
-                    currentUserEmail: '',
-                    translate: translateLocal,
-                    formatPhoneNumber,
-                    bankAccountList: {},
-                    groupBy: CONST.SEARCH.GROUP_BY.TAG,
-                    conciergeReportID: undefined,
-                    queryJSON: queryJSON as SearchQueryJSON,
-                    convertToDisplayString,
-                    reportAttributesDerivedValue: undefined,
-                }),
-                SearchUIUtils.isTransactionTagGroupListItemType,
-            );
-
-            expect(result.at(0)?.transactionsQueryJSON?.inputQuery).toBe('type:expense sortBy:groupTag sortOrder:asc has:receipt -has:tag');
+            expect(result.at(0)?.tag).toBe('(untagged)');
         });
 
         it('should return isTransactionTagGroupListItemType true for tag group items', () => {
@@ -11434,6 +11396,71 @@ describe('SearchUIUtils', () => {
                 },
             });
             expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(regularPolicy, userEmail)).toBe(false);
+        });
+    });
+
+    describe('getFilterNegatableValue', () => {
+        const MERCHANT = CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
+        const MERCHANT_NEGATED = `${MERCHANT}${CONST.SEARCH.NOT_MODIFIER}` as const;
+
+        it('returns the negated value with isNegated true when only the negated value is set', () => {
+            expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, {[MERCHANT_NEGATED]: 'Uber'})).toEqual({isNegated: true, value: 'Uber'});
+        });
+
+        it('returns the base value with isNegated false when only the base value is set', () => {
+            expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, {[MERCHANT]: 'Uber'})).toEqual({isNegated: false, value: 'Uber'});
+        });
+
+        it('prefers the negated value when both base and negated values are set', () => {
+            expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, {[MERCHANT]: 'Lyft', [MERCHANT_NEGATED]: 'Uber'})).toEqual({isNegated: true, value: 'Uber'});
+        });
+
+        it('returns isNegated false and undefined value when neither value is set', () => {
+            expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, {})).toEqual({isNegated: false, value: undefined});
+        });
+
+        it('returns isNegated false and undefined value when the values object is undefined', () => {
+            expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, undefined)).toEqual({isNegated: false, value: undefined});
+        });
+    });
+
+    describe('shouldShowFilter', () => {
+        const MERCHANT = CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
+        const MERCHANT_NEGATED = `${MERCHANT}${CONST.SEARCH.NOT_MODIFIER}` as const;
+        const CATEGORY = CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY;
+        const EXPENSE = CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const CHAT = CONST.SEARCH.DATA_TYPES.CHAT;
+
+        it('returns truthy for a supported filter with a non-empty value', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, MERCHANT, 'Uber', EXPENSE)).toBeTruthy();
+        });
+
+        it('returns truthy for a supported negated negatable filter with a value', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, MERCHANT_NEGATED, 'Uber', EXPENSE)).toBeTruthy();
+        });
+
+        it('returns truthy for a supported filter with a non-empty array value', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, CATEGORY, ['Food'], EXPENSE)).toBeTruthy();
+        });
+
+        it('returns falsy when the filter is included in skipFilters', () => {
+            expect(SearchUIUtils.shouldShowFilter(new Set([MERCHANT]), MERCHANT, 'Uber', EXPENSE)).toBeFalsy();
+        });
+
+        it('returns falsy when the value is undefined', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, MERCHANT, undefined, EXPENSE)).toBeFalsy();
+        });
+
+        it('returns falsy when the value is an empty string', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, MERCHANT, '', EXPENSE)).toBeFalsy();
+        });
+
+        it('returns falsy when the value is an empty array', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, CATEGORY, [], EXPENSE)).toBeFalsy();
+        });
+
+        it('returns falsy when the filter is not supported for the data type', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, MERCHANT, 'Uber', CHAT)).toBeFalsy();
         });
     });
 

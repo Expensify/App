@@ -3,6 +3,7 @@ import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues, FormRef} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -27,13 +28,14 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
-import {clearNewAgentAvatarDraft, createAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
+import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
+import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -45,7 +47,15 @@ import scrollToMultilineInput from './scrollToMultilineInput';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
-function AddAgentPage({route}: AddAgentPageProps) {
+type AddAgentPageContentProps = {
+    /** Route params (policyID) forwarded from the screen */
+    route: AddAgentPageProps['route'];
+
+    /** Template picked in the "New agent" screen used to pre-fill the fields, or undefined for a blank agent */
+    template: NewAgentTemplate | undefined;
+};
+
+function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const StyleUtils = useStyleUtils();
     const policyID = route.params?.policyID;
     const {translate} = useLocalize();
@@ -56,8 +66,8 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const shouldUseScrollableLayout = isInLandscapeMode || (isMobile() && windowWidth > windowHeight);
     const shouldShrinkPromptInput = shouldUseScrollableLayout && isKeyboardActive;
     const {displayName} = useCurrentUserPersonalDetails();
-    const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
-    const defaultPrompt = translate('addAgentPage.defaultPrompt');
+    const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
+    const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
@@ -67,19 +77,20 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const uploadedAvatar = avatarDraft?.uploadedAvatar;
     const selectedPresetID = avatarDraft?.customExpensifyAvatarID && AGENT_AVATARS.isAvatarID(avatarDraft.customExpensifyAvatarID) ? avatarDraft.customExpensifyAvatarID : undefined;
 
-    // Seed a random fallback avatar once and persist it, so the same avatar is shown on every screen and
-    // survives a page refresh anywhere in the add flow (including a refresh on the crop screen and back).
+    // Seed the avatar once and persist it, so the same avatar is shown on every screen and survives a page
+    // refresh anywhere in the add flow (including a refresh on the crop screen and back). When the builder was
+    // opened from a template, seed the template's avatar; otherwise fall back to a random preset.
     const hasSeededRef = useRef(false);
     useEffect(() => {
         if (hasSeededRef.current || isDraftLoading || avatarDraft) {
             return;
         }
         hasSeededRef.current = true;
-        const randomID = AGENT_AVATARS.getRandomID();
-        if (randomID) {
-            setNewAgentAvatarPreset(randomID);
+        const seedID = template && AGENT_AVATARS.isAvatarID(template.avatarID) ? template.avatarID : AGENT_AVATARS.getRandomID();
+        if (seedID) {
+            setNewAgentAvatarPreset(seedID);
         }
-    }, [isDraftLoading, avatarDraft]);
+    }, [isDraftLoading, avatarDraft, template]);
 
     let avatarSource: AvatarSource = '';
     if (uploadedAvatar?.uri) {
@@ -117,8 +128,11 @@ function AddAgentPage({route}: AddAgentPageProps) {
         } else {
             createAgent(firstName, prompt, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
         }
+
+        clearNewAgentTemplate();
         clearNewAgentAvatarDraft();
-        Navigation.goBack();
+
+        Navigation.dismissModal();
     };
 
     const formWrapperRef = useRef<FormRef>(null);
@@ -134,7 +148,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
             <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={COLLAPSIBLE_HEADER_OFFSET}>
                 <HeaderWithBackButton
                     title={translate('addAgentPage.title')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_NEW.getRoute(policyID ? {policyID} : undefined))}
                 />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider
@@ -193,6 +207,26 @@ function AddAgentPage({route}: AddAgentPageProps) {
                 </View>
             </FormProvider>
         </ScreenWrapper>
+    );
+}
+
+function AddAgentPage({route}: AddAgentPageProps) {
+    const [template, templateMetadata] = useOnyx(ONYXKEYS.NEW_AGENT_TEMPLATE);
+
+    if (isLoadingOnyxValue(templateMetadata)) {
+        return (
+            <FullScreenLoadingIndicator
+                shouldUseGoBackButton
+                reasonAttributes={{context: 'AddAgentPage'}}
+            />
+        );
+    }
+
+    return (
+        <AddAgentPageContent
+            route={route}
+            template={template}
+        />
     );
 }
 

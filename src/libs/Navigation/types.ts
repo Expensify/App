@@ -244,6 +244,9 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.AGENTS.NEW]: {
+        policyID?: string;
+    };
     [SCREENS.SETTINGS.AGENTS.ADD]: {
         policyID?: string;
     };
