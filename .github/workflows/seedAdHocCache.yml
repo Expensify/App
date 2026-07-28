@@ -1,0 +1,130 @@
+name: Seed AdHoc build cache
+
+# Rock keys its remote cache by variant/traits plus the native `fingerprint`, and pushes to main only ever build
+# the simulator/Debug variant on iOS and developmentDebug/Debug on Android. Nothing warms the AdHoc namespaces
+# that PR test builds read from, so the first PR on any new native fingerprint pays a full ~8 minute compile.
+# Running the same AdHoc builds PR test builds run means that first compile happens here instead of on a PR's
+# critical path, and every later PR on the same fingerprint downloads it in seconds.
+#
+# This is deliberately its own workflow rather than more jobs inside the remote-build workflows. There, an
+# 8 minute compile would extend every run in main's serialized concurrency group, and a seed failure would redden
+# `Remote Build iOS` / `Remote Build Android`, which `failureNotifier.yml` watches and files against whoever
+# merged the unrelated PR that happened to trigger the run.
+#
+# Nothing depends on this workflow. When it fails, PR test builds simply compile their own native code again -
+# slower, never wrong - so failures are intentionally not filed against anyone. Watch the Actions tab.
+
+on:
+  push:
+    branches: [main]
+    # Mirrors the remote-build workflows. Note `scripts/**` is a pre-existing gap: `compute-patches-hash.sh` is a
+    # fingerprint input, so changing it alone moves the fingerprint without triggering any build, seed or otherwise.
+    paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
+  workflow_dispatch:
+    inputs:
+      reviewed_code:
+        description: I reviewed the code at the ref I am building and verified that it does not contain any malicious code.
+        type: boolean
+        required: true
+        default: false
+
+concurrency:
+  # Seeding one fingerprint twice is wasted work, but cancelling a compile that is nearly finished is worse, so let
+  # runs queue instead. GitHub drops the older pending run, and the newer one's fingerprint already covers it.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # A dispatch builds whatever ref it names and exposes the build secrets to it, exactly as the remote-build
+  # workflows do, so it gets the same gate: the actor must be an Expensify employee with write access and must
+  # confirm they reviewed the code at that ref. Pushes to main are already trusted, and the gate no-ops for them.
+  prep:
+    uses: ./.github/workflows/validateBuildRequest.yml
+    with:
+      REVIEWED_CODE: ${{ inputs.reviewed_code || false }}
+    secrets:
+      OS_BOTIFY_COMMIT_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+  # The cache is keyed by fingerprint alone, not by branch, so seeding from wherever this runs is always correct and
+  # can never overwrite an existing entry. That is what makes a dispatch from a branch a safe way to test this.
+  checkIOSCache:
+    name: Check iOS AdHoc cache
+    needs: [prep]
+    uses: ./.github/workflows/checkRockCache.yml
+    with:
+      platform: ios
+      traits: device,AdHoc
+    secrets:
+      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  seedIOS:
+    name: Seed iOS AdHoc cache
+    needs: [checkIOSCache]
+    if: ${{ needs.checkIOSCache.outputs.NEEDS_BUILD == 'true' }}
+    uses: ./.github/workflows/buildIOS.yml
+    with:
+      ref: ${{ github.sha }}
+      variant: Adhoc
+      seed-cache-only: 'true'
+      artifact-prefix: adhoc-seed-
+      # The lookup ran on Linux and this build runs on macOS. Passing the hash lets the build say so when the two
+      # hosts disagree, which would mean the lookup above is guarding nothing.
+      expected-fingerprint: ${{ needs.checkIOSCache.outputs.FINGERPRINT }}
+    secrets: inherit
+
+  # A seed that goes green without uploading anything looks exactly like a working one, so ask again afterwards.
+  # Skipped automatically when the seed itself failed, since a failed `needs` skips its dependents.
+  verifyIOSSeedLanded:
+    name: Verify iOS AdHoc seed landed
+    needs: [seedIOS]
+    uses: ./.github/workflows/checkRockCache.yml
+    with:
+      platform: ios
+      traits: device,AdHoc
+      expect-cached: 'true'
+    secrets:
+      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  checkAndroidCache:
+    name: Check Android AdHoc cache
+    needs: [prep]
+    uses: ./.github/workflows/checkRockCache.yml
+    with:
+      platform: android
+      traits: Adhoc
+    secrets:
+      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  seedAndroid:
+    name: Seed Android AdHoc cache
+    needs: [checkAndroidCache]
+    if: ${{ needs.checkAndroidCache.outputs.NEEDS_BUILD == 'true' }}
+    uses: ./.github/workflows/buildAndroid.yml
+    with:
+      ref: ${{ github.sha }}
+      variant: Adhoc
+      seed-cache-only: 'true'
+      artifact-prefix: adhoc-seed-
+      # Both the lookup and this build run on Linux, so the two fingerprints should always agree. Passing the hash
+      # keeps that an assertion rather than an assumption.
+      expected-fingerprint: ${{ needs.checkAndroidCache.outputs.FINGERPRINT }}
+    secrets: inherit
+
+  verifyAndroidSeedLanded:
+    name: Verify Android AdHoc seed landed
+    needs: [seedAndroid]
+    uses: ./.github/workflows/checkRockCache.yml
+    with:
+      platform: android
+      traits: Adhoc
+      expect-cached: 'true'
+    secrets:
+      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
