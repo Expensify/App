@@ -30,7 +30,7 @@ function CommonFilterContentPageWrapper({filterKey, value: initialValue, type, p
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => onChange(value)}
                 >
-                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                    <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
                 </Button>
             }
         />
