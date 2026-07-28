@@ -9,9 +9,7 @@
  * Filters.
  *
  * Because this state lives outside Onyx, useSearchFilterSync also checks that
- * the form still exists before treating a matching signature as synced. This
- * makes every Onyx clear self-healing without coupling unrelated clear paths
- * to Search state.
+ * the form still exists before treating a matching signature as synced.
  */
 let lastSyncedQuerySignature: string | null = null;
 

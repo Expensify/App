@@ -9,6 +9,7 @@ import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect} from 'react';
@@ -43,7 +44,7 @@ function useSearchFilterSync(queryJSON: SearchQueryJSON | undefined, formValues:
             setLastSyncedQuerySignature(null);
             return;
         }
-        const isSearchAdvancedFiltersFormMissing = searchAdvancedFiltersFormMetadata.status === 'loaded' && (searchAdvancedFiltersForm === undefined || searchAdvancedFiltersForm === null);
+        const isSearchAdvancedFiltersFormMissing = !isLoadingOnyxValue(searchAdvancedFiltersFormMetadata) && searchAdvancedFiltersForm === undefined;
         if (getLastSyncedQuerySignature() === querySig && !isSearchAdvancedFiltersFormMissing) {
             return;
         }
