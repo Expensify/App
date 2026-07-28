@@ -138,4 +138,3 @@ type CardShipmentError = {
 };
 
 export default Response;
-export type {CardShipmentError};
