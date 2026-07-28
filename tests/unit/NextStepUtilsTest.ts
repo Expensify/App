@@ -12,6 +12,7 @@ import {
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
@@ -65,6 +66,8 @@ describe('libs/NextStepUtils', () => {
         }) as Report;
 
         beforeAll(() => {
+            // getReportNextStep threads `translateLocal` into buildNextStepNew to resolve participant names, so the locale bundle must be loaded.
+            IntlStore.load(CONST.LOCALES.EN);
             const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
 
             Onyx.multiSet({
@@ -740,6 +743,35 @@ describe('libs/NextStepUtils', () => {
                 });
             });
 
+            test('resolves a nameless bypass approver to the English "Hidden" via the injected translate', () => {
+                // A participant with no name resolves to the "hidden" copy, produced by buildNextStepNew's English-bound translate
+                const hiddenApproverAccountID = 51;
+                report.managerID = currentUserAccountID;
+
+                return Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [hiddenApproverAccountID]: {accountID: hiddenApproverAccountID, login: '', displayName: ''},
+                }).then(() => {
+                    const result = buildNextStepNew({
+                        report,
+                        policy,
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
+                        isTrackIntentUser: false,
+                        bypassNextApproverID: hiddenApproverAccountID,
+                        translate: translateLocal,
+                    });
+
+                    // The bypass approver has no name, so its slot renders the "Hidden" copy — proving getDisplayNameForParticipant received the injected translate
+                    expect(result?.message).toContainEqual({text: translateLocal('common.hidden'), type: 'strong'});
+                });
+            });
+
             test('another owner', () => {
                 report.ownerAccountID = strangeAccountID;
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
@@ -1163,7 +1195,18 @@ describe('libs/NextStepUtils', () => {
                 message: [{text: 'Current next step'}],
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false);
+            const result = getReportNextStep({
+                currentNextStep,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy: undefined,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+            });
             expect(result).toBe(currentNextStep);
         });
 
@@ -1200,17 +1243,18 @@ describe('libs/NextStepUtils', () => {
                 ],
             };
 
-            const result = getReportNextStep(
-                undefined,
-                report,
-                currentUserEmail,
-                [transaction] as Array<OnyxEntry<Transaction>>,
-                undefined,
+            const result = getReportNextStep({
+                currentNextStep: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
+                policy: undefined,
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
-                false,
-            );
+                isTrackIntentUser: false,
+                translate: translateLocal,
+            });
 
             expect(result).toEqual({
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -1260,7 +1304,18 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false);
+            const result = getReportNextStep({
+                currentNextStep: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+            });
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
 
@@ -1321,17 +1376,18 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(
-                undefined,
-                report,
-                currentUserEmail,
-                [transaction] as Array<OnyxEntry<Transaction>>,
+            const result = getReportNextStep({
+                currentNextStep: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
                 policy,
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
-                false,
-            );
+                isTrackIntentUser: false,
+                translate: translateLocal,
+            });
 
             expect(result).toEqual({
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
@@ -1368,7 +1424,19 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
+            const result = getReportNextStep({
+                currentNextStep,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy: undefined,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+                reportNextStep,
+            });
             expect(result).toBe(reportNextStep);
         });
 
@@ -1400,7 +1468,19 @@ describe('libs/NextStepUtils', () => {
                 actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
+            const result = getReportNextStep({
+                currentNextStep,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy: undefined,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+                reportNextStep,
+            });
             expect(result).toBe(currentNextStep);
         });
 
@@ -1433,7 +1513,19 @@ describe('libs/NextStepUtils', () => {
                 message: [{text: 'Stale deprecated message'}],
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, report.nextStep);
+            const result = getReportNextStep({
+                currentNextStep,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy: undefined,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+                reportNextStep: report.nextStep,
+            });
             expect(result).toBe(embeddedNextStep);
         });
 
@@ -1486,7 +1578,19 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             // Even though a translatable next step is supplied, the prevent-self-approval override must still win.
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
+            const result = getReportNextStep({
+                currentNextStep: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+                isTrackIntentUser: false,
+                translate: translateLocal,
+                reportNextStep,
+            });
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
     });

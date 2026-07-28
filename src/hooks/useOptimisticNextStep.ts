@@ -24,6 +24,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
@@ -34,6 +35,7 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
 
 function useOptimisticNextStep(reportID: string | undefined) {
     const theme = useTheme();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
@@ -64,18 +66,19 @@ function useOptimisticNextStep(reportID: string | undefined) {
         transactions,
     );
 
-    let optimisticNextStep = getReportNextStep(
-        nextStep,
+    let optimisticNextStep = getReportNextStep({
+        currentNextStep: nextStep,
         moneyRequestReport,
-        ownerLogin,
+        moneyRequestReportOwnerLogin: ownerLogin,
         transactions,
         policy,
-        allTransactionViolations,
-        email ?? '',
-        accountID,
+        transactionViolations: allTransactionViolations,
+        currentUserEmail: email ?? '',
+        currentUserAccountID: accountID,
         isTrackIntentUser,
-        moneyRequestReport?.nextStep,
-    );
+        translate,
+        reportNextStep: moneyRequestReport?.nextStep,
+    });
 
     if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
         if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
