@@ -1,6 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import PressableAvatarFromIcon from '@components/Avatar/PressableAvatarFromIcon';
 import type {UserAvatarProps} from '@components/Avatar/UserAvatar';
 import type {WorkspaceAvatarProps} from '@components/Avatar/WorkspaceAvatar';
 
@@ -40,41 +40,13 @@ const workspaceIcon: Icon = {
     name: 'Workspace',
 };
 
-describe('AvatarFromIcon', () => {
+describe('PressableAvatarFromIcon', () => {
     beforeEach(() => {
         navigateSpy.mockClear();
     });
 
-    it('renders a user avatar for an avatar-type icon', () => {
-        render(<AvatarFromIcon icon={userIcon} />);
-
-        expect(screen.getByTestId('UserAvatar')).toBeOnTheScreen();
-        expect(screen.queryByTestId('WorkspaceAvatar')).toBeNull();
-    });
-
-    it('renders a workspace avatar for a workspace-type icon', () => {
-        render(<AvatarFromIcon icon={workspaceIcon} />);
-
-        expect(screen.getByTestId('WorkspaceAvatar')).toBeOnTheScreen();
-        expect(screen.queryByTestId('UserAvatar')).toBeNull();
-    });
-
-    it('renders a bare avatar with no pressable wrapper when navigation is disabled', () => {
-        render(<AvatarFromIcon icon={userIcon} />);
-
-        expect(screen.queryByRole(CONST.ROLE.BUTTON)).toBeNull();
-
-        fireEvent.press(screen.getByTestId('UserAvatar'));
-        expect(navigateSpy).not.toHaveBeenCalled();
-    });
-
     it('navigates to the user profile avatar route for a non-workspace avatar', () => {
-        render(
-            <AvatarFromIcon
-                shouldUseProfileNavigationWrapper
-                icon={userIcon}
-            />,
-        );
+        render(<PressableAvatarFromIcon icon={userIcon} />);
 
         fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON));
 
@@ -83,12 +55,7 @@ describe('AvatarFromIcon', () => {
     });
 
     it('navigates to the workspace avatar route for a workspace avatar without a reportID', () => {
-        render(
-            <AvatarFromIcon
-                shouldUseProfileNavigationWrapper
-                icon={workspaceIcon}
-            />,
-        );
+        render(<PressableAvatarFromIcon icon={workspaceIcon} />);
 
         fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON));
 
@@ -98,8 +65,7 @@ describe('AvatarFromIcon', () => {
 
     it('navigates to the report avatar route for a workspace avatar with a reportID', () => {
         render(
-            <AvatarFromIcon
-                shouldUseProfileNavigationWrapper
+            <PressableAvatarFromIcon
                 icon={workspaceIcon}
                 reportID="REPORT_ID"
             />,
@@ -112,12 +78,7 @@ describe('AvatarFromIcon', () => {
     });
 
     it('falls back to the letter "A" for a workspace avatar with no name', () => {
-        render(
-            <AvatarFromIcon
-                shouldUseProfileNavigationWrapper
-                icon={{...workspaceIcon, name: undefined}}
-            />,
-        );
+        render(<PressableAvatarFromIcon icon={{...workspaceIcon, name: undefined}} />);
 
         fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON));
 

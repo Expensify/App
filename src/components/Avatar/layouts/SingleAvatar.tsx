@@ -1,8 +1,9 @@
-import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import Avatar from '@components/Avatar';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 
+import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -14,7 +15,7 @@ import type {BaseAvatarProps} from './types';
 
 type SingleAvatarProps = BaseAvatarProps & {
     /** The resolved avatar icon to render */
-    avatar: IconType | undefined;
+    avatar: IconType;
 
     /** Container styles for the avatar */
     containerStyles?: StyleProp<ViewStyle>;
@@ -30,18 +31,7 @@ type SingleAvatarProps = BaseAvatarProps & {
 };
 
 /** `SingleAvatar` renders one avatar wrapped in a `UserDetailsTooltip`, used when there is a single actor to display. */
-function SingleAvatar({
-    avatar,
-    size,
-    containerStyles,
-    shouldShowTooltip,
-    delegateAccountID,
-    accountID,
-    isInReportAction,
-    shouldUseProfileNavigationWrapper,
-    fallbackDisplayName,
-    reportID,
-}: SingleAvatarProps) {
+function SingleAvatar({avatar, size, containerStyles, shouldShowTooltip, delegateAccountID, accountID, isInReportAction, fallbackDisplayName}: SingleAvatarProps) {
     const StyleUtils = useStyleUtils();
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 
@@ -52,18 +42,21 @@ function SingleAvatar({
             icon={avatar}
             fallbackUserDetails={{
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                displayName: fallbackDisplayName || avatar?.name,
+                displayName: fallbackDisplayName || avatar.name,
             }}
             shouldRender={shouldShowTooltip}
         >
             <View>
-                <AvatarFromIcon
-                    shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
+                <Avatar
                     containerStyles={containerStyles ?? avatarContainerStyles}
-                    icon={avatar}
+                    type={avatar.type}
+                    source={avatar.source}
+                    name={avatar.name ?? ''}
+                    avatarID={avatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                    fallbackIcon={avatar.fallbackIcon}
+                    fill={avatar.fill}
                     size={size}
                     testID="ReportActionAvatars-SingleAvatar"
-                    reportID={reportID}
                 />
             </View>
         </UserDetailsTooltip>

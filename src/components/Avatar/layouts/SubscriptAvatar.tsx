@@ -1,4 +1,3 @@
-import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import Icon from '@components/Icon';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
@@ -22,6 +21,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {BaseAvatarProps} from './types';
+
+import Avatar from '..';
 
 type SubscriptAvatarProps = BaseAvatarProps & {
     /** The primary (main) avatar icon */
@@ -52,8 +53,6 @@ function SubscriptAvatar({
     subscriptAvatarBorderColor,
     subscriptCardFeed,
     fallbackDisplayName,
-    shouldUseProfileNavigationWrapper,
-    reportID,
     containerStyle,
     subscriptCardFeedIconSize = {
         width: variables.cardAvatarWidth,
@@ -96,13 +95,16 @@ function SubscriptAvatar({
                 }}
             >
                 <View>
-                    <AvatarFromIcon
-                        shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
+                    <Avatar
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
-                        icon={primaryAvatar}
+                        type={primaryAvatar.type}
+                        source={primaryAvatar.source}
+                        name={primaryAvatar.name ?? ''}
+                        avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                        fallbackIcon={primaryAvatar.fallbackIcon}
+                        fill={primaryAvatar.fill}
                         size={size}
                         testID="ReportActionAvatars-Subscript-MainAvatar"
-                        reportID={reportID}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -113,16 +115,19 @@ function SubscriptAvatar({
                     icon={secondaryAvatar}
                 >
                     <View style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}>
-                        <AvatarFromIcon
-                            shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
+                        <Avatar
                             iconAdditionalStyles={[
                                 StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize),
                                 StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG),
                             ]}
-                            icon={secondaryAvatar}
+                            type={secondaryAvatar.type}
+                            source={secondaryAvatar.source}
+                            name={secondaryAvatar.name ?? ''}
+                            avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                            fallbackIcon={secondaryAvatar.fallbackIcon}
+                            fill={secondaryAvatar.fill}
                             size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize}
                             testID="ReportActionAvatars-Subscript-SecondaryAvatar"
-                            reportID={reportID}
                         />
                     </View>
                 </UserDetailsTooltip>

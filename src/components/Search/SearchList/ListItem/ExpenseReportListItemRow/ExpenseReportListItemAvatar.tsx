@@ -39,7 +39,6 @@ function ExpenseReportListItemAvatar({item, showTooltip, isHovered = false, isFo
                 size={avatarSize}
                 shouldShowTooltip={showTooltip}
                 subscriptAvatarBorderColor={finalAvatarBorderColor}
-                reportID={item.reportID}
             />
         </View>
     );

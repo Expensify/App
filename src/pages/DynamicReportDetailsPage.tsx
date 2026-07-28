@@ -9,7 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import type {PromotedAction} from '@components/PromotedActionsBar';
 import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import ReportHeaderAvatars from '@components/ReportHeaderAvatars';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -810,13 +810,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         if (!isGroupChat || isThread) {
             return (
                 <View style={styles.mb3}>
-                    <ReportActionAvatars
-                        noRightMarginOnSubscriptContainer
-                        size={CONST.AVATAR_SIZE.X_LARGE}
-                        useProfileNavigationWrapper
-                        singleAvatarContainerStyle={[]}
-                        reportID={report?.reportID ?? moneyRequestReport?.reportID}
-                    />
+                    <ReportHeaderAvatars reportID={report?.reportID ?? moneyRequestReport?.reportID} />
                 </View>
             );
         }

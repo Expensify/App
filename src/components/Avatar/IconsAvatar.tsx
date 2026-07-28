@@ -32,9 +32,6 @@ type IconsAvatarProps = {
     /** Border color for the subscript avatar */
     subscriptAvatarBorderColor?: ColorValue;
 
-    /** Report ID for navigation */
-    reportID?: string;
-
     /** Account ID for single avatar tooltip */
     accountID?: number;
 
@@ -54,7 +51,6 @@ function IconsAvatar({
     shouldUseMidSubscriptSize = false,
     secondaryAvatarContainerStyle,
     subscriptAvatarBorderColor,
-    reportID,
     accountID,
     delegateAccountID,
     singleAvatarContainerStyle,
@@ -76,7 +72,6 @@ function IconsAvatar({
                 size={size}
                 shouldShowTooltip={shouldShowTooltip}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
-                reportID={reportID}
             />
         );
     }
@@ -90,7 +85,6 @@ function IconsAvatar({
                 isInReportAction={false}
                 shouldUseMidSubscriptSize={shouldUseMidSubscriptSize}
                 secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
-                reportID={reportID}
             />
         );
     }
@@ -103,7 +97,6 @@ function IconsAvatar({
             shouldShowTooltip={shouldShowTooltip}
             accountID={accountID ?? Number(primaryIcon.id ?? CONST.DEFAULT_NUMBER_ID)}
             delegateAccountID={delegateAccountID}
-            reportID={reportID}
         />
     );
 }

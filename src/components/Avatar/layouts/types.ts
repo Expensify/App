@@ -13,12 +13,6 @@ type BaseAvatarProps = {
 
     /** Display name used as a fallback for the avatar tooltip */
     fallbackDisplayName?: string;
-
-    /** Whether clicking the avatar navigates to the profile/workspace page */
-    shouldUseProfileNavigationWrapper?: boolean;
-
-    /** Report ID used for avatar navigation */
-    reportID?: string;
 };
 
 /** Props shared by the multi-avatar primitives (diagonal and horizontal stacks) */

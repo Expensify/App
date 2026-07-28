@@ -233,7 +233,6 @@ function renderSearchReportAvatar(props: {primaryAvatar?: Icon; secondaryAvatar?
             size={CONST.AVATAR_SIZE.DEFAULT}
             shouldShowTooltip={false}
             subscriptAvatarBorderColor="transparent"
-            reportID={props.reportID}
         />,
     );
 }

@@ -1,4 +1,4 @@
-import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import Avatar from '@components/Avatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -49,9 +49,7 @@ function DiagonalAvatars({
     shouldUseMidSubscriptSize,
     secondaryAvatarContainerStyle,
     isHovered = false,
-    shouldUseProfileNavigationWrapper,
     fallbackDisplayName,
-    reportID,
 }: DiagonalAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -116,13 +114,16 @@ function DiagonalAvatars({
                 >
                     {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                     <View>
-                        <AvatarFromIcon
-                            shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
-                            icon={primaryIcon}
+                        <Avatar
+                            type={primaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}
+                            source={primaryIcon?.source}
+                            name={primaryIcon?.name ?? ''}
+                            avatarID={primaryIcon?.id ?? CONST.DEFAULT_NUMBER_ID}
+                            fallbackIcon={primaryIcon?.fallbackIcon}
+                            fill={primaryIcon?.fill}
                             size={avatarSize}
                             imageStyles={singleAvatarStyle}
                             testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
-                            reportID={reportID}
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -144,13 +145,16 @@ function DiagonalAvatars({
                             shouldRender={shouldShowTooltip}
                         >
                             <View>
-                                <AvatarFromIcon
-                                    shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
-                                    icon={secondaryIcon}
+                                <Avatar
+                                    type={secondaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}
+                                    source={secondaryIcon?.source}
+                                    name={secondaryIcon?.name ?? ''}
+                                    avatarID={secondaryIcon?.id ?? CONST.DEFAULT_NUMBER_ID}
+                                    fallbackIcon={secondaryIcon?.fallbackIcon}
+                                    fill={secondaryIcon?.fill}
                                     size={avatarSize}
                                     imageStyles={singleAvatarStyle}
                                     testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
-                                    reportID={reportID}
                                 />
                             </View>
                         </UserDetailsTooltip>

@@ -83,9 +83,6 @@ type ReportActionAvatarsProps = {
     /** Size of the subscript card feed icon */
     subscriptCardFeedIconSize?: {width: number; height: number};
 
-    /** Whether we want to be redirected to profile on avatars click */
-    useProfileNavigationWrapper?: boolean;
-
     /** Display name used as a fallback for avatar tooltip */
     fallbackDisplayName?: string;
 
@@ -129,7 +126,6 @@ function ReportActionAvatars({
     secondaryAvatarContainerStyle,
     useMidSubscriptSizeForMultipleAvatars = false,
     isInReportAction = false,
-    useProfileNavigationWrapper,
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
@@ -191,7 +187,7 @@ function ReportActionAvatars({
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE && !icons.length) {
+    if (!icons.length) {
         return null;
     }
 
@@ -212,9 +208,7 @@ function ReportActionAvatars({
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 subscriptCardFeed={subscriptCardFeed}
                 subscriptCardFeedIconSize={subscriptCardFeedIconSize}
-                shouldUseProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
-                reportID={reportID}
             />
         );
     }
@@ -228,9 +222,7 @@ function ReportActionAvatars({
                 icons={icons}
                 isInReportAction={isInReportAction}
                 shouldShowTooltip={shouldShowTooltip}
-                shouldUseProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
-                reportID={reportID}
             />
         );
     }
@@ -246,8 +238,6 @@ function ReportActionAvatars({
                 secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
                 isHovered={isHovered}
                 fallbackDisplayName={fallbackDisplayName}
-                shouldUseProfileNavigationWrapper={useProfileNavigationWrapper}
-                reportID={reportID}
             />
         );
     }
@@ -261,8 +251,6 @@ function ReportActionAvatars({
             accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
             delegateAccountID={source.action?.delegateAccountID}
             fallbackDisplayName={fallbackDisplayName}
-            shouldUseProfileNavigationWrapper={useProfileNavigationWrapper}
-            reportID={reportID}
         />
     );
 }

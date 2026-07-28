@@ -1,4 +1,4 @@
-import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import Avatar from '@components/Avatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -46,9 +46,7 @@ function HorizontalAvatars({
     shouldShowTooltip,
     icons,
     isInReportAction,
-    shouldUseProfileNavigationWrapper,
     fallbackDisplayName,
-    reportID,
 }: HorizontalAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -90,8 +88,7 @@ function HorizontalAvatars({
                     shouldRender={shouldShowTooltip}
                 >
                     <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
-                        <AvatarFromIcon
-                            shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
+                        <Avatar
                             iconAdditionalStyles={[
                                 StyleUtils.getHorizontalStackedAvatarBorderStyle({
                                     theme,
@@ -103,10 +100,14 @@ function HorizontalAvatars({
                                 }),
                                 StyleUtils.getAvatarBorderWidth(size),
                             ]}
-                            icon={icon}
+                            type={icon.type}
+                            source={icon.source}
+                            name={icon.name ?? ''}
+                            avatarID={icon.id ?? CONST.DEFAULT_NUMBER_ID}
+                            fallbackIcon={icon.fallbackIcon}
+                            fill={icon.fill}
                             size={size}
                             testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar"
-                            reportID={reportID}
                         />
                     </View>
                 </UserDetailsTooltip>
