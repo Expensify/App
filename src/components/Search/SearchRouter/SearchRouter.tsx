@@ -53,7 +53,7 @@ import type Report from '@src/types/onyx/Report';
 import type {TextInputProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -67,11 +67,12 @@ import {clearPendingRouterState, peekPendingRouterState} from './SearchRouterCon
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 import useAskConcierge from './useAskConcierge';
+import useNavigationSuggestions from './useNavigationSuggestions';
 
 const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => !!nvp?.private_isArchived;
 
 type SearchRouterProps = {
-    onRouterClose: () => void;
+    onRouterClose: (afterClose?: () => void) => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
     ref?: React.Ref<View>;
@@ -86,7 +87,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const personalDetails = usePersonalDetails();
     const sortedActions = useSortedActions();
@@ -162,6 +163,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
+    // Only watch for reports awaiting approval while the router is active as a popover or full-screen page.
+    const navigationSuggestions = useNavigationSuggestions(textInputValue, !!isSearchRouterDisplayed || isSearchRouterScreen);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
     const [contextualReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`, {
@@ -187,13 +190,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
         ({recentReports}, sectionIndex) => {
+            const getNavigationSuggestionsSection = () => (navigationSuggestions.length ? [{sectionIndex, data: navigationSuggestions}] : undefined);
+
             if (!contextualReportID) {
-                return undefined;
+                return getNavigationSuggestionsSection();
             }
 
             // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
-                return undefined;
+                return getNavigationSuggestionsSection();
             }
 
             if (!isSearchRouterDisplayed && !isSearchRouterScreen) {
@@ -275,6 +280,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         },
         [
             contextualReportID,
+            navigationSuggestions,
             textInputValue,
             isSearchRouterDisplayed,
             isSearchRouterScreen,
@@ -381,6 +387,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             };
 
             if (isSearchQueryItem(item)) {
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.action) {
+                    backHistory(() => {
+                        onRouterClose(item.action);
+                    });
+                    return;
+                }
+
                 if (!item.searchQuery) {
                     return;
                 }
@@ -428,7 +441,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {
-                        navigateToAndOpenReport(item.login ? [item.login] : [], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
+                        navigateToAndOpenReport(
+                            item.login ? [item.login] : [],
+                            personalDetails,
+                            currentUserAccountID,
+                            introSelected,
+                            guidedSetupAndTourStatus?.isSelfTourViewed,
+                            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                            betas,
+                            false,
+                        );
                     }
                 });
                 onRouterClose();
@@ -443,7 +465,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             textInputValue,
             currentUserAccountID,
             introSelected,
-            isSelfTourViewed,
+            guidedSetupAndTourStatus?.isSelfTourViewed,
+            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             betas,
             contextualPoliciesMap,
             contextualReportsMap,

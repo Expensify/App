@@ -15,7 +15,15 @@ import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, RemoveCopilotAccessConfirmationParams, UnsupportedFormulaValueErrorParams} from './params';
+import type {
+    ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
+    PaidElsewhereParams,
+    RemoveCopilotAccessConfirmationParams,
+    UnsupportedFormulaValueErrorParams,
+} from './params';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     common: {
@@ -72,7 +80,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
-        magicCode: 'Código mágico',
+        securityCode: 'Código de seguridad',
         digits: 'dígitos',
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
@@ -278,6 +286,7 @@ const translations: TranslationDeepObject<typeof en> = {
         change: 'Cambio',
         category: 'Categoría',
         vendor: 'Proveedor',
+        supplier: 'Proveedor',
         report: 'Informe',
         billable: 'Facturable',
         nonBillable: 'No facturable',
@@ -386,6 +395,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validar',
         downloadAsPDF: 'Descargar como PDF',
         downloadAsCSV: 'Descargar como CSV',
+        submitViaPDF: 'Enviar por PDF',
         print: 'Imprimir',
         help: 'Ayuda',
         collapsed: 'Contraído',
@@ -468,7 +478,6 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -476,6 +485,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tagGLCode: 'Etiquetar código GL',
         off: 'Desactivado',
         noResultsFoundSubtitle: 'Sin resultados. Intenta ajustar tus filtros o la búsqueda.',
+        exportsTo: 'Exporta a',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -658,11 +668,11 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Revocar',
             title: 'Reconocimiento facial/huella digital y claves de acceso',
             explanation:
-                'La verificación mediante reconocimiento facial, huella digital o clave de acceso está habilitada en uno o más dispositivos. Revocar el acceso requerirá un código mágico para la próxima verificación en ese dispositivo.',
-            confirmationPrompt: '¿Estás seguro? Necesitarás un código mágico para la próxima verificación en ese dispositivo.',
-            confirmationPromptThisDevice: '¿Estás seguro? Necesitarás un código mágico para la próxima verificación en este dispositivo.',
-            confirmationPromptMultiple: '¿Estás seguro? Necesitarás un código mágico para la próxima verificación en esos dispositivos.',
-            confirmationPromptAll: '¿Estás seguro? Necesitarás un código mágico para la próxima verificación en cualquier dispositivo.',
+                'La verificación mediante rostro/huella dactilar o passkey está activada en uno o más dispositivos. Revocar el acceso requerirá un código de seguridad para la próxima verificación en ese dispositivo.',
+            confirmationPrompt: '¿Estás seguro? Necesitarás un código de seguridad para la próxima verificación en ese dispositivo.',
+            confirmationPromptThisDevice: '¿Estás seguro? Necesitarás un código de seguridad para la próxima verificación en este dispositivo.',
+            confirmationPromptMultiple: '¿Seguro? Necesitarás un código de seguridad para la próxima verificación en esos dispositivos.',
+            confirmationPromptAll: '¿Estás seguro? Necesitarás un código de seguridad para la próxima verificación en cualquier dispositivo.',
             cta: 'Revocar acceso',
             ctaAll: 'Revocar todo',
             noDevices:
@@ -690,12 +700,12 @@ const translations: TranslationDeepObject<typeof en> = {
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
         successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
-        title: 'Aquí está tu código mágico',
+        title: 'Aquí tienes tu código de seguridad',
         or: ', ¡o',
         doNotShare: '¡No compartas tu código con nadie.\nExpensify nunca te lo pedirá.',
         description: 'Por favor, introduce el código utilizando el dispositivo\nen el que se solicitó originalmente',
         signInHere: 'simplemente inicia sesión aquí',
-        expiredCodeTitle: 'Código mágico caducado',
+        expiredCodeTitle: 'El código de seguridad ha caducado',
         expiredCodeDescription: 'Vuelve al dispositivo original y solicita un código nuevo',
         successfulNewCodeRequest: 'Código solicitado. Por favor, comprueba tu dispositivo.',
         tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
@@ -733,7 +743,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         enterPassword: 'Por favor, introduce tu contraseña',
         welcomeNewFace: (login) => `${login}, siempre es genial ver una cara nueva por aquí!`,
-        welcomeEnterMagicCode: (login) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
+        welcomeEnterSecurityCode: (login: string) => `Introduce el código de seguridad enviado a ${login}. Debería llegar en uno o dos minutos.`,
     },
     login: {
         hero: {
@@ -743,9 +753,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Continua iniciando sesión con el inicio de sesión único:',
-        orContinueWithMagicCode: 'También puedes iniciar sesión con un código mágico',
+        orContinueWithSecurityCode: 'También puedes iniciar sesión con un código de seguridad',
         useSingleSignOn: 'Usar el inicio de sesión único',
-        useMagicCode: 'Usar código mágico',
+        useSecurityCode: 'Usar código de seguridad',
         launching: 'Cargando...',
         oneMoment: 'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
     },
@@ -1033,6 +1043,12 @@ const translations: TranslationDeepObject<typeof en> = {
             issueExpensifyCards: 'Emitir tarjetas Expensify',
             issueExpensifyCardsSubtitle: 'Personaliza los controles y agiliza el gasto',
             setupRules: 'Configurar reglas de gasto',
+            customizeSpendCategories: 'Personaliza las categorías de gasto',
+            customizeSpendCategoriesSubText: 'Organiza y clasifica gastos',
+            createExpense: 'Crear un gasto',
+            createExpenseSubText: 'Escanea, arrastra y suelta o introduce manualmente un gasto usando el botón +',
+            linkPersonalCard: 'Vincular tarjeta personal',
+            linkPersonalCardSubText: 'Importa gastos automáticamente',
             configureApprovals: 'Configura el flujo de aprobación',
             talkToAccountExecutive: 'Habla con tu ejecutivo de cuenta',
             begin: 'Empezar',
@@ -1047,6 +1063,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToConcierge: 'Habla con Concierge',
             forGuidedSetup: 'para la configuración guiada.',
             configureApprovalsSubText: 'Definir aprobaciones de informes',
+            setupTravel: 'Configurar viajes',
+            setupTravelSubText: 'Configura reglas específicas de viaje',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
@@ -1125,11 +1143,15 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importMultiLevelTagsSuccessfulDescription: 'Etiquetas de nivel múltiple han sido agregadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}) => (rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.'),
-        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
+        importMerchantRulesSuccessfulDescription: ({rules, duplicates = 0, invalidCategories = 0}: {rules: number; duplicates?: number; invalidCategories?: number}) => {
+            const invalidCategoriesNote =
+                invalidCategories > 0
+                    ? ` ${invalidCategories === 1 ? 'Se omitió 1 categoría porque no existe' : `Se omitieron ${invalidCategories} categorías porque no existen`} en este espacio de trabajo.`
+                    : '';
             if (rules === 0) {
-                return 'No se han añadido reglas de comerciante, ya que todas ya existen.';
+                return `${duplicates > 0 ? 'No se han añadido reglas de comerciante, ya que todas ya existen.' : 'No se han añadido reglas de comerciante.'}${invalidCategoriesNote}`;
             }
-            return rules > 1 ? `Se han añadido ${rules} reglas de comerciante.` : 'Se ha añadido 1 regla de comerciante.';
+            return `${rules > 1 ? `Se han añadido ${rules} reglas de comerciante.` : 'Se ha añadido 1 regla de comerciante.'}${invalidCategoriesNote}`;
         },
         importMerchantRulesRequiredColumns:
             '¡Ups! Debes asignar al menos una columna "El comerciante es" o "El comerciante contiene", además de al menos un campo para actualizar. Por favor, revisa e inténtalo de nuevo.',
@@ -1150,6 +1172,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Por favor confirma los detalles a continuación para los ${count} nuevos miembros del espacio de trabajo que se agregarán como parte de esta carga. Los miembros existentes no recibirán actualizaciones de rol ni mensajes de invitación.`,
         }),
+        importMembersRolePermissionWarning: 'No tienes permiso para asignar algunos roles de miembro. Los nuevos miembros afectados se han invitado como miembros.',
     },
     receipt: {
         upload: 'Subir recibo',
@@ -1987,7 +2010,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Agrega más formas de iniciar sesión y enviar recibos a Expensify.<br/><br/>Agrega una dirección de correo electrónico para reenviar recibos a <a href="mailto:${email}">${email}</a> o agrega un número de teléfono para enviar recibos por mensaje de texto al 47777 (solo números de EE. UU.).`,
         pleaseVerify: 'Por favor, verifica este método de contacto.',
         getInTouch: 'Usaremos este método para comunicarnos contigo.',
-        enterMagicCode: (contactMethod) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
+        enterSecurityCode: (contactMethod: string) => `Introduce el código de seguridad enviado a ${contactMethod}. Debería llegar en uno o dos minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
             'Este es tu método de contacto predeterminado. Antes de poder eliminarlo, tendrás que elegir otro método de contacto y haz clic en "Establecer como predeterminado".',
@@ -1996,8 +2019,8 @@ const translations: TranslationDeepObject<typeof en> = {
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
         failedNewContact: 'Se ha producido un error al añadir este método de contacto.',
         genericFailureMessages: {
-            requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
-            validateSecondaryLogin: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
+            requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código de seguridad. Por favor, espera un momento y vuelve a intentarlo.',
+            validateSecondaryLogin: 'Código de seguridad incorrecto o no válido. Inténtalo de nuevo o solicita un código nuevo.',
             deleteContactMethod: 'No se ha podido eliminar este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
             setDefaultContactMethod: 'No se pudo establecer un nuevo método de contacto predeterminado. Por favor contacta con Concierge para obtener ayuda.',
             addContactMethod: 'Se ha producido un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
@@ -2159,9 +2182,9 @@ const translations: TranslationDeepObject<typeof en> = {
         accountValidate: {
             confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
             lossOfUnsubmittedData: (login) => `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de <strong>${login}</strong>.`,
-            enterMagicCode: (login) => `Para continuar, por favor introduce el código mágico enviado a <strong>${login}</strong>.`,
+            enterSecurityCode: (login: string) => `Para continuar, introduce el código de seguridad enviado a <strong>${login}</strong>.`,
             errors: {
-                incorrectMagicCode: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
+                incorrectSecurityCode: 'Código de seguridad incorrecto o no válido. Inténtalo de nuevo o solicita un código nuevo.',
                 fallback: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
             },
         },
@@ -2470,6 +2493,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Usa esta tarjeta para tus reservas de Expensify Travel. Aparecerá como “Travel Card” al pagar.',
         },
         chaseAccountNumberDifferent: '¿Por qué es diferente el número de mi cuenta?',
+        cardLastSynced: (relativeDate: string) => `Sincronizado ${relativeDate}`,
+        cardNeverSynced: 'Nunca sincronizado',
+        cardStatus: {
+            active: 'Activo',
+            inactive: 'Inactivo',
+            fixConnection: 'Por favor, corrige esta conexión',
+            fixConnectionIn: (companyCardsRoute) => `Por favor, corrige esta conexión en <a href="${companyCardsRoute}">tarjetas de la empresa</a>`,
+            askAdminToFixConnection: 'Pídele a un administrador que solucione esta conexión',
+        },
+        bankAccountStatus: {
+            active: 'Activo',
+            incomplete: 'Incompleto',
+            pending: 'Pendiente',
+            verifying: 'Verificando',
+            reviewingDocumentation: 'Estamos revisando tu documentación',
+            finishAddingBankAccount: 'Terminar de añadir cuenta bancaria',
+            finish: 'Finalizar',
+            confirmTestTransactions: 'Confirma las transacciones de prueba',
+            accountRequiresAttention: 'Esta cuenta requiere atención',
+            unlock: 'Desbloquear',
+        },
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -2518,7 +2562,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}) => `Añadida a ${platform} Wallet`,
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
-        enterMagicCode: (contactMethod) => `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta. Debería llegar en un par de minutos.`,
+        enterSecurityCode: (contactMethod: string) => `Introduce el código de seguridad enviado a ${contactMethod} para ver los datos de tu tarjeta. Debería llegar en uno o dos minutos.`,
         unexpectedError: 'Se produjo un error al intentar obtener los detalles de tu tarjeta Expensify. Vuelve a intentarlo.',
         cardFraudAlert: {
             confirmButtonText: 'Sí, lo hago',
@@ -2937,7 +2981,7 @@ ${amount} para ${merchant} - ${date}`,
         license: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licencias</a>.`,
     },
     validateCodeForm: {
-        magicCodeNotReceived: '¿No recibiste un código mágico?',
+        securityCodeNotReceived: '¿No has recibido un código de seguridad?',
         avoidScamsMessage:
             '<strong>Evita las estafas. No compartas tu código con nadie.</strong> Nuestro equipo nunca te llamará, enviará mensajes de texto ni correos electrónicos para solicitarte este código.',
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
@@ -2948,8 +2992,8 @@ ${amount} para ${merchant} - ${date}`,
         timeRemainingAnnouncement: ({timeRemaining}) => `Tiempo restante: ${timeRemaining} ${timeRemaining === 1 ? 'segundo' : 'segundos'}`,
         timeExpiredAnnouncement: 'El tiempo ha expirado',
         error: {
-            pleaseFillMagicCode: 'Por favor, introduce el código mágico.',
-            incorrectMagicCode: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
+            pleaseFillSecurityCode: 'Por favor, introduce tu código de seguridad',
+            incorrectSecurityCode: 'Código de seguridad incorrecto o no válido. Inténtalo de nuevo o solicita un código nuevo.',
             pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores.',
         },
     },
@@ -3051,7 +3095,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Verifica tu correo electrónico de trabajo',
-            magicCodeSent: (workEmail) => `Por favor, introduce el código mágico enviado a ${workEmail}. Debería llegar en uno o dos minutos.`,
+            securityCodeSent: (workEmail: string | undefined) => `Introduce el código de seguridad enviado a ${workEmail}. Debería llegar en uno o dos minutos.`,
         },
         workEmailValidationError: {
             publicEmail: 'Por favor, introduce un correo electrónico laboral válido de un dominio privado, por ejemplo: mitch@company.com',
@@ -3385,11 +3429,13 @@ ${amount} para ${merchant} - ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: (login, loginType) => `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor, revisa tu ${loginType}`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) =>
+            `He enviado un enlace de inicio de sesión seguro a ${login}. Por favor, revisa tu ${loginType} para iniciar sesión.`,
         resendLink: 'Reenviar enlace',
     },
     unlinkLoginForm: {
-        toValidateLogin: (primaryLogin, secondaryLogin) => `Para validar ${secondaryLogin}, reenvía el código mágico desde la Configuración de la cuenta de ${primaryLogin}.`,
+        toValidateLogin: (primaryLogin: string, secondaryLogin: string) =>
+            `Para validar ${secondaryLogin}, vuelve a enviar el código de seguridad desde la Configuración de cuenta de ${primaryLogin}.`,
         noLongerHaveAccess: (primaryLogin) => `Si ya no tienes acceso a ${primaryLogin} por favor, desvincula las cuentas.`,
         unlink: 'Desvincular',
         linkSent: '¡Enlace enviado!',
@@ -3405,7 +3451,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login) => `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido temporalmente. Por favor, intenta validar tu número:`,
-        validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
+        validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código de seguridad para iniciar sesión.',
         validationFailed: ({timeData}) => {
             if (!timeData) {
                 return 'Por favor, espera un momento antes de intentarlo de nuevo.';
@@ -4306,12 +4352,41 @@ ${amount} para ${merchant} - ${date}`,
         carRental: ' de alquiler de coche',
         nightIn: 'noche en',
         nightsIn: 'noches en',
+        nudge: {
+            airfareManual:
+                '¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            airfareCard:
+                '¿Sabías que puedes reservar y gestionar vuelos directamente en Expensify? ¿Y que sube los recibos automáticamente por ti? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+            hotelManual:
+                '¿Sabías que puedes reservar y gestionar estancias de hotel directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            hotelCard:
+                '¿Sabías que puedes reservar y gestionar estancias en hoteles directamente en Expensify? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+            carManual:
+                '¿Sabías que puedes reservar y gestionar alquileres de coche directamente en Expensify? La próxima vez evita la molestia de crear tus gastos manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            carCard:
+                '¿Sabías que puedes reservar y gestionar alquileres de coche directamente en Expensify? La próxima vez simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+            railManual:
+                '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+            railCard:
+                '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
     },
     proactiveAppReview: {
         title: '¿Te gusta New Expensify?',
         description: 'Dínoslo para que podamos ayudarte a mejorar tu experiencia de gestión de gastos.',
         positiveButton: '¡Sí!',
         negativeButton: 'No mucho',
+    },
+    trialPaymentReminder: {
+        title: 'Adelántate al plazo',
+        subtitle: 'No esperes hasta el último momento, añade tu método de pago hoy para asegurar el acceso continuo a tus gastos en Expensify.',
+        trialEndsInDays: () => ({
+            one: 'La prueba termina en 1 día',
+            other: (pluralCount: number) => `La prueba termina en ${pluralCount} días`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `La prueba termina en ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Cerrar',
+        addPaymentCardButton: 'Añadir tarjeta de pago',
     },
     workspace: {
         common: {
@@ -4330,6 +4405,7 @@ ${amount} para ${merchant} - ${date}`,
             delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración',
             categories: 'Categorías',
+            vendors: 'Proveedores',
             tags: 'Etiquetas',
             customField1: 'Campo personalizado 1',
             customField2: 'Campo personalizado 2',
@@ -4856,6 +4932,10 @@ ${amount} para ${merchant} - ${date}`,
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión',
+            defaultSupplier: 'Proveedor predeterminado',
+            defaultSupplierDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al exportar.',
+            noSuppliersFound: 'No se encontraron proveedores',
+            noSuppliersFoundDescription: 'Por favor, añade el proveedor en Xero y sincroniza de nuevo la conexión.',
             accountingMethods: {
                 label: 'Cuándo Exportar',
                 description: 'Elige cuándo exportar los gastos:',
@@ -4908,8 +4988,10 @@ ${amount} para ${merchant} - ${date}`,
             travelInvoicingDescription: 'Los gastos de viaje se exportarán como cargos de tarjeta de crédito a la cuenta de Sage Intacct especificada a continuación.',
             creditCardAccount: 'Cuenta de tarjeta de crédito',
             defaultVendor: 'Proveedor por defecto',
-            defaultVendorDescription: (isReimbursable) =>
-                `Establezca un proveedor predeterminado que se aplicará a los gastos ${isReimbursable ? '' : 'no '}reembolsables que no tienen un proveedor coincidente en Sage Intacct.`,
+            defaultVendorDescription: (isReimbursable: boolean) =>
+                isReimbursable
+                    ? `Establece un proveedor predeterminado que se aplicará a los gastos reembolsables que no tengan un proveedor coincidente en Sage Intacct.`
+                    : `Los gastos que no se puedan conciliar con tus proveedores de Sage Intacct se asignarán por defecto a este proveedor.`,
             exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Intacct.',
             exportPreferredExporterNote:
                 'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
@@ -5585,6 +5667,7 @@ ${amount} para ${merchant} - ${date}`,
                 },
                 csvColumns: {
                     cardNumber: 'Número de la tarjeta',
+                    cardName: 'Nombre de la tarjeta',
                     postedDate: 'Fecha',
                     merchant: 'Comercio',
                     amount: 'Importe',
@@ -5600,6 +5683,7 @@ ${amount} para ${merchant} - ${date}`,
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Por favor, asigna una columna a cada uno de los atributos: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `¡Ups! Has asignado un solo campo ("${duplicateColumn}") a múltiples columnas. Por favor, revisa y vuelve a intentarlo.`,
+                    cardIdentityColumn: 'Asocia un número de tarjeta o un nombre de tarjeta para que las transacciones puedan vincularse a una tarjeta.',
                 },
                 duplicateFeedModal: {title: 'Feed de tarjeta ya conectado', prompt: 'No puedes añadir el mismo flujo de tarjeta al mismo espacio de trabajo dos veces.'},
             },
@@ -5863,6 +5947,7 @@ ${amount} para ${merchant} - ${date}`,
                             currentTravelSpendLabel: 'Gasto actual en viajes',
                             currentTravelSpendPaymentQueued: (amount: string) => `El pago de ${amount} está en cola y se procesará pronto.`,
                             currentTravelSpendCta: 'Pagar saldo',
+                            viewOnSpend: 'Ver en Gastos',
                             currentTravelLimitLabel: 'Límite actual de viajes',
                             settlementAccountLabel: 'Cuenta de liquidación',
                             settlementFrequencyLabel: 'Frecuencia de liquidación',
@@ -6018,6 +6103,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Impuestos',
                 subtitle: 'Documenta y reclama los impuestos aplicables.',
             },
+            vendors: {title: 'Proveedores', subtitle: 'Asocia los gastos de tarjeta con los proveedores importados de tu software de contabilidad.'},
             reportFields: {
                 title: 'Campos de informes',
                 subtitle: 'Configura campos personalizados para los gastos.',
@@ -6118,6 +6204,12 @@ ${amount} para ${merchant} - ${date}`,
             unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `El campo de fórmula ${value} no se reconoce`,
             reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
             genericFailureMessage: 'Se ha producido un error al actualizar el campo de informe. Por favor, inténtalo de nuevo.',
+        },
+        vendors: {
+            emptyTitle: 'Todavía no hay proveedores',
+            emptySubtitle: 'Los proveedores aparecerán aquí una vez que se complete la sincronización de contabilidad.',
+            findVendor: 'Buscar proveedor',
+            managedInAccountingSoftware: 'Los proveedores se gestionan en tu',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -6281,6 +6373,8 @@ ${amount} para ${merchant} - ${date}`,
                 accountingMismatch: ({part}: {part: string}) =>
                     `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
                 travelAddressMismatch: 'Solo puedes copiar los viajes si cada espacio de trabajo seleccionado tiene una dirección de empresa.',
+                currencyBlockedByBankAccount:
+                    'Solo puedes copiar la divisa si todos los espacios de trabajo seleccionados con una cuenta bancaria conectada usan la divisa del espacio de trabajo de origen.',
             },
             confirmSettings: {
                 title: 'Vamos a asegurarnos de que todo se vea bien.',
@@ -6409,6 +6503,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             peopleAdmins: 'Administradores de personas',
             paymentsAdmins: 'Administradores de pagos',
             members: 'Miembros',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `No puedes eliminar a ${memberName} de este espacio de trabajo mientras tenga una Tarjeta Expensify. Desactiva su tarjeta en Espacio de trabajo > Tarjeta Expensify y vuelve a intentarlo.`,
         },
         accounting: {
             settings: 'configuración',
@@ -6686,6 +6782,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             exportDate: 'Fecha de exportación',
             defaultVendor: 'Proveedor predeterminado',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Los gastos que no se asignen automáticamente se asociarán por defecto a este proveedor.`
+                    : `Los gastos que no se concilien automáticamente se asignarán a este proveedor de forma predeterminada. En caso contrario, se exportarán como Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Elige un proveedor predeterminado de ${connectionName} para los gastos que no se asignen automáticamente.`,
             defaultAccount: 'Cuenta predeterminada',
             autoSync: 'Autosincronización',
             autoSyncDescription: 'Sincroniza NetSuite y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
@@ -6957,6 +7059,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             amountPerUnit: (unit: string) => `Importe por ${unit}`,
             startDate: 'Fecha de inicio',
             endDate: 'Fecha de fin',
+            autoGeneratedRateTooltip: 'Esta tasa se genera automáticamente.',
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -6999,8 +7102,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             updateToUSD: 'Actualizar a USD',
             updateWorkspaceCurrency: 'Actualizar la moneda del espacio de trabajo',
             workspaceCurrencyNotSupported: 'Moneda del espacio de trabajo no soportada',
+            notAllowedToAddBankAccount:
+                'Tu espacio de trabajo está configurado en una moneda no compatible. Ponte en contacto con un administrador del espacio de trabajo que tenga permiso para cambiarla.',
             yourWorkspace: `Tu espacio de trabajo está configurado en una moneda no soportada. Consulta la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de monedas soportadas</a>.`,
             chooseAnExisting: 'Elige una cuenta bancaria existente para pagar gastos o añade una nueva.',
+            changeBankAccount: 'Cambiar cuenta bancaria',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir la propiedad',
@@ -7516,7 +7622,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             },
             customRules: {
                 title: 'Reglas personalizadas',
-                cardSubtitle: 'Aquí es donde se definen las reglas de tu equipo, para que todos sepan lo que esta cubierto.',
+                cardSubtitle: 'Sube tu política de gastos para asegurarte de que todo el mundo sepa qué puede y qué no puede cargar como gasto.',
                 policyDocument: 'Documento de política',
                 policyText: 'Texto de política',
             },
@@ -7641,7 +7747,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 addRule: 'Añadir regla de agente',
                 findRule: 'Encontrar regla de agente',
                 addRuleTitle: 'Añadir regla',
+                newRuleTitle: 'Nueva regla',
                 describeRuleTitle: 'Describe la regla que debe seguir tu agente de IA',
+                describeRuleHeadline: 'Describe tu regla',
                 editRuleTitle: 'Editar regla',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
@@ -7649,13 +7757,23 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 agentCreatedTitle: '¡RuleBot se ha añadido a tu espacio de trabajo!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.</muted-text>`,
+                suggestionsTab: 'Sugerencias',
+                writeTab: 'Editar',
+                findSuggestion: 'Buscar una regla',
+                emptySuggestionsTitle: 'No hay sugerencias disponibles',
+                emptySuggestionsSubtitle: 'Prueba a escribir tu propia regla.',
+                revampSubtitle: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
+                describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
+                gotIt: 'Entendido',
+                createRule: 'Crear regla',
             },
             tabs: {
                 general: 'General',
                 cardRestrictions: 'Restricciones de la tarjeta',
                 expenseDefaults: 'Valores predeterminados de gastos',
-                requireFields: 'Campos obligatorios',
+                requireFields: 'Requisitos del campo',
                 flagForReview: 'Marcar para revisión',
+                agents: 'Agentes',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7715,8 +7833,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 applyExpenseDefaultsDescription: 'Actualizar campos sin que quien los envía haga nada',
                 flagForReview: 'Marcar para revisión',
                 flagForReviewDescription: 'Notificar a los aprobadores cuando los gastos superen los límites de categoría',
-                requireFields: 'Campos obligatorios',
-                requireFieldsDescription: 'Asegúrate de que los campos clave estén rellenos antes de enviar los gastos',
+                requireFields: 'Requisitos del campo',
+                requireFieldsDescription: 'Exige campos específicos de gasto o renuncia a exigirlos.',
+                createAgentRule: 'Regla de agente',
+                createAgentRuleDescription: 'Describe reglas flexibles que se ejecutan cuando las necesitas.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -7734,28 +7854,33 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 tableColumnCondition: 'Condición',
                 tableColumnRule: 'Regla',
                 findRule: 'Buscar regla',
-                typeLabel: 'Campos obligatorios',
                 conditionCategoryIs: (category: string) => `La categoría es «${category}»`,
                 requireDescription: 'Requerir descripción',
                 requireAttendees: 'Requerir asistentes',
                 requireItemizedReceipt: 'Requerir recibo desglosado',
                 requireItemizedReceiptOver: (amount: string) => `Requerir recibo desglosado por encima de ${amount}`,
-                alwaysRequireReceipt: 'Solicitar siempre recibo',
                 requireReceiptOver: (amount: string) => `Solicitar recibo para importes superiores a ${amount}`,
+                requireReceipt: 'Solicitar recibo',
+                doNotRequireReceipt: 'No solicitar recibo',
+                doNotRequireItemizedReceipt: 'No exigir recibo desglosado',
             },
             requireFieldsEmptyState: {
                 title: 'Detecta los datos que faltan desde el principio',
-                subtitle: 'Asegúrate de que los campos clave estén completos antes de enviar los gastos.',
-                cta: 'Crear regla de requisito',
+                subtitle: 'Exige u omite campos de gastos para categorías específicas.',
+                cta: 'Crear regla de requisito de campo',
             },
             requireFieldsRule: {
-                title: 'Campos obligatorios',
-                subtitle: 'Solicita recibos, categorías, etc., al enviar.',
-                thenWarnMember: 'Luego, avisa al miembro si faltan campos:',
+                title: 'Requisitos del campo',
+                subtitle: 'Exige campos específicos de gasto o renuncia a exigirlos.',
                 itemizedReceipt: 'Recibo desglosado',
                 saveRule: 'Guardar regla',
                 confirmErrorCategory: 'Por favor, selecciona una categoría.',
-                confirmErrorField: 'Por favor, selecciona al menos un campo como obligatorio.',
+                requireDirection: 'Requerir',
+                doNotRequireDirection: 'No solicitar',
+                doTheFollowing: 'Haz lo siguiente:',
+                confirmErrorDoNotRequireField: 'Por favor, selecciona al menos un campo.',
+                receiptDisabledWhenItemizedRequired: 'Los recibos siempre son obligatorios cuando también se requieren recibos desglosados.',
+                itemizedDisabledWhenReceiptWaived: 'Los recibos desglosados no son obligatorios si ningún recibo es obligatorio.',
             },
             flagForReviewTable: {
                 tableColumnType: 'Tipo',
@@ -7779,6 +7904,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 confirmErrorCategory: 'Por favor, selecciona una categoría.',
                 confirmErrorAmount: 'Por favor, introduce una cantidad.',
                 thenFlagForReview: 'Luego marcar para revisión cuando:',
+            },
+            agentRulesEmptyState: {
+                title: 'No se han añadido reglas de agente',
+                subtitle: 'Crea una regla para automatizar las políticas de tu espacio de trabajo.',
+                cta: 'Añadir regla de IA',
             },
         },
         emptyDomain: {
@@ -8396,6 +8526,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         customUnitRateDateRangeAllDates: () => `para todas las fechas`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la descripción general de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la divisa de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             employees: (sourcePolicyName: string, sourcePolicyURL: string) => `copió miembros de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
                 one: `se copió 1 campo de informe desde <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -8568,6 +8699,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 title: 'No hay gastos para mostrar',
                 subtitle: 'Sin resultados. Intenta ajustar tus filtros.',
             },
+            emptyViolationSnapshotResults: {
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) =>
+                    `Las infracciones solo se registran a partir del ${formattedDate}. Intenta ajustar tus filtros de fecha.`,
+            },
             emptyUnapprovedResults: {
                 title: 'No hay gastos para aprobar',
                 subtitle: 'Cero gastos. Máxima relajación. ¡Bien hecho!',
@@ -8589,6 +8724,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         view: {label: 'Ver', table: 'Tabla', bar: 'Barra', line: 'Línea', pie: 'Circular'},
         saveView: 'Guardar vista',
         savedSearchesMenuItemTitle: 'Guardadas',
+        mySavedSearch: 'Mis gastos',
         urlCopied: 'URL copiada',
         spendOverTime: 'Evolución de gastos',
         searchName: 'Nombre de la búsqueda',
@@ -8691,6 +8827,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturación consolidada de viajes',
             },
             is: 'Es',
+            has: {submittedViolation: 'Infracción enviada'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',
@@ -8728,6 +8865,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         serverResults: 'Resultados de búsqueda',
         searchIn: 'Buscar en',
         askConcierge: (message: string) => `Pregunta a Concierge “${message}”`,
+        goTo: ({destination}: {destination: string}) => `Ir a ${destination}`,
         searchPlaceholder: 'Busca algo...',
         suggestions: 'Sugerencias',
         suggestionsAvailable: (
@@ -9650,7 +9788,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         duplicatedTransaction: 'Posible duplicado',
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',
-        inactiveVendor: 'El proveedor ya no es válido',
+        inactiveVendor: ({isSupplier = false} = {}) => (isSupplier ? 'El proveedor ya no es válido' : 'El proveedor ya no es válido'),
         invoiceMarkup: (invoiceMarkup) => `Incrementado un ${invoiceMarkup}%`,
         maxAge: (maxAge) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
@@ -10153,8 +10291,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         removeCopilotAccessConfirm: 'Eliminar acceso',
         changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
-        enterMagicCode: (contactMethod) => `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto. Debería llegar en un par de minutos.`,
-        enterMagicCodeUpdate: (contactMethod) => `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
+        enterSecurityCode: (contactMethod: string) => `Introduce el código de seguridad enviado a ${contactMethod} para añadir un copiloto. Debería llegar en uno o dos minutos.`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `Introduce el código de seguridad enviado a ${contactMethod} para actualizar tu copiloto.`,
         notAllowed: 'No tan rápido...',
         noAccessMessage: 'Como copiloto, no tienes acceso a esta página. ¡Lo sentimos!',
         notAllowedMessage: (accountOwnerEmail) =>
@@ -10272,7 +10410,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',
-        saveSearchTooltip: '<tooltip><strong>Renombra tus búsquedas guardadas</strong> aquí</tooltip>',
         accountSwitcher: '<tooltip>Accede a tus <strong>cuentas copiloto</strong> aquí</tooltip>',
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',

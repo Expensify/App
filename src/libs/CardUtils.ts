@@ -120,6 +120,25 @@ type CompanyCardBankIcons = Record<CompanyCardBankIconName, IconAsset>;
 
 const CUSTOM_FEED_PREFIXES = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
 
+type CardConnectionStatusDisplay = {
+    statusKey: TranslationPaths;
+    statusTone: 'success' | 'danger';
+    messageKey?: TranslationPaths;
+    actionKey?: TranslationPaths;
+    shouldUsePersonalCardFix?: boolean;
+    shouldUseCompanyCardsLink?: boolean;
+};
+
+type CardConnectionStatusDisplayParams = {
+    shouldShowConnectionStatus: boolean;
+    isCardBroken: boolean;
+    shouldShowRBR: boolean;
+    isCardInactive: boolean;
+    isPersonalCard: boolean;
+    isAdminForCardPolicy: boolean;
+    policyID?: string;
+};
+
 const feedNamesMapping = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.CSV,
     [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.VISA,
@@ -533,17 +552,27 @@ function getConnectionBankAccountsForReconciliation(connections: OnyxEntry<Parti
     }
 }
 
-function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
+/**
+ * Resolves the Expensify Card supported countries for a settlement currency, falling back to the hard-coded
+ * list until the backend supplies it via Onyx.
+ */
+function getSupportedCardCountriesForCurrency(supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>, currency?: string): readonly string[] {
+    const byCurrency: Record<string, readonly string[]> = supportedCountriesByCurrency ?? CONST.EXPENSIFY_CARD_SUPPORTED_COUNTRIES_BY_CURRENCY;
+    return byCurrency[currency ?? ''] ?? [];
+}
+
+function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>, outputCurrency?: string) {
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
     }
+    const supportedCountries = getSupportedCardCountriesForCurrency(supportedCountriesByCurrency, outputCurrency);
     return Object.values(bankAccountsList).filter(
         (bankAccount) =>
             bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             bankAccount?.accountData?.allowDebit &&
             !isBankAccountPartiallySetup(bankAccount?.accountData?.state) &&
             bankAccount?.bankCurrency === outputCurrency &&
-            (CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES as unknown as string).includes(bankAccount?.bankCountry),
+            supportedCountries.includes(bankAccount?.bankCountry),
     );
 }
 
@@ -1264,6 +1293,13 @@ function isSmartLimitEnabled(cardsList: CardList) {
     return hasAssignedCardMatching(cardsList, (card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
 
+function hasActiveExpensifyCardAssigned(workspaceCards: CardList | undefined, accountID: number): boolean {
+    return hasAssignedCardMatching(
+        workspaceCards,
+        (card) => card.accountID === accountID && card.bank === CONST.EXPENSIFY_CARD.BANK && !isTravelCard(card) && card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+}
+
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV];
 
 function collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards: CompanyFeeds | undefined, csvPrefix: string): number[] {
@@ -1336,6 +1372,44 @@ function isCardConnectionBroken(card: Card): boolean {
         return false;
     }
     return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
+}
+
+function getCardConnectionStatusDisplay({
+    shouldShowConnectionStatus,
+    isCardBroken,
+    shouldShowRBR,
+    isCardInactive: isCardInactiveStatus,
+    isPersonalCard: isPersonalCardStatus,
+    isAdminForCardPolicy,
+    policyID,
+}: CardConnectionStatusDisplayParams): CardConnectionStatusDisplay | undefined {
+    if (!shouldShowConnectionStatus) {
+        return undefined;
+    }
+
+    const shouldShowMessage = isCardBroken || shouldShowRBR || isCardInactiveStatus;
+    const shouldUsePersonalCardFix = shouldShowMessage && isPersonalCardStatus;
+    const shouldUseCompanyCardsLink = shouldShowMessage && !isPersonalCardStatus && isAdminForCardPolicy && !!policyID;
+    let messageKey: TranslationPaths | undefined;
+
+    if (shouldShowMessage) {
+        if (shouldUseCompanyCardsLink) {
+            messageKey = 'walletPage.cardStatus.fixConnectionIn';
+        } else if (isPersonalCardStatus) {
+            messageKey = 'walletPage.cardStatus.fixConnection';
+        } else {
+            messageKey = 'walletPage.cardStatus.askAdminToFixConnection';
+        }
+    }
+
+    return {
+        statusKey: shouldShowMessage ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active',
+        statusTone: shouldShowMessage ? 'danger' : 'success',
+        messageKey,
+        actionKey: shouldUsePersonalCardFix ? 'common.actionBadge.fix' : undefined,
+        shouldUsePersonalCardFix,
+        shouldUseCompanyCardsLink,
+    };
 }
 
 /**
@@ -2057,6 +2131,7 @@ export {
     getCSVFeedType,
     getFeedType,
     isCardConnectionBroken,
+    getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
@@ -2072,6 +2147,7 @@ export {
     getDomainByFundID,
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
+    hasActiveExpensifyCardAssigned,
     hasAssignedCardMatching,
     forEachAssignedCard,
     isActiveCard,
@@ -2100,6 +2176,7 @@ export {
     getCardFeedWithDomainID,
     splitCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    getSupportedCardCountriesForCurrency,
     getConnectionBankAccountsForReconciliation,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,

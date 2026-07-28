@@ -4,7 +4,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getMemberChangeMessageFragment, getOriginalMessage, isMemberChangeAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 
 import TextCommentFragment from '@pages/inbox/report/comment/TextCommentFragment';
 
@@ -30,7 +30,7 @@ function MemberChangeContent({action}: MemberChangeContentProps) {
     const [actorDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(action.actorAccountID)});
     const [targetAccountDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsListSelector(memberChangeLogReportActionMessage?.targetAccountIDs)});
     const [memberChangeLogRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${memberChangeLogReportActionMessage?.reportID}`);
-    const memberChangeLogRoomReportName = getReportName(memberChangeLogRoomReport, reportAttributes) || memberChangeLogReportActionMessage?.roomName;
+    const memberChangeLogRoomReportName = deprecatedGetReportName(memberChangeLogRoomReport, reportAttributes) || memberChangeLogReportActionMessage?.roomName;
     const fragment = getMemberChangeMessageFragment(translate, action, actorDetails, targetAccountDetailsList, memberChangeLogRoomReportName);
 
     return (

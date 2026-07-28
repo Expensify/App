@@ -58,6 +58,9 @@ function SubmitPlanWelcomeModal() {
         <CenteredModalLayout
             onBackdropPress={handleClose}
             contentStyle={[styles.pt0, styles.pb0]}
+            // FeatureTrainingContent's ScrollView already applies the bottom safe-area inset to its content
+            // padding, so the layout must not add it again (it would render as an empty band on Android).
+            addBottomSafeAreaPadding={false}
         >
             <FeatureTrainingContent
                 image={illustrations.ReceiptWranglerSpaceCowgirl}
