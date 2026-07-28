@@ -307,14 +307,18 @@ function useSearchHighlightAndScroll({
         });
 
         // Early return if the new item is not found in the data array
-        if (indexOfNewItem <= 0) {
+        if (indexOfNewItem < 0) {
+            return;
+        }
+
+        // Reset the trigger even when the item is already first so a later render cannot scroll or highlight it again.
+        triggeredByHookRef.current = false;
+        if (indexOfNewItem === 0) {
             return;
         }
 
         // Perform the scrolling action
         ref.scrollToIndex(indexOfNewItem);
-        // Reset the trigger flag to prevent unintended future scrolls and highlights
-        triggeredByHookRef.current = false;
     };
 
     const hasQueuedHighlights = newSearchResultKeys !== null && newSearchResultKeys.size > 0;

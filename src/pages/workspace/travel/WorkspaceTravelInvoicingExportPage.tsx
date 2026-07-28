@@ -1,5 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -268,19 +268,21 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
                             />
                         )}
                         <Button
-                            text={translate('workspace.moreFeatures.travel.travelInvoicing.exportToPDF')}
                             style={[styles.mh4, styles.mt3]}
                             onPress={processDownload}
                             isLoading={isDownloading}
-                            large
-                        />
+                            size={CONST.BUTTON_SIZE.LARGE}
+                        >
+                            <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.exportToPDF')}</Button.Text>
+                        </Button>
                         <Button
-                            text={translate('workspace.moreFeatures.travel.travelInvoicing.exportToCSV')}
                             style={[styles.m4, styles.mt3, styles.mb5]}
                             onPress={handleDownloadCSV}
-                            success
-                            large
-                        />
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                        >
+                            <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.exportToCSV')}</Button.Text>
+                        </Button>
                     </>
                 )}
             </FullPageOfflineBlockingView>
