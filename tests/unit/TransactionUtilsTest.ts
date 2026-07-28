@@ -3331,38 +3331,36 @@ describe('TransactionUtils', () => {
         const MERGE_REIMBURSED_REPORT_ID = 'mergeReimbursedReport';
 
         beforeAll(async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${MERGE_KEPT_OPEN_REPORT_ID}`]: {
-                    reportID: MERGE_KEPT_OPEN_REPORT_ID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}${MERGE_SUBMITTED_REPORT_ID}`]: {
-                    reportID: MERGE_SUBMITTED_REPORT_ID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}${MERGE_APPROVED_REPORT_ID}`]: {
-                    reportID: MERGE_APPROVED_REPORT_ID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                },
-                // Submit & Close workspaces leave the report approved but closed, the state from the reported bug.
-                [`${ONYXKEYS.COLLECTION.REPORT}${MERGE_CLOSED_REPORT_ID}`]: {
-                    reportID: MERGE_CLOSED_REPORT_ID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}${MERGE_REIMBURSED_REPORT_ID}`]: {
-                    reportID: MERGE_REIMBURSED_REPORT_ID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-                },
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_KEPT_OPEN_REPORT_ID}`, {
+                reportID: MERGE_KEPT_OPEN_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_SUBMITTED_REPORT_ID}`, {
+                reportID: MERGE_SUBMITTED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_APPROVED_REPORT_ID}`, {
+                reportID: MERGE_APPROVED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            });
+            // Submit & Close workspaces leave the report approved but closed, the state from the reported bug.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_CLOSED_REPORT_ID}`, {
+                reportID: MERGE_CLOSED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MERGE_REIMBURSED_REPORT_ID}`, {
+                reportID: MERGE_REIMBURSED_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             });
             await waitForBatchedUpdates();
         });
