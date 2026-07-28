@@ -413,6 +413,7 @@ describe('split expense', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         formatPhoneNumber,
+                        participantsPolicyTags: {},
                     },
                 );
                 return waitForBatchedUpdates();
@@ -744,6 +745,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -796,6 +798,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -822,6 +825,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {},
         });
         await waitForBatchedUpdates();
 
@@ -855,6 +859,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -893,6 +898,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -917,6 +923,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -985,6 +992,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -1037,6 +1045,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -1101,6 +1110,16 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {
+                [policyID]: {
+                    [tagName]: {
+                        name: tagName,
+                        required: false,
+                        orderWeight: 0,
+                        tags: {[tagName]: {name: tagName, enabled: true}},
+                    },
+                },
+            },
         });
 
         waitForBatchedUpdates();
@@ -1399,6 +1418,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -1462,6 +1482,7 @@ describe('split expense', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -7544,6 +7565,7 @@ describe('createDistanceRequest', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            participantsPolicyTags: {},
         };
     }
 
