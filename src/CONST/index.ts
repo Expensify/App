@@ -2535,6 +2535,10 @@ const CONST = {
         SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
         RECONNECT_STAMPEDE_JITTER_MS: 5000,
         STALLED_UPDATES_FETCH_BACKOFF_TIME_MS: 60 * 1000,
+        // How long the SequentialQueue may stay paused without the client applying any newer update
+        // before the pause watchdog force-unpauses to self-heal. The watchdog re-arms on every applied-update
+        // advance, so a progressing catch-up never trips it — only a genuinely stuck pause elapses this window.
+        MAX_PAUSE_WATCHDOG_TIME_MS: 60 * 1000,
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours

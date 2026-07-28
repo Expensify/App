@@ -74,7 +74,50 @@ function setIsReadyPromisePending() {
 let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
+let pauseWatchdogTimeoutID: ReturnType<typeof setTimeout> | null = null;
 const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
+
+function clearPauseWatchdog() {
+    if (!pauseWatchdogTimeoutID) {
+        return;
+    }
+    clearTimeout(pauseWatchdogTimeoutID);
+    pauseWatchdogTimeoutID = null;
+}
+
+/**
+ * Every pause() must eventually be balanced by an unpause() from the OnyxUpdateManager once the
+ * client/server update gap is resolved. Several early-return and failure paths in that async chain can
+ * leave the queue paused forever — OpenApp then never runs, IS_LOADING_APP never clears, and the app is
+ * stuck on a skeleton until a hard refresh. This watchdog force-unpauses when the queue stays paused
+ * without the client applying any newer update for MAX_PAUSE_WATCHDOG_TIME_MS, letting flush() re-run the
+ * queued OpenApp/ReconnectApp and self-heal. It re-arms on every applied-update advance (see below), so a
+ * genuinely progressing catch-up never trips it — only a stuck pause does.
+ */
+function armPauseWatchdog() {
+    clearPauseWatchdog();
+    pauseWatchdogTimeoutID = setTimeout(() => {
+        pauseWatchdogTimeoutID = null;
+        if (!isQueuePaused) {
+            return;
+        }
+        Log.alert('[SequentialQueue] Pause watchdog fired — queue stuck paused with no progress, force-unpausing to self-heal');
+        unpause();
+    }, CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+}
+
+// Re-arm the watchdog whenever the client applies a newer update while paused, so the timeout only
+// elapses when the paused queue has genuinely stopped making progress.
+// Use connectWithoutView since this is for network queue and doesn't affect any UI.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: () => {
+        if (!isQueuePaused) {
+            return;
+        }
+        armPauseWatchdog();
+    },
+});
 
 /**
  * Puts the queue into a paused state so that no requests will be processed
@@ -87,6 +130,7 @@ function pause() {
 
     Log.info('[SequentialQueue] Pausing the queue');
     isQueuePaused = true;
+    armPauseWatchdog();
 }
 
 /**
@@ -472,6 +516,7 @@ function unpause() {
     });
 
     isQueuePaused = false;
+    clearPauseWatchdog();
 
     // If there are no persisted requests, we need to flush the Onyx updates queue
     if (numberOfPersistedRequests === 0 && !currentOngoingRequest) {
@@ -662,6 +707,7 @@ function resetQueue(): void {
     isSequentialQueueRunning = false;
     currentRequestPromise = null;
     isQueuePaused = false;
+    clearPauseWatchdog();
     isReadyPromise = Promise.resolve();
     isReadyPromisePending = false;
     resolveIsReadyPromise = undefined;
