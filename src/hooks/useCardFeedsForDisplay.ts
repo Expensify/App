@@ -12,7 +12,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {expensifyCardFeedsForDisplaySelector} from '@selectors/Card';
 
-import useDefaultFundID from './useDefaultFundID';
+import useExpensifyCardFeedsForFeedSelector from './useExpensifyCardFeedsForFeedSelector';
 import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -71,14 +71,20 @@ const useCardFeedsForDisplay = () => {
 
     const defaultCardFeed = getDefaultCardFeed(eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare);
 
-    // Resolve the Expensify Card feed for the *active* workspace. `useDefaultFundID` picks the fund the same way the
-    // rest of the Expensify Card flows do — honoring the last-selected feed and the feed's `linkedPolicyIDs` /
-    // `preferredPolicy`, and only falling back to the workspace account ID. Matching the resolved fund also covers
-    // domain-linked feeds, whose `fundID` is the domain account ID rather than the policy's `policyAccountID`, while
-    // staying scoped to the active workspace so we never pull in an Expensify Card that belongs to a different
-    // workspace the user happens to also be a member of.
-    const activeFundID = useDefaultFundID(activePolicyID);
-    const activeExpensifyCardFeedID = expensifyCardFeeds?.find((feed) => feed.fundID === String(activeFundID))?.id;
+    // Resolve the Expensify Card feed for the *active* workspace using the same rule the feed list uses, so the Card
+    // accruals default lines up with what's actually displayed. `useExpensifyCardFeedsForFeedSelector` returns the
+    // feeds that are primary for the active workspace via each feed's `linkedPolicyIDs` (see `isFeedPrimaryForPolicy`);
+    // we prefer that fund and only fall back to a feed whose `fundID` backs the workspace account directly — a domain
+    // feed with no `linkedPolicyIDs`, whose `fundID` is the workspace's `policyAccountID`. Scoping to the active policy
+    // avoids pulling in an Expensify Card that belongs to a different workspace the user happens to also be a member
+    // of, and we intentionally skip `preferredPolicy` (oldDot-only) and the last-selected feed so the default stays
+    // deterministic and consistent with the displayed list.
+    const {primaryFeeds} = useExpensifyCardFeedsForFeedSelector(activePolicyID);
+    const activePolicyAccountID = activePolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.policyAccountID : undefined;
+    const activeExpensifyCardFeedID = [primaryFeeds.at(0)?.fundID, activePolicyAccountID]
+        .filter((fundID): fundID is number => fundID != null)
+        .map((fundID) => expensifyCardFeeds?.find((feed) => feed.fundID === String(fundID))?.id)
+        .find((feedID) => !!feedID);
 
     return {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID};
 };
