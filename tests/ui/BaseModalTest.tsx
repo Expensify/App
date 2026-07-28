@@ -27,7 +27,7 @@ describe('BaseModal', () => {
                 return null;
             },
         }));
-        const {default: BaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
+        const BaseModal = (require('@components/Modal/BaseModal') as {default: React.ComponentType<Record<string, unknown>>}).default;
 
         render(
             <BaseModal
@@ -41,11 +41,8 @@ describe('BaseModal', () => {
 
         const initialFocus = captured?.initialFocus;
         expect(typeof initialFocus).toBe('function');
-        if (typeof initialFocus !== 'function') {
-            throw new Error('Expected initialFocus to be a function');
-        }
         // dismiss button never mounted -> ref.current is null -> the getter resolves to false (no crash)
-        expect(initialFocus()).toBe(false);
+        expect((initialFocus as () => unknown)()).toBe(false);
     });
 
     it.each([
