@@ -2293,6 +2293,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allReportsShouldMarkAsDone,
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
+        delegateAccountID,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
