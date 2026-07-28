@@ -9494,6 +9494,7 @@ const translations = {
             title: 'Enable Personal Karma',
             description: 'Donate $1 to Expensify.org for every $500 you spend each month',
             stopDonationsPrompt: 'Are you sure you want to stop donating to Expensify.org?',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
         introSchoolPrincipal: 'Intro to your school principal',

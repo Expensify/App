@@ -35,6 +35,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
+import shouldDisablePersonalKarmaToggle from './shouldDisablePersonalKarmaToggle';
 import useSaveTheWorldSectionIllustration from './useSaveTheWorldSectionIllustration';
 
 function SaveTheWorldPage() {
@@ -189,7 +190,8 @@ function SaveTheWorldPage() {
                             onToggle={handlePersonalKarmaToggle}
                             isActive={personalOffsetsEnabled}
                             pendingAction={isPendingUpdatePersonalKarma ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
-                            disabled={isPendingUpdatePersonalKarma}
+                            disabled={isPendingUpdatePersonalKarma || shouldDisablePersonalKarmaToggle()}
+                            subtitle={shouldDisablePersonalKarmaToggle() ? translate('teachersUnitePage.personalKarma.managePreferencesFromWeb') : undefined}
                             wrapperStyle={styles.mt8}
                         />
                         {personalOffsetsEnabled && (
