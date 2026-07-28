@@ -1,7 +1,5 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import useOnyx from '@hooks/useOnyx';
-
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import {getLastSyncedQuerySignature, setLastSyncedQuerySignature} from '@libs/SearchFilterSyncState';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -13,6 +11,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect} from 'react';
+
+import useOnyx from './useOnyx';
 
 function shouldDeferSearchFilterSync(queryJSON: SearchQueryJSON, areCategoriesLoaded: boolean | undefined, isLoadingCategories: boolean | undefined, isOffline: boolean) {
     const hasCategoryFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
@@ -34,6 +34,7 @@ function shouldShowInitialCategoryFilterLoading(queryJSON: SearchQueryJSON, areC
 function useSearchFilterSync(queryJSON: SearchQueryJSON | undefined, formValues: Partial<SearchAdvancedFiltersForm>, shouldDeferSync = false) {
     const isFocused = useIsFocused();
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const isSearchAdvancedFiltersFormMissing = !isLoadingOnyxValue(searchAdvancedFiltersFormMetadata) && searchAdvancedFiltersForm === undefined;
 
     useEffect(() => {
         if (!isFocused) {
@@ -44,13 +45,12 @@ function useSearchFilterSync(queryJSON: SearchQueryJSON | undefined, formValues:
             setLastSyncedQuerySignature(null);
             return;
         }
-        const isSearchAdvancedFiltersFormMissing = !isLoadingOnyxValue(searchAdvancedFiltersFormMetadata) && searchAdvancedFiltersForm === undefined;
         if (getLastSyncedQuerySignature() === querySig && !isSearchAdvancedFiltersFormMissing) {
             return;
         }
         setLastSyncedQuerySignature(querySig);
         updateAdvancedFilters(formValues, true);
-    }, [queryJSON, formValues, isFocused, searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata.status, shouldDeferSync]);
+    }, [queryJSON, formValues, isFocused, isSearchAdvancedFiltersFormMissing, shouldDeferSync]);
 }
 
 export default useSearchFilterSync;
