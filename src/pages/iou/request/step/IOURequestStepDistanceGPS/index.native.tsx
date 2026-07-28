@@ -111,6 +111,7 @@ function IOURequestStepDistanceGPS({
     const unit = DistanceRequestUtils.getRate({
         transaction,
         policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
+        useTransactionDistanceUnit: isEditing,
         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     }).unit;
 
@@ -124,7 +125,7 @@ function IOURequestStepDistanceGPS({
         const modifiedDistance = gpsDraftDetails?.modifiedDistance !== undefined ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.modifiedDistance, unit) : undefined;
         const distanceForDisplay = modifiedDistance ?? originalDistance;
 
-        setGPSTransactionDraftData(transactionID, gpsDraftDetails, distanceForDisplay, modifiedDistance === undefined ? null : originalDistance);
+        setGPSTransactionDraftData(transactionID, gpsDraftDetails, distanceForDisplay, unit);
 
         const waypoints = getGPSWaypoints(gpsDraftDetails);
         const optimisticTransactionID = rand64();

@@ -306,8 +306,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
-    const originalTransactionDistance = isGPSDistanceRequest ? (transaction?.comment?.customUnit?.originalQuantity ?? transactionDistance) : transactionDistance;
-    const modifiedTransactionDistance = isGPSDistanceRequest && transaction?.comment?.customUnit?.originalQuantity != null ? transactionDistance : undefined;
+    const transactionDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+    const isModifiedGPSDistanceRequest = isGPSDistanceRequest && gpsDraftDetails?.modifiedDistance != null;
+    const originalTransactionDistance =
+        isModifiedGPSDistanceRequest && gpsDraftDetails.distanceInMeters && transactionDistanceUnit
+            ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.distanceInMeters, transactionDistanceUnit)
+            : transactionDistance;
+    const modifiedTransactionDistance = isModifiedGPSDistanceRequest ? transactionDistance : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense || isSelfDMDestination, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
         ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
@@ -696,8 +701,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
-            const originalItemDistance = isGPSDistanceRequest ? (item.comment?.customUnit?.originalQuantity ?? itemDistance) : itemDistance;
-            const modifiedItemDistance = isGPSDistanceRequest && item.comment?.customUnit?.originalQuantity != null ? itemDistance : undefined;
+            const itemRouteDistanceMeters = item.comment?.customUnit?.routeDistanceMeters;
+            const itemDistanceUnit = item.comment?.customUnit?.distanceUnit;
+            const originalItemDistance =
+                isGPSDistanceRequest && itemRouteDistanceMeters != null && itemDistanceUnit
+                    ? DistanceRequestUtils.convertDistanceUnit(itemRouteDistanceMeters, itemDistanceUnit)
+                    : itemDistance;
+            const modifiedItemDistance =
+                isGPSDistanceRequest && originalItemDistance != null && itemDistance != null && Math.abs(originalItemDistance - itemDistance) > 0.01 ? itemDistance : undefined;
 
             const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({
