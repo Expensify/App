@@ -346,8 +346,8 @@ const SCREENS = {
         DYNAMIC_STEP_TAX_RATE: 'Dynamic_Money_Request_Step_Tax_Rate',
         STEP_VENDOR: 'Money_Request_Step_Vendor',
         RECEIPT_VIEW: 'Money_Request_Receipt_View',
-        STEP_SEND_FROM: 'Money_Request_Step_Send_From',
-        STEP_COMPANY_INFO: 'Money_Request_Step_Company_Info',
+        DYNAMIC_STEP_SEND_FROM: 'Dynamic_Money_Request_Step_Send_From',
+        DYNAMIC_STEP_COMPANY_INFO: 'Dynamic_Money_Request_Step_Company_Info',
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
@@ -355,10 +355,10 @@ const SCREENS = {
         STATE_SELECTOR: 'Money_Request_State_Selector',
         DYNAMIC_STEP_ATTENDEES: 'Dynamic_Money_Request_Attendee',
         STEP_ACCOUNTANT: 'Money_Request_Accountant',
-        STEP_DESTINATION: 'Money_Request_Destination',
+        DYNAMIC_STEP_DESTINATION: 'Dynamic_Money_Request_Destination',
         STEP_TIME: 'Money_Request_Time',
         STEP_SUBRATE: 'Money_Request_SubRate',
-        STEP_DESTINATION_EDIT: 'Money_Request_Destination_Edit',
+        DYNAMIC_STEP_DESTINATION_EDIT: 'Dynamic_Money_Request_Destination_Edit',
         STEP_TIME_EDIT: 'Money_Request_Time_Edit',
         STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
         STEP_REPORT: 'Money_Request_Report',
@@ -394,10 +394,10 @@ const SCREENS = {
     },
 
     MERGE_TRANSACTION: {
-        LIST_PAGE: 'Merge_Transaction_List_Page',
-        RECEIPT_PAGE: 'Merge_Transaction_Receipt_Page',
-        DETAILS_PAGE: 'Merge_Transaction_Details_Page',
-        CONFIRMATION_PAGE: 'Merge_Transaction_Confirmation_Page',
+        DYNAMIC_LIST_PAGE: 'Dynamic_Merge_Transaction_List_Page',
+        DYNAMIC_RECEIPT_PAGE: 'Dynamic_Merge_Transaction_Receipt_Page',
+        DYNAMIC_DETAILS_PAGE: 'Dynamic_Merge_Transaction_Details_Page',
+        DYNAMIC_CONFIRMATION_PAGE: 'Dynamic_Merge_Transaction_Confirmation_Page',
     },
 
     IOU_SEND: {
@@ -459,7 +459,7 @@ const SCREENS = {
         DYNAMIC_TASK_TITLE: 'Dynamic_NewTask_Title',
         DYNAMIC_TASK_DESCRIPTION: 'Dynamic_NewTask_Description',
         DYNAMIC_TASK_DETAILS: 'Dynamic_NewTask_Details',
-        TASK_SHARE_DESTINATION_SELECTOR: 'NewTask_TaskShareDestinationSelector',
+        DYNAMIC_TASK_SHARE_DESTINATION_SELECTOR: 'Dynamic_NewTask_TaskShareDestinationSelector',
     },
 
     TASK: {
@@ -492,7 +492,12 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_Report_Change_Workspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {DYNAMIC_ROOT: 'Dynamic_Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
+    WORKSPACE_CONFIRMATION: {
+        DYNAMIC_ROOT: 'Dynamic_Workspace_Confirmation_Root',
+        OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector',
+        PLAN_TYPE_SELECTOR: 'Workspace_Confirmation_Plan_Type_Selector',
+        SUCCESS: 'Workspace_Confirmation_Success',
+    },
     WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
     POLICY_COPY_SETTINGS: {
         ROOT: 'Policy_Copy_Settings_Root',
