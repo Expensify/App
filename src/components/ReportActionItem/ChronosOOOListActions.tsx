@@ -63,6 +63,7 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                             <Button
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 style={styles.pl2}
+                                innerStyles={styles.ph3}
                                 onPress={() => removeEvent(reportID, action.reportActionID, event.id, events)}
                             >
                                 <Text style={styles.buttonSmallText}>{translate('common.remove')}</Text>

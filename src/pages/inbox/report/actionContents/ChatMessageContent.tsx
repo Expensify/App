@@ -90,6 +90,7 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
                             <Button
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 style={[styles.mt2, styles.alignSelfStart]}
+                                innerStyles={styles.ph3}
                                 onPress={() => updateHiddenState(!isHidden)}
                                 sentryLabel={CONST.SENTRY_LABEL.REPORT.MODERATION_BUTTON}
                             >
