@@ -1658,6 +1658,11 @@ function getExportTemplates(
         exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
     }
 
+    // The Canadian Multiple Tax Export template is only relevant to workspaces that output in CAD, so it's hidden for every other currency
+    if (policy?.outputCurrency === CONST.CURRENCY.CAD) {
+        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT, {name: translate('export.multipleTaxExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
+    }
+
     // Conditionally include the basic export (CSV download) template so it's sorted alphabetically alongside the other default templates
     if (includeBasicExport) {
         exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, {name: translate('export.basicExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
