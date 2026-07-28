@@ -88,7 +88,7 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alw
 
         // First measurement, or content changed while keyboard is fully open
         // (to skip onLayout calls triggered by our own height animation collapsing the view to 0)
-        if (naturalHeightRef.current === -1 || animatedHeight.get() > naturalHeightRef.current) {
+        if (naturalHeightRef.current === -1 || (animatedHeight.get() >= naturalHeightRef.current && height !== naturalHeightRef.current)) {
             naturalHeightRef.current = height;
             naturalHeight.set(height);
             animatedHeight.set(height);
