@@ -53,11 +53,14 @@ function getTableContainerAccessibilityProps(isEnabled: boolean, label: string |
 
     return {
         role: CONST.ROLE.TABLE,
+
         // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-label': label,
+
         // The header row is rendered as a sibling of the data rows, so it has to be counted separately.
         // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-rowcount': rowCount + 1,
+
         // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-colcount': columnCount,
     };
@@ -84,6 +87,7 @@ function getRowAccessibilityProps(isEnabled: boolean, rowIndex: number, isHeader
 
     return {
         role: CONST.ROLE.ROW,
+
         // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-rowindex': isHeaderRow ? 1 : rowIndex + 2,
     };
@@ -163,6 +167,7 @@ function assignCellColumnIndexes(node: React.ReactNode): React.ReactNode {
             if (child.props.role === CONST.ROLE.CELL) {
                 const columnIndex = nextColumnIndex;
                 nextColumnIndex += 1;
+
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 return React.cloneElement(child, {'aria-colindex': columnIndex});
             }

@@ -287,6 +287,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     };
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
     // The selection checkbox renders as an extra leading column when selection is enabled (always visible in the wide
     // web layout where semantics apply), so it has to be counted alongside the configured data columns.
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
