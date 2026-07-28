@@ -1,6 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
 import IconsAvatar from '@components/Avatar/IconsAvatar';
+import type {AvatarIcon} from '@components/Avatar/types';
 import type {UserAvatarProps} from '@components/Avatar/UserAvatar';
 import type {WorkspaceAvatarProps} from '@components/Avatar/WorkspaceAvatar';
 
@@ -98,6 +99,15 @@ jest.mock('@src/components/Icon', () => {
                 testID="MockedIconData"
             />
         );
+    };
+});
+
+const mockUserDetailsTooltipProps: Array<{accountID: number; delegateAccountID?: number}> = [];
+
+jest.mock('@components/UserDetailsTooltip', () => {
+    return ({accountID, delegateAccountID, children}: {accountID: number; delegateAccountID?: number; children: React.ReactNode}) => {
+        mockUserDetailsTooltipProps.push({accountID, delegateAccountID});
+        return children;
     };
 });
 
@@ -263,6 +273,10 @@ describe('SearchReportAvatar', () => {
         });
         initOnyxDerivedValues();
         return waitForBatchedUpdates();
+    });
+
+    beforeEach(() => {
+        mockUserDetailsTooltipProps.length = 0;
     });
 
     afterAll(async () => {
@@ -431,6 +445,33 @@ describe('SearchReportAvatar', () => {
 
             expect(fragments.some((fragment) => fragment.startsWith('ReportActionAvatars-MultipleAvatars'))).toBe(false);
             expect(images.some((img) => img.parent === 'ReportActionAvatars-SingleAvatar')).toBe(true);
+        });
+    });
+
+    describe('copilot tooltip pairing', () => {
+        it('derives tooltip accountID and delegateAccountID from icon.copilot', async () => {
+            const copilotIcon: AvatarIcon = {
+                id: 5,
+                source: 'https://avatar/5',
+                name: 'Delegate User',
+                type: CONST.ICON_TYPE_AVATAR,
+                copilot: {
+                    accountID: 5,
+                    actedForAccountID: 2,
+                },
+            };
+
+            render(
+                <IconsAvatar
+                    icons={[copilotIcon]}
+                    size={CONST.AVATAR_SIZE.DEFAULT}
+                    shouldShowTooltip
+                />,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockUserDetailsTooltipProps).toEqual([{accountID: 2, delegateAccountID: 5}]);
         });
     });
 

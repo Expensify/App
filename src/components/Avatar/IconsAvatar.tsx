@@ -1,10 +1,13 @@
+import useStyleUtils from '@hooks/useStyleUtils';
+
 import CONST from '@src/CONST';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
+
+import type {AvatarIcon} from './types';
 
 import DiagonalAvatars from './layouts/DiagonalAvatars';
 import SingleAvatar from './layouts/SingleAvatar';
@@ -12,7 +15,7 @@ import SubscriptAvatar from './layouts/SubscriptAvatar';
 
 type IconsAvatarProps = {
     /** Pre-computed avatar icons to render. The first icon is the primary; the second (if present) is the secondary/subscript */
-    icons: Icon[];
+    icons: AvatarIcon[];
 
     /** Size of the avatars to render */
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -32,12 +35,6 @@ type IconsAvatarProps = {
     /** Border color for the subscript avatar */
     subscriptAvatarBorderColor?: ColorValue;
 
-    /** Account ID for single avatar tooltip */
-    accountID?: number;
-
-    /** Delegate account ID for single avatar tooltip */
-    delegateAccountID?: number;
-
     /** Single avatar container styles */
     singleAvatarContainerStyle?: ViewStyle[];
 };
@@ -51,10 +48,9 @@ function IconsAvatar({
     shouldUseMidSubscriptSize = false,
     secondaryAvatarContainerStyle,
     subscriptAvatarBorderColor,
-    accountID,
-    delegateAccountID,
     singleAvatarContainerStyle,
 }: IconsAvatarProps) {
+    const StyleUtils = useStyleUtils();
     const primaryIcon = icons.at(0);
 
     if (!primaryIcon) {
@@ -92,10 +88,8 @@ function IconsAvatar({
         <SingleAvatar
             avatar={primaryIcon}
             size={size}
-            containerStyles={singleAvatarContainerStyle}
+            containerStyles={singleAvatarContainerStyle ?? StyleUtils.getContainerStyles(size)}
             shouldShowTooltip={shouldShowTooltip}
-            accountID={accountID ?? Number(primaryIcon.id ?? CONST.DEFAULT_NUMBER_ID)}
-            delegateAccountID={delegateAccountID}
         />
     );
 }

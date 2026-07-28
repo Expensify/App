@@ -1,10 +1,7 @@
-import Avatar from '@components/Avatar';
+import type {AvatarIcon} from '@components/Avatar/types';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
-import useStyleUtils from '@hooks/useStyleUtils';
-
 import CONST from '@src/CONST';
-import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -13,32 +10,24 @@ import {View} from 'react-native';
 
 import type {BaseAvatarProps} from './types';
 
+import Avatar from '..';
+
 type SingleAvatarProps = BaseAvatarProps & {
     /** The resolved avatar icon to render */
-    avatar: IconType;
+    avatar: AvatarIcon;
 
     /** Container styles for the avatar */
-    containerStyles?: StyleProp<ViewStyle>;
-
-    /** Account ID the tooltip describes. Tooltip-only: it can differ from `avatar.id`, e.g. the LHN passes the delegate's account ID */
-    accountID: number;
-
-    /** Delegate account ID used for the tooltip */
-    delegateAccountID?: number;
-
-    /** Whether the avatar is displayed within a report action */
-    isInReportAction?: boolean;
+    containerStyles: StyleProp<ViewStyle>;
 };
 
 /** `SingleAvatar` renders one avatar wrapped in a `UserDetailsTooltip`, used when there is a single actor to display. */
-function SingleAvatar({avatar, size, containerStyles, shouldShowTooltip, delegateAccountID, accountID, isInReportAction, fallbackDisplayName}: SingleAvatarProps) {
-    const StyleUtils = useStyleUtils();
-    const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
+function SingleAvatar({avatar, size, containerStyles, shouldShowTooltip, fallbackDisplayName}: SingleAvatarProps) {
+    const tooltipAccountID = avatar.copilot?.actedForAccountID ?? Number(avatar.id ?? CONST.DEFAULT_NUMBER_ID);
 
     return (
         <UserDetailsTooltip
-            accountID={accountID}
-            delegateAccountID={delegateAccountID}
+            accountID={tooltipAccountID}
+            delegateAccountID={avatar.copilot?.accountID}
             icon={avatar}
             fallbackUserDetails={{
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -48,7 +37,7 @@ function SingleAvatar({avatar, size, containerStyles, shouldShowTooltip, delegat
         >
             <View>
                 <Avatar
-                    containerStyles={containerStyles ?? avatarContainerStyles}
+                    containerStyles={containerStyles}
                     type={avatar.type}
                     source={avatar.source}
                     name={avatar.name ?? ''}

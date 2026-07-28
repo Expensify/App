@@ -1,4 +1,5 @@
 import IconsAvatar from '@components/Avatar/IconsAvatar';
+import type {AvatarIcon} from '@components/Avatar/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -43,7 +44,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
     // delegate's avatar as primary instead of the report owner's.
     const skipDelegate = optionItem?.type === CONST.REPORT.TYPE.INVOICE || (optionItem?.isTaskReport && !optionItem?.chatReportID);
 
-    let icons = optionItem?.icons ?? [];
+    let icons: AvatarIcon[] = optionItem?.icons ?? [];
     if (!skipDelegate && delegateAccountID && personalDetails && icons.length > 0) {
         const delegateDetails = personalDetails[delegateAccountID];
         if (delegateDetails) {
@@ -55,15 +56,14 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
                     source: delegateDetails.avatar ?? '',
                     name: delegateDetails.displayName ?? '',
                     id: delegateAccountID,
+                    copilot: {
+                        accountID: delegateAccountID,
+                        actedForAccountID: Number(firstDelegateIcon.id ?? CONST.DEFAULT_NUMBER_ID),
+                    },
                 };
             }
             icons = updatedIcons;
         }
-    }
-
-    let delegateTooltipAccountID: number | undefined;
-    if (!skipDelegate && delegateAccountID && personalDetails?.[delegateAccountID] && optionItem?.icons?.length) {
-        delegateTooltipAccountID = Number(optionItem.icons.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID);
     }
 
     return (
@@ -76,8 +76,6 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
             secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBackgroundColor)}
             singleAvatarContainerStyle={singleAvatarContainerStyle}
             shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
-            accountID={delegateTooltipAccountID}
-            delegateAccountID={skipDelegate ? undefined : delegateAccountID}
         />
     );
 }

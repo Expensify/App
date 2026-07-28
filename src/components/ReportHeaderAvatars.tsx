@@ -44,11 +44,7 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`);
 
-    const {
-        avatarType,
-        avatars: icons,
-        details: {delegateAccountID},
-    } = useReportActionAvatars({
+    const {avatarType, avatars: icons} = useReportActionAvatars({
         report,
         action: undefined,
     });
@@ -159,7 +155,6 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
                 size={size}
                 containerStyles={[]}
                 shouldShowTooltip
-                accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
             />
         </PressableWithoutFocus>
     );

@@ -3,12 +3,15 @@ import HorizontalAvatars from '@components/Avatar/layouts/HorizontalAvatars';
 import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
+import type {AvatarIcon} from '@components/Avatar/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import {sortIconsByName} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -136,6 +139,7 @@ function ReportActionAvatars({
     const allPersonalDetails = usePersonalDetails();
     const {localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const reportID =
         potentialReportID ??
@@ -196,6 +200,17 @@ function ReportActionAvatars({
     }
 
     const [primaryAvatar, secondaryAvatar] = icons;
+    const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(source.action);
+    const singleAvatar: AvatarIcon =
+        delegateAccountID && delegateAccountIDFromAction
+            ? {
+                  ...primaryAvatar,
+                  copilot: {
+                      accountID: delegateAccountIDFromAction,
+                      actedForAccountID: delegateAccountID,
+                  },
+              }
+            : primaryAvatar;
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && (!!secondaryAvatar?.name || !!subscriptCardFeed)) {
         return (
@@ -244,12 +259,10 @@ function ReportActionAvatars({
 
     return (
         <SingleAvatar
-            avatar={primaryAvatar}
+            avatar={singleAvatar}
             size={size}
-            containerStyles={shouldStackHorizontally ? [] : singleAvatarContainerStyle}
+            containerStyles={shouldStackHorizontally ? [] : (singleAvatarContainerStyle ?? StyleUtils.getContainerStyles(size, isInReportAction))}
             shouldShowTooltip={shouldShowTooltip}
-            accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-            delegateAccountID={source.action?.delegateAccountID}
             fallbackDisplayName={fallbackDisplayName}
         />
     );
