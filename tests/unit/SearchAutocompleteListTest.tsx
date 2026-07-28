@@ -4,6 +4,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import Text from '@components/Text';
 
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
@@ -88,10 +89,10 @@ jest.mock('@hooks/useFilteredOptions', () => ({
     default: (...args: unknown[]) => mockUseFilteredOptions(...args),
 }));
 
-const mockUseNavigationSuggestions = jest.fn<SearchQueryItem[], []>(() => []);
+const mockUseNavigationSuggestions = jest.fn<SearchQueryItem[], [query: string, shouldWatchForApprovals?: boolean]>(() => []);
 jest.mock('@components/Search/SearchRouter/useNavigationSuggestions', () => ({
     __esModule: true,
-    default: () => mockUseNavigationSuggestions(),
+    default: (query: string, shouldWatchForApprovals?: boolean) => mockUseNavigationSuggestions(query, shouldWatchForApprovals),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -153,10 +154,13 @@ const fakeRecentReports = [
     {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
 ];
 
-function SearchRouterWrapper() {
+function SearchRouterWrapper({isSearchRouterDisplayed}: {isSearchRouterDisplayed?: boolean}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <SearchRouter onRouterClose={mockOnClose} />
+            <SearchRouter
+                onRouterClose={mockOnClose}
+                isSearchRouterDisplayed={isSearchRouterDisplayed}
+            />
         </ComposeProviders>
     );
 }
@@ -202,14 +206,24 @@ describe('SearchAutocompleteList', () => {
         mockUseNavigationSuggestions.mockReturnValue([]);
     });
 
+    it.each([
+        ['displayed', true, true],
+        ['hidden', undefined, false],
+    ] as const)('should pass the correct approval-watch state when the router is %s', (_state, isSearchRouterDisplayed, shouldWatchForApprovals) => {
+        render(<SearchRouterWrapper isSearchRouterDisplayed={isSearchRouterDisplayed} />);
+
+        expect(mockUseNavigationSuggestions).toHaveBeenCalledWith(expect.any(String), shouldWatchForApprovals);
+    });
+
     it('should display and select navigation suggestion rows', async () => {
         const navigationAction = jest.fn();
         mockUseNavigationSuggestions.mockReturnValue([
             {
-                text: 'Go to Inbox',
-                keyForList: 'topLevelInbox',
+                text: 'Go to Reports',
+                keyForList: 'spend_reports',
                 searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
                 action: navigationAction,
+                rightElement: <Text>Spend</Text>,
             },
         ]);
 
@@ -223,7 +237,8 @@ describe('SearchAutocompleteList', () => {
         render(<SearchRouterWrapper />);
         await flushAllUpdates();
 
-        fireEvent.press(await screen.findByText('Go to Inbox'));
+        expect(await screen.findByText('Spend')).toBeTruthy();
+        fireEvent.press(await screen.findByText('Go to Reports'));
 
         await waitFor(() => {
             expect(mockOnClose).toHaveBeenCalledWith(navigationAction);
