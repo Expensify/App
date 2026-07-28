@@ -17,4 +17,4 @@ if ! [[ "$FILEPATH" =~ ^[a-zA-Z0-9_./@-]+$ ]]; then
     exit 1
 fi
 
-npm run react-compiler-compliance-check -- check "$FILEPATH"
+bun run react-compiler-compliance-check -- check "$FILEPATH"

@@ -210,17 +210,17 @@ React Compiler auto-memoizes object literals, callbacks, JSX, and derived values
 
 - **TypeScript**: Strict mode enabled
 - **ESLint**: Linter. Pre-existing violations are grandfathered via [`eslint-seatbelt`](https://github.com/justjake/eslint-seatbelt).
-- **Oxfmt**: Code formatting - run `npm run fmt` after making changes
+- **Oxfmt**: Code formatting - run `bun run fmt` after making changes
 - **Patch Management**: patch-package for dependency fixes
 
 ### Post-Edit Checklist (IMPORTANT)
 
 **ALWAYS run these steps after making code changes, before committing:**
 
-1. **Oxfmt**: Run `npm run fmt` on every file you modified. This is mandatory - CI will reject unformatted code.
-2. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
-3. **TypeScript**: Run `npm run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `npm run typecheck` (tsc), which remains the required merge gate.
-4. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI, evaluated against BOTH the Babel and OXC compilers: new components/hooks must compile, existing compiled files must not regress, and changes must not introduce new memoization divergence (one compiler memoizing a file while the other does not). See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
+1. **Oxfmt**: Run `bun run fmt` on every file you modified. This is mandatory - CI will reject unformatted code.
+2. **ESLint**: Run `bun run lint-changed` to catch lint errors early.
+3. **TypeScript**: Run `bun run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `bun run typecheck` (tsc), which remains the required merge gate.
+4. **React Compiler**: If you added new React components/hooks or modified existing ones, run `bun run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI, evaluated against BOTH the Babel and OXC compilers: new components/hooks must compile, existing compiled files must not regress, and changes must not introduce new memoization divergence (one compiler memoizing a file while the other does not). See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
 
 ### Testing
 
@@ -266,38 +266,38 @@ Use Sentry skill whenever user wants to analyze any data from Sentry. It may be:
 
 ```bash
 # Install dependencies
-npm install
+bun install
 
 # Clean build artifacts
-npm run clean
+bun run clean
 
 # Type checking (tsgo, fast, for development only)
-npm run typecheck-tsgo
+bun run typecheck-tsgo
 
 # Type checking (tsc, CI production gate)
-npm run typecheck
+bun run typecheck
 
 # Linting
-npm run lint
+bun run lint
 
 # Format code with Oxfmt
-npm run fmt
+bun run fmt
 
 # Testing
-npm run test
+bun run test
 ```
 
 ### Platform Builds
 
 ```bash
 # iOS build
-npm run ios
+bun run ios
 
 # Android build
-npm run android
+bun run android
 
 # Web build
-npm run web
+bun run web
 ```
 
 ## Development Environment
@@ -306,7 +306,7 @@ npm run web
 
 - **Location**: Runs on HOST machine (not in VM)
 - **URL**: `https://dev.new.expensify.com:8082/`
-- **Start command**: `npm run web`
+- **Start command**: `bun run web`
 - **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
 
 ### Browser Testing

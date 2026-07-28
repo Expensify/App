@@ -60,7 +60,6 @@
         "ios",
         "vendor",
         "package.json",
-        "package-lock.json",
         "*.html",
         "*.css",
         "*.scss",

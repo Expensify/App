@@ -26,9 +26,9 @@
         "postinstall": "tsc || exit 0;",
         "typecheck": "tsc --noEmit",
         "clean": " rm -rf android/build node_modules/**/android/build lib",
-        "specs-debug": "npm run --filter=\"**\" typescript && npx nitrogen --logLevel=\"debug\"",
+        "specs-debug": "bun run --filter=\"**\" typescript && bunx nitrogen --logLevel=\"debug\"",
         "typescript": "tsc --noEmit false",
-        "specs": "npx nitrogen"
+        "specs": "bunx nitrogen"
     },
     "author": "Expensify",
     "license": "MIT",

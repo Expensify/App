@@ -4,7 +4,7 @@ Standalone Bun CLI (`@expensify/victory-chart-renderer`) that renders Expensify 
 
 ## Prerequisites
 
-Bun is installed automatically via the root `npm install` (devDependency). No separate Bun installation is required.
+Bun is installed automatically via the root `bun install` (devDependency). No separate Bun installation is required.
 
 ## Usage
 

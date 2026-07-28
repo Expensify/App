@@ -44,7 +44,7 @@ If you haven't done any intentional edits outside of `src/` (like adding new dep
     If the workflows are still running, open them and verify they match your fingerprint. Once complete, Rock should download the remote build. If not, check whether the last main commit hash merged into your branch has the same fingerprint as yours.
 
     If the fingerprints do not match, run:
-    - `npx rock fingerprint -p ios --verbose`
+    - `bunx rock fingerprint -p ios --verbose`
     Compare the results with the GitHub Actions output to see which files have different fingerprints.
 
 * In the event of workflow failures, it is recommended to have the option to manually build the application. The following steps will cover the manual build process.  

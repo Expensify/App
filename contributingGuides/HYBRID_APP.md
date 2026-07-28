@@ -28,7 +28,7 @@ In that case, what are the differences in each script?
 
 ## `bun run clean`
 - **Without access to HybridApp**: 
-	1. clean all caches for NewDot by running `npx react-native clean-project-auto` 
+	1. clean all caches for NewDot by running `bunx react-native clean-project-auto` 
 	2. remove the following (you can find full documentation [here](https://github.com/pmadruga/react-native-clean-project?tab=readme-ov-file#content))
 		- `./node_modules`
 		- `./ios/Pods`
@@ -124,7 +124,7 @@ Alternatively, you may notice in `package.json` that all these scripts are based
 It's a valid question, especially because clean builds may take some time. On the way I've noticed that many developers tend to rebuild the app from scratch, even though in some cases it is unnecessary. In this case, when should you rebuild the app?
 1. Whenever any code located in `./Mobile-Expensify` has changed - this means that we need to recompile OldDot/native code
 2. Whenever you've pulled the newest main - not always necessary, but usually we don't analyze what code has just been merged by `git pull`
-3. Whenever `package-lock.json` has changed - this may indicate that some packages with native code were bumped (however it's not always necessary, see [[#Should I rebuild HybridApp after bumping a `node_module`?]])
+3. Whenever `bun.lock` has changed - this may indicate that some packages with native code were bumped (however it's not always necessary, see [[#Should I rebuild HybridApp after bumping a `node_module`?]])
 4. Whenever you've updated `.env` files
 This means that if you changed only React Native code, and didn't pull any changes, the rebuilt is probably not necessary. If something doesn't work, you can always restart the Metro bundler using the following command `bun run start --reset-cache`
 
@@ -137,7 +137,7 @@ This will remove all untracked files and directories, ensuring no lingering arti
 **Warning**: This will delete **all untracked files**, including anything not committed—make sure you’ve backed up anything important.
 
 ### Should I rebuild HybridApp after bumping a `node_modules` library?
-The `package-lock.json` file contains information about exact versions of `node_modules` that will be installed on your machine. If you've bumped a dependency on your PR you can easily check to see if you would need to rebuild the app by going to the `./node_modules/<PACKAGE_NAME>`, and seeing if there are any Objective-C, Swift, Java, Kotlin or C++ files. Usually they are located in `ios` or `android` folders.
+The `bun.lock` file contains information about exact versions of `node_modules` that will be installed on your machine. If you've bumped a dependency on your PR you can easily check to see if you would need to rebuild the app by going to the `./node_modules/<PACKAGE_NAME>`, and seeing if there are any Objective-C, Swift, Java, Kotlin or C++ files. Usually they are located in `ios` or `android` folders.
 ### How to clear platform-specific cache?
 Executing `bun run clean` clears cache for React Native, Android, and iOS. It means that the whole process may take a while, even though you try to build only one platform. In this case you case you can pass additional arguments to specify which cache should be cleared in order to save some time:
 - **React Native:** `bun run clean -- --react-native` 
