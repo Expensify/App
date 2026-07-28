@@ -1,3 +1,12 @@
+/**
+ * Shows the outcome of a finished HR provider sync (employees added, removed and skipped).
+ *
+ * This used to be `HRSyncResultsModal`, a right-docked modal opened through the global modal
+ * context. It is now a dynamic navigation screen so the results live in the navigation stack:
+ * `useHRSyncResults` navigates here when a sync reaches `JOB_DONE`, from either the workspace HR
+ * page or the members list. The sync payload is read back out of Onyx from the policy's connection
+ * sync progress, so only the workspace's `policyID` travels through the route.
+ */
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
