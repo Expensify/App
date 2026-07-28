@@ -8,6 +8,8 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ButtonVariant} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -19,11 +21,8 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 
 type FloatingPillButtonProps = {
-    /** Whether the button uses the success style */
-    success: boolean;
-
-    /** Whether the button uses the danger style */
-    danger?: boolean;
+    /** Inner button variant **/
+    variant?: ButtonVariant;
 
     /** Callback when the button is pressed */
     onPress?: () => void;
@@ -41,22 +40,12 @@ type FloatingPillButtonProps = {
     textStyle?: StyleProp<TextStyle>;
 };
 
-function getButtonVariant(isSuccess?: boolean, isDanger?: boolean) {
-    if (isDanger) {
-        return CONST.BUTTON_VARIANT.DANGER;
-    }
-    if (isSuccess) {
-        return CONST.BUTTON_VARIANT.SUCCESS;
-    }
-    return undefined;
-}
-
-function FloatingPillButton({success, danger, onPress, icon, iconFill, label, textStyle}: FloatingPillButtonProps) {
+function FloatingPillButton({variant, onPress, icon, iconFill, label, textStyle}: FloatingPillButtonProps) {
     const styles = useThemeStyles();
 
     return (
         <Button
-            variant={getButtonVariant(success, danger)}
+            variant={variant}
             size={CONST.BUTTON_SIZE.SMALL}
             onPress={onPress}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.FLOATING_MESSAGE_COUNTER}
@@ -159,8 +148,7 @@ function FloatingMessageCounter({
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     {shouldShowActionBadgePill ? (
                         <FloatingPillButton
-                            success={!isError}
-                            danger={isError}
+                            variant={isError ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={onActionBadgePress}
                             icon={icons.UpArrow}
                             iconFill={theme.textLight}
@@ -169,7 +157,7 @@ function FloatingMessageCounter({
                         />
                     ) : (
                         <FloatingPillButton
-                            success={hasNewMessages}
+                            variant={hasNewMessages ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                             onPress={onClick}
                             icon={icons.DownArrow}
                             iconFill={hasNewMessages ? theme.textLight : theme.icon}
