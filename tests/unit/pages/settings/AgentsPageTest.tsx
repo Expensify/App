@@ -49,6 +49,10 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 jest.mock('@components/Tables/AgentsTable', () => {
     const {Text} = jest.requireActual<typeof ReactNative>('react-native');
     function MockAgentsTable({agents}: {agents: Array<{displayName: string}>}) {
+        if (agents.length === 0) {
+            return <Text>agentsPage.emptyAgents.title</Text>;
+        }
+
         return agents.map((agent) => (
             <Text
                 key={agent.displayName}

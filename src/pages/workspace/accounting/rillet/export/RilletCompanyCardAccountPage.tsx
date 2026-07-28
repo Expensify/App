@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletCreditCardAccount} from '@libs/actions/connections/Rillet';
@@ -48,10 +49,11 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             )
             .map((accountItem) => ({
                 value: accountItem.code,
-                text: accountItem.name,
+                text: `${accountItem.code} ${accountItem.name}`,
                 keyForList: accountItem.code,
                 isSelected: creditCardAccountCode === accountItem.code,
             })) ?? [];
+    const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
         <View>
@@ -84,7 +86,8 @@ function RilletCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="RilletCompanyCardAccountPage"
             title="workspace.rillet.companyCardAccount.label"
-            data={data}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
             onSelectRow={selectCreditCardAccount}

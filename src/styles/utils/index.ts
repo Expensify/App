@@ -313,7 +313,7 @@ function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): 
 /**
  * Helper method to return workspace avatar color styles
  */
-function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
+function getDefaultWorkspaceAvatarColor(text: string): SVGAvatarColorStyle {
     const colorHash = hashText(text.trim(), workspaceColorOptions.length);
     return workspaceColorOptions.at(colorHash) ?? DEFAULT_WORKSPACE_COLOR;
 }
@@ -2123,6 +2123,26 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             styleObj[key] = null;
             return styleObj;
         }, {} as Nullable<K>) as K,
+    getFeatureTrainingCarouselDotStyle: (size: number, color: string, isActive: boolean): ViewStyle => ({
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        marginHorizontal: size,
+        backgroundColor: color,
+        opacity: isActive ? 1 : 0.3,
+    }),
+
+    getFeatureTrainingCarouselCloseButtonContainerStyle: (padding: number): ViewStyle => ({
+        position: 'absolute',
+        top: padding,
+        right: padding,
+        zIndex: 1,
+    }),
+
+    getFeatureTrainingCarouselDotsContainerStyle: (bottomOffset: number): ViewStyle => ({
+        bottom: bottomOffset,
+    }),
+
     getScrollableFeatureTrainingModalStyles: (
         insets: EdgeInsets,
         isKeyboardOpen = false,

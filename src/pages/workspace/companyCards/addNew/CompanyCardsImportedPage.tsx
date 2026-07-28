@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
+import {applyCompanyCardSavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import {getCSVFeedType} from '@libs/CardUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,7 +31,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 type CompanyCardsImportedPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED>;
 
@@ -60,7 +61,8 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const columnRoles: ColumnRole[] = (() => {
         const baseRoles: ColumnRole[] = [
             {text: translate('workspace.companyCards.addNewCard.csvColumns.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
-            {text: translate('workspace.companyCards.addNewCard.csvColumns.cardNumber'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER, isRequired: true},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.cardNumber'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.cardName'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NAME},
             {text: translate('workspace.companyCards.addNewCard.csvColumns.postedDate'), value: CONST.CSV_IMPORT_COLUMNS.POSTED_DATE, isRequired: true},
             {text: translate('workspace.companyCards.addNewCard.csvColumns.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
             {text: translate('workspace.companyCards.addNewCard.csvColumns.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
@@ -83,6 +85,35 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         return [...baseRoles, ...advancedRoles];
     })();
 
+    const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
+    const hasAppliedSavedMappings = useRef(false);
+    const lastProcessedDataRef = useRef(spreadsheet?.data);
+    const lastAdvancedFieldsRef = useRef(shouldUseAdvancedFields);
+
+    useEffect(() => {
+        // Reset the flag when new spreadsheet data is loaded, or when the set of selectable roles changes.
+        if (spreadsheet?.data !== lastProcessedDataRef.current || shouldUseAdvancedFields !== lastAdvancedFieldsRef.current) {
+            hasAppliedSavedMappings.current = false;
+            lastProcessedDataRef.current = spreadsheet?.data;
+            lastAdvancedFieldsRef.current = shouldUseAdvancedFields;
+        }
+
+        if (hasAppliedSavedMappings.current) {
+            return;
+        }
+
+        if (!spreadsheet?.data || isEmptyObject(savedColumnMappings)) {
+            return;
+        }
+
+        hasAppliedSavedMappings.current = true;
+        applyCompanyCardSavedColumnMappings(
+            spreadsheet.data,
+            savedColumnMappings,
+            columnRoles.map((role) => role.value),
+        );
+    }, [spreadsheet?.data, savedColumnMappings, columnRoles, shouldUseAdvancedFields]);
+
     const requiredColumns = columnRoles.filter((role) => role.isRequired);
     const {containsHeader = true} = spreadsheet ?? {};
 
@@ -99,14 +130,29 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             return errors;
         }
 
+        // A row needs a card-identity column to be routed to a card: require a card number or a card name.
+        const cardIdentityColumns: string[] = [CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER, CONST.CSV_IMPORT_COLUMNS.CARD_NAME];
+        if (!cardIdentityColumns.some((cardIdentityColumn) => columns.includes(cardIdentityColumn))) {
+            errors.cardIdentity = translate('workspace.companyCards.addNewCard.csvErrors.cardIdentityColumn');
+            return errors;
+        }
+
         const duplicate = findDuplicate(columns);
         if (duplicate) {
             errors.duplicates = translate('workspace.companyCards.addNewCard.csvErrors.duplicateColumns', duplicate);
             return errors;
         }
 
-        const columnWithEmptyValues = requiredColumns.find((requiredColumn) => {
-            const columnIndex = columns.findIndex((column) => column === requiredColumn.value);
+        // Required columns plus whichever card-identity column is mapped must have a value in every row,
+        // otherwise a row can't be matched to a card.
+        const columnsThatMustHaveValues = columnRoles.filter((role) => {
+            if (role.isRequired) {
+                return true;
+            }
+            return cardIdentityColumns.includes(role.value) && columns.includes(role.value);
+        });
+        const columnWithEmptyValues = columnsThatMustHaveValues.find((roleColumn) => {
+            const columnIndex = columns.findIndex((column) => column === roleColumn.value);
             if (columnIndex === -1) {
                 return false;
             }
