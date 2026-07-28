@@ -11,7 +11,7 @@ import {hasOnceLoadedReportActionsSelector} from '@src/selectors/ReportMetaData'
 
 import {useRoute} from '@react-navigation/native';
 
-import {useIsAppLoadPending, useIsReportLoadPending} from './useInFlightRequests';
+import {useIsAppLoadPending} from './useInFlightRequests';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -26,7 +26,7 @@ import useReportIsArchived from './useReportIsArchived';
  * session-start). The guard calls it once and passes `state`/`actions` via `ReportActionsListStateContext`
  * and `ReportActionsListActionsContext` so the content doesn't re-subscribe.
  */
-function useReportActionsListModel(reportID: string) {
+function useReportActionsListModel(reportID: string, isReportLoadPending: boolean) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
@@ -64,7 +64,6 @@ function useReportActionsListModel(reportID: string) {
     const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
 
     const isAppLoadPending = useIsAppLoadPending();
-    const isReportLoadPending = useIsReportLoadPending(reportID);
 
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
 

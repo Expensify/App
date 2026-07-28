@@ -98,6 +98,7 @@ function ReportActions() {
             <ReportActionsList
                 key={report.reportID}
                 reportID={report.reportID}
+                isReportLoadPending={isReportLoadPending}
             />
             <UserTypingEventListener report={report} />
         </>

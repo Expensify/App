@@ -189,9 +189,14 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
     },
 ];
 
-const renderReportActionsList = (props: {reportID?: string} = {}) => {
+const renderReportActionsList = (props: {reportID?: string; isReportLoadPending?: boolean} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
-    return render(<ReportActionsList reportID={reportID} />);
+    return render(
+        <ReportActionsList
+            reportID={reportID}
+            isReportLoadPending={props.isReportLoadPending ?? false}
+        />,
+    );
 };
 
 describe('ReportActionsList (body)', () => {
@@ -275,6 +280,26 @@ describe('ReportActionsList (body)', () => {
     });
 
     describe('Skeleton Loading States', () => {
+        it('uses a supplied true report pending value for the initial skeleton decision', () => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue(defaultPaginatedReportActionsResult);
+
+            renderReportActionsList({isReportLoadPending: true});
+
+            expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport, {warm: false});
+        });
+
+        it('uses a supplied false report pending value for the initial skeleton decision', () => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue(defaultPaginatedReportActionsResult);
+
+            renderReportActionsList({isReportLoadPending: false});
+
+            expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport, {warm: false});
+        });
+
         it('should show skeleton when shouldShowSkeletonForAppLoad is true (isLoadingApp is true and isOffline is false)', () => {
             mockUseNetwork.mockReturnValue({
                 isOffline: false,

@@ -286,6 +286,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                             <>
                                 <ReportActionsList
                                     reportID={report.reportID}
+                                    isReportLoadPending={isReportLoadPending}
                                     onLayout={onLayout}
                                 />
                                 <UserTypingEventListener report={report} />
