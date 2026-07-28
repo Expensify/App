@@ -335,20 +335,6 @@ function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep
     };
 }
 
-function buildOptimisticNextStepForStrictPolicyRuleViolations() {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'alert',
-        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: 'Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.',
-            },
-        ],
-    };
-
-    return optimisticNextStep;
-}
-
 function getReportNextStep(
     currentNextStep: ReportNextStepDeprecated | undefined,
     moneyRequestReport: OnyxEntry<Report>,
@@ -853,7 +839,7 @@ export {
     buildNextStepMessage,
     buildOptimisticNextStep,
     parseMessage,
-    buildOptimisticNextStepForStrictPolicyRuleViolations,
+    buildOptimisticFixIssueNextStep,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDEWOffline,

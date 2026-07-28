@@ -1,9 +1,9 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
+    buildOptimisticFixIssueNextStep,
     buildOptimisticNextStepForDEWOffline,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
-    buildOptimisticNextStepForStrictPolicyRuleViolations,
     getReportNextStep,
 } from '@libs/NextStepUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -105,7 +105,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
     }
 
     if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(moneyRequestReport) && isOpenExpenseReport(moneyRequestReport)) {
-        optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
+        optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
     }
 
     return optimisticNextStep;
