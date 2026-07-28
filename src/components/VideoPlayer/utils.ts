@@ -43,4 +43,4 @@ function buildVideoSourceURL(url: string, encryptedAuthToken: string) {
     return addSkipTimeTagToURL(addEncryptedAuthTokenToURL(url, encryptedAuthToken), VIDEO_SKIP_TIME_SECONDS);
 }
 
-export {convertSecondsToTime, addSkipTimeTagToURL, buildVideoSourceURL, VIDEO_SKIP_TIME_SECONDS};
+export {convertSecondsToTime, buildVideoSourceURL};
