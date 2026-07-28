@@ -49,6 +49,14 @@
     renderPictureToSurface path, which already treats a failed WebGL surface as
     recoverable rather than fatal. Charts on capable clients are unaffected and
     still render through WebGL.
+
+    The software fallback is only used when the canvas can actually provide a 2D
+    context. MakeSWCanvasSurface just stores the canvas and calls getContext("2d")
+    later, when the surface is flushed, so a canvas that already holds a WebGL
+    context (one whose chart rendered before WebGL became unavailable) would return
+    null there and turn into an uncatchable "Cannot read properties of null (reading
+    'putImageData')". Checking the 2D context up front keeps that case blank but
+    stable instead.
     ```
 
 - Upstream PR/issue: 🛑 TODO — the same defensive handling should be sent upstream so `onResize` matches the already-guarded `renderPictureToSurface` path.

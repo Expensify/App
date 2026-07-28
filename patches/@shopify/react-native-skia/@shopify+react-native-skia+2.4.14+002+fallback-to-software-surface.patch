@@ -1,8 +1,8 @@
 diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
-index 86c767e..05e26db 100644
+index 86c767e..f35a2ee 100644
 --- a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
 +++ b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
-@@ -49,13 +49,30 @@ class WebGLRenderer {
+@@ -49,13 +49,33 @@ class WebGLRenderer {
      } = this;
      canvas.width = canvas.clientWidth * pd;
      canvas.height = canvas.clientHeight * pd;
@@ -27,7 +27,10 @@ index 86c767e..05e26db 100644
      if (!surface) {
 -      throw new Error("Could not create surface");
 +      try {
-+        surface = CanvasKit.MakeSWCanvasSurface(canvas);
++        // MakeSWCanvasSurface only stores the canvas and calls getContext("2d") later, when the surface
++        // is flushed. A canvas that already holds a WebGL context can never return a 2D context, so
++        // creating the surface anyway would defer the failure into an uncatchable putImageData error.
++        surface = canvas.getContext("2d") ? CanvasKit.MakeSWCanvasSurface(canvas) : null;
 +      } catch (e) {
 +        surface = null;
 +      }
@@ -39,10 +42,10 @@ index 86c767e..05e26db 100644
      this.surface = new _JsiSkSurface.JsiSkSurface(CanvasKit, surface);
    }
 diff --git a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
-index 2563277..e458316 100644
+index 2563277..3a24627 100644
 --- a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
 +++ b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
-@@ -42,13 +42,30 @@ class WebGLRenderer {
+@@ -42,13 +42,33 @@ class WebGLRenderer {
      } = this;
      canvas.width = canvas.clientWidth * pd;
      canvas.height = canvas.clientHeight * pd;
@@ -67,7 +70,10 @@ index 2563277..e458316 100644
      if (!surface) {
 -      throw new Error("Could not create surface");
 +      try {
-+        surface = CanvasKit.MakeSWCanvasSurface(canvas);
++        // MakeSWCanvasSurface only stores the canvas and calls getContext("2d") later, when the surface
++        // is flushed. A canvas that already holds a WebGL context can never return a 2D context, so
++        // creating the surface anyway would defer the failure into an uncatchable putImageData error.
++        surface = canvas.getContext("2d") ? CanvasKit.MakeSWCanvasSurface(canvas) : null;
 +      } catch (e) {
 +        surface = null;
 +      }
