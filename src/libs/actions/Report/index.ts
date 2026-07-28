@@ -1464,8 +1464,7 @@ function getGuidedSetupDataForOpenReport(
     introSelected: OnyxEntry<IntroSelected>,
     // TODO: undefined will be removed once all openReport callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID: number | undefined,
-    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
-    isSelfTourViewed?: boolean,
+    isSelfTourViewed: boolean | undefined,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean,
 ): GuidedSetupDataForOpenReport | undefined {
@@ -4802,6 +4801,7 @@ function navigateToMostRecentReport(
     conciergeReportID: string | undefined,
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
 ) {
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
@@ -4824,8 +4824,7 @@ function navigateToMostRecentReport(
             Navigation.goBack();
         }
 
-        // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, betas, false, () => true, {forceReplace: true});
+        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true, {forceReplace: true});
     }
 }
 
@@ -4869,6 +4868,7 @@ function leaveGroupChat(
     currentUserAccountID: number,
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
 ) {
     const reportID = report.reportID;
@@ -4920,7 +4920,7 @@ function leaveGroupChat(
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.revealRouteBeforeDismissingModal(getReportRouteForCurrentContext({reportID}));
     } else {
-        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas);
+        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas);
     }
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
@@ -4931,6 +4931,7 @@ function leaveRoom(
     currentUserAccountID: number,
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     isWorkspaceMemberLeavingWorkspaceRoom = false,
 ) {
@@ -5044,7 +5045,7 @@ function leaveRoom(
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas);
 }
 
 function buildInviteToRoomOnyxData(
