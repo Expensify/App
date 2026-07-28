@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingAccounting} from './CONST';
 import type {TranslationPaths} from './languages/types';
+import type {OnboardingFeatureMapItem} from './libs/actions/Welcome/OnboardingFeatures';
 import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
 import type Platform from './libs/getPlatform/types';
 import type {TransactionThreadNavigationDescriptor} from './libs/TransactionThreadNavigationUtils';
@@ -415,6 +416,10 @@ const ONYXKEYS = {
     /** Stores information about the active reimbursement account being set up */
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
+    /** Snapshot of the in-progress reimbursement account, captured before a "change bank account" flow clears the shared
+     * data so it can be restored if the user backs out without confirming a new account */
+    REIMBURSEMENT_ACCOUNT_BACKUP: 'reimbursementAccountBackup',
+
     /** Indicates whether the user started changing their business bank account to a fresh account */
     IS_CHANGING_TO_NEW_BANK_ACCOUNT: 'isChangingToNewBankAccount',
 
@@ -530,6 +535,12 @@ const ONYXKEYS = {
 
     /** Onboarding user reported integration selected by the user during Onboarding flow */
     ONBOARDING_USER_REPORTED_INTEGRATION: 'onboardingUserReportedIntegration',
+
+    /** Whether the user kept Accounting enabled during Onboarding feature selection */
+    ONBOARDING_ACCOUNTING_ENABLED: 'onboardingAccountingEnabled',
+
+    /** Onboarding interested features persisted before navigating to the Accounting step */
+    ONBOARDING_INTERESTED_FEATURES_MAP: 'onboardingInterestedFeaturesMap',
 
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_ADMINS_CHAT_REPORT_ID: 'onboardingAdminsChatReportID',
@@ -1612,6 +1623,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_BANK_ACCOUNT]: OnyxTypes.ShareBankAccount;
     [ONYXKEYS.UNSHARE_BANK_ACCOUNT]: OnyxTypes.UnshareBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
+    [ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP]: OnyxTypes.ReimbursementAccount;
     [ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT]: boolean;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED]: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: number;
@@ -1750,6 +1762,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS]: Record<string, TransactionThreadNavigationDescriptor>;
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
+    [ONYXKEYS.ONBOARDING_ACCOUNTING_ENABLED]: boolean;
+    [ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP]: OnboardingFeatureMapItem[];
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.ExportTemplate>;
     [ONYXKEYS.NVP_EXPENSE_RULES]: OnyxTypes.ExpenseRule[];

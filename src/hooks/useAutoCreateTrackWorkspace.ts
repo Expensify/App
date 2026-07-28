@@ -140,7 +140,7 @@ function useAutoCreateTrackWorkspace() {
                     newPolicyID,
                     mergedAccountConciergeReportID,
                     false,
-                    rhpVariant,
+                    {variantOverride: rhpVariant},
                 );
             }
         },

@@ -524,6 +524,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: '无法显示图表',
         webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
         apiKey: 'API 密钥',
+        exportsTo: '导出到',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -1068,6 +1069,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: '联系您的客户经理',
             forGuidedSetup: '以获取引导式设置。',
             configureApprovalsSubText: '定义报表审批',
+            setupTravel: '设置差旅',
+            setupTravelSubText: '配置差旅专用规则',
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
@@ -4305,18 +4308,15 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             error: {required: '请输入您的法人税号。'},
         },
         nudge: {
-            airfareManual: '嗨！你知道吗？你可以直接在 Expensify 中预订和管理机票。下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
-            airfareCard:
-                '嗨！你知道吗？你可以直接在 Expensify 里预订和管理航班，而且还能自动帮你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+            airfareManual: '你知道吗？你可以直接在 Expensify 中预订和管理机票！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+            airfareCard: '你知道吗？你可以直接在 Expensify 预订和管理机票，而且还能自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
             hotelManual:
-                '嗨！你知道吗，现在你可以直接在 Expensify 预订和管理酒店住宿？下次就不用再手动创建报销，直接通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订就行了 🏨',
-            hotelCard: '嗨！你知道吗？你可以直接在 Expensify 中预订和管理酒店住宿。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 进行预订即可 🏨',
-            carManual: '嗨！你知道吗？你可以直接在 Expensify 里预订和管理租车。下次就不用再手动创建报销，直接通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
-            carCard: '嗨！你知道吗？你可以直接在 Expensify 中预订和管理租车服务。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
-            railManual:
-                '嗨！你知道吗？你可以直接在 Expensify 里预订和管理火车行程。下次就不用再手动创建报销了，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
-            railCard:
-                '嗨！你知道吗？你可以直接在 Expensify 里预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
+                '你知道吗？你可以直接在 Expensify 中预订和管理酒店住宿！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 完成预订即可 🏨',
+            hotelCard: '你知道吗？你可以直接在 Expensify 中预订和管理酒店住宿！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🏨',
+            carManual: '你知道吗？你可以直接在 Expensify 中预订和管理租车服务。下次就不用再手动创建报销了，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
+            carCard: '你知道吗？你可以直接在 Expensify 中预订和管理租车！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
+            railManual: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
+            railCard: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
         },
     },
     workspace: {
@@ -5860,6 +5860,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             currentTravelSpendLabel: '当前差旅支出',
                             currentTravelSpendPaymentQueued: (amount: string) => `金额为 ${amount} 的付款已排队，稍后将被处理。`,
                             currentTravelSpendCta: '支付余额',
+                            viewOnSpend: '在支出中查看',
                             currentTravelLimitLabel: '当前出行限额',
                             settlementAccountLabel: '结算账户',
                             settlementFrequencyLabel: '结算频率',
@@ -6038,6 +6039,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 defaultHourlyRate: '默认时薪',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要禁用人力资源功能，请先将此工作区与 ${integration} 断开连接。`},
+            vendors: {title: '供应商', subtitle: '将卡片报销与从您的会计软件导入的供应商进行匹配。'},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6379,6 +6381,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             peopleAdmins: '人员管理员',
             paymentsAdmins: '付款管理员',
             members: '成员',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `在 ${memberName} 仍持有 Expensify 卡时，您无法将其从此工作区中移除。请在“工作区 > Expensify 卡”中停用其卡片后重试。`,
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
