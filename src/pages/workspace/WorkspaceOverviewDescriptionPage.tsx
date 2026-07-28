@@ -7,13 +7,11 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateWorkspaceDescription} from '@libs/actions/Policy/Policy';
-import {getReviewWorkspaceSettingsTaskCompletionData} from '@libs/actions/Task';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -37,8 +35,7 @@ type Props = WithPolicyProps;
 function WorkspaceOverviewDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const isInputInitializedRef = useRef(false);
     const [description, setDescription] = useState(() => Parser.htmlToMarkdown(policy?.description ?? translate('workspace.common.defaultDescription')));
 
@@ -65,16 +62,11 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                 return;
             }
 
-            updateWorkspaceDescription(
-                policy.id,
-                values.description.trim(),
-                policy.description,
-                getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID),
-            );
+            updateWorkspaceDescription(policy.id, values.description.trim(), policy.description, getReviewWorkspaceSettingsTaskCompletion());
             Keyboard.dismiss();
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
-        [policy, reviewWorkspaceSettingsTaskInformation, currentUserAccountID],
+        [policy, getReviewWorkspaceSettingsTaskCompletion],
     );
 
     return (

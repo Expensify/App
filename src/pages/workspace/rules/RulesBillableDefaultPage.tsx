@@ -4,15 +4,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getReviewWorkspaceSettingsTaskCompletionData} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -40,8 +38,7 @@ function RulesBillableDefaultPage({
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {environmentURL} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -71,13 +68,7 @@ function RulesBillableDefaultPage({
     const initiallyFocusedOptionKey = selectedBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
 
     const saveAndGoBack = () => {
-        setPolicyBillableMode(
-            policyID,
-            selectedBillable,
-            policy?.defaultBillable,
-            policy?.disabledFields?.defaultBillable,
-            getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID),
-        );
+        setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
@@ -128,7 +119,7 @@ function RulesBillableDefaultPage({
                         disabled={isTrackBillableToggleDisabled}
                         showLockIcon={isTrackBillableToggleDisabled}
                         pendingAction={getBillableExpensesPendingAction(policy)}
-                        onToggle={() => toggleBillableExpenses(policy)}
+                        onToggle={() => toggleBillableExpenses(policy, getReviewWorkspaceSettingsTaskCompletion())}
                     />
                 )}
                 {shouldShowBillableModeList && (

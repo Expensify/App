@@ -8,13 +8,11 @@ import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getReviewWorkspaceSettingsTaskCompletionData} from '@libs/actions/Task';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -44,8 +42,7 @@ function RulesReceiptRequiredAmountPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const defaultValue =
@@ -95,12 +92,7 @@ function RulesReceiptRequiredAmountPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM}
                     onSubmit={({maxExpenseAmountNoReceipt}) => {
-                        setPolicyMaxExpenseAmountNoReceipt(
-                            policyID,
-                            maxExpenseAmountNoReceipt,
-                            policy?.maxExpenseAmountNoReceipt,
-                            getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID),
-                        );
+                        setPolicyMaxExpenseAmountNoReceipt(policyID, maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoReceipt, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     validate={validate}

@@ -6766,9 +6766,11 @@ function getBillableExpensesPendingAction(policy: OnyxEntry<Policy>): PendingAct
     return undefined;
 }
 
-function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
+function toggleBillableExpenses(policy: OnyxEntry<Policy>, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
     if (policy?.disabledFields?.defaultBillable) {
-        setPolicyBillableMode(policy.id, false, policy?.defaultBillable, true);
+        // Enabling billable tracking sends the same SET_POLICY_BILLABLE_MODE command that completes the "Review
+        // your workspace settings" onboarding task as a side effect, so forward the optimistic completion data too.
+        setPolicyBillableMode(policy.id, false, policy?.defaultBillable, true, reviewWorkspaceSettingsTaskData);
     } else if (policy) {
         disableWorkspaceBillableExpenses(policy.id);
     }

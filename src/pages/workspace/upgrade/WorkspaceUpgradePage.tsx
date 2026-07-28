@@ -5,10 +5,10 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
@@ -31,7 +31,6 @@ import {
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
-import {getReviewWorkspaceSettingsTaskCompletionData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import {
@@ -120,7 +119,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
-    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [priorLastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
 
@@ -207,12 +206,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         if (!feature) {
             if (featureNameAlias === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) {
-                setPolicyPreventMemberCreatedTitle(
-                    policyID,
-                    true,
-                    policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE],
-                    getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, accountID),
-                );
+                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE], getReviewWorkspaceSettingsTaskCompletion());
             }
             return;
         }
@@ -327,7 +321,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
         categoryId,
-        reviewWorkspaceSettingsTaskInformation,
+        getReviewWorkspaceSettingsTaskCompletion,
         isTrackIntentUser,
     ]);
 

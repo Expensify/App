@@ -6,14 +6,12 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getReviewWorkspaceSettingsTaskCompletionData} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -42,8 +40,7 @@ function RulesMaxExpenseAgePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {isBetaEnabled} = usePermissions();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
@@ -77,12 +74,7 @@ function RulesMaxExpenseAgePage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}
                     onSubmit={({maxExpenseAge}) => {
-                        setPolicyMaxExpenseAge(
-                            policyID,
-                            maxExpenseAge,
-                            policy?.maxExpenseAge,
-                            getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID),
-                        );
+                        setPolicyMaxExpenseAge(policyID, maxExpenseAge, policy?.maxExpenseAge, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}

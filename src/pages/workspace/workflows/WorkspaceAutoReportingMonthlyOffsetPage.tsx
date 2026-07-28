@@ -4,11 +4,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 
-import {getReviewWorkspaceSettingsTaskCompletionData} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -45,8 +43,7 @@ type WorkspaceAutoReportingMonthlyOffsetPageItem = {
 
 function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoReportingMonthlyOffsetProps) {
     const {translate, toLocaleOrdinal} = useLocalize();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const policyID = policy?.id;
     const offset = policy?.autoReportingOffset ?? 1;
     const [userSelectedOffset, setUserSelectedOffset] = useState<number | AutoReportingOffsetKeys | undefined>();
@@ -88,14 +85,9 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
         if (!policyID) {
             return;
         }
-        setWorkspaceAutoReportingMonthlyOffset(
-            policyID,
-            selectedOffset,
-            policy?.autoReportingOffset,
-            getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID),
-        );
+        setWorkspaceAutoReportingMonthlyOffset(policyID, selectedOffset, policy?.autoReportingOffset, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policyID));
-    }, [policyID, policy?.autoReportingOffset, selectedOffset, reviewWorkspaceSettingsTaskInformation, currentUserAccountID]);
+    }, [policyID, policy?.autoReportingOffset, selectedOffset, getReviewWorkspaceSettingsTaskCompletion]);
 
     const confirmButtonOptions = useMemo(
         () => ({

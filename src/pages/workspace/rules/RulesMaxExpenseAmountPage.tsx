@@ -7,14 +7,12 @@ import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getReviewWorkspaceSettingsTaskCompletionData} from '@libs/actions/Task';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -44,8 +42,7 @@ function RulesMaxExpenseAmountPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -74,12 +71,7 @@ function RulesMaxExpenseAmountPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM}
                     onSubmit={({maxExpenseAmount}) => {
-                        setPolicyMaxExpenseAmount(
-                            policyID,
-                            maxExpenseAmount,
-                            policy?.maxExpenseAmount,
-                            getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID),
-                        );
+                        setPolicyMaxExpenseAmount(policyID, maxExpenseAmount, policy?.maxExpenseAmount, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}

@@ -7,12 +7,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getReviewWorkspaceSettingsTaskCompletionData} from '@libs/actions/Task';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -71,8 +69,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
 
     const {translate, toLocaleOrdinal} = useLocalize();
     const styles = useThemeStyles();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const policyID = policy?.id;
 
     const [userSelectedFrequency, setUserSelectedFrequency] = useState<AutoReportingFrequencyKey | undefined>();
@@ -86,15 +83,9 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         if (!policyID || !selectedFrequency) {
             return;
         }
-        setWorkspaceAutoReportingFrequency(
-            policyID,
-            selectedFrequency,
-            policy?.autoReportingFrequency,
-            policy?.harvesting,
-            getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, currentUserAccountID),
-        );
+        setWorkspaceAutoReportingFrequency(policyID, selectedFrequency, policy?.autoReportingFrequency, policy?.harvesting, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack();
-    }, [policyID, policy?.autoReportingFrequency, policy?.harvesting, selectedFrequency, reviewWorkspaceSettingsTaskInformation, currentUserAccountID]);
+    }, [policyID, policy?.autoReportingFrequency, policy?.harvesting, selectedFrequency, getReviewWorkspaceSettingsTaskCompletion]);
 
     const confirmButtonOptions = useMemo(
         () => ({
