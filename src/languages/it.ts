@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -529,6 +531,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: 'Impossibile visualizzare il grafico',
         webGLNotSupported: 'Il tuo browser non supporta WebGL. Abilitalo oppure passa a un altro browser.',
         apiKey: 'Chiave API',
+        exportsTo: 'Esporta in',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -1103,6 +1106,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: 'Parla con il tuo account executive',
             forGuidedSetup: 'per la configurazione guidata.',
             configureApprovalsSubText: 'Definisci le approvazioni dei report',
+            setupTravel: 'Configura viaggi',
+            setupTravelSubText: 'Configura regole specifiche per i viaggi',
         },
         yourSpend: {
             title: 'Le tue spese',
@@ -2595,6 +2600,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Usa questa carta per le tue prenotazioni con Expensify Travel. Verrà visualizzata come “Travel Card” al momento del pagamento.',
         },
         chaseAccountNumberDifferent: 'Perché il mio numero di conto è diverso?',
+        cardLastSynced: (relativeDate: string) => `Sincronizzato il ${relativeDate}`,
+        cardNeverSynced: 'Mai sincronizzato',
+        cardStatus: {
+            active: 'Attiva',
+            inactive: 'Inattivo',
+            fixConnection: 'Sistema questa connessione per favore',
+            fixConnectionIn: (companyCardsRoute: string) => `Correggi questa connessione in <a href="${companyCardsRoute}">carte aziendali</a>`,
+            askAdminToFixConnection: 'Chiedi a un amministratore di correggere questa connessione',
+        },
+        bankAccountStatus: {
+            active: 'Attiva',
+            incomplete: 'Incompleto',
+            pending: 'In sospeso',
+            verifying: 'Verifica in corso',
+            reviewingDocumentation: 'Stiamo esaminando la tua documentazione',
+            finishAddingBankAccount: 'Completa l’aggiunta del conto bancario',
+            finish: 'Fine',
+            confirmTestTransactions: 'Conferma le transazioni di prova',
+            accountRequiresAttention: 'Questo conto richiede attenzione',
+            unlock: 'Sblocca',
+        },
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -4437,21 +4463,21 @@ ${amount} per ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Ciao! Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? La prossima volta evita il fastidio di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Ehi! Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? E che carica automaticamente le ricevute per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Sapevi che puoi prenotare e gestire i voli direttamente in Expensify? E che carica automaticamente le ricevute per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Ciao! Sapevi che puoi prenotare e gestire i tuoi soggiorni in hotel direttamente in Expensify? La prossima volta evita la seccatura di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Lo sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? La prossima volta evita il fastidio di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Ehi! Sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Lo sapevi che puoi prenotare e gestire i soggiorni in hotel direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Ehi! Sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta evita il fastidio di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta evita la seccatura di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Ehi! Lo sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Lo sapevi che puoi prenotare e gestire il noleggio auto direttamente in Expensify? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Ehi! Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? La prossima volta evita il fastidio di creare la tua spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Ciao! Lo sai che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? E che carica automaticamente le ricevute per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? E che le ricevute vengono caricate automaticamente per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     workspace: {
@@ -5047,7 +5073,9 @@ ${amount} per ${merchant} - ${date}`,
             creditCardAccount: 'Conto della carta di credito',
             defaultVendor: 'Fornitore predefinito',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Imposta un fornitore predefinito che verrà applicato alle spese rimborsabili ${isReimbursable ? '' : 'non-'} che non hanno un fornitore corrispondente in Sage Intacct.`,
+                isReimbursable
+                    ? `Imposta un fornitore predefinito che verrà applicato alle spese rimborsabili che non hanno un fornitore corrispondente in Sage Intacct.`
+                    : `Le spese che non possono essere abbinate ai tuoi fornitori Sage Intacct verranno associate per impostazione predefinita a questo fornitore.`,
             exportDescription: 'Configura come i dati di Expensify vengono esportati in Sage Intacct.',
             exportPreferredExporterNote:
                 'L’esportatore preferito può essere qualsiasi amministratore dello spazio di lavoro, ma deve anche essere un Amministratore del dominio se imposti conti di esportazione diversi per le singole carte aziendali nelle Impostazioni del dominio.',
@@ -6056,6 +6084,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             currentTravelSpendLabel: 'Spesa di viaggio attuale',
                             currentTravelSpendPaymentQueued: (amount: string) => `Il pagamento di ${amount} è in coda e verrà elaborato a breve.`,
                             currentTravelSpendCta: 'Paga saldo',
+                            viewOnSpend: 'Visualizza in Spese',
                             currentTravelLimitLabel: 'Limite di viaggio attuale',
                             settlementAccountLabel: 'Conto di regolamento',
                             settlementFrequencyLabel: 'Frequenza di regolamento',
@@ -6251,6 +6280,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 defaultHourlyRate: 'Tariffa oraria predefinita',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Per disattivare HR, scollega prima ${integration} da questo workspace.`},
+            vendors: {title: 'Fornitori', subtitle: 'Abbina le spese della carta ai fornitori importati dal tuo software di contabilità.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',
@@ -6606,6 +6636,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             peopleAdmins: 'Amministratori persone',
             paymentsAdmins: 'Amministratori pagamenti',
             members: 'Membri',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Non puoi rimuovere ${memberName} da questo spazio di lavoro finché ha una Carta Expensify. Disattiva prima la sua carta in Spazio di lavoro > Carta Expensify, quindi riprova.`,
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -6944,6 +6976,12 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             exportCompanyCard: 'Esporta le spese con carta aziendale come',
             exportDate: 'Data di esportazione',
             defaultVendor: 'Fornitore predefinito',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Le spese che non vengono abbinate automaticamente verranno assegnate per impostazione predefinita a questo fornitore.`
+                    : `Le spese che non vengono abbinate automaticamente useranno questo fornitore per impostazione predefinita. In caso contrario, saranno esportate come Varie carta di credito.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Scegli un fornitore predefinito ${connectionName} per le spese che non vengono abbinate automaticamente.`,
             defaultAccount: 'Conto predefinito',
             autoSync: 'Sincronizzazione automatica',
             autoSyncDescription: 'Sincronizza automaticamente NetSuite ed Expensify ogni giorno. Esporta i report finalizzati in tempo reale',

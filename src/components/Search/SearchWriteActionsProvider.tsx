@@ -418,8 +418,16 @@ function SearchWriteActionsProvider({
                     return {...selectedTransactions, [reportKey]: emptyReportSelection};
                 }
 
-                if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+                // A group selected before its children were fetched is stored under the group key. Once the children load,
+                // deselecting has to clear that entry too, otherwise the group stays selected with no way to deselect it.
+                const groupKey = item.keyForList;
+                const isGroupKeySelected = !!(groupKey && selectedTransactions[groupKey]?.isSelected);
+
+                if (isGroupKeySelected || currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
+                    if (groupKey) {
+                        delete reducedSelectedTransactions[groupKey];
+                    }
                     for (const transaction of currentTransactions) {
                         delete reducedSelectedTransactions[transaction.keyForList];
                     }
