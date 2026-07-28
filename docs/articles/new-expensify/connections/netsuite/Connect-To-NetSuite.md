@@ -17,6 +17,8 @@ Connect your Expensify Workspace to NetSuite to streamline expense syncing, repo
 - Your Workspace currency matches the NetSuite subsidiary's default currency
 - Employees submitting reports don’t need NetSuite access or licenses
 
+**New (beta):** You can now connect using **OAuth 2.0** instead of Token-Based Authentication. This method is currently in beta. If it isn’t enabled for your account yet, follow the Token-Based Authentication steps below. Existing NetSuite connections continue to work unchanged. See [How to connect to NetSuite using OAuth 2.0](#how-to-connect-to-netsuite-using-oauth-20-beta).
+
 ---
 
 # Step 1: Install the Expensify bundle in NetSuite
@@ -169,6 +171,41 @@ You can find your **Account ID** in NetSuite under **Setup > Integration > Web S
 - Newly approved and paid reports will export to NetSuite via SOAP Web Services
 - Continue with configuring settings by visiting:
   [Configure NetSuite in Expensify](https://help.expensify.com/articles/new-expensify/connections/netsuite/Configure-Netsuite)
+
+---
+
+# How to connect to NetSuite using OAuth 2.0 (beta)
+
+OAuth 2.0 is a newer way to authorize the NetSuite connection that doesn’t require creating or storing access tokens. It’s currently in beta. Existing connections that use Token-Based Authentication keep working unchanged, and you don’t need to migrate.
+
+Connecting with OAuth 2.0 takes three steps in NetSuite, followed by connecting from Expensify.
+
+## Step 1: Install the Expensify bundle in NetSuite
+
+1. In NetSuite, go to **Customization > SuiteBundler > Search & Install Bundles**
+2. Search for **Expensify** and select the **Expensify Connect** bundle (Bundle ID `283395`)
+3. Click **Install**
+4. If already installed, go to **SuiteBundler > List** and update to the latest version
+
+## Step 2: Enable OAuth 2.0 in NetSuite
+
+1. Go to **Setup > Company > Enable Features > SuiteCloud > Manage Authentication**
+2. Enable **OAuth 2.0**
+3. Click **Save**
+
+## Step 3: Enable REST Web Services in NetSuite
+
+1. Go to **Setup > Company > Enable Features > SuiteCloud > SuiteTalk (Web Services)**
+2. Enable **REST Web Services**
+3. Click **Save**
+
+## Step 4: Connect Expensify to NetSuite using OAuth 2.0
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
+2. Click **Connect** next to **NetSuite**
+3. Click **Connect to NetSuite** to open the NetSuite-hosted consent screen
+4. Log into NetSuite if prompted, then approve access for Expensify
+5. You’re redirected back to Expensify, and the connection completes once authorization succeeds
 
 ---
 
