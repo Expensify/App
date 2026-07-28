@@ -1875,31 +1875,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...headlineFont,
         },
 
-        breadcrumbsContainer: {
-            minHeight: 24,
-        },
-
-        breadcrumb: {
-            color: theme.textSupporting,
-            fontSize: variables.breadcrumbsFontSize,
-            ...headlineFont,
-        },
-
-        breadcrumbStrong: {
-            color: theme.text,
-            fontSize: variables.breadcrumbsFontSize,
-        },
-
-        breadcrumbSeparator: {
-            color: theme.icon,
-            fontSize: variables.breadcrumbsFontSize,
-            ...headlineFont,
-        },
-
-        breadcrumbLogo: {
-            top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
-        },
-
         onboardingNavigatorOuterView: {
             flex: 1,
             justifyContent: 'center',
