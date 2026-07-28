@@ -35,12 +35,12 @@ Instead of creating Merchant Rules one at a time, you can import multiple Mercha
 
 1. Download and complete the [Merchant Rules import template]({{site.url}}/assets/Files/merchant-rule-import-template.csv), or create a spreadsheet with the following columns:
    - **Merchant** — The merchant the rule should apply to (required).
-   - **Updated Merchant** — Replace the merchant name (optional).
-   - **Update Category** — Apply a category (optional).
-   - **Update Tag** — Apply a tag (optional).
-   - **Update Description** — Apply a description (optional).
-   - **Update Reimbursable** — Set reimbursable status to **True** or **False** (optional).
-   - **Update Billable** — Set billable status to **True** or **False** (optional).
+   - **Updated merchant** — Replace the merchant name (optional).
+   - **Updated category** — Apply a category (optional).
+   - **Updated tag** — Apply a tag (optional).
+   - **Updated description** — Apply a description (optional).
+   - **Reimbursable** — Set reimbursable status to **True** or **False** (optional).
+   - **Billable** — Set billable status to **True** or **False** (optional).
 2. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
 3. Click **Rules**.
 4. Click **More**, then select **Import merchant rules**.
