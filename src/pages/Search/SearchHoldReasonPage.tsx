@@ -4,6 +4,7 @@ import {useSearchSelectionActions, useSearchSelectionContext} from '@components/
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -36,6 +37,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const relevantTransactionIDs = useMemo(
@@ -68,6 +70,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                     currentUserAccountID,
                     selectedTransactionViolations,
                     isTrackIntentUser,
+                    delegateAccountID,
                     ancestors,
                 );
                 clearSelectedTransactions(true);
@@ -85,6 +88,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                         currentUserAccountID,
                         transactionViolations,
                         isTrackIntentUser,
+                        delegateAccountID,
                         ancestors,
                     );
                 }
@@ -107,6 +111,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             currentUserAccountID,
             selectedTransactionViolations,
             isTrackIntentUser,
+            delegateAccountID,
         ],
     );
 

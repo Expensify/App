@@ -973,6 +973,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportTransactions: validTransactions,
                     allTransactionViolations,
                     bankAccountList,
+                    delegateAccountID,
                     hash,
                 });
             }
@@ -1022,6 +1023,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportTransactions: validTransactions,
                     allTransactionViolations: transactionsViolations,
                     bankAccountList,
+                    delegateAccountID,
                 });
             }
         }
@@ -1047,6 +1049,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         deleteTransactionsFromHook,
         duplicateTransactions,
         duplicateTransactionViolations,
+        delegateAccountID,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -2053,6 +2056,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             accountID,
                             transactionViolations,
                             isTrackIntentUser,
+                            delegateAccountID,
                         );
                     }
                     clearSelectedTransactions();

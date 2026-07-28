@@ -947,6 +947,7 @@ describe('actions/Duplicate', () => {
                     [duplicate1ID]: childReportID1,
                     [duplicate2ID]: childReportID2,
                 },
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates
@@ -1049,6 +1050,7 @@ describe('actions/Duplicate', () => {
                 receiptID: 123,
                 reportID: 'report123',
                 transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates with undefined transactionID
@@ -1092,6 +1094,7 @@ describe('actions/Duplicate', () => {
                 receiptID: 123,
                 reportID,
                 transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates with empty duplicate list
@@ -1160,6 +1163,7 @@ describe('actions/Duplicate', () => {
                 receiptID: 123,
                 reportID,
                 transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates without matching IOU actions
@@ -1246,6 +1250,7 @@ describe('actions/Duplicate', () => {
                 transactionThreadReportIDMap: {
                     [crossReportDuplicateID]: childReportIDCross,
                 },
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates with cross-report duplicates
@@ -2263,6 +2268,7 @@ describe('actions/Duplicate', () => {
                         },
                         allTransactionViolations: {},
                         allReportActionsList,
+                        delegateAccountID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })

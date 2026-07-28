@@ -190,9 +190,9 @@ function prepareRejectMoneyRequestData(
     // Create system messages in both expense report and expense thread
     // The "rejected this expense" action should come before the reject comment
     const baseTimestamp = DateUtils.getDBTime();
-    const optimisticRejectReportAction = buildOptimisticRejectReportAction(baseTimestamp);
+    const optimisticRejectReportAction = buildOptimisticRejectReportAction(delegateAccountID, baseTimestamp);
     const parsedComment = getParsedComment(comment);
-    const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
+    const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, delegateAccountID, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
     let movedTransactionAction;
 
     // Build successData and failureData to prevent duplication
@@ -1009,17 +1009,26 @@ function rejectExpenseReport(
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
     isTrackIntentUser: boolean | undefined,
+    delegateAccountID: number | undefined,
 ) {
     const {reportID} = report;
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
     const baseTimestamp = DateUtils.getDBTime();
-    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, currentUserAccountID, currentUserDisplayName, currentUserAvatarSource, baseTimestamp);
+    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(
+        isRejectToSubmitter,
+        currentUserAccountID,
+        currentUserDisplayName,
+        currentUserAvatarSource,
+        delegateAccountID,
+        baseTimestamp,
+    );
     const parsedComment = getParsedComment(comment);
     const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(
         parsedComment,
         currentUserAccountID,
         currentUserDisplayName,
         currentUserAvatarSource,
+        delegateAccountID,
         DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1),
     );
 

@@ -604,6 +604,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     reportTransactions,
                                     allTransactionViolations,
                                     bankAccountList,
+                                    delegateAccountID,
                                     hash: currentSearchHash,
                                 });
                             }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);

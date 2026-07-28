@@ -5,6 +5,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
@@ -84,6 +85,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const instanceIDRef = useRef('');
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     // UI-thread timer driving the delayed hide. https://github.com/Expensify/App/issues/89069
@@ -414,6 +416,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 reportTransactions,
                 allTransactionViolations,
                 bankAccountList,
+                delegateAccountID,
                 hash: currentSearchHash,
             });
         } else if (reportAction) {
@@ -449,6 +452,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         isChatIOUReportArchived,
         allTransactionViolations,
         currentUserAccountID,
+        delegateAccountID,
         deleteTransactions,
         currentSearchHash,
         email,
