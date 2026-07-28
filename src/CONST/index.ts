@@ -2476,7 +2476,7 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
-        INCORRECT_MAGIC_CODE: 451,
+        INCORRECT_VALIDATE_CODE: 451,
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
@@ -2627,8 +2627,8 @@ const CONST = {
 
     TOOLTIP_MAX_LINES: 3,
 
-    MAGIC_CODE_LENGTH: 6,
-    MAGIC_CODE_EMPTY_CHAR: ' ',
+    VALIDATE_CODE_LENGTH: 6,
+    VALIDATE_CODE_EMPTY_CHAR: ' ',
 
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
@@ -5379,7 +5379,7 @@ const CONST = {
     MAP_MARKER_SIZES: {
         CURRENT_LOCATION: {width: 48, height: 48},
         START_WAYPOINT: {width: 48, height: 48},
-        STOP_WAYPOINT: {width: 48, height: 53},
+        STOP_WAYPOINT: {width: 48, height: 53, xAxisLineHeight: 16},
         WAYPOINT: {width: 40, height: 40},
     },
 
@@ -8708,7 +8708,9 @@ const CONST = {
             DISTANCE_ODOMETER_SAVE_FOR_LATER_BUTTON: 'IOURequestStep-DistanceOdometerSaveForLaterButton',
             ODOMETER_CHOOSE_FILE_BUTTON: 'IOURequestStep-OdometerChooseFileButton',
             GPS_START_STOP_BUTTON: 'IOURequestStep-GPSStartStopButton',
+            GPS_EDIT_BUTTON: 'IOURequestStep-GPSEditButton',
             GPS_DISCARD_BUTTON: 'IOURequestStep-GPSDiscardButton',
+            GPS_SAVE_EDIT_BUTTON: 'IOURequestStep-GPSSaveEditButton',
             GPS_NEXT_BUTTON: 'IOURequestStep-GPSNextButton',
             GPS_OPEN_MOBILE_BUTTON: 'IOURequestStep-GPSOpenMobileButton',
             WAYPOINT_REMOVE_BUTTON: 'IOURequestStep-WaypointRemoveButton',
@@ -9026,7 +9028,7 @@ const CONST = {
             SIGN_IN_BUTTON: 'SignIn-SignInButton',
             JOIN: 'SignIn-Join',
             SSO: 'SignIn-SSO',
-            MAGIC_CODE: 'SignIn-MagicCode',
+            VALIDATE_CODE: 'SignIn-ValidateCode',
             UNLINK: 'SignIn-Unlink',
             GO_BACK: 'SignIn-GoBack',
             VALIDATE: 'SignIn-Validate',

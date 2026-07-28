@@ -306,6 +306,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
+    const transactionDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+    const isModifiedGPSDistanceRequest = isGPSDistanceRequest && gpsDraftDetails?.modifiedDistance != null;
+    const originalTransactionDistance =
+        isModifiedGPSDistanceRequest && gpsDraftDetails.distanceInMeters && transactionDistanceUnit
+            ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.distanceInMeters, transactionDistanceUnit)
+            : transactionDistance;
+    const modifiedTransactionDistance = isModifiedGPSDistanceRequest ? transactionDistance : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense || isSelfDMDestination, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
         ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
@@ -694,6 +701,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
+            const itemDistanceUnit = item.comment?.customUnit?.distanceUnit;
+            const originalItemDistance =
+                isModifiedGPSDistanceRequest && gpsDraftDetails?.distanceInMeters && itemDistanceUnit
+                    ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.distanceInMeters, itemDistanceUnit)
+                    : itemDistance;
+            const modifiedItemDistance = isModifiedGPSDistanceRequest ? transactionDistance : undefined;
 
             const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({
@@ -714,7 +727,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 },
                 transactionParams: {
                     amount: item.amount,
-                    distance: itemDistance,
+                    distance: originalItemDistance,
+                    modifiedDistance: modifiedItemDistance,
                     currency: item.currency,
                     created: item.created,
                     merchant: item.merchant,
@@ -815,7 +829,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             transactionParams: {
                 amount: transaction.amount,
                 comment: trimmedComment,
-                distance: transactionDistance,
+                distance: originalTransactionDistance,
+                modifiedDistance: modifiedTransactionDistance,
                 created: transaction.created,
                 currency: transaction.currency,
                 merchant: transaction.merchant,

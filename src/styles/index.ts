@@ -3236,26 +3236,26 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.checkBox,
         },
 
-        magicCodeInputContainer: {
+        validateCodeInputContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
             height: variables.inputHeight,
         },
 
-        magicCodeInput: {
+        validateCodeInput: {
             fontSize: variables.fontSizeXLarge,
             color: theme.heading,
             lineHeight: variables.lineHeightXXXLarge,
         },
 
-        magicCodeInputValueContainer: {
+        validateCodeInputValueContainer: {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative',
         },
 
-        magicCodeInputCursorContainer: {
+        validateCodeInputCursorContainer: {
             position: 'absolute',
             textAlign: 'center',
             flexDirection: 'row',
@@ -3264,7 +3264,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        magicCodeInputCursor: {
+        validateCodeInputCursor: {
             fontSize: 24,
             color: theme.heading,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
@@ -3781,6 +3781,27 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.sliderKnobSize / 2,
             left: -(variables.sliderKnobSize / 2),
             ...cursor.cursorPointer,
+        },
+
+        editedStopSliderKnob: {
+            position: 'absolute',
+            height: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.height,
+            width: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width,
+            left: -(CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width / 2),
+            top: -CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.xAxisLineHeight,
+            ...cursor.cursorPointer,
+        },
+
+        editStopSliderFilled: {
+            backgroundColor: colors.green400,
+            height: '100%',
+            borderRadius: variables.sliderBarHeight / 2,
+        },
+
+        editStopSliderBarContainer: {
+            height: 64,
+            paddingHorizontal: 20,
+            justifyContent: 'center',
         },
 
         sliderBar: {

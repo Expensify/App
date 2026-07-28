@@ -7761,6 +7761,18 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 editRuleTitle: 'Editar regla',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Seguro que quieres eliminar esta regla?',
+                unableToRemoveTitle: 'No se puede eliminar',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `Las <a href="${rulesRoute}">reglas de agente</a> que RuleBot está aplicando deben eliminarse primero de tu espacio de trabajo antes de que puedas eliminar este agente.`,
+                unableToCloseAccountTitle: 'No se puede cerrar la cuenta',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `Las <a href="${rulesRoute}">reglas de agente</a> que RuleBot está aplicando deben eliminarse primero de tu espacio de trabajo antes de que puedas cerrar esta cuenta.`,
+                unableToDeleteAgentTitle: 'No se puede eliminar el agente',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `Las <a href="${rulesRoute}">reglas de agente</a> que RuleBot está aplicando deben eliminarse primero de tu espacio de trabajo antes de que puedas eliminar este agente.`,
+                unableToChangeRoleTitle: 'No se puede cambiar el rol',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `Las <a href="${rulesRoute}">reglas de agente</a> que RuleBot está aplicando deben eliminarse primero de tu espacio de trabajo antes de que puedas cambiar el rol de este agente.`,
                 disclaimer: 'Los agentes de IA pueden cometer errores.',
                 agentCreatedTitle: '¡RuleBot se ha añadido a tu espacio de trabajo!',
                 agentCreatedDescription: (agentsRoute: string) =>
@@ -10734,6 +10746,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         save: 'Guardar',
         resume: 'Reanudar',
         discard: 'Descartar',
+        edit: 'Editar',
+        editStop: 'Editar parada',
+        totalDistance: 'Distancia total',
         discardDistanceTrackingModal: {
             title: 'Descartar seguimiento de distancia',
             prompt: '¿Estás seguro? Esto descartará tu trayecto actual y no se puede deshacer.',

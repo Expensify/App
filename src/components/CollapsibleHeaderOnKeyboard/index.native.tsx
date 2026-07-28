@@ -86,9 +86,9 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alw
             return;
         }
 
-        // First measurement, or content changed while header is fully open
+        // First measurement, or content changed while keyboard is fully open
         // (to skip onLayout calls triggered by our own height animation collapsing the view to 0)
-        if (naturalHeightRef.current === -1 || animatedHeight.get() >= naturalHeightRef.current) {
+        if (naturalHeightRef.current === -1 || (animatedHeight.get() >= naturalHeightRef.current && height !== naturalHeightRef.current)) {
             naturalHeightRef.current = height;
             naturalHeight.set(height);
             animatedHeight.set(height);
@@ -147,15 +147,16 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alw
 
             // If the keyboard is closing, bail out
             const prevKeyboardProgress = previous?.keyboardProgress ?? 0;
-            if (prevKeyboardProgress >= keyboardProgress) {
+            if (prevKeyboardProgress > keyboardProgress) {
                 return;
             }
 
-            // Only act when the keyboard is starting to open or reaching a threshold, not on every intermediate frame.
+            // Only act when the keyboard is starting to open, reaching a threshold or fully open, not on every intermediate frame.
             const isKeyboardStartingOpening = prevKeyboardProgress === 0 && keyboardProgress > 0;
             const isKeyboardOpeningAndReachingThreshold = isKeyboardOpeningAtGivenProgress(keyboardProgress, prevKeyboardProgress, KEYBOARD_OPENING_PROGRESS_THRESHOLDS);
+            const isKeyboardFullyOpen = keyboardProgress === 1;
 
-            if (!isKeyboardStartingOpening && !isKeyboardOpeningAndReachingThreshold) {
+            if (!isKeyboardStartingOpening && !isKeyboardOpeningAndReachingThreshold && !isKeyboardFullyOpen) {
                 return;
             }
 
@@ -190,11 +191,11 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0, alw
     // Inner wrapper slides the content upward during landscape keyboard collapse only.
     const innerStyle = useAnimatedStyle(() => {
         if (animatedHeight.get() >= naturalHeight.get()) {
-            return {};
+            return {transform: [{translateY: 0}]};
         }
 
         if (!isInLandscapeModeSV.get()) {
-            return {};
+            return {transform: [{translateY: 0}]};
         }
 
         return {transform: [{translateY: animatedHeight.get() - naturalHeight.get()}]};
