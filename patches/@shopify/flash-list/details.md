@@ -134,26 +134,26 @@
 
 - Reason: Fixes a "Maximum update depth exceeded" (#185) infinite render loop on web with classic (non-overlay) scrollbars — i.e. Windows/Linux Chrome and macOS with "Always show scroll bars".
 
-  A vertical list derives its cross-axis bounded size from `firstChildViewLayout.width` — the scroll viewport's **client** width, which excludes the scrollbar. When the vertical scrollbar toggles, that width steps by the scrollbar size (e.g. 792 ↔ 777). Each step re-runs layout (`ViewHolderCollection`'s `useLayoutEffect([fixedContainerSize])` calls `recyclerViewContext.layout()`), which changes the content height, which toggles the scrollbar again. Round and round until React bails.
+  A vertical list gets its width from `firstChildViewLayout.width`, the scroll viewport's **client** width, which leaves out the scrollbar. So every time the scrollbar shows or hides, the width changes by about 15px. That relayouts, which changes the content height, which toggles the scrollbar again, and it never settles.
 
-  Note the loop can only exist when the content gets **shorter as it gets narrower**: if narrowing made the content taller (plain wrapping text), the scrollbar would stay put after one toggle and the layout would converge on its own. Every list this guard protects is therefore one where the narrow width is *not* a resting point — which is what makes the release rule below the load-bearing part.
+  This only happens on lists that get **shorter as they get narrower**. If narrowing made them taller, the scrollbar would stay put after one toggle and the layout would settle on its own. That matters for how the lock is released below.
 
-  `LinearLayoutManager.updateLayoutParams` routes the measured size through `settleScrollbarOscillation` (web only — native scrollbars overlay and never do this). A width change is treated as a scrollbar flicker only when all of these hold, so a real window resize is never misread:
+  `LinearLayoutManager.updateLayoutParams` sends the measured size through `settleScrollbarOscillation` (web only, since native scrollbars overlay the content). We only call it a flicker when all of these are true, so a real resize is never mistaken for one:
 
-  1. **Only two distinct values** among the last `BOUNDED_SIZE_HISTORY_LENGTH` (8) *rounded* sizes. A drag sweeps through many distinct widths and never matches; rounding absorbs subpixel drift.
-  2. **At least `MIN_OSCILLATION_FLIPS` (3) flips** between them. Showing or hiding a scrollbar once only flips twice, so a one-off toggle is ignored. The window is 8 rather than 4 because the scrollbar toggle lags a frame behind the re-measure, so the run is often `A,A,B,B` rather than a clean `A,B,A,B`.
-  3. **A scrollbar-sized gap**: the two values are at most `SCROLLBAR_OSCILLATION_TOLERANCE` (25px) apart — classic scrollbars are ~15–17px, with headroom for thicker/zoomed bars.
-  4. **The current frame is on the smaller value**, so the width we lock to matches what is on screen right now. An already-finished bounce can still be sitting in the history, and locking to the narrow width then would needlessly shrink rows.
+  1. **Two distinct values** in the last 8 rounded sizes. A drag passes through many widths, and rounding absorbs subpixel drift.
+  2. **At least 3 flips** between them. One toggle only flips twice. We keep 8 samples rather than 4 because the toggle can lag a frame, so the bounce is often `A,A,B,B`.
+  3. **A scrollbar-sized gap**, at most 25px. Classic scrollbars are ~15-17px.
+  4. **The current frame is on the smaller value**, so we lock to the width that's actually on screen.
 
-  When all four hold we lock `boundedSize` to the **smaller** value, which already accounts for the scrollbar so items never overflow the client width.
+  Then we lock `boundedSize` to the smaller value, which already leaves room for the scrollbar, so rows never overflow.
 
-  **Releasing the lock.** Because the looping list gets shorter as it narrows, laying out at the locked width makes the scrollbar disappear, so the very next frame measures the *larger* width again. Releasing on sight of that width therefore does not end the loop — it just stretches each cycle out (lock for one frame, release, spend ~6 frames rebuilding the history, relock), which is slow enough to look fixed while still crashing. So the lock deliberately outlasts the larger width:
+  **Releasing.** Once we lock, the scrollbar disappears and the next frame measures the wider width again. Releasing as soon as we see it doesn't end the loop, it just makes each round slower. So:
 
-  - Measuring the **smaller** value keeps the lock — the scrollbar is still there.
-  - Measuring the **larger** value hands the real width back `MAX_LOCK_RELEASE_CYCLES` (1) time, then holds the lock. One release is what lets a list that genuinely stopped needing to scroll widen back out; a flicker asks every round and gets refused from then on. The counter is *not* reset when the same pair re-locks, or a flicker would top it up forever and never reach the limit.
-  - Any width **outside the pair** is a real resize: release immediately and reset the counter.
+  - The **smaller** value keeps the lock.
+  - The **larger** value gives the real width back `MAX_LOCK_RELEASE_CYCLES` (1) time, then the lock holds. The counter isn't reset when the same pair locks again, or a flicker would top it up forever.
+  - Anything **outside the pair** is a real resize, so release and reset.
 
-  Once the lock holds, `boundedSize` stops changing, so `updateLayoutParams` no longer calls `recomputeLayouts` and the re-render cycle ends. Cost of holding: if a list stops needing its scrollbar after the one allowed release is spent, its rows sit ~15px narrower than available until the next real resize — trailing whitespace, versus a crash.
+  With the lock held, `boundedSize` stops changing, `recomputeLayouts` stops running and the re-renders stop. The trade-off: the flicker usually uses up the one allowed release, so the width stays put until the next real resize. A list that later stops needing a scrollbar keeps about 15px of empty space on the right.
 - Files changed: `dist/recyclerview/layout-managers/LinearLayoutManager.js` only.
 - Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334
 - E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263, https://github.com/Expensify/App/issues/95719
