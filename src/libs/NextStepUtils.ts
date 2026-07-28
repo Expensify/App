@@ -3,7 +3,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
-import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -11,14 +10,12 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
-import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
-    getPersonalDetailsForAccountID,
     isExpenseReport,
     isInvoiceReport,
     isOpenExpenseReport,
@@ -278,36 +275,6 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     return nextStep;
 }
 
-function parseMessage(messages: Message[] | undefined, currentUserEmail: string) {
-    let nextStepHTML = '';
-    if (messages) {
-        for (const [index, part] of messages.entries()) {
-            const isEmail = Str.isValidEmail(part.text);
-            let tagType = part.type ?? 'span';
-            let content = Str.safeEscape(part.text);
-
-            const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
-            const nextPart = messages.at(index + 1);
-
-            if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-                content = nextPart?.text === `'s` ? 'your' : 'you';
-                tagType = content === 'your' ? 'span' : 'strong';
-            } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
-                content = '';
-            } else if (isEmail) {
-                tagType = 'next-step-email';
-                content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
-            }
-
-            nextStepHTML += `<${tagType}>${content}</${tagType}>`;
-        }
-    }
-
-    const formattedHtml = nextStepHTML.replaceAll('%expenses', 'expenses').replaceAll('%Expenses', 'Expenses').replaceAll('%tobe', 'are');
-
-    return `<next-step>${formattedHtml}</next-step>`;
-}
-
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled(): ReportNextStep {
     return {
         messageKey: CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF,
@@ -369,4 +336,4 @@ function getReportNextStep(
     return currentNextStep;
 }
 
-export {getReportNextStep, buildNextStepMessage, buildOptimisticNextStep, parseMessage, buildOptimisticFixIssueNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled};
+export {getReportNextStep, buildNextStepMessage, buildOptimisticNextStep, buildOptimisticFixIssueNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled};
