@@ -11861,6 +11861,32 @@ class GithubUtils {
         });
     }
     /**
+     * Best-effort pin of an issue via the GraphQL API (the REST API has no equivalent). Never throws:
+     * repos can only have 3 pinned issues at once, and pinning is purely a convenience for human readers here,
+     * so a failure (already pinned, pin limit reached, etc.) is logged and swallowed rather than failing the caller.
+     */
+    static async pinIssue(issueNumber) {
+        try {
+            const { data: issue } = await this.octokit.issues.get({
+                owner: CONST_1.default.GITHUB_OWNER,
+                repo: CONST_1.default.APP_REPO,
+                issue_number: issueNumber,
+            });
+            await this.graphql(`
+                    mutation ($issueId: ID!) {
+                        pinIssue(input: {issueId: $issueId}) {
+                            issue {
+                                id
+                            }
+                        }
+                    }
+                `, { issueId: issue.node_id });
+        }
+        catch (error) {
+            console.warn(`Could not pin issue #${issueNumber} (non-fatal, e.g. the repo may already have the maximum of 3 pinned issues):`, error);
+        }
+    }
+    /**
      * Get the most recent workflow run for the given New Expensify workflow.
      */
     /* eslint-disable rulesdir/no-default-id-values */
