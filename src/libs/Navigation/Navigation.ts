@@ -6,7 +6,7 @@ import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfCompose
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
-import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
+import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -70,9 +70,8 @@ type FocusedScreen = {
     params?: Record<string, unknown>;
 };
 
-// Installs the modality flag (keydown/mousedown) and focus-return listeners (focusin/click); NavigationRoot.onReady attaches the state listener once live.
+// Modality is module-load (must catch the first interaction); focus-return runs under NavigationRoot (needs navigationRef + a teardown point).
 setupHadTabNavigation();
-setupNavigationFocusReturn();
 
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
 const SET_UP_2FA_SCREENS = new Set<string>([
@@ -412,6 +411,11 @@ type GoBackOptions = {
     afterTransition?: () => void | undefined;
     // If true, waits for ongoing transitions to finish before going back. Defaults to false (goes back immediately).
     waitForTransition?: boolean;
+    /**
+     * Save handlers pass this to skip the trigger-row focus restore that would otherwise hijack the destination form's next
+     * Enter (parents whose Save is `pressOnEnter`). Esc/Back must not — they need default restore for WCAG 2.4.3.
+     */
+    shouldSkipFocusRestore?: boolean;
 };
 
 const defaultGoBackOptions: Required<Pick<GoBackOptions, 'compareParams' | 'waitForTransition'>> = {
@@ -429,10 +433,10 @@ const defaultGoBackOptions: Required<Pick<GoBackOptions, 'compareParams' | 'wait
  * @param backToRoute - The route to go up.
  * @param options - Optional configuration that affects navigation logic, such as parameter comparison.
  */
-function goUp(backToRoute: Route, options?: GoBackOptions) {
+function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     if (!canNavigate('goUp', {backToRoute}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to go up. Can't navigate.`);
-        return;
+        return false;
     }
 
     const compareParams = options?.compareParams ?? defaultGoBackOptions.compareParams;
@@ -444,22 +448,30 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
 
     if (!action) {
         Log.hmmm(`[Navigation] Unable to go up. Action is undefined.`);
-        return;
+        return false;
     }
 
     const {action: minimalAction, targetState} = getMinimalAction(action, rootState);
 
     if (minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || !targetState) {
         Log.hmmm('[Navigation] Unable to go up. Minimal action type is wrong.');
-        return;
+        return false;
     }
+
+    // Arms the one-shot inline with each dispatch — no window between "set flag" and dispatch for an early-return to leak it.
+    const dispatch = (dispatchable: NavigationAction) => {
+        if (options?.shouldSkipFocusRestore) {
+            skipNextFocusRestore();
+        }
+        navigationRef.current?.dispatch(dispatchable);
+    };
 
     // TabRouter does not handle POP or REPLACE (BaseRouter returns null). Switch tabs with jumpTo.
     if (targetState.type === 'tab' && targetState?.key) {
         const payload = minimalAction.payload as NavigationRoute;
         if (!payload?.name) {
             Log.hmmm('[Navigation] Unable to go up. Tab target missing screen name.');
-            return;
+            return false;
         }
         // Cross-tab PUSH stacks a new TAB_NAVIGATOR on the root. When an underlying TAB_NAVIGATOR
         // already has the target tab active, pop to it instead of jumping — otherwise the pushed
@@ -469,15 +481,15 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
             (route, idx) => idx < topRootIndex && route.name === NAVIGATORS.TAB_NAVIGATOR && route.state?.routes?.at(route.state?.index ?? 0)?.name === payload.name,
         );
         if (underlyingTabNavIndex !== -1) {
-            navigationRef.current.dispatch(StackActions.pop(topRootIndex - underlyingTabNavIndex));
-            return;
+            dispatch(StackActions.pop(topRootIndex - underlyingTabNavIndex));
+            return true;
         }
         const jumpParams = 'params' in payload ? payload.params : undefined;
-        navigationRef.current.dispatch({
+        dispatch({
             ...TabActions.jumpTo(payload.name, jumpParams),
             target: targetState.key,
         });
-        return;
+        return true;
     }
 
     const indexOfBackToRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
@@ -486,26 +498,32 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
     if (indexOfBackToRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
         const replaceAction = {...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE} as NavigationAction;
-        navigationRef.current.dispatch(replaceAction);
-        return;
+        dispatch(replaceAction);
+        return true;
     }
 
     /**
      * If we are not comparing params, we want to use popTo action because it will replace params in the route already existing in the state if necessary.
      */
     if (!compareParams) {
-        navigationRef.current.dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
-        return;
+        dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
+        return true;
     }
 
     // For TAB_NAVIGATOR targets, POP_TO restores nested state from the payload (#89006). Skip when
     // there's nothing to pop — POP_TO would otherwise pop to an older matching route (#89209).
     if (distanceToPop > 0 && (minimalAction.payload as {name?: string} | undefined)?.name === NAVIGATORS.TAB_NAVIGATOR) {
-        navigationRef.current.dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO, target: targetState.key});
-        return;
+        dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO, target: targetState.key});
+        return true;
     }
 
-    navigationRef.current.dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
+    // Already at the target — `StackActions.pop(0)` would be a no-op that leaks the just-armed skip into the next Back/Esc.
+    if (distanceToPop <= 0) {
+        return false;
+    }
+
+    dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
+    return true;
 }
 
 /**
@@ -535,9 +553,12 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
                     if (backToRoute) {
                         goUp(backToRoute, options);
                     } else if (shouldPopToSidebar) {
-                        popToSidebar();
-                    } else {
-                        navigationRef.current?.goBack();
+                        popToSidebar({shouldSkipFocusRestore: options?.shouldSkipFocusRestore});
+                    } else if (navigationRef.current) {
+                        if (options?.shouldSkipFocusRestore) {
+                            skipNextFocusRestore();
+                        }
+                        navigationRef.current.goBack();
                     }
                 },
                 (callback) => TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true}),
@@ -556,7 +577,7 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
  * For detailed information about moving between screens,
  * see the NAVIGATION.md documentation.
  */
-function popToSidebar() {
+function popToSidebar(options?: {shouldSkipFocusRestore?: boolean}): boolean {
     setShouldPopToSidebar(false);
 
     const rootState = navigationRef.current?.getRootState();
@@ -564,7 +585,7 @@ function popToSidebar() {
 
     if (!currentRoute) {
         Log.hmmm('[popToSidebar] Unable to pop to sidebar, no current root found in navigator');
-        return;
+        return false;
     }
 
     // Split navigators can be nested inside TAB_NAVIGATOR → WORKSPACE_NAVIGATOR.
@@ -583,8 +604,15 @@ function popToSidebar() {
 
     if (!activeRoute || !isSplitNavigatorName(activeRoute.name)) {
         Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator');
-        return;
+        return false;
     }
+
+    const armFocusSkipIfRequested = () => {
+        if (!options?.shouldSkipFocusRestore) {
+            return;
+        }
+        skipNextFocusRestore();
+    };
 
     const topRoute = activeRoute.state?.routes.at(0);
     const lastRoute = activeRoute.state?.routes.at(-1);
@@ -595,11 +623,14 @@ function popToSidebar() {
 
         const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
 
+        armFocusSkipIfRequested();
         navigationRef.dispatch({payload: {name: sidebarName, params}, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE});
-        return;
+        return true;
     }
 
+    armFocusSkipIfRequested();
     navigationRef.current?.dispatch(StackActions.popToTop());
+    return true;
 }
 
 /**
@@ -1222,11 +1253,58 @@ function getTopmostSearchReportID(state = navigationRef.getRootState()): string 
     return params?.reportID;
 }
 
+/**
+ * Native narrow-layout: open an expense (its transaction thread) with the parent report as a real
+ * stack entry beneath it, shown as a single forward slide.
+ *
+ * The ReportsSplitNavigator only renders its last two routes. Pushing the report and expense together
+ * shifts that window by two, leaving react-native-screens no shared anchor — so it animates a backward
+ * pop. Instead, push the expense alone first (a normal forward push, anchored by the chat), then on the
+ * next frame splice the parent report directly beneath it via a targeted reset. The expense keeps its
+ * key and stays on top, so the report slots in with no animation and the user sees only the expense
+ * slide. Back then pops expense -> report -> chat, since the real state is [..., chat, report, expense].
+ */
+function openExpenseOverParentReport(parentReportID: string, childReportID: string, backTo: string) {
+    const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(parentReportID, undefined, undefined, backTo);
+    const expenseRoute = ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute);
+
+    // Native only -- the caller (navigateToExpense) routes web to an RHP over the report instead, because a
+    // frozen report screen under the expense drops the first tap on hard-back, and web has no swipe-back
+    // gesture that would need a live report entry underneath.
+    navigate(expenseRoute);
+    setNavigationActionToMicrotaskQueue(() => {
+        const rootState = navigationRef.getRootState();
+        const tabNavigator = rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        const reportsSplitNavigator = tabNavigator?.state?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        const splitState = reportsSplitNavigator?.state;
+        const topRoute = splitState?.routes.at(-1);
+        if (!splitState?.key || !topRoute) {
+            return;
+        }
+        const topParams = topRoute.params;
+        const topReportID = topRoute.name === SCREENS.REPORT && !!topParams && 'reportID' in topParams ? topParams.reportID : undefined;
+        const belowRoute = splitState.routes.at(-2);
+        const belowParams = belowRoute?.params;
+        const belowReportID = belowRoute?.name === SCREENS.REPORT && !!belowParams && 'reportID' in belowParams ? belowParams.reportID : undefined;
+        // Only insert once the expense we pushed is actually on top, and not if the parent is already beneath it.
+        if (topReportID !== childReportID || belowReportID === parentReportID) {
+            return;
+        }
+        const routes = [...splitState.routes.slice(0, -1), {name: SCREENS.REPORT, params: {reportID: parentReportID, backTo}}, topRoute];
+        navigationRef.dispatch({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the inserted parent route is keyless; react-navigation mints its key on reset while every existing route (incl. the expense kept on top) retains its key, so nothing underneath remounts
+            ...CommonActions.reset({...splitState, routes, index: routes.length - 1} as Parameters<typeof CommonActions.reset>[0]),
+            target: splitState.key,
+        });
+    });
+}
+
 export default {
     setShouldPopToSidebar,
     getShouldPopToSidebar,
     popToSidebar,
     navigate,
+    openExpenseOverParentReport,
     setParams,
     dismissModal,
     dismissModalWithReport,

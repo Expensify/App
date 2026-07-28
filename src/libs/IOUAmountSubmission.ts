@@ -45,9 +45,10 @@ import {rand64} from './NumberUtils';
 import {getParticipantsOption, getReportOption} from './OptionsListUtils';
 import Permissions from './Permissions';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
-import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isSelfDM, shouldEnableNegative} from './ReportUtils';
+import {isTaxTrackingEnabled} from './PolicyUtils';
+import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt} from './TransactionUtils';
+import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, isExpenseUnreported} from './TransactionUtils';
 
 type SubmitAmountArgs = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -134,6 +135,23 @@ type GetIsP2PForAmountArgs = {
 function getIsP2PForAmount({chatReportForP2P, currentUserAccountID}: GetIsP2PForAmountArgs): boolean {
     const firstParticipant = getMoneyRequestParticipantsFromReport(chatReportForP2P, currentUserAccountID).at(0);
     return isParticipantP2P(firstParticipant);
+}
+
+/**
+ * Determines whether a transaction's current tax code is still the auto-applied default for the given currency
+ * (i.e. the user has not manually picked a different rate).
+ */
+function isTaxCodeAutoDefaultForCurrency(
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    currency: string | undefined,
+    taxCode: string | undefined,
+): boolean {
+    if (taxCode === '') {
+        return false;
+    }
+    const defaultTaxCodeForCurrency = getDefaultTaxCode(policy, transaction, currency);
+    return !taxCode || taxCode === defaultTaxCodeForCurrency;
 }
 
 type SubmitAmountContext = {
@@ -228,7 +246,17 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, allPersonalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft, currentUserPersonalDetails.accountID);
+            : getReportOption(
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  allPersonalDetails,
+                  conciergeReportID,
+                  reportAttributesReports,
+                  reportDraft,
+                  currentUserPersonalDetails.accountID,
+                  translate,
+              );
     });
 }
 
@@ -492,8 +520,26 @@ function submitCreateAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): v
 
     setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, shouldKeepUserInput, hasReceipt(transaction));
 
-    if (isMovingTransactionFromTrackExpense(action)) {
-        const taxCode = selectedCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+    // When the currency changes, re-apply the default tax rate for the new currency so the confirmation page and the
+    // created expense reflect the currency-appropriate default (e.g. the foreign default for a foreign currency).
+    // Only do this when the current tax code is still the auto-applied default for the previous currency, so a tax
+    // rate the user manually selected is preserved across the currency change.
+    const previousCurrency = getCurrency(transaction);
+    const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, transaction, previousCurrency, transaction?.taxCode);
+    const isPolicyExpenseChatParticipant = transaction?.participants?.some((participant) => participant.isPolicyExpenseChat) ?? false;
+
+    // Mirror the tax contexts the confirmation list uses (see MoneyRequestConfirmationList's shouldShowTax): a Track
+    // expense from a self-DM/default workspace isn't a policy expense chat, but the confirmation page still shows tax
+    // for the track flow, so the currency recompute must run for it too. Otherwise Back → change currency → Next would
+    // leave the stale previous-currency default tax on the draft.
+    const isTaxEnabled = isTaxTrackingEnabled(
+        isPolicyExpenseChat(report) || isPolicyExpenseChatParticipant || iouType === CONST.IOU.TYPE.TRACK || isExpenseUnreported(transaction),
+        policy,
+        false,
+    );
+
+    if (isMovingTransactionFromTrackExpense(action) || (isTaxEnabled && selectedCurrency !== previousCurrency && isCurrentTaxAutoDefault)) {
+        const taxCode = getDefaultTaxCode(policy, transaction, selectedCurrency);
         if (taxCode) {
             setMoneyRequestTaxRate(transactionID, taxCode);
             const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
@@ -552,10 +598,14 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         return;
     }
 
-    // If currency has changed, then we get the default tax rate based on currency, otherwise we use the current tax rate selected in transaction, if we have it.
+    // When the currency changes we re-apply the new currency's default tax rate, but only when the current tax rate is
+    // still the auto-applied default for the previous currency. A tax rate the user picked manually is preserved across
+    // the currency change (mirrors the create-flow guard in `submitCreateAmount`).
     const transactionTaxCode = getTransactionDetails(currentTransaction)?.taxCode;
     const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, selectedCurrency) ?? '';
-    const taxCode = (selectedCurrency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
+    const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, currentTransaction, transactionCurrency, transactionTaxCode);
+    const isTransactionTaxCodeValid = transactionTaxCode === '' || getTaxValue(policy, currentTransaction, transactionTaxCode ?? '') !== undefined;
+    const taxCode = ((selectedCurrency !== transactionCurrency && isCurrentTaxAutoDefault) || !isTransactionTaxCodeValid ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
     const taxPercentage = getTaxValue(policy, currentTransaction, taxCode) ?? '';
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 
