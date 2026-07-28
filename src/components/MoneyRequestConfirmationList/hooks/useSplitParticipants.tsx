@@ -70,7 +70,7 @@ function useSplitParticipants({
     currentUserAccountID,
 }: UseSplitParticipantsParams) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} = useCurrencyListActions();
 
     const transactionID = transaction?.transactionID;
@@ -86,7 +86,7 @@ function useSplitParticipants({
             return [];
         }
 
-        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, translate);
+        const payeeOption = getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, translate, formatPhoneNumber);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
                 const isPayer = participantOption.accountID === payeeOption.accountID;

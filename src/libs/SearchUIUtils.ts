@@ -90,7 +90,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
@@ -110,6 +110,7 @@ import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard}
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
+import memoize from './memoize';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
 import {hasKey} from './ObjectUtils';
@@ -184,10 +185,12 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDateRangeForPreset,
     getFilterFromQuery,
+    getQueryHashes,
     isFilterNegatable,
     isFilterSupported,
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
+    withExactMatchFilterKeys,
 } from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
@@ -537,27 +540,28 @@ type SearchTypeMenuSection = {
     menuItems: SearchTypeMenuItem[];
 };
 
+const SEARCH_TYPE_MENU_ICON_NAMES = [
+    'Receipt',
+    'MoneyBag',
+    'CreditCard',
+    'MoneyHourglass',
+    'CreditCardHourglass',
+    'Bank',
+    'User',
+    'Folder',
+    'Basket',
+    'CalendarSolid',
+    'Document',
+    'Pencil',
+    'ThumbsUp',
+    'CheckCircle',
+] as const satisfies readonly ExpensifyIconName[];
+
 type SearchTypeMenuItem = {
     key: SearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
-    icon: Extract<
-        ExpensifyIconName,
-        | 'Receipt'
-        | 'MoneyBag'
-        | 'CreditCard'
-        | 'MoneyHourglass'
-        | 'CreditCardHourglass'
-        | 'Bank'
-        | 'User'
-        | 'Folder'
-        | 'Basket'
-        | 'CalendarSolid'
-        | 'Document'
-        | 'Pencil'
-        | 'ThumbsUp'
-        | 'CheckCircle'
-    >;
+    icon: TupleToUnion<typeof SEARCH_TYPE_MENU_ICON_NAMES>;
     searchQuery: string;
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
@@ -628,6 +632,11 @@ type GetSectionsParams = {
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
     isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
+    /**
+     * Callers may pass `undefined` for non-CHAT/TASK search types as a perf optimization (see `useSearchSnapshot`).
+     * Only `getReportActionsSections` (CHAT) and `getTaskSections` (TASK) read it — if you consume it in another
+     * branch, remove that gating in the caller first, otherwise it will silently be `undefined`.
+     */
     reportAttributesDerivedValue: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
 };
 
@@ -2785,6 +2794,17 @@ function getReportActionsSections(
 }
 
 /**
+ * Merges the global personal details list with the search snapshot's one (snapshot entries win).
+ * Memoized by input references: both lists are referentially stable across the getSections recomputes
+ * of a single user action (e.g. PAY), so the expensive spread of two large objects runs once per
+ * actual data change instead of once per recompute.
+ */
+const mergePersonalDetailsLists = memoize(
+    (onyxList: OnyxTypes.PersonalDetailsList | undefined, dataList: OnyxTypes.PersonalDetailsList | undefined): OnyxTypes.PersonalDetailsList => ({...onyxList, ...dataList}),
+    {maxSize: 1, equality: 'shallow', monitoringName: 'SearchUIUtils.mergePersonalDetailsLists'},
+);
+
+/**
  * @private
  * Organizes data into List Sections grouped by report for display, for the TransactionGroupListItemType of Search Results.
  *
@@ -2833,7 +2853,7 @@ function getReportSections({
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
-    const mergedPersonalDetails = {...(onyxPersonalDetailsList ?? {}), ...(data.personalDetailsList ?? {})};
+    const mergedPersonalDetails = mergePersonalDetailsLists(onyxPersonalDetailsList, data.personalDetailsList);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
@@ -3054,7 +3074,11 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFi
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
     const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
-    return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+    const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+    if (!specificGroupQueryJSON || filterKey !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        return specificGroupQueryJSON;
+    }
+    return withExactMatchFilterKeys(specificGroupQueryJSON, [filterKey]);
 }
 
 function buildEmptyTagGroupQuery(queryJSON: SearchQueryJSON): SearchQueryJSON | undefined {
@@ -4806,10 +4830,29 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !type || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
-function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    const isDataLoaded = (searchResults?.data != null || searchResults?.errors != null) && searchResults?.search?.type === queryJSON?.type && searchResults.search.hash === queryJSON?.hash;
+/**
+ * Uses `search.state`, which tracks API requests, instead of `search.isLoading`, which also tracks temporary UI loading.
+ */
+function isSearchPending(searchResults: SearchResults | undefined) {
+    return searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADING;
+}
 
-    return isDataLoaded;
+function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
+    const queryJSONHash =
+        queryJSON && searchResults?.search
+            ? getQueryHashes({
+                  ...queryJSON,
+                  sortBy: searchResults.search.sortBy,
+                  sortOrder: searchResults.search.sortOrder,
+              }).primaryHash
+            : queryJSON?.hash;
+    const state = searchResults?.search?.state;
+    // A response can finish without writing data or errors, so `loaded` and `error` also count as resolved.
+    // The type and hash checks below keep results from an earlier query out.
+    const isTerminal = state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || state === CONST.SEARCH.SNAPSHOT_STATE.ERROR;
+    const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
+
+    return hasResolved && searchResults?.search?.type === queryJSON?.type && searchResults?.search?.hash === queryJSONHash;
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
@@ -4840,6 +4883,7 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
                 {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
                 {text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
                 {text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+                {text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
             ];
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
@@ -5450,9 +5494,21 @@ function getDisplayValue(
             .join(', ');
     }
 
-    if (key === FILTER_KEYS.IS || key === FILTER_KEYS.HAS) {
+    if (key === FILTER_KEYS.IS) {
         const formValue = form[key];
         return formValue?.map((option) => translate(`common.${option}`)).join(', ');
+    }
+
+    if (key === FILTER_KEYS.HAS) {
+        const hasValues = form[key];
+        if (!hasValues?.length) {
+            return;
+        }
+        const hasOptions = getHasOptions(translate, type);
+        return hasOptions
+            .filter((option) => hasValues.includes(option.value))
+            .map((option) => option.text)
+            .join(', ');
     }
 
     if (
@@ -5463,6 +5519,7 @@ function getDisplayValue(
         key === FILTER_KEYS.TAX_RATE ||
         key === FILTER_KEYS.IN ||
         key === FILTER_KEYS.BANK_ACCOUNT ||
+        key === FILTER_KEYS.FEED ||
         key === FILTER_KEYS.POLICY_ID ||
         key === FILTER_KEYS.POLICY_ID_NOT
     ) {
@@ -6356,6 +6413,7 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
+    currentUserAccountID: number,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -6380,7 +6438,7 @@ function shouldShowDeleteOption(
                       reportTransactions.push(item);
                   }
               }
-              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray);
+              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID);
           })
         : selectedTransactionsKeys.every((id) => {
               const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
@@ -6394,7 +6452,7 @@ function shouldShowDeleteOption(
                   Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                   selectedTransactions[id].reportAction;
 
-              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
+              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID);
           });
 }
 
@@ -6519,6 +6577,7 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    isSearchPending,
     getValidGroupBy,
     getTypeOptions,
     getSortByOptions,
@@ -6553,6 +6612,7 @@ export {
     getSelectedGroupFilterEntry,
     adjustTimeRangeToDateFilters,
     getDateDisplayValue,
+    getDisplayValue,
     getFilterNegatableValue,
     shouldShowFilter,
     mapFiltersFormToLabelValueList,
@@ -6572,5 +6632,6 @@ export {
     splitGroupsIntoPairs,
     isEligibleForStatus,
     SKIPPED_SEARCH_FILTERS,
+    SEARCH_TYPE_MENU_ICON_NAMES,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};
