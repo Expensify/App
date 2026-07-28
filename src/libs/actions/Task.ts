@@ -411,6 +411,7 @@ function buildTaskData(
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
     delegateEmail: string | undefined,
+    actorAccountID?: number,
 ): {
     optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
     failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
@@ -418,7 +419,9 @@ function buildTaskData(
     parameters: CompleteTaskParams;
 } {
     const message = `marked as complete`;
-    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, delegateEmail, message);
+    // `actorAccountID` lets the caller attribute the optimistic completion to whoever the backend will (e.g. Concierge
+    // when a task is completed as a side effect); it falls back to the current user inside buildOptimisticTaskReportAction.
+    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, delegateEmail, message, actorAccountID);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -522,11 +525,24 @@ function buildTaskData(
 }
 
 /**
+ * Optimistic Onyx data for completing an onboarding task, plus the optimistic TASK_COMPLETED action ID.
+ * When the task is completed as a side effect of another command (shouldSendCompleteTaskRequest = false), the
+ * caller forwards `completedTaskReportActionID` to that command so the backend reuses the same action instead of
+ * creating a duplicate "marked as complete" action. The `OnyxData` shape is preserved so existing consumers that
+ * only read optimistic/success/failure data keep working.
+ */
+type OnboardingTaskCompletionOnyxData = OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> & {
+    completedTaskReportActionID?: string;
+};
+
+/**
  * Complete a task
  *
  * Pass `shouldSendCompleteTaskRequest: false` when the backend already completes the task as a side effect of
  * another command. The returned data is then purely optimistic and must be merged into that command's onyxData;
- * sending CompleteTask as well would be a redundant request.
+ * sending CompleteTask as well would be a redundant request. In that case `completedTaskReportActionID` is also
+ * returned so the caller can forward it to the side-effect command and have the backend reuse the same optimistic
+ * action instead of creating a second "marked as complete" action.
  */
 function completeTask(
     taskReport: OnyxEntry<OnyxTypes.Report>,
@@ -537,7 +553,8 @@ function completeTask(
     reportIDFromAction?: string,
     shouldPlaySound = true,
     shouldSendCompleteTaskRequest = true,
-): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
+    actorAccountID?: number,
+): OnboardingTaskCompletionOnyxData {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
     if (!taskReportID) {
@@ -551,6 +568,7 @@ function completeTask(
         hasOutstandingChildTask,
         parentReportAction,
         delegateEmail,
+        actorAccountID,
     );
 
     if (shouldPlaySound) {
@@ -559,7 +577,7 @@ function completeTask(
     if (shouldSendCompleteTaskRequest) {
         API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
     }
-    return {optimisticData, successData, failureData};
+    return {optimisticData, successData, failureData, completedTaskReportActionID: parameters.completedTaskReportActionID};
 }
 
 /**
@@ -1506,12 +1524,10 @@ type OnboardingTaskInformation = {
  * Build the optimistic Onyx data that completes the "Review your workspace settings" onboarding task.
  * Resolve `taskInformation` in the calling component with `useOnboardingTaskInformation(REVIEW_WORKSPACE_SETTINGS)`
  * and spread the result into the onyxData of a workspace-settings write command. The backend already completes
- * this task when it processes that command, hence `shouldSendCompleteTaskRequest: false`.
+ * this task when it processes that command, hence `shouldSendCompleteTaskRequest: false`. The backend attributes
+ * that completion to Concierge, so we build the optimistic action as Concierge too to avoid a wrong-owner flash.
  */
-function getReviewWorkspaceSettingsTaskCompletionData(
-    taskInformation: OnboardingTaskInformation,
-    currentUserAccountID: number,
-): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
+function getReviewWorkspaceSettingsTaskCompletionData(taskInformation: OnboardingTaskInformation, currentUserAccountID: number): OnboardingTaskCompletionOnyxData {
     const {taskReport, taskParentReport, isOnboardingTaskParentReportArchived, hasOutstandingChildTask, parentReportAction} = taskInformation;
     return getFinishOnboardingTaskOnyxData(
         taskReport,
@@ -1522,6 +1538,7 @@ function getReviewWorkspaceSettingsTaskCompletionData(
         parentReportAction,
         undefined,
         false,
+        CONST.ACCOUNT_ID.CONCIERGE,
     );
 }
 
@@ -1540,7 +1557,8 @@ function getFinishOnboardingTaskOnyxData(
     parentReportAction: OnyxEntry<ReportAction> | undefined,
     delegateEmail: string | undefined,
     shouldSendCompleteTaskRequest = true,
-): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
+    actorAccountID?: number,
+): OnboardingTaskCompletionOnyxData {
     if (taskReport && canActionTask(taskReport, parentReportAction, currentUserAccountID, taskParentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
@@ -1553,6 +1571,7 @@ function getFinishOnboardingTaskOnyxData(
                     undefined,
                     false,
                     shouldSendCompleteTaskRequest,
+                    actorAccountID,
                 );
             }
         }
@@ -1611,3 +1630,5 @@ export {
     getFinishOnboardingTaskOnyxData,
     completeTestDriveTask,
 };
+
+export type {OnboardingTaskCompletionOnyxData};
