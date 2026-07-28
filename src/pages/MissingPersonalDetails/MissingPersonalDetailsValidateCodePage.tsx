@@ -101,11 +101,18 @@ function MissingPersonalDetailsValidateCodePage({
                     });
                 return;
             }
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode, Number(cardID)).catch((error: {reason?: string; isRequestError?: boolean}) => {
-                // A failed request shows the generic error; a card that failed to ship shows the shipment message
-                const message = error?.isRequestError ? translate('cardPage.unexpectedError') : translate('cardPage.shipCardError', {reason: error?.reason});
-                setRevealCardError(getMicroSecondOnyxErrorWithMessage(message));
-            });
+            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode, Number(cardID)).catch(
+                (error: {reason?: string; isRequestError?: boolean; isIncorrectMagicCode?: boolean}) => {
+                    // An incorrect magic code and a failed request show their own generic messages; a card that failed to ship
+                    // shows the shipment message with its reason.
+                    if (error?.isIncorrectMagicCode) {
+                        setRevealCardError(getMicroSecondOnyxErrorWithTranslationKey('validateCodeForm.error.incorrectSecurityCode'));
+                        return;
+                    }
+                    const message = error?.isRequestError ? translate('cardPage.unexpectedError') : translate('cardPage.shipCardError', {reason: error?.reason});
+                    setRevealCardError(getMicroSecondOnyxErrorWithMessage(message));
+                },
+            );
         },
         [countryCode, values, isVirtualCard, cardID, translate],
     );

@@ -731,6 +731,20 @@ function updatePersonalDetailsAndShipExpensifyCards(
             ],
         })
             .then((response) => {
+                // makeRequestWithSideEffects resolves API-level failures as responses instead of throwing, so a non-success
+                // jsonCode (e.g. an incorrect magic code) must be rejected here; otherwise the flow would fall through and
+                // resolve as if it succeeded. A successful command returns 200 even when individual cards fail to ship.
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_VALIDATE_CODE) {
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject({isIncorrectMagicCode: true});
+                        return;
+                    }
+                    // eslint-disable-next-line prefer-promise-reject-errors
+                    reject({isRequestError: true});
+                    return;
+                }
+
                 // The command returns 200 and still saves the personal details even when a card fails to ship. The per-card
                 // failures come back in cardShipmentErrors, so show each failed card's reason on its own wallet card (RBR).
                 const cardShipmentErrors = response?.cardShipmentErrors ?? [];
