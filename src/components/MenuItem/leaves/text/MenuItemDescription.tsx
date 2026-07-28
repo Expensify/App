@@ -1,3 +1,4 @@
+import {useMenuItemAccessibilityLabel} from '@components/MenuItem/MenuItemAccessibilityContext';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -6,10 +7,11 @@ import CONST from '@src/CONST';
 
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-type MenuItemDescriptionVariant = (typeof CONST.MENU_ITEM.DESCRIPTION_VARIANT)[keyof typeof CONST.MENU_ITEM.DESCRIPTION_VARIANT];
+type MenuItemDescriptionVariant = ValueOf<typeof CONST.MENU_ITEM.DESCRIPTION_VARIANT>;
 
 type MenuItemDescriptionProps = PropsWithChildren & {
     /** Used to truncate the description with an ellipsis after computing the text layout */
@@ -29,6 +31,8 @@ type MenuItemDescriptionProps = PropsWithChildren & {
  */
 function MenuItemDescription({children, numberOfLines = 2, variant = CONST.MENU_ITEM.DESCRIPTION_VARIANT.SUPPORTING, style}: MenuItemDescriptionProps) {
     const styles = useThemeStyles();
+
+    useMenuItemAccessibilityLabel(typeof children === 'string' || typeof children === 'number' ? String(children) : undefined);
 
     return (
         <Text

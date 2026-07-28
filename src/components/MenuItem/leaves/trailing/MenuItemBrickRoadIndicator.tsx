@@ -1,4 +1,5 @@
 import Icon from '@components/Icon';
+import {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibilityAnnouncement} from '@components/MenuItem/MenuItemAccessibilityContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
@@ -23,6 +24,9 @@ function MenuItemBrickRoadIndicator({status}: MenuItemBrickRoadIndicatorProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    // The indicator means the row needs attention — tell the row so screen readers announce "your review is required"
+    useMenuItemAccessibilityAnnouncement(MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.REVIEW_REQUIRED);
 
     return (
         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>

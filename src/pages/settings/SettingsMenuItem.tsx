@@ -1,8 +1,4 @@
 import MenuItem from '@components/MenuItem';
-import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
-import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
-
-import useLocalize from '@hooks/useLocalize';
 
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
@@ -25,7 +21,6 @@ type SettingsMenuItemProps = {
 };
 
 function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocused, onPress, wrapperStyle}: SettingsMenuItemProps) {
-    const {translate} = useLocalize();
     const popoverAnchor = useRef(null);
 
     const onSecondaryInteraction = item.link
@@ -54,10 +49,6 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
           }
         : undefined;
 
-    const combinedAccessibilityLabel = [keyTitle, item.brickRoadIndicator ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join('. ');
-    const contextMenuHint = item.link ? getContextMenuAccessibilityHint({translate}) : undefined;
-    const {accessibilityLabel, accessibilityHint} = getContextMenuAccessibilityProps({accessibilityLabel: combinedAccessibilityLabel, contextMenuHint});
-
     const hasTrailing = !!item.badgeText || !!item.brickRoadIndicator || !!item.iconRight;
 
     return (
@@ -69,8 +60,6 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             isDisabled={isExecuting}
             isActive={isFocused}
             role={CONST.ROLE.TAB}
-            accessibilityLabel={accessibilityLabel}
-            accessibilityHint={accessibilityHint}
             sentryLabel={item.sentryLabel}
         >
             <MenuItem.Row>

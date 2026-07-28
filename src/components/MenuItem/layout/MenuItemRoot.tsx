@@ -1,5 +1,6 @@
 import {useIsCompactMenu} from '@components/CompactMenuContext';
 import Hoverable from '@components/Hoverable';
+import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
 import MenuItemContext from '@components/MenuItem/MenuItemContext';
 import {useMenuItemGroupActions, useMenuItemGroupState} from '@components/MenuItemGroup';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
@@ -68,8 +69,9 @@ type MenuItemRootProps = PropsWithChildren &
         /** Wrapper styles */
         wrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
-        /** Accessibility label for the row */
-        accessibilityLabel: string;
+        /** Accessibility label for the row. When omitted, derived from the `Title`/`Description` children's
+         * text in render order (joined with ", ") — matching the legacy MenuItem's default label. */
+        accessibilityLabel?: string;
 
         /** Accessibility hint for the row */
         accessibilityHint?: string;
@@ -119,6 +121,8 @@ function MenuItemRoot({
     const isCompactMenu = useIsCompactMenu();
     const isCompact = isCompactMenu && !shouldUseNarrowLayout;
     const isInteractive = !!onPress;
+
+    const {accessibilityProps, providerValue} = useMenuItemAccessibility({accessibilityLabel, accessibilityHint, shouldShowContextMenuHint: !!onSecondaryInteraction});
 
     useEffect(() => {
         const element = pressableRef.current;
@@ -185,8 +189,8 @@ function MenuItemRoot({
                         disabled={isDisabled || isExecuting}
                         ref={mergeRefs(ref, pressableRef)}
                         role={isInteractive ? role : undefined}
-                        accessibilityLabel={accessibilityLabel}
-                        accessibilityHint={accessibilityHint}
+                        accessibilityLabel={accessibilityProps?.accessibilityLabel}
+                        accessibilityHint={accessibilityProps?.accessibilityHint}
                         accessible={isAccessible}
                         accessibilityState={role === CONST.ROLE.TAB ? {selected: isActive} : undefined}
                         tabIndex={isInteractive ? tabIndex : -1}
@@ -194,19 +198,21 @@ function MenuItemRoot({
                         sentryLabel={sentryLabel}
                     >
                         {({pressed}) => (
-                            <MenuItemContext.Provider
-                                value={{
-                                    isHovered,
-                                    isPressed: pressed,
-                                    isActive,
-                                    isDisabled,
-                                    isInteractive,
-                                    isSuccess,
-                                    isCompact,
-                                }}
-                            >
-                                <View style={styles.flex1}>{children}</View>
-                            </MenuItemContext.Provider>
+                            <MenuItemAccessibilityContext.Provider value={providerValue}>
+                                <MenuItemContext.Provider
+                                    value={{
+                                        isHovered,
+                                        isPressed: pressed,
+                                        isActive,
+                                        isDisabled,
+                                        isInteractive,
+                                        isSuccess,
+                                        isCompact,
+                                    }}
+                                >
+                                    <View style={styles.flex1}>{children}</View>
+                                </MenuItemContext.Provider>
+                            </MenuItemAccessibilityContext.Provider>
                         )}
                     </PressableWithSecondaryInteraction>
                 )}

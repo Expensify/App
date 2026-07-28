@@ -11,11 +11,16 @@
  * will be deleted and only the compound API will remain — the import path and the
  * `MenuItem.Root` / `MenuItem.*` call sites below will not change.
  *
+ * The row's accessibility label is derived from the `Title`/`Description` text (in render order) and
+ * enriched with announcements contributed by sub-components (e.g. a `NewWindow` chevron → "opens in new
+ * tab", a `BrickRoadIndicator` → "your review is required") — pass `accessibilityLabel` to `Root` only
+ * to override the derived text.
+ *
  * @example Simple navigation row
  * ```tsx
  * import MenuItem from '@components/MenuItem';
  *
- * <MenuItem.Root onPress={onNavigate} accessibilityLabel={translate('common.settings')}>
+ * <MenuItem.Root onPress={onNavigate}>
  *     <MenuItem.Row>
  *         <MenuItem.Icon src={icons.Gear} />
  *         <MenuItem.Content>
@@ -30,7 +35,7 @@
  *
  * @example Field row with a description above the title and an attention indicator
  * ```tsx
- * <MenuItem.Root onPress={onEdit} accessibilityLabel={`${description}, ${title}`}>
+ * <MenuItem.Root onPress={onEdit}>
  *     <MenuItem.Row>
  *         <MenuItem.Content>
  *             <MenuItem.Description>{description}</MenuItem.Description>
@@ -59,7 +64,6 @@ import MenuItemChevron from './leaves/trailing/MenuItemChevron';
 import MenuItemCopyButton from './leaves/trailing/MenuItemCopyButton';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
-import {useMenuItemState} from './MenuItemContext';
 
 type MenuItemType = {
     /**
@@ -130,6 +134,4 @@ const MenuItem: MenuItemType = Object.assign(LegacyMenuItem, {
 });
 
 export default MenuItem;
-export {useMenuItemState};
 export type {MenuItemBaseProps, MenuItemProps} from './MenuItem';
-export type {MenuItemState} from './MenuItemContext';

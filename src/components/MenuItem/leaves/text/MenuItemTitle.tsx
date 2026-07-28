@@ -1,3 +1,4 @@
+import {useMenuItemAccessibilityLabel} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {useMenuItemState} from '@components/MenuItem/MenuItemContext';
 import Text from '@components/Text';
 
@@ -32,6 +33,8 @@ type MenuItemTitleProps = PropsWithChildren & {
 function MenuItemTitle({children, numberOfLines = 1, weight = CONST.MENU_ITEM.TITLE_WEIGHT.STRONG, style}: MenuItemTitleProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemState();
+
+    useMenuItemAccessibilityLabel(typeof children === 'string' || typeof children === 'number' ? String(children) : undefined);
 
     return (
         <Text

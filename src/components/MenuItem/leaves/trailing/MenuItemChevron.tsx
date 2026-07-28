@@ -1,4 +1,5 @@
 import Icon from '@components/Icon';
+import {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibilityAnnouncement} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {useMenuItemState} from '@components/MenuItem/MenuItemContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -30,13 +31,15 @@ type MenuItemChevronProps = {
  * dimmed until the row is hovered — matching the classic MenuItem right icon.
  */
 function MenuItemChevron({src, style}: MenuItemChevronProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'NewWindow']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isHovered, isPressed, isActive, isDisabled, isInteractive, isSuccess} = useMenuItemState();
 
     const isDefaultChevron = !src || src === icons.ArrowRight;
+    // The NewWindow icon marks the row as an external link — tell the row so screen readers announce "opens in new tab"
+    useMenuItemAccessibilityAnnouncement(!!src && src === icons.NewWindow ? MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.OPENS_IN_NEW_TAB : undefined);
 
     return (
         <View
