@@ -233,7 +233,7 @@ PODS:
   - fmt (12.1.0)
   - ForkInputMask (7.3.3)
   - FullStory (1.70.1)
-  - fullstory_react-native (1.10.1):
+  - fullstory_react-native (1.9.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -4069,7 +4069,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNSentry (8.2.0):
+  - RNSentry (8.7.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -4096,7 +4096,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Sentry (= 9.5.1)
+    - Sentry (= 9.8.0)
     - SocketRocket
     - Yoga
   - RNShare (11.0.2):
@@ -4284,9 +4284,9 @@ PODS:
   - SDWebImageWebPCoder (0.14.6):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
-  - Sentry (9.5.1):
-    - Sentry/Core (= 9.5.1)
-  - Sentry/Core (9.5.1)
+  - Sentry (9.8.0):
+    - Sentry/Core (= 9.8.0)
+  - Sentry/Core (9.8.0)
   - SocketRocket (0.7.1)
   - SwiftUIIntrospect (1.3.0)
   - TrustKit (3.0.7)
@@ -4845,7 +4845,7 @@ SPEC CHECKSUMS:
   fmt: 530618a01105dae0fa3a2f27c81ae11fa8f67eac
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: 8f87790ed749aa66497e739b065932852e57077d
-  fullstory_react-native: 45bd1fa6012e665a1b1671b9e8c196ae47c4e96e
+  fullstory_react-native: 1374480e8734b0b9ad7a5565cd94aa1215416368
   glog: e56ede4028c4b7418e6b1195a36b1656bb35e225
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -4980,7 +4980,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 5f1542065f0b24c9252bd8cf3e83bc9c548182e4
   RNReanimated: 9cd44a8f50a434161e16d4e51eb06c8c71a6d892
   RNScreens: 2b6107925ee4e14a9b2eb0dfb52fe25223aa64d7
-  RNSentry: f73f4da92e4c20841ab16e1fa22fc289bc2f9f4e
+  RNSentry: 67d50593363789905dde212b2fcab30a4f8b1846
   RNShare: 1c1fde2c4134b9cf220ffebbd6df9c414036d382
   RNSVG: 0b9792eb17fbbc8e6d186581cb2cf712998dcc2a
   RNWorklets: 25b8ee140def8e1561209a825b005ee70f3e26f5
@@ -4988,7 +4988,7 @@ SPEC CHECKSUMS:
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
-  Sentry: 7475eb7bf6a41d7505f46341706015ad2d1766b9
+  Sentry: 88746bf877eff714bc45315a39ad1d1efea2cdda
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   TrustKit: 1050f3ce0595f8ed775f1237b7f590e3a4f93e91
