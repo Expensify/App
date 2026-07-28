@@ -14,7 +14,9 @@ import startCase from 'lodash/startCase';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
     ConnectionNameParams,
+    DefaultVendorHelperTextParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -2659,6 +2661,27 @@ const translations = {
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
         cardInactive: 'Inactive',
+        cardLastSynced: (relativeDate: string) => `Synced ${relativeDate}`,
+        cardNeverSynced: 'Never synced',
+        cardStatus: {
+            active: 'Active',
+            inactive: 'Inactive',
+            fixConnection: 'Please fix this connection',
+            fixConnectionIn: (companyCardsRoute: string) => `Please fix this connection in <a href="${companyCardsRoute}">company cards</a>`,
+            askAdminToFixConnection: 'Please ask an admin to fix this connection',
+        },
+        bankAccountStatus: {
+            active: 'Active',
+            incomplete: 'Incomplete',
+            pending: 'Pending',
+            verifying: 'Verifying',
+            reviewingDocumentation: "We're reviewing your documentation",
+            finishAddingBankAccount: 'Finish adding bank account',
+            finish: 'Finish',
+            confirmTestTransactions: 'Please confirm test transactions',
+            accountRequiresAttention: 'This account requires attention',
+            unlock: 'Unlock',
+        },
         assignedCards: 'Cards',
         assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
         addVirtualCardPersonalDetails: {
@@ -5181,7 +5204,9 @@ const translations = {
             creditCardAccount: 'Credit card account',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Set a default vendor that will apply to ${isReimbursable ? '' : 'non-'}reimbursable expenses that don't have a matching vendor in Sage Intacct.`,
+                isReimbursable
+                    ? `Set a default vendor that will apply to reimbursable expenses that don't have a matching vendor in Sage Intacct.`
+                    : `Expenses that can't be matched to your Sage Intacct vendors will default to this vendor.`,
             exportDescription: 'Configure how Expensify data exports to Sage Intacct.',
             exportPreferredExporterNote:
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
@@ -7074,6 +7099,11 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Expenses that don't auto-match will default to this vendor.`
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
             defaultAccount: 'Default account',
             autoSync: 'Auto-sync',
             autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day. Export finalized report in realtime',

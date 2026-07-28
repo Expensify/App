@@ -154,6 +154,7 @@ function useTrialPaymentReminder() {
     const [dismissedTimestamp, dismissedTimestampResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
 
     const [readinessState, setReadinessState] = useState<ReadinessState>(READINESS_STATE.LOADING);
 
@@ -222,6 +223,9 @@ function useTrialPaymentReminder() {
     }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID]);
 
     const isEligibleToShow = useMemo(() => {
+        if (!hasLoadedApp) {
+            return false;
+        }
         if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
             return false;
         }
@@ -252,6 +256,7 @@ function useTrialPaymentReminder() {
         }
         return true;
     }, [
+        hasLoadedApp,
         firstDayFreeTrial,
         lastDayFreeTrial,
         billingFundID,
