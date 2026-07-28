@@ -7,7 +7,6 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -186,10 +185,6 @@ function SearchAutocompleteList({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
-        addOfflineIndicatorBottomSafeAreaPadding: shouldUseNarrowLayout,
-        style: styles.pb2,
-    });
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -723,7 +718,7 @@ function SearchAutocompleteList({
             style={{
                 containerStyle: [styles.mh100],
                 listStyle: [styles.ph2, styles.overscrollBehaviorContain],
-                contentContainerStyle,
+                contentContainerStyle: styles.pb2,
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
             }}
