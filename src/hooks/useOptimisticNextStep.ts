@@ -58,18 +58,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
         transactions,
     );
 
-    let optimisticNextStep = getReportNextStep(
-        nextStep,
-        moneyRequestReport,
-        ownerLogin,
-        transactions,
-        policy,
-        allTransactionViolations,
-        email ?? '',
-        accountID,
-        isTrackIntentUser,
-        moneyRequestReport?.nextStep,
-    );
+    let optimisticNextStep = getReportNextStep(moneyRequestReport?.nextStep, moneyRequestReport, ownerLogin, transactions, policy, allTransactionViolations, email ?? '', accountID);
 
     if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
         if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {

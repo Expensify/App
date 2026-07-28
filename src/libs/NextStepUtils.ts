@@ -308,15 +308,6 @@ function parseMessage(messages: Message[] | undefined, currentUserEmail: string)
     return `<next-step>${formattedHtml}</next-step>`;
 }
 
-/**
- * @private
- */
-function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
-    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
-
-    return getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
-}
-
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled(): ReportNextStep {
     return {
         messageKey: CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF,
@@ -333,7 +324,7 @@ function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep
 }
 
 function getReportNextStep(
-    currentNextStep: ReportNextStepDeprecated | undefined,
+    currentNextStep: ReportNextStep | undefined,
     moneyRequestReport: OnyxEntry<Report>,
     moneyRequestReportOwnerLogin: string | undefined,
     transactions: Array<OnyxEntry<Transaction>>,
@@ -341,8 +332,6 @@ function getReportNextStep(
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail: string,
     currentUserAccountID: number,
-    isTrackIntentUser: boolean | undefined,
-    reportNextStep?: ReportNextStep,
 ) {
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
@@ -377,15 +366,7 @@ function getReportNextStep(
         };
     }
 
-    // Prefer the new translatable next step for the empty-report case so the "Waiting for you to add expenses" message
-    // respects the user's locale. The deprecated format is kept as the fallback for every other case.
-    if (reportNextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS) {
-        return reportNextStep;
-    }
-
-    // Prefer the report-embedded next step: the deprecated reportNextStep_* collection is only refreshed for the
-    // local actor, so a user viewing a report someone else acted on would otherwise keep seeing the stale message.
-    return moneyRequestReport?.nextStep ?? currentNextStep;
+    return currentNextStep;
 }
 
 export {getReportNextStep, buildNextStepMessage, buildOptimisticNextStep, parseMessage, buildOptimisticFixIssueNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled};

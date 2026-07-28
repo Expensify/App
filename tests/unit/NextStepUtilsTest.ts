@@ -816,13 +816,13 @@ describe('libs/NextStepUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             } as Report;
 
-            const currentNextStep: ReportNextStepDeprecated = {
-                type: 'neutral',
+            const currentNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Current next step'}],
+                actorAccountID: currentUserAccountID,
             };
 
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false);
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID);
             expect(result).toBe(currentNextStep);
         });
 
@@ -868,7 +868,6 @@ describe('libs/NextStepUtils', () => {
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
-                false,
             );
 
             expect(result).toEqual({
@@ -919,7 +918,7 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false);
+            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID);
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
 
@@ -989,7 +988,6 @@ describe('libs/NextStepUtils', () => {
                 transactionViolations,
                 currentUserEmail,
                 currentUserAccountID,
-                false,
             );
 
             expect(result).toEqual({
@@ -997,103 +995,6 @@ describe('libs/NextStepUtils', () => {
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 actorAccountID: report.ownerAccountID,
             });
-        });
-
-        it('returns the translatable next step over the deprecated one for the empty-report waiting-to-add-transactions case', () => {
-            const report: Report = {
-                ...buildOptimisticExpenseReport({
-                    chatReportID: 'chat-5',
-                    policyID,
-                    payeeAccountID: 1,
-                    total: -500,
-                    currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
-                }),
-                ownerAccountID: currentUserAccountID,
-                managerID: currentUserAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as Report;
-
-            const currentNextStep: ReportNextStepDeprecated = {
-                type: 'neutral',
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Waiting for '}, {text: 'you', type: 'strong'}, {text: ' to '}, {text: 'add'}, {text: ' %expenses.'}],
-            };
-
-            const reportNextStep: ReportNextStep = {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                actorAccountID: currentUserAccountID,
-            };
-
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
-            expect(result).toBe(reportNextStep);
-        });
-
-        it('falls back to the deprecated next step when the new next step has a different message key', () => {
-            const report: Report = {
-                ...buildOptimisticExpenseReport({
-                    chatReportID: 'chat-6',
-                    policyID,
-                    payeeAccountID: 1,
-                    total: -500,
-                    currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
-                }),
-                ownerAccountID: currentUserAccountID,
-                managerID: currentUserAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as Report;
-
-            const currentNextStep: ReportNextStepDeprecated = {
-                type: 'neutral',
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Current next step'}],
-            };
-
-            const reportNextStep: ReportNextStep = {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                actorAccountID: currentUserAccountID,
-            };
-
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
-            expect(result).toBe(currentNextStep);
-        });
-
-        it('prefers the report-embedded next step over the deprecated value', () => {
-            const embeddedNextStep: ReportNextStep = {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                actorAccountID: currentUserAccountID,
-            };
-
-            const report: Report = {
-                ...buildOptimisticExpenseReport({
-                    chatReportID: 'chat-7',
-                    policyID,
-                    payeeAccountID: 1,
-                    total: -500,
-                    currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
-                }),
-                ownerAccountID: currentUserAccountID,
-                managerID: currentUserAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                nextStep: embeddedNextStep,
-            } as Report;
-
-            const currentNextStep: ReportNextStepDeprecated = {
-                type: 'neutral',
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Stale deprecated message'}],
-            };
-
-            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, report.nextStep);
-            expect(result).toBe(embeddedNextStep);
         });
 
         it('prioritizes a higher-priority override over the new translatable next step', async () => {
@@ -1145,7 +1046,7 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             // Even though a translatable next step is supplied, the prevent-self-approval override must still win.
-            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
+            const result = getReportNextStep(reportNextStep, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID);
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
     });
