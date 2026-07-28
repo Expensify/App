@@ -9,9 +9,9 @@ name: Check Rock remote cache
 # early, so the worst case is one cheap job that did not need to run, never a cache that silently stops being
 # seeded.
 #
-# With `expect-cached`, the same lookup becomes an assertion instead of a question: run it after a seed build to
-# prove the seed actually wrote something. Without it, a seed that stops uploading - because an action bump moved
-# the gate its upload step sits behind, say - keeps reporting success while the cache quietly goes cold.
+# This only ever answers the question before a build. The mirror-image assertion afterwards - proving a seed build
+# actually wrote something - lives as a step at the end of the build workflows, where the repo is already checked
+# out and the fingerprint is the one that host really built.
 
 on:
   workflow_call:
@@ -24,10 +24,6 @@ on:
         description: "Comma separated Rock traits identifying the variant, e.g. 'device,AdHoc' on iOS or 'Adhoc' on Android"
         type: string
         required: true
-      expect-cached:
-        description: Fail when the cache holds nothing, instead of reporting that a build is needed. Use after a seed build to verify it landed.
-        type: boolean
-        default: false
     # Named rather than inherited: a lookup needs the submodule and the bucket, and nothing else. Callers of the
     # build workflows have to inherit, because a build needs most of the vault.
     secrets:
@@ -47,6 +43,12 @@ on:
       FINGERPRINT:
         description: The fingerprint this lookup used, so a build can confirm it computed the same one on its own host.
         value: ${{ jobs.check.outputs.FINGERPRINT }}
+      TRAITS:
+        # An echo of the input, on purpose. A seed build verifies afterwards that it wrote what this gate looked for,
+        # and handing it these traits rather than restating them is what stops the two from ever naming different
+        # artifacts.
+        description: The traits this lookup was given, so a seed build can verify against exactly what was looked up.
+        value: ${{ inputs.traits }}
 
 jobs:
   check:
@@ -87,7 +89,6 @@ jobs:
           IS_HYBRID_APP: 'true'
           PLATFORM: ${{ inputs.platform }}
           TRAITS: ${{ inputs.traits }}
-          EXPECT_CACHED: ${{ inputs.expect-cached }}
         run: |
           # With no cache provider configured at all, Rock's lookup prints nothing and exits 0, which reads here as
           # "not cached" and would quietly turn this from a gate into a rubber stamp that seeds on every push. That
@@ -119,16 +120,7 @@ jobs:
           done
 
           if [ "$LOOKUP_OK" != 'true' ]; then
-            # Which way to fail depends on who is asking. A gate can afford to guess "build needed", because the
-            # build repeats this lookup and stops early if it was wrong. A verification has nothing downstream to
-            # correct it, so guessing there would report that a seed landed without having checked - the exact
-            # silent success this job exists to catch.
-            if [ "$EXPECT_CACHED" == 'true' ]; then
-              echo "::error::Could not query the remote cache after 3 attempts, so whether the seed landed is unknown. Nothing downstream re-checks this, so failing rather than reporting an unverified success."
-              echo "- **Lookup failed, so the seed could not be verified.**" >> "$GITHUB_STEP_SUMMARY"
-              exit 1
-            fi
-
+            # Safe to guess "build needed" here: the build repeats this lookup and stops early if the guess was wrong.
             echo "::warning::Could not query the remote cache, so assuming a build is needed"
             echo "- Lookup failed, assuming a build is needed" >> "$GITHUB_STEP_SUMMARY"
             echo "NEEDS_BUILD=true" >> "$GITHUB_OUTPUT"
@@ -140,10 +132,6 @@ jobs:
             echo "Already cached: $ARTIFACT_NAME"
             echo "- Cached as \`$ARTIFACT_NAME\`, no build needed" >> "$GITHUB_STEP_SUMMARY"
             echo "NEEDS_BUILD=false" >> "$GITHUB_OUTPUT"
-          elif [ "$EXPECT_CACHED" == 'true' ]; then
-            echo "::error::A seed build for traits '$TRAITS' just ran, but nothing is cached at fingerprint ${FINGERPRINT:-unknown}. Seeding has stopped working: check whether the build still reaches its upload step."
-            echo "- **A seed just ran and the cache is still empty.** Seeding has stopped working." >> "$GITHUB_STEP_SUMMARY"
-            exit 1
           else
             echo "Nothing cached for traits '$TRAITS' at this fingerprint"
             echo "- Nothing cached, a build would do real work" >> "$GITHUB_STEP_SUMMARY"

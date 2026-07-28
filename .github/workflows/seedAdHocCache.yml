@@ -72,22 +72,10 @@ jobs:
       # The lookup ran on Linux and this build runs on macOS. Passing the hash lets the build say so when the two
       # hosts disagree, which would mean the lookup above is guarding nothing.
       expected-fingerprint: ${{ needs.checkIOSCache.outputs.FINGERPRINT }}
+      # Taken from the lookup rather than written out again, so the artifact the build verifies it wrote is by
+      # construction the one the lookup above went looking for.
+      cache-traits: ${{ needs.checkIOSCache.outputs.TRAITS }}
     secrets: inherit
-
-  # A seed that goes green without uploading anything looks exactly like a working one, so ask again afterwards.
-  # Skipped automatically when the seed itself failed, since a failed `needs` skips its dependents.
-  verifyIOSSeedLanded:
-    name: Verify iOS AdHoc seed landed
-    needs: [seedIOS]
-    uses: ./.github/workflows/checkRockCache.yml
-    with:
-      platform: ios
-      traits: device,AdHoc
-      expect-cached: true
-    secrets:
-      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   checkAndroidCache:
     name: Check Android AdHoc cache
@@ -114,17 +102,7 @@ jobs:
       # Both the lookup and this build run on Linux, so the two fingerprints should always agree. Passing the hash
       # keeps that an assertion rather than an assumption.
       expected-fingerprint: ${{ needs.checkAndroidCache.outputs.FINGERPRINT }}
+      # Taken from the lookup rather than written out again, so the artifact the build verifies it wrote is by
+      # construction the one the lookup above went looking for.
+      cache-traits: ${{ needs.checkAndroidCache.outputs.TRAITS }}
     secrets: inherit
-
-  verifyAndroidSeedLanded:
-    name: Verify Android AdHoc seed landed
-    needs: [seedAndroid]
-    uses: ./.github/workflows/checkRockCache.yml
-    with:
-      platform: android
-      traits: Adhoc
-      expect-cached: true
-    secrets:
-      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

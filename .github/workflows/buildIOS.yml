@@ -38,6 +38,13 @@ on:
         description: Fingerprint a caller already computed elsewhere. Seed builds warn when theirs differs, which means the caller's cache lookup was answering for a different build.
         type: string
         default: ''
+      cache-traits:
+        # Taken from the caller rather than derived here so that the traits its gate looked up and the traits this
+        # build verifies afterwards cannot drift apart. Required whenever `seed-cache-only` is set - the verification
+        # errors out without it rather than skipping, so forgetting it cannot silently disable the check.
+        description: Rock traits naming the base cache artifact a seed build should have written, e.g. 'device,AdHoc'. Required when seed-cache-only is set.
+        type: string
+        default: ''
 
     outputs:
       IOS_VERSION:
@@ -338,3 +345,48 @@ jobs:
         with:
           name: ${{ inputs.artifact-prefix }}ios-sourcemap-artifact
           path: Mobile-Expensify/main.jsbundle.map
+
+      # A seed build that finishes without uploading anything looks exactly like a working one, and nothing notices:
+      # PR builds simply compile their own native code again, which reads as slow CI rather than as a failure. So ask
+      # the bucket the same question a PR build's lookup asks. Asking the bucket rather than reading the build
+      # action's own `ARTIFACT_URL` is the point - one action bump could move the gate on its upload step and break
+      # the upload and its self-report together. Last in the job so a failure here costs none of the uploads above.
+      - name: Verify the seed landed in the remote cache
+        if: ${{ inputs.seed-cache-only }}
+        env:
+          IS_HYBRID_APP: 'true'
+          TRAITS: ${{ inputs.cache-traits }}
+        run: |
+          # Erroring rather than skipping: a seed that quietly stops verifying is the failure this step exists to
+          # catch, so it must not be possible to turn it off by leaving an input out.
+          if [ -z "$TRAITS" ]; then
+            echo "::error::seed-cache-only builds need cache-traits set, naming the artifact this seed should have written. Without it there is nothing to verify against."
+            exit 1
+          fi
+
+          # Unlike the lookup that gates this build, this needs no separate check that the cache provider is usable:
+          # a broken one makes `list` print nothing, which fails here. That is the safe direction to guess wrong in.
+          # On a gate the same silence reads as "nothing cached" and quietly turns it into a rubber stamp.
+          for attempt in 1 2 3; do
+            if OUTPUT=$(npx rock remote-cache list -p ios --traits "$TRAITS" --json); then
+              if [ -n "$OUTPUT" ]; then
+                # Only for the log line. The verdict is `$OUTPUT` being non-empty, so a formatting call must not
+                # be able to fail the step.
+                ARTIFACT_NAME=$(echo "$OUTPUT" | jq -r '.name') || ARTIFACT_NAME='unknown'
+                echo "Seed landed as $ARTIFACT_NAME"
+                echo "- Seed landed in the remote cache as \`$ARTIFACT_NAME\`" >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+              echo "::error::This seed build ran, but nothing is cached for traits '$TRAITS'. Seeding has stopped working: check whether the build still reaches its upload step."
+              echo "- **A seed just ran and the cache is still empty.** Seeding has stopped working." >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+            echo "Lookup attempt $attempt failed"
+            sleep 5
+          done
+
+          # Nothing downstream re-checks this, so guessing would report a success that was never verified - the exact
+          # silent pass this step exists to catch.
+          echo "::error::Could not query the remote cache after 3 attempts, so whether the seed landed is unknown. Failing rather than reporting an unverified success."
+          echo "- **Lookup failed, so the seed could not be verified.**" >> "$GITHUB_STEP_SUMMARY"
+          exit 1
