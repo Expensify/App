@@ -291,7 +291,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                     addBottomSafeAreaPadding
                     footerContent={
                         <FormAlertWithSubmitButton
-                            buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                            buttonText={translate('common.next')}
                             onSubmit={handleSubmit}
                             isAlertVisible={shouldShowError}
                             containerStyles={[!shouldShowError && styles.mt5]}
