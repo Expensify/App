@@ -40,18 +40,16 @@ function PaymentContent({action, policyID}: PaymentContentProps) {
 
     if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         const last4Digits = getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policy);
-        if (originalMessage.creditedAmount && originalMessage.creditedCurrency) {
-            return <ReportActionItemBasicMessage message={getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits)} />;
-        }
+        const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits);
         if (wasAutoPaid) {
-            const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
+            const translation = crossBorderMessage ?? translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
             return (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${translation}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={translate('iou.businessBankAccount', '', last4Digits)} />;
+        return <ReportActionItemBasicMessage message={crossBorderMessage ?? translate('iou.businessBankAccount', '', last4Digits)} />;
     }
 
     if (wasAutoPaid) {
