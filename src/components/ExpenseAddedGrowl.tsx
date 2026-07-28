@@ -14,6 +14,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
+import type {Dispatch, SetStateAction} from 'react';
+
 import {useEffect, useRef, useState} from 'react';
 
 import GrowlNotificationContent from './GrowlNotification/GrowlNotificationContent';
@@ -29,17 +31,52 @@ type ActiveGrowl = {
     nonce: number;
 };
 
+type ExpenseAddedGrowlContentProps = {
+    /** Transaction to read for the growl: the active growl's transaction, or the latest pending signal ID */
+    transactionID: string;
+
+    /** Pending expense-added notifications, keyed by transaction ID with its search data type as the value */
+    signal: Record<string, SearchDataTypes> | undefined;
+
+    /** Currently displayed growl */
+    active: ActiveGrowl | null;
+
+    /** Setter for the active growl */
+    setActive: Dispatch<SetStateAction<ActiveGrowl | null>>;
+};
+
 /**  Watches the "an expense was just added" Onyx signal and shows an "Expense added" growl with a "View" action. */
 function ExpenseAddedGrowl() {
     const [active, setActive] = useState<ActiveGrowl | null>(null);
+    const [signal] = useOnyx(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+    const transactionID = active?.transactionID ?? Object.keys(signal ?? {}).at(-1);
+
+    if (!transactionID) {
+        return null;
+    }
+
+    return (
+        <ExpenseAddedGrowlContent
+            transactionID={transactionID}
+            signal={signal}
+            active={active}
+            setActive={setActive}
+        />
+    );
+}
+
+/**
+ * Reads the candidate transaction and its report/actions and renders the growl. Split out from
+ * `ExpenseAddedGrowl` so these Onyx connections only exist while there is a pending signal or a visible growl -
+ * the outer component is mounted for the whole app lifetime and would otherwise hold them permanently while idle.
+ */
+function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: ExpenseAddedGrowlContentProps) {
     const nonceRef = useRef(0);
 
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [signal] = useOnyx(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const transactionID = active?.transactionID ?? Object.keys(signal ?? {}).at(-1);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const reportID = transaction?.reportID;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -48,7 +85,7 @@ function ExpenseAddedGrowl() {
     // action so "View" resolves the real transaction thread (the action's childReportID) instead of fabricating
     // a mismatched optimistic one.
     const isUnreportedExpense = !reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const selfDMReportID = transactionID && isUnreportedExpense ? findSelfDMReportID() : undefined;
+    const selfDMReportID = isUnreportedExpense ? findSelfDMReportID() : undefined;
     const hostReportID = isUnreportedExpense ? selfDMReportID : reportID;
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${hostReportID}`);
     // Only IOU/expense/invoice reports have the expense-report RHP that "View" opens. A tracked/unreported
@@ -88,7 +125,7 @@ function ExpenseAddedGrowl() {
         }
         nonceRef.current += 1;
         setActive({transactionID: latestTransactionID, dataType, nonce: nonceRef.current});
-    }, [signal, active, transaction]);
+    }, [signal, active, transaction, setActive]);
 
     if (!active) {
         return null;
