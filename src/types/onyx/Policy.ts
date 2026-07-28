@@ -1473,7 +1473,7 @@ type FinancialForceConnectionData = {
 
 /** Certinia credentials (Salesforce / Certinia org); fields populate as OAuth / sync complete */
 type FinancialForceCredentials = {
-    /** Certinia company ID */
+    /** Salesforce organization ID */
     companyID?: string;
 
     /** Salesforce enterprise / instance URL */
@@ -1563,6 +1563,9 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the connection has been fully set up */
         isConfigured?: boolean;
+
+        /** FFA Accounting Company ID */
+        company?: string;
 
         /** Certinia import / coding settings */
         coding: FinancialForceCodingConfig;

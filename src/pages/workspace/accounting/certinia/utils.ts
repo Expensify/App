@@ -122,10 +122,15 @@ function isCertiniaFFAConnection(config: FinancialForceConnectionConfig | undefi
     return config?.hasPSAOnly === false;
 }
 
+function getCertiniaSelectedCompanyID(config: FinancialForceConnectionConfig | undefined): string | undefined {
+    return config?.hasPSA ? config.export?.companyID : config?.company;
+}
+
 export {
     CERTINIA_DIMENSION_PARAMS,
     CERTINIA_FFA_EXPORT_STATUSES,
     dimensionParamToNumber,
+    getCertiniaSelectedCompanyID,
     getCertiniaReportExportStatusValue,
     getCertiniaFFAExportStatusValue,
     getDimensionLabel,
