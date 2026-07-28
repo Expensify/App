@@ -41,15 +41,14 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
     const theme = useTheme();
     const shouldUseLightMarketingWindow = theme.colorScheme === CONST.COLOR_SCHEME.DARK;
     const shouldUseCompactNarrowLayout = shouldUseNarrowLayout && isExtraSmallScreenHeight && isInLandscapeMode;
+    const narrowBottomPadding = Math.max(styles.pb5.paddingBottom, insets.bottom - variables.productMarketingWindowOffsetNarrow);
     const buttonSize = shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL;
 
     return (
         <View
             style={[
                 styles.productMarketingWindowAnchor,
-                shouldUseNarrowLayout
-                    ? [styles.productMarketingWindowAnchorNarrow, {bottom: variables.productMarketingWindowOffsetNarrow + insets.bottom}]
-                    : styles.productMarketingWindowAnchorWide,
+                shouldUseNarrowLayout ? [styles.productMarketingWindowAnchorNarrow, {bottom: variables.productMarketingWindowOffsetNarrow}] : styles.productMarketingWindowAnchorWide,
             ]}
             // Let presses in the side gutters (visible when the narrow card is clamped below the viewport width) reach the app behind.
             pointerEvents="box-none"
@@ -61,7 +60,11 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                     shouldUseLightMarketingWindow ? styles.productMarketingWindowContainerLight : styles.productMarketingWindowContainerDark,
                     styles.p5,
                     shouldUseNarrowLayout
-                        ? [styles.productMarketingWindowContainerNarrow, shouldUseCompactNarrowLayout && styles.productMarketingWindowContainerNarrowCompact]
+                        ? [
+                              styles.productMarketingWindowContainerNarrow,
+                              shouldUseCompactNarrowLayout && styles.productMarketingWindowContainerNarrowCompact,
+                              {paddingBottom: narrowBottomPadding},
+                          ]
                         : styles.productMarketingWindowContainerWide,
                 ]}
                 testID={ProductMarketingWindow.displayName}

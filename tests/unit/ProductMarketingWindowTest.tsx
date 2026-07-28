@@ -12,6 +12,7 @@ import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 
 import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,6 +42,7 @@ const USER_ACCOUNT_ID = 7;
 const OLDER_UPDATE_KEY = 'productUpdateJune2026';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+jest.mock('@hooks/useSafeAreaInsets', () => jest.fn());
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -66,6 +68,7 @@ if (!announcement) {
 const mockSetNameValuePair = jest.mocked(setNameValuePair);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
+const mockUseSafeAreaInsets = jest.mocked(useSafeAreaInsets);
 
 const adminHeading = en.productMarketingWindow.roleTypes.admin.heading;
 const adminBody = en.productMarketingWindow.roleTypes.admin.body;
@@ -120,6 +123,7 @@ describe('ProductMarketingWindowManager', () => {
 
     beforeEach(() => {
         mockUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE});
+        mockUseSafeAreaInsets.mockReturnValue({top: 0, right: 0, bottom: 0, left: 0});
     });
 
     afterEach(async () => {
@@ -606,6 +610,7 @@ describe('ProductMarketingWindowManager', () => {
     });
 
     it('uses the near-full-width bottom card on narrow layouts', async () => {
+        mockUseSafeAreaInsets.mockReturnValue({top: 0, right: 0, bottom: 34, left: 0});
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
             await waitForBatchedUpdatesWithAct();
@@ -624,6 +629,8 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByTestId('ProductMarketingWindow')).toHaveStyle({
             width: '100%',
             maxWidth: variables.productMarketingWindowMaxWidthNarrow,
+            padding: 20,
+            paddingBottom: 22,
         });
         expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({minHeight: variables.componentSizeNormal});
         expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({minHeight: variables.componentSizeNormal});
