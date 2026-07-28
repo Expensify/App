@@ -6,7 +6,7 @@ import ROUTES from '@src/ROUTES';
 
 import type * as RHPVariantTest from '../../../../src/components/SidePanel/RHPVariantTest/index';
 
-const mockGetCentralPaneReportID = jest.fn<string | undefined, []>(() => undefined);
+const mockIsReportRevealedInTopmostSplitNavigator = jest.fn<boolean, []>(() => false);
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
@@ -35,9 +35,9 @@ jest.mock('react-native-onyx', () => ({
     },
 }));
 
-jest.mock('@libs/Navigation/helpers/getCentralPaneReportID', () => ({
+jest.mock('@libs/Navigation/helpers/isReportRevealedInTopmostSplitNavigator', () => ({
     __esModule: true,
-    default: () => mockGetCentralPaneReportID(),
+    default: () => mockIsReportRevealedInTopmostSplitNavigator(),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -59,11 +59,11 @@ const {handleRHPVariantNavigation} = jest.requireActual<typeof RHPVariantTest>('
 describe('handleRHPVariantNavigation', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetCentralPaneReportID.mockReturnValue(undefined);
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(false);
     });
 
     it('preserves the revealed report for the rhpHomePage variant', () => {
-        mockGetCentralPaneReportID.mockReturnValue('reportID');
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(true);
 
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE);
 
@@ -79,7 +79,7 @@ describe('handleRHPVariantNavigation', () => {
     });
 
     it('preserves the revealed report for the trackExpensesWithConcierge variant and opens the side panel on top of it', () => {
-        mockGetCentralPaneReportID.mockReturnValue('reportID');
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(true);
 
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
 
@@ -89,7 +89,7 @@ describe('handleRHPVariantNavigation', () => {
 
     it('navigates home for the trackExpensesWithConcierge variant when the Inbox tab is topmost but no report is revealed', () => {
         // Reproduces the reported bug: the Reports split navigator is topmost showing only the empty Inbox
-        // sidebar (getCentralPaneReportID returns undefined), so onboarding must still land the user on Home.
+        // sidebar (isReportRevealedInTopmostSplitNavigator returns false), so onboarding must still land the user on Home.
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME);

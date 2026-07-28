@@ -21,7 +21,7 @@ const REPORT_ID = '3';
 const USER_ID = '4';
 const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
 const mockShouldOpenOnAdminRoom = jest.fn();
-const mockGetCentralPaneReportID = jest.fn<string | undefined, []>(() => undefined);
+const mockIsReportRevealedInTopmostSplitNavigator = jest.fn<boolean, []>(() => false);
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
@@ -74,9 +74,9 @@ jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
     default: () => mockShouldOpenOnAdminRoom() as boolean,
 }));
 
-jest.mock('@libs/Navigation/helpers/getCentralPaneReportID', () => ({
+jest.mock('@libs/Navigation/helpers/isReportRevealedInTopmostSplitNavigator', () => ({
     __esModule: true,
-    default: () => mockGetCentralPaneReportID(),
+    default: () => mockIsReportRevealedInTopmostSplitNavigator(),
 }));
 
 describe('navigateAfterOnboarding', () => {
@@ -88,7 +88,7 @@ describe('navigateAfterOnboarding', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockGetCentralPaneReportID.mockReturnValue(undefined);
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(false);
         return Onyx.clear();
     });
 
@@ -112,7 +112,7 @@ describe('navigateAfterOnboarding', () => {
     it('should preserve the revealed report if onboardingAdminsChatReportID is not provided on larger screens', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         // A real report is revealed in the topmost split navigator, so we should not yank the user to Home.
-        mockGetCentralPaneReportID.mockReturnValue(REPORT_ID);
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(true);
 
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
         expect(navigate).not.toHaveBeenCalled();
@@ -121,8 +121,8 @@ describe('navigateAfterOnboarding', () => {
     it('should navigate to home when the Inbox tab is topmost but no report is revealed on larger screens', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         // The Reports split navigator can be topmost showing only the empty Inbox sidebar (no report revealed).
-        // getCentralPaneReportID returns undefined in that case, so we must still land the onboarding user on Home.
-        mockGetCentralPaneReportID.mockReturnValue(undefined);
+        // isReportRevealedInTopmostSplitNavigator returns false in that case, so we must still land the onboarding user on Home.
+        mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(false);
 
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME);
