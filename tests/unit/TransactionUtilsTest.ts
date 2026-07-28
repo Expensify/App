@@ -10,7 +10,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
+import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -3320,6 +3320,120 @@ describe('TransactionUtils', () => {
                 expect(result.change.category).toEqual(expect.arrayContaining(['Food', 'Travel']));
                 expect(result.change.billable).toEqual(expect.arrayContaining([true, false]));
             });
+        });
+    });
+
+    describe('buildMergeDuplicatesParams', () => {
+        const MERGE_KEPT_OPEN_REPORT_ID = 'mergeKeptOpenReport';
+        const MERGE_SUBMITTED_REPORT_ID = 'mergeSubmittedReport';
+        const MERGE_APPROVED_REPORT_ID = 'mergeApprovedReport';
+        const MERGE_CLOSED_REPORT_ID = 'mergeClosedReport';
+        const MERGE_REIMBURSED_REPORT_ID = 'mergeReimbursedReport';
+
+        beforeAll(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${MERGE_KEPT_OPEN_REPORT_ID}`]: {
+                    reportID: MERGE_KEPT_OPEN_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}${MERGE_SUBMITTED_REPORT_ID}`]: {
+                    reportID: MERGE_SUBMITTED_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}${MERGE_APPROVED_REPORT_ID}`]: {
+                    reportID: MERGE_APPROVED_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+                // Submit & Close workspaces leave the report approved but closed, the state from the reported bug.
+                [`${ONYXKEYS.COLLECTION.REPORT}${MERGE_CLOSED_REPORT_ID}`]: {
+                    reportID: MERGE_CLOSED_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}${MERGE_REIMBURSED_REPORT_ID}`]: {
+                    reportID: MERGE_REIMBURSED_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                },
+            });
+            await waitForBatchedUpdates();
+        });
+
+        function buildReviewDuplicates(keptTransactionID: string, duplicateIDs: string[]): ReviewDuplicates {
+            return {
+                transactionID: keptTransactionID,
+                duplicates: duplicateIDs,
+                reportID: MERGE_KEPT_OPEN_REPORT_ID,
+                merchant: '',
+                category: '',
+                tag: '',
+                taxCode: '',
+                taxAmount: 0,
+                description: '',
+                comment: {},
+                reimbursable: true,
+                billable: false,
+            };
+        }
+
+        it('keeps only duplicates whose report is open or awaiting first approval', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const openDuplicate = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const submittedDuplicate = generateTransaction({reportID: MERGE_SUBMITTED_REPORT_ID});
+            const approvedDuplicate = generateTransaction({reportID: MERGE_APPROVED_REPORT_ID});
+            const closedDuplicate = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
+            const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
+            const duplicates = [openDuplicate, submittedDuplicate, approvedDuplicate, closedDuplicate, reimbursedDuplicate];
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([openDuplicate.transactionID, submittedDuplicate.transactionID]);
+        });
+
+        it('excludes a duplicate on a Submit & Close (approved and closed) report', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const closedDuplicate = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(keptTransaction.transactionID, [closedDuplicate.transactionID]),
+                [closedDuplicate],
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([]);
+        });
+
+        it('returns an empty transactionIDList when every duplicate is non-editable', () => {
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const approvedDuplicate = generateTransaction({reportID: MERGE_APPROVED_REPORT_ID});
+            const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
+            const duplicates = [approvedDuplicate, reimbursedDuplicate];
+
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+            );
+
+            expect(params.transactionIDList).toEqual([]);
         });
     });
 
