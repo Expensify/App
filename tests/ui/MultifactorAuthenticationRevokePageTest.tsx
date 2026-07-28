@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import type {ConfirmModalProps} from '@components/ConfirmModal';
+
+import type * as MultifactorAuthentication from '@libs/actions/MultifactorAuthentication';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
@@ -11,7 +14,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 jest.mock('@libs/API');
-const mockAPI = API as jest.Mocked<typeof API>;
+const mockAPI = jest.mocked(API);
 
 let mockBiometricStatus = {
     localCredentialID: undefined as string | undefined,
@@ -26,9 +29,11 @@ jest.mock('@hooks/useBiometricRegistrationStatus', () => ({
     default: () => mockBiometricStatus,
 }));
 
-const mockRevokeCredentials = jest.fn().mockResolvedValue({httpStatusCode: 200});
+const mockRevokeCredentials = jest
+    .fn<ReturnType<typeof MultifactorAuthentication.revokeMultifactorAuthenticationCredentials>, Parameters<typeof MultifactorAuthentication.revokeMultifactorAuthenticationCredentials>>()
+    .mockResolvedValue({httpStatusCode: 200});
 jest.mock('@libs/actions/MultifactorAuthentication', () => ({
-    revokeMultifactorAuthenticationCredentials: (...args: unknown[]): Promise<{httpStatusCode: number}> => mockRevokeCredentials(...args) as Promise<{httpStatusCode: number}>,
+    revokeMultifactorAuthenticationCredentials: mockRevokeCredentials,
 }));
 
 jest.mock('@userActions/User', () => ({
@@ -93,10 +98,22 @@ jest.mock('@components/FormHelpMessage', () => {
     return MockFormHelpMessage;
 });
 
-let capturedConfirmModalProps: Record<string, unknown> = {};
+type CapturedConfirmModalProps = Omit<ConfirmModalProps, 'onConfirm' | 'onCancel'> & {
+    onConfirm: ConfirmModalProps['onConfirm'];
+    onCancel: NonNullable<ConfirmModalProps['onCancel']>;
+};
+
+let capturedConfirmModalProps: CapturedConfirmModalProps = {
+    isVisible: false,
+    onConfirm: () => {},
+    onCancel: () => {},
+};
 jest.mock('@components/ConfirmModal', () => {
-    function MockConfirmModal(props: Record<string, unknown>) {
-        capturedConfirmModalProps = props;
+    function MockConfirmModal(props: ConfirmModalProps) {
+        capturedConfirmModalProps = {
+            ...props,
+            onCancel: props.onCancel ?? (() => {}),
+        };
         return null;
     }
     MockConfirmModal.displayName = 'ConfirmModal';
@@ -117,7 +134,11 @@ function setBiometricStatus(overrides: Partial<typeof mockBiometricStatus>) {
 describe('MultifactorAuthenticationRevokePage', () => {
     afterEach(() => {
         jest.clearAllMocks();
-        capturedConfirmModalProps = {};
+        capturedConfirmModalProps = {
+            isVisible: false,
+            onConfirm: () => {},
+            onCancel: () => {},
+        };
     });
 
     describe('Bottom button text', () => {
@@ -298,9 +319,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
             const thisDeviceButton = revokeButtons.at(0);
             expect(thisDeviceButton).toBeTruthy();
             fireEvent.press(thisDeviceButton!);
-            const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
             await act(async () => {
-                onConfirm();
+                capturedConfirmModalProps.onConfirm();
             });
 
             // Then the API should be called with onlyKeyID matching this device's key
@@ -318,9 +338,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
             const otherDevicesButton = revokeButtons.at(1);
             expect(otherDevicesButton).toBeTruthy();
             fireEvent.press(otherDevicesButton!);
-            const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
             await act(async () => {
-                onConfirm();
+                capturedConfirmModalProps.onConfirm();
             });
 
             // Then the API should be called with exceptKeyID to preserve this device's registration
@@ -337,9 +356,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
             const otherDevicesButton = revokeButtons.at(0);
             expect(otherDevicesButton).toBeTruthy();
             fireEvent.press(otherDevicesButton!);
-            const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
             await act(async () => {
-                onConfirm();
+                capturedConfirmModalProps.onConfirm();
             });
 
             // Then the API should be called with empty params to revoke all credentials
@@ -354,9 +372,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user confirms revoking all via the bottom "Revoke all" button
             render(<MultifactorAuthenticationRevokePage />);
             fireEvent.press(screen.getByText('multifactorAuthentication.revoke.ctaAll'));
-            const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
             await act(async () => {
-                onConfirm();
+                capturedConfirmModalProps.onConfirm();
             });
 
             // Then the API should be called with empty params to revoke every credential
@@ -376,9 +393,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
             expect(thisDeviceButton).toBeTruthy();
             fireEvent.press(thisDeviceButton!);
 
-            const onConfirm = capturedConfirmModalProps.onConfirm as () => Promise<void>;
             await act(async () => {
-                await onConfirm();
+                await Promise.resolve(capturedConfirmModalProps.onConfirm());
             });
 
             expect(mockRevokeCredentials).toHaveBeenCalled();
@@ -406,9 +422,8 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
             expect(capturedConfirmModalProps.isVisible).toBe(true);
 
-            const onCancel = capturedConfirmModalProps.onCancel as () => void;
             act(() => {
-                onCancel();
+                capturedConfirmModalProps.onCancel();
             });
 
             expect(capturedConfirmModalProps.isVisible).toBe(false);
