@@ -33,6 +33,7 @@ import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
 import {
@@ -270,7 +271,13 @@ function ReportActionItem({
         // would wrongly delete an existing server-backed chat when only the new IOU report should be cleaned up.
         if (reportID && chatReport?.errorFields?.createChat) {
             const chatReportIDToDelete = report?.chatReportID ?? reportID;
-            Navigation.goBack(undefined, {afterTransition: () => deleteReport(chatReportIDToDelete, true)});
+            // Navigate the user out of the chat we're about to delete, then delete it. We schedule the delete
+            // independently of goBack rather than via its afterTransition callback: goBack skips afterTransition
+            // when it can't navigate (e.g. the failed chat is the first route after a reload/deep link and there
+            // is no back stack), which would leave the orphaned chat/IOU report in place. runAfterTransitions with
+            // waitForUpcomingTransition has a timeout, so the delete still fires even when goBack can't navigate.
+            Navigation.goBack();
+            TransitionTracker.runAfterTransitions({callback: () => deleteReport(chatReportIDToDelete, true), waitForUpcomingTransition: true});
             return;
         }
 

@@ -4564,20 +4564,14 @@ function clearCreateChatError(
     currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
     conciergePersonalDetail: OnyxEntry<PersonalDetails>,
 ) {
-    const metaData = getReportMetadata(report?.reportID);
-    const isOptimisticReport = metaData?.isOptimisticReport;
-    // A brand-new chat whose server creation failed (e.g. via a failed new-chat expense, see #93542) is reset
-    // to non-optimistic so it can load instead of spinning on an infinite skeleton. In that state a plain error
-    // clear would leave the chat + its linked IOU report orphaned, so dismissing it must remove the chat
-    // entirely — mirroring the failed-expense dismiss path. deleteReport cascades to the IOU report and
-    // transaction thread(s), and we navigate the user out of the now-deleted chat. Only a failed phantom chat
-    // ever reaches this branch: an existing chat's IOU report also carries createChat, but that is handled on
-    // the expense-dismiss path in ReportActionItem, so a non-optimistic report here is always a failed chat.
-    if (report?.errorFields?.createChat && !isOptimisticReport) {
-        Navigation.goBack(undefined, {afterTransition: () => deleteReport(report.reportID, true)});
-        return;
-    }
-
+    // Dismissing the created-row error on a failed brand-new chat must remove the chat entirely (see #93542):
+    // a plain error clear would leave the chat + its linked IOU report orphaned. navigateToConciergeChatAndDeleteReport
+    // deletes the chat (cascading to the IOU report and transaction thread(s)) and navigates the user to Concierge.
+    // It routes the delete through a `navigate` (not `goBack`), so the cleanup still runs when the failed chat is the
+    // first route after a reload/deep link and there is no back stack — unlike Navigation.goBack, which skips its
+    // afterTransition callback when it can't navigate. Only a failed phantom chat's chat report ever reaches here
+    // with errorFields.createChat: an existing chat's IOU report also carries createChat, but that is handled on the
+    // expense-dismiss path in ReportActionItem, so this is always a failed chat that should be deleted.
     navigateToConciergeChatAndDeleteReport(
         report?.reportID,
         conciergeReportID,
