@@ -15,7 +15,6 @@ import useNetwork from '@hooks/useNetwork';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import * as ReportActions from '@libs/actions/Report';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
@@ -231,7 +230,7 @@ const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
     const cashOrCard = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
     const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
-    const transactionDisplayAmount = convertToDisplayString(-transaction.amount, transaction.currency);
+    const transactionDisplayAmount = TestHelper.convertToDisplayString(-transaction.amount, transaction.currency);
     return {transactionHeaderText, transactionDisplayAmount};
 };
 
@@ -343,7 +342,7 @@ describe('MoneyRequestReportPreview', () => {
 
         const {totalDisplaySpend} = ReportUtils.getMoneyRequestSpendBreakdown(mockIOUReport);
         expect(screen.getByText(TestHelper.translateLocal('common.total'))).toBeOnTheScreen();
-        expect(screen.getAllByText(convertToDisplayString(totalDisplaySpend, mockIOUReport.currency)).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(TestHelper.convertToDisplayString(totalDisplaySpend, mockIOUReport.currency)).length).toBeGreaterThan(0);
     });
 
     it('hides the report total when the preview has a single transaction', async () => {
