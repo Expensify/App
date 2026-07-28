@@ -515,6 +515,24 @@ describe('ReportActionAvatars', () => {
             },
         );
 
+        it.each([CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE])(
+            'does not let "%s" sorting reorder the primary and subscript avatars',
+            async (sort) => {
+                const retrievedData = await retrieveDataFromAvatarView({reportID: iouReport.reportID, sort});
+
+                // The user stays the main avatar and the workspace stays the subscript regardless of sorting
+                isSubscriptAvatarRendered(retrievedData);
+            },
+        );
+
+        it.each([CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE])(
+            'does not let "%s" sorting reorder diagonal avatars',
+            async (sort) => {
+                const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], sort});
+                isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
+            },
+        );
+
         it.each([CONST.AVATAR_SIZE.SMALL, CONST.AVATAR_SIZE.SMALL_NORMAL, CONST.AVATAR_SIZE.X_LARGE])('renders a subscript avatar at size "%s"', async (size) => {
             const retrievedData = await retrieveDataFromAvatarView({reportID: iouReport.reportID, size});
             isSubscriptAvatarRendered(retrievedData);

@@ -1,4 +1,7 @@
-import IconsAvatar from '@components/Avatar/IconsAvatar';
+import DiagonalAvatars from '@components/Avatar/layouts/DiagonalAvatars';
+import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
+import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
+import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 import type {AvatarIcon} from '@components/Avatar/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
@@ -36,6 +39,8 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
+    const avatarSize = isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    const shouldShowTooltip = shouldOptionShowTooltip(optionItem);
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(optionItem?.parentReportAction);
 
@@ -66,16 +71,45 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
         }
     }
 
+    const avatarType = optionItem.shouldShowSubscript ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL;
+    const {layout, primaryIcon, secondaryIcon} = getAvatarLayout({icons, avatarType});
+
+    if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && primaryIcon && secondaryIcon) {
+        return (
+            <SubscriptAvatar
+                primaryAvatar={primaryIcon}
+                secondaryAvatar={secondaryIcon}
+                size={avatarSize}
+                shouldShowTooltip={shouldShowTooltip}
+                subscriptAvatarBorderColor={avatarBackgroundColor}
+            />
+        );
+    }
+
+    if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && primaryIcon && secondaryIcon) {
+        return (
+            <DiagonalAvatars
+                shouldShowTooltip={shouldShowTooltip}
+                size={avatarSize}
+                // Only the two rendered icons are passed: a longer array makes DiagonalAvatars replace the secondary avatar with a "+N" overflow count.
+                icons={[primaryIcon, secondaryIcon]}
+                isInReportAction={false}
+                shouldUseMidSubscriptSize={isInFocusMode}
+                secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBackgroundColor)}
+            />
+        );
+    }
+
+    if (!primaryIcon) {
+        return null;
+    }
+
     return (
-        <IconsAvatar
-            icons={icons}
-            avatarType={optionItem.shouldShowSubscript ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL}
-            size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-            subscriptAvatarBorderColor={avatarBackgroundColor}
-            shouldUseMidSubscriptSize={isInFocusMode}
-            secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBackgroundColor)}
-            singleAvatarContainerStyle={singleAvatarContainerStyle}
-            shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
+        <SingleAvatar
+            avatar={primaryIcon}
+            size={avatarSize}
+            containerStyles={singleAvatarContainerStyle}
+            shouldShowTooltip={shouldShowTooltip}
         />
     );
 }

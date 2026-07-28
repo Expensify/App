@@ -1,4 +1,3 @@
-import Avatar from '@components/Avatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -19,6 +18,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {MultipleAvatarsProps} from './types';
+
+import Avatar from '..';
 
 type AvatarStyles = {
     singleAvatarStyle: ViewStyle & ImageStyle;

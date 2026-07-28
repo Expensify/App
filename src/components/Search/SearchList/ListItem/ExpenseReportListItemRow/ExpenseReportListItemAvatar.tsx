@@ -1,4 +1,7 @@
-import IconsAvatar from '@components/Avatar/IconsAvatar';
+import DiagonalAvatars from '@components/Avatar/layouts/DiagonalAvatars';
+import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
+import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
+import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 import type {ExpenseReportListItemType} from '@components/Search/SearchList/ListItem/types';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 
@@ -28,20 +31,52 @@ function ExpenseReportListItemAvatar({item, showTooltip, isHovered = false, isFo
     const finalAvatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(isSelected, isFocused || isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
-    const icons = [item.primaryAvatar, item.secondaryAvatar].filter((icon) => icon !== undefined);
-    const avatarSize = isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    // Without a primary avatar there is nothing to anchor the row on, and compacting the array would promote the secondary avatar into the primary slot.
+    if (!item.primaryAvatar) {
+        return null;
+    }
 
-    return (
-        <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>
-            <IconsAvatar
-                icons={icons}
-                avatarType={item.avatarType}
+    const icons = item.secondaryAvatar ? [item.primaryAvatar, item.secondaryAvatar] : [item.primaryAvatar];
+    const avatarSize = isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    const {layout, primaryIcon, secondaryIcon} = getAvatarLayout({icons, avatarType: item.avatarType});
+
+    let avatarContent;
+    if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && primaryIcon && secondaryIcon) {
+        avatarContent = (
+            <SubscriptAvatar
+                primaryAvatar={primaryIcon}
+                secondaryAvatar={secondaryIcon}
                 size={avatarSize}
                 shouldShowTooltip={showTooltip}
                 subscriptAvatarBorderColor={finalAvatarBorderColor}
             />
-        </View>
-    );
+        );
+    } else if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL) {
+        avatarContent = (
+            <DiagonalAvatars
+                shouldShowTooltip={showTooltip}
+                size={avatarSize}
+                icons={icons}
+                isInReportAction={false}
+                shouldUseMidSubscriptSize={false}
+            />
+        );
+    } else if (primaryIcon) {
+        avatarContent = (
+            <SingleAvatar
+                avatar={primaryIcon}
+                size={avatarSize}
+                containerStyles={StyleUtils.getContainerStyles(avatarSize)}
+                shouldShowTooltip={showTooltip}
+            />
+        );
+    }
+
+    if (!avatarContent) {
+        return null;
+    }
+
+    return <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>{avatarContent}</View>;
 }
 
 export default ExpenseReportListItemAvatar;

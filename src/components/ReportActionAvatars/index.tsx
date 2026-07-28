@@ -1,4 +1,5 @@
 import DiagonalAvatars from '@components/Avatar/layouts/DiagonalAvatars';
+import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
 import HorizontalAvatars from '@components/Avatar/layouts/HorizontalAvatars';
 import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
@@ -34,7 +35,7 @@ type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 type ReportActionAvatarsProps = {
     horizontalStacking?: HorizontalStackingOptions | boolean;
 
-    /** How to order the avatars before rendering them. Applies to every layout */
+    /** How to order the avatars before rendering them. Only applies to a horizontal stack, where every avatar sits in an equivalent slot */
     sort?: SortingOptions | SortingOptions[];
 
     /** Report ID for the report action avatars */
@@ -176,8 +177,26 @@ function ReportActionAvatars({
         shouldUseRealActor,
     });
 
+    if (!unsortedIcons.length) {
+        return null;
+    }
+
+    const {
+        layout: avatarType,
+        primaryIcon: primaryAvatar,
+        secondaryIcon: secondaryAvatar,
+    } = getAvatarLayout({
+        icons: unsortedIcons,
+        avatarType: notPreciseAvatarType,
+        shouldStackHorizontally,
+        hasCardFeed: !!subscriptCardFeed,
+        shouldRequireSecondaryIconName: true,
+    });
+
+    // Sorting only reorders a horizontal stack. The other layouts assign meaning to each position — the primary avatar and
+    // the subscript/diagonal secondary — so reordering there would swap which icon lands in which slot.
     let icons: IconType[] = unsortedIcons;
-    if (sortAvatars) {
+    if (sortAvatars && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL) {
         if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
             icons = sortIconsByName(unsortedIcons, allPersonalDetails, localeCompare);
         } else if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
@@ -189,17 +208,10 @@ function ReportActionAvatars({
         }
     }
 
-    let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
-
-    if (!icons.length) {
+    if (!primaryAvatar) {
         return null;
     }
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE) {
-        avatarType = shouldStackHorizontally ? CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL : CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL;
-    }
-
-    const [primaryAvatar, secondaryAvatar] = icons;
     const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(source.action);
     const singleAvatar: AvatarIcon =
         delegateAccountID && delegateAccountIDFromAction
@@ -212,7 +224,7 @@ function ReportActionAvatars({
               }
             : primaryAvatar;
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && (!!secondaryAvatar?.name || !!subscriptCardFeed)) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT) {
         return (
             <SubscriptAvatar
                 primaryAvatar={primaryAvatar}
@@ -242,7 +254,7 @@ function ReportActionAvatars({
         );
     }
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && !!secondaryAvatar?.name) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL) {
         return (
             <DiagonalAvatars
                 shouldShowTooltip={shouldShowTooltip}
