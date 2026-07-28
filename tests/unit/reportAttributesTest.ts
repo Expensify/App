@@ -582,7 +582,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         // Seed previousPolicies so an unchanged policy would normally narrow to nothing.
         config.compute(buildArgs(), {
             currentValue: undefined,
-            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
@@ -602,7 +602,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         // is true and the referencing reports recompute.
         const result = config.compute(buildArgs(), {
             currentValue: existingValue,
-            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
