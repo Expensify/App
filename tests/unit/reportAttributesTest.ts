@@ -285,8 +285,8 @@ describe('reportAttributes compute — policy change code flow', () => {
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
-        // approvalMode is a badge-relevant field; the policy name is unchanged.
-        const policy1Changed = {...policy1, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL} as unknown as Policy;
+        // reimbursementChoice is a badge-relevant field that no report name reads.
+        const policy1Changed = {...policy1, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO} as unknown as Policy;
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
             [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed,
@@ -326,7 +326,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         });
 
         // Both a badge field and the name change — the report name must be recomputed.
-        const policy1Changed = {...policy1, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, name: 'Renamed Policy'} as unknown as Policy;
+        const policy1Changed = {...policy1, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, name: 'Renamed Policy'} as unknown as Policy;
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
             [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed,
@@ -355,9 +355,115 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result?.reports.r2?.reportName).toBe('Old Name 2');
     });
 
-    it('recomputes invoice names when only the receiver policy role changes', () => {
-        // Invoice room names read the receiver policy `role` (isPolicyAdmin in getInvoicesChatName),
-        // so a role-only change on the receiver policy must not reuse the cached name.
+    // approvalMode/role feed only *thread* names (submitted-thread "marked as done"; rules link in
+    // MODIFIED_EXPENSE messages), so only threads forgo the badge-only skip when they change — plain
+    // reports on the same policy keep their cached name.
+    it.each([
+        ['approvalMode', {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL}],
+        ['role', {role: CONST.POLICY.ROLE.USER}],
+    ])('recomputes only thread names when a thread-name-affecting policy field changes (%s)', (_field, policyPatch) => {
+        const thread: Report = {
+            ...createRandomReport(40, undefined),
+            reportID: 'thread1',
+            policyID: 'policy1',
+            parentReportID: 'r1',
+            parentReportActionID: 'action1',
+            chatReportID: undefined,
+            participants: {},
+        };
+        const reportsWithThread: OnyxCollection<Report> = {...reports, [`${ONYXKEYS.COLLECTION.REPORT}thread1`]: thread};
+
+        // Seed previousPolicies by doing an initial compute
+        config.compute(buildArgs(undefined, reportsWithThread), {
+            currentValue: undefined,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+        });
+
+        const policy1Changed: Policy = {...policy1, ...policyPatch};
+        const updatedPolicies: OnyxCollection<Policy> = {
+            ...policies,
+            [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed,
+        };
+
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Old Name 2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                thread1: {reportName: 'Old Thread Name', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+        };
+
+        const result = config.compute(buildArgs(updatedPolicies, reportsWithThread), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+        });
+
+        // The thread's name reads the changed field → recomputed.
+        expect(result?.reports.thread1?.reportName).toBe('Test Report');
+        // A plain report on the same policy keeps the badge-only skip.
+        expect(result?.reports.r1?.reportName).toBe('Old Name 1');
+        // r2 (policy2 unchanged) keeps its value from currentValue.
+        expect(result?.reports.r2?.reportName).toBe('Old Name 2');
+    });
+
+    // fieldList emptiness feeds only the "New Report" fallback for money-request reports with an empty
+    // reportName. A mass flush delivering fieldList for every policy (the first OpenSearchPage) must NOT
+    // recompute every report's name — only empty-named money-request reports.
+    it('recomputes only empty-named money-request report names when fieldList emptiness changes', () => {
+        const emptyNameExpense: Report = {
+            ...createRandomReport(41, undefined),
+            reportID: 'exp1',
+            policyID: 'policy1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            reportName: '',
+            chatReportID: undefined,
+            participants: {},
+        };
+        const reportsWithExpense: OnyxCollection<Report> = {...reports, [`${ONYXKEYS.COLLECTION.REPORT}exp1`]: emptyNameExpense};
+
+        // Seed previousPolicies by doing an initial compute (basePolicy has no fieldList → empty).
+        config.compute(buildArgs(undefined, reportsWithExpense), {
+            currentValue: undefined,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+        });
+
+        // fieldList arrives → emptiness flips. Not a badge field, so this alone must still be detected.
+        const policy1Changed = {...policy1, fieldList: {textTitle: {name: 'title'}}} as unknown as Policy;
+        const updatedPolicies: OnyxCollection<Policy> = {
+            ...policies,
+            [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed,
+        };
+
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Old Name 1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Old Name 2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                exp1: {reportName: 'New Report', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+        };
+
+        const result = config.compute(buildArgs(updatedPolicies, reportsWithExpense), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+        });
+
+        // The empty-named expense report reads fieldList emptiness → recomputed.
+        expect(result?.reports.exp1?.reportName).toBe('Test Report');
+        // A plain report on the same policy keeps its cached name — the mass-flush hot path stays fast.
+        expect(result?.reports.r1?.reportName).toBe('Old Name 1');
+        // r2 (policy2 unchanged) keeps its value from currentValue.
+        expect(result?.reports.r2?.reportName).toBe('Old Name 2');
+    });
+
+    it('recomputes invoice names when only a receiver policy badge field changes', () => {
+        // Invoice room names read the receiver policy (isPolicyAdmin in getInvoicesChatName), so a
+        // receiver-policy match must never reuse the cached name — even for a badge-only change.
         const senderPolicy: Policy = {...basePolicy, id: 'senderPolicy'};
         const receiverPolicy: Policy = {...basePolicy, id: 'receiverPolicy'};
 
@@ -390,8 +496,8 @@ describe('reportAttributes compute — policy change code flow', () => {
             locale: null,
         };
 
-        // Receiver policy role changes — a tracked badge field, name untouched.
-        const receiverPolicyChanged: Policy = {...receiverPolicy, role: CONST.POLICY.ROLE.USER};
+        // Receiver policy reimbursementChoice changes — a tracked badge field that no name reads.
+        const receiverPolicyChanged: Policy = {...receiverPolicy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO};
         const result = config.compute(buildArgs({...bothPolicies, [`${ONYXKEYS.COLLECTION.POLICY}receiverPolicy`]: receiverPolicyChanged}, invoiceReports), {
             currentValue: existingValue,
             sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}receiverPolicy`]: receiverPolicyChanged}},
@@ -410,7 +516,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
-        const policy1Changed = {...policy1, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL} as unknown as Policy;
+        const policy1Changed = {...policy1, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO} as unknown as Policy;
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
             [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed,
