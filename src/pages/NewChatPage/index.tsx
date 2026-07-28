@@ -82,8 +82,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    // The group chat draft always stores the selected participants plus the current user as the creator.
-    // Returns an empty array when the current user's details aren't loaded yet, in which case the draft must not be written.
+    // Builds the draft participants (selection plus the current user as creator). Empty when the current user isn't loaded yet.
     const buildDraftParticipants = (options: OptionData[]): SelectedParticipant[] => {
         if (!personalData?.login || !personalData?.accountID) {
             return [];
@@ -100,7 +99,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         ];
     };
 
-    // Persist the current selection (plus the creator) to the group chat draft so an in-progress group survives navigation/reload.
+    // Persist the selection to the group chat draft so an in-progress group survives navigation/reload.
     const updateGroupDraft = (newSelectedOptions: OptionData[]) => {
         const participants = buildDraftParticipants(newSelectedOptions);
         if (!participants.length) {

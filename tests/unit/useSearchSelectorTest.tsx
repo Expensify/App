@@ -644,6 +644,24 @@ describe('useSearchSelector phone contact de-duplication', () => {
         expect(personalDetails.at(0)?.accountID).toBe(100);
     });
 
+    it('keeps an imported contact when the only matching Onyx entry is optimistic', async () => {
+        // An optimistic personal detail is filtered out by getValidOptions, so it must not suppress the real device contact.
+        mockFilteredPersonalDetails.current = [{...EXISTING_CONTACT, isOptimisticPersonalDetail: true}];
+
+        renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                contactOptions: [makeDeviceContact('alice@expensify.com', 987654, 'Alice From Phone')],
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        const personalDetails = getPersonalDetailsPassedToGetValidOptions();
+        const aliceContact = personalDetails.find((option) => option.login === 'alice@expensify.com' && option.accountID === 987654);
+        expect(aliceContact).toBeDefined();
+    });
+
     it('keeps all imported contacts when none of them are already known', async () => {
         mockFilteredPersonalDetails.current = [EXISTING_CONTACT];
 

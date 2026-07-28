@@ -228,11 +228,19 @@ function useSearchSelectorBase({
             return defaultOptions;
         }
 
-        // Imported device contacts are always assigned a generated (optimistic) accountID, so a contact who is already a
-        // known Expensify user would otherwise be listed twice: once for the real Onyx account and once for the generated one.
-        // Selecting the generated row would then treat an existing user as a brand new invite. Onyx entries are kept (they
-        // carry the real accountID) and colliding imported contacts are dropped, matching on the normalized login.
-        const seenLogins = new Set(defaultOptions.personalDetails.map((option) => addSMSDomainIfPhoneNumber(option.login ?? '').toLowerCase()).filter(Boolean));
+        // Imported contacts get a generated accountID, so drop those whose login already matches a real Onyx account to avoid
+        // duplicate rows that would be treated as a new invite. Optimistic entries are skipped as getValidOptions filters them out.
+        const seenLogins = new Set<string>();
+        for (const option of defaultOptions.personalDetails) {
+            if (option.isOptimisticPersonalDetail) {
+                continue;
+            }
+            const login = addSMSDomainIfPhoneNumber(option.login ?? '').toLowerCase();
+            if (login) {
+                seenLogins.add(login);
+            }
+        }
+
         const dedupedContactOptions = contactOptions.filter((contact) => {
             const login = addSMSDomainIfPhoneNumber(contact.login ?? '').toLowerCase();
             if (!login || seenLogins.has(login)) {

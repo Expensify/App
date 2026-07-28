@@ -55,13 +55,11 @@ function useGroupChatDraftParticipantSync(
                 return result;
             }
 
-            // Existing Expensify users are restored from their personal details so they resolve to a real
-            // account (keeping `isOptimisticAccount` unset). Participants without personal details are
-            // invited-by-email/phone users, restored via getUserToInviteOption so they keep the optimistic flag.
-            const detail = participant.accountID ? allPersonalDetails?.[participant.accountID] : undefined;
+            // Existing users resolve to their real account; participants without personal details are invited-by-email/phone
+            // users restored via getUserToInviteOption so they keep the optimistic flag.
+            const detail = allPersonalDetails?.[participant.accountID];
             const option = detail
-                ? // getParticipantsOption returns a participant-shaped option built from real personal details; treat it as an OptionData for selection.
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                ? // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- participant-shaped option built from real personal details
                   (getParticipantsOption({accountID: participant.accountID, login: participant.login}, allPersonalDetails, translate) as OptionData)
                 : getUserToInviteOption({
                       searchValue: participant?.login,
