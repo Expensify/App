@@ -12,11 +12,13 @@ jest.mock('@libs/LauncherStack', () => ({
     pickLauncher: jest.fn(() => null),
 }));
 
-let capturedOptions: {onActivate?: () => void; onPostDeactivate?: () => void} | null = null;
+type CapturedFocusTrapOptions = {onActivate?: () => void; onPostDeactivate?: () => void};
+
+let capturedOptions: CapturedFocusTrapOptions | null = null;
 
 jest.mock('focus-trap-react', () => ({
-    FocusTrap: ({focusTrapOptions, children}: {focusTrapOptions: unknown; children: React.ReactNode}) => {
-        capturedOptions = focusTrapOptions as typeof capturedOptions;
+    FocusTrap: ({focusTrapOptions, children}: {focusTrapOptions: CapturedFocusTrapOptions; children: React.ReactNode}) => {
+        capturedOptions = focusTrapOptions;
         return children;
     },
 }));
@@ -47,10 +49,10 @@ function withActiveElement<T>(element: HTMLElement, fn: () => T): T {
 describe('FocusTrapForModal — launcher capture', () => {
     beforeEach(() => {
         capturedOptions = null;
-        (setActivePopoverLauncher as jest.Mock).mockClear();
-        (markActivePopoverLauncherDeactivated as jest.Mock).mockClear();
-        (pickLauncher as jest.Mock).mockReset();
-        (pickLauncher as jest.Mock).mockReturnValue(null);
+        jest.mocked(setActivePopoverLauncher).mockClear();
+        jest.mocked(markActivePopoverLauncherDeactivated).mockClear();
+        jest.mocked(pickLauncher).mockReset();
+        jest.mocked(pickLauncher).mockReturnValue(null);
         mockRestoreFocusWithModality.mockReset();
         document.body.innerHTML = '';
     });
@@ -129,7 +131,7 @@ describe('FocusTrapForModal — launcher capture', () => {
     it('falls back to pickLauncher when activeElement is document.body (ThreeDots pre-blur)', () => {
         const launcher = document.createElement('button');
         document.body.appendChild(launcher);
-        (pickLauncher as jest.Mock).mockReturnValue(launcher);
+        jest.mocked(pickLauncher).mockReturnValue(launcher);
 
         render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
 
