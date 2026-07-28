@@ -40,7 +40,15 @@ import {
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPersonalDetailByEmail, getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {canMemberAssignRole, canMemberManageMemberWithRole, canMemberWrite, isControlPolicy, isPolicyApprover, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
+import {
+    canMemberAssignRole,
+    canMemberManageMemberWithRole,
+    canMemberWrite,
+    getReimburserEmail,
+    isControlPolicy,
+    isPolicyApprover,
+    tryNavigateToSubmitWorkspaceUpgrade,
+} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {generateAccountID} from '@libs/UserUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -142,9 +150,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
-    const isReimburser =
-        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) &&
-        policy?.achAccount?.reimburser === memberLogin;
+    const reimburserEmail = getReimburserEmail(policy);
+    const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
     const hasActiveExpensifyCard = hasActiveExpensifyCardAssigned(workspaceCards, accountID);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();

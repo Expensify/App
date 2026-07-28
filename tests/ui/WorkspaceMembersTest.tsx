@@ -424,6 +424,50 @@ describe('WorkspaceMembers', () => {
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
+
+        it('should hide role-change options when the selected member is the Authorized Payer resolved via policy.reimburser', async () => {
+            // Given a workspace whose Authorized Payer is an admin configured through policy.reimburser
+            // (the canonical resolution) rather than achAccount.reimburser. On the buggy code the guard
+            // only read achAccount.reimburser, so it failed to recognize this payer and wrongly offered
+            // the role-change options.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    reimburser: adminEmail,
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+
+            // When that payer is bulk-selected and the actions dropdown is opened
+            selectCheckboxByMemberName('Admin');
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Remove option is still available
+            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
+            await waitFor(() => {
+                expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+            });
+
+            // ...and none of the role-change options are offered for the payer
+            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`)).not.toBeOnTheScreen();
+
+            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAuditorText}`)).not.toBeOnTheScreen();
+
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeCardAdminText}`)).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     describe('Removing members who are approvers and non-approvers', () => {
