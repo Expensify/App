@@ -29,11 +29,10 @@ const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_
  * `toggle`/`toggleAll`/`selectedTransactions`). The shared list state and interactions come from
  * `useSearchListViewState`, and the surrounding chrome (horizontal scroll, header bar, long-press menu)
  * from `SearchListViewLayout`; this view only owns the flat-expense specifics: the `TransactionListItem`
- * renderer, single-pass visibility/selection counts, and the highlight-scroll imperative handle.
- * `TransactionListItem` is the only row renderer here and rows always animate, so the
- * group/sticky/chat/task branches of `SearchList` do not apply. Keyboard navigation is inherited from
- * `BaseSearchList`; the post-create highlight stays in the router (the snapshot stamps
- * `shouldAnimateInHighlight`, and `newTransactions` flows into `extraData`).
+ * renderer and single-pass visibility/selection counts.
+ * `TransactionListItem` is the only row renderer here, so the group/sticky/chat/task branches of
+ * `SearchList` do not apply. Keyboard navigation is inherited from `BaseSearchList`; `newTransactions`
+ * flows into `extraData` so the list re-renders when a freshly-created expense lands.
  */
 function ExpenseFlatSearchView({
     queryJSON,
