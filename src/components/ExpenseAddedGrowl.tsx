@@ -114,6 +114,8 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
             return;
         }
 
+        // Clear every pending ID but surface only the latest: rapid creations that pile up before this runs
+        // collapse into a single growl for the newest expense.
         mergeExpenseAddedGrowlTransactionIDs(Object.fromEntries(pendingTransactionIDs.map((id) => [id, null])));
 
         // Suppress the growl when the user is already viewing the expense's money-request report (its
