@@ -204,7 +204,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
                     >
-                        <TextCell text={getSubmittedViolationsForTransaction(reportActions, transactionItem.transactionID)} />
+                        <TextCell text={getSubmittedViolationsForTransaction(reportActions, transactionItem.transactionID, translate)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:

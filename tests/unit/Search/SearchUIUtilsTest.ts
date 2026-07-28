@@ -11314,9 +11314,9 @@ describe('SearchUIUtils', () => {
             }) as OnyxTypes.ReportAction;
 
         test('returns undefined when reportActions or transactionID is missing', () => {
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction(undefined, transactionIDForViolations)).toBeUndefined();
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([], transactionIDForViolations)).toBeUndefined();
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED)], undefined)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction(undefined, transactionIDForViolations, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([], transactionIDForViolations, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED)], undefined, translateLocal)).toBeUndefined();
         });
 
         test('ignores non-submit report actions', () => {
@@ -11330,29 +11330,31 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([iouAction], transactionIDForViolations)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([iouAction], transactionIDForViolations, translateLocal)).toBeUndefined();
         });
 
-        test('returns comma-separated violation names from a SUBMITTED action', () => {
+        test('returns comma-separated translated violation labels from a SUBMITTED action', () => {
             const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
                 transactions: {
                     [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_COMMENT}],
                 },
             });
 
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations)).toBe(
-                `${CONST.VIOLATIONS.MISSING_CATEGORY}, ${CONST.VIOLATIONS.MISSING_COMMENT}`,
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
+                `${translateLocal('transactionViolations.missingCategory')}, ${translateLocal('transactionViolations.missingComment')}`,
             );
         });
 
-        test('includes violations from SUBMITTED_AND_CLOSED actions', () => {
+        test('includes translated labels from SUBMITTED_AND_CLOSED actions', () => {
             const submitAndCloseAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {
                 transactions: {
                     [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
                 },
             });
 
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations)).toBe(CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations, translateLocal)).toBe(
+                translateLocal('transactionViolations.receiptRequired'),
+            );
         });
 
         test('aggregates across multiple submit actions and dedupes by name', () => {
@@ -11375,9 +11377,32 @@ describe('SearchUIUtils', () => {
                 'submit-2',
             );
 
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations)).toBe(
-                `${CONST.VIOLATIONS.MISSING_CATEGORY}, ${CONST.VIOLATIONS.MISSING_TAG}, ${CONST.VIOLATIONS.RECEIPT_REQUIRED}`,
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations, translateLocal)).toBe(
+                `${translateLocal('transactionViolations.missingCategory')}, ${translateLocal('transactionViolations.missingTag')}, ${translateLocal('transactionViolations.receiptRequired')}`,
             );
+        });
+
+        test('translates fieldRequired via reportOrFieldViolations', () => {
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.FIELD_REQUIRED}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
+                translateLocal('reportOrFieldViolations.fieldRequired'),
+            );
+        });
+
+        test('falls back to the raw identifier when no short-name translation exists', () => {
+            const unknownViolationName = 'unknownSubmittedViolation';
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: unknownViolationName}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(unknownViolationName);
         });
 
         test('ignores violations for other transaction IDs', () => {
@@ -11387,7 +11412,7 @@ describe('SearchUIUtils', () => {
                 },
             });
 
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBeUndefined();
         });
 
         test('returns undefined when submit actions have no violations for the transaction', () => {
@@ -11398,8 +11423,8 @@ describe('SearchUIUtils', () => {
             });
             const submitActionWithoutViolations = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
 
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations)).toBeUndefined();
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitActionWithoutViolations], transactionIDForViolations)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitActionWithoutViolations], transactionIDForViolations, translateLocal)).toBeUndefined();
         });
     });
 

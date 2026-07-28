@@ -1041,7 +1041,7 @@ function getSuggestedSearches(
                     dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
                     has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
                     view: CONST.SEARCH.VIEW.TABLE,
-                    limit: '10',
+                    limit: String(CONST.SEARCH.TOP_SEARCH_LIMIT),
                 },
                 {
                     sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
@@ -4938,12 +4938,75 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
     }
 }
 
+/** Parameter-free short labels used when rendering submitted violations in Search columns. */
+const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAMES = new Set<string>([
+    CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED,
+    CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+    CONST.VIOLATIONS.BILLABLE_EXPENSE,
+    CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
+    CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+    CONST.VIOLATIONS.COMPANY_CARD_REQUIRED,
+    CONST.VIOLATIONS.CONVERSION_SURCHARGE,
+    CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+    CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+    CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+    CONST.VIOLATIONS.FUTURE_DATE,
+    CONST.VIOLATIONS.HOLD,
+    CONST.VIOLATIONS.INACTIVE_VENDOR,
+    CONST.VIOLATIONS.INCREASED_DISTANCE,
+    CONST.VIOLATIONS.INVOICE_MARKUP,
+    CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
+    CONST.VIOLATIONS.MAX_AGE,
+    CONST.VIOLATIONS.MISSING_ATTENDEES,
+    CONST.VIOLATIONS.MISSING_CATEGORY,
+    CONST.VIOLATIONS.MISSING_COMMENT,
+    CONST.VIOLATIONS.MISSING_TAG,
+    CONST.VIOLATIONS.MODIFIED_AMOUNT,
+    CONST.VIOLATIONS.MODIFIED_DATE,
+    CONST.VIOLATIONS.NO_ROUTE,
+    CONST.VIOLATIONS.NON_EXPENSIWORKS_EXPENSE,
+    CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT,
+    CONST.VIOLATIONS.OVER_CATEGORY_LIMIT,
+    CONST.VIOLATIONS.OVER_LIMIT,
+    CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+    CONST.VIOLATIONS.PER_DAY_LIMIT,
+    CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+    CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI,
+    CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+    CONST.VIOLATIONS.RECEIPT_REQUIRED,
+    CONST.VIOLATIONS.RTER,
+    CONST.VIOLATIONS.SMARTSCAN_FAILED,
+    CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
+    CONST.VIOLATIONS.TAX_AMOUNT_CHANGED,
+    CONST.VIOLATIONS.TAX_OUT_OF_POLICY,
+    CONST.VIOLATIONS.TAX_RATE_CHANGED,
+    CONST.VIOLATIONS.TAX_REQUIRED,
+]);
+
+/**
+ * Returns a parameter-free display label for a submitted violation name.
+ * Falls back to the raw identifier when no short-name translation exists.
+ */
+function getSubmittedViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+    if (violationName === CONST.VIOLATIONS.FIELD_REQUIRED) {
+        return translate('reportOrFieldViolations.fieldRequired');
+    }
+
+    if (SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAMES.has(violationName)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        return translate(`transactionViolations.${violationName}` as TranslationPaths);
+    }
+
+    return violationName;
+}
+
 /**
  * Collects a transaction's submitted violations from its report's submit actions.
  * A report can be submitted more than once, so this aggregates across every submit action,
  * dedupes by violation name, and returns a comma-separated display string.
+ * When `translate` is provided, violation identifiers are converted to localized short labels.
  */
-function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined): string | undefined {
+function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, translate?: LocalizedTranslate): string | undefined {
     if (!reportActions?.length || !transactionID) {
         return undefined;
     }
@@ -4971,7 +5034,12 @@ function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAct
         return undefined;
     }
 
-    return Array.from(violationNames).join(', ');
+    const names = Array.from(violationNames);
+    if (!translate) {
+        return names.join(', ');
+    }
+
+    return names.map((name) => getSubmittedViolationDisplayName(name, translate)).join(', ');
 }
 
 function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
