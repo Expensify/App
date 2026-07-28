@@ -225,6 +225,8 @@ const MFA_STATE = {
     CHECKING_SOFT_PROMPT_ACCEPTANCE: 'checkingSoftPromptAcceptance',
     MAGIC_CODE: 'magicCode',
     AWAITING_VALIDATE_CODE: 'awaitingValidateCode',
+    IDLE: 'idle',
+    INVALID_CODE: 'invalidCode',
     REQUESTING_REGISTRATION_CHALLENGE: 'requestingRegistrationChallenge',
     PROMPT: 'prompt',
     AWAITING_SOFT_PROMPT: 'awaitingSoftPrompt',

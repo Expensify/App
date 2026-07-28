@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 import {createActorAtState, sendCheckLocalCredentialsDone} from 'tests/utils/mfa/flowActors';
-import createInitEvent, {MFA_TEST_INVALID_CODE_ERROR, MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_VALIDATE_CODE} from 'tests/utils/mfa/flowFixtures';
+import createInitEvent, {MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_VALIDATE_CODE} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {createActor, fromPromise} from 'xstate';
 
@@ -116,14 +116,14 @@ describe('MFA magic code and registration decision', () => {
     });
 
     it('clears the inline error when the user requests a resend after a rejected code', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}, {continuableError: MFA_TEST_INVALID_CODE_ERROR});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE}}});
 
         actor.start();
         actor.send({type: 'RESEND_VALIDATE_CODE'});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}})).toBe(true);
-        expect(result.context.continuableError).toBeUndefined();
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.IDLE}}})).toBe(true);
+        expect(result.hasTag('showsInvalidCodeError')).toBe(false);
         expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
 
         actor.stop();
@@ -182,8 +182,8 @@ describe('MFA magic code and registration decision', () => {
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}})).toBe(true);
-        expect(result.context.continuableError?.reason).toBe(REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE}}})).toBe(true);
+        expect(result.hasTag('showsInvalidCodeError')).toBe(true);
         expect(result.context.registrationChallenge).toBeUndefined();
         expect(result.context.error).toBeUndefined();
         expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
@@ -198,13 +198,14 @@ describe('MFA magic code and registration decision', () => {
         actor.start();
         actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
         await waitForBatchedUpdates();
+        expect(actor.getSnapshot().hasTag('showsInvalidCodeError')).toBe(true);
         actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
         expect(result.context.registrationChallenge).toBe(MFA_TEST_REGISTRATION_CHALLENGE);
         expect(result.context.validateCode).toBe(MFA_TEST_VALIDATE_CODE);
-        expect(result.context.continuableError).toBeUndefined();
+        expect(result.hasTag('showsInvalidCodeError')).toBe(false);
 
         actor.stop();
     });
@@ -221,7 +222,6 @@ describe('MFA magic code and registration decision', () => {
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
         expect(result.context.error?.reason).toBe(REASON.SERVER_ERRORS.UNRECOGNIZED);
         expect(result.context.registrationChallenge).toBeUndefined();
-        expect(result.context.continuableError).toBeUndefined();
 
         actor.stop();
     });
@@ -243,14 +243,14 @@ describe('MFA magic code and registration decision', () => {
     });
 
     it('clears the inline error when the user starts typing again', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}, {continuableError: MFA_TEST_INVALID_CODE_ERROR});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE}}});
 
         actor.start();
-        actor.send({type: 'CLEAR_CONTINUABLE_ERROR'});
+        actor.send({type: 'VALIDATE_CODE_CHANGED'});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}})).toBe(true);
-        expect(result.context.continuableError).toBeUndefined();
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.IDLE}}})).toBe(true);
+        expect(result.hasTag('showsInvalidCodeError')).toBe(false);
 
         actor.stop();
     });

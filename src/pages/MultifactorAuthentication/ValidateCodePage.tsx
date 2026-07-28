@@ -51,8 +51,8 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const {requestCancel, submitValidateCode, resendValidateCode, clearContinuableError, state} = useMultifactorAuthenticationInternal();
-    const {continuableError, isCancelConfirmVisible, canResendValidateCode} = state;
+    const {requestCancel, submitValidateCode, resendValidateCode, notifyValidateCodeChanged, state} = useMultifactorAuthenticationInternal();
+    const {showsInvalidCodeError, isCancelConfirmVisible, canResendValidateCode} = state;
 
     // Refs
     const inputRef = useRef<ValidateCodeInputHandle>(null);
@@ -61,13 +61,12 @@ function MultifactorAuthenticationValidateCodePage() {
 
     // Derived state
     const hasAccountError = !!account && !isEmptyObject(account?.errors);
-    const hasContinuableError = !!continuableError;
     // The MFA registration challenge always uses VALIDATE_CODE_FORM, even when the account has 2FA enabled.
     const isValidateCodeFormSubmitting = !!account?.isLoading && account.loadingForm === CONST.FORMS.VALIDATE_CODE_FORM;
     const shouldDisableResendCode = isOffline || !canResendValidateCode || !!validateActionCode?.isLoading;
     const validateCodeActionError = getLatestErrorField(validateActionCode, 'actionVerified');
     const hasValidateCodeActionError = !isEmptyObject(validateCodeActionError);
-    const hasError = hasAccountError || hasContinuableError || hasValidateCodeActionError;
+    const hasError = hasAccountError || showsInvalidCodeError || hasValidateCodeActionError;
     const errorMessage = getErrorMessage();
 
     function getErrorMessage() {
@@ -76,7 +75,7 @@ function MultifactorAuthenticationValidateCodePage() {
             return Object.values(validateCodeActionError).at(0);
         }
         // Invalid validate code submitted by the user
-        if (hasContinuableError) {
+        if (showsInvalidCodeError) {
             return translate('validateCodeForm.error.incorrectSecurityCode');
         }
         // Generic account/session error (e.g. stale errors from a previous flow)
@@ -131,9 +130,9 @@ function MultifactorAuthenticationValidateCodePage() {
             clearAccountMessages();
         }
 
-        // Clear continuable error when user starts typing after an error
-        if (continuableError) {
-            clearContinuableError();
+        // The machine drops the inline invalid-code error once it learns the code changed
+        if (showsInvalidCodeError) {
+            notifyValidateCodeChanged();
         }
     };
 

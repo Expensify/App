@@ -91,7 +91,7 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
             createActorDoneEvent(CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, false),
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent(REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, {success: false, error: MFA_TEST_INVALID_CODE_ERROR}),
-            {type: 'CLEAR_CONTINUABLE_ERROR'},
+            {type: 'VALIDATE_CODE_CHANGED'},
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent(REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
         ],
@@ -115,7 +115,7 @@ const MFA_GRAPH_EVENT_FIXTURES = {
     SOFT_PROMPT_APPROVED: [{type: 'SOFT_PROMPT_APPROVED'}],
     VALIDATE_CODE_ENTERED: [{type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE}],
     RESEND_VALIDATE_CODE: [{type: 'RESEND_VALIDATE_CODE'}],
-    CLEAR_CONTINUABLE_ERROR: [{type: 'CLEAR_CONTINUABLE_ERROR'}],
+    VALIDATE_CODE_CHANGED: [{type: 'VALIDATE_CODE_CHANGED'}],
 } satisfies MfaEventFixtures;
 
 function hasMfaEventFixtures(type: string): type is MfaEvent['type'] {

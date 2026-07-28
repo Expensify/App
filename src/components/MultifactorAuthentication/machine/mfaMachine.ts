@@ -13,7 +13,7 @@ import SCREENS from '@src/SCREENS';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import {assign, setup} from 'xstate';
 
-import type {MfaContext, MfaEvent} from './types';
+import type {MfaContext, MfaEvent, MfaTag} from './types';
 
 import createActors from './mfaActors';
 
@@ -36,7 +36,6 @@ const DEFAULT_CONTEXT: MfaContext = {
     scenario: undefined,
     payload: undefined,
     validateCode: undefined,
-    continuableError: undefined,
     registrationChallenge: undefined,
     softPromptApproved: false,
     isCancelConfirmVisible: false,
@@ -56,6 +55,7 @@ const MFAMachine = setup({
     types: {
         context: {} as MfaContext,
         events: {} as MfaEvent,
+        tags: {} as MfaTag,
     },
     /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
     actors: createActors(),
@@ -104,7 +104,6 @@ const MFAMachine = setup({
             }
             return {validateCode: event.validateCode};
         }),
-        clearContinuableError: assign({continuableError: undefined}),
         approveSoftPrompt: assign({softPromptApproved: true}),
         persistSoftPromptAcceptance: ({context}) => {
             if (context.accountID === undefined) {
@@ -226,14 +225,26 @@ const MFAMachine = setup({
                         // while the challenge request is in flight is dropped instead of emailing a
                         // code the pending submission ignores.
                         [MFA_STATE.AWAITING_VALIDATE_CODE]: {
+                            initial: MFA_STATE.IDLE,
                             on: {
                                 VALIDATE_CODE_ENTERED: {target: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE, actions: 'submitValidateCode'},
-                                RESEND_VALIDATE_CODE: {actions: ['clearContinuableError', 'requestValidateCode']},
-                                CLEAR_CONTINUABLE_ERROR: {actions: 'clearContinuableError'},
+                                RESEND_VALIDATE_CODE: {target: `.${MFA_STATE.IDLE}`, actions: 'requestValidateCode'},
+                            },
+                            states: {
+                                [MFA_STATE.IDLE]: {},
+                                // The backend rejected the submitted code. The screen shows the
+                                // inline error exactly while this state is active, so every way out
+                                // (typing, a resend, a new submission) drops the error by
+                                // construction and nothing stale can outlive the screen.
+                                [MFA_STATE.INVALID_CODE]: {
+                                    tags: 'showsInvalidCodeError',
+                                    on: {
+                                        VALIDATE_CODE_CHANGED: MFA_STATE.IDLE,
+                                    },
+                                },
                             },
                         },
                         [MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE]: {
-                            entry: 'clearContinuableError',
                             invoke: {
                                 id: 'requestRegistrationChallenge',
                                 src: 'requestRegistrationChallenge',
@@ -252,8 +263,7 @@ const MFAMachine = setup({
                                     {
                                         guard: ({event}) =>
                                             !event.output.success && getMFAFailureError(event.output).reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
-                                        target: MFA_STATE.AWAITING_VALIDATE_CODE,
-                                        actions: assign({continuableError: ({event}) => getMFAFailureError(event.output)}),
+                                        target: `${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.INVALID_CODE}`,
                                     },
                                     {target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
                                 ],

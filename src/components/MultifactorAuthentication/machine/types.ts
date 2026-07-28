@@ -36,9 +36,6 @@ type MfaContext = {
     /** Magic code the user entered on this flow's validate-code screen */
     validateCode: string | undefined;
 
-    /** Error the validate-code screen shows inline while the flow stays on it, as opposed to `error`, which ends the flow */
-    continuableError: MFAError | undefined;
-
     /** Registration challenge returned after the backend accepts the magic code */
     registrationChallenge: RegistrationChallenge | undefined;
 
@@ -75,7 +72,14 @@ type MfaEvent =
     | {type: 'SOFT_PROMPT_APPROVED'}
     | {type: 'VALIDATE_CODE_ENTERED'; validateCode: string}
     | {type: 'RESEND_VALIDATE_CODE'}
-    | {type: 'CLEAR_CONTINUABLE_ERROR'};
+    | {type: 'VALIDATE_CODE_CHANGED'};
+
+/**
+ * Tags the chart marks UI-facing conditions with. The view bridge reads them through `hasTag`
+ * instead of matching a concrete state path, so a chart restructuring that moves the tagged state
+ * does not break the bridge.
+ */
+type MfaTag = 'showsInvalidCodeError';
 
 /** Describes the input the machine passes to the device-check actor. */
 type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};
@@ -97,6 +101,7 @@ export type {
     MfaContext,
     MfaEvent,
     MfaModalState,
+    MfaTag,
     MultifactorAuthenticationInitEvent,
     ReadHasAcceptedSoftPromptInput,
     RequestRegistrationChallengeInput,

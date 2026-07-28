@@ -165,7 +165,7 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             fireEvent.press(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON));
             await waitForBatchedUpdatesWithAct();
         },
-        CLEAR_CONTINUABLE_ERROR: async () => {
+        VALIDATE_CODE_CHANGED: async () => {
             fireEvent.changeText(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT), '1');
             await waitForBatchedUpdatesWithAct();
         },
@@ -227,12 +227,12 @@ const testConfig = {
             expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeEnabled();
             expect(screen.getByText(translateLocal('multifactorAuthentication.letsVerifyItsYou'))).toBeOnTheScreen();
             expect(state.context.error).toBeUndefined();
-            const inlineError = translateLocal('validateCodeForm.error.incorrectSecurityCode');
-            if (state.context.continuableError) {
-                expect(screen.getByText(inlineError)).toBeOnTheScreen();
-            } else {
-                expect(screen.queryByText(inlineError)).not.toBeOnTheScreen();
-            }
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.IDLE}`]: () => {
+            expect(screen.queryByText(translateLocal('validateCodeForm.error.incorrectSecurityCode'))).not.toBeOnTheScreen();
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.INVALID_CODE}`]: () => {
+            expect(screen.getByText(translateLocal('validateCodeForm.error.incorrectSecurityCode'))).toBeOnTheScreen();
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);

@@ -25,7 +25,6 @@ function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
         scenario: initEvent.scenario,
         payload: initEvent.payload,
         validateCode: undefined,
-        continuableError: undefined,
         registrationChallenge: undefined,
         softPromptApproved: false,
         isCancelConfirmVisible: false,

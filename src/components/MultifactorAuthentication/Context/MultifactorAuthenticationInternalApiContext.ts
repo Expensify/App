@@ -30,8 +30,8 @@ type MultifactorAuthenticationInternalApi = {
     /** Request a fresh magic-code email. The machine sends it only while the magic-code screen waits for a code. */
     resendValidateCode: () => void;
 
-    /** Clear the inline validate-code error, called when the user starts typing again. */
-    clearContinuableError: () => void;
+    /** Notify the machine that the user edited the entered code; the machine then drops the inline invalid-code error. */
+    notifyValidateCodeChanged: () => void;
 
     /** Centralized back-press / backdrop entry. */
     requestCancel: () => void;
