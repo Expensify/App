@@ -68,6 +68,8 @@ jobs:
       - name: Build Jekyll site
         run: bundle exec jekyll build --source ./ --destination ./_site
         working-directory: ./docs
+        env:
+          JEKYLL_ENV: production
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0

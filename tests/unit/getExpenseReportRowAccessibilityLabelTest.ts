@@ -1,11 +1,9 @@
 import getExpenseReportRowAccessibilityLabel from '@components/Search/SearchList/ListItem/getExpenseReportRowAccessibilityLabel';
 
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 
 const deps = {translate: translateLocal, convertToDisplayString};
 

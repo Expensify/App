@@ -102,6 +102,7 @@ describe('search snapshot terminal state', () => {
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        expect(snapshot?.search?.hash).toBe(queryJSON.hash);
         expect(snapshot?.search?.hasResults).toBe(true);
     });
 
@@ -114,6 +115,7 @@ describe('search snapshot terminal state', () => {
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         // finallyData runs after failureData; the error state must survive it.
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.ERROR);
+        expect(snapshot?.search?.hash).toBe(queryJSON.hash);
     });
 
     it('reaches a terminal state when a successful response resolves without any snapshot data', async () => {
@@ -125,6 +127,8 @@ describe('search snapshot terminal state', () => {
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        // The hash lets the UI match this completed request to the current query.
+        expect(snapshot?.search?.hash).toBe(queryJSON.hash);
     });
 
     it('resolves the snapshot to error when the request promise rejects, instead of staying loading', async () => {
@@ -133,7 +137,9 @@ describe('search snapshot terminal state', () => {
 
         // The failure class this field exists to eliminate: no HTTP response at all (offline/timeout), so
         // nothing in the API layer ever applies failureData for it unless search() catches the rejection itself.
-        await expect(search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false})).rejects.toThrow();
+        // search() also swallows the rejection (APP-5J) so it never floats into onunhandledrejection, so this
+        // must resolve rather than reject.
+        await expect(search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false})).resolves.toBeUndefined();
         await waitForBatchedUpdates();
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);

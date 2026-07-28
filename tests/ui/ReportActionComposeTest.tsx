@@ -1,12 +1,17 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
 
+import type * as TaskActions from '@libs/actions/Task';
+import {createTaskAndNavigate} from '@libs/actions/Task';
+
 import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import useAttachmentPicker from '@pages/inbox/report/ReportActionCompose/useAttachmentPicker';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 
 import CONST from '@src/CONST';
@@ -16,6 +21,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import type {PropsWithChildren} from 'react';
 
 import React from 'react';
+import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -24,6 +30,11 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/ComponentUtils', () => ({
     forceClearInput: jest.fn(),
+}));
+
+jest.mock('@libs/actions/Task', () => ({
+    ...jest.requireActual<typeof TaskActions>('@libs/actions/Task'),
+    createTaskAndNavigate: jest.fn(),
 }));
 
 jest.mock('@hooks/useLocalize', () =>
@@ -38,6 +49,16 @@ jest.mock('@hooks/useParentReportAction', () => jest.fn(() => null));
 jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn(() => ({})));
 jest.mock('@hooks/useShortMentionsList', () => jest.fn(() => ({availableLoginsList: []})));
 jest.mock('@hooks/useSidePanelState', () => jest.fn(() => ({sessionStartTime: null})));
+
+jest.mock('@pages/inbox/report/ReportActionCompose/useAttachmentPicker', () => jest.fn());
+
+jest.mock('@pages/Share/getFileSize', () => jest.fn(() => Promise.resolve(100)));
+
+// The composer ref rendered by the test renderer has no native `setSelection` implementation
+jest.mock('@pages/inbox/report/ReportActionCompose/ReportActionComposeUtils', () => ({
+    __esModule: true,
+    default: {updateNativeSelectionValue: jest.fn()},
+}));
 
 jest.mock('@components/DropZone/DualDropZone', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
@@ -70,7 +91,13 @@ function ReportActionEditMessageContextProviderForReport({children}: PropsWithCh
 }
 
 function ReportScreenProviders({children}: PropsWithChildren) {
-    return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForReport]}>{children}</ComposeProviders>;
+    return (
+        <ComposeProviders
+            components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForReport]}
+        >
+            {children}
+        </ComposeProviders>
+    );
 }
 
 const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {
@@ -91,6 +118,14 @@ const simulateSelection = (composer: ReturnType<typeof screen.getByTestId>, star
     });
 };
 
+const mockPickAttachments = jest.fn();
+const mockUseAttachmentPicker = jest.mocked(useAttachmentPicker);
+
+// Helper function to simulate pasting an image from the clipboard
+const simulateImagePaste = (composer: ReturnType<typeof screen.getByTestId>) => {
+    fireEvent(composer, 'paste', {nativeEvent: {items: [{type: 'image/png', data: 'file:///image.png'}]}});
+};
+
 describe('ReportActionCompose Integration Tests', () => {
     beforeAll(() => {
         Onyx.init({
@@ -100,6 +135,7 @@ describe('ReportActionCompose Integration Tests', () => {
     });
 
     beforeEach(async () => {
+        mockUseAttachmentPicker.mockReturnValue({pickAttachments: mockPickAttachments, PDFValidationComponent: undefined, ErrorModal: <View />});
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${defaultReport.reportID}`, defaultReport);
         });
@@ -435,6 +471,89 @@ describe('ReportActionCompose Integration Tests', () => {
             );
 
             unmount();
+        });
+    });
+
+    describe('Pasting a file', () => {
+        const startEditingMessage = async () => {
+            const reportAction = LHNTestUtils.getFakeReportAction();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${defaultReport.reportID}`, {[reportAction.reportActionID]: reportAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${defaultReport.reportID}`, {[reportAction.reportActionID]: {message: 'Message being edited'}});
+            });
+        };
+
+        it('sends the pasted file to the attachment picker when not editing a message', async () => {
+            const {unmount} = renderReportActionCompose();
+            await waitForBatchedUpdatesWithAct();
+
+            // When an image is pasted into the composer
+            simulateImagePaste(screen.getByTestId('composer'));
+
+            // Then the attachment flow is started
+            await waitFor(() => {
+                expect(mockPickAttachments).toHaveBeenCalled();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('ignores the pasted file while a message is being edited in the composer', async () => {
+            const {unmount} = renderReportActionCompose();
+            await waitForBatchedUpdatesWithAct();
+
+            // When a message is being edited in the composer
+            await startEditingMessage();
+            await waitFor(() => {
+                expect(screen.getByTestId('composer').props.value).toBe('Message being edited');
+            });
+
+            // And an image is pasted into the composer
+            simulateImagePaste(screen.getByTestId('composer'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the attachment flow is not started, so saving the edit can't turn into a separate attachment message
+            expect(mockPickAttachments).not.toHaveBeenCalled();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    describe('Task creation with a short mention', () => {
+        it('assigns the task to the user resolved from a same-private-domain short mention', async () => {
+            // Given a current user on a private domain and a coworker on the same domain
+            const coworkerAccountID = 2;
+            await TestHelper.signInWithTestUser(1, 'user@domain.com');
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [coworkerAccountID]: TestHelper.buildPersonalDetails('mat@domain.com', coworkerAccountID, 'Mat'),
+                });
+            });
+
+            const {unmount} = renderReportActionCompose();
+            await waitForBatchedUpdatesWithAct();
+
+            // When a task with a short mention of the coworker is typed and submitted
+            // (the composer submits by clearing the input, which hands the draft to validateAndSubmitDraft)
+            const composer = screen.getByTestId('composer');
+            fireEvent.changeText(composer, '[] @mat Buy milk');
+            fireEvent(composer, 'clear', {nativeEvent: {text: '[] @mat Buy milk'}});
+
+            // Then the task is created with the mention resolved to the coworker's full login
+            await waitFor(() => {
+                expect(createTaskAndNavigate).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        title: 'Buy milk',
+                        assigneeEmail: 'mat@domain.com',
+                        assigneeAccountID: coworkerAccountID,
+                    }),
+                );
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
         });
     });
 });
