@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
@@ -349,6 +350,7 @@ function SearchWriteActionsProvider({
 }: SearchWriteActionsProviderProps) {
     const isFocused = useIsFocused();
     const {isProduction} = useEnvironment();
+    const {isOffline} = useNetwork();
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -400,7 +402,7 @@ function SearchWriteActionsProvider({
                 {
                     totalSelectableItemsCount,
                     shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    shouldClearAllMatchingSelectionWhenEmpty: searchResults?.search?.hasMoreResults === false,
+                    shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
                 },
             );
             return;
@@ -468,7 +470,7 @@ function SearchWriteActionsProvider({
             {
                 totalSelectableItemsCount,
                 shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
-                shouldClearAllMatchingSelectionWhenEmpty: searchResults?.search?.hasMoreResults === false,
+                shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
             },
         );
     };
