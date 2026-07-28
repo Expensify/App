@@ -989,6 +989,7 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
+        WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
@@ -2272,6 +2273,7 @@ const CONST = {
             REPORT_ACTIONS_APP_LOAD: 'report_actions_app_load',
             SKELETON_GUARD_LOADING: 'skeleton_guard_loading',
             SKELETON_GUARD_DERIVED_TIMING: 'skeleton_guard_derived_timing',
+            INBOX_TAB_DEFER: 'inbox_tab_defer',
         },
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
@@ -2469,7 +2471,7 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
-        INCORRECT_MAGIC_CODE: 451,
+        INCORRECT_VALIDATE_CODE: 451,
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
@@ -2620,8 +2622,8 @@ const CONST = {
 
     TOOLTIP_MAX_LINES: 3,
 
-    MAGIC_CODE_LENGTH: 6,
-    MAGIC_CODE_EMPTY_CHAR: ' ',
+    VALIDATE_CODE_LENGTH: 6,
+    VALIDATE_CODE_EMPTY_CHAR: ' ',
 
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
@@ -7316,7 +7318,6 @@ const CONST = {
         },
         NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
-        TAG_UNTAGGED_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         MERCHANT_EMPTY_VALUE: 'none',
@@ -7449,6 +7450,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
             };
         },
+        NOT_PREFIX: '-',
         NOT_MODIFIER: 'Not',
         DATE_MODIFIERS: {
             ON: 'On',
@@ -8371,6 +8373,7 @@ const CONST = {
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
+            VICTORY_CHART_EXPAND_BUTTON: 'HTMLRenderer-VictoryChartExpandButton',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
@@ -8389,6 +8392,9 @@ const CONST = {
             BACK_BUTTON: 'HeaderView-BackButton',
             CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
+        },
+        BLOCKING_VIEW: {
+            RETRY_BUTTON: 'BlockingView-RetryButton',
         },
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
@@ -9015,7 +9021,7 @@ const CONST = {
             SIGN_IN_BUTTON: 'SignIn-SignInButton',
             JOIN: 'SignIn-Join',
             SSO: 'SignIn-SSO',
-            MAGIC_CODE: 'SignIn-MagicCode',
+            VALIDATE_CODE: 'SignIn-ValidateCode',
             UNLINK: 'SignIn-Unlink',
             GO_BACK: 'SignIn-GoBack',
             VALIDATE: 'SignIn-Validate',
@@ -9206,16 +9212,16 @@ const CONST = {
                 publishedDate: '2026-07-20',
             },
             {
+                title: 'New feature: Consolidated travel billing',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
+                publishedDate: '2026-07-13',
+            },
+            {
                 title: 'More Concierge AI upgrades, plus agent beta',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
                 publishedDate: '2026-07-01',
-            },
-            {
-                title: 'Ask Concierge AI: charts, insights & more',
-                subtitle: 'Newsletter',
-                url: 'https://use.expensify.com/blog/ask-expensify-ai-anything',
-                publishedDate: '2026-06-30',
             },
         ],
     },

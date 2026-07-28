@@ -127,7 +127,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    const shouldShowErrorMessage = selectedOptions.length < 1;
+    const shouldShowErrorMessage = areOptionsInitialized && selectedOptions.length < 1;
 
     const confirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
         if (shouldShowErrorMessage || (!selectedOptions.length && !option)) {

@@ -22,12 +22,14 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
+import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {
     getAllCardsForWorkspace,
     getCardFeedIcon,
@@ -119,6 +121,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
 
     const routeAccountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
@@ -268,6 +271,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const askForConfirmationToRemove = () => {
+        if (isRuleBotEnforcingRules(accountID, policy)) {
+            showRuleBotGuardModal('remove', policyID);
+            return;
+        }
         if (hasActiveExpensifyCard || isReimburser) {
             showConfirmModal({
                 shouldShowCancelButton: false,
