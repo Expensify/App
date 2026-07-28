@@ -291,13 +291,11 @@ export default createOnyxDerivedValueConfig({
                     // `name`/`achAccount` feed report names but aren't in hasPolicyRelevantFieldChanged, so a
                     // name-only change (e.g. workspace rename) would be skipped and leave the cached name stale.
                     const nameChanged = prevPolicy?.name !== nextPolicy?.name || prevPolicy?.achAccount?.accountNumber !== nextPolicy?.achAccount?.accountNumber;
-                    // `approvalMode`/`role` feed only *thread* names (submitted-thread "marked as done" via
-                    // shouldShowMarkAsDone; rules link in MODIFIED_EXPENSE messages via isPolicyAdmin), and
-                    // `fieldList` emptiness only the "New Report" fallback for money-request reports with an
-                    // empty reportName (getMoneyRequestReportName). These must NOT disqualify the skip for the
-                    // whole policy: mass flushes (e.g. the first OpenSearchPage delivering `fieldList` for every
-                    // policy) would then recompute every report's name again — the exact hang this skip removes.
-                    // Instead the report loop below drops the skip only for the report shapes that read them.
+                    // `approvalMode`/`role` feed only thread names (shouldShowMarkAsDone, isPolicyAdmin) and
+                    // `fieldList` emptiness only empty-named money-request reports (getMoneyRequestReportName).
+                    // They must not disqualify the whole policy — mass flushes (e.g. the first OpenSearchPage
+                    // delivers `fieldList` for every policy) would recompute every name again. The report loop
+                    // below drops the skip only for the shapes that read them.
                     const threadNameChanged = prevPolicy?.approvalMode !== nextPolicy?.approvalMode || prevPolicy?.role !== nextPolicy?.role;
                     const emptyNameChanged = isPolicyFieldListEmpty(prevPolicy ?? undefined) !== isPolicyFieldListEmpty(nextPolicy ?? undefined);
                     if (!hasPolicyRelevantFieldChanged(prevPolicy, nextPolicy) && !nameChanged && !emptyNameChanged) {
@@ -333,10 +331,9 @@ export default createOnyxDerivedValueConfig({
                         // The report's own policy — the sender workspace for an invoice.
                         if (report.policyID && changedPolicyIDs.has(report.policyID)) {
                             policyChangedReportKeys.push(reportKey);
-                            // Reuse the cached name only for a badge-only sender change with no receiver
-                            // change — the invoice name reads the receiver's role/name too. Threads also read
-                            // `approvalMode`/`role`, and empty-named money-request reports read `fieldList`
-                            // emptiness, so those shapes forgo the skip when that's what changed.
+                            // Reuse the cached name only when nothing the report's name reads has changed:
+                            // receiver policy (invoices), `approvalMode`/`role` (threads), `fieldList`
+                            // emptiness (empty-named money-request reports).
                             const isThreadNameAffected = threadNameChangedPolicyIDs.has(report.policyID) && !!report.parentReportActionID;
                             const isEmptyNameAffected =
                                 emptyNameChangedPolicyIDs.has(report.policyID) && !report.reportName && (report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.IOU);

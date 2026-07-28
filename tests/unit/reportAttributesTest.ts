@@ -355,9 +355,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result?.reports.r2?.reportName).toBe('Old Name 2');
     });
 
-    // approvalMode/role feed only *thread* names (submitted-thread "marked as done"; rules link in
-    // MODIFIED_EXPENSE messages), so only threads forgo the badge-only skip when they change — plain
-    // reports on the same policy keep their cached name.
+    // approvalMode/role feed only thread names, so only threads forgo the badge-only skip when they change.
     it.each([
         ['approvalMode', {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL}],
         ['role', {role: CONST.POLICY.ROLE.USER}],
@@ -409,9 +407,8 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result?.reports.r2?.reportName).toBe('Old Name 2');
     });
 
-    // fieldList emptiness feeds only the "New Report" fallback for money-request reports with an empty
-    // reportName. A mass flush delivering fieldList for every policy (the first OpenSearchPage) must NOT
-    // recompute every report's name — only empty-named money-request reports.
+    // fieldList emptiness feeds only the "New Report" fallback, so a mass flush delivering fieldList for
+    // every policy (the first OpenSearchPage) recomputes only empty-named money-request reports.
     it('recomputes only empty-named money-request report names when fieldList emptiness changes', () => {
         const emptyNameExpense: Report = {
             ...createRandomReport(41, undefined),
