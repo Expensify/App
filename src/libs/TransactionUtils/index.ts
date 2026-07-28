@@ -2611,6 +2611,16 @@ function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Tran
 }
 
 /**
+ * Whether a duplicate merge can be submitted. Auth's MergeTransactions rejects the merge when the kept expense's
+ * report is no longer editable or when there are no duplicates left to merge, so callers should block the request
+ * in those cases. An unresolved/unreported kept report stays editable in Auth, mirroring removeSettledAndApprovedTransactions.
+ */
+function canMergeDuplicates(keptReport: OnyxEntry<Report>, transactionIDList: string[]): boolean {
+    const isKeptReportMergeable = !keptReport || isOpenReport(keptReport) || isProcessingReport(keptReport);
+    return isKeptReportMergeable && transactionIDList.length > 0;
+}
+
+/**
  * This function compares fields of duplicate transactions and determines which fields should be kept and which should be changed.
  *
  * @returns An object with two properties: 'keep' and 'change'.
@@ -3258,6 +3268,7 @@ export {
     getTransactionID,
     buildNewTransactionAfterReviewingDuplicates,
     buildMergeDuplicatesParams,
+    canMergeDuplicates,
     getReimbursable,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
