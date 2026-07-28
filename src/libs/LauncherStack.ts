@@ -28,12 +28,10 @@ function resolvePopoverLauncherElement(ref: RefObject<View | null> | null | unde
 }
 
 // Two passes so nested traps resolve to the outer (active) launcher, not the just-closed inner.
-function pickLauncher(): HTMLElement | null {
+function pickActiveLauncher(): HTMLElement | null {
     if (typeof document === 'undefined') {
         return null;
     }
-    // Monotonic — Date.now() would misbehave on clock jumps.
-    const now = performance.now();
     for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
         const entry = launcherStack.at(i);
         if (!entry) {
@@ -47,6 +45,19 @@ function pickLauncher(): HTMLElement | null {
             return entry.element;
         }
     }
+    return null;
+}
+
+function pickLauncher(): HTMLElement | null {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+    const active = pickActiveLauncher();
+    if (active) {
+        return active;
+    }
+    // Monotonic — Date.now() would misbehave on clock jumps.
+    const now = performance.now();
     for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
         const entry = launcherStack.at(i);
         if (entry?.deactivatedAt === undefined) {
@@ -113,4 +124,4 @@ function resetLauncherStackForTests(): void {
     hasWarnedAboutOverflow = false;
 }
 
-export {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests, resolvePopoverLauncherElement};
+export {pickLauncher, pickActiveLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests, resolvePopoverLauncherElement};

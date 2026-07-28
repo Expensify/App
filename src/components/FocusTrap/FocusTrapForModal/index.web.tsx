@@ -1,5 +1,5 @@
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import {markActivePopoverLauncherDeactivated, pickLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
+import {markActivePopoverLauncherDeactivated, pickActiveLauncher, pickLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import sharedTrapStack from '@libs/sharedTrapStack';
@@ -17,10 +17,12 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
             active={active}
             focusTrapOptions={{
                 onActivate: () => {
-                    // Prefer the focused opener; if it was blurred before open (ThreeDotsMenu), fall back to LauncherStack.
+                    // Prefer a still-active registered opener (ThreeDots pre-blur) over document.activeElement.
+                    // PopoverMenu nests Modal + content FocusTraps: after the first moves focus into the menu,
+                    // the second must not push that ephemeral menu item onto the stack (Back would have nothing).
                     const activeElement = document.activeElement;
                     const fromActive = activeElement instanceof HTMLElement && activeElement !== document.body ? activeElement : null;
-                    const launcher = fromActive ?? pickLauncher();
+                    const launcher = pickActiveLauncher() ?? fromActive ?? pickLauncher();
                     blurActiveElement();
                     if (launcher && document.contains(launcher)) {
                         cachedLauncherRef.current = launcher;

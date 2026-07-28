@@ -2,7 +2,7 @@ import {render} from '@testing-library/react-native';
 
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal/index.web';
 
-import {markActivePopoverLauncherDeactivated, pickLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
+import {markActivePopoverLauncherDeactivated, pickActiveLauncher, pickLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 
 import React from 'react';
 
@@ -10,6 +10,7 @@ jest.mock('@libs/LauncherStack', () => ({
     setActivePopoverLauncher: jest.fn(),
     markActivePopoverLauncherDeactivated: jest.fn(),
     pickLauncher: jest.fn(() => null),
+    pickActiveLauncher: jest.fn(() => null),
 }));
 
 type CapturedFocusTrapOptions = {onActivate?: () => void; onPostDeactivate?: () => void};
@@ -53,6 +54,8 @@ describe('FocusTrapForModal — launcher capture', () => {
         jest.mocked(markActivePopoverLauncherDeactivated).mockClear();
         jest.mocked(pickLauncher).mockReset();
         jest.mocked(pickLauncher).mockReturnValue(null);
+        jest.mocked(pickActiveLauncher).mockReset();
+        jest.mocked(pickActiveLauncher).mockReturnValue(null);
         mockRestoreFocusWithModality.mockReset();
         document.body.innerHTML = '';
     });
@@ -142,5 +145,22 @@ describe('FocusTrapForModal — launcher capture', () => {
 
         expect(setActivePopoverLauncher).toHaveBeenCalledWith(launcher);
         expect(markActivePopoverLauncherDeactivated).toHaveBeenCalledWith(launcher);
+    });
+
+    it('keeps the registered ThreeDots trigger when a nested trap activates with a menu item focused', () => {
+        const trigger = document.createElement('button');
+        const menuItem = document.createElement('button');
+        document.body.appendChild(trigger);
+        document.body.appendChild(menuItem);
+        jest.mocked(pickActiveLauncher).mockReturnValue(trigger);
+
+        render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
+
+        withActiveElement(menuItem, () => {
+            capturedOptions?.onActivate?.();
+        });
+
+        expect(setActivePopoverLauncher).toHaveBeenCalledTimes(1);
+        expect(setActivePopoverLauncher).toHaveBeenCalledWith(trigger);
     });
 });
