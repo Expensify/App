@@ -209,6 +209,33 @@ describe('proposalPoliceComment', () => {
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenNthCalledWith(1, expect.objectContaining({conversation: 'conv_new'}));
     });
 
+    it('seeds a new Conversation in multiple batches when there are more than 20 prior proposals', async () => {
+        const priorProposals = Array.from({length: 23}, (_unused, index) => makeComment({id: index + 1, created_at: '2025-12-31T00:00:00Z'}));
+        mockComments(priorProposals);
+        setPayload({action: 'created', comment: makeComment({id: 100, created_at: '2026-01-02T00:00:00Z'})});
+        MockedOpenAIUtils.prototype.promptResponses
+            .mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'})
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl'});
+
+        await run();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.createConversation).toHaveBeenCalledTimes(1);
+        const [firstBatch] = MockedOpenAIUtils.prototype.createConversation.mock.calls.at(0) ?? [];
+        expect(firstBatch).toHaveLength(20);
+        // The tracking comment must be posted before the remaining batch is sent, so a failure sending it
+        // can't leave the Conversation untracked (see proposalPoliceComment.ts).
+        const createCommentOrder = mockCreateComment.mock.invocationCallOrder.at(0);
+        const addConversationItemsOrder = MockedOpenAIUtils.prototype.addConversationItems.mock.invocationCallOrder.at(0);
+        expect(createCommentOrder).toBeDefined();
+        expect(addConversationItemsOrder).toBeDefined();
+        expect(createCommentOrder).toBeLessThan(addConversationItemsOrder ?? Number.POSITIVE_INFINITY);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.addConversationItems).toHaveBeenCalledTimes(1);
+        const [, secondBatch] = MockedOpenAIUtils.prototype.addConversationItems.mock.calls.at(0) ?? [];
+        expect(secondBatch).toHaveLength(3);
+    });
+
     it('skips the duplicate-check call when the issue has no prior proposals at all', async () => {
         // mockGetAllCommentDetails already resolves [] by default (see beforeEach)
         setPayload({action: 'created'});

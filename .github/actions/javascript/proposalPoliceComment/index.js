@@ -39668,11 +39668,13 @@ async function run() {
             const seedItemChunks = (0, ProposalPoliceConversation_1.chunkArray)(seedItems, ProposalPoliceConversation_1.MAX_ITEMS_PER_CONVERSATION_REQUEST);
             const conversation = await openAI.createConversation(seedItemChunks.at(0));
             conversationID = conversation.id;
+            // Persist the tracking marker as early as possible: if a later seed chunk fails to send, the next
+            // run can still find this Conversation instead of creating (and fragmenting history into) a new one.
+            await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, (0, ProposalPoliceConversation_1.buildTrackingCommentBody)(conversationID));
+            await GithubUtils_1.default.pinIssue(issueNumber);
             for (const chunk of seedItemChunks.slice(1)) {
                 await openAI.addConversationItems(conversationID, chunk);
             }
-            await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, (0, ProposalPoliceConversation_1.buildTrackingCommentBody)(conversationID));
-            await GithubUtils_1.default.pinIssue(issueNumber);
         }
         // Skip the duplicate-check call entirely when there's nothing in the Conversation yet to compare against
         if (hasPriorProposals) {
@@ -39691,7 +39693,8 @@ async function run() {
             const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
             if (parsedDuplicateCheckResponse?.action === CONST_1.default.ACTION_HIDE_DUPLICATE && similarityPercentage >= 90) {
                 console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
-                const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId);
+                // Sanity-check the model's reported duplicateCommentId against the real comment list before trusting it for the notice link
+                const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && (0, ProposalUtils_1.getIsProposal)(comment.body));
                 const duplicateCheckWithdrawMessage = (0, messages_1.getDuplicateCheckWithdrawMessage)();
                 const duplicateCheckNoticeMessage = (0, messages_1.getDuplicateCheckNoticeMessage)(newProposalAuthor, originalProposal?.html_url);
                 // If a duplicate proposal is detected, update the comment to withdraw it
@@ -39763,8 +39766,9 @@ async function run() {
         });
     }
 }
-// Jest imports this module to unit test `run` directly; skip the auto-invocation in that context so tests control when it runs.
-if (!process.env.JEST_WORKER_ID) {
+// Consistent with every other action in .github/actions/javascript/*: only auto-invoke when this file is
+// the actual entry point, not when Jest imports it as a module to unit test `run` directly.
+if (require.main === require.cache[eval('__filename')]) {
     run().catch((error) => {
         console.error(error);
         // Zero status ensures that the action is marked as successful regardless the outcome
@@ -40651,23 +40655,31 @@ exports.buildEditCheckInput = buildEditCheckInput;
 exports.buildDuplicateCheckInput = buildDuplicateCheckInput;
 exports.buildDuplicateCheckSeedItem = buildDuplicateCheckSeedItem;
 /**
+ * Escapes angle brackets in untrusted comment/proposal text before it's interpolated into our
+ * XML-style wrapper tags, so a comment containing a literal `</new_proposal>` (or similar) can't be
+ * mistaken by the model for the end of our own wrapper.
+ */
+function escapeForXMLWrapper(text) {
+    return text.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+}
+/**
  * Build the user input for a template-check request (a newly created comment).
  */
 function buildTemplateCheckInput(commentBody) {
-    return `<new_comment>\n${commentBody}\n</new_comment>`;
+    return `<new_comment>\n${escapeForXMLWrapper(commentBody)}\n</new_comment>`;
 }
 /**
  * Build the user input for an edit-check request (an edited comment).
  */
 function buildEditCheckInput(previousBody, editedBody) {
-    return ['<edit>', `<original>\n${previousBody ?? ''}\n</original>`, `<edited>\n${editedBody}\n</edited>`, '</edit>'].join('\n');
+    return ['<edit>', `<original>\n${escapeForXMLWrapper(previousBody ?? '')}\n</original>`, `<edited>\n${escapeForXMLWrapper(editedBody)}\n</edited>`, '</edit>'].join('\n');
 }
 /**
  * Build the user input for a duplicate-check request: the new proposal, tagged with its comment ID
  * so the model can report back which prior proposal (if any) it duplicates.
  */
 function buildDuplicateCheckInput(newProposalBody, commentID) {
-    return `<new_proposal comment_id="${commentID}">\n${newProposalBody}\n</new_proposal>`;
+    return `<new_proposal comment_id="${commentID}">\n${escapeForXMLWrapper(newProposalBody)}\n</new_proposal>`;
 }
 /**
  * Build a conversation item representing a prior proposal, used only to seed a duplicate-check
@@ -40676,7 +40688,7 @@ function buildDuplicateCheckInput(newProposalBody, commentID) {
 function buildDuplicateCheckSeedItem(proposalBody, commentID) {
     return {
         role: 'user',
-        content: `<proposal comment_id="${commentID}">\n${proposalBody}\n</proposal>`,
+        content: `<proposal comment_id="${commentID}">\n${escapeForXMLWrapper(proposalBody)}\n</proposal>`,
     };
 }
 

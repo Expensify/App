@@ -123,11 +123,13 @@ async function run() {
             const seedItemChunks = chunkArray(seedItems, MAX_ITEMS_PER_CONVERSATION_REQUEST);
             const conversation = await openAI.createConversation(seedItemChunks.at(0));
             conversationID = conversation.id;
+            // Persist the tracking marker as early as possible: if a later seed chunk fails to send, the next
+            // run can still find this Conversation instead of creating (and fragmenting history into) a new one.
+            await GithubUtils.createComment(CONST.APP_REPO, issueNumber, buildTrackingCommentBody(conversationID));
+            await GithubUtils.pinIssue(issueNumber);
             for (const chunk of seedItemChunks.slice(1)) {
                 await openAI.addConversationItems(conversationID, chunk);
             }
-            await GithubUtils.createComment(CONST.APP_REPO, issueNumber, buildTrackingCommentBody(conversationID));
-            await GithubUtils.pinIssue(issueNumber);
         }
 
         // Skip the duplicate-check call entirely when there's nothing in the Conversation yet to compare against
@@ -148,7 +150,8 @@ async function run() {
             const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
             if (parsedDuplicateCheckResponse?.action === CONST.ACTION_HIDE_DUPLICATE && similarityPercentage >= 90) {
                 console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
-                const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId);
+                // Sanity-check the model's reported duplicateCommentId against the real comment list before trusting it for the notice link
+                const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && getIsProposal(comment.body));
                 const duplicateCheckWithdrawMessage = getDuplicateCheckWithdrawMessage();
                 const duplicateCheckNoticeMessage = getDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
                 // If a duplicate proposal is detected, update the comment to withdraw it
@@ -226,8 +229,9 @@ async function run() {
     }
 }
 
-// Jest imports this module to unit test `run` directly; skip the auto-invocation in that context so tests control when it runs.
-if (!process.env.JEST_WORKER_ID) {
+// Consistent with every other action in .github/actions/javascript/*: only auto-invoke when this file is
+// the actual entry point, not when Jest imports it as a module to unit test `run` directly.
+if (require.main === module) {
     run().catch((error) => {
         console.error(error);
         // Zero status ensures that the action is marked as successful regardless the outcome
