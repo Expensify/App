@@ -593,3 +593,100 @@ describe('SequentialQueue - QueueFlushedData', () => {
         expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBe(true);
     });
 });
+
+describe('SequentialQueue - pause watchdog', () => {
+    beforeEach(() => {
+        // Keep setImmediate real so waitForBatchedUpdates and Onyx batching still work under fake timers.
+        jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick']});
+    });
+
+    afterEach(() => {
+        SequentialQueue.resetQueue();
+        SequentialQueue.registerPauseWatchdogEscalation(() => Promise.resolve());
+        jest.useRealTimers();
+    });
+
+    it('should force-unpause a pause stuck without progress for the full window', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        SequentialQueue.pause();
+        expect(SequentialQueue.isPaused()).toBe(true);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should re-arm on applied-update progress, so a progressing catch-up is not interrupted', async () => {
+        SequentialQueue.registerPauseWatchdogEscalation(() => Promise.resolve());
+        SequentialQueue.pause();
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+        // The client applies a newer update mid-pause: the watchdog window restarts.
+        // (No waitForBatchedUpdates here — under fake timers it runs all pending timers, firing the watchdog early; the subscriber callback is synchronous anyway.)
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 12345);
+
+        // Three-quarters of a window later the ORIGINAL deadline is long past, but not the re-armed one.
+        await jest.advanceTimersByTimeAsync((CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 4) * 3);
+        expect(SequentialQueue.isPaused()).toBe(true);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 4);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should be cleared by a normal unpause and never fire afterwards', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        SequentialQueue.pause();
+        SequentialQueue.unpause();
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS * 2);
+
+        expect(escalation).not.toHaveBeenCalled();
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should unpause only after the gap-closing escalation settles', async () => {
+        let resolveEscalation: () => void = () => {};
+        SequentialQueue.registerPauseWatchdogEscalation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveEscalation = resolve;
+                }),
+        );
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+
+        // Escalation is in flight: the queue must stay paused so drained writes don't run against stale data.
+        expect(SequentialQueue.isPaused()).toBe(true);
+
+        resolveEscalation();
+        await jest.advanceTimersByTimeAsync(0);
+
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should unpause anyway when the escalation hangs past its cap', async () => {
+        SequentialQueue.registerPauseWatchdogEscalation(() => new Promise(() => {}));
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        expect(SequentialQueue.isPaused()).toBe(true);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_ESCALATION_TIME_MS);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('should unpause anyway when the escalation rejects', async () => {
+        SequentialQueue.registerPauseWatchdogEscalation(() => Promise.reject(new Error('escalation failed')));
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+});
