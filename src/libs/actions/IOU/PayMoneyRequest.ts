@@ -56,7 +56,6 @@ type PayInvoiceArgs = {
     chatReport: OnyxTypes.Report;
     invoiceReport: OnyxEntry<OnyxTypes.Report>;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    invoiceReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     currentUserLocalCurrency: string;
@@ -103,7 +102,6 @@ type PayMoneyRequestFunctionParams = {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     currentUserAccountID: number;
     currentUserLogin: string;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
@@ -161,7 +159,6 @@ function getPayMoneyRequestParams({
     existingB2BInvoiceReport,
     activePolicy,
     conciergeChat,
-    iouReportCurrentNextStepDeprecated,
     betas,
     isSelfTourViewed,
     defaultWorkspaceName,
@@ -187,7 +184,6 @@ function getPayMoneyRequestParams({
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
-    iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
@@ -765,7 +761,6 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         chatReport,
         iouReport,
         introSelected,
-        iouReportCurrentNextStepDeprecated,
         currentUserAccountID,
         currentUserLogin,
         paymentPolicyID,
@@ -809,7 +804,6 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         paymentPolicyID,
         activePolicy,
         reportPolicy: policy,
-        iouReportCurrentNextStepDeprecated,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserLogin,
         // payMoneyRequest never creates a payer workspace (no payAsBusiness branch), so currency and conciergeChat are unused here.
@@ -839,7 +833,6 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
 function markReportPaymentReceived(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
-    iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     currentUserAccountID: number,
     currentUserEmail: string,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
@@ -1017,7 +1010,6 @@ function payInvoice({
     paymentMethod,
     activePolicy,
     conciergeChat,
-    invoiceReportCurrentNextStepDeprecated,
     betas,
     isSelfTourViewed,
     defaultWorkspaceName,
@@ -1045,7 +1037,6 @@ function payInvoice({
     } = getPayMoneyRequestParams({
         initialChatReport: chatReport,
         iouReport: invoiceReport,
-        iouReportCurrentNextStepDeprecated: invoiceReportCurrentNextStepDeprecated,
         recipient,
         paymentMethodType,
         full: true,

@@ -73,7 +73,6 @@ import type {
     Report,
     ReportAction,
     ReportActions,
-    ReportNextStepDeprecated,
     ReviewDuplicates,
     Transaction,
     TransactionViolation,
@@ -804,7 +803,6 @@ type ChangeTransactionsReportProps = {
     email: string;
     newReport?: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
-    reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     policyTagList: OnyxEntry<PolicyTagLists>;
     transactions: Transaction[];
@@ -824,7 +822,6 @@ function getChangeTransactionsReportOnyxData({
     email,
     newReport,
     policy,
-    reportNextStep,
     policyCategories,
     policyTagList,
     transactions,

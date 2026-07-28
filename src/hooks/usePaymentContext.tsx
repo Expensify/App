@@ -4,7 +4,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {delegateEmailSelector} from '@src/selectors/Account';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, Report} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -38,7 +38,6 @@ type PaymentContextValue = {
 };
 
 type ReportPaymentContextValue = PaymentContextValue & {
-    nextStep: OnyxEntry<ReportNextStepDeprecated>;
     chatReportPolicy: OnyxEntry<Policy>;
 };
 
@@ -114,7 +113,6 @@ function useReportPaymentContext({reportID, chatReportPolicyID}: UseReportPaymen
 
     return {
         ...paymentContext,
-        nextStep,
         chatReportPolicy,
     };
 }

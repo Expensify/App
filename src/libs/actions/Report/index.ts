@@ -224,7 +224,6 @@ import type {
     Report,
     ReportAction,
     ReportAttributesDerivedValue,
-    ReportNextStepDeprecated,
     ReportUserIsTyping,
     SidePanelContext,
     Transaction,
@@ -436,7 +435,6 @@ type MergeReportsProps = {
     accountID: number;
     email: string;
     policy: OnyxEntry<Policy>;
-    reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     policyTagList: OnyxEntry<PolicyTagLists>;
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
@@ -7302,7 +7300,6 @@ function buildOptimisticChangePolicyData({
     hasViolationsParam,
     isASAPSubmitBetaEnabled,
     isReportLastVisibleArchived,
-    reportNextStep,
     optimisticPolicyExpenseChatReport,
     reportPreviewAction,
     isTrackIntentUser,
@@ -7317,7 +7314,6 @@ function buildOptimisticChangePolicyData({
     hasViolationsParam: boolean;
     isASAPSubmitBetaEnabled: boolean;
     isReportLastVisibleArchived: boolean | undefined;
-    reportNextStep?: ReportNextStepDeprecated;
     optimisticPolicyExpenseChatReport?: Report;
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
@@ -7791,7 +7787,6 @@ function changeReportPolicy({
     hasViolationsParam,
     isChangePolicyTrainingModalDismissed,
     isASAPSubmitBetaEnabled,
-    reportNextStep,
     isReportLastVisibleArchived = false,
     reportPreviewAction,
     isTrackIntentUser,
@@ -7806,7 +7801,6 @@ function changeReportPolicy({
     hasViolationsParam: boolean;
     isChangePolicyTrainingModalDismissed: boolean;
     isASAPSubmitBetaEnabled: boolean;
-    reportNextStep?: ReportNextStepDeprecated;
     isReportLastVisibleArchived?: boolean;
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
@@ -7826,7 +7820,6 @@ function changeReportPolicy({
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
-        reportNextStep,
         reportPreviewAction,
         isTrackIntentUser,
     });
@@ -7859,7 +7852,6 @@ function changeReportPolicyAndInviteSubmitter({
     isASAPSubmitBetaEnabled,
     employeeList,
     isReportLastVisibleArchived,
-    reportNextStep,
     reportActionsList,
     reportPreviewAction,
     isTrackIntentUser,
@@ -7875,7 +7867,6 @@ function changeReportPolicyAndInviteSubmitter({
     isASAPSubmitBetaEnabled: boolean;
     employeeList: PolicyEmployeeList | undefined;
     isReportLastVisibleArchived: boolean | undefined;
-    reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     reportActionsList: OnyxCollection<ReportActions>;
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
@@ -7929,7 +7920,6 @@ function changeReportPolicyAndInviteSubmitter({
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
-        reportNextStep,
         optimisticPolicyExpenseChatReport: membersChats.reportCreationData[submitterLogin],
         reportPreviewAction,
         isTrackIntentUser,
@@ -8082,7 +8072,6 @@ function mergeReports({
     accountID,
     email,
     policy,
-    reportNextStep,
     policyCategories,
     policyTagList,
     allTransactionViolation,
@@ -8111,7 +8100,6 @@ function mergeReports({
         email,
         newReport: destinationReport,
         policy,
-        reportNextStep,
         policyCategories,
         policyTagList: policyTagList ?? {},
         transactions: transactionsToMove,

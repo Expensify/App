@@ -87,7 +87,6 @@ type SubmitAmountArgs = {
     transactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     storedTransaction: OnyxEntry<OnyxTypes.Transaction>;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     duplicateTransactions: OnyxCollection<OnyxTypes.Transaction>;
@@ -577,7 +576,6 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         splitDraftTransaction,
         transaction,
         report,
-        parentReportNextStep,
         duplicateTransactions,
         duplicateTransactionViolations,
         policyCategories,
@@ -627,7 +625,6 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         transactionThreadReport: report,
         parentReport,
         iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),
-        parentReportNextStep,
         transactions: duplicateTransactions,
         transactionViolations: duplicateTransactionViolations,
         currency: selectedCurrency,
