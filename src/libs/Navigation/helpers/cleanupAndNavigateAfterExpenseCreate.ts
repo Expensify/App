@@ -19,6 +19,8 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     isInvoice?: boolean;
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
     action: DeepValueOf<typeof CONST.IOU.ACTION>;
+    /** When false, runs cleanup only — use when dismiss/reveal already handled navigation. */
+    shouldNavigate?: boolean;
 };
 
 function cleanupAndNavigateAfterExpenseCreate({
@@ -31,6 +33,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     isInvoice,
     linkedTrackedExpenseReportAction,
     action,
+    shouldNavigate = true,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
     cleanupAfterExpenseCreate({
         draftTransactionIDs,
@@ -50,6 +53,7 @@ function cleanupAndNavigateAfterExpenseCreate({
         isInvoice,
         hasMultipleTransactions,
         shouldAddPendingNewTransactionIDs,
+        shouldNavigate,
     });
 }
 

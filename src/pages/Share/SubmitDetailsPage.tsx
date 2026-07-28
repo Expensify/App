@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
+import usePreMountDestination from '@hooks/usePreMountDestination';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -46,7 +47,7 @@ import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
@@ -55,6 +56,7 @@ import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWork
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -71,6 +73,7 @@ import {showErrorAlert} from './ShareRootPage';
 import useShareFileSizeValidation from './useShareFileSizeValidation';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SUBMIT_DETAILS>;
+
 function SubmitDetailsPage({
     route: {
         params: {reportOrAccountID},
@@ -262,11 +265,23 @@ function SubmitDetailsPage({
     const listOfParticipants = participants.filter((participant) => participant.selected);
     const participant = listOfParticipants.at(0) ?? selectedParticipants.at(0);
     const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy});
+    const postSubmitNavigationReportID = (isSelfDM(report) ? report : reportToSubmit)?.reportID ?? reportOrAccountID;
     const isIouReport = isMoneyRequestReport(reportToSubmit);
     const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
         moneyRequestReportID: isIouReport ? reportToSubmit?.reportID : undefined,
         parentChatReportPolicyID: reportToSubmit?.policyID,
         participantReportID: participant?.reportID,
+    });
+
+    // Empty draft skips REPORT_DRAFT fallback — report must be in COLLECTION.REPORT to render behind the share modal.
+    const destinationReportInCollection = transaction && postSubmitNavigationReportID ? getReportOrDraftReport(postSubmitNavigationReportID, undefined, undefined, {}) : undefined;
+    const preMountDestinationRoute =
+        transaction && postSubmitNavigationReportID && destinationReportInCollection?.reportID && Navigation.getTopmostReportId() !== postSubmitNavigationReportID
+            ? ROUTES.REPORT_WITH_ID.getRoute(postSubmitNavigationReportID)
+            : undefined;
+
+    const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
+        shouldPreservePreInsertedRouteOnUnmount: () => formHasBeenSubmitted.current,
     });
 
     const finishRequestAndNavigate = (receipt: Receipt, gpsPoint?: GpsPoint) => {
@@ -286,106 +301,119 @@ function SubmitDetailsPage({
             iouType,
         });
 
-        if (isSelfDM(report)) {
-            trackExpense({
-                report: report ?? {reportID: reportOrAccountID},
-                isDraftPolicy: false,
-                isDraftChatReport: !!reportDraft,
-                participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
-                policyParams: {policy, policyTagList: policyTags, policyCategories},
-                action: CONST.IOU.TYPE.CREATE,
-                transactionParams: {
-                    attendees: transaction.comment?.attendees,
-                    amount: transactionAmount,
-                    currency: transaction.currency,
-                    comment: trimmedComment,
-                    receipt,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    taxCode: transactionTaxCode,
-                    taxAmount: transactionTaxAmount,
-                    taxValue: transactionTaxValue,
-                    billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
-                    merchant: transaction.merchant ?? '',
-                    created: transaction.created,
-                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
-                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
-                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
-                    isLinkedTrackedExpenseReportArchived,
-                    gpsPoint,
-                },
-                existingTransaction: transaction,
-                isASAPSubmitBetaEnabled,
-                currentUser: {accountID: currentUserPersonalDetails.accountID, email: currentUserPersonalDetails.login ?? ''},
-                introSelected,
-                conciergeChat,
-                quickAction,
-                recentWaypoints,
-                betas,
-                draftTransactionIDs,
-                isSelfTourViewed,
-                optimisticTransactionID,
-                currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-                delegateAccountID,
-                reportActionsList: undefined,
-            });
-        } else {
-            const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
+        const runExpenseCreateAndCleanup = (shouldNavigate: boolean) => {
+            if (isSelfDM(report)) {
+                trackExpense({
+                    report: report ?? {reportID: reportOrAccountID},
+                    isDraftPolicy: false,
+                    isDraftChatReport: !!reportDraft,
+                    participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
+                    policyParams: {policy, policyTagList: policyTags, policyCategories},
+                    action: CONST.IOU.TYPE.CREATE,
+                    transactionParams: {
+                        attendees: transaction.comment?.attendees,
+                        amount: transactionAmount,
+                        currency: transaction.currency,
+                        comment: trimmedComment,
+                        receipt,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
+                        billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
+                        merchant: transaction.merchant ?? '',
+                        created: transaction.created,
+                        actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                        linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                        isLinkedTrackedExpenseReportArchived,
+                        gpsPoint,
+                    },
+                    existingTransaction: transaction,
+                    isASAPSubmitBetaEnabled,
+                    currentUser: {accountID: currentUserPersonalDetails.accountID, email: currentUserPersonalDetails.login ?? ''},
+                    introSelected,
+                    conciergeChat,
+                    quickAction,
+                    recentWaypoints,
+                    betas,
+                    draftTransactionIDs,
+                    isSelfTourViewed,
+                    optimisticTransactionID,
+                    currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                    delegateAccountID,
+                    reportActionsList: undefined,
+                });
+            } else {
+                const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
-            requestMoney({
-                report: reportToSubmit,
-                participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
-                policyParams: {policy, policyTagList: policyTagsForRequestMoney, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
-                gpsPoint,
-                action: CONST.IOU.TYPE.CREATE,
-                transactionParams: {
-                    attendees: transaction.comment?.attendees,
-                    amount: transactionAmount,
-                    currency: transaction.currency,
-                    comment: trimmedComment,
-                    receipt,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    taxCode: transactionTaxCode,
-                    taxAmount: transactionTaxAmount,
-                    taxValue: transactionTaxValue,
-                    billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
-                    merchant: transaction.merchant ?? '',
-                    created: transaction.created,
-                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
-                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
-                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
-                    isLinkedTrackedExpenseReportArchived,
-                },
-                shouldGenerateTransactionThreadReport: false,
-                isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                transactionViolations,
-                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                quickAction,
-                existingTransactionDraft,
-                existingTransaction: storedTransaction ?? transaction,
+                requestMoney({
+                    report: reportToSubmit,
+                    participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
+                    policyParams: {policy, policyTagList: policyTagsForRequestMoney, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
+                    gpsPoint,
+                    action: CONST.IOU.TYPE.CREATE,
+                    transactionParams: {
+                        attendees: transaction.comment?.attendees,
+                        amount: transactionAmount,
+                        currency: transaction.currency,
+                        comment: trimmedComment,
+                        receipt,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
+                        billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
+                        merchant: transaction.merchant ?? '',
+                        created: transaction.created,
+                        actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                        linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                        isLinkedTrackedExpenseReportArchived,
+                    },
+                    shouldGenerateTransactionThreadReport: false,
+                    isASAPSubmitBetaEnabled,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    transactionViolations,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    quickAction,
+                    existingTransactionDraft,
+                    existingTransaction: storedTransaction ?? transaction,
+                    draftTransactionIDs,
+                    isSelfTourViewed,
+                    betas,
+                    personalDetails,
+                    optimisticTransactionID,
+                    isTrackIntentUser,
+                    delegateAccountID,
+                });
+            }
+            cleanupAndNavigateAfterExpenseCreate({
+                report: isSelfDM(report) ? report : reportToSubmit,
+                action: CONST.IOU.ACTION.CREATE,
                 draftTransactionIDs,
-                isSelfTourViewed,
-                betas,
-                personalDetails,
-                optimisticTransactionID,
-                isTrackIntentUser,
-                delegateAccountID,
+                transactionID: optimisticTransactionID,
+                isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                optimisticChatReportID: reportOrAccountID,
+                linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                shouldNavigate,
             });
+        };
+
+        if (preMountDestinationRoute) {
+            revealPreMountDestination(() => {
+                runExpenseCreateAndCleanup(false);
+                setIsConfirming(false);
+            });
+            return;
         }
-        cleanupAndNavigateAfterExpenseCreate({
-            report: isSelfDM(report) ? report : reportToSubmit,
-            action: CONST.IOU.ACTION.CREATE,
-            draftTransactionIDs,
-            transactionID: optimisticTransactionID,
-            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-            optimisticChatReportID: reportOrAccountID,
-            linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
-        });
+
+        runExpenseCreateAndCleanup(true);
     };
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
@@ -476,7 +504,10 @@ function SubmitDetailsPage({
                 />
                 <HeaderWithBackButton
                     title={translate('iou.confirmDetails')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => {
+                        cleanupPreMount();
+                        Navigation.goBack();
+                    }}
                 />
                 <LocationPermissionModal
                     startPermissionFlow={startLocationPermissionFlow}
