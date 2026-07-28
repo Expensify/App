@@ -2,6 +2,7 @@
  * Determines whether the trial payment reminder modal is eligible to show and which variant/countdown
  * to display, based on the user's free-trial dates, payment-card status, and prior dismissals.
  */
+import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
 import {calculateRemainingTrialSeconds, calculateTrialDayNumber, doesUserHavePaymentCardAdded, isUserOnFreeTrial} from '@libs/SubscriptionUtils';
 
 import {setNameValuePair} from '@userActions/User';
@@ -151,6 +152,8 @@ function useTrialPaymentReminder() {
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [billingFundID, billingFundIDResult] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [dismissedTimestamp, dismissedTimestampResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
     const [readinessState, setReadinessState] = useState<ReadinessState>(READINESS_STATE.LOADING);
 
@@ -222,6 +225,9 @@ function useTrialPaymentReminder() {
         if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
             return false;
         }
+        if (!getOwnedPaidPolicies(policies, currentUserAccountID).length) {
+            return false;
+        }
         if (isLoadingOnyxValue(billingFundIDResult)) {
             return false;
         }
@@ -245,7 +251,18 @@ function useTrialPaymentReminder() {
             }
         }
         return true;
-    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, billingFundIDResult, readinessState, currentVariation, dismissedTimestamp, dismissedTimestampResult]);
+    }, [
+        firstDayFreeTrial,
+        lastDayFreeTrial,
+        billingFundID,
+        billingFundIDResult,
+        readinessState,
+        currentVariation,
+        dismissedTimestamp,
+        dismissedTimestampResult,
+        policies,
+        currentUserAccountID,
+    ]);
 
     // Run the 1s countdown only while the countdown modal is actually eligible to show, so we don't tick every
     // second in the background when it isn't rendered.
