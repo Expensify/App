@@ -1,3 +1,5 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {markActivePopoverLauncherDeactivated, pickActiveLauncher, pickLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -12,9 +14,10 @@ import {View} from 'react-native';
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
 function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true}: FocusTrapForModalProps) {
+    const styles = useThemeStyles();
     // Track this trap's own launcher so onPostDeactivate targets the right shared-stack entry.
     const cachedLauncherRef = useRef<HTMLElement | null>(null);
-    // Host node for this trap — used to detect nested activation after a parent trap moved focus inside.
+    // Host we own (same pattern as FormElement) — dContents so it does not affect modal layout/alignment.
     const trapContainerRef = useRef<View | null>(null);
 
     return (
@@ -55,8 +58,7 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
         >
             <View
                 ref={trapContainerRef}
-                // Collapsible host so layout of children is unchanged; web needs a real DOM node for contains().
-                collapsable={false}
+                style={styles.dContents}
             >
                 {children}
             </View>
