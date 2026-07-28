@@ -1671,6 +1671,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const handleMarkAction = buildIntegrationHandleExportAction(reportIDsToMark, integration, integrationGroupSize);
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
+                        // Every integration's "Mark as exported" option shares the same visible text and differs only by icon,
+                        // which screen readers can't announce. Append the integration name so assistive tech can distinguish them.
+                        accessibilityLabel: `${translate('workspace.common.markAsExported')}, ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}`,
                         icon: getIntegrationIcon(integration, expensifyIcons),
                         onSelected: () => handleMarkAction(() => markAsManuallyExported(reportIDsToMark, integration)),
                         shouldCloseModalOnSelect: true,
