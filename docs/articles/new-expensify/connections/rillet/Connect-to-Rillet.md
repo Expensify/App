@@ -6,27 +6,40 @@ internalScope: Audience is Workspace Admins connecting Rillet as an accounting i
 order: 1
 ---
 
-Connect your Workspace to Rillet to sync your accounting data with Expensify. Rillet connects using an API key you generate in Rillet, so there is no separate login step. This article walks you through connecting, selecting a subsidiary, and disconnecting.
+# Connect to Rillet
 
-The Rillet integration is currently in beta and is rolled out to select customers.
+Connect Rillet to your Expensify workspace to sync your accounting data. This article walks you through connecting Rillet, selecting a subsidiary, and completing the initial setup.
+
+Once connected, the integration imports:
+
+- Your chart of accounts as categories.
+- Departments, Projects, and Classes as tags.
+- Tax rates (when available).
+
+The Rillet integration is currently in beta and is available to select customers.
+
+---
 
 ## Who can connect to Rillet
 
-- You must be a Workspace Admin.
-- Your Workspace must be on the **Collect** or **Control** plan.
-- You must be able to generate an API key in Rillet.
+To connect Rillet, you must:
 
-## How to connect Expensify to Rillet
+- Be a Workspace Admin.
+- Be using a workspace on the **Collect** or **Control** plan.
+- Be able to generate an API key in Rillet.
 
-1. In the left-hand menu, select **Settings**.
-2. Select **Workspaces**, then choose your Workspace.
-3. Select **More features**.
-4. In the **Integrate** section, enable **Accounting**.
-5. Select **Accounting** in the Workspace menu.
-6. Click **Set up** next to **Rillet**.
-7. Follow the on-screen instructions to generate an API key in Rillet, paste it into the **API key** field, and click **Confirm**.
+---
 
-Expensify validates the API key and fetches your Rillet organization and subsidiary data. Your API key is encrypted and stored on Expensify's servers only — it is never sent to your device or exposed in the app.
+## How to connect Rillet to Expensify
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**
+2. Select **Accounting**.
+3. In the **Connections** section next to **Rillet**, select **Connect**.
+4. In the **Rillet setup** page that opens, follow the on-screen instructions to generate an API key in Rillet, paste it into the **API key** field, and click **Confirm**.
+
+Expensify validates the API key, connects to your Rillet organization, and retrieves your available subsidiaries.
+
+**Note:** Your API key is encrypted and stored securely on Expensify's servers. It is never exposed in the app or stored on your device.
 
 <!-- SCREENSHOT:
 Suggestion: Capture the single-screen Rillet connection form showing the setup instructions, the API key field, and the Confirm button.
@@ -34,45 +47,47 @@ Location: After step 7.
 Purpose: Confirms admins are on the correct API-key entry screen, which differs from the OAuth login flow used by other accounting connections and is a common point of confusion.
 -->
 
-## How to select a Rillet subsidiary
-
-After the API key is validated, Expensify loads the subsidiaries available in your Rillet organization:
-
-- If your Rillet organization has one eligible subsidiary, it is selected automatically.
-- If your Rillet organization has more than one eligible subsidiary, the first is selected by default and you can choose a different one.
-
-The selected subsidiary determines which accounts, dimensions, and tax rates sync into Expensify.
-
 ## What happens after you connect to Rillet
 
-Expensify runs an initial sync and imports the Rillet data needed to configure the integration:
+After the connection is established, the **Connections** section updates to show your connected Rillet integration, including:
 
-- Subsidiaries
-- Chart of accounts
-- Fields and dimensions
-- Tax rates (when your Rillet organization returns them)
+- The connection status and last sync timestamp.
+- The selected subsidiary.
+- The **Import**, **Export**, and **Advanced** configuration settings.
+- Additional integration options under **Other**.
 
-Once the initial sync finishes, you can set up how data imports to and exports from Rillet. Learn how to [configure your Rillet import, export, and advanced settings](/articles/new-expensify/connections/rillet/Configure-Rillet).
+If your Rillet organization has multiple subsidiaries, you can choose which one to connect. If only one eligible subsidiary is available, Expensify selects it automatically. The selected subsidiary determines which accounting data is available in Expensify.
+
+After the initial sync completes, you can configure your import, export, and advanced accounting settings. Learn how to [configure your Rillet import, export, and advanced settings](/articles/new-expensify/connections/rillet/Configure-Rillet).
+
+---
+
+## How to disconnect Rillet 
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**
+2. Select **Accounting**.
+3. In the **Connections** section next to **Rillet**, select the three dots **(⋮)**.
+4. Choose **Disconnect**.
+5. Confirm the disconnect.
+
+Disconnecting Rillet stops future synchronization and removes the connection from the workspace.
+
+---
 
 # FAQ
 
-## Where do I generate my Rillet API key?
+## Where do I generate my API key?
 
-Generate the API key in Rillet, then paste it into the **API key** field on the Rillet connection screen in Expensify. The connection screen includes inline setup instructions for locating it in Rillet.
+Generate the API key in Rillet, then paste it into the **API key** field during setup. The connection window includes instructions for locating your API key.
 
-## Is my Rillet API key secure?
+## Is my API key secure?
 
-Yes. Your API key is encrypted and stored on Expensify's servers only. It never leaves Expensify's servers and is not sent to your device or exposed in the app.
+Yes. Expensify encrypts your API key and stores it securely on its servers. The key is never exposed in the app or stored on your device.
 
-## Why don't I see a tax rate option after connecting?
+## Why don't I see tax rates after connecting?
 
-The tax rate settings appear only when your Rillet organization returns tax rates during sync. If Rillet returns no tax rates, the toggle is hidden.
+Tax rates are only imported if your Rillet organization returns them. If no tax rates are available, tax rate options won't appear in Expensify.
 
-## How do I disconnect Rillet from Expensify?
+## Can I change which subsidiary is used?
 
-1. In the left-hand menu, select **Settings > Workspaces**, then choose your Workspace.
-2. Select **Accounting** in the Workspace menu.
-3. Select the three dots **(⋮)** next to **Rillet**.
-4. Select **Disconnect**, then confirm.
-
-After disconnecting, data previously imported from Rillet no longer appears in your Workspace.
+Yes. If your Rillet organization has multiple subsidiaries, you can select a different subsidiary at any time from the **Connectsions** section. Expensify will sync data from the newly selected subsidiary, including its accounts, dimensions, and tax rates.
