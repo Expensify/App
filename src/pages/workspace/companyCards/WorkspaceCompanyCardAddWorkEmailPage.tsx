@@ -54,7 +54,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
                     >
-                        <Button.Text>{translate('workspace.companyCards.addWorkEmailButton')}</Button.Text>
+                        <Button.Text>{translate('onboarding.workEmail.addWorkEmail')}</Button.Text>
                     </Button>
                 </FixedFooter>
             </ScreenWrapper>
