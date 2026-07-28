@@ -1243,7 +1243,7 @@ describe('mergeTransactionRequest', () => {
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            previewAction = getReportPreviewAction(chatReport.reportID, sourceReport.reportID);
+            previewAction = getReportPreviewAction(chatReport.reportID, sourceReport.reportID) ?? undefined;
             expect(previewAction).toBeTruthy();
             expect(previewAction?.childVisibleActionCount).toEqual(0);
             expect(previewAction?.childCommenterCount).toEqual(0);
@@ -1265,7 +1265,7 @@ describe('mergeTransactionRequest', () => {
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            previewAction = getReportPreviewAction(chatReport.reportID, sourceReport.reportID);
+            previewAction = getReportPreviewAction(chatReport.reportID, sourceReport.reportID) ?? undefined;
             expect(previewAction).toBeTruthy();
             expect(previewAction?.childVisibleActionCount).toEqual(0);
             expect(previewAction?.childCommenterCount).toEqual(0);
