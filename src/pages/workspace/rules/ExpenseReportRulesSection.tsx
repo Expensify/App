@@ -77,7 +77,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 : translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsSubtitle'),
             shouldParseSubtitle: workflowApprovalsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
-            isActive: policy?.shouldShowAutoApprovalOptions && !workflowApprovalsUnavailable,
+            isActive: (policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit !== undefined && policy.autoApproval.limit > 0)) && !workflowApprovalsUnavailable,
             disabled: workflowApprovalsUnavailable || !canWriteApprovals,
             disabledAction: withApprovalsReadOnlyFallback(),
             showLockIcon: workflowApprovalsUnavailable || !canWriteApprovals,
