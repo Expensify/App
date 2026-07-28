@@ -2141,7 +2141,7 @@ const CONST = {
             MFA_SCENARIO: 'mfa_scenario',
             MFA_ERROR_REASON: 'mfa_error_reason',
             BUILD_TYPE: 'build_type',
-            OPAQUE_INJECTED_REJECTION: 'opaque_injected_rejection',
+            INJECTED_SCRIPT_ERROR: 'injected_script_error',
         },
         EXPENSE_ERROR_TYPE: {
             REPORT_CREATION_FAILED: 'report_creation_failed',

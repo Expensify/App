@@ -3,7 +3,7 @@ import type {ErrorEvent, EventHint, Log, TransactionEvent} from '@sentry/core';
 import canceledTabNavigationFilter from './canceledTabNavigationFilter';
 import copyTagsToChildSpans from './copyTagsToChildSpans';
 import emailDomainFilter from './emailDomainFilter';
-import enrichOpaqueRejection from './enrichOpaqueRejection';
+import enrichInjectedScriptError from './enrichInjectedScriptError';
 import httpClientCancelledFilter from './httpClientCancelledFilter';
 import maxDurationFilter from './maxDurationFilter';
 import minDurationFilter from './minDurationFilter';
@@ -15,7 +15,7 @@ type TelemetryBeforeSendError = (event: ErrorEvent, hint: EventHint) => ErrorEve
 
 const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, canceledTabNavigationFilter, minDurationFilter, maxDurationFilter, httpClientCancelledFilter, copyTagsToChildSpans];
 const logMiddlewares: TelemetryBeforeSendLog[] = [onyxLogFilter];
-const errorMiddlewares: TelemetryBeforeSendError[] = [enrichOpaqueRejection];
+const errorMiddlewares: TelemetryBeforeSendError[] = [enrichInjectedScriptError];
 
 function processBeforeSendTransactions(event: TransactionEvent, hint: EventHint): Promise<TransactionEvent | null> {
     return middlewares.reduce(
