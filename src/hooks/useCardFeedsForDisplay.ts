@@ -12,6 +12,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {expensifyCardFeedsForDisplaySelector} from '@selectors/Card';
 
+import useDefaultFundID from './useDefaultFundID';
 import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -70,11 +71,14 @@ const useCardFeedsForDisplay = () => {
 
     const defaultCardFeed = getDefaultCardFeed(eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare);
 
-    // Resolve the Expensify Card feed for the *active* workspace only. A feed belongs to a workspace when its
-    // `fundID` matches that policy's `policyAccountID`. Scoping to the active policy prevents pulling in an
-    // Expensify Card that belongs to a different workspace the user happens to also be a member of.
-    const activePolicyAccountID = activePolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.policyAccountID : undefined;
-    const activeExpensifyCardFeedID = activePolicyAccountID ? expensifyCardFeeds?.find((feed) => feed.fundID === String(activePolicyAccountID))?.id : undefined;
+    // Resolve the Expensify Card feed for the *active* workspace. `useDefaultFundID` picks the fund the same way the
+    // rest of the Expensify Card flows do — honoring the last-selected feed and the feed's `linkedPolicyIDs` /
+    // `preferredPolicy`, and only falling back to the workspace account ID. Matching the resolved fund also covers
+    // domain-linked feeds, whose `fundID` is the domain account ID rather than the policy's `policyAccountID`, while
+    // staying scoped to the active workspace so we never pull in an Expensify Card that belongs to a different
+    // workspace the user happens to also be a member of.
+    const activeFundID = useDefaultFundID(activePolicyID);
+    const activeExpensifyCardFeedID = expensifyCardFeeds?.find((feed) => feed.fundID === String(activeFundID))?.id;
 
     return {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID};
 };
