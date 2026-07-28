@@ -34,6 +34,8 @@ type MoneyReportHeaderModalsProps = {
 function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsProps) {
     // PDF modal state
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
+    // Callback invoked when the PDF modal is dismissed while still generating (e.g. Submit via PDF retracts the submit).
+    const onPDFCancelRef = useRef<(() => void) | undefined>(undefined);
 
     // Educational modals ref
     const educationalModalsRef = useRef<MoneyReportHeaderEducationalModalsHandle>(null);
@@ -106,7 +108,10 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
     const contextValue = {
         openHoldMenu,
-        openPDFDownload: () => setIsPDFModalVisible(true),
+        openPDFDownload: (options?: {onCancel?: () => void}) => {
+            onPDFCancelRef.current = options?.onCancel;
+            setIsPDFModalVisible(true);
+        },
         openHoldEducational: () => educationalModalsRef.current?.openHoldEducational(),
         openRejectModal: (action: RejectModalAction) => educationalModalsRef.current?.openRejectModal(action),
         showOfflineModal,
@@ -127,6 +132,7 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
                     reportID={moneyRequestReport?.reportID}
                     isVisible={isPDFModalVisible}
                     onClose={() => setIsPDFModalVisible(false)}
+                    onCancel={() => onPDFCancelRef.current?.()}
                 />
             </MoneyReportTransactionThreadProvider>
         </MoneyReportHeaderModalsContext.Provider>
