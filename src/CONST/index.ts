@@ -1971,7 +1971,6 @@ const CONST = {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
-            DOT_INDICATOR: 'dotIndicator',
         },
         ETA_KEY: {
             SHORTLY: 'shortly',
