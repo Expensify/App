@@ -1,5 +1,5 @@
-Merchant,Update Merchant,Update Category,Update Tag,Update Tax,Update Description,Update Reimbursable,Update Billable
-Starbucks,Starbucks,Meals and Entertainment,Downtown,,For coffee,FALSE,FALSE
-Uber,,Travel,,,,TRUE,FALSE
-Staples,,Office Supplies,Uptown,,Supplies for uptown office,FALSE,
-Slack,Slack Subscription Services,Subscriptions,,,,TRUE,
+Merchant,Update Merchant,Update Category,Update Tag,Update Description,Update Reimbursable,Update Billable
+Starbucks,Starbucks,Meals and Entertainment,Downtown,For coffee,FALSE,FALSE
+Uber,,Travel,,,TRUE,FALSE
+Staples,,Office Supplies,Uptown,Supplies for uptown office,FALSE,
+Slack,Slack Subscription Services,Subscriptions,,,TRUE,
