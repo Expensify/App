@@ -42,7 +42,6 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     );
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const currentUserEmail = currentUserPersonalDetails.login ?? '';
 
     const messageContent = useMemo(() => {
         if (!nextStep) {
@@ -50,7 +49,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         }
 
         return buildNextStepMessage(nextStep, translate, currentUserAccountID);
-    }, [nextStep, translate, currentUserAccountID, currentUserEmail]);
+    }, [nextStep, translate, currentUserAccountID]);
 
     // iconFill can be set by frontend optimistic updates but backend never sends it
     const iconFill = (nextStep && 'iconFill' in nextStep ? (nextStep as {iconFill?: string}).iconFill : undefined) ?? theme.icon;
