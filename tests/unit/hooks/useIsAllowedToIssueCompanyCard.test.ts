@@ -72,12 +72,9 @@ describe('useIsAllowedToIssueCompanyCard', () => {
     });
     it('should return true if domain feed and access is granted', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicy?.policyID}`, 'vcf#19475968');
-        await Onyx.merge(
-            `${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`,
-            createMock<Domain>({
-                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: currentUserAccountID,
-            }),
-        );
+        const domain = createMock<Domain>({});
+        domain[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`] = currentUserAccountID;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, domain);
         jest.mocked(useCardFeeds).mockReturnValue([mockedFeeds, {status: 'loaded'}, undefined, {}, 0]);
         const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));
         expect(result?.current).toBe(true);

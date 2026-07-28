@@ -154,15 +154,12 @@ function withProvider(children: ReactNode, overrides: ContextMenuStateOverrides 
 }
 
 function renderMention(props: {tnode: ComponentProps<typeof MentionUserRenderer>['tnode']; style?: ComponentProps<typeof MentionUserRenderer>['style']}) {
-    return render(
-        withProvider(
-            <MentionUserRenderer
-                tnode={props.tnode}
-                TDefaultRenderer={() => null}
-                style={props.style ?? {}}
-            />,
-        ),
-    );
+    const mentionProps = createMock<ComponentProps<typeof MentionUserRenderer>>({
+        tnode: props.tnode,
+        TDefaultRenderer: () => null,
+        style: props.style ?? {},
+    });
+    return render(withProvider(<MentionUserRenderer {...mentionProps} />));
 }
 
 // Helper to build a minimal tnode-like object used by the component
@@ -313,22 +310,20 @@ describe('MentionUserRenderer', () => {
             301: {login: 'test@example.com', displayName: 'Test User'},
         };
         const tnode = buildTNode({accountID: '301'});
+        const mentionProps = createMock<ComponentProps<typeof MentionUserRenderer>>({
+            tnode,
+            TDefaultRenderer: () => null,
+            style: {},
+        });
 
         render(
-            withProvider(
-                <MentionUserRenderer
-                    tnode={tnode}
-                    TDefaultRenderer={() => null}
-                    style={{}}
-                />,
-                {
-                    report: mockReport,
-                    action: mockAction,
-                    originalReportID: mockOriginalReportID,
-                    isDisabled: false,
-                    shouldDisplayContextMenu: true,
-                },
-            ),
+            withProvider(<MentionUserRenderer {...mentionProps} />, {
+                report: mockReport,
+                action: mockAction,
+                originalReportID: mockOriginalReportID,
+                isDisabled: false,
+                shouldDisplayContextMenu: true,
+            }),
         );
 
         // When the user long presses the mention

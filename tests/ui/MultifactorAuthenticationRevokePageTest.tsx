@@ -3,7 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import type {ConfirmModalProps} from '@components/ConfirmModal';
 
-import type * as MultifactorAuthentication from '@libs/actions/MultifactorAuthentication';
+import type {revokeMultifactorAuthenticationCredentials as revokeMultifactorAuthenticationCredentialsType} from '@libs/actions/MultifactorAuthentication';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
@@ -12,6 +12,10 @@ import MultifactorAuthenticationRevokePage from '@pages/MultifactorAuthenticatio
 import CONST from '@src/CONST';
 
 import React from 'react';
+
+import createMock from '../utils/createMock';
+
+type MultifactorAuthenticationRevokeResponse = Awaited<ReturnType<typeof revokeMultifactorAuthenticationCredentialsType>>;
 
 jest.mock('@libs/API');
 const mockAPI = jest.mocked(API);
@@ -30,8 +34,8 @@ jest.mock('@hooks/useBiometricRegistrationStatus', () => ({
 }));
 
 const mockRevokeCredentials = jest
-    .fn<ReturnType<typeof MultifactorAuthentication.revokeMultifactorAuthenticationCredentials>, Parameters<typeof MultifactorAuthentication.revokeMultifactorAuthenticationCredentials>>()
-    .mockResolvedValue({httpStatusCode: 200});
+    .fn<ReturnType<typeof revokeMultifactorAuthenticationCredentialsType>, Parameters<typeof revokeMultifactorAuthenticationCredentialsType>>()
+    .mockResolvedValue(createMock<MultifactorAuthenticationRevokeResponse>({httpStatusCode: 200}));
 jest.mock('@libs/actions/MultifactorAuthentication', () => ({
     revokeMultifactorAuthenticationCredentials: mockRevokeCredentials,
 }));
@@ -383,7 +387,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
     describe('Error handling', () => {
         it('displays error message when revoke returns a non-200 status', async () => {
-            mockRevokeCredentials.mockResolvedValueOnce({httpStatusCode: 500});
+            mockRevokeCredentials.mockResolvedValueOnce(createMock<MultifactorAuthenticationRevokeResponse>({httpStatusCode: 500}));
             setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
 
             render(<MultifactorAuthenticationRevokePage />);
