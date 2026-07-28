@@ -113,9 +113,14 @@ async function run() {
 
         // Find (or create) the OpenAI Conversation that tracks this issue's proposals for duplicate detection
         let conversationID = findTrackedConversationID(commentsResponse);
+        // Reusing a tracked Conversation implies it has at least one prior proposal in it (that's why it was created);
+        // a freshly created one only has prior proposals if we seeded it with any.
+        let hasPriorProposals = !!conversationID;
         if (!conversationID) {
             console.log("No tracked Conversation found for this issue. Creating one and seeding it with the issue's prior proposals...");
-            const seedItemChunks = chunkArray(buildSeedItems(commentsResponse, newProposalCreatedAt), MAX_ITEMS_PER_CONVERSATION_REQUEST);
+            const seedItems = buildSeedItems(commentsResponse, newProposalCreatedAt);
+            hasPriorProposals = seedItems.length > 0;
+            const seedItemChunks = chunkArray(seedItems, MAX_ITEMS_PER_CONVERSATION_REQUEST);
             const conversation = await openAI.createConversation(seedItemChunks.at(0));
             conversationID = conversation.id;
             for (const chunk of seedItemChunks.slice(1)) {
@@ -125,38 +130,43 @@ async function run() {
             await GithubUtils.pinIssue(issueNumber);
         }
 
-        const duplicateCheckResponse = await openAI.promptResponses({
-            conversation: conversationID,
-            instructions: buildDuplicateCheckInstructions(),
-            input: buildDuplicateCheckInput(newProposalBody, commentID),
-            model: PROPOSAL_POLICE_MODEL,
-            promptCacheKey: 'proposal-police-duplicate-check',
-            textFormat: DUPLICATE_CHECK_RESPONSE_FORMAT,
-        });
-        const parsedDuplicateCheckResponse = openAI.parseJSONResponse<DuplicateCheckResponse>(duplicateCheckResponse.text, isDuplicateCheckResponse);
-        core.startGroup('Parsed Duplicate Check Response');
-        console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
-        core.endGroup();
-
-        const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
-        if (similarityPercentage >= 90) {
-            console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
-            const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId);
-            const duplicateCheckWithdrawMessage = getDuplicateCheckWithdrawMessage();
-            const duplicateCheckNoticeMessage = getDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
-            // If a duplicate proposal is detected, update the comment to withdraw it
-            console.log('ProposalPolice™ withdrawing duplicated proposal...');
-            await GithubUtils.octokit.issues.updateComment({
-                ...context.repo,
-                /* eslint-disable @typescript-eslint/naming-convention */
-                comment_id: commentID,
-                body: duplicateCheckWithdrawMessage,
+        // Skip the duplicate-check call entirely when there's nothing in the Conversation yet to compare against
+        if (hasPriorProposals) {
+            const duplicateCheckResponse = await openAI.promptResponses({
+                conversation: conversationID,
+                instructions: buildDuplicateCheckInstructions(),
+                input: buildDuplicateCheckInput(newProposalBody, commentID),
+                model: PROPOSAL_POLICE_MODEL,
+                promptCacheKey: 'proposal-police-duplicate-check',
+                textFormat: DUPLICATE_CHECK_RESPONSE_FORMAT,
             });
-            // Post a comment to notify the user about the withdrawn duplicated proposal
-            console.log('ProposalPolice™ notifying contributor of withdrawn proposal...');
-            await GithubUtils.createComment(CONST.APP_REPO, issueNumber, duplicateCheckNoticeMessage);
-            console.log('DUPLICATE PROPOSAL DETECTION Check Completed, returning early.');
-            return;
+            const parsedDuplicateCheckResponse = openAI.parseJSONResponse<DuplicateCheckResponse>(duplicateCheckResponse.text, isDuplicateCheckResponse);
+            core.startGroup('Parsed Duplicate Check Response');
+            console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
+            core.endGroup();
+
+            const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
+            if (parsedDuplicateCheckResponse?.action === CONST.ACTION_HIDE_DUPLICATE && similarityPercentage >= 90) {
+                console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
+                const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId);
+                const duplicateCheckWithdrawMessage = getDuplicateCheckWithdrawMessage();
+                const duplicateCheckNoticeMessage = getDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
+                // If a duplicate proposal is detected, update the comment to withdraw it
+                console.log('ProposalPolice™ withdrawing duplicated proposal...');
+                await GithubUtils.octokit.issues.updateComment({
+                    ...context.repo,
+                    /* eslint-disable @typescript-eslint/naming-convention */
+                    comment_id: commentID,
+                    body: duplicateCheckWithdrawMessage,
+                });
+                // Post a comment to notify the user about the withdrawn duplicated proposal
+                console.log('ProposalPolice™ notifying contributor of withdrawn proposal...');
+                await GithubUtils.createComment(CONST.APP_REPO, issueNumber, duplicateCheckNoticeMessage);
+                console.log('DUPLICATE PROPOSAL DETECTION Check Completed, returning early.');
+                return;
+            }
+        } else {
+            console.log('No prior proposals exist for this issue yet; skipping the duplicate-check API call.');
         }
     }
 

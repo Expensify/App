@@ -96,7 +96,9 @@ const MockedOpenAIUtils = jest.mocked(OpenAIUtils);
 
 describe('proposalPoliceComment', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        // resetAllMocks (not clearAllMocks) so a leftover queued mockResolvedValueOnce from one test
+        // can never leak into and corrupt the next.
+        jest.resetAllMocks();
         process.env.INPUT_PROPOSAL_POLICE_API_KEY = 'test-api-key';
         mockGetAllCommentDetails.mockResolvedValue([]);
         MockedOpenAIUtils.prototype.createConversation.mockResolvedValue({id: 'conv_new', created_at: 0, metadata: null, object: 'conversation'});
@@ -130,6 +132,7 @@ describe('proposalPoliceComment', () => {
     });
 
     it('posts a template-required comment when a mandatory section is missing', async () => {
+        mockComments([makeComment({id: 2, created_at: '2025-12-31T00:00:00Z'})]);
         setPayload({action: 'created'});
         MockedOpenAIUtils.prototype.promptResponses
             .mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'})
@@ -157,7 +160,7 @@ describe('proposalPoliceComment', () => {
     });
 
     it('withdraws and flags a duplicate proposal without ever running the template check', async () => {
-        mockComments([makeComment({id: 42, html_url: 'https://github.com/Expensify/App/issues/1#issuecomment-42'})]);
+        mockComments([makeComment({id: 42, created_at: '2025-12-31T00:00:00Z', html_url: 'https://github.com/Expensify/App/issues/1#issuecomment-42'})]);
         setPayload({action: 'created', comment: makeComment({id: 99})});
         MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({
             text: duplicateCheckResult({action: 'ACTION_HIDE_DUPLICATE', similarity: 95, duplicateCommentId: 42}),
@@ -171,6 +174,22 @@ describe('proposalPoliceComment', () => {
         expect(mockCreateComment).toHaveBeenCalledWith('App', 1, expect.stringContaining('https://github.com/Expensify/App/issues/1#issuecomment-42'));
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not withdraw a proposal when similarity is high but the action disagrees', async () => {
+        // Guards against the model's `action` and `similarity` fields disagreeing (e.g. schema drift) -
+        // both must indicate a duplicate, not just a high similarity score in isolation. Uses an
+        // already-tracked Conversation so the only comment activity under test is (or isn't) the withdrawal.
+        mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
+        setPayload({action: 'created', comment: makeComment({id: 99})});
+        MockedOpenAIUtils.prototype.promptResponses
+            .mockResolvedValueOnce({text: duplicateCheckResult({action: 'NO_ACTION', similarity: 95, duplicateCommentId: 42}), responseID: 'resp_dup'})
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl'});
+
+        await run();
+
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+        expect(mockCreateComment).not.toHaveBeenCalled();
     });
 
     it('creates and seeds a new Conversation when the issue has no tracked one yet', async () => {
@@ -188,6 +207,24 @@ describe('proposalPoliceComment', () => {
         expect(mockPinIssue).toHaveBeenCalledWith(1);
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenNthCalledWith(1, expect.objectContaining({conversation: 'conv_new'}));
+    });
+
+    it('skips the duplicate-check call when the issue has no prior proposals at all', async () => {
+        // mockGetAllCommentDetails already resolves [] by default (see beforeEach)
+        setPayload({action: 'created'});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl'});
+
+        await run();
+
+        // A Conversation is still created (and tracked) so future proposals on this issue have something to attach to...
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.createConversation).toHaveBeenCalledTimes(1);
+        expect(mockPinIssue).toHaveBeenCalledWith(1);
+        // ...but with nothing yet to compare against, only the template-check call should run.
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(1);
+        // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment -- expect.anything() is typed as `any`
+        expect(MockedOpenAIUtils.prototype.promptResponses).not.toHaveBeenCalledWith(expect.objectContaining({conversation: expect.anything()}));
     });
 
     it('reuses an already-tracked Conversation without creating a new one', async () => {
