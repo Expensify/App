@@ -1,10 +1,8 @@
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useOptimisticNextStep from '@hooks/useOptimisticNextStep';
 
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
@@ -20,8 +18,7 @@ type MoneyReportHeaderNextStepProps = {
  */
 function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
     const {isOffline} = useNetwork();
-    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
-    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
     const optimisticNextStep = useOptimisticNextStep(reportID);
 
     const showNextStepBar = !!optimisticNextStep && (('message' in optimisticNextStep && !!optimisticNextStep.message?.length) || 'messageKey' in optimisticNextStep);

@@ -9,6 +9,7 @@ import type {KeyboardStateContextValue} from '@components/withKeyboardState';
 
 import variables from '@styles/variables';
 
+import type * as NativeNavigation from '@react-navigation/native';
 import type {ComponentType} from 'react';
 import type ReactNative from 'react-native';
 
@@ -64,12 +65,17 @@ jest.mock('@react-navigation/stack', () => ({
     useCardAnimation: () => {},
 }));
 
-jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
-    useFocusEffect: () => {},
-    useIsFocused: () => true,
-    createNavigationContainerRef: jest.fn(),
-}));
+jest.mock('@react-navigation/native', () => {
+    // Spread the actual module so context objects like NavigationContainerRefContext and NavigationContext
+    // remain defined. useResponsiveLayout (native) reads them via useContext, which crashes if they are undefined.
+    const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useFocusEffect: () => {},
+        useIsFocused: () => true,
+        createNavigationContainerRef: jest.fn(),
+    };
+});
 
 jest.mock('../../src/hooks/useKeyboardState', () => ({
     __esModule: true,

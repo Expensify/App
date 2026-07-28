@@ -26,11 +26,14 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
@@ -119,7 +122,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rotate: '回転',
         zoom: 'ズーム',
         password: 'パスワード',
-        magicCode: 'マジックコード',
+        securityCode: 'セキュリティコード',
         digits: '数字',
         twoFactorCode: '2 要素コード',
         workspaces: 'ワークスペース',
@@ -527,6 +530,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: 'グラフを表示できません',
         webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。有効にするか、別のブラウザに切り替えてください。',
         apiKey: 'API キー',
+        exportsTo: 'エクスポート先',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -693,14 +697,14 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             title: '顔／指紋 & パスキー',
-            explanation: '1 台以上の端末で顔／指紋またはパスキー認証が有効になっています。アクセスを取り消すと、その端末で次回認証する際にマジックコードが必要になります。',
-            confirmationPrompt: '本当によろしいですか？そのデバイスで次回の認証を行うには、マジックコードが必要になります。',
+            explanation: '1 台以上の端末で顔認証／指紋認証またはパスキー認証が有効になっています。アクセスを取り消すと、その端末で次回認証を行う際にセキュリティコードが必要になります。',
+            confirmationPrompt: 'よろしいですか？そのデバイスで次回の認証を行うには、セキュリティコードが必要になります。',
             cta: 'アクセスを取り消す',
             noDevices: '顔認証・指紋認証またはパスキー認証に登録されているデバイスがありません。デバイスを登録すると、そのアクセス権をここで取り消すことができるようになります。',
             dismiss: '了解しました',
             error: 'リクエストに失敗しました。後でもう一度お試しください。',
             revoke: '取り消す',
-            confirmationPromptAll: '本当に実行してよろしいですか？今後どの端末でも、次回の認証にはマジックコードが必要になります。',
+            confirmationPromptAll: 'よろしいですか？今後どのデバイスでも次回の認証にはセキュリティコードが必要になります。',
             ctaAll: 'すべて取り消す',
             thisDevice: 'このデバイス',
             otherDevices: (otherDeviceCount?: number) => {
@@ -708,8 +712,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `その他${displayCount}件の${otherDeviceCount === 1 ? 'デバイス' : 'デバイス'}`;
             },
-            confirmationPromptThisDevice: '本当によろしいですか？このデバイスで次回の認証を行うには、マジックコードが必要になります。',
-            confirmationPromptMultiple: 'よろしいですか？その端末で次回の認証を行うには、マジックコードが必要になります。',
+            confirmationPromptThisDevice: '本当によろしいですか？このデバイスで次回の認証を行うには、セキュリティコードが必要になります。',
+            confirmationPromptMultiple: 'よろしいですか？その端末で次回の認証を行うには、セキュリティコードが必要になります。',
         },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',
@@ -728,7 +732,7 @@ const translations: TranslationDeepObject<typeof en> = {
             サインインしました！
         `),
         successfulSignInDescription: '続行するには、元のタブに戻ってください。',
-        title: 'マジックコードはこちらです',
+        title: 'セキュリティコードをお送りします',
         description: Str.dedent(`
             最初にコードを要求したデバイスに表示されているコードを入力してください
         `),
@@ -738,7 +742,7 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         or: '、または',
         signInHere: 'ここからサインインしてください',
-        expiredCodeTitle: 'マジックコードの有効期限が切れました',
+        expiredCodeTitle: 'セキュリティコードの有効期限が切れました',
         expiredCodeDescription: '元の端末に戻り、新しいコードをリクエストしてください',
         successfulNewCodeRequest: 'コードを送信しました。デバイスを確認してください。',
         tfaRequiredTitle: Str.dedent(`
@@ -780,7 +784,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'あなたが要点を伝える速さで、支払いもあなたのもとに届きます。',
         enterPassword: 'パスワードを入力してください',
         welcomeNewFace: (login: string) => `${login} さん、ここで新しい顔にお会いできるのはいつでもうれしいです！`,
-        welcomeEnterMagicCode: (login: string) => `${login} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
+        welcomeEnterSecurityCode: (login: string) => `${login} に送信されたセキュリティコードを入力してください。1～2分以内に届きます。`,
     },
     login: {
         hero: {
@@ -790,9 +794,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'シングルサインオンでのログインを続行:',
-        orContinueWithMagicCode: 'マジックコードでサインインすることもできます',
+        orContinueWithSecurityCode: 'セキュリティコードでサインインすることもできます',
         useSingleSignOn: 'シングルサインオンを使用',
-        useMagicCode: 'マジックコードを使う',
+        useSecurityCode: 'セキュリティコードを使用',
         launching: '起動中…',
         oneMoment: '会社のシングルサインオンポータルへリダイレクトしますので、少々お待ちください。',
     },
@@ -1084,6 +1088,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: 'アカウントエグゼクティブに相談する',
             forGuidedSetup: 'ガイド付きセットアップ用です。',
             configureApprovalsSubText: 'レポート承認を定義する',
+            setupTravel: '出張を設定',
+            setupTravelSubText: '出張用のルールを設定する',
         },
         yourSpend: {
             title: 'あなたの支出',
@@ -2094,15 +2100,15 @@ const translations: TranslationDeepObject<typeof en> = {
             `Expensify へのログイン方法とレシート送信方法をさらに追加しましょう。<br/><br/>レシートを <a href="mailto:${email}">${email}</a> に転送するメールアドレスを追加するか、レシートを 47777（米国の電話番号のみ）宛てにテキスト送信する電話番号を追加してください。`,
         pleaseVerify: 'この連絡方法を確認してください。',
         getInTouch: '今後のご連絡にはこの方法を使用します。',
-        enterMagicCode: (contactMethod: string) => `${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
+        enterSecurityCode: (contactMethod: string) => `${contactMethod} に送信されたセキュリティコードを入力してください。1～2分以内に届きます。`,
         setAsDefault: 'デフォルトに設定',
         yourDefaultContactMethod: 'これは現在のデフォルトの連絡方法です。削除する前に、別の連絡方法を選択し、「デフォルトに設定」をクリックしてください。',
         removeContactMethod: '連絡先方法を削除',
         removeAreYouSure: 'この連絡方法を削除してもよろしいですか？この操作は元に戻せません。',
         failedNewContact: 'この連絡先方法を追加できませんでした。',
         genericFailureMessages: {
-            requestContactMethodValidateCode: '新しいマジックコードの送信に失敗しました。少し待ってから、もう一度お試しください。',
-            validateSecondaryLogin: '魔法コードが間違っているか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
+            requestContactMethodValidateCode: '新しいセキュリティコードの送信に失敗しました。少し待ってから、もう一度お試しください。',
+            validateSecondaryLogin: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
             deleteContactMethod: '連絡方法の削除に失敗しました。サポートが必要な場合はConciergeまでお問い合わせください。',
             setDefaultContactMethod: '新しいデフォルトの連絡方法を設定できませんでした。サポートが必要な場合はConciergeまでお問い合わせください。',
             addContactMethod: 'この連絡方法を追加できませんでした。サポートが必要な場合はConciergeまでお問い合わせください。',
@@ -2265,9 +2271,9 @@ const translations: TranslationDeepObject<typeof en> = {
         accountValidate: {
             confirmMerge: '本当にアカウントを統合してもよろしいですか？',
             lossOfUnsubmittedData: (login: string) => `アカウントの統合は元に戻せず、<strong>${login}</strong> の未提出経費はすべて失われます。`,
-            enterMagicCode: (login: string) => `続行するには、<strong>${login}</strong> に送信されたマジックコードを入力してください。`,
+            enterSecurityCode: (login: string) => `続行するには、<strong>${login}</strong> に送信されたセキュリティコードを入力してください。`,
             errors: {
-                incorrectMagicCode: '魔法コードが間違っているか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
+                incorrectSecurityCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
                 fallback: '問題が発生しました。後でもう一度お試しください。',
             },
         },
@@ -2571,6 +2577,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'このカードをExpensify Travelでの予約に使用してください。チェックアウト時には「Travel Card」と表示されます。',
         },
         chaseAccountNumberDifferent: '口座番号が異なるのはなぜですか？',
+        cardLastSynced: (relativeDate: string) => `${relativeDate} に同期しました`,
+        cardNeverSynced: '未同期',
+        cardStatus: {
+            active: 'アクティブ',
+            inactive: '無効',
+            fixConnection: 'この接続を修正してください',
+            fixConnectionIn: (companyCardsRoute: string) => `この接続を<a href="${companyCardsRoute}">会社カード</a>で修正してください`,
+            askAdminToFixConnection: '管理者にこの接続の修正を依頼してください',
+        },
+        bankAccountStatus: {
+            active: 'アクティブ',
+            incomplete: '未完了',
+            pending: '保留中',
+            verifying: '確認中',
+            reviewingDocumentation: '書類を審査しています',
+            finishAddingBankAccount: '銀行口座の追加を完了',
+            finish: '完了',
+            confirmTestTransactions: 'テスト取引を確認してください',
+            accountRequiresAttention: 'このアカウントには対応が必要です',
+            unlock: 'ロック解除',
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify カード',
@@ -2617,7 +2644,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `${platform}ウォレットに追加しました`,
         cardDetailsLoadingFailure: 'カード詳細の読み込み中にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'ご本人確認を行います',
-        enterMagicCode: (contactMethod: string) => `カード情報を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
+        enterSecurityCode: (contactMethod: string) => `カード情報を表示するために、${contactMethod} に送信されたセキュリティコードを入力してください。1～2分以内に届きます。`,
         unexpectedError: 'Expensifyカードの詳細を取得中にエラーが発生しました。もう一度お試しください。',
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです',
@@ -3046,7 +3073,7 @@ ${date} の ${merchant} への ${amount}`,
         license: `資金移動サービスは、その<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">認可</a>に基づき、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）によって提供されています。`,
     },
     validateCodeForm: {
-        magicCodeNotReceived: 'マジックコードを受け取っていませんか？',
+        securityCodeNotReceived: 'セキュリティコードを受け取っていませんか？',
         avoidScamsMessage: '<strong>詐欺に注意してください。コードを他人と共有しないでください。</strong> 当社スタッフがこのコードを電話・SMS・メールでお尋ねすることは決してありません。',
         enterAuthenticatorCode: '認証コードを入力してください',
         enterRecoveryCode: 'リカバリーコードを入力してください',
@@ -3056,8 +3083,8 @@ ${date} の ${merchant} への ${amount}`,
         timeRemainingAnnouncement: ({timeRemaining}) => `残り時間: ${timeRemaining}秒`,
         timeExpiredAnnouncement: '時間切れです',
         error: {
-            pleaseFillMagicCode: 'マジックコードを入力してください',
-            incorrectMagicCode: '魔法コードが間違っているか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
+            pleaseFillSecurityCode: 'セキュリティコードを入力してください',
+            incorrectSecurityCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
             pleaseFillTwoFactorAuth: '2 要素認証コードを入力してください',
         },
     },
@@ -3158,7 +3185,7 @@ ${date} の ${merchant} への ${amount}`,
         },
         workEmailValidation: {
             title: '勤務先メールを確認してください',
-            magicCodeSent: (workEmail: string | undefined) => `${workEmail} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
+            securityCodeSent: (workEmail: string | undefined) => `${workEmail} に送信されたセキュリティコードを入力してください。1～2分ほどで届きます。`,
         },
         workEmailValidationError: {
             publicEmail: 'プライベートドメインの有効な勤務先メールアドレスを入力してください（例：mitch@company.com）',
@@ -3485,11 +3512,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     resendValidationForm: {
         linkHasBeenResent: 'リンクを再送信しました',
-        weSentYouMagicSignInLink: (login: string, loginType: string) => `${login} にマジックサインインリンクを送信しました。サインインするには ${loginType} を確認してください。`,
+        weSentYouSecuritySignInLink: (login: string, loginType: string) => `${login} にセキュリティサインインリンクを送信しました。サインインするには ${loginType} をご確認ください。`,
         resendLink: 'リンクを再送',
     },
     unlinkLoginForm: {
-        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `${secondaryLogin} を確認するには、${primaryLogin} のアカウント設定からマジックコードを再送してください。`,
+        toValidateLogin: (primaryLogin: string, secondaryLogin: string) => `${secondaryLogin} を認証するには、${primaryLogin} のアカウント設定からセキュリティコードを再送してください。`,
         noLongerHaveAccess: (primaryLogin: string) => `${primaryLogin} にアクセスできなくなった場合は、アカウントの連携を解除してください。`,
         unlink: 'リンク解除',
         linkSent: 'リンクを送信しました！',
@@ -3510,7 +3537,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `${login} に SMS メッセージを送信できないため、一時的に利用を停止しました。次の手順で番号の確認を行ってください。`,
-        validationSuccess: '電話番号が認証されました！下をクリックして、新しいマジックサインインコードを送信してください。',
+        validationSuccess: '電話番号が認証されました！下をクリックして、新しいセキュリティサインインコードを送信します。',
         validationFailed: ({
             timeData,
         }: {
@@ -4404,21 +4431,19 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         nudge: {
             airfareManual:
-                'こんにちは！Expensify でフライトの予約や管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで大丈夫です ✈️',
+                'Expensify でフライトの予約や管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう ✈️',
             airfareCard:
-                'こんにちは！Expensify でフライトの予約と管理ができるのをご存じでしたか？しかも、領収書は自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください ✈️',
+                'Expensify でフライトの予約や管理ができることをご存じでしたか？しかも領収書は自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> で予約してください ✈️',
             hotelManual:
-                'こんにちは！Expensify でホテルの予約や宿泊の管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで済みます。',
-            hotelCard:
-                'こんにちは！Expensify でホテルの予約や宿泊管理ができることをご存じでしたか？次回からは <a href="https://travel.expensify.com">Expensify Travel</a> からかんたんに予約できます。',
+                'Expensify でホテルの予約や管理ができることをご存じですか？次回からは経費を手入力する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🏨',
+            hotelCard: 'Expensify でホテルの予約や管理ができることをご存じでしたか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約してください 🏨',
             carManual:
-                'こんにちは！Expensify でレンタカーの予約と管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚗',
-            carCard:
-                'こんにちは！Expensify でレンタカーの予約や管理ができることをご存じでしたか？次回からは <a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約できます。',
+                'Expensify でレンタカーの予約や管理ができることをご存じですか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで済みます。',
+            carCard: 'Expensify でレンタカーの予約や管理ができることをご存じですか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> からご予約ください。',
             railManual:
-                'Expensify で電車の予約や管理ができることをご存じでしたか？次回からは手動で経費を作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください。',
+                'Expensify で列車の予約や管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省いて、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう。',
             railCard:
-                'Expensify で電車の予約や管理ができることをご存じでしたか？しかも、領収書は自動でアップロードされます。次回からは <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約しましょう。',
+                'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
         },
     },
     workspace: {
@@ -5003,7 +5028,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             creditCardAccount: 'クレジットカード口座',
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Sage Intacct で対応する仕入先がない ${isReimbursable ? '' : '非'}立替精算費用に適用されるデフォルトの仕入先を設定します。`,
+                isReimbursable
+                    ? `Sage Intacct で一致する仕入先がない立替経費に適用するデフォルトの仕入先を設定します。`
+                    : `Sage Intacct の仕入先に照合できない経費は、デフォルトでこの仕入先に紐づけられます。`,
             exportDescription: 'Expensify のデータを Sage Intacct へエクスポートする方法を設定します。',
             exportPreferredExporterNote:
                 '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
@@ -5718,6 +5745,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 },
                 csvColumns: {
                     cardNumber: 'カード番号',
+                    cardName: 'カード名',
                     postedDate: '日付',
                     merchant: '加盟店',
                     amount: '金額',
@@ -5733,6 +5761,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
                     duplicateColumns: (duplicateColumn: string) => `おっと！1 つのフィールド（"${duplicateColumn}"）を複数の列にマッピングしています。確認して、もう一度お試しください。`,
+                    cardIdentityColumn: '取引をカードに照合できるように、カード番号またはカード名を対応付けてください。',
                 },
                 fileImportDescription: '銀行からフィードを送信できない場合の手動オプションです。',
                 duplicateFeedModal: {title: 'カードフィードはすでに接続されています', prompt: '同じカードフィードを同じワークスペースに二重に追加することはできません。'},
@@ -5982,6 +6011,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             currentTravelSpendLabel: '現在の出張費支出',
                             currentTravelSpendPaymentQueued: (amount: string) => `${amount} の支払いはキューに登録されており、まもなく処理されます。`,
                             currentTravelSpendCta: '残高を支払う',
+                            viewOnSpend: '支出で表示',
                             currentTravelLimitLabel: '現在の出張上限',
                             settlementAccountLabel: '決済口座',
                             settlementFrequencyLabel: '清算頻度',
@@ -6171,6 +6201,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 defaultHourlyRate: 'デフォルトの時給率',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `HR を無効にするには、まずこのワークスペースから ${integration} を切断してください。`},
+            vendors: {title: 'ベンダー', subtitle: '会計ソフトからインポートした取引先にカード経費を照合します。'},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -6525,6 +6556,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             peopleAdmins: 'People 管理者',
             paymentsAdmins: '支払い管理者',
             members: 'メンバー',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `${memberName}さんはExpensify カードをお持ちの間、このワークスペースから削除できません。ワークスペース > Expensify カードでカードを無効化してから、もう一度お試しください。`,
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -6863,6 +6896,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             exportCompanyCard: '法人カード経費のエクスポート形式',
             exportDate: 'エクスポート日',
             defaultVendor: 'デフォルトのベンダー',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。`
+                    : `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。それ以外は「Credit Card Misc」としてエクスポートされます。`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `自動的に照合されない経費に対して使用する、デフォルトの ${connectionName} 仕入先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
             autoSyncDescription: 'NetSuite と Expensify を毎日自動で同期。確定したレポートをリアルタイムでエクスポート',
@@ -6983,6 +7021,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             amountPerUnit: (unit: string) => `${unit}あたりの金額`,
             startDate: '開始日',
             endDate: '終了日',
+            autoGeneratedRateTooltip: 'このレートは自動生成されています。',
         },
         editor: {
             descriptionInputLabel: '説明',
@@ -7525,7 +7564,7 @@ ${reportName}`,
             },
             customRules: {
                 title: '経費ポリシー',
-                cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
+                cardSubtitle: '精算ポリシーをアップロードして、全員が経費として申請できるもの／できないものを理解できるようにしてください。',
                 policyDocument: 'ポリシー文書',
                 policyText: 'ポリシーテキスト',
             },
@@ -8706,6 +8745,9 @@ ${reportName}`,
                 title: '表示する経費がありません',
                 subtitle: '結果がありません。フィルターの条件を調整してください。',
             },
+            emptyViolationSnapshotResults: {
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `違反は ${formattedDate} 以降のみ記録されています。日付フィルターを調整してみてください。`,
+            },
             emptyUnapprovedResults: {
                 title: '承認する経費はありません',
                 subtitle: '経費はゼロ。リラックス度マックス。お見事です！',
@@ -8721,6 +8763,7 @@ ${reportName}`,
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',
         searchName: '名前を検索',
         savedSearchesMenuItemTitle: '保存済み',
+        mySavedSearch: '自分の経費',
         urlCopied: 'URLをコピーしました',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
@@ -8821,6 +8864,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '出張費の一括請求',
             },
             is: 'は',
+            has: {submittedViolation: '違反を送信しました'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',
@@ -9912,8 +9956,8 @@ ${reportName}`,
         removeCopilotConfirmation: 'このコパイロットを削除してもよろしいですか？',
         changeAccessLevel: 'アクセスレベルを変更',
         makeSureItIsYou: 'ご本人確認を行います',
-        enterMagicCode: (contactMethod: string) => `コパイロットを追加するには、${contactMethod} に送信されたマジックコードを入力してください。1〜2分以内に届きます。`,
-        enterMagicCodeUpdate: (contactMethod: string) => `コパイロットを更新するため、${contactMethod} に送信されたマジックコードを入力してください。`,
+        enterSecurityCode: (contactMethod: string) => `コパイロットを追加するために、${contactMethod} に送信されたセキュリティコードを入力してください。1〜2分以内に届きます。`,
+        enterSecurityCodeUpdate: (contactMethod: string) => `コパイロットを更新するために、${contactMethod} に送信されたセキュリティコードを入力してください。`,
         notAllowed: 'ちょっと待ってください…',
         noAccessMessage: Str.dedent(`
             副操縦士としては、このページにアクセスできません。申し訳ありません。
@@ -10038,7 +10082,6 @@ ${reportName}`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
-        saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',
         accountSwitcher: '<tooltip>ここから<strong>Copilot アカウント</strong>にアクセスできます</tooltip>',
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
@@ -10320,6 +10363,17 @@ ${reportName}`,
         description: '経費精算の体験をさらに良くできるよう、お知らせください。',
         positiveButton: 'やった！',
         negativeButton: 'そうでもありません',
+    },
+    trialPaymentReminder: {
+        title: '期限に遅れないようにしましょう',
+        subtitle: 'ぎりぎりまで待たずに、今日お支払い方法を追加して、Expensify での経費への継続的なアクセスを確保しましょう。',
+        trialEndsInDays: () => ({
+            one: 'トライアル終了まであと1日',
+            other: (pluralCount: number) => `トライアル終了まであと${pluralCount}日`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `トライアル終了まで ${hours}時間 : ${minutes}分 : ${seconds}秒`,
+        closeButton: '閉じる',
+        addPaymentCardButton: '支払いカードを追加',
     },
     monthPickerPage: {month: '月', selectMonth: '月を選択してください'},
     aiFeaturesPromoModal: {
