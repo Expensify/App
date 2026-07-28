@@ -876,6 +876,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         approved: undefined,
         posted: '',
         exported: '',
+        exportedTo: '',
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -940,6 +941,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         approved: undefined,
         posted: '',
         exported: '',
+        exportedTo: '',
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -1014,6 +1016,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         approved: undefined,
         posted: '',
         exported: '',
+        exportedTo: '',
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -1083,6 +1086,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         approved: undefined,
         posted: '',
         exported: '',
+        exportedTo: '',
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -1177,6 +1181,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         reportID: '123456789',
         reportName: 'Expense Report #123',
         exported: '',
+        exportedTo: '',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -1220,6 +1225,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 currency: 'USD',
                 date: '2024-12-21',
                 exported: '',
+                exportedTo: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: '',
                 formattedTo: '',
@@ -1278,6 +1284,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         submitted: '2024-12-21 13:05:20',
         approved: undefined,
         exported: '',
+        exportedTo: '',
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
@@ -1348,6 +1355,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 comment: {comment: ''},
                 created: '2024-12-21',
                 exported: '',
+                exportedTo: '',
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
@@ -1413,6 +1421,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         submitted: '2025-03-05',
         approved: undefined,
         exported: '',
+        exportedTo: '',
         currency: 'VND',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
@@ -1494,6 +1503,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 comment: {comment: ''},
                 created: '2025-03-05',
                 exported: '',
+                exportedTo: '',
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
@@ -1560,6 +1570,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 comment: {comment: ''},
                 created: '2025-03-05',
                 exported: '',
+                exportedTo: '',
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
@@ -1621,6 +1632,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         exported: '',
+        exportedTo: '',
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Draft',
@@ -2724,7 +2736,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 58;
+            const expectedPropertyCount = 59;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2765,8 +2777,63 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 55;
+            const expectedPropertyCount = 56;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
+        });
+
+        it('should derive exportedTo from every export action of the report', () => {
+            const exportedReportID = 'exported-to-report';
+            const exportedTransactionID = 'exported-to-transaction';
+            const data = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT}${exportedReportID}`]: {...report1, reportID: exportedReportID},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${exportedTransactionID}`]: {
+                    ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                    transactionID: exportedTransactionID,
+                    reportID: exportedReportID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${exportedReportID}`]: {
+                    exportCSV: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
+                        created: '2024-12-21 13:05:20',
+                        message: [],
+                        reportActionID: 'exportCSV',
+                        reportID: exportedReportID,
+                    },
+                    exportXero: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                        created: '2024-12-22 13:05:20',
+                        originalMessage: {label: CONST.EXPORT_LABELS.XERO},
+                        message: [],
+                        reportActionID: 'exportXero',
+                        reportID: exportedReportID,
+                    },
+                },
+            } as OnyxTypes.SearchResults['data'];
+
+            const result = getSectionsByType(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionListItemType,
+            )[0];
+
+            const exportedTransaction = result.find((item) => item.transactionID === exportedTransactionID);
+
+            // Every destination the report was exported to is part of the sort value, so reports showing the same set
+            // of "Exported to" icons sort next to each other.
+            expect(exportedTransaction?.exportedTo).toBe(`${CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV}, ${CONST.EXPORT_LABELS.XERO}`);
         });
 
         it('should return getReportSections result when type is EXPENSE REPORT', async () => {
@@ -6711,6 +6778,55 @@ describe('SearchUIUtils', () => {
 
             expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['bool-jan', 'bool-feb', 'bool-mar']);
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['bool-mar', 'bool-feb', 'bool-jan']);
+        });
+
+        it('should sort the exported-to column by export name, with never exported rows first when ascending', () => {
+            // The backend sorts this column by the name of the export, so the local sort has to do the same instead of
+            // only sorting on whether the report was exported. Rows that were never exported have no name, so they end
+            // up at the top when ascending and at the bottom when descending.
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const exportedTransactions: TransactionListItemType[] = [
+                {...baseTransaction, transactionID: 'exported-xero', keyForList: 'exported-xero', exported: '2024-03-03', exportedTo: CONST.EXPORT_LABELS.XERO},
+                {...baseTransaction, transactionID: 'not-exported', keyForList: 'not-exported', exported: '', exportedTo: ''},
+                {...baseTransaction, transactionID: 'exported-netsuite', keyForList: 'exported-netsuite', exported: '2024-01-01', exportedTo: CONST.EXPORT_LABELS.NETSUITE},
+                {
+                    ...baseTransaction,
+                    transactionID: 'exported-csv',
+                    keyForList: 'exported-csv',
+                    exported: '2024-02-02',
+                    exportedTo: CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV,
+                },
+            ];
+
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...exportedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...exportedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['not-exported', 'exported-csv', 'exported-netsuite', 'exported-xero']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([
+                'exported-xero',
+                'exported-netsuite',
+                'exported-csv',
+                'not-exported',
+            ]);
         });
 
         it('should return getSortedReportData result when type is expense-report', () => {
