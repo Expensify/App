@@ -5,7 +5,7 @@ import type {MinimalTransaction} from '@libs/Formula';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
@@ -99,7 +99,6 @@ type BuildOnyxDataForMoneyRequestKeys =
     | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS
     | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
     | typeof ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING
-    | typeof ONYXKEYS.COLLECTION.NEXT_STEP
     | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT;
 
@@ -250,7 +249,6 @@ type MoneyRequestOptimisticParams = {
         destinations?: string[];
     };
     personalDetailListAction?: OnyxTypes.PersonalDetailsList;
-    nextStepDeprecated?: OnyxTypes.ReportNextStepDeprecated | null;
     nextStep?: ReportNextStep | null;
     testDriveCommentReportActionID?: string;
 };
@@ -450,7 +448,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         policyRecentlyUsed,
         personalDetailListAction,
         nextStep,
-        nextStepDeprecated,
         testDriveCommentReportActionID,
     } = optimisticParams;
 
@@ -778,13 +775,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    if (!isEmptyObject(nextStepDeprecated)) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
-            value: nextStepDeprecated,
-        });
-    }
     if (!isEmptyObject(nextStep)) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1148,22 +1138,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             hasViolations,
             isASAPSubmitBetaEnabled,
             isTrackIntentUser,
-        });
-        onyxData.optimisticData?.push(violationsOnyxData, {
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
-            onyxMethod: Onyx.METHOD.SET,
-            // buildOptimisticNextStep is used in parallel
-            value: buildNextStepNew({
-                report: iou.report,
-                predictedNextStatus: iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN,
-                shouldFixViolations,
-                policy,
-                currentUserAccountIDParam,
-                currentUserEmailParam,
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                isTrackIntentUser,
-            }),
         });
         onyxData.optimisticData?.push({
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
@@ -1627,18 +1601,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const predictedNextStatus =
         iouReport.statusNum ?? (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
     const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam);
-    // buildOptimisticNextStep is used in parallel
-    const optimisticNextStepDeprecated = buildNextStepNew({
-        report: iouReport,
-        predictedNextStatus,
-        policy,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        isTrackIntentUser,
-    });
-
     const optimisticNextStep = buildOptimisticNextStep({
         report: iouReport,
         predictedNextStatus,
@@ -1685,7 +1647,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 currencies: optimisticPolicyRecentlyUsedCurrencies,
             },
             personalDetailListAction: optimisticPersonalDetailListAction,
-            nextStepDeprecated: optimisticNextStepDeprecated,
             nextStep: optimisticNextStep,
             testDriveCommentReportActionID,
         },

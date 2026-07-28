@@ -3,7 +3,7 @@ import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isGroupPolicy, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -1506,7 +1506,6 @@ type UpdateMoneyRequestDataKeys =
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
     | typeof ONYXKEYS.NVP_RECENT_ATTENDEES
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-    | typeof ONYXKEYS.COLLECTION.NEXT_STEP
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
 
 function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): UpdateMoneyRequestData<UpdateMoneyRequestDataKeys> {
@@ -1551,7 +1550,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
             | typeof ONYXKEYS.NVP_RECENT_ATTENDEES
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
         >
     > = [];
     const successData: Array<
@@ -1571,7 +1569,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
         >
     > = [];
 
@@ -2113,22 +2110,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             });
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
-                // buildOptimisticNextStep is used in parallel
-                value: buildNextStepNew({
-                    report: moneyRequestReport,
-                    predictedNextStatus: iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-                    shouldFixViolations,
-                    currentUserAccountIDParam,
-                    currentUserEmailParam,
-                    hasViolations,
-                    isASAPSubmitBetaEnabled,
-                    policy,
-                    isTrackIntentUser,
-                }),
-            });
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
                 value: {
                     nextStep: optimisticNextStep,
@@ -2136,11 +2117,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                         nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
-            });
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
-                value: currentNextStep,
             });
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,

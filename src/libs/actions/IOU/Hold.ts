@@ -4,7 +4,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
@@ -90,7 +90,6 @@ function putOnHold(
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
         >
     > = [
         {
@@ -168,7 +167,6 @@ function putOnHold(
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
     > = [
@@ -280,15 +278,6 @@ function putOnHold(
     }
 
     if (iouReport) {
-        // buildOptimisticNextStep is used in parallel
-        const optimisticNextStepDeprecated = buildNextStepNew({
-            report: iouReport,
-            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-            shouldFixViolations: true,
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserLogin,
-            isTrackIntentUser,
-        });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
             predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
@@ -298,11 +287,6 @@ function putOnHold(
             isTrackIntentUser,
         });
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
-            value: optimisticNextStepDeprecated,
-        });
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -324,11 +308,6 @@ function putOnHold(
             },
         });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
-            value: null,
-        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -400,13 +379,7 @@ function unholdRequest(
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
-        >
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT>
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -475,13 +448,7 @@ function unholdRequest(
     ];
 
     const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
-        >
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT>
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -516,16 +483,6 @@ function unholdRequest(
     ];
 
     if (iouReport) {
-        // buildOptimisticNextStep is used in parallel
-        const optimisticNextStepDeprecated = buildNextStepNew({
-            report: iouReport,
-            policy,
-            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-            shouldFixViolations: updatedTransactionViolations.length > 0,
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserLogin,
-            isTrackIntentUser,
-        });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
             policy,
@@ -536,11 +493,6 @@ function unholdRequest(
             isTrackIntentUser,
         });
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
-            value: optimisticNextStepDeprecated,
-        });
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -562,11 +514,6 @@ function unholdRequest(
             },
         });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
-            value: null,
-        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,

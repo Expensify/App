@@ -5,7 +5,7 @@ import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {
@@ -1040,7 +1040,7 @@ function rejectExpenseReport(
               isTrackIntentUser,
           });
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1070,26 +1070,6 @@ function rejectExpenseReport(
             },
         },
     ];
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-        value: isRejectToSubmitter
-            ? // buildOptimisticNextStep is used in parallel
-              buildNextStepNew({
-                  report,
-                  predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                  isRejectedReport: true,
-                  isTrackIntentUser,
-              })
-            : // buildOptimisticNextStep is used in parallel
-              buildNextStepNew({
-                  report,
-                  predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                  bypassNextApproverID: targetAccountID,
-                  isTrackIntentUser,
-              }),
-    });
 
     if (report.parentReportID && report.parentReportActionID) {
         optimisticData.push({
@@ -1132,7 +1112,7 @@ function rejectExpenseReport(
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1162,12 +1142,6 @@ function rejectExpenseReport(
             },
         },
     ];
-
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-        value: null,
-    });
 
     if (report.parentReportID && report.parentReportActionID) {
         failureData.push({

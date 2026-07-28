@@ -1,7 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
-import {buildNextStepMessage, buildNextStepNew, buildOptimisticNextStepForPreventSelfApprovalsEnabled, getReportNextStep, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildNextStepMessage, buildOptimisticNextStepForPreventSelfApprovalsEnabled, getReportNextStep, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';

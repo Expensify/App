@@ -76,7 +76,7 @@ import {resetOnboardingStackToRoot} from '@libs/Navigation/helpers/OnboardingNav
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
@@ -3747,18 +3747,6 @@ function updateReportField({
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField, accountID);
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
-    // buildOptimisticNextStep is used in parallel
-    const optimisticNextStepDeprecated = buildNextStepNew({
-        report,
-        predictedNextStatus,
-        shouldFixViolations,
-        policy,
-        currentUserAccountIDParam: accountID,
-        currentUserEmailParam: email,
-        hasViolations: hasViolationsParam,
-        isASAPSubmitBetaEnabled,
-        isTrackIntentUser,
-    });
     const optimisticNextStep = buildOptimisticNextStep({
         report,
         predictedNextStatus,
@@ -3771,9 +3759,7 @@ function updateReportField({
         isTrackIntentUser,
     });
 
-    const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>
-    > = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -3787,11 +3773,6 @@ function updateReportField({
                     nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: optimisticNextStepDeprecated,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4173,17 +4154,6 @@ function buildNewReportOptimisticData(
         actorAccountID: accountID,
     };
 
-    // buildOptimisticNextStep is used in parallel
-    const optimisticNextStepDeprecated = buildNextStepNew({
-        report: optimisticReportData,
-        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-        policy,
-        currentUserAccountIDParam: accountID,
-        currentUserEmailParam: email ?? '',
-        hasViolations: hasViolationsParam,
-        isASAPSubmitBetaEnabled,
-        isTrackIntentUser,
-    });
     const outstandingChildRequest = getOutstandingChildRequest(optimisticReportData);
 
     const optimisticData: Array<
@@ -4194,7 +4164,6 @@ function buildNewReportOptimisticData(
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
         >
     > = [
         {
@@ -4213,11 +4182,6 @@ function buildNewReportOptimisticData(
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportActionID]: optimisticCreateAction},
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: optimisticNextStepDeprecated,
         },
     ];
     if (parentReport) {
@@ -4402,7 +4366,6 @@ function createNewReport(
  */
 function removeFailedReport(reportID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-    Onyx.set(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, null);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
 }
 
@@ -7287,17 +7250,12 @@ function updatePolicyIdForReportAndThreads(
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
         >
     >,
     failureData: Array<
         OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.TRANSACTION
         >
     >,
 ) {
@@ -7370,18 +7328,13 @@ function buildOptimisticChangePolicyData({
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
         >
     > = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     const failureData: Array<
         OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.TRANSACTION
         >
     > = [];
 
@@ -7463,18 +7416,6 @@ function buildOptimisticChangePolicyData({
     }
 
     if (newStatusNum != null && newStatusNum !== undefined) {
-        // buildOptimisticNextStep is used in parallel
-        const optimisticNextStepDeprecated = buildNextStepNew({
-            report: {...report, policyID: policy.id},
-            predictedNextStatus: newStatusNum,
-            policy,
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserEmail,
-            hasViolations: hasViolationsParam,
-            isASAPSubmitBetaEnabled,
-            bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
-            isTrackIntentUser,
-        });
         const optimisticNextStep = buildOptimisticNextStep({
             report: {...report, policyID: policy.id},
             predictedNextStatus: newStatusNum,
@@ -7487,11 +7428,6 @@ function buildOptimisticChangePolicyData({
             isTrackIntentUser,
         });
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: optimisticNextStepDeprecated,
-        });
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -7513,11 +7449,6 @@ function buildOptimisticChangePolicyData({
             },
         });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: reportNextStep ?? null,
-        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
