@@ -1,8 +1,8 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-index 12375d9..7e8293a 100644
+index 12375d9..1b66b5a 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-@@ -1,4 +1,12 @@
+@@ -1,4 +1,18 @@
 +import { Platform } from "react-native";
  import { RVLayoutManager, } from "./LayoutManager";
 +// How many recent widths we remember while watching for a scrollbar flicker.
@@ -12,10 +12,25 @@ index 12375d9..7e8293a 100644
 +const MIN_OSCILLATION_FLIPS = 3;
 +// A scrollbar is about 15-17px wide; a width jump this small or smaller is a scrollbar, not a resize.
 +const SCROLLBAR_OSCILLATION_TOLERANCE = 25;
++// How many times we hand the wider width back before we stop trusting it. A scrollbar that really
++// went away asks for the wider width once; a flicker asks every round, so after that we keep the
++// lock and the loop has to stop. One is deliberate: it is the smallest value that still lets a list
++// which genuinely stopped needing to scroll widen back out, and every extra round costs another
++// ~8 layout passes of thrashing out of React's 50-nested-update budget before it bails with #185.
++const MAX_LOCK_RELEASE_CYCLES = 1;
  /**
   * LinearLayoutManager implementation that arranges items in a single row or column.
   * Supports both horizontal and vertical layouts with dynamic item sizing.
-@@ -23,9 +31,15 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
+@@ -10,6 +24,8 @@
+         this.hasSize = false;
+         /** Height of the tallest item */
+         this.tallestItemHeight = 0;
++        /** How many times the scrollbar lock has been released for the current pair of widths */
++        this.scrollbarLockReleases = 0;
+         this.boundedSize = this.horizontal
+             ? params.windowSize.height
+             : params.windowSize.width;
+@@ -23,9 +39,15 @@
          const prevHorizontal = this.horizontal;
          super.updateLayoutParams(params);
          const oldBoundedSize = this.boundedSize;
@@ -32,34 +47,58 @@ index 12375d9..7e8293a 100644
          if (oldBoundedSize !== this.boundedSize ||
              prevHorizontal !== this.horizontal) {
              if (this.layouts.length > 0) {
-@@ -35,6 +49,65 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
-             }
+@@ -36,6 +58,90 @@
          }
      }
-+    /**
+     /**
 +     * Web only. Stops the re-layout loop caused by a scrollbar that keeps showing and hiding.
 +     *
-+     * The measured width flips between two values - with the scrollbar and without - a scrollbar's
-+     * width apart. Once we've seen it bounce a few times we lock onto the smaller width to end it.
-+     * The scrollbar can lag a frame, so the bounce isn't always a clean back-and-forth (A,A,B,B is
-+     * fine too). A real resize moves through many different widths and never looks like this.
-+     * @param measuredBoundedSize Width we just measured
-+     * @returns The width to lay out with
++     * A vertical list measures its width from the scroll viewport's client width, which excludes the
++     * scrollbar. So when the scrollbar toggles, the measured width steps by the scrollbar's size.
++     * Laying out at the new width changes the content height, which toggles the scrollbar again, and
++     * round it goes until React bails out with "Maximum update depth exceeded" (#185).
++     *
++     * We spot it as a width that bounces between exactly two values a scrollbar apart, and then lock
++     * onto the smaller one. Two details matter:
++     *
++     * - The scrollbar toggle can lag a frame behind the re-measure, so the bounce is not always a
++     *   clean A,B,A,B - runs like A,A,B,B are normal and must still count. A real resize sweeps
++     *   through many distinct widths and never settles into two.
++     * - Locking to the smaller width is not a resting point on its own. The lists that loop are the
++     *   ones whose content gets *shorter* as it gets narrower, so at the smaller width the scrollbar
++     *   goes away and the very next frame measures the larger width again. The lock therefore has to
++     *   outlast the larger width instead of releasing on sight of it; releasing every time merely
++     *   slows the loop down rather than ending it. See MAX_LOCK_RELEASE_CYCLES.
++     * @param measuredBoundedSize Cross-axis size we just measured
++     * @returns The cross-axis size to lay out with
 +     */
 +    settleScrollbarOscillation(measuredBoundedSize) {
 +        var _a;
-+        // Round to whole pixels so tiny subpixel changes don't throw off the checks below.
++        // Round to whole pixels so subpixel drift doesn't defeat the equality checks below.
 +        const size = Math.round(measuredBoundedSize);
 +        const settledPair = this.scrollbarOscillationPair;
 +        if (settledPair) {
++            const [smaller, larger] = settledPair;
 +            // Still measuring the smaller width, so the scrollbar is still there - keep the lock.
-+            if (size === settledPair[0]) {
-+                return settledPair[0];
++            if (size === smaller) {
++                return smaller;
 +            }
-+            // Any other width means the flicker is over - the scrollbar went away or the layout
-+            // really changed - so drop the lock and use the real width. We let go right away instead
-+            // of waiting for it to repeat, because the width often updates only once and the rows
-+            // would otherwise stay stuck too narrow.
++            if (size === larger) {
++                // Back on the wider width. Either the scrollbar genuinely went away, which happens
++                // once, or the flicker is still running and will bounce straight back, which happens
++                // every round. Hand the real width back the first time so rows aren't stranded
++                // narrow once a list stops needing to scroll, then hold the lock. The counter is
++                // deliberately not reset when the same pair locks again - a flicker would top it up
++                // every round and never reach the limit.
++                this.scrollbarLockReleases++;
++                if (this.scrollbarLockReleases > MAX_LOCK_RELEASE_CYCLES) {
++                    return smaller;
++                }
++            }
++            else {
++                // A width outside the pair is a real resize, so this pair is stale - start over.
++                this.scrollbarLockReleases = 0;
++            }
 +            this.scrollbarOscillationPair = undefined;
 +            this.recentBoundedSizes = undefined;
 +        }
@@ -83,9 +122,9 @@ index 12375d9..7e8293a 100644
 +            return measuredBoundedSize;
 +        }
 +        const smaller = Math.min(distinctSizes[0], distinctSizes[1]);
-+        // Only lock while this frame is on the smaller (with-scrollbar) width, so the locked width
-+        // matches what's on screen right now. Old bounces can reach three flips even after the
-+        // scrollbar is gone, and locking to the narrow width then would leave the rows too narrow.
++        // Only lock on a frame that is actually on the smaller (with-scrollbar) width, so the locked
++        // width matches what's on screen right now. An old, already-finished bounce can still be
++        // sitting in the history, and locking to the narrow width then would needlessly shrink rows.
 +        if (size !== smaller) {
 +            return measuredBoundedSize;
 +        }
@@ -95,6 +134,7 @@ index 12375d9..7e8293a 100644
 +        ];
 +        return smaller;
 +    }
-     /**
++    /**
       * Processes layout information for items, updating their dimensions.
       * For horizontal layouts, also normalizes heights of items.
+      * @param layoutInfo Array of layout information for items
