@@ -411,10 +411,12 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
                     translationKey: 'common.amountDebited',
+                    isColumnSortable: true,
                 },
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
                     translationKey: 'common.amountReimbursed',
+                    isColumnSortable: true,
                 },
                 groupTotalHeader,
             ];
@@ -426,6 +428,7 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     isColumnSortable: true,
                 },
                 ...commonGroupHeaders,
+                x,
             ];
         case CONST.SEARCH.GROUP_BY.MERCHANT:
             return [
