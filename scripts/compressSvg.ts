@@ -351,10 +351,10 @@ function logHelp() {
     console.log('');
     console.log('Usage:');
     console.log('  Mode 1 - Directory scan:');
-    console.log('    npm run compress-svg -- --dir assets/images');
+    console.log('    bun run compress-svg -- --dir assets/images');
     console.log('');
     console.log('  Mode 2 - Specific files:');
-    console.log('    npm run compress-svg -- --files file1.svg file2.svg ...');
+    console.log('    bun run compress-svg -- --files file1.svg file2.svg ...');
     console.log('');
     console.log('Options:');
     console.log('  --help, -h    Show this help message');

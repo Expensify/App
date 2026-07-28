@@ -6,12 +6,23 @@
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
   "license": "MIT",
   "private": true,
+  "packageManager": "bun@1.3.14",
   "workspaces": [
     "server/victory-chart-renderer"
   ],
+  "trustedDependencies": [
+    "@expensify/nitro-utils",
+    "@sentry/cli",
+    "bun",
+    "esbuild",
+    "lefthook",
+    "protobufjs",
+    "sharp",
+    "shellcheck"
+  ],
   "scripts": {
-    "i-standalone": "STANDALONE_NEW_DOT=true npm i",
-    "install-standalone": "STANDALONE_NEW_DOT=true npm install",
+    "i-standalone": "STANDALONE_NEW_DOT=true bun install",
+    "install-standalone": "STANDALONE_NEW_DOT=true bun install",
     "configure-mapbox": "./scripts/setup-mapbox-sdk-walkthrough.sh",
     "setupNewDotWebForEmulators": "./scripts/setup-newdot-web-emulators.sh",
     "startAndroidEmulator": "./scripts/start-android.sh",
@@ -28,8 +39,8 @@
     "ipad-standalone": "concurrently \"STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ipad\"",
     "ipad-sm": "concurrently \"./scripts/run-build.sh --ipad-sm\"",
     "ipad-sm-standalone": "concurrently \"STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ipad-sm\"",
-    "start": "npx rock start",
-    "web": "./scripts/set-pusher-suffix.sh && concurrently npm:web-proxy npm:web-server",
+    "start": "bunx rock start",
+    "web": "./scripts/set-pusher-suffix.sh && concurrently \"bun run web-proxy\" \"bun run web-server\"",
     "web-proxy": "bun web/proxy.ts",
     "web-server": "node ./node_modules/.bin/rsbuild dev --open --config config/rsbuild/rsbuild.config.ts",
     "build": "ENV=production bun ./node_modules/.bin/rsbuild build --config config/rsbuild/rsbuild.config.ts && bun ./scripts/combine-web-sourcemaps.ts",
@@ -45,7 +56,7 @@
     "test": "TZ=utc NODE_OPTIONS=\"--experimental-vm-modules --max_old_space_size=8192\" jest",
     "test:verbose": "TZ=utc NODE_OPTIONS=\"--experimental-vm-modules --max_old_space_size=4096\" JEST_VERBOSE=true jest",
     "test:debug": "TZ=utc NODE_OPTIONS='--inspect-brk --experimental-vm-modules' jest --runInBand",
-    "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
+    "perf-test": "NODE_OPTIONS=--experimental-vm-modules bunx reassure",
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc && NODE_OPTIONS=--max_old_space_size=8192 tsc -p server/tsconfig.json && NODE_OPTIONS=--max_old_space_size=8192 tsc -p server/victory-chart-renderer/tsconfig.json",
     "typecheck-tsgo": "tsgo --noEmit --incremental --tsBuildInfoFile tsconfig.tsgo.tsbuildinfo && tsgo --noEmit -p server/tsconfig.json --incremental --tsBuildInfoFile server/tsconfig.tsgo.tsbuildinfo && tsgo --noEmit -p server/victory-chart-renderer/tsconfig.json --incremental --tsBuildInfoFile server/victory-chart-renderer/tsconfig.tsgo.tsbuildinfo",
     "lint": "./scripts/lint.sh",
@@ -67,8 +78,8 @@
     "storybook-build-staging": "ENV=staging storybook build -o dist/docs",
     "gh-actions-build": "./.github/scripts/buildActions.sh",
     "analyze-packages": "ANALYZE_BUNDLE=true ENV=production bun ./node_modules/.bin/rsbuild build --config config/rsbuild/rsbuild.config.ts",
-    "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
-    "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
+    "symbolicate:android": "bunx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
+    "symbolicate:ios": "bunx metro-symbolicate main.jsbundle.map",
     "combine-web-sourcemaps": "bun scripts/combine-web-sourcemaps.ts",
     "gh-actions-unused-styles": "bun scripts/findUnusedStyles.ts",
     "setup-https": "mkcert -install && mkcert -cert-file config/rsbuild/certificate.pem -key-file config/rsbuild/key.pem dev.new.expensify.com localhost 127.0.0.1",
@@ -76,15 +87,15 @@
     "react-compiler-divergence-audit": "bun scripts/react-compiler-divergence-audit.ts",
     "generate-search-parser": "peggy --format es -o src/libs/SearchParser/searchParser.js src/libs/SearchParser/searchParser.peggy src/libs/SearchParser/baseRules.peggy",
     "generate-autocomplete-parser": "peggy --format es -o src/libs/SearchParser/autocompleteParser.js src/libs/SearchParser/autocompleteParser.peggy src/libs/SearchParser/baseRules.peggy && ./scripts/parser-workletization.sh src/libs/SearchParser/autocompleteParser.js",
-    "web:dist": "concurrently \"npm:web-proxy\" \"http-server ./dist --cors --port 8080 -P http://localhost:9000\"",
+    "web:dist": "concurrently \"bun run web-proxy\" \"http-server ./dist --cors --port 8080 -P http://localhost:9000\"",
     "octokit": "bun scripts/octokit.ts && cd scripts && bun repl",
     "compress-svg": "bun scripts/compressSvg.ts --dir assets/images && bun scripts/compressSvg.ts --dir docs/assets/images",
-    "server:vcr:dev": "npm run dev -w @expensify/victory-chart-renderer --",
-    "server:vcr:test": "npm run test -w @expensify/victory-chart-renderer --",
+    "server:vcr:dev": "bun run --filter @expensify/victory-chart-renderer dev",
+    "server:vcr:test": "bun run --filter @expensify/victory-chart-renderer test",
     "test:bun": "bun test --concurrent --max-concurrency 7",
-    "server:vcr:build:linux": "npm run build:linux -w @expensify/victory-chart-renderer --",
-    "server:vcr:build:linux-arm": "npm run build:linux-arm -w @expensify/victory-chart-renderer --",
-    "server:vcr:build:macos": "npm run build:macos -w @expensify/victory-chart-renderer --"
+    "server:vcr:build:linux": "bun run --filter @expensify/victory-chart-renderer build:linux",
+    "server:vcr:build:linux-arm": "bun run --filter @expensify/victory-chart-renderer build:linux-arm",
+    "server:vcr:build:macos": "bun run --filter @expensify/victory-chart-renderer build:macos"
   },
   "dependencies": {
     "@babel/runtime": "^7.25.0",
@@ -363,6 +374,7 @@
   "overrides": {
     "@typescript-eslint/eslint-plugin": "8.58.1",
     "@typescript-eslint/parser": "8.58.1",
+    "typescript-eslint": "8.58.1",
     "mapbox-gl": "^3.24.0",
     "braces": "3.0.3",
     "yargs": "17.7.2",
@@ -386,38 +398,9 @@
     "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260507",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "eslint-config-expensify": {
-      "typescript-eslint": "8.58.1",
-      "@typescript-eslint/eslint-plugin": "8.58.1",
-      "@typescript-eslint/parser": "8.58.1"
-    },
-    "eslint-plugin-react-native-a11y": {
-      "eslint": "^9.36.0"
-    },
     "node-abi": "^3.78.0",
     "pdfjs-dist": "^5.5.207",
-    "lightningcss": "1.30.1",
-    "@fullstory/react-native": {
-      "expo": "56.0.8"
-    },
-    "@react-native-firebase/app": {
-      "expo": "56.0.8"
-    },
-    "@react-native-firebase/perf": {
-      "expo": "56.0.8"
-    },
-    "@react-native-google-signin/google-signin": {
-      "expo": "56.0.8"
-    },
-    "@rnmapbox/maps": {
-      "expo": "56.0.8"
-    },
-    "@sentry/react-native": {
-      "expo": "56.0.8"
-    },
-    "expo-modules-core": {
-      "react-native-worklets": "0.11.1"
-    }
+    "lightningcss": "1.30.1"
   },
   "expo": {
     "autolinking": {

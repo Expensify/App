@@ -29,7 +29,7 @@ function patchPackage() {
     find ./Mobile-Expensify/patches -type f -name '*.patch' -exec cp {} "$TEMP_PATCH_DIR" \;
   fi
 
-  if ! npx patch-package --patch-dir "$TEMP_PATCH_DIR" --error-on-fail --color=always; then
+  if ! bunx patch-package --patch-dir "$TEMP_PATCH_DIR" --error-on-fail --color=always; then
     return 1
   fi
 }
@@ -60,7 +60,7 @@ else
             rm -rf "$SCRIPT_DIR/../node_modules/$PACKAGE"
         done
 
-        npm install --ignore-scripts
+        bun install --ignore-scripts
         if ! patchPackage; then
             error "patch-package failed after retry, giving up"
             exit 1

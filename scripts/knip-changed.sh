@@ -23,12 +23,12 @@ cleanup() {
 trap cleanup EXIT
 
 echo "Running knip on current branch..."
-npm run knip:json > "$CURRENT_REPORT"
+bun run knip:json > "$CURRENT_REPORT"
 
 echo "Running knip on main..."
 git worktree add --detach "$WORKTREE_DIR" main >/dev/null
 ln -s "$PWD/node_modules" "$WORKTREE_DIR/node_modules"
-(cd "$WORKTREE_DIR" && npm run knip:json) > "$MAIN_REPORT"
+(cd "$WORKTREE_DIR" && bun run knip:json) > "$MAIN_REPORT"
 
 echo ""
 bun ./scripts/compareKnipReports.ts --mainPath="$MAIN_REPORT" --prPath="$CURRENT_REPORT"

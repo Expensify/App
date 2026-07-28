@@ -386,7 +386,7 @@ async function main() {
     switch (command) {
         case 'check':
             if (files.length === 0) {
-                logError('No paths specified. Usage: npm run react-compiler-compliance-check check <files|dirs|globs...>');
+                logError('No paths specified. Usage: bun run react-compiler-compliance-check check <files|dirs|globs...>');
                 process.exit(1);
             }
             passed = checkFiles(files, verbose, checkReactCompilerWithOxc);

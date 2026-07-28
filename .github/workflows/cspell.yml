@@ -14,18 +14,14 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Remove E/App version from package-lock.json
-        shell: bash
-        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
-
       - name: Restore cspell cache
         # v5.0.1
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .cspellcache
-          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'bun.lock') }}-${{ github.sha }}
           restore-keys: |
-            cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-
+            cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'bun.lock') }}-
             cspell-${{ runner.os }}-
 
       - name: Get changed files
@@ -44,7 +40,7 @@ jobs:
 
       - name: Spell check
         if: steps.filtered-files.outputs.files != ''
-        run: npm run spell-changed -- ${{ steps.filtered-files.outputs.files }}
+        run: bun run spell-changed -- ${{ steps.filtered-files.outputs.files }}
 
       - name: Save cspell cache
         # v4
@@ -52,4 +48,4 @@ jobs:
         if: always()
         with:
           path: .cspellcache
-          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'bun.lock') }}-${{ github.sha }}

@@ -11,19 +11,19 @@ Bun is installed automatically via the root `npm install` (devDependency). No se
 From the App repository root:
 
 ```bash
-npm run server:vcr:dev -- --chart-xml '<victorychart width="400" height="300">...</victorychart>' --out /tmp/out.png
+bun run server:vcr:dev -- --chart-xml '<victorychart width="400" height="300">...</victorychart>' --out /tmp/out.png
 ```
 
 To render from a file, pass its contents with `cat`:
 
 ```bash
-npm run server:vcr:dev -- --chart-xml "$(cat server/victory-chart-renderer/tests/fixtures/monthly-spend.xml)" --out /tmp/out.png
+bun run server:vcr:dev -- --chart-xml "$(cat server/victory-chart-renderer/tests/fixtures/monthly-spend.xml)" --out /tmp/out.png
 ```
 
 From this directory:
 
 ```bash
-npm run dev -- --chart-xml "$(cat path/to/chart.xml)" --out /tmp/out.png
+bun run dev -- --chart-xml "$(cat path/to/chart.xml)" --out /tmp/out.png
 ```
 
 ## Tests
@@ -31,7 +31,7 @@ npm run dev -- --chart-xml "$(cat path/to/chart.xml)" --out /tmp/out.png
 From the App repository root:
 
 ```bash
-npm run server:vcr:test
+bun run server:vcr:test
 ```
 
 The suite compiles a standalone binary and runs it from an isolated temp directory (no `node_modules` or App checkout assets on the load path), then compares output against golden PNGs.
@@ -39,7 +39,7 @@ The suite compiles a standalone binary and runs it from an isolated temp directo
 To refresh reference PNGs after an intentional rendering change:
 
 ```bash
-UPDATE_GOLDEN=1 npm run server:vcr:test
+UPDATE_GOLDEN=1 bun run server:vcr:test
 ```
 
 ## Compiled binaries
@@ -47,9 +47,9 @@ UPDATE_GOLDEN=1 npm run server:vcr:test
 From the App repository root:
 
 ```bash
-npm run server:vcr:build:linux
-npm run server:vcr:build:linux-arm
-npm run server:vcr:build:macos
+bun run server:vcr:build:linux
+bun run server:vcr:build:linux-arm
+bun run server:vcr:build:macos
 ```
 
 Binaries are written to `dist/` (gitignored).

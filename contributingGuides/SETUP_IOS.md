@@ -2,7 +2,7 @@
 
 ## Running the mobile application using Rock 🪨
 
-This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `npm run ios`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from S3. If a matching remote build isn’t available, it automatically falls back to building locally.
+This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `bun run ios`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from S3. If a matching remote build isn’t available, it automatically falls back to building locally.
 
 By storing complete native build artifacts remotely, Rock reduces the need for local compilation and simplifies setup through automated downloads.
 
@@ -11,12 +11,12 @@ By storing complete native build artifacts remotely, Rock reduces the need for l
 The following steps describe how to configure the project to fully utilize Rock.
 
 ### Running the mobile application 📱
-* To install project dependencies run: `npm install`
-* To start metro server run: `npm run start`
+* To install project dependencies run: `bun install`
+* To start metro server run: `bun run start`
 **Note:** For now this is a required step — metro needs to be called manually in a separate terminal.
 * To run application on a **Development Simulator**:
-    - For standalone `npm run ios-standalone`
-    - For hybrid app `npm run ios` 
+    - For standalone `bun run ios-standalone`
+    - For hybrid app `bun run ios` 
 
 After completing these steps, you should be able to start both mobile platform apps using the remote build.
 
@@ -24,20 +24,20 @@ After completing these steps, you should be able to start both mobile platform a
 If you haven't done any intentional edits outside of `src/` (like adding new dependencies) but your app is still running into a full build, remember that it's way easier to debug and address a remote cache miss rather than any compilation error.
 
 * Try re-installing dependencies:
-    - `npm run i-standalone` for the standalone app
-    - `npm install` for the hybrid app
+    - `bun run i-standalone` for the standalone app
+    - `bun install` for the hybrid app
 
 * Try running:
-    - For standalone `npm run ios-standalone`
-    - For hybrid app `npm run ios`
+    - For standalone `bun run ios-standalone`
+    - For hybrid app `bun run ios`
 
 * If you’re still encountering errors, you can try running:
     - `git clean -fdx ios/` when running standalone app
     - `git clean -fdx ./Mobile-Expensify` when running hybrid app
 
 * Then try running again: 
-    - For standalone `npm run ios-standalone`
-    - For hybrid app `npm run ios`
+    - For standalone `bun run ios-standalone`
+    - For hybrid app `bun run ios`
 
 * If the issue persists, verify that both workflows in the GitHub repository have completed successfully:
     - [iOS builds](https://github.com/Expensify/App/actions/workflows/remote-build-ios.yml)
@@ -64,16 +64,16 @@ For an M1 Mac, read this [Stack Overflow post](https://stackoverflow.com/questio
    - If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
 
 3. **Configure MapBox**
-   - Before installing iOS dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions.
+   - Before installing iOS dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `bun run configure-mapbox` and follow the instructions.
    - For help with MapBox token, you can see [this Slack thread](https://expensify.slack.com/archives/C01GTK53T8Q/p1692740856745279?thread_ts=1692322511.804599&cid=C01GTK53T8Q)
 
 4. **Install iOS Dependencies**
-   - To install the iOS dependencies, run: `npm install && npm run pod-install`
+   - To install the iOS dependencies, run: `bun install && bun run pod-install`
 
 ## Running the iOS App
 
 ### Development Simulator
-- To run on a **Development Simulator**: `npm run ios`
+- To run on a **Development Simulator**: `bun run ios`
 - Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ### Physical iOS Device
@@ -101,13 +101,13 @@ To test the web app in iOS simulator browsers, you need to install the developme
 You must first configure HTTPS certificates by following the instructions in the [Web Setup Guide](SETUP_WEB.md#configuring-https).
 
 ### iOS Simulator Setup
-1. Run `npm run setupNewDotWebForEmulators ios`
+1. Run `bun run setupNewDotWebForEmulators ios`
 2. Select the emulator you want to run if prompted. (If single emulator is available, then it will open automatically)
 3. Let the script execute till the message `🎉 Done!`.
 
 ### All Platforms Setup
 If you want to set up both iOS and Android simulators at once:
-1. Run `npm run setupNewDotWebForEmulators all` or `npm run setupNewDotWebForEmulators`
+1. Run `bun run setupNewDotWebForEmulators all` or `bun run setupNewDotWebForEmulators`
 2. Check if the iOS flow runs first and then Android flow runs.
 3. Let the script execute till the message `🎉 Done!`.
 
@@ -134,7 +134,7 @@ export NODE_BINARY=node
 ```
 
 ### Recording Traces
-1. Install the necessary packages and CocoaPods dependencies: `npm i && npm run pod-install`
+1. Install the necessary packages and CocoaPods dependencies: `bun install && bun run pod-install`
 2. Run your iOS app in production mode
 3. Navigate to the feature you wish to profile.
 4. Initiate the profiling session by tapping with four fingers to open the menu and selecting **`Use Profiling`**.
@@ -150,7 +150,7 @@ export NODE_BINARY=node
 **IMPORTANT:** You should generate the source map from the same branch as the trace was recorded.
 
 4. Upon completion, the generated source map can be found at: `main.jsbundle.map`
-5. Use the following command to symbolicate the trace: `npm run symbolicate-release:ios`
+5. Use the following command to symbolicate the trace: `bun run symbolicate-release:ios`
 6. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
 7. Open this file in your tool of choice:
    - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))

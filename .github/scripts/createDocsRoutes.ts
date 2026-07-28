@@ -51,7 +51,7 @@ function getOptionalNumber(value: unknown): number | undefined {
 }
 
 const warnMessage = (platform: string): string => `Number of hubs in _routes.yml does not match number of hubs in docs/${platform}/articles. Please update _routes.yml with hub info.`;
-const disclaimer = '# This file is auto-generated. Do not edit it directly. Use npm run createDocsRoutes instead.\n';
+const disclaimer = '# This file is auto-generated. Do not edit it directly. Use bun run createDocsRoutes instead.\n';
 const docsDir = `${process.cwd()}/docs`;
 const routes = yaml.load(fs.readFileSync(`${docsDir}/_data/_routes.yml`, 'utf8')) as DocsRoutes;
 const platformNames = {

@@ -97,7 +97,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] A similar style doesn't already exist
     - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/utils/index.ts) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)`)
 - [ ] If new assets were added or existing ones were modified, I verified that:
-    - [ ] The assets are optimized and compressed (for SVG files, run `npm run compress-svg`)
+    - [ ] The assets are optimized and compressed (for SVG files, run `bun run compress-svg`)
     - [ ] The assets load correctly across all supported platforms.
 - [ ] If the PR modifies code that runs when editing or sending messages, I tested and verified there is no unexpected behavior for all supported markdown - URLs, single line code, code blocks, quotes, headings, bold, strikethrough, and italic.
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)

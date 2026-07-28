@@ -13,14 +13,14 @@ cp src/libs/SearchParser/autocompleteParser.js "$autocomplete_parser_backup" 2>/
 cp src/libs/SearchParser/searchParser.js "$search_parser_backup" 2>/dev/null
 
 #Running the scripts that generate the .js parser files
-npm run generate-search-parser
-npm run generate-autocomplete-parser
+bun run generate-search-parser
+bun run generate-autocomplete-parser
 
 #Checking if the saved files differ from the newly generated
 if ! diff -q "$autocomplete_parser_backup" src/libs/SearchParser/autocompleteParser.js >/dev/null ||
    ! diff -q "$search_parser_backup" src/libs/SearchParser/searchParser.js >/dev/null; then
     echo "The files generated from the .peggy files using the commands: generate-search-parser and generate-autocomplete-parser are not identical to those currently on this branch."
-    echo "The parser .js files should never be edited manually. Make sure you’ve run locally: npm run generate-search-parser and npm run generate-autocomplete-parser, and committed the changes."
+    echo "The parser .js files should never be edited manually. Make sure you’ve run locally: bun run generate-search-parser and bun run generate-autocomplete-parser, and committed the changes."
     exit 1
 else
     echo "The files generated from the .peggy files using the commands: generate-search-parser and generate-autocomplete-parser are identical to those currently on this branch."

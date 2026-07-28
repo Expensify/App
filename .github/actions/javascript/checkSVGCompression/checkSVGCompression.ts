@@ -9,7 +9,7 @@ async function run() {
         const summary: CompressionSummary = await compressSvg('pullRequest', {token});
 
         if (summary.totalSavings) {
-            throw new Error(`SVG ${summary.totalCompressedFilesLength} file(s) were not compressed. Run 'npm run compress-svg' locally and check results on all platforms.`);
+            throw new Error(`SVG ${summary.totalCompressedFilesLength} file(s) were not compressed. Run 'bun run compress-svg' locally and check results on all platforms.`);
         }
     } catch (error) {
         if (error instanceof Error) {

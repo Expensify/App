@@ -4086,13 +4086,13 @@ async function updateIOS(version) {
     }
 }
 /**
- * Update package.json and package-lock.json
+ * Update the version field in package.json.
  */
-async function updateNPM(version) {
-    console.log(`Setting npm version to ${version}`);
+async function updatePackageVersion(version) {
+    console.log(`Setting package version to ${version}`);
     try {
-        const { stdout } = await exec(`npm --no-git-tag-version version ${version} -m "Update version to ${version}"`);
-        // NPM and native versions successfully updated, output new version
+        const { stdout } = await exec(`bun pm version --no-git-tag-version ${version}`);
+        // Package version successfully updated, output new version
         console.log(stdout);
     }
     catch (err) {
@@ -4100,7 +4100,7 @@ async function updateNPM(version) {
         if (err instanceof Error) {
             console.error('Error:', err.message);
         }
-        throw new Error('Error updating npm version');
+        throw new Error('Error updating package version');
     }
 }
 /**
@@ -4132,7 +4132,7 @@ async function run(semanticVersionLevel) {
     const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel);
     console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
     // Apply the version changes in Android, iOS, and JS config files (E/App and Mobile-Expensify)
-    await Promise.all([updateAndroid(newVersion), updateIOS(newVersion), updateNPM(newVersion), updateConfigJSON(newVersion)]);
+    await Promise.all([updateAndroid(newVersion), updateIOS(newVersion), updatePackageVersion(newVersion), updateConfigJSON(newVersion)]);
     return newVersion;
 }
 if (false) {}

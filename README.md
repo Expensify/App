@@ -33,13 +33,13 @@ These instructions should get you set up ready to work on New Expensify 🙌
 ## Getting Started
 1. Install `nvm` then `node` & `npm`: `brew install nvm && nvm install`
 2. Install `watchman`: `brew install watchman`
-3. Install dependencies: `npm install`
-4. Run the specific platform with the following command: `npm run <platform>`, e.g. `npm run web`
+3. Install dependencies: `bun install`
+4. Run the specific platform with the following command: `bun run <platform>`, e.g. `bun run web`
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
 ## Recommended `node` setup
-In order to have more consistent builds, we use a strict `node` and `npm` version as defined in the `package.json` `engines` field and `.nvmrc` file. `npm install` will fail if you do not use the version defined, so it is recommended to install `node` via `nvm` for easy node version management. Automatic `node` version switching can be installed for [`zsh`](https://github.com/nvm-sh/nvm#zsh) or [`bash`](https://github.com/nvm-sh/nvm#bash) using `nvm`.
+In order to have more consistent builds, we pin the `node` version in the `.nvmrc` file and the `bun` version in the `.bun-version` file (both also reflected in the `package.json` `engines` field). It is recommended to install `node` via `nvm` for easy node version management. Automatic `node` version switching can be installed for [`zsh`](https://github.com/nvm-sh/nvm#zsh) or [`bash`](https://github.com/nvm-sh/nvm#bash) using `nvm`.
 
 # Platform-Specific Setup
 For detailed setup instructions for each platform, see the following guides:
@@ -83,7 +83,7 @@ variables referenced here get updated since your local `.env` file is ignored.
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 
-> If your changes to .env aren't having an effect, try `rm -rf .rock`, then re-run `npm run ios` or `npm run android`
+> If your changes to .env aren't having an effect, try `rm -rf .rock`, then re-run `bun run ios` or `bun run android`
 
 ----
 
@@ -93,7 +93,7 @@ Unit tests are valuable when you want to test one component. They should be shor
 Often times in order to write a unit test, you may need to mock data, a component, or library. We use the library [Jest](https://jestjs.io/)
 to help run our Unit tests.
 
-* To run the **Jest unit tests**: `npm run test`
+* To run the **Jest unit tests**: `bun run test`
 * UI tests guidelines can be found [here](tests/ui/README.md)
 
 ## Performance tests

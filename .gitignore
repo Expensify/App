@@ -180,6 +180,3 @@ agent-device-output/
 # Server CLI build artifacts (victory-chart-renderer, etc.)
 server/*/dist/
 server/victory-chart-renderer/.dev/
-
-# Bun lockfiles (VCR uses npm workspaces + package-lock.json; bun is runtime-only)
-bun.lock

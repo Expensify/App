@@ -9,13 +9,13 @@ If you have access to the closed-source `Mobile-Expensify` repository, you are e
 
 It is vital to understand, that modifying any code in `./android` and `./ios` folders in the root of the project **will not affect the HybridApp build at all.** In this case, if you'd like to change native code, you have to go to `./Mobile-Expensify/Android` and `./Mobile-Expensify/iOS` first. This is **especially important** when you want to remove native cache or `Pods` manually. 
 # How do the scripts work?
-While working on the HybridApp we've prepared a set of scripts to make the work with HybridApp easier. In general, the scripts `npm install`, `npm run clean`, `npm run android`, and `npm run ios` work on the following condition:
+While working on the HybridApp we've prepared a set of scripts to make the work with HybridApp easier. In general, the scripts `bun install`, `bun run clean`, `bun run android`, and `bun run ios` work on the following condition:
 
 **If you have cloned HybridApp to `Mobile-Expensify` submodule, the default behaviour of the scripts changes to build HybridApp instead of NewDot.**
 
 In that case, what are the differences in each script?
 
-## `npm install`
+## `bun install`
 - **Without access to HybridApp**: 
 	1. install `node_modules` in `./` 
 	2. apply patches from `./patches`
@@ -26,7 +26,7 @@ In that case, what are the differences in each script?
 	4. install `node_modules` for OldDot
 	5. apply patches from `./Mobile-Expensify/patches` -> for more info refer to [Patches](#Patches)
 
-## `npm run clean`
+## `bun run clean`
 - **Without access to HybridApp**: 
 	1. clean all caches for NewDot by running `npx react-native clean-project-auto` 
 	2. remove the following (you can find full documentation [here](https://github.com/pmadruga/react-native-clean-project?tab=readme-ov-file#content))
@@ -45,15 +45,15 @@ In that case, what are the differences in each script?
 		- `./Mobile-Expensify/iOS/build`
 
 The scripts will also remove some deeper hidden cache, but crucial thing to understand is that cache for HybridApp are *mostly* located in `Mobile-Expensify` submodule, alongside the native code.
-As the final step in both standalone and HybridApp scenarios, it runs `npm ci` (clean install), so an explicit `node_modules` installation is not necessary after cleaning.
+As the final step in both standalone and HybridApp scenarios, it runs `bun install` (clean install), so an explicit `node_modules` installation is not necessary after cleaning.
 
-## `npm run android` and `npm run ios`
+## `bun run android` and `bun run ios`
 - **Without access to HybridApp**: 
 	1. build and install standalone NewDot
 - **With a cloned Mobile-Expensify submodule**: 
 	1. build and install HybridApp
 
-## `npm run pod-install`
+## `bun run pod-install`
 This is a helper script that lets you install `Pods` without changing directories. Thanks to it, you can keep working in the root of the project (`./`), and still be able to install iOS dependencies.
 - **Without access to HybridApp**: 
 	1. install `Pods` in `./ios`
@@ -62,10 +62,10 @@ This is a helper script that lets you install `Pods` without changing directorie
 
 # What should I do to build HybridApp?
 The build should be very straightforward. Assuming you've cleared cache, and have just cloned the `Mobile-Expensify` submodule, you should do the following:
-1. `npm i`
-2. `npm run pod-install` (if you build iOS)
-3. `npm run ios` or `npm run android`
-If you encounter any problems, please refer to the [[Pro Tips & Troubleshooting](#pro-tips-and-troubleshooting)] section, or (if you don't find your answer there) remove the cache by executing `npm run clean`
+1. `bun install`
+2. `bun run pod-install` (if you build iOS)
+3. `bun run ios` or `bun run android`
+If you encounter any problems, please refer to the [[Pro Tips & Troubleshooting](#pro-tips-and-troubleshooting)] section, or (if you don't find your answer there) remove the cache by executing `bun run clean`
 
 # Submodules
 OldDot code in `Expensify/App` repo is located in `Mobile-Expensify` directory, which technically is a git submodule. Even though it seems like an advanced concept, in reality it is very straightforward: it basically sets a commit hash from which `Mobile-Expensify` code should be pulled.
@@ -90,7 +90,7 @@ IMPORTANT: Please execute the following commands from the root of the project!
 There is a set of patches, that gets applied only to HybridApp. They are not required by a standalone NewDot build, therefore they have been located in `./Mobile-Expensify/patches`. If you'd like to add a new HybridApp specific patch you can run:
 1. `npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
 
-The `patch-package` takes `.patch` files, and applies the diff to `node_modules` after executing `npm install`. It means that if you'd like to build NewDot after HybridApp, it is best to remove `node_modules`, and run `npm run i-standalone` to make sure that HybridApp-specific patches won't be applied.
+The `patch-package` takes `.patch` files, and applies the diff to `node_modules` after executing `bun install`. It means that if you'd like to build NewDot after HybridApp, it is best to remove `node_modules`, and run `bun run i-standalone` to make sure that HybridApp-specific patches won't be applied.
 # Environmental variables
 If you need to setup your local environment, you can create a `.env` file in the root of the project (aka `Expensify/App`). The variables will be included into the **native build**, which means that in case of HybridApp they will be also visible on the OldDot side. There is no need to have another `.env` file in `Mobile-Expensify`.
 
@@ -107,18 +107,18 @@ There are multiple thing that may cause the build to fail. This is a simple chec
 3. Pull the newest `main`
 4. Check if you have a recent version of the `Mobile-Expensify` submodule
 	- if not, execute `git submodule update`, and rerun the build
-5. Clean the cache by executing `npm run clean` (with proper platform flags)
+5. Clean the cache by executing `bun run clean` (with proper platform flags)
 If the problem still exists, please share the error in the #expensify-open-source channel
 ### What if I want to build a standalone NewDot?
 There are additional helper scripts, that will help you to run a standalone NewDot, even if you have access to `Mobile-Expensify`, and the default behaviour of the scripts builds HybridApp. 
 
 In this case you can do the following:
 1. `rm -rf node_modules`
-2. `npm i-standalone`
-3. `npm run pod-install-standalone` (required only if you build iOS)
-4. `npm run ios-standalone` or `npm run android-standalone`
+2. `bun run i-standalone`
+3. `bun run pod-install-standalone` (required only if you build iOS)
+4. `bun run ios-standalone` or `bun run android-standalone`
 
-Alternatively, you may notice in `package.json` that all these scripts are based on `STANDALONE_NEW_DOT` environment variable. If you feel confident you can do `export STANDALONE_NEW_DOT=true` to change the default behaviour in the current process of the terminal, and use regular commands (`npm i`, `npm run android`, `npm run ios` etc.) to build NewDot. 
+Alternatively, you may notice in `package.json` that all these scripts are based on `STANDALONE_NEW_DOT` environment variable. If you feel confident you can do `export STANDALONE_NEW_DOT=true` to change the default behaviour in the current process of the terminal, and use regular commands (`bun install`, `bun run android`, `bun run ios` etc.) to build NewDot. 
 
 ### Do I need to clean cache and rebuild the app?
 It's a valid question, especially because clean builds may take some time. On the way I've noticed that many developers tend to rebuild the app from scratch, even though in some cases it is unnecessary. In this case, when should you rebuild the app?
@@ -126,9 +126,9 @@ It's a valid question, especially because clean builds may take some time. On th
 2. Whenever you've pulled the newest main - not always necessary, but usually we don't analyze what code has just been merged by `git pull`
 3. Whenever `package-lock.json` has changed - this may indicate that some packages with native code were bumped (however it's not always necessary, see [[#Should I rebuild HybridApp after bumping a `node_module`?]])
 4. Whenever you've updated `.env` files
-This means that if you changed only React Native code, and didn't pull any changes, the rebuilt is probably not necessary. If something doesn't work, you can always restart the Metro bundler using the following command `npm run start --reset-cache`
+This means that if you changed only React Native code, and didn't pull any changes, the rebuilt is probably not necessary. If something doesn't work, you can always restart the Metro bundler using the following command `bun run start --reset-cache`
 
-💡 **Tip**: If you're still experiencing build issues after running `npm run clean`, try a full Git clean:
+💡 **Tip**: If you're still experiencing build issues after running `bun run clean`, try a full Git clean:
 
 ```
 git clean -fdx
@@ -139,17 +139,17 @@ This will remove all untracked files and directories, ensuring no lingering arti
 ### Should I rebuild HybridApp after bumping a `node_modules` library?
 The `package-lock.json` file contains information about exact versions of `node_modules` that will be installed on your machine. If you've bumped a dependency on your PR you can easily check to see if you would need to rebuild the app by going to the `./node_modules/<PACKAGE_NAME>`, and seeing if there are any Objective-C, Swift, Java, Kotlin or C++ files. Usually they are located in `ios` or `android` folders.
 ### How to clear platform-specific cache?
-Executing `npm run clean` clears cache for React Native, Android, and iOS. It means that the whole process may take a while, even though you try to build only one platform. In this case you case you can pass additional arguments to specify which cache should be cleared in order to save some time:
-- **React Native:** `npm run clean -- --react-native` 
+Executing `bun run clean` clears cache for React Native, Android, and iOS. It means that the whole process may take a while, even though you try to build only one platform. In this case you case you can pass additional arguments to specify which cache should be cleared in order to save some time:
+- **React Native:** `bun run clean -- --react-native` 
 	- `npm`, `node_modules`, `watchman`, Metro
-- **Android:** `npm run clean -- --android` 
+- **Android:** `bun run clean -- --android` 
 	- `build`, `.cxx`, `.gradle`
-- **iOS:** `npm run clean -- --ios`
+- **iOS:** `bun run clean -- --ios`
 	- `Pods`, `DerivedData`, `build`, `cocoapods`
-- **YAPL**: `npm run clean -- --npm`
+- **YAPL**: `bun run clean -- --npm`
 	- `npm`, `Mobile-Expensify/node_modules` (OldDot-specific)
-### I use VSCode and the patches are constantly failing during `npm install`
-In case you use VSCode and are having problems during `npm install` caused by patch errors, e.g. `@onfido/react-native-sdk` and/or `react-native-vision-camera`, **please check if you have any Java-related extensions enabled in your editor**. In case you have it, try **disabling** them and running the steps specified above to have a clean install.
+### I use VSCode and the patches are constantly failing during `bun install`
+In case you use VSCode and are having problems during `bun install` caused by patch errors, e.g. `@onfido/react-native-sdk` and/or `react-native-vision-camera`, **please check if you have any Java-related extensions enabled in your editor**. In case you have it, try **disabling** them and running the steps specified above to have a clean install.
 
 The reason is that some Java extensions are constantly creating files inside `node_modules` libraries and thus messing up with `patch-package` logic, so it’s advisable to keep them disabled in order to avoid such problems.
 ## Android
@@ -157,8 +157,8 @@ The reason is that some Java extensions are constantly creating files inside `no
 
 This is an error that indicates, that patches from `./Mobile-Expensify/patches` were not applied. In this case:
 1. open a new terminal
-2. run `rm -rf node_modules && npm i`
-3. run `npm run android`
+2. run `rm -rf node_modules && bun install`
+3. run `bun run android`
 ### Error: `A problem occurred starting process 'command 'node''`
 
 Android Studio for some reason sometimes is unable to find `node`, even though its terminal has correct access to all environment variables. According to StackOverflow's threads the problem started appearing in 2021. In some cases linking node worked (`sudo ln -s "$(which node)" /usr/local/bin/node`), but the easiest way is to open Android Studio directly from terminal:
@@ -172,7 +172,7 @@ IMPORTANT: It's easily to confuse this error with a very similar one: `Failed to
 ### Error: `undefined is not an object (evaluating 'Store.ReportHistory.bindCacheClearingEvents')`
 This error indicates that YAPL JS (OldDot's JavaScript code) hasn't been built properly. In order to fix that, do the following:
 1. cd to `Mobile-Expensify`
-2. run `npm run grunt:build:shared`
+2. run `bun run grunt:build:shared`
 
 ### Error: `No JDK found / Please select a valid JDK`
 Android Studio and Gradle require a JDK (Java Development Kit) to build the app. If you're seeing this error or being prompted to select a JDK, it means no valid JDK has been configured. Our project requires JDK 17, so make sure you select or install that version.
@@ -216,10 +216,10 @@ If you'd like to build HybridApp in `release` configuration you need to adjust o
 The easiest way to see native logs is to use Logcat. In order to find it go to: `View` > `Tool windows` > `Logcat`
 ## iOS
 ### Error: `"xcodebuild" exited with error code '65'`
-This is a very common error that may appear during an iOS build, it's especially annoying when it appears after executing `npm run ios`, because it doesn't give any additional information that may be useful for debugging. In order to see the real error you need to open XCode and rerun the build from there. When the build fails, pick `Errors Only` in the main panel, and extend the error by pressing an icon with 4 parallel lines on the right hand side. On the very bottom you should see the real error.
+This is a very common error that may appear during an iOS build, it's especially annoying when it appears after executing `bun run ios`, because it doesn't give any additional information that may be useful for debugging. In order to see the real error you need to open XCode and rerun the build from there. When the build fails, pick `Errors Only` in the main panel, and extend the error by pressing an icon with 4 parallel lines on the right hand side. On the very bottom you should see the real error.
 
 ### Error: `MsgHandlingError(message: "unable to initiate PIF transfer session (operation in progress?)")`
-This is pretty common in XCode, but it's easy to fix. Usually it means that you've executed `npm run pod-install` with XCode being open, and the IDE didn't handle the `Pods` changes well. To fix it:
+This is pretty common in XCode, but it's easy to fix. Usually it means that you've executed `bun run pod-install` with XCode being open, and the IDE didn't handle the `Pods` changes well. To fix it:
 1. restart XCode
 
 ### Error: `FullstoryCommandLine` 
@@ -228,7 +228,7 @@ This one is pretty enigmatic, and usually appears after subsequent android, and 
 2. rerun the iOS build
 
 ### Error: `CDN: trunk URL couldn't be downloaded`
-This error may appear after execution of `npm run pod-install`. In this case you should do the following:
+This error may appear after execution of `bun run pod-install`. In this case you should do the following:
 1. cd to `Mobile-Expensify/ios`
 2. run `pod repo remove trunk`
 

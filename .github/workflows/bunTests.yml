@@ -10,7 +10,7 @@ on:
       - 'bunfig.toml'
       - '.bun-version'
       - 'package.json'
-      - 'package-lock.json'
+      - 'bun.lock'
       - '.github/workflows/bunTests.yml'
 
 concurrency:
@@ -29,10 +29,10 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Run Bun tests
-        run: npm run test:bun
+        run: bun run test:bun
 
       - name: Build victory-chart-renderer Linux x64 binary
-        run: npm run server:vcr:build:linux
+        run: bun run server:vcr:build:linux
 
       - name: Smoke-test compiled victory-chart-renderer binary
         run: ./server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64 --chart-xml "$(cat server/victory-chart-renderer/tests/fixtures/top-categories-6.xml)" --out /tmp/vcr-smoke.png && test -s /tmp/vcr-smoke.png

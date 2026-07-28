@@ -25,9 +25,9 @@ jobs:
 
       - name: Verify there's no Oxfmt diff
         run: |
-          npm run fmt
+          bun run fmt
           if ! git diff --name-only --exit-code; then
             # shellcheck disable=SC2016
-            echo 'Error: Oxfmt diff detected! Please run `npm run fmt` and commit the changes.'
+            echo 'Error: Oxfmt diff detected! Please run `bun run fmt` and commit the changes.'
             exit 1
           fi

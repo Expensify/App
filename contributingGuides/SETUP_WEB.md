@@ -5,7 +5,7 @@
 ### Web-Specific Prerequisites
 
 1. **Install mkcert and Setup HTTPS**
-   - Install `mkcert`: `brew install mkcert` followed by `npm run setup-https`. If you are not using macOS, follow the instructions [here](https://github.com/FiloSottile/mkcert?tab=readme-ov-file#installation).
+   - Install `mkcert`: `brew install mkcert` followed by `bun run setup-https`. If you are not using macOS, follow the instructions [here](https://github.com/FiloSottile/mkcert?tab=readme-ov-file#installation).
 
 2. **Configure Local Hosts**
    - Create a host entry in your local hosts file, `/etc/hosts` for dev.new.expensify.com pointing to localhost:
@@ -14,20 +14,20 @@
    ```
 
 ## Recommended Node Setup
-In order to have more consistent builds, we use a strict `node` and `npm` version as defined in the `package.json` `engines` field and `.nvmrc` file. `npm install` will fail if you do not use the version defined, so it is recommended to install `node` via `nvm` for easy node version management. Automatic `node` version switching can be installed for [`zsh`](https://github.com/nvm-sh/nvm#zsh) or [`bash`](https://github.com/nvm-sh/nvm#bash) using `nvm`.
+In order to have more consistent builds, we pin the `node` version in the `.nvmrc` file and the `bun` version in the `.bun-version` file (both also reflected in the `package.json` `engines` field). It is recommended to install `node` via `nvm` for easy node version management. Automatic `node` version switching can be installed for [`zsh`](https://github.com/nvm-sh/nvm#zsh) or [`bash`](https://github.com/nvm-sh/nvm#bash) using `nvm`.
 
 ## Configuring HTTPS
 
-The Rspack development server now uses https. If you're using a mac, you can simply run `npm run setup-https`.
+The Rspack development server now uses https. If you're using a mac, you can simply run `bun run setup-https`.
 
 If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `dev.new.expensify.com` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/rsbuild`.
 
-If you already generated certificates before the Webpack → Rsbuild migration, they're now in the wrong place (`config/webpack`, which no longer exists). Just re-run `npm run setup-https` to regenerate them in `config/rsbuild`, or move the existing files: `mv config/webpack/{key,certificate}.pem config/rsbuild/`.
+If you already generated certificates before the Webpack → Rsbuild migration, they're now in the wrong place (`config/webpack`, which no longer exists). Just re-run `bun run setup-https` to regenerate them in `config/rsbuild`, or move the existing files: `mv config/webpack/{key,certificate}.pem config/rsbuild/`.
 
 ## Running the Web App
 
 ### Development Server
-- To run the **development web app**: `npm run web`
+- To run the **development web app**: `bun run web`
 - Changes applied to Javascript will be applied automatically via Rsbuild as configured in `config/rsbuild/rsbuild.config.ts`
 
 ### Production Build
@@ -38,10 +38,10 @@ To build and run the production web build locally:
 USE_WEB_PROXY=true
 
 # 2. Build the production bundle
-npm run build
+bun run build
 
 # 3. Run the distribution server
-npm run web:dist
+bun run web:dist
 ```
 
 The `web:dist` command starts both the proxy server (port 9000) and web server (port 8080) concurrently. Access the application at **http://localhost:8080**
@@ -64,7 +64,7 @@ Creating an `.env` file is not necessary. We advise external contributors agains
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper. See [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 - `USE_WDYR` - Flag to turn [`Why Did You Render`](https://github.com/welldone-software/why-did-you-render) testing on or off
 
-> If your changes to .env aren't having an effect, try `rm -rf .rock`, then re-run `npm run web`
+> If your changes to .env aren't having an effect, try `rm -rf .rock`, then re-run `bun run web`
 
 ## Testing on Browsers in Simulators and Emulators
 
@@ -74,7 +74,7 @@ You create this certificate by following the instructions in [`Configuring HTTPS
 
 ### All Platforms Setup
 If you want to set up both iOS and Android simulators at once:
-1. Run `npm run setupNewDotWebForEmulators all` or `npm run setupNewDotWebForEmulators`
+1. Run `bun run setupNewDotWebForEmulators all` or `bun run setupNewDotWebForEmulators`
 2. Check if the iOS flow runs first and then Android flow runs.
 3. Let the script execute till the message `🎉 Done!`.
 
@@ -88,25 +88,25 @@ To time, profile, and analyze the Rspack build itself (as opposed to the app's r
 
 ```bash
 # Core build process timing (recommended)
-RSPACK_PROFILE=OVERVIEW npm run build
+RSPACK_PROFILE=OVERVIEW bun run build
 
 # Every trace event - much larger output, only for deep investigation
-RSPACK_PROFILE=ALL npm run build
+RSPACK_PROFILE=ALL bun run build
 ```
 
 This generates a `.rspack-profile-<timestamp>-<pid>/rspack.log` file (JSON Lines) with per-loader/per-plugin timing for the build. To generate a [Perfetto](https://ui.perfetto.dev)-format trace instead, set `RSPACK_TRACE_LAYER=perfetto`:
 
 ```bash
-RSPACK_TRACE_LAYER=perfetto RSPACK_PROFILE=OVERVIEW npm run build
+RSPACK_TRACE_LAYER=perfetto RSPACK_PROFILE=OVERVIEW bun run build
 ```
 
-Open the resulting `.rspack-profile-<timestamp>-<pid>/rspack.pftrace` file at [ui.perfetto.dev](https://ui.perfetto.dev) to visualize it. For bundle size (as opposed to build time) analysis, use `npm run analyze-packages`, which runs [Rsdoctor](https://rsdoctor.rs/) against the build output and opens an interactive report covering bundle composition, duplicate packages, and per-loader/per-plugin timing.
+Open the resulting `.rspack-profile-<timestamp>-<pid>/rspack.pftrace` file at [ui.perfetto.dev](https://ui.perfetto.dev) to visualize it. For bundle size (as opposed to build time) analysis, use `bun run analyze-packages`, which runs [Rsdoctor](https://rsdoctor.rs/) against the build output and opens an interactive report covering bundle composition, duplicate packages, and per-loader/per-plugin timing.
 
 ### Release Profiling for Web
-1. Install the necessary packages: `npm i`
+1. Install the necessary packages: `bun install`
 2. Run your web app in production mode
 3. Upon completion, the generated source map can be found at: `dist/merged-source-map.js.map`
-4. To symbolicate traces: `npm run symbolicate-release:web`
+4. To symbolicate traces: `bun run symbolicate-release:web`
 
 ### Recording Traces
 1. Launch the app in production mode.
@@ -123,7 +123,7 @@ Open the resulting `.rspack-profile-<timestamp>-<pid>/rspack.pftrace` file at [u
 
 **IMPORTANT:** You should generate the source map from the same branch as the trace was recorded.
 
-4. Use the following command to symbolicate the trace: `npm run symbolicate-release:web`
+4. Use the following command to symbolicate the trace: `bun run symbolicate-release:web`
 5. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
 6. Open this file in your tool of choice:
    - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))

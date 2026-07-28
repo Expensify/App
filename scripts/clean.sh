@@ -11,15 +11,15 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
 NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
 # Clean rock and ccache cache
-npx rock clean --include rock,ccache
+bunx rock clean --include rock,ccache
 
 if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     echo -e "${BLUE}Cleaning HybridApp project...${NC}"
     # Navigate to Mobile-Expensify repository, and clean
     cd Mobile-Expensify
-    npm run clean -- "$@"
+    bun run clean -- "$@"
 else
     # Clean NewDot
     echo -e "${BLUE}Cleaning standalone NewDot project...${NC}"
-    npx react-native clean-project-auto
+    bunx react-native clean-project-auto
 fi

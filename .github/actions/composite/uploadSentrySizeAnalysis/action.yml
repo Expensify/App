@@ -61,7 +61,7 @@ runs:
         ASSET: ${{ inputs.asset-name }}
         PLATFORM: ${{ inputs.platform }}
       run: |
-        OUTPUT=$(npx sentry-cli build upload "$ASSET" \
+        OUTPUT=$(bunx sentry-cli build upload "$ASSET" \
           --org expensify --project app --build-configuration Release --log-level info 2>&1)
         echo "$OUTPUT"
         SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ )"}]+' | head -1)

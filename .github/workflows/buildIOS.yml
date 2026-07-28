@@ -127,7 +127,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: npm run pod-install
+          command: bun run pod-install
 
       - name: Setup 1Password CLI and certificates
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main

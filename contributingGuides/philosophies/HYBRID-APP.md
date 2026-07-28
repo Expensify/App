@@ -51,25 +51,25 @@ Default npm scripts target HybridApp when the submodule exists:
 
 | Command               | Description                        |
 | --------------------- | ---------------------------------- |
-| `npm run android`     | Build **HybridApp** for Android    |
-| `npm run ios`         | Build **HybridApp** for iOS        |
-| `npm run ipad`        | Build **HybridApp** for iPad       |
-| `npm run ipad-sm`     | Build **HybridApp** for small iPad |
-| `npm run pod-install` | Install pods for **HybridApp**     |
-| `npm run clean`       | Clean native code of **HybridApp** |
+| `bun run android`     | Build **HybridApp** for Android    |
+| `bun run ios`         | Build **HybridApp** for iOS        |
+| `bun run ipad`        | Build **HybridApp** for iPad       |
+| `bun run ipad-sm`     | Build **HybridApp** for small iPad |
+| `bun run pod-install` | Install pods for **HybridApp**     |
+| `bun run clean`       | Clean native code of **HybridApp** |
 
 ### - Standalone scripts MUST be used when targeting NewDot only
 Append `-standalone` to target standalone NewDot:
 
 | Command                          | Description                                                 |
 | -------------------------------- | ----------------------------------------------------------- |
-| `npm run install-standalone`     | Install standalone **NewDot** node modules (`npm install`) |
-| `npm run clean-standalone`       | Clean native code for standalone **NewDot**                |
-| `npm run android-standalone`     | Build **NewDot** for Android in standalone mode            |
-| `npm run ios-standalone`         | Build **NewDot** for iOS in standalone mode                |
-| `npm run pod-install-standalone` | Install pods for standalone **NewDot**                     |
-| `npm run ipad-standalone`        | Build **NewDot** for iPad in standalone mode               |
-| `npm run ipad-sm-standalone`     | Build **NewDot** for small iPad in standalone mode         |
+| `bun run install-standalone`     | Install standalone **NewDot** node modules (`bun install`) |
+| `bun run clean-standalone`       | Clean native code for standalone **NewDot**                |
+| `bun run android-standalone`     | Build **NewDot** for Android in standalone mode            |
+| `bun run ios-standalone`         | Build **NewDot** for iOS in standalone mode                |
+| `bun run pod-install-standalone` | Install pods for standalone **NewDot**                     |
+| `bun run ipad-standalone`        | Build **NewDot** for iPad in standalone mode               |
+| `bun run ipad-sm-standalone`     | Build **NewDot** for small iPad in standalone mode         |
 
 ## Setup Instructions
 
@@ -115,7 +115,7 @@ When switching branches, run `git submodule update` to ensure compatibility.
 ## HybridApp-Specific Features
 
 ### Patches
-- Patches are applied automatically during `npm install`
+- Patches are applied automatically during `bun install`
 - Add HybridApp-specific patches: `npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
 
 ### Additional Resources

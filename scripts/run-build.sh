@@ -49,7 +49,7 @@ if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     APP_ID="org.me.mobiexpensifyg.dev"
 
     # Build Yapl JS
-    cd Mobile-Expensify && npm run grunt:build:shared && cd ..
+    cd Mobile-Expensify && bun run grunt:build:shared && cd ..
 
     echo
     success "Starting a HybridApp build!"
@@ -65,13 +65,13 @@ fi
 # Check if the argument is one of the desired values
 case "$BUILD" in
     --ios)
-        npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
+        bunx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --ipad)
-        npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
+        bunx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --ipad-sm)
-        npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
+        bunx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --android)
         # Check if this is an Expensify developer with WARP (only they need cert import)
@@ -81,7 +81,7 @@ case "$BUILD" in
             fi
         fi
 
-        SENTRY_DISABLE_AUTO_UPLOAD=true npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server "${ROCK_FLAGS[@]}"
+        SENTRY_DISABLE_AUTO_UPLOAD=true bunx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server "${ROCK_FLAGS[@]}"
         ;;
     *)
         print_error_and_exit

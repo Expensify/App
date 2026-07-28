@@ -27,7 +27,7 @@ jobs:
 
       - name: Run baseline performance tests
         shell: bash
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+        run: NODE_OPTIONS=--experimental-vm-modules bunx reassure --baseline
 
       - name: Upload baseline performance results
         # v6
@@ -52,7 +52,7 @@ jobs:
         env:
           BRANCH: ${{ github.head_ref }}
           COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare
+        run: NODE_OPTIONS=--experimental-vm-modules bunx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare
 
       - name: Upload branch performance results
         # v6

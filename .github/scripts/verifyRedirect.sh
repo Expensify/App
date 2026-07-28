@@ -22,7 +22,7 @@ if [[ -n "$duplicates" ]]; then
     exit 1
 fi
 
-npm run detectRedirectCycle
+bun run detectRedirectCycle
 DETECT_CYCLE_EXIT_CODE=$?
 if [[ DETECT_CYCLE_EXIT_CODE -eq 1 ]]; then
     echo -e "${RED}The redirects.csv has a cycle. Please remove the redirect cycle because it will cause an infinite redirect loop ${RESET}"

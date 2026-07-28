@@ -33,7 +33,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Build victory-chart-renderer Linux x64 binary
-        run: npm run server:vcr:build:linux
+        run: bun run server:vcr:build:linux
 
       - name: Verify compiled binary is executable
         run: test -x server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64

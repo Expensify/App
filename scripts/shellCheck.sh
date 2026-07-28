@@ -28,7 +28,7 @@ for SHELL_SCRIPT in $SHELL_SCRIPTS; do
     shellcheck -e SC1091 "$SHELL_SCRIPT" &
   else
     # Otherwise shellcheck is used via npx
-    npx shellcheck -e SC1091 "$SHELL_SCRIPT" &
+    bunx shellcheck -e SC1091 "$SHELL_SCRIPT" &
   fi
   ASYNC_PROCESSES+=($!)
 done

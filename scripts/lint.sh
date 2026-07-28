@@ -61,7 +61,7 @@ ESLINT_ARGS+=(
 # Run ESLint with the repo's default memory ceiling and seatbelt behavior.
 NODE_OPTIONS="${NODE_OPTIONS:---max_old_space_size=8192}" \
 SEATBELT_FROZEN="${SEATBELT_FROZEN:-0}" \
-    npx eslint "${ESLINT_ARGS[@]}"
+    bunx eslint "${ESLINT_ARGS[@]}"
 
 # Fail if a new inline eslint-disable bypasses the Onyx.connect() ban (rulesdir/no-onyx-connect),
 # checking the same targets as ESLint above. Reached only when ESLint itself passes (set -e).

@@ -35,7 +35,7 @@ echo "Podfile.lock: $PODFILE_LOCK_SHA"
 if [[ "$PODFILE_SHA" == "$PODFILE_LOCK_SHA" ]]; then
   success "Podfile checksum verified!"
 else
-  error "Podfile.lock checksum mismatch. Did you forget to run \`npx pod-install\`?"
+  error "Podfile.lock checksum mismatch. Did you forget to run \`bunx pod-install\`?"
   cleanupAndExit 1
 fi
 
@@ -51,7 +51,7 @@ info "Pod version from Podfile.lock: $POD_VERSION_FROM_PODFILE_LOCK"
 if [[ "$POD_VERSION_FROM_GEMFILE" == "$POD_VERSION_FROM_PODFILE_LOCK" ]]; then
   success "Cocoapods version from Podfile.lock matches cocoapods version from Gemfile"
 else
-  error "Cocoapods version from Podfile.lock does not match cocoapods version from Gemfile. Please use \`npm run pod-install\` or \`bundle exec pod install\` instead of \`pod install\` to install pods."
+  error "Cocoapods version from Podfile.lock does not match cocoapods version from Gemfile. Please use \`bun run pod-install\` or \`bundle exec pod install\` instead of \`pod install\` to install pods."
   cleanupAndExit 1
 fi
 
@@ -64,7 +64,7 @@ if ! SPEC_DIRS=$(yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modu
 fi
 
 # Retrieve a list of podspec paths from react-native config
-if ! read_lines_into_array PODSPEC_PATHS < <(npx rock config -p ios | jq --raw-output '.dependencies[].platforms.ios.podspecPath | select ( . != null)'); then
+if ! read_lines_into_array PODSPEC_PATHS < <(bunx rock config -p ios | jq --raw-output '.dependencies[].platforms.ios.podspecPath | select ( . != null)'); then
   error "Error: could not parse podspec paths from react-native config command"
   cleanupAndExit 1
 fi
@@ -83,7 +83,7 @@ fi
 # If they are listed in Podfile.lock but the directories don't exist they have been removed
 while read -r DIR; do
   if [[ ! -d "${DIR#../}" ]]; then
-    error "Directory \`${DIR#../node_modules/}\` not found in node_modules. Did you forget to run \`npx pod-install\` after removing the package?"
+    error "Directory \`${DIR#../node_modules/}\` not found in node_modules. Did you forget to run \`bunx pod-install\` after removing the package?"
     cleanupAndExit 1
   fi
 done <<< "$SPEC_DIRS"
@@ -91,7 +91,7 @@ done <<< "$SPEC_DIRS"
 # Check for uncommitted package additions/updates
 while read -r POD; do
   if ! grep -q "$POD" ./ios/Podfile.lock; then
-    error "$POD not found in Podfile.lock. Did you forget to run \`npx pod-install\`?"
+    error "$POD not found in Podfile.lock. Did you forget to run \`bunx pod-install\`?"
     cleanupAndExit 1
   fi
 done <<< "$FORMATTED_PODS"

@@ -50,7 +50,7 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
 NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
 if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
-    echo -e "${BLUE}Executing npm run pod-install for HybridApp...${NC}"
+    echo -e "${BLUE}Executing bun run pod-install for HybridApp...${NC}"
     # Navigate to the OldDot repository, and run bundle install and pod install
     cd Mobile-Expensify/ios
     bundle install
@@ -58,7 +58,7 @@ if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     exit 0
 fi
 
-echo -e "${BLUE}Executing npm run pod-install for standalone NewDot...${NC}"
+echo -e "${BLUE}Executing bun run pod-install for standalone NewDot...${NC}"
 
 CACHED_PODSPEC_DIR='';
 if [[ "$IS_HYBRID_APP_REPO" == "true" ]]; then

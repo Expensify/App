@@ -59,11 +59,11 @@ jobs:
       - name: Build web
         run: |
           if [ "${{ inputs.environment }}" == "production" ]; then
-            npm run build
+            bun run build
           elif [ "${{ inputs.environment }}" == "staging" ]; then
-            npm run build-staging
+            bun run build-staging
           else
-            npm run build-adhoc
+            bun run build-adhoc
           fi
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}

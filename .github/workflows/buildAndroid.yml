@@ -95,7 +95,7 @@ jobs:
       - name: Run grunt build
         run: |
           cd Mobile-Expensify
-          npm run grunt:build:shared
+          bun run grunt:build:shared
 
       - name: Create .env.adhoc file based on staging
         if: ${{ inputs.variant == 'Adhoc' }}
@@ -286,7 +286,7 @@ jobs:
 
       - name: Validate ELF alignment for Release APK
         if: ${{ inputs.variant == 'Release' && steps.collectArtifacts.outputs.HAS_AAB == 'true' }}
-        run: npx rock validate-elf-alignment "Expensify.apk"
+        run: bunx rock validate-elf-alignment "Expensify.apk"
 
       - name: Upload Android APK build artifact
         if: steps.collectArtifacts.outputs.HAS_AAB == 'true'

@@ -33,18 +33,14 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Remove E/App version from package-lock.json
-        shell: bash
-        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
-
       - name: Restore ESLint cache
         # v5.0.1
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'bun.lock') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-
+            ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'bun.lock') }}-
             ${{ runner.os }}-eslint-
 
       # ESLint's cache doesn't track cross-file TypeScript dependencies, which can cause stale errors.
@@ -57,10 +53,10 @@ jobs:
           ESLINT_CONCURRENCY: 2
           NODE_OPTIONS: --max_old_space_size=14336
         run: |
-          if ! npm run lint; then
+          if ! bun run lint; then
             echo "Lint failed, clearing cache and retrying..."
             rm -rf node_modules/.cache/eslint
-            npm run lint
+            bun run lint
           fi
 
       - name: Save ESLint cache
@@ -69,7 +65,7 @@ jobs:
         if: always()
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'bun.lock') }}-${{ github.sha }}
 
       # If lint tightened the seatbelt baseline (i.e. fewer baselined errors than last time),
       # commit the updated TSV back to `main` as OSBotify. Only runs under `workflow_call`

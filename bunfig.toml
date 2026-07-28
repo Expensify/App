@@ -2,6 +2,11 @@
 # `import` and `require()`, so scripts don't load the real Flow-typed RN packages at runtime).
 preload = ["./scripts/stubReactNative.js"]
 
+[install]
+# patch-package walks a flat node_modules/<pkg> tree, so install a hoisted (npm/yarn-style)
+# layout rather than Bun's default isolated symlink store.
+linker = "hoisted"
+
 # Bun test discovery for server-side tooling (Jest owns src/ and tests/).
 [test]
 root = "server"
