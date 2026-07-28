@@ -77,7 +77,7 @@ const registerPrefetchOnAppStart: RegisterPrefetchOnAppStart = ({prefetchKey, fe
 
     registerPrefetchTokenRefresh();
     prefetchOnAppStart(url, fetchParams).catch((error) => {
-        Log.warn(`[HttpUtils] prefetchOnAppStart failed for ${command}`, {error, fetchParams, url});
+        Log.warn(`[NitroFetch] prefetchOnAppStart failed for ${command}`, {error, fetchParams, url});
     });
 };
 
