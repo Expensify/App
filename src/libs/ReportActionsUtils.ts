@@ -470,14 +470,22 @@ function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, o
 /**
  * Builds the payment message for a cross-border FX reimbursement, which reports the amount credited to the employee
  * in their deposit currency plus both account last-4s, since the company and employee move different currencies.
+ *
+ * Returns undefined for any payment that did not record both a credited amount and the currency it is in, so callers
+ * can fall through to the wording that names the report total instead.
  */
 function getCrossBorderReimbursedMessage(
     translate: LocalizedTranslate,
     originalMessage: Pick<OriginalMessageIOU | OriginalMessageReimbursed, 'creditedAmount' | 'creditedCurrency' | 'debitBankAccountLast4' | 'creditBankAccountLast4'>,
     fallbackDebitBankAccountLast4?: string,
-): string {
+): string | undefined {
+    const {creditedAmount, creditedCurrency} = originalMessage;
+    if (!creditedAmount || !creditedCurrency) {
+        return undefined;
+    }
+
     return translate('iou.reimbursedCrossBorder', {
-        amount: convertToDisplayString(originalMessage.creditedAmount, originalMessage.creditedCurrency),
+        amount: convertToDisplayString(creditedAmount, creditedCurrency),
         debitBankAccount: originalMessage.debitBankAccountLast4 ?? fallbackDebitBankAccountLast4 ?? '',
         creditBankAccount: originalMessage.creditBankAccountLast4 ?? '',
     });
@@ -555,12 +563,9 @@ function getReimbursedMessage(
     }
 
     // The employee is credited in their own currency, so name that amount and both accounts, not the report total.
-    if (originalMessage.creditedAmount && originalMessage.creditedCurrency) {
-        let crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, effectiveDebitBankAccountLast4);
-        if (isAutomation) {
-            crossBorderMessage += ` ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}`;
-        }
-        return crossBorderMessage;
+    const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, effectiveDebitBankAccountLast4);
+    if (crossBorderMessage) {
+        return isAutomation ? `${crossBorderMessage} ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}` : crossBorderMessage;
     }
 
     const actionText = isInvoiceOrBill ? translate('iou.paidThisBill') : translate('iou.reimbursedThisReport');
