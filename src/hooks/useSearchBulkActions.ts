@@ -1960,8 +1960,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             options.push(payButtonOption);
         }
 
-        const selectedMergeReports = selectedReports.map(({reportID}) => currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).filter((report) => !!report);
-        if (canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID) && queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        const selectedMergeReports = selectedReports.map(({reportID}) => currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).filter((report) => !!report?.reportID);
+        if (
+            selectedMergeReports.length === selectedReports.length &&
+            queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
+            canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID)
+        ) {
             options.push({
                 icon: expensifyIcons.ArrowCollapse,
                 text: translate('search.mergeReports.title'),
