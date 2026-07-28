@@ -1,0 +1,95 @@
+import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+
+import {clearDraftValues} from '@libs/actions/FormActions';
+import {clearPersonalDetailsErrors, updatePrivatePersonalDetails} from '@libs/actions/PersonalDetails';
+import {requestValidateCodeAction} from '@libs/actions/User';
+import {normalizeCountryCode} from '@libs/CountryUtils';
+import {getLatestErrorField, getLatestErrorMessageField} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {getPrivatePersonalDetailsFormValues} from '@libs/PersonalDetailsUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {PersonalDetailsForm} from '@src/types/form';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useRef} from 'react';
+
+function PrivatePersonalDetailsConfirmValidateCodePage() {
+    const {translate} = useLocalize();
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const primaryLogin = usePrimaryContactMethod();
+
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+
+    // Errors may be written to either errorFields (preferred) or errors depending on
+    // how the backend reports the failure, so check both.
+    const personalDetailsErrorField = getLatestErrorField(privatePersonalDetails, 'personalDetails');
+    const personalDetailsError = getLatestErrorMessageField(privatePersonalDetails);
+    const submitError = !isEmptyObject(personalDetailsErrorField) ? personalDetailsErrorField : personalDetailsError;
+    const hasErrors = !isEmptyObject(submitError) || !isEmptyObject(validateCodeAction?.errorFields);
+
+    const clearError = () => {
+        if (!hasErrors) {
+            return;
+        }
+        clearPersonalDetailsErrors();
+    };
+
+    const wasLoading = useRef(false);
+    useEffect(() => {
+        if (privatePersonalDetails?.isLoading) {
+            wasLoading.current = true;
+            return;
+        }
+        if (wasLoading.current && !hasErrors) {
+            wasLoading.current = false;
+            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+            Navigation.goBack(ROUTES.SETTINGS_PROFILE.route);
+        }
+        wasLoading.current = false;
+    }, [privatePersonalDetails?.isLoading, hasErrors]);
+
+    // The parent page defers clearing the form draft to this page so the submission payload survives navigating
+    // to the magic-code RHP. Clear it whenever we leave this page without validating, so an unvalidated edit
+    // doesn't reappear in the RHP form on remount. This covers the header back arrow, swipe-back, and hardware
+    // back, and is idempotent with the success path above (which already clears the draft before navigating away).
+    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM), []);
+
+    const values = normalizeCountryCode(getPrivatePersonalDetailsFormValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm;
+
+    const handleSubmitForm = (validateCode: string) => {
+        updatePrivatePersonalDetails(values, validateCode, countryCode);
+    };
+
+    return (
+        <ValidateCodeActionContent
+            title={translate('delegate.makeSureItIsYou')}
+            descriptionPrimary={translate('contacts.enterSecurityCode', primaryLogin ?? '')}
+            sendValidateCode={() => requestValidateCodeAction()}
+            validateCodeActionErrorField="personalDetails"
+            handleSubmitForm={handleSubmitForm}
+            validateError={submitError}
+            clearError={clearError}
+            onClose={() => {
+                // Plain goBack pops the confirm-validate-code RHP screen. Passing the SETTINGS_PRIVATE_PERSONAL_DETAILS route
+                // here would compare params against the existing PrivatePersonalDetails route (which carries a
+                // fieldToFocus param), miss, and REPLACE — leaving a duplicate PrivatePersonalDetails on the stack
+                // so the next back-press only pops the duplicate.
+                Navigation.goBack();
+            }}
+            isLoading={privatePersonalDetails?.isLoading}
+        />
+    );
+}
+
+PrivatePersonalDetailsConfirmValidateCodePage.displayName = 'PrivatePersonalDetailsConfirmValidateCodePage';
+
+export default PrivatePersonalDetailsConfirmValidateCodePage;

@@ -8,6 +8,7 @@ import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyReque
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -16,7 +17,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
 
@@ -162,7 +163,10 @@ function useReportSelectionActions({
             clearSubrates(transaction.transactionID);
 
             const newChatReportID = reportOrDraftReportFromValue?.chatReportID ?? reportIDFromRoute;
-            const destinationRoute = ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, newChatReportID);
+            const destinationRoute = createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, newChatReportID),
+            );
             Navigation.goBack(destinationRoute, {compareParams: false});
             return;
         }
