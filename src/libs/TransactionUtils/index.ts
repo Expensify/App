@@ -740,6 +740,7 @@ function getUpdatedTransaction({
             // Otherwise, recalculate the fields based on the new rate.
 
             let updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
+
             // The provided `policy` may not own the new rate, leaving the amount at 0. Fall back to
             // resolving the rate across every policy the user belongs to.
             if (!updatedMileageRate.rate && transactionChanges.customUnitRateID) {

@@ -2629,6 +2629,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // ...liveTransactions}`. Reproduce that merge here exactly.
         ({allTransactions, allReports, allReportNameValuePairs, allReportActions} = await getLatestCollections());
         const latestSnapshot = await getOnyxValue(snapshotKey);
+
         // Reference the specific transaction keys we seeded the snapshot with directly (rather than a generic
         // `Object.entries` walk) so this stays type-safe without narrowing the wide `SearchResultDataType` union.
         const mergedTransactionsFromSearchPage: OnyxCollection<Transaction> = {

@@ -782,11 +782,13 @@ function updateSplitTransactions({
 
             if (isReverseSplitOperation) {
                 delete transactionChanges.transactionID;
+
                 // For revert splits (self-DM and workspace alike), ALL field changes are already captured in
                 // requestMoneyInformation.transactionParams (amount, date, merchant, category, etc.)
                 for (const key of Object.keys(transactionChanges)) {
                     delete transactionChanges[key as keyof typeof transactionChanges];
                 }
+
                 // Ensure moneyRequestInformationOnyxData is applied even though transactionChanges is now empty.
                 hasChanges = true;
             }
@@ -1203,6 +1205,7 @@ function updateSplitTransactions({
                 if (expectedMerchant && transactionUpdateValue.merchant !== expectedMerchant) {
                     transactionUpdateValue.merchant = expectedMerchant;
                 }
+
                 // For distance transactions, the split inherits the original transaction's modifiedMerchant
                 // (e.g. the full-distance "10.00 mi @ rate" string set when the original's rate was edited).
                 // The UI shows modifiedMerchant in preference to merchant, so align it with the split's own
@@ -1224,6 +1227,7 @@ function updateSplitTransactions({
             // as the Onyx transactions. This prevents getChildTransactions from treating them as separate
             // orphaned children on the next edit, which would incorrectly delete them from the snapshot.
             const snapshotTransactionID = isCreationOfSplits ? splitExpense.transactionID : optimisticTransactionFromGetMoneyRequest.transactionID;
+
             // Align the snapshot's modifiedMerchant with the split's own merchant for distance transactions,
             // so the Search/Expenses view doesn't show the stale inherited original merchant (see the same fix
             // applied to the main transaction's optimisticData above).
@@ -1731,6 +1735,7 @@ function updateSplitTransactions({
             },
         });
         pushUpdatedReportPreviewActionToOnyxData();
+
         // Skip only when the reverse split's restored transaction stays in expenseReportID — that
         // report isn't becoming empty. If the surviving split lives in a different report (e.g. it
         // was moved elsewhere), expenseReportID can still genuinely lose its last transaction.
@@ -1910,6 +1915,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const originalTransactionID = params.transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const allChildTransactions = getChildTransactions(params.allTransactionsList, originalTransactionID, false);
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
+
     // Unfiltered, so a pure selfDM 2-split still collapses via REVERT_SPLIT_TRANSACTION. The mixed
     // workspace/selfDM case is guarded below via reverseSplitKeepsOriginalInExpenseReport instead.
     const isReverseSplitOperation = splitExpenses.length === 1 && allChildTransactions.length > 0 && hasEditableSplitExpensesLeft;

@@ -521,6 +521,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
             const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(iouTransaction, iouOriginalTransaction);
+
             // Hide the "Submit it to someone" option for self-DM split expenses when the user isn't a member of any workspace.
             if (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) {
                 const baseSubmitParams = {
@@ -545,6 +546,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     // On the Submit (submit2026) plan, "Submit to someone" splits into two destinations here too, matching the
                     // track-expense whisper: submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
                     const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName);
+
                     // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
                     // just like it is on the track-expense whisper.
                     if (!isSelfDMExpenseSplit) {

@@ -134,9 +134,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const personalPolicy = usePersonalPolicy();
     const effectivePolicy = useSplitEffectivePolicy(currentReport, draftTransaction, transaction);
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+
     // `effectivePolicy` is undefined for a self-DM split on the personal (P2P) rate, so fall back to the
     // moving-expenses policy to detect whether a workspace with selectable rates exists.
     const policyWithAvailableRates = effectivePolicy ?? policyForMovingExpenses;
+
     // When the user belongs to more than one eligible workspace, `usePolicyForMovingExpenses` can't resolve a
     // default (`shouldSelectPolicy: true`). Derive availability from the actual enabled rates across all
     // policies rather than `shouldSelectPolicy` alone — otherwise the P2P split is blocked with no rate to pick.
@@ -209,6 +211,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isDistance = isDistanceRequest(transaction);
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+
     // For selfDM expenses, the IOU action lives in the selfDM report, not in an expense report.
     const iouReportIDForActions = expenseReport?.reportID ?? (isSelfDM(draftTransactionReport) ? draftTransactionReport?.reportID : undefined);
     const iouActions = getIOUActionForTransactions([originalTransactionID], allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDForActions}`]).filter(
@@ -264,6 +267,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             }
             continue;
         }
+
         // `effectivePolicy` is undefined when the top-level draft is still on the personal rate, so resolve
         // the split's picked rate across all policies too — like the per-split edit screen does.
         const splitSelectedRate =

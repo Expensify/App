@@ -674,12 +674,14 @@ function updateSplitExpenseAmountField(
             if (isDistanceRequest && originalTransaction && splitExpense.customUnit) {
                 const mileageRate = resolveSplitMileageRate({transaction: originalTransaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
                 const splitRateID = splitExpense.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
+
                 // `policy` is undefined for a self-DM split on the personal rate, so also resolve the split's
                 // picked rate across all policies, so the selection isn't lost.
                 const splitSelectedRate =
                     DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID: splitRateID}) ??
                     DistanceRequestUtils.getEnabledRateByCustomUnitRateIDFromAnyPolicy(splitRateID, policies);
                 const isSplitP2PRate = splitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+
                 // Prefer the split's own selected rate when it's a real enabled rate; otherwise fall back to
                 // the original-transaction rate (covers the P2P and deleted-rate cases).
                 const useSplitSelectedRate = !isSplitP2PRate && !!splitSelectedRate?.rate && splitSelectedRate.rate > 0 && splitSelectedRate.enabled !== false;

@@ -72,6 +72,7 @@ function IOURequestStepCategoryCreate({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const report = reportReal ?? reportDraft;
+
     // Mirror IOURequestStepCategory: for self-DM split edits the draft's reportID points to the
     // self-DM (not UNREPORTED_REPORT_ID), so usePolicyForTransaction can't resolve a policy. Fall
     // back to policyForMovingExpenses so AccessOrNotFoundWrapper below has a real policyID instead

@@ -281,6 +281,7 @@ function IOURequestStepUpgrade({
         }
 
         const email = currentUserPersonalDetails?.email ?? '';
+
         // In the split-expense flow inherit the user's chosen default currency (personal policy
         // `outputCurrency`) rather than the geo-derived `localCurrencyCode`.
         const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
