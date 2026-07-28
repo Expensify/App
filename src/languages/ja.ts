@@ -9575,6 +9575,8 @@ ${reportName}`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `料金は${startDate}から${endDate}までのみ有効です`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `料金は${startDate}からのみ有効です`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `料金は${endDate}までのみ有効です`,
+        cannotMergeDuplicates:
+            '経費をマージできるのは、ステータスが「オープン」または「一次承認待ち」のレポートのみです。レポートを一度取り下げてから経費をマージし、再提出する必要がある場合があります。',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} は必須です`,

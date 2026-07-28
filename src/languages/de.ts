@@ -9723,6 +9723,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `Preis ist nur gültig von ${startDate} bis ${endDate}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Der Satz gilt erst ab dem ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Satz gilt nur bis ${endDate}`,
+        cannotMergeDuplicates:
+            'Sie können Ausgaben nur in Berichten zusammenführen, die offen sind oder auf die erste Genehmigung warten. Möglicherweise müssen Sie den Bericht zurückziehen, die Ausgaben zusammenführen und ihn dann erneut einreichen.',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} ist erforderlich`,
