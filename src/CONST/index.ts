@@ -2517,6 +2517,7 @@ const CONST = {
         SOCKET: 'Issue connecting to database',
         DUPLICATE_RECORD: '400 Unique Constraints Violation',
         ALREADY_CREATED_TRANSACTION: 'Transaction already created.',
+        ALREADY_CREATED_AGENT_RULE: 'Agent rule already created.',
         ALREADY_PAID: 'The request has already been paid',
     },
     NETWORK: {

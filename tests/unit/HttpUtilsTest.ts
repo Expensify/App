@@ -32,6 +32,7 @@ describe('HttpUtils', () => {
     // server really sends.
     it.each([
         ['Transaction already created.', WRITE_COMMANDS.REQUEST_MONEY],
+        ['Agent rule already created.', WRITE_COMMANDS.ADD_POLICY_AGENT_RULE],
         ['The request has already been paid', WRITE_COMMANDS.PAY_MONEY_REQUEST],
     ])('maps the jsonCode-666 rejection "%s" to ALREADY_CREATED', async (message, command) => {
         mockFetchResponse(message);

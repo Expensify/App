@@ -1,5 +1,9 @@
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {addPolicyAgentRule, clearPolicyAgentRuleErrors, clearPolicyCodingRuleErrors, deletePolicyAgentRule, updatePolicyAgentRule} from '@libs/actions/Policy/Rules';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import {flush as flushSequentialQueue} from '@libs/Network/SequentialQueue';
+
+import {getAll as getAllPersistedRequests, getOngoingRequest as getOngoingPersistedRequest, save as savePersistedRequest} from '@userActions/PersistedRequests';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -100,6 +104,95 @@ describe('actions/PolicyRules', () => {
 
             const policy = await getPolicy(fakePolicy.id);
             expect(policy?.rules?.agentRules).toBeFalsy();
+        });
+
+        // Regression coverage for https://github.com/Expensify/App/issues/96588.
+        //
+        // A rule created while offline is sent once when the queue flushes. If the user hits "Clear cache and
+        // restart" while that request is still on the wire, clearOnyxAndResetApp replays it from its queue
+        // snapshot — rollbackOngoingRequest can move the request back into the queue but cannot cancel the HTTP
+        // call already in flight. The replay therefore sends AddPolicyAgentRule a second time with the same
+        // client-generated agentRuleID, and Auth reports the rule as already created. That response must resolve
+        // as a success so no error is painted on a rule that does exist, while genuine failures still surface.
+        describe('replaying an ambiguous in-flight AddPolicyAgentRule', () => {
+            /**
+             * Creates the rule with the response held so the AddPolicyAgentRule request is captured while it is
+             * still in flight — the ambiguous state clearOnyxAndResetApp snapshots via rollbackOngoingRequest()
+             * followed by getAll(). The held response is then released, so the call already on the wire lands and
+             * the rule really is created server-side.
+             */
+            async function createRuleAndCaptureInFlightRequest(policyID: string, agentRuleID: string, prompt: string) {
+                mockFetch?.pause?.();
+                addPolicyAgentRule(policyID, agentRuleID, prompt);
+                await waitForBatchedUpdates();
+
+                // An in-flight request lives in ongoingRequest, not in persistedRequests — that is exactly why
+                // clearOnyxAndResetApp has to roll it back into the queue before snapshotting.
+                const inFlightRequest = getOngoingPersistedRequest();
+                expect(inFlightRequest?.command).toBe(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE);
+
+                await mockFetch?.resume?.();
+                await waitForBatchedUpdates();
+
+                return inFlightRequest;
+            }
+
+            /** Re-saves the snapshotted request and flushes, mirroring clearOnyxAndResetApp's replay step. */
+            async function replay(snapshot: ReturnType<typeof getOngoingPersistedRequest>) {
+                if (!snapshot) {
+                    throw new Error('Expected an in-flight AddPolicyAgentRule request to replay');
+                }
+
+                savePersistedRequest(snapshot);
+                await waitForBatchedUpdates();
+
+                flushSequentialQueue();
+                await waitForBatchedUpdates();
+            }
+
+            it('applies successData and drains the queue when the replay reports the rule already exists', async () => {
+                const fakePolicy = createRandomPolicy(0);
+                const agentRuleID = 'agentRuleReplay';
+                const prompt = 'Flag anything from a blocked merchant';
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+                const snapshot = await createRuleAndCaptureInFlightRequest(fakePolicy.id, agentRuleID, prompt);
+
+                // The first attempt created the rule server-side, so the rule is clean before the replay.
+                expect((await getPolicy(fakePolicy.id))?.rules?.agentRules?.[agentRuleID]?.errors).toBeFalsy();
+
+                mockFetch?.mockAPICommand?.(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, () => ({
+                    jsonCode: CONST.JSON_CODE.EXP_ERROR,
+                    message: CONST.ERROR_TITLE.ALREADY_CREATED_AGENT_RULE,
+                }));
+                await replay(snapshot);
+
+                const rule = (await getPolicy(fakePolicy.id))?.rules?.agentRules?.[agentRuleID];
+                expect(rule?.prompt).toBe(prompt);
+                expect(rule?.pendingAction).toBeFalsy();
+                expect(rule?.errors).toBeFalsy();
+
+                // The replay was drained rather than retried.
+                expect(getAllPersistedRequests().filter((persistedRequest) => persistedRequest.command === WRITE_COMMANDS.ADD_POLICY_AGENT_RULE)).toHaveLength(0);
+            });
+
+            it('still surfaces an error when the replay fails for an unrelated reason', async () => {
+                const fakePolicy = createRandomPolicy(0);
+                const agentRuleID = 'agentRuleReplayGenericFailure';
+                const prompt = 'Require a receipt over $75';
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+                const snapshot = await createRuleAndCaptureInFlightRequest(fakePolicy.id, agentRuleID, prompt);
+
+                mockFetch?.fail?.();
+                await replay(snapshot);
+
+                const rule = (await getPolicy(fakePolicy.id))?.rules?.agentRules?.[agentRuleID];
+                expect(rule?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                expect(Object.keys(rule?.errors ?? {}).length).toBeGreaterThan(0);
+            });
         });
     });
 
