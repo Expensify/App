@@ -21,12 +21,12 @@ import {View} from 'react-native';
 
 const DIVIDER_HEIGHT = 25;
 
-type TableSettingsPopoverComponentProps = {
+type TableDisplaySettingsPopoverComponentProps = {
     /** Function to call to close the overlay */
     closeOverlay: () => void;
 };
 
-type TableSettingsSortByPopupProps = {
+type TableDisplaySettingsSortByPopupProps = {
     columns: Array<{key: string; label: string}>;
     pendingSorting: ActiveSorting<string>;
     setPendingSorting: React.Dispatch<React.SetStateAction<ActiveSorting<string>>>;
@@ -36,7 +36,7 @@ type TableSettingsSortByPopupProps = {
     onReset: () => void;
 };
 
-function TableSettingsSortByPopup({columns, pendingSorting, setPendingSorting, onSortOrderPress, onBackButtonPress, onApply, onReset}: TableSettingsSortByPopupProps) {
+function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSorting, onSortOrderPress, onBackButtonPress, onApply, onReset}: TableDisplaySettingsSortByPopupProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const selectedColumn = columns.find((column) => column.key === pendingSorting.columnKey) ?? columns.at(0);
@@ -87,7 +87,7 @@ function TableSettingsSortByPopup({columns, pendingSorting, setPendingSorting, o
     );
 }
 
-export default function TableSettingsPopoverComponent({closeOverlay}: TableSettingsPopoverComponentProps) {
+export default function TableDisplaySettingsPopoverComponent({closeOverlay}: TableDisplaySettingsPopoverComponentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {
@@ -143,7 +143,7 @@ export default function TableSettingsPopoverComponent({closeOverlay}: TableSetti
 
     if (selectedSetting === 'sortBy') {
         return (
-            <TableSettingsSortByPopup
+            <TableDisplaySettingsSortByPopup
                 columns={sortableColumns}
                 pendingSorting={pendingSorting}
                 setPendingSorting={setPendingSorting}
