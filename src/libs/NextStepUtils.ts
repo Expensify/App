@@ -397,22 +397,6 @@ function getReportNextStep(
     return moneyRequestReport?.nextStep ?? currentNextStep;
 }
 
-function buildOptimisticNextStepForDynamicExternalWorkflowApproveError(iconFill?: string) {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'alert',
-        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
-        iconFill,
-        message: [
-            {
-                text: "This report can't be approved. Please review the comments to resolve.",
-                type: 'alert-text',
-            },
-        ],
-    };
-
-    return optimisticNextStep;
-}
-
 function buildOptimisticNextStepForDEWOffline() {
     const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'neutral',
@@ -825,7 +809,6 @@ export {
     buildOptimisticNextStep,
     parseMessage,
     buildOptimisticFixIssueNextStep,
-    buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDEWOffline,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildNextStepNew,
