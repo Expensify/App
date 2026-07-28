@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingAccounting} from './CONST';
 import type {TranslationPaths} from './languages/types';
+import type {OnboardingFeatureMapItem} from './libs/actions/Welcome/OnboardingFeatures';
 import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
 import type Platform from './libs/getPlatform/types';
 import type {TransactionThreadNavigationDescriptor} from './libs/TransactionThreadNavigationUtils';
@@ -305,6 +306,9 @@ const ONYXKEYS = {
     /** ID associated with the payment card added by the user. */
     NVP_BILLING_FUND_ID: 'nvp_expensify_billingFundID',
 
+    /** ISO timestamp of the last time the trial payment reminder was dismissed */
+    NVP_DISMISSED_TRIAL_PAYMENT_REMINDER: 'nvp_dismissedTrialPaymentReminder',
+
     /** The user's freebie credits balance (in cents). */
     NVP_PRIVATE_FREEBIE_CREDITS: 'nvp_private_freebieCredits',
 
@@ -411,6 +415,10 @@ const ONYXKEYS = {
 
     /** Stores information about the active reimbursement account being set up */
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
+
+    /** Snapshot of the in-progress reimbursement account, captured before a "change bank account" flow clears the shared
+     * data so it can be restored if the user backs out without confirming a new account */
+    REIMBURSEMENT_ACCOUNT_BACKUP: 'reimbursementAccountBackup',
 
     /** Indicates whether the user started changing their business bank account to a fresh account */
     IS_CHANGING_TO_NEW_BANK_ACCOUNT: 'isChangingToNewBankAccount',
@@ -527,6 +535,12 @@ const ONYXKEYS = {
 
     /** Onboarding user reported integration selected by the user during Onboarding flow */
     ONBOARDING_USER_REPORTED_INTEGRATION: 'onboardingUserReportedIntegration',
+
+    /** Whether the user kept Accounting enabled during Onboarding feature selection */
+    ONBOARDING_ACCOUNTING_ENABLED: 'onboardingAccountingEnabled',
+
+    /** Onboarding interested features persisted before navigating to the Accounting step */
+    ONBOARDING_INTERESTED_FEATURES_MAP: 'onboardingInterestedFeaturesMap',
 
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_ADMINS_CHAT_REPORT_ID: 'onboardingAdminsChatReportID',
@@ -659,6 +673,9 @@ const ONYXKEYS = {
     /** Stores the information about the saved searches */
     SAVED_SEARCHES: 'nvp_savedSearches',
 
+    /** Tracks whether the "My expenses" saved search has been seeded for this account */
+    NVP_HAS_SEEDED_MY_EXPENSES_SEARCH: 'nvp_hasSeededMyExpensesSearch',
+
     /** Stores the information about the recent searches */
     RECENT_SEARCHES: 'nvp_recentSearches',
 
@@ -735,6 +752,9 @@ const ONYXKEYS = {
 
     /** Set when the agents page has finished loading for the first time */
     ARE_AGENTS_LOADED: 'areAgentsLoaded',
+
+    /** Persisted draft for the new-agent avatar selection flow */
+    AGENT_NEW_AVATAR_DRAFT: 'agentNewAvatarDraft',
 
     /** Set when the rooms page has finished loading for the first time */
     ARE_POLICY_ROOMS_LOADED: 'arePolicyRoomsLoaded',
@@ -1495,6 +1515,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRY_NEW_DOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
+    [ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH]: boolean;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
     [ONYXKEYS.SEARCH_QUERY_BY_HASH]: Record<string, string>;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
@@ -1602,6 +1623,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_BANK_ACCOUNT]: OnyxTypes.ShareBankAccount;
     [ONYXKEYS.UNSHARE_BANK_ACCOUNT]: OnyxTypes.UnshareBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
+    [ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP]: OnyxTypes.ReimbursementAccount;
     [ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT]: boolean;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED]: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: number;
@@ -1620,6 +1642,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.ARE_AGENTS_LOADED]: boolean;
+    [ONYXKEYS.AGENT_NEW_AVATAR_DRAFT]: OnyxTypes.AgentNewAvatarDraft;
     [ONYXKEYS.ARE_POLICY_ROOMS_LOADED]: Record<string, boolean>;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
@@ -1683,6 +1706,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
+    [ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER]: string;
     [ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
@@ -1738,6 +1762,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS]: Record<string, TransactionThreadNavigationDescriptor>;
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
+    [ONYXKEYS.ONBOARDING_ACCOUNTING_ENABLED]: boolean;
+    [ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP]: OnboardingFeatureMapItem[];
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.ExportTemplate>;
     [ONYXKEYS.NVP_EXPENSE_RULES]: OnyxTypes.ExpenseRule[];

@@ -1,5 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -139,11 +139,12 @@ function ScheduleCallConfirmationPage() {
                 </ScrollView>
                 <FixedFooter>
                     <Button
-                        success
-                        large
-                        text={translate('scheduledCall.confirmation.title')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={confirm}
-                    />
+                    >
+                        <Button.Text>{translate('scheduledCall.confirmation.title')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
