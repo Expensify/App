@@ -50,7 +50,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
-    const {isNewManualExpenseFlowEnabled, isEditingSplitBill} = useConfirmationFields();
+    const {isNewManualExpenseFlowEnabled, isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -88,8 +88,14 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
         const taxAmountInSmallestCurrencyUnits = toBackendTaxAmount(newAmount);
 
-        // Clear a previously surfaced tax error as the user edits; validation re-runs on submit.
-        clearFormErrors(['iou.error.invalidTaxAmount']);
+        // An empty field is stored as 0, so validation can't distinguish it from a real 0 - surface the emptiness here
+        // so submission can be blocked when the field is left empty (0 stays valid). See #96577.
+        onTaxAmountEmptyChange?.(newAmount.trim() === '');
+
+        // Clear a previously surfaced tax error as the user edits; validation re-runs on submit. `invalidAmount` is the
+        // empty-tax error and `invalidTaxAmount` is the over-the-limit error - clear both so a corrected value isn't
+        // still blocked by a stale form error on the next submit.
+        clearFormErrors(['iou.error.invalidTaxAmount', 'iou.error.invalidAmount']);
 
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
@@ -117,7 +123,18 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             }
         }
         numberFormRef.current?.updateNumber(taxAmountInput);
-    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput]);
+        // The field was just repopulated from the stored amount (always a real number), so it is no longer empty.
+        onTaxAmountEmptyChange?.(false);
+    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput, onTaxAmountEmptyChange]);
+
+    // The inline tax amount input (and therefore the empty-field guard) only exists in the new manual expense flow when
+    // the tax fields are editable. Keep the emptiness signal cleared otherwise, and reset it when this section unmounts.
+    useEffect(() => {
+        if (isNewManualExpenseFlowEnabled && canModifyTaxFields) {
+            return () => onTaxAmountEmptyChange?.(false);
+        }
+        onTaxAmountEmptyChange?.(false);
+    }, [isNewManualExpenseFlowEnabled, canModifyTaxFields, onTaxAmountEmptyChange]);
 
     useEffect(() => {
         if (!isNewManualExpenseFlowEnabled || formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {

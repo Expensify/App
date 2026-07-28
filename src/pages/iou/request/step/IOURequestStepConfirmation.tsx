@@ -17,6 +17,7 @@ import useFetchRoute from '@hooks/useFetchRoute';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMappedPolicies from '@hooks/useMappedPolicies';
 import useNetwork from '@hooks/useNetwork';
 import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
@@ -75,11 +76,14 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
@@ -99,6 +103,21 @@ import TelemetrySpanManager from './confirmation/TelemetrySpanManager';
 import useExpenseSubmission from './confirmation/useExpenseSubmission';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+
+// Trim each policy down to the fields the distance-rate re-selection needs, so subscribing to the whole policy
+// collection (to resolve a newly selected workspace's rate in handleParticipantsAdded) doesn't churn on unrelated
+// policy changes. Mirrors the mapper in useParticipantSubmission (the legacy participants-step flow).
+const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
+    policy && {
+        id: policy.id,
+        name: policy.name,
+        type: policy.type,
+        role: policy.role,
+        owner: policy.owner,
+        outputCurrency: policy.outputCurrency,
+        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
+        customUnits: policy.customUnits,
+    };
 
 type IOURequestStepConfirmationIncomingRouteName = typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION | typeof SCREENS.MONEY_REQUEST.CREATE;
 
@@ -151,7 +170,15 @@ function IOURequestStepConfirmation({
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
-    const realPolicyID = getIOURequestPolicyID(initialTransaction, reportReal ?? participantReport);
+    // Prefer the workspace the user explicitly selected over the flow's origin report. In the new manual expense flow
+    // the embedded participant picker updates the draft's participants in place (handleParticipantsAdded) but leaves the
+    // route `reportID` - and therefore `reportReal` - pointing at the origin workspace the flow was seeded with. Resolving
+    // the policy from `reportReal` alone would keep it on the origin workspace (e.g. hiding the Tags section for the newly
+    // selected workspace). The invoice sender still takes precedence so invoices resolve to the sending workspace. See #96632.
+    const selectedWorkspacePolicyID =
+        initialTransaction?.participants?.find((participant) => participant?.isSender)?.policyID ??
+        initialTransaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
+    const realPolicyID = selectedWorkspacePolicyID ?? getIOURequestPolicyID(initialTransaction, reportReal ?? participantReport);
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
@@ -263,6 +290,9 @@ function IOURequestStepConfirmation({
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
 
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
+    // Used to resolve a newly selected workspace's policy (and therefore its distance rate) inside
+    // handleParticipantsAdded, where the picked participant isn't on the transaction yet.
+    const [mappedPolicies] = useMappedPolicies(policyMapper);
 
     const participants = useMemo(
         () =>
@@ -309,7 +339,7 @@ function IOURequestStepConfirmation({
 
     const sourceReportID = transaction?.reportID ?? reportID;
     const sourceReport = useMemo(() => (sourceReportID ? getReportOrDraftReport(sourceReportID) : undefined), [sourceReportID]);
-    const resolvedDefaultParticipants = useDefaultParticipants({sourceReport, transaction, iouType});
+    const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const defaultParticipants = useMemo(() => {
         // Don't override the participants the user has already selected, and bail when there is no source report.
         const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
@@ -326,8 +356,11 @@ function IOURequestStepConfirmation({
         const transactionParticipants = transaction?.participants ?? [];
         const hasTransactionParticipants = transactionParticipants.length > 0;
         const hasDefaultParticipants = defaultParticipants.length > 0;
-        return !hasTransactionParticipants && !hasDefaultParticipants && isNewManualExpenseFlowEnabled && isManualRequest;
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isNewManualExpenseFlowEnabled, isManualRequest]);
+        // While the default participant is still resolving, an empty `defaultParticipants` doesn't mean "no default"
+        // yet. Keep the picker closed until resolution settles; otherwise it briefly auto-opens and then closes once
+        // the default (e.g. self DM when Submissions are disabled) is assigned. See #96558.
+        return !hasTransactionParticipants && !hasDefaultParticipants && !isLoadingDefaultParticipants && isNewManualExpenseFlowEnabled && isManualRequest;
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isLoadingDefaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest]);
     const activeTransactionID = transaction?.transactionID;
     const [manuallyOpenedParticipantPickerForTransactionID, setManuallyOpenedParticipantPickerForTransactionID] = useState<string | undefined>();
     const [dismissedAutoOpenParticipantPickerForTransactionID, setDismissedAutoOpenParticipantPickerForTransactionID] = useState<string | undefined>();
@@ -399,6 +432,21 @@ function IOURequestStepConfirmation({
                             setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
                         }
                         setMoneyRequestCategory(activeTransactionID, '', undefined);
+                    } else if (isDistanceRequest) {
+                        // When switching to a workspace chat we must re-select the workspace's distance rate. Otherwise the
+                        // transaction keeps its P2P rate ID (FAKE_P2P_ID), which isn't a valid rate on the workspace, so the
+                        // Rate field surfaces "Rate not valid" and becomes non-interactive. This mirrors the legacy
+                        // participants-step flow (useParticipantSubmission.addParticipant), which always re-selected the
+                        // workspace rate for a policy-expense-chat participant.
+                        const workspacePolicy = firstParticipant.policyID ? mappedPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
+                        const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
+                            reportID: participantReportID,
+                            isPolicyExpenseChat: true,
+                            policy: workspacePolicy,
+                            lastSelectedDistanceRates,
+                            expenseDate: transaction?.created,
+                        });
+                        setCustomUnitRateID(activeTransactionID, workspaceRateID, transaction, workspacePolicy, false, workspacePolicy?.outputCurrency);
                     }
                 }
             }
@@ -418,6 +466,7 @@ function IOURequestStepConfirmation({
             lastSelectedDistanceRates,
             transaction,
             personalPolicy?.outputCurrency,
+            mappedPolicies,
         ],
     );
 

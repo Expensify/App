@@ -40,6 +40,13 @@ type ConfirmationFieldsContextValue = {
 
     /** Submits the whole expense. Used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups (new manual expense flow). */
     onSubmitForm?: () => void;
+
+    /**
+     * Reports whether the inline tax amount field is currently empty. The stored tax amount collapses an empty field
+     * to 0, so validation can't tell "empty" from a legitimate 0 on its own - the input layer surfaces it here so
+     * submission can be blocked when the field is left empty (new manual expense flow). See #96577.
+     */
+    onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

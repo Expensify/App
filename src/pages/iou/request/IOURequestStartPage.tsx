@@ -155,7 +155,11 @@ function IOURequestStartPage({
     // A quick-action deeplink (e.g. iOS home-screen "Scan receipt") bypasses startMoneyRequest
     // and leaves the previous flow's draft in place under OPTIMISTIC_TRANSACTION_ID. Detect it
     // by comparing the draft's reportID to the URL's so we don't inherit its stale iouRequestType.
-    const isStaleTransactionDraft = !!transaction?.reportID && transaction.reportID !== reportID;
+    // UNREPORTED_REPORT_ID is a sentinel the current flow sets intentionally (e.g. selecting self DM in the
+    // embedded participant picker sets it via setTransactionReport), not a leftover report from a stale draft,
+    // so exclude it — otherwise selecting self DM in global create makes transactionRequestType fall back to the
+    // persisted SELECTED_TAB and the RHP jumps to whatever tab was last visited (e.g. Scan).
+    const isStaleTransactionDraft = !!transaction?.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && transaction.reportID !== reportID;
 
     const transactionRequestType = useMemo(() => {
         if (transaction?.iouRequestType && !isStaleTransactionDraft) {

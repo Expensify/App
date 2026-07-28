@@ -332,6 +332,10 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
     const [showMoreFields, setShowMoreFields] = useState(false);
+    // Tracks whether the inline tax amount field is currently left empty. The stored tax amount collapses an empty
+    // field to 0, so validation can't tell "empty" from a legitimate 0; TaxFields reports emptiness here so submission
+    // can be blocked when the field is cleared (new manual expense flow). See #96577.
+    const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
 
     useEffect(() => {
         setShowMoreFields(false);
@@ -488,6 +492,7 @@ function MoneyRequestConfirmationList({
         isNewManualExpenseFlowEnabled,
         isReadOnly,
         shouldShowDate: shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest),
+        isTaxAmountEmpty,
     });
 
     const confirm = buildConfirmAction({
@@ -587,6 +592,7 @@ function MoneyRequestConfirmationList({
                 compactControls={{showMoreFields, setShowMoreFields}}
                 scrollFocusedInputIntoView={scrollFocusedInputIntoView}
                 onSubmitForm={confirm}
+                onTaxAmountEmptyChange={setIsTaxAmountEmpty}
             />
         </View>
     );
