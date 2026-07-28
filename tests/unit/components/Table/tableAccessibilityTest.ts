@@ -3,6 +3,8 @@ import * as tableAccessibilityModule from '@components/Table/tableAccessibility'
 
 import CONST from '@src/CONST';
 
+import React from 'react';
+
 type TableAccessibilityModule = typeof tableAccessibilityModule;
 
 // `tableAccessibility` reads the platform once, at module load, to decide whether ARIA table semantics apply.
@@ -24,9 +26,33 @@ function loadModule(platform: string): TableAccessibilityModule {
 }
 
 // The pure prop builders are platform-independent, so any platform works when loading them.
-const {getTableContainerAccessibilityProps, getRowGroupAccessibilityProps, getRowAccessibilityProps, getColumnHeaderAccessibilityProps, getCellAccessibilityProps} = loadModule(
-    CONST.PLATFORM.WEB,
-);
+const {getTableContainerAccessibilityProps, getRowGroupAccessibilityProps, getRowAccessibilityProps, getColumnHeaderAccessibilityProps, getCellAccessibilityProps, assignCellColumnIndexes} =
+    loadModule(CONST.PLATFORM.WEB);
+
+type CellProbe = {role?: string; 'aria-colindex'?: number; children?: React.ReactNode};
+
+/** Builds a `role="cell"` element, the shape `assignCellColumnIndexes` numbers. */
+function cell(): React.ReactElement {
+    return React.createElement('div', {role: CONST.ROLE.CELL});
+}
+
+/** Collects the `aria-colindex` of every `role="cell"` element in document order, recursing through wrappers. */
+function collectColumnIndexes(node: React.ReactNode): Array<number | undefined> {
+    const indexes: Array<number | undefined> = [];
+    React.Children.forEach(node, (child) => {
+        if (!React.isValidElement<CellProbe>(child)) {
+            return;
+        }
+        if (child.props.role === CONST.ROLE.CELL) {
+            indexes.push(child.props['aria-colindex']);
+            return;
+        }
+        if (child.props.children != null) {
+            indexes.push(...collectColumnIndexes(child.props.children));
+        }
+    });
+    return indexes;
+}
 
 describe('tableAccessibility', () => {
     describe('shouldUseTableSemantics', () => {
@@ -130,6 +156,36 @@ describe('tableAccessibility', () => {
 
         it('exposes the cell role when enabled', () => {
             expect(getCellAccessibilityProps(true)).toEqual({role: CONST.ROLE.CELL});
+        });
+    });
+
+    describe('assignCellColumnIndexes', () => {
+        it('tags each cell with a 1-based aria-colindex in document order', () => {
+            const tagged = assignCellColumnIndexes([cell(), cell(), cell()]);
+            expect(collectColumnIndexes(tagged)).toEqual([1, 2, 3]);
+        });
+
+        it('finds cells nested inside wrapper elements and fragments, numbering them continuously', () => {
+            // e.g. the leading selection-checkbox cell, then a group of cells wrapped in a conditional container.
+            const rowContent = React.createElement(React.Fragment, null, cell(), React.createElement('div', null, cell(), cell()), cell());
+            expect(collectColumnIndexes(assignCellColumnIndexes(rowContent))).toEqual([1, 2, 3, 4]);
+        });
+
+        it('numbers only real cells and leaves other elements untouched', () => {
+            const wrapperWithoutCells = React.createElement('div', null, React.createElement('span', null, 'text'));
+            const tagged = assignCellColumnIndexes([wrapperWithoutCells, cell()]);
+
+            // Only the single cell is numbered...
+            expect(collectColumnIndexes(tagged)).toEqual([1]);
+
+            // ...and the non-cell wrapper never receives an aria-colindex.
+            const [firstChild] = React.Children.toArray(tagged);
+            expect(React.isValidElement<CellProbe>(firstChild) && firstChild.props['aria-colindex']).toBeFalsy();
+        });
+
+        it('restarts numbering on each call so every row is numbered independently', () => {
+            expect(collectColumnIndexes(assignCellColumnIndexes([cell(), cell()]))).toEqual([1, 2]);
+            expect(collectColumnIndexes(assignCellColumnIndexes([cell()]))).toEqual([1]);
         });
     });
 });
