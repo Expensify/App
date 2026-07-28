@@ -227,6 +227,7 @@ import {
 import getFormattedPostedDate from './TransactionUtils/getFormattedPostedDate';
 import shouldShowTransactionPostedYear from './TransactionUtils/shouldShowTransactionPostedYear';
 import {isInvalidMerchantValue} from './ValidationUtils';
+import {isValidViolationName} from './Violations/ViolationsUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
@@ -4939,7 +4940,7 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
 }
 
 /** Parameter-free short labels used when rendering submitted violations in Search columns. */
-const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAMES = new Set<string>([
+const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAMES = [
     CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED,
     CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
     CONST.VIOLATIONS.BILLABLE_EXPENSE,
@@ -4981,20 +4982,31 @@ const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAMES = new Set<string>([
     CONST.VIOLATIONS.TAX_OUT_OF_POLICY,
     CONST.VIOLATIONS.TAX_RATE_CHANGED,
     CONST.VIOLATIONS.TAX_REQUIRED,
-]);
+] as const satisfies ReadonlyArray<ValueOf<typeof CONST.VIOLATIONS>>;
+
+type SubmittedTransactionViolationShortName = TupleToUnion<typeof SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAMES>;
+
+const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAMES);
+
+function isSubmittedTransactionViolationShortName(name: ValueOf<typeof CONST.VIOLATIONS>): name is SubmittedTransactionViolationShortName {
+    return SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET.has(name);
+}
 
 /**
  * Returns a parameter-free display label for a submitted violation name.
  * Falls back to the raw identifier when no short-name translation exists.
  */
 function getSubmittedViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+    if (!isValidViolationName(violationName)) {
+        return violationName;
+    }
+
     if (violationName === CONST.VIOLATIONS.FIELD_REQUIRED) {
         return translate('reportOrFieldViolations.fieldRequired');
     }
 
-    if (SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAMES.has(violationName)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        return translate(`transactionViolations.${violationName}` as TranslationPaths);
+    if (isSubmittedTransactionViolationShortName(violationName)) {
+        return translate(`transactionViolations.${violationName}`);
     }
 
     return violationName;

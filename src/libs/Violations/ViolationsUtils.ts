@@ -68,6 +68,13 @@ type ViolationTranslationParams = {
 };
 
 /**
+ * Type guard that narrows a string to a known transaction violation name.
+ */
+function isValidViolationName(name: string): name is ViolationName {
+    return Object.values(CONST.VIOLATIONS).some((violationName) => violationName === name);
+}
+
+/**
  * Filters out receiptRequired violation when itemizedReceiptRequired is also present.
  * Itemized receipt requirement supersedes regular receipt requirement.
  */
@@ -1190,6 +1197,6 @@ const ViolationsUtils = {
     },
 };
 
-export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation};
+export {getIsViolationFixed, isHardViolationOrRateDateWarning, isValidViolationName, syncCustomUnitRateOutOfDateRangeViolation};
 export default ViolationsUtils;
 export {filterReceiptViolations};
