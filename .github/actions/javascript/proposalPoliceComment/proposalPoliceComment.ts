@@ -151,7 +151,9 @@ async function run() {
             if (parsedDuplicateCheckResponse?.action === CONST.ACTION_HIDE_DUPLICATE && similarityPercentage >= 90) {
                 console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
                 // Sanity-check the model's reported duplicateCommentId against the real comment list before trusting it for the notice link
-                const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && getIsProposal(comment.body));
+                const originalProposal = commentsResponse.find(
+                    (comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && comment.id !== commentID && getIsProposal(comment.body),
+                );
                 const duplicateCheckWithdrawMessage = getDuplicateCheckWithdrawMessage();
                 const duplicateCheckNoticeMessage = getDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
                 // If a duplicate proposal is detected, update the comment to withdraw it
