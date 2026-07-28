@@ -71,15 +71,8 @@ const useCardFeedsForDisplay = () => {
 
     const defaultCardFeed = getDefaultCardFeed(eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare);
 
-    // Resolve the Expensify Card feed for the *active* workspace using the same associations existing Expensify Card
-    // flows use (see `useDefaultFundID`), so the Card accruals default lines up with the workspace's actual feed.
-    // `useExpensifyCardFeedsForFeedSelector` returns the feeds that are primary for the active workspace via each
-    // feed's `linkedPolicyIDs` (see `isFeedPrimaryForPolicy`). We prefer that fund, then a legacy/domain feed the
-    // workspace is associated with via `preferredPolicy`, and only then fall back to a feed whose `fundID` backs the
-    // workspace account directly — a domain feed whose `fundID` is the workspace's `policyAccountID`. Scoping every
-    // candidate to the active policy avoids pulling in an Expensify Card that belongs to a different workspace the
-    // user happens to also be a member of. We intentionally skip the last-selected feed so the default stays
-    // deterministic and consistent with the displayed list.
+    // Resolve the active workspace's Expensify Card feed the same way existing flows do (see `useDefaultFundID`),
+    // scoping to the active policy so we don't pull in a feed from another workspace the user also belongs to.
     const {primaryFeeds, allFeeds: expensifyCardFeedEntries} = useExpensifyCardFeedsForFeedSelector(activePolicyID);
     const activePolicy = activePolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined;
     const activePolicyAccountID = activePolicy?.policyAccountID;
@@ -87,12 +80,8 @@ const useCardFeedsForDisplay = () => {
         ? expensifyCardFeedEntries.find((entry) => getPreferredPolicyFromExpensifyCardSettings(entry.settings)?.toUpperCase() === activePolicyID.toUpperCase())?.fundID
         : undefined;
 
-    // Only let the active workspace's Expensify Card override the Card accruals default when the active workspace
-    // is itself eligible for the Card accruals tab — a paid group workspace where the user is an admin/auditor and
-    // approvals are enabled. This mirrors the accrual half of `isEligibleForUnapprovedCardSuggestion` in
-    // SearchUIUtils. Tab visibility is OR-ed across all of a user's workspaces, so without this gate a *different*
-    // eligible workspace could make the tab visible while an unrelated active workspace's Expensify Card silently
-    // hijacked the feed — in that case we keep falling back to `defaultFeedID` (the eligible workspace's feed).
+    // Only override the default when the active workspace is itself eligible for Card accruals. Tab visibility is
+    // OR-ed across workspaces, so without this gate an ineligible active workspace's card could hijack the feed.
     const isActivePolicyEligibleForCardAccruals =
         isPaidGroupPolicy(activePolicy) &&
         (activePolicy?.role === CONST.POLICY.ROLE.ADMIN || activePolicy?.role === CONST.POLICY.ROLE.AUDITOR) &&
