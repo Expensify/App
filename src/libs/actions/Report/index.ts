@@ -1464,7 +1464,8 @@ function getGuidedSetupDataForOpenReport(
     introSelected: OnyxEntry<IntroSelected>,
     // TODO: undefined will be removed once all openReport callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID: number | undefined,
-    isSelfTourViewed: boolean | undefined,
+    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
+    isSelfTourViewed?: boolean,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean,
 ): GuidedSetupDataForOpenReport | undefined {
@@ -1975,8 +1976,8 @@ function createGroupChat(
     newReportObject: OptimisticChatReport,
     currentUserLogin: string,
     introSelected: OnyxEntry<IntroSelected>,
-    isSelfTourViewed: boolean | undefined,
-    hasCompletedGuidedSetupFlow: boolean | undefined,
+    isSelfTourViewed: boolean,
+    hasCompletedGuidedSetupFlow: boolean,
     betas: OnyxEntry<Beta[]>,
     currentUserAccountID: number,
     avatar?: File | CustomRNImageManipulatorResult,
@@ -2450,8 +2451,8 @@ type NavigateToAndCreateGroupChatParams = {
     currentUserLogin: string;
     optimisticReportID: string;
     introSelected: OnyxEntry<IntroSelected>;
-    isSelfTourViewed: boolean | undefined;
-    hasCompletedGuidedSetupFlow: boolean | undefined;
+    isSelfTourViewed: boolean;
+    hasCompletedGuidedSetupFlow: boolean;
     betas: OnyxEntry<Beta[]>;
     currentUserAccountID: number;
     avatarUri?: string;
