@@ -3,7 +3,7 @@
  * `react-native-nitro-fetch` so whitelisted API requests can be fetched before the JS bundle loads.
  */
 import {AUTHENTICATION_COMMAND} from '@libs/API/types';
-import {getApiRoot} from '@libs/ApiUtils';
+import {getApiRoot, getCommandURL} from '@libs/ApiUtils';
 import Log from '@libs/Log';
 import {getBaseRequestParameters} from '@libs/Network/enhanceParameters';
 import {getCredentials} from '@libs/Network/NetworkStore';
@@ -56,7 +56,7 @@ function registerPrefetchTokenRefresh(): void {
         return;
     }
 
-    const authenticateURL = `${getApiRoot()}api/${AUTHENTICATION_COMMAND}?`;
+    const authenticateURL = `${getCommandURL({command: AUTHENTICATION_COMMAND})}`;
 
     registerTokenRefresh({
         target: NITRO_FETCH_TARGET,
