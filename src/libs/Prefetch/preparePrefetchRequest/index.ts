@@ -1,3 +1,6 @@
+/**
+ * Prepares a prefetch request for a given command.
+ */
 import PrefetchQueries from '@libs/Prefetch/PrefetchQueries';
 
 import type PreparePrefetchRequest from './types';

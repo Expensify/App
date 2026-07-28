@@ -1,3 +1,7 @@
+/**
+ * Registers a native startup prefetch (and its Authenticate token-refresh config) with
+ * `react-native-nitro-fetch` so whitelisted API requests can be fetched before the JS bundle loads.
+ */
 import {AUTHENTICATION_COMMAND} from '@libs/API/types';
 import {getApiRoot} from '@libs/ApiUtils';
 import Log from '@libs/Log';

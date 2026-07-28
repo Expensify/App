@@ -1,3 +1,6 @@
+/**
+ * Clears the prefetch on app start.
+ */
 import Log from '@libs/Log';
 import PrefetchQueries from '@libs/Prefetch/PrefetchQueries';
 
