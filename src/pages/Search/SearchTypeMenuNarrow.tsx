@@ -22,7 +22,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getItemBadgeText, getOverflowMenu, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -131,7 +131,26 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
     const {copiedHash, handleShare} = useShareSavedSearch();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([...SEARCH_TYPE_MENU_ICON_NAMES, 'Bookmark', 'Trashcan', 'LinkCopy', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Receipt',
+        'MoneyBag',
+        'CreditCard',
+        'MoneyHourglass',
+        'CreditCardHourglass',
+        'Bank',
+        'User',
+        'Folder',
+        'Basket',
+        'CalendarSolid',
+        'Bookmark',
+        'Pencil',
+        'Trashcan',
+        'LinkCopy',
+        'Checkmark',
+        'Document',
+        'ThumbsUp',
+        'CheckCircle',
+    ]);
 
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
