@@ -2662,7 +2662,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'Upewnijmy się, że to Ty',
         enterSecurityCode: (contactMethod: string) => `Wpisz kod zabezpieczający wysłany na ${contactMethod}, aby wyświetlić szczegóły karty. Powinien dotrzeć w ciągu minuty lub dwóch.`,
         unexpectedError: 'Wystąpił błąd podczas pobierania szczegółów Twojej karty Expensify. Spróbuj ponownie.',
-        shipCardError: ({reason}: {reason: string}) => `Nie można wysłać karty Expensify: ${reason}`,
+        shipCardError: ({reason}: {reason?: string}) => (reason ? `Nie można wysłać karty Expensify: ${reason}` : 'Nie można wysłać karty Expensify'),
         cardFraudAlert: {
             confirmButtonText: 'Tak, robię',
             reportFraudButtonText: 'Nie, to nie byłem ja',

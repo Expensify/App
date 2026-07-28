@@ -99,8 +99,9 @@ function MissingPersonalDetailsMagicCodePage({
                     });
                 return;
             }
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode, Number(cardID)).catch((error: {reason?: string}) => {
-                const message = error?.reason ? translate('cardPage.shipCardError', {reason: error.reason}) : translate('cardPage.unexpectedError');
+            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode, Number(cardID)).catch((error: {reason?: string; isRequestError?: boolean}) => {
+                // A failed request shows the generic error; a card that failed to ship shows the shipment message
+                const message = error?.isRequestError ? translate('cardPage.unexpectedError') : translate('cardPage.shipCardError', {reason: error?.reason});
                 setRevealCardError(getMicroSecondOnyxErrorWithMessage(message));
             });
         },

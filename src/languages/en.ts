@@ -2768,7 +2768,7 @@ const translations = {
         validateCardTitle: "Let's make sure it's you",
         enterSecurityCode: (contactMethod: string) => `Please enter the security code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
         unexpectedError: 'There was an error trying to get your Expensify card details. Please try again.',
-        shipCardError: ({reason}: {reason: string}) => `Unable to ship Expensify Card: ${reason}`,
+        shipCardError: ({reason}: {reason?: string}) => (reason ? `Unable to ship Expensify Card: ${reason}` : 'Unable to ship Expensify Card'),
         cardFraudAlert: {
             confirmButtonText: 'Yes, I do',
             reportFraudButtonText: "No, it wasn't me",

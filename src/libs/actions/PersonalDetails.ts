@@ -734,11 +734,15 @@ function updatePersonalDetailsAndShipExpensifyCards(
                 // The command returns 200 and still saves the personal details even when a card fails to ship. The per-card
                 // failures come back in cardShipmentErrors, so show each failed card's reason on its own wallet card (RBR).
                 const cardShipmentErrors = response?.cardShipmentErrors ?? [];
+
+                // Drop the generic backend reason so the client shows a bare "Unable to ship Expensify Card" without a ": <reason>" tail
+                const getShipmentErrorReason = (error: string) => (error === CONST.EXPENSIFY_CARD.GENERIC_SHIPMENT_ERROR ? '' : error);
+
                 if (cardShipmentErrors.length > 0) {
                     const cardListErrors: Record<number, Pick<Card, 'errors'>> = {};
                     for (const {cardID, error} of cardShipmentErrors) {
                         // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        cardListErrors[cardID] = {errors: ErrorUtils.getMicroSecondOnyxErrorWithMessage(translateLocal('cardPage.shipCardError', {reason: error}))};
+                        cardListErrors[cardID] = {errors: ErrorUtils.getMicroSecondOnyxErrorWithMessage(translateLocal('cardPage.shipCardError', {reason: getShipmentErrorReason(error)}))};
                     }
                     Onyx.merge(ONYXKEYS.CARD_LIST, cardListErrors);
                 }
@@ -748,13 +752,13 @@ function updatePersonalDetailsAndShipExpensifyCards(
                 const targetCardError = cardShipmentErrors.find(({cardID}) => cardID === targetCardID);
                 if (targetCardError) {
                     // eslint-disable-next-line prefer-promise-reject-errors
-                    reject({reason: targetCardError.error});
+                    reject({reason: getShipmentErrorReason(targetCardError.error)});
                     return;
                 }
                 resolve();
             })
             // eslint-disable-next-line prefer-promise-reject-errors
-            .catch(() => reject({}));
+            .catch(() => reject({isRequestError: true}));
     });
 }
 

@@ -2646,7 +2646,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'ご本人確認を行います',
         enterSecurityCode: (contactMethod: string) => `カード情報を表示するために、${contactMethod} に送信されたセキュリティコードを入力してください。1～2分以内に届きます。`,
         unexpectedError: 'Expensifyカードの詳細を取得中にエラーが発生しました。もう一度お試しください。',
-        shipCardError: ({reason}: {reason: string}) => `Expensifyカードを発送できません：${reason}`,
+        shipCardError: ({reason}: {reason?: string}) => (reason ? `Expensifyカードを発送できません：${reason}` : 'Expensifyカードを発送できません'),
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです',
             reportFraudButtonText: 'いいえ、私ではありません',

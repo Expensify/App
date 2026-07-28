@@ -4568,6 +4568,7 @@ const CONST = {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         ROUTE: 'expensify-card',
+        GENERIC_SHIPMENT_ERROR: 'Card could not be shipped',
         // Countries where the most terminals are "offline," so users must
         // change their PIN at an ATM rather than via the in-app online flow.
         // - Offline-only: GB, IE

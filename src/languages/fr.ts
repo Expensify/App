@@ -2685,7 +2685,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enterSecurityCode: (contactMethod: string) =>
             `Veuillez saisir le code de sécurité envoyé à ${contactMethod} pour afficher les détails de votre carte. Il devrait arriver d’ici une à deux minutes.`,
         unexpectedError: 'Une erreur s’est produite lors de la récupération des détails de votre carte Expensify. Veuillez réessayer.',
-        shipCardError: ({reason}: {reason: string}) => `Impossible d’expédier la carte Expensify : ${reason}`,
+        shipCardError: ({reason}: {reason?: string}) => (reason ? `Impossible d’expédier la carte Expensify : ${reason}` : 'Impossible d’expédier la carte Expensify'),
         cardFraudAlert: {
             confirmButtonText: 'Oui, je veux bien',
             reportFraudButtonText: "Non, ce n'était pas moi",
