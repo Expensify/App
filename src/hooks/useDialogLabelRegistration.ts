@@ -25,8 +25,9 @@ function useDialogLabelRegistration(title: ReactNode) {
         return () => popLabel(id);
     }, [shouldRegisterLabel, title, pushLabel, popLabel]);
 
-    // Wait for the declarative name so focus lands after role+aria-label exist (same commit) — needed for JAWS.
-    const isTransitionReady = !!isInsideDialog && !!dialogAriaLabel && !!screenWrapperStatus?.didScreenTransitionEnd && isFocused;
+    // Focus after transition (APG). Untitled RHPs never get dialogAriaLabel — do not block forever on it.
+    // When a title is registered, still wait so aria-label exists before focus (JAWS named-dialog timing).
+    const isTransitionReady = !!isInsideDialog && !!screenWrapperStatus?.didScreenTransitionEnd && isFocused && (!shouldRegisterLabel || !!dialogAriaLabel);
 
     return {
         isTransitionReady,

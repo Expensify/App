@@ -70,8 +70,10 @@ function Header({
     const dialogAnnouncement = dialogTitle ? `${dialogTitle}, ${translate('common.dialogOpened')}` : '';
     // Polite so JAWS can finish the tab-title "(1) …" (left paren…) before "{title}, dialog" — assertive was cutting it off at "lef".
     // Keep announcing even when shouldSkipFocusAfterTransition is set — that flag only skips focus moves (e.g. New Task / IOU confirmation).
+    // Web-only: iOS VoiceOver must not speak this (index.ios honors shouldAnnounceOnNative; default would announce).
     useAccessibilityAnnouncement(dialogAnnouncement, isTransitionReady && !!dialogTitle, {
         shouldAnnounceOnWeb: true,
+        shouldAnnounceOnNative: false,
         politeness: 'polite',
     });
 
