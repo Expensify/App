@@ -31,6 +31,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
     IntacctMappingTitleParams,
@@ -526,6 +527,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: 'Não foi possível exibir o gráfico',
         webGLNotSupported: 'Seu navegador não é compatível com WebGL. Ative-o ou mude de navegador.',
         apiKey: 'Chave de API',
+        exportsTo: 'Exportações para',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -1100,6 +1102,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: 'Fale com seu executivo de contas',
             forGuidedSetup: 'para configuração guiada.',
             configureApprovalsSubText: 'Definir aprovações de relatórios',
+            setupTravel: 'Configurar viagem',
+            setupTravelSubText: 'Configurar regras específicas de viagem',
         },
         yourSpend: {
             title: 'Seus gastos',
@@ -4425,21 +4429,21 @@ ${amount} para ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Ei! Sabia que você pode reservar e gerenciar voos direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Você sabia que pode reservar e gerenciar voos diretamente no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Oi! Você sabia que pode reservar e gerenciar voos direto no Expensify? E que ele envia os recibos automaticamente pra você? Na próxima vez, simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Você sabia que dá para reservar e gerenciar voos direto pelo Expensify? E que os recibos são enviados automaticamente para você? Na próxima vez, simplesmente faça sua reserva pelo <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Oi! Sabia que você pode reservar e gerenciar estadias em hotéis direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Você sabia que pode reservar e gerenciar estadias em hotéis direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Oi! Você sabia que pode reservar e gerenciar estadias em hotéis direto no Expensify? Da próxima vez, simplesmente reserve pela <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Você sabia que pode reservar e gerenciar estadias em hotéis direto no Expensify? Da próxima vez, simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Oi! Sabia que você pode reservar e gerenciar aluguel de carros direto no Expensify? Da próxima vez, evite o trabalho de criar a despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Você sabia que pode reservar e gerenciar aluguel de carros direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Oi! Você sabia que pode reservar e gerenciar aluguel de carros diretamente no Expensify? Da próxima vez, simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Você sabia que pode reservar e gerenciar aluguel de carros direto no Expensify? Da próxima vez, simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Olá! Você sabia que pode reservar e gerenciar viagens de trem direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pela <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Você sabia que pode reservar e gerenciar viagens de trem direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pela <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Oi! Sabia que você pode reservar e gerenciar viagens de trem direto no Expensify? E que os recibos são carregados automaticamente pra você? Na próxima vez, simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Você sabia que dá para reservar e gerenciar viagens de trem direto no Expensify? E que os recibos são enviados automaticamente para você? Da próxima vez, é só reservar pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     workspace: {
@@ -5760,6 +5764,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 },
                 csvColumns: {
                     cardNumber: 'Número do cartão',
+                    cardName: 'Nome do cartão',
                     postedDate: 'Data',
                     merchant: 'Estabelecimento',
                     amount: 'Valor',
@@ -5775,6 +5780,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Atribua uma coluna a cada um dos atributos: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `Ops! Você mapeou um único campo ("${duplicateColumn}") para várias colunas. Revise e tente novamente.`,
+                    cardIdentityColumn: 'Associe um número de cartão ou um nome de cartão para que as transações possam ser vinculadas a um cartão.',
                 },
                 fileImportDescription: 'Uma opção manual caso seu banco não possa enviar um feed.',
                 duplicateFeedModal: {title: 'Feed do cartão já conectado', prompt: 'Você não pode adicionar o mesmo feed de cartão ao mesmo workspace duas vezes.'},
@@ -6034,6 +6040,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             currentTravelSpendLabel: 'Gasto atual com viagens',
                             currentTravelSpendPaymentQueued: (amount: string) => `O pagamento de ${amount} está na fila e será processado em breve.`,
                             currentTravelSpendCta: 'Pagar saldo',
+                            viewOnSpend: 'Ver em Gastos',
                             currentTravelLimitLabel: 'Limite de viagem atual',
                             settlementAccountLabel: 'Conta de liquidação',
                             settlementFrequencyLabel: 'Frequência de liquidação',
@@ -6227,6 +6234,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 defaultHourlyRate: 'Taxa horária padrão',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desativar RH, desconecte primeiro a integração ${integration} deste workspace.`},
+            vendors: {title: 'Fornecedores', subtitle: 'Combine as despesas do cartão com fornecedores importados do seu software de contabilidade.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',
@@ -6582,6 +6590,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             peopleAdmins: 'Administradores de pessoas',
             paymentsAdmins: 'Administradores de pagamentos',
             members: 'Membros',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Você não pode remover ${memberName} deste workspace enquanto essa pessoa tiver um Cartão Expensify. Desative o cartão em Workspace > Cartão Expensify e tente novamente.`,
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -7041,6 +7051,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             amountPerUnit: (unit: string) => `Valor por ${unit}`,
             startDate: 'Data de início',
             endDate: 'Data de término',
+            autoGeneratedRateTooltip: 'Essa tarifa é gerada automaticamente.',
         },
         editor: {
             descriptionInputLabel: 'Descrição',
@@ -7590,7 +7601,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             },
             customRules: {
                 title: 'Política de despesas',
-                cardSubtitle: 'Aqui é onde fica a política de despesas da sua equipe, para que todo mundo esteja alinhado sobre o que é coberto.',
+                cardSubtitle: 'Envie sua política de despesas para garantir que todos saibam o que podem ou não lançar como despesa.',
                 policyDocument: 'Documento de política',
                 policyText: 'Texto da política',
             },
@@ -8775,6 +8786,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 title: 'Nenhuma despesa para exibir',
                 subtitle: 'Nenhum resultado. Tente ajustar seus filtros.',
             },
+            emptyViolationSnapshotResults: {
+                subtitle: ({formattedDate}: EmptyViolationSnapshotResultsSubtitleParams) => `Violações só são registradas a partir de ${formattedDate}. Tente ajustar seus filtros de data.`,
+            },
             emptyUnapprovedResults: {
                 title: 'Nenhuma despesa para aprovar',
                 subtitle: 'Zero despesas. Máximo sossego. Muito bem!',
@@ -8790,6 +8804,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         deleteSavedSearchConfirm: 'Tem certeza de que deseja excluir esta pesquisa?',
         searchName: 'Pesquisar nome',
         savedSearchesMenuItemTitle: 'Salvo',
+        mySavedSearch: 'Minhas despesas',
         urlCopied: 'URL copiado',
         groupedExpenses: 'despesas agrupadas',
         bulkActions: {
@@ -8890,6 +8905,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Faturamento de Viagens Consolidado',
             },
             is: 'É',
+            has: {submittedViolation: 'Violação enviada'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprovar',
@@ -10128,7 +10144,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
-        saveSearchTooltip: '<tooltip><strong>Renomeie suas buscas salvas</strong> aqui!</tooltip>',
         accountSwitcher: '<tooltip>Acesse suas <strong>contas Copilot</strong> aqui</tooltip>',
         outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
@@ -10414,6 +10429,17 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         description: 'Avise-nos para que possamos ajudar a tornar sua experiência com despesas ainda melhor.',
         positiveButton: 'Sim!',
         negativeButton: 'Na verdade, não',
+    },
+    trialPaymentReminder: {
+        title: 'Antecipe-se ao prazo',
+        subtitle: 'Não espere até o último minuto, adicione seu método de pagamento hoje para garantir o acesso contínuo às suas despesas no Expensify.',
+        trialEndsInDays: () => ({
+            one: 'O período de teste termina em 1 dia',
+            other: (pluralCount: number) => `O período de teste termina em ${pluralCount} dias`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `O período de teste termina em ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Fechar',
+        addPaymentCardButton: 'Adicionar cartão de pagamento',
     },
     monthPickerPage: {month: 'Mês', selectMonth: 'Selecione um mês por favor'},
     aiFeaturesPromoModal: {
