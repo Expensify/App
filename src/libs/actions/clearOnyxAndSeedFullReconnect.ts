@@ -1,5 +1,4 @@
 import DateUtils from '@libs/DateUtils';
-import {resetSearchFilterSyncState} from '@libs/SearchFilterSyncState';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -20,7 +19,6 @@ import Onyx from 'react-native-onyx';
  * preserve list automatically so they survive the clear.
  */
 function clearOnyxAndSeedFullReconnect(keysToPreserve: OnyxKey[], extraSeeds?: OnyxMultiSetInput): Promise<void> {
-    resetSearchFilterSyncState();
     const seeds: OnyxMultiSetInput = {
         ...extraSeeds,
         [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: DateUtils.getDBTime(),

@@ -1,10 +1,13 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
+import useOnyx from '@hooks/useOnyx';
+
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import {getLastSyncedQuerySignature, setLastSyncedQuerySignature} from '@libs/SearchFilterSyncState';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -29,6 +32,7 @@ function shouldShowInitialCategoryFilterLoading(queryJSON: SearchQueryJSON, areC
  */
 function useSearchFilterSync(queryJSON: SearchQueryJSON | undefined, formValues: Partial<SearchAdvancedFiltersForm>, shouldDeferSync = false) {
     const isFocused = useIsFocused();
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     useEffect(() => {
         if (!isFocused) {
@@ -39,12 +43,13 @@ function useSearchFilterSync(queryJSON: SearchQueryJSON | undefined, formValues:
             setLastSyncedQuerySignature(null);
             return;
         }
-        if (getLastSyncedQuerySignature() === querySig) {
+        const isSearchAdvancedFiltersFormMissing = searchAdvancedFiltersFormMetadata.status === 'loaded' && (searchAdvancedFiltersForm === undefined || searchAdvancedFiltersForm === null);
+        if (getLastSyncedQuerySignature() === querySig && !isSearchAdvancedFiltersFormMissing) {
             return;
         }
         setLastSyncedQuerySignature(querySig);
         updateAdvancedFilters(formValues, true);
-    }, [queryJSON, formValues, isFocused, shouldDeferSync]);
+    }, [queryJSON, formValues, isFocused, searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata.status, shouldDeferSync]);
 }
 
 export default useSearchFilterSync;

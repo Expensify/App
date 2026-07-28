@@ -8,9 +8,10 @@
  * the old URL and overwrite concurrent Onyx.merge updates from Advanced
  * Filters.
  *
- * Because this state lives outside Onyx, every explicit Onyx clear must also
- * call resetSearchFilterSyncState(). Otherwise, restoring the same query after
- * a cache reset would appear already synced even though its form was erased.
+ * Because this state lives outside Onyx, useSearchFilterSync also checks that
+ * the form still exists before treating a matching signature as synced. This
+ * makes every Onyx clear self-healing without coupling unrelated clear paths
+ * to Search state.
  */
 let lastSyncedQuerySignature: string | null = null;
 
