@@ -406,10 +406,12 @@ function SubmitDetailsPage({
         };
 
         if (preMountDestinationRoute) {
+            // Fire the expense request immediately so it isn't lost if the reveal transition never completes
+            // (e.g. the app is backgrounded mid-animation). Only the confirming-state reset waits for the transition.
             revealPreMountDestination(() => {
-                runExpenseCreateAndCleanup(false);
                 setIsConfirming(false);
             });
+            runExpenseCreateAndCleanup(false);
             return;
         }
 
