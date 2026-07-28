@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -22,7 +23,7 @@ import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestTimeForm';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -96,7 +97,9 @@ function IOURequestStepTime({
             // We want to navigate to destination step only when the first step was the workspace selector.
             // If there is only one policy with per diem enabled, we want to navigate back to the start step because there is no separate destination step in that flow.
             if (hasMoreThanOnePolicyWithPerDiemEnabled) {
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID, backToReport));
+                Navigation.goBack(
+                    createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, reportID, backToReport)),
+                );
                 return;
             }
 
