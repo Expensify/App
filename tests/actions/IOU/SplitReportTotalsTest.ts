@@ -765,7 +765,6 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
-                iouReportNextStep: undefined,
                 betas: [],
                 allPolicyTags: {},
                 personalDetails: undefined,
