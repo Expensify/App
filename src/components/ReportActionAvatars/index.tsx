@@ -1,8 +1,8 @@
-import DiagonalAvatars from '@components/Avatars/Primitives/DiagonalAvatars';
-import HorizontalAvatars from '@components/Avatars/Primitives/HorizontalAvatars';
-import type {HorizontalStackingOptions} from '@components/Avatars/Primitives/HorizontalAvatars';
-import SingleAvatar from '@components/Avatars/Primitives/SingleAvatar';
-import SubscriptAvatar from '@components/Avatars/Primitives/SubscriptAvatar';
+import DiagonalAvatars from '@components/Avatar/layouts/DiagonalAvatars';
+import HorizontalAvatars from '@components/Avatar/layouts/HorizontalAvatars';
+import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
+import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
+import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useLocalize from '@hooks/useLocalize';
@@ -260,7 +260,6 @@ function ReportActionAvatars({
             shouldShowTooltip={shouldShowTooltip}
             accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
             delegateAccountID={source.action?.delegateAccountID}
-            fallbackIcon={primaryAvatar.fallbackIcon}
             fallbackDisplayName={fallbackDisplayName}
             shouldUseProfileNavigationWrapper={useProfileNavigationWrapper}
             reportID={reportID}

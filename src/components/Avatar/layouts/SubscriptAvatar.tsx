@@ -1,3 +1,4 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import Icon from '@components/Icon';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
@@ -21,8 +22,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {BaseAvatarProps} from './types';
-
-import ProfileAvatar from './ProfileAvatar';
 
 type SubscriptAvatarProps = BaseAvatarProps & {
     /** The primary (main) avatar icon */
@@ -97,15 +96,11 @@ function SubscriptAvatar({
                 }}
             >
                 <View>
-                    <ProfileAvatar
+                    <AvatarFromIcon
                         shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
-                        source={primaryAvatar.source}
+                        icon={primaryAvatar}
                         size={size}
-                        name={primaryAvatar.name}
-                        avatarID={primaryAvatar.id}
-                        type={primaryAvatar.type}
-                        fallbackIcon={primaryAvatar.fallbackIcon}
                         testID="ReportActionAvatars-Subscript-MainAvatar"
                         reportID={reportID}
                     />
@@ -118,19 +113,14 @@ function SubscriptAvatar({
                     icon={secondaryAvatar}
                 >
                     <View style={[size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}, subscriptAvatarStyle]}>
-                        <ProfileAvatar
+                        <AvatarFromIcon
                             shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
                             iconAdditionalStyles={[
                                 StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize),
                                 StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG),
                             ]}
-                            source={secondaryAvatar.source}
+                            icon={secondaryAvatar}
                             size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : subscriptAvatarSize}
-                            fill={secondaryAvatar.fill}
-                            name={secondaryAvatar.name}
-                            avatarID={secondaryAvatar.id}
-                            type={secondaryAvatar.type}
-                            fallbackIcon={secondaryAvatar.fallbackIcon}
                             testID="ReportActionAvatars-Subscript-SecondaryAvatar"
                             reportID={reportID}
                         />

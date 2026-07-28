@@ -1,4 +1,4 @@
-import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -19,8 +19,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {MultipleAvatarsProps} from './types';
-
-import ProfileAvatar from './ProfileAvatar';
 
 type AvatarStyles = {
     singleAvatarStyle: ViewStyle & ImageStyle;
@@ -118,15 +116,11 @@ function DiagonalAvatars({
                 >
                     {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                     <View>
-                        <ProfileAvatar
+                        <AvatarFromIcon
                             shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
-                            source={primaryIcon?.source ?? WorkspaceBuilding}
+                            icon={primaryIcon}
                             size={avatarSize}
                             imageStyles={singleAvatarStyle}
-                            name={primaryIcon?.name}
-                            type={primaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}
-                            avatarID={primaryIcon?.id}
-                            fallbackIcon={primaryIcon?.fallbackIcon}
                             testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
                             reportID={reportID}
                         />
@@ -150,15 +144,11 @@ function DiagonalAvatars({
                             shouldRender={shouldShowTooltip}
                         >
                             <View>
-                                <ProfileAvatar
+                                <AvatarFromIcon
                                     shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
-                                    source={secondaryIcon?.source ?? WorkspaceBuilding}
+                                    icon={secondaryIcon}
                                     size={avatarSize}
                                     imageStyles={singleAvatarStyle}
-                                    name={secondaryIcon?.name}
-                                    avatarID={secondaryIcon?.id}
-                                    type={secondaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}
-                                    fallbackIcon={secondaryIcon?.fallbackIcon}
                                     testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
                                     reportID={reportID}
                                 />

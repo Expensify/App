@@ -1,4 +1,4 @@
-import IconsAvatar from '@components/Avatars/IconsAvatar';
+import IconsAvatar from '@components/Avatar/IconsAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useStyleUtils from '@hooks/useStyleUtils';

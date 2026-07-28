@@ -1,6 +1,8 @@
 import {render, screen} from '@testing-library/react-native';
 
-import IconsAvatar from '@components/Avatars/IconsAvatar';
+import IconsAvatar from '@components/Avatar/IconsAvatar';
+import type {UserAvatarProps} from '@components/Avatar/UserAvatar';
+import type {WorkspaceAvatarProps} from '@components/Avatar/WorkspaceAvatar';
 
 import {getDefaultWorkspaceAvatar, getIcons} from '@libs/ReportUtils';
 import {getSearchReportAvatarProps} from '@libs/SearchUIUtils';
@@ -54,8 +56,23 @@ const parseSource = (source: AvatarSource | IconAsset): string => {
     return source?.toString() ?? 'No Source';
 };
 
-jest.mock('@src/components/Avatar', () => {
-    return ({source, name, avatarID, testID = 'Avatar'}: {source?: AvatarSource; name?: string; avatarID?: number | string; testID?: string}) => {
+jest.mock('@components/Avatar/UserAvatar', () => {
+    return ({source, accountID, testID = 'Avatar'}: UserAvatarProps) => {
+        return (
+            <MockedAvatarData
+                dataSet={{
+                    avatarID: accountID,
+                    uri: parseSource(source ?? '') || 'No Source',
+                    parent: testID,
+                }}
+                testID="MockedAvatarData"
+            />
+        );
+    };
+});
+
+jest.mock('@components/Avatar/WorkspaceAvatar', () => {
+    return ({source, name, avatarID, testID = 'Avatar'}: WorkspaceAvatarProps) => {
         return (
             <MockedAvatarData
                 dataSet={{

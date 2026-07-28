@@ -6,9 +6,9 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-import DiagonalAvatars from './Primitives/DiagonalAvatars';
-import SingleAvatar from './Primitives/SingleAvatar';
-import SubscriptAvatar from './Primitives/SubscriptAvatar';
+import DiagonalAvatars from './layouts/DiagonalAvatars';
+import SingleAvatar from './layouts/SingleAvatar';
+import SubscriptAvatar from './layouts/SubscriptAvatar';
 
 type IconsAvatarProps = {
     /** Pre-computed avatar icons to render. The first icon is the primary; the second (if present) is the secondary/subscript */
@@ -103,7 +103,6 @@ function IconsAvatar({
             shouldShowTooltip={shouldShowTooltip}
             accountID={accountID ?? Number(primaryIcon.id ?? CONST.DEFAULT_NUMBER_ID)}
             delegateAccountID={delegateAccountID}
-            fallbackIcon={primaryIcon.fallbackIcon}
             reportID={reportID}
         />
     );

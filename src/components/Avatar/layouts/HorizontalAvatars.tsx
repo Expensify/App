@@ -1,4 +1,4 @@
-import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -18,8 +18,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {MultipleAvatarsProps} from './types';
-
-import ProfileAvatar from './ProfileAvatar';
 
 type HorizontalStackingOptions = Partial<{
     shouldDisplayAvatarsInRows: boolean;
@@ -92,7 +90,7 @@ function HorizontalAvatars({
                     shouldRender={shouldShowTooltip}
                 >
                     <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
-                        <ProfileAvatar
+                        <AvatarFromIcon
                             shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
                             iconAdditionalStyles={[
                                 StyleUtils.getHorizontalStackedAvatarBorderStyle({
@@ -105,12 +103,8 @@ function HorizontalAvatars({
                                 }),
                                 StyleUtils.getAvatarBorderWidth(size),
                             ]}
-                            source={icon.source ?? WorkspaceBuilding}
+                            icon={icon}
                             size={size}
-                            name={icon.name}
-                            avatarID={icon.id}
-                            type={icon.type}
-                            fallbackIcon={icon.fallbackIcon}
                             testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar"
                             reportID={reportID}
                         />

@@ -1,4 +1,4 @@
-import IconsAvatar from '@components/Avatars/IconsAvatar';
+import IconsAvatar from '@components/Avatar/IconsAvatar';
 import type {ExpenseReportListItemType} from '@components/Search/SearchList/ListItem/types';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 

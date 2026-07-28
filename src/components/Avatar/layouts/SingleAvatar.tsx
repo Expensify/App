@@ -1,10 +1,8 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 
-import type {AvatarSource} from '@libs/UserAvatarUtils';
-
-import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -14,8 +12,6 @@ import {View} from 'react-native';
 
 import type {BaseAvatarProps} from './types';
 
-import ProfileAvatar from './ProfileAvatar';
-
 type SingleAvatarProps = BaseAvatarProps & {
     /** The resolved avatar icon to render */
     avatar: IconType | undefined;
@@ -23,14 +19,11 @@ type SingleAvatarProps = BaseAvatarProps & {
     /** Container styles for the avatar */
     containerStyles?: StyleProp<ViewStyle>;
 
-    /** Account ID used for the tooltip */
+    /** Account ID the tooltip describes. Tooltip-only: it can differ from `avatar.id`, e.g. the LHN passes the delegate's account ID */
     accountID: number;
 
     /** Delegate account ID used for the tooltip */
     delegateAccountID?: number;
-
-    /** Icon shown when the avatar source fails to load */
-    fallbackIcon?: AvatarSource;
 
     /** Whether the avatar is displayed within a report action */
     isInReportAction?: boolean;
@@ -44,7 +37,6 @@ function SingleAvatar({
     shouldShowTooltip,
     delegateAccountID,
     accountID,
-    fallbackIcon,
     isInReportAction,
     shouldUseProfileNavigationWrapper,
     fallbackDisplayName,
@@ -65,16 +57,11 @@ function SingleAvatar({
             shouldRender={shouldShowTooltip}
         >
             <View>
-                <ProfileAvatar
+                <AvatarFromIcon
                     shouldUseProfileNavigationWrapper={shouldUseProfileNavigationWrapper}
                     containerStyles={containerStyles ?? avatarContainerStyles}
-                    source={avatar?.source}
-                    type={avatar?.type ?? CONST.ICON_TYPE_AVATAR}
-                    name={avatar?.name}
-                    avatarID={avatar?.id}
+                    icon={avatar}
                     size={size}
-                    fill={avatar?.fill}
-                    fallbackIcon={fallbackIcon}
                     testID="ReportActionAvatars-SingleAvatar"
                     reportID={reportID}
                 />
