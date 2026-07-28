@@ -84,7 +84,7 @@ import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalytic
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import Permissions from '@libs/Permissions';
@@ -310,7 +310,6 @@ type SetWorkspaceReimbursementActionParams = {
 };
 
 type SetWorkspaceApprovalModeAdditionalData = {
-    reportNextSteps?: OnyxCollection<ReportNextStepDeprecated>;
     transactionViolations?: OnyxCollection<TransactionViolations>;
     betas?: Beta[];
     personalDetailsList?: OnyxEntry<PersonalDetailsList>;
@@ -929,8 +928,7 @@ function setWorkspaceApprovalMode(
     const reportsOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const reportsFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const reportsSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
-    const shouldUpdateNextSteps =
-        additionalData?.reportNextSteps != null && additionalData?.transactionViolations != null && additionalData?.betas != null && additionalData?.personalDetailsList;
+    const shouldUpdateNextSteps = additionalData?.transactionViolations != null && additionalData?.betas != null && additionalData?.personalDetailsList;
 
     // We want to toggle off preventSelfApproval when the user turns off Approvals and has preventSelfApproval enabled.
     const shouldResetPreventSelfApproval = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && !!policy?.preventSelfApproval;
@@ -1054,7 +1052,7 @@ function setWorkspaceApprovalMode(
         },
     ];
     if (reportsSuccessData.length > 0) {
-        failureData.push(...reportsSuccessData);
+        successData.push(...reportsSuccessData);
     }
 
     if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
