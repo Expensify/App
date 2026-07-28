@@ -111,6 +111,11 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
     const resolvedPolicyID = validExpensePolicyID ?? singlePolicyID;
     const [resolvedPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${resolvedPolicyID}`);
 
+    // User has no eligible policy
+    if (!resolvedPolicyID) {
+        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: true};
+    }
+
     // If this is an employee's card transaction that we manage, then we should report it to their default policy
     // which we don't know. Sending an empty `policyID` instructs the backend to auto-select the preferred policy.
     if (isUnreportedManagedCardTransaction) {
