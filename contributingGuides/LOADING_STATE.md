@@ -24,7 +24,6 @@ For the queue itself, see [SequentialQueue](SEQUENTIAL_QUEUE.md). For offline be
 - [The invariant: only WRITE commands](#the-invariant-only-write-commands)
 - [The READ-command exception: Search](#the-read-command-exception-search)
 - [Choosing between the two approaches](#choosing-between-the-two-approaches)
-- [Queue diagnostics](#queue-diagnostics)
 - [Migration discipline](#migration-discipline)
 
 ## The problem: stored loading flags drift
@@ -150,21 +149,6 @@ Search does not trust a persisted `loading` state forever. When the page is onli
 | READ or side-effect request | An explicit terminal state on the data | A `state` field the action stamps, as Search does |
 
 Decide by the command type. If the request goes through `API.write`, use a queue-backed public hook. If it goes through `API.read` or `API.makeRequestWithSideEffects`, it cannot use the queue. Record an explicit terminal state as Search does. Do not add a new boolean or use `data === undefined` as the only loading signal.
-
-## Queue diagnostics
-
-The `loading_queue_wedged` diagnostic starts only when `SequentialQueue` begins actively processing a request. It does not start for requests that are only waiting in the persisted queue.
-
-If the active request is still running after `CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION`, the timer sends one log with:
-
-- `command`
-- the request identifier as `requestIndex`, with the legacy `requestID` used when `requestIndex` is missing
-- `elapsedTime`
-- `queueLength`, including the active request
-- `isOffline`
-- `isPaused`
-
-The timer clears when the active attempt settles. It only observes and logs. It does not pause, retry, reorder, or remove requests, and it does not change queue behavior.
 
 ## Migration discipline
 
