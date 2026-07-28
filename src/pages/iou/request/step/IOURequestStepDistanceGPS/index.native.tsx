@@ -1,6 +1,5 @@
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import GPSMapView from '@components/MapView/GPSMapView';
-import type {Coordinate} from '@components/MapView/MapViewTypes';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';

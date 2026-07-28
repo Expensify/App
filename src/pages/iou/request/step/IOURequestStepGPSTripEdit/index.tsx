@@ -1,6 +1,5 @@
 import Button from '@components/ButtonComposed';
 import DistanceMapView from '@components/DistanceMapView';
-import type {Coordinate} from '@components/MapView/MapViewTypes';
 import Text from '@components/Text';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
