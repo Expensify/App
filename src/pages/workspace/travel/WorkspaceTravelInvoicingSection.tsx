@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -308,9 +308,9 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 <View style={styles.mt4}>
                     <FormHelpMessageRowWithRetryButton
                         message={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.provisioningError')}
-                        isButtonSmall
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onRetry={() => retryTravelCardsProvisioning(policyID, workspaceAccountID, domainMemberData?.settings?.travelInvoicing?.errors ?? [])}
-                        danger
+                        variant={CONST.BUTTON_VARIANT.DANGER}
                         shouldAlignButtonToMessage
                     />
                 </View>
@@ -333,11 +333,12 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 </View>
                 {shouldShowPayButton && canWriteMoreFeatures && (
                     <Button
-                        text={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}
                         onPress={handlePayBalance}
                         isDisabled={isOffline}
-                        success
-                    />
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    >
+                        <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}</Button.Text>
+                    </Button>
                 )}
             </View>
             <MenuItemWithTopDescription

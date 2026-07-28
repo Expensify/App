@@ -1,13 +1,15 @@
-import genericMemo from '@libs/genericMemo';
-
 import React from 'react';
 
 import type {AdditionalPickerEvents, BasePickerProps, OnChange, OnMouseDown} from './types';
 
 import BasePicker from './BasePicker';
 
-function Picker<TPickerValue>({ref, ...props}: BasePickerProps<TPickerValue>) {
-    const additionalPickerEvents = (onMouseDown: OnMouseDown, onChange: OnChange<TPickerValue>): AdditionalPickerEvents => ({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function PickerImpl({ref, ...props}: BasePickerProps<unknown>) {
+    const additionalPickerEvents = (onMouseDown: OnMouseDown, onChange: OnChange<unknown>): AdditionalPickerEvents => ({
         onMouseDown,
         onChange: (e) => {
             if (e.target.selectedIndex === undefined) {
@@ -15,12 +17,12 @@ function Picker<TPickerValue>({ref, ...props}: BasePickerProps<TPickerValue>) {
             }
             const index = e.target.selectedIndex;
             const value = e.target.options[index].value;
-            onChange(value as TPickerValue, index);
+            onChange(value, index);
         },
     });
 
     return (
-        <BasePicker<TPickerValue>
+        <BasePicker
             {...props}
             // Forward the ref to Picker, as we implement imperative methods there
             ref={ref}
@@ -34,4 +36,8 @@ function Picker<TPickerValue>({ref, ...props}: BasePickerProps<TPickerValue>) {
     );
 }
 
-export default genericMemo(Picker);
+function Picker<TPickerValue>({ref, ...props}: BasePickerProps<TPickerValue>) {
+    return <PickerImpl {...({ref, ...props} as BasePickerProps<unknown>)} />;
+}
+
+export default Picker;

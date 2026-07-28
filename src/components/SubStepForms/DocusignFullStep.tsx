@@ -10,7 +10,6 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import genericMemo from '@libs/genericMemo';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -52,17 +51,13 @@ type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     startStepIndex: number;
 };
 
-function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
-    defaultValue,
-    formID,
-    inputID,
-    isLoading,
-    onBackButtonPress,
-    onSubmit,
-    currency,
-    startStepIndex,
-    stepNames,
-}: DocusignFullStepProps<TFormID>) {
+type DocusignFullStepPropsWidened = Omit<DocusignFullStepProps<keyof OnyxFormValuesMapping>, never>;
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function DocusignFullStepImpl({defaultValue, formID, inputID, isLoading, onBackButtonPress, onSubmit, currency, startStepIndex, stepNames}: DocusignFullStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -72,7 +67,7 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     const [uploadedFiles, setUploadedFiles] = useState<FileObject[]>(defaultValue);
 
     const validate = useCallback(
-        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
+        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
             return getFieldRequiredErrors(values, [inputID], translate);
         },
         [inputID, translate],
@@ -173,4 +168,8 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-export default genericMemo(DocusignFullStep);
+function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>(props: DocusignFullStepProps<TFormID>) {
+    return <DocusignFullStepImpl {...(props as unknown as DocusignFullStepPropsWidened)} />;
+}
+
+export default DocusignFullStep;

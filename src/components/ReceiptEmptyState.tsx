@@ -11,7 +11,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
 
@@ -36,6 +36,9 @@ type ReceiptEmptyStateProps = {
 
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
+
+    /** Whether to render the small banner layout (icon + label in a row) instead of the full-height box */
+    isCompact?: boolean;
 
     style?: StyleProp<ViewStyle>;
 
@@ -75,6 +78,7 @@ function ReceiptEmptyState({
     isThumbnail = false,
     isInMoneyRequestView = false,
     shouldUseFullHeight = false,
+    isCompact = false,
     style,
     onLoad,
     isDisplayedInWideRHP = false,
@@ -84,20 +88,23 @@ function ReceiptEmptyState({
     const {translate} = useLocalize();
     const theme = useTheme();
     const isLoadedRef = useRef(false);
-    const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
+    const [isHovered, setIsHovered] = useState(false);
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'ReceiptPlus']);
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFile);
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
-    const containerStyle = [
-        styles.alignItemsCenter,
-        styles.justifyContentCenter,
-        styles.moneyRequestViewImage,
-        isDisplayedInWideRHP && !disabled && styles.pb5,
-        isThumbnail && !isInMoneyRequestView ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
-        shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
-        style,
-    ];
+    const containerStyle = isCompact
+        ? [styles.alignItemsCenter, styles.justifyContentCenter, styles.receiptEmptyStateCompact, styles.moneyRequestAttachReceipt, style]
+        : [
+              styles.alignItemsCenter,
+              styles.justifyContentCenter,
+              styles.moneyRequestViewImage,
+              isDisplayedInWideRHP && !disabled && styles.pb5,
+              isThumbnail && !isInMoneyRequestView ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
+              shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
+              style,
+          ];
 
     useEffect(() => {
         if (isLoadedRef.current) {
@@ -124,37 +131,52 @@ function ReceiptEmptyState({
                     }}
                     disabled={disabled}
                     disabledStyle={styles.cursorDefault}
+                    hoverStyle={onPress && isCompact ? styles.hoveredComponentBG : undefined}
+                    onHoverIn={onPress && isCompact ? () => setIsHovered(true) : undefined}
+                    onHoverOut={onPress && isCompact ? () => setIsHovered(false) : undefined}
                     style={containerStyle}
                 >
                     {PDFValidationComponent}
                     {ErrorModal}
-                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <View style={styles.pRelative}>
-                                <Icon
-                                    fill={theme.border}
-                                    src={icons.Receipt}
-                                    width={variables.eReceiptEmptyIconWidth}
-                                    height={variables.eReceiptEmptyIconWidth}
-                                />
-                                {!isThumbnail && (
-                                    <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, {width: variables.avatarSizeSmall, height: variables.avatarSizeSmall}]}>
-                                        <ReceiptPlaceholderPlusIcon
-                                            circleFill={theme.success}
-                                            plusFill={theme.receiptPlaceholderPlus}
-                                            size={variables.avatarSizeSmall}
-                                        />
-                                    </View>
+                    {isCompact ? (
+                        <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap2]}>
+                            <Icon
+                                src={icons.ReceiptPlus}
+                                fill={isHovered ? theme.success : theme.icon}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                            <Text style={styles.textStrong}>{translate('dropzone.addReceipt')}</Text>
+                        </View>
+                    ) : (
+                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                <View style={styles.pRelative}>
+                                    <Icon
+                                        fill={theme.border}
+                                        src={icons.Receipt}
+                                        width={variables.eReceiptEmptyIconWidth}
+                                        height={variables.eReceiptEmptyIconWidth}
+                                    />
+                                    {!isThumbnail && (
+                                        <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, {width: variables.avatarSizeSmall, height: variables.avatarSizeSmall}]}>
+                                            <ReceiptPlaceholderPlusIcon
+                                                circleFill={theme.success}
+                                                plusFill={theme.receiptPlaceholderPlus}
+                                                size={variables.avatarSizeSmall}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                                {!isThumbnail && isDisplayedInWideRHP && (
+                                    <>
+                                        <Text style={[styles.textHeadline, styles.mt4]}>{translate('receipt.addAReceipt.phrase1')}</Text>
+                                        <Text style={[styles.textSupporting, styles.textNormal]}>{translate('receipt.addAReceipt.phrase2')}</Text>
+                                    </>
                                 )}
                             </View>
-                            {!isThumbnail && isDisplayedInWideRHP && (
-                                <>
-                                    <Text style={[styles.textHeadline, styles.mt4]}>{translate('receipt.addAReceipt.phrase1')}</Text>
-                                    <Text style={[styles.textSupporting, styles.textNormal]}>{translate('receipt.addAReceipt.phrase2')}</Text>
-                                </>
-                            )}
                         </View>
-                    </View>
+                    )}
                     {isDisplayedInWideRHP && !disabled && <ReceiptAlternativeMethods />}
                 </Wrapper>
             )}
