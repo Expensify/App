@@ -374,16 +374,10 @@ function getReportNextStep(
     }
 
     if (shouldShowNoFurtherAction) {
-        return buildNextStepNew({
-            report: moneyRequestReport,
-            policy,
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserEmail,
-            hasViolations: false,
-            isASAPSubmitBetaEnabled: false,
-            predictedNextStatus: moneyRequestReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-            isTrackIntentUser,
-        });
+        return {
+            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+            icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+        };
     }
 
     // Prefer the new translatable next step for the empty-report case so the "Waiting for you to add expenses" message
