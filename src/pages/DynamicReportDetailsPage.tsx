@@ -545,8 +545,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     // On the Submit (submit2026) plan, "Submit to someone" splits into two destinations here too, matching the
                     // track-expense whisper: submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
                     const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName);
-                    items.push(
-                        {
+                    // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
+                    // just like it is on the track-expense whisper.
+                    if (!isSelfDMExpenseSplit) {
+                        items.push({
                             key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_FRIEND,
                             translationKey: 'actionableMentionTrackExpense.submitToFriend',
                             icon: expensifyIcons.Send,
@@ -560,23 +562,23 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                                     defaultWorkspaceName,
                                 });
                             },
+                        });
+                    }
+                    items.push({
+                        key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_EMPLOYER,
+                        translationKey: 'actionableMentionTrackExpense.submitToEmployer',
+                        icon: expensifyIcons.Send,
+                        isAnonymousAction: false,
+                        shouldShowRightIcon: true,
+                        action: () => {
+                            createDraftTransactionAndNavigateToParticipantSelector({
+                                ...baseSubmitParams,
+                                actionName: CONST.IOU.ACTION.SUBMIT,
+                                submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                                defaultWorkspaceName,
+                            });
                         },
-                        {
-                            key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_EMPLOYER,
-                            translationKey: 'actionableMentionTrackExpense.submitToEmployer',
-                            icon: expensifyIcons.Send,
-                            isAnonymousAction: false,
-                            shouldShowRightIcon: true,
-                            action: () => {
-                                createDraftTransactionAndNavigateToParticipantSelector({
-                                    ...baseSubmitParams,
-                                    actionName: CONST.IOU.ACTION.SUBMIT,
-                                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
-                                    defaultWorkspaceName,
-                                });
-                            },
-                        },
-                    );
+                    });
                 } else {
                     items.push({
                         key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
