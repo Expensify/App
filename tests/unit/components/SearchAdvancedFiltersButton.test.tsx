@@ -2,6 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import SearchAdvancedFiltersButton from '@components/Search/SearchPageHeader/SearchAdvancedFiltersButton';
 
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {shouldDeferSearchFilterSync} from '@hooks/useSearchFilterSync';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 import React from 'react';
 
 jest.mock('@components/Icon', () => jest.fn(() => null));
-jest.mock('@components/Search/FilterDropdowns/FilterPopupButton', () => jest.fn(() => null));
+jest.mock('@components/Search/FilterDropdowns/FilterPopupButton', () => jest.fn(({renderButton}) => renderButton({onPress: jest.fn(), ref: {current: null}, isExpanded: false})));
 jest.mock('@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup', () => jest.fn(() => null));
 jest.mock('@hooks/useFilterFormValues', () => jest.fn(() => ({})));
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => ({Filter: 'filter'})}));
@@ -35,14 +36,20 @@ jest.mock('@hooks/useThemeStyles', () =>
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
 const mockedShouldDeferSearchFilterSync = jest.mocked(shouldDeferSearchFilterSync);
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockedNavigate = jest.mocked(Navigation.navigate);
 const queryJSON = buildSearchQueryJSON('type:expense category:Travel');
 
 describe('SearchAdvancedFiltersButton', () => {
-    it('enables the small-screen button after deferred filter sync finishes', () => {
+    it.each([
+        ['small', true, false],
+        ['medium', false, true],
+        ['desktop', false, false],
+    ])('enables the %s-screen button after deferred filter sync finishes', (_layout, isSmallScreenWidth, isMediumScreenWidth) => {
         if (!queryJSON) {
             throw new Error('Expected query to parse');
         }
+        mockedUseResponsiveLayout.mockReturnValue({isSmallScreenWidth, isMediumScreenWidth});
         mockedShouldDeferSearchFilterSync.mockReturnValue(true);
 
         const {rerender} = render(<SearchAdvancedFiltersButton queryJSON={queryJSON} />);
@@ -55,7 +62,9 @@ describe('SearchAdvancedFiltersButton', () => {
         const filtersButton = screen.getByLabelText('search.filtersHeader');
         expect(filtersButton).toBeEnabled();
 
-        fireEvent.press(filtersButton);
-        expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_ADVANCED_FILTERS);
+        if (isSmallScreenWidth) {
+            fireEvent.press(filtersButton);
+            expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_ADVANCED_FILTERS);
+        }
     });
 });
