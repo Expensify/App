@@ -2,7 +2,7 @@
  * Determines whether the trial payment reminder modal is eligible to show and which variant/countdown
  * to display, based on the user's free-trial dates, payment-card status, and prior dismissals.
  */
-import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
+import {getOwnedPaidPolicies, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import {calculateRemainingTrialSeconds, calculateTrialDayNumber, doesUserHavePaymentCardAdded, isUserOnFreeTrial} from '@libs/SubscriptionUtils';
 
 import {setNameValuePair} from '@userActions/User';
@@ -225,9 +225,6 @@ function useTrialPaymentReminder() {
         if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
             return false;
         }
-        if (!getOwnedPaidPolicies(policies, currentUserAccountID).length) {
-            return false;
-        }
         if (isLoadingOnyxValue(billingFundIDResult)) {
             return false;
         }
@@ -235,6 +232,9 @@ function useTrialPaymentReminder() {
             return false;
         }
         if (readinessState !== READINESS_STATE.READY) {
+            return false;
+        }
+        if (!getOwnedPaidPolicies(policies, currentUserAccountID).some((policy) => !isPendingDeletePolicy(policy))) {
             return false;
         }
         if (isLoadingOnyxValue(dismissedTimestampResult)) {
