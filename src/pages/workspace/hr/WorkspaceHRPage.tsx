@@ -6,7 +6,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
+import useHRSyncResults from '@hooks/useHRSyncResults';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
@@ -68,7 +68,7 @@ function WorkspaceHRPage({
         openPolicyHRPage(policyID);
     }, [policyID]);
 
-    useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
+    useHRSyncResults(connectionSyncProgress, isFocused);
     useMergeHRInitialSyncingModal(policyID, isFocused);
 
     const cards = getHRCards({

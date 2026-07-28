@@ -695,6 +695,7 @@ const SCREENS = {
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Overview',
         HR: 'Workspace_HR',
+        DYNAMIC_HR_SYNC_RESULTS: 'Dynamic_HR_Sync_Results',
         HR_GUSTO_APPROVAL_MODE: 'Workspace_HR_Gusto_Approval_Mode',
         HR_GUSTO_FINAL_APPROVER: 'Workspace_HR_Gusto_Final_Approver',
         HR_ZENEFITS_APPROVAL_MODE: 'Workspace_HR_Zenefits_Approval_Mode',
