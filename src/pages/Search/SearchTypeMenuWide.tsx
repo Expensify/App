@@ -14,7 +14,6 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import type {TodoCounts} from '@hooks/useTodoCounts';
 
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
-import {buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
 import type {SearchKey, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {getItemBadgeText, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
