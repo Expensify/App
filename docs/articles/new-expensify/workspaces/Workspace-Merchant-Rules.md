@@ -33,7 +33,11 @@ To create a Merchant Rule:
 
 Instead of creating Merchant Rules one at a time, you can import multiple Merchant Rules from a spreadsheet.
 
-1. Download and complete the [Merchant Rules import template](/relative-link), or create a spreadsheet with the following columns:
+For more information, review the [Visa Secure FAQs]({{site.url}}/assets/Files/Visa-secure-faq-expensify.pdf).
+
+docs/assets/Files/merchant-rule-import-template.csv
+
+1. Download and complete the [Merchant Rules import template]({{site.url}}/assets/Files/merchant-rule-import-template.csv), or create a spreadsheet with the following columns:
    - **Merchant** — The merchant the rule should apply to (required).
    - **Update Merchant** — Replace the merchant name (optional).
    - **Update Category** — Apply a category (optional).
