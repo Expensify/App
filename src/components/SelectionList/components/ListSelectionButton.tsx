@@ -69,7 +69,10 @@ function ListSelectionButton<TItem extends ListItem>({
             accessibilityLabel={label}
             isChecked={isChecked}
             onPress={() => {
-                setOptimisticChecked(!isChecked);
+                // A checkbox toggles, so flip the current value. A radio press only ever selects, so paint it
+                // checked - inverting an already-checked radio would leave it stuck unchecked because its
+                // isSelected prop never changes to trigger the reset above.
+                setOptimisticChecked(role === CONST.ROLE.RADIO ? true : !isChecked);
                 onSelectRow(item);
             }}
             disabled={disabled}

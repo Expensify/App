@@ -1,6 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ListCheckbox from '@components/SelectionList/components/ListCheckbox';
+import ListRadioButton from '@components/SelectionList/components/ListRadioButton';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 
 import CONST from '@src/CONST';
@@ -93,5 +94,21 @@ describe('ListSelectionButton', () => {
         // A second rapid press (still no prop change) reverts the optimistic checkmark.
         fireEvent.press(screen.getByTestId(TEST_ID));
         expect(getCheckedState()).toBe(false);
+    });
+
+    it('keeps a selected radio checked when it is pressed again', () => {
+        // A radio press only ever selects, so re-pressing an already-selected radio (whose isSelected prop
+        // never changes) must not optimistically flip it to unchecked.
+        render(
+            <ListRadioButton
+                item={buildItem(true)}
+                onSelectRow={jest.fn()}
+            />,
+        );
+
+        expect(getCheckedState()).toBe(true);
+
+        fireEvent.press(screen.getByTestId(TEST_ID));
+        expect(getCheckedState()).toBe(true);
     });
 });
