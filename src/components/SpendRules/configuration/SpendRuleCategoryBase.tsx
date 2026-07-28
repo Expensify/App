@@ -22,7 +22,7 @@ import variables from '@styles/variables';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import {SPEND_RULE_CATEGORIES} from '@src/types/form/SpendRuleForm';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type CategoryListItem = ListItem & {
     value: SpendRuleCategory;
@@ -53,13 +53,9 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
 
     // Pin the initially selected categories to the top of the FULL sorted list, then let the search filter run
     // over the already-pinned list (no sort override) so pinned rows stay at the top even while searching.
-    const sortedCategoryItems = useMemo(
-        () =>
-            moveInitialSelectionToTop(
-                [...categoryItems].sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
-                initialSelectedCategories,
-            ),
-        [categoryItems, initialSelectedCategories, localeCompare],
+    const sortedCategoryItems = moveInitialSelectionToTop(
+        [...categoryItems].sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
+        initialSelectedCategories,
     );
 
     const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(sortedCategoryItems, filterCategory);
