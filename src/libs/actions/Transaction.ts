@@ -1872,7 +1872,6 @@ function getChangeTransactionsReportOnyxData({
         const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation, accountID, email ?? '');
         const isDestinationReport = affectedReportID === destinationReportID;
         const shouldFixViolationsForReport = isDestinationReport ? shouldFixViolations : false;
-        const shouldUseUnreportedNextStepKey = reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isDestinationReport;
 
         const optimisticNextStepForReport = buildOptimisticNextStep({
             report: updatedReport,
