@@ -8,9 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
-    areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getMoneyRequestSpendBreakdown,
-    getTransactionsWithReceipts,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
@@ -20,7 +18,7 @@ import {
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {hasPendingUI, isPending, hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils} from '@libs/TransactionUtils';
+import {hasPendingUI, isPending} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,7 +59,9 @@ type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
     iouReport: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     transactions: Transaction[];
-    allReportTransactions: Transaction[];
+    transactionsWithReceipts: Transaction[];
+    hasNonReimbursableTransactions: boolean;
+    areAllRequestsBeingSmartScanned: boolean;
     policy: OnyxEntry<Policy>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
@@ -87,7 +87,9 @@ function MoneyRequestReportPreviewProvider({
     iouReport,
     chatReport,
     transactions,
-    allReportTransactions,
+    transactionsWithReceipts,
+    hasNonReimbursableTransactions,
+    areAllRequestsBeingSmartScanned,
     policy,
     invoiceReceiverPolicy,
     invoiceReceiverPersonalDetail,
@@ -173,14 +175,7 @@ function MoneyRequestReportPreviewProvider({
     const isTripRoom = isTripRoomReportUtils(chatReport);
 
     const numberOfRequests = transactions?.length ?? 0;
-    // Pass the reactive `allReportTransactions` list (the full set, matching `getReportTransactions`) into these
-    // ReportUtils helpers rather than letting them read from Onyx by ID. This keeps the derivation logic in one place,
-    // preserves the pre-decomposition behavior (including optimistically-deleted rows), and lets React Compiler
-    // recompute these values when the report's transactions change.
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction)).length;
-    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
-    const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
 
