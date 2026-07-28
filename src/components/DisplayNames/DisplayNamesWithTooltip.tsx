@@ -16,6 +16,8 @@ import type DisplayNamesProps from './types';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 
 type HTMLElementWithText = HTMLElement & RNText;
+// Mark report titles rendered through DisplayNames so grouped search rows can allow native selection.
+const COPYABLE_TEXT_DATA_SET = {copyableText: true};
 
 function DisplayNamesWithToolTip({
     shouldUseFullTitle,
@@ -27,6 +29,7 @@ function DisplayNamesWithToolTip({
     renderAdditionalText,
     forwardedFSClass,
     accessibilityLabel,
+    isCopyable = false,
 }: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
@@ -67,11 +70,13 @@ function DisplayNamesWithToolTip({
         // Tokenization of string only support prop numberOfLines on Web
         <Text
             accessibilityLabel={accessibilityLabel}
-            style={[textStyles, styles.pRelative]}
+            style={[textStyles, styles.pRelative, isCopyable && styles.userSelectText]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
             testID="DisplayNamesWithToolTip"
             fsClass={forwardedFSClass}
+            selectable={isCopyable}
+            dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
         >
             {shouldUseFullTitle
                 ? formatReportLastMessageText(fullTitle)
@@ -88,6 +93,7 @@ function DisplayNamesWithToolTip({
                               textStyles={textStyles}
                               childRefs={childRefs}
                               forwardedFSClass={forwardedFSClass}
+                              isCopyable={isCopyable}
                           />
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
                           {shouldAddEllipsis && index === displayNamesWithTooltips.length - 1 && <Text style={textStyles}>...</Text>}

@@ -1,5 +1,5 @@
 import Avatar from '@components/Avatar';
-import Text from '@components/Text';
+import TextWithTooltip from '@components/TextWithTooltip';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -44,12 +44,12 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
                 avatarID={accountID}
                 containerStyles={[styles.pr2, avatarStyle]}
             />
-            <Text
+            <TextWithTooltip
+                text={displayName}
                 numberOfLines={1}
                 style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroSupporting, styles.flexShrink1, textStyle]}
-            >
-                {displayName}
-            </Text>
+                isCopyable
+            />
         </View>
     );
 }

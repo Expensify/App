@@ -11,6 +11,7 @@ import type GetCurrentSelection from './types';
 
 const markdownElements = new Set(['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's', 'mention-user']);
 const tagAttribute = 'data-testid';
+const copyableTextSelector = '[data-copyable-text=true]';
 
 /**
  * Reads html of selection. If browser doesn't support Selection API, returns empty string.
@@ -95,6 +96,11 @@ const getHTMLOfSelection = (): string => {
 
     if (divsToRemove && divsToRemove.length > 0) {
         for (const element of divsToRemove) {
+            // Keep explicitly copyable values even when their parent row is hidden from the selection scraper.
+            if (element.matches(copyableTextSelector) || element.querySelector(copyableTextSelector)) {
+                element.removeAttribute(`data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}`);
+                continue;
+            }
             element.remove();
         }
     }

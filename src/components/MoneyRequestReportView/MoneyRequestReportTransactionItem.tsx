@@ -2,6 +2,7 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
+import {isCopyableTextTarget, shouldSuppressCopyableTextPress} from '@components/TextWithTooltip/selection';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
@@ -154,6 +155,8 @@ function MoneyRequestReportTransactionItemBody({
     // keeps the press handler shape identical without ever being mutated on narrow.
     const fallbackEditingOnMouseDownRef = useRef(false);
     const wasEditingOnMouseDownRef = inlineEdit?.wasEditingOnMouseDownRef ?? fallbackEditingOnMouseDownRef;
+    // Remember where this mouse sequence started so an old text selection does not block later row clicks.
+    const wasMouseDownOnCopyableTextRef = useRef(false);
 
     useEffect(() => {
         if (!wasRecentlyEditingCell) {
@@ -164,8 +167,10 @@ function MoneyRequestReportTransactionItemBody({
 
     const handleMouseDown = (e?: React.MouseEvent) => {
         wasEditingOnMouseDownRef.current = isEditingCell;
+        const isCopyableTarget = isCopyableTextTarget(e?.target);
+        wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
 
-        if (!isEditingCell) {
+        if (!isEditingCell && !isCopyableTarget) {
             e?.preventDefault();
         }
     };
@@ -179,7 +184,13 @@ function MoneyRequestReportTransactionItemBody({
         >
             <PressableWithFeedback
                 key={transaction.transactionID}
-                onPress={() => {
+                onPress={(event) => {
+                    const shouldSuppressPress = shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
+                    wasMouseDownOnCopyableTextRef.current = false;
+                    if (shouldSuppressPress) {
+                        return;
+                    }
+
                     // Prevent row press from firing while a cell is being inline-edited (e.g. pressing Space would otherwise open the expense)
                     // See https://github.com/Expensify/App/issues/88646 for more details
                     if (isEditingCell) {

@@ -6,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import {isCopyableTextTarget, shouldSuppressCopyableTextPress} from '@components/TextWithTooltip/selection';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -42,7 +43,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
@@ -157,6 +158,8 @@ function TransactionGroupListExpandedImpl({
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
+    // Remember where this mouse sequence started so an old text selection does not block later expanded row clicks.
+    const wasMouseDownOnCopyableTextRef = useRef(false);
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
 
@@ -284,6 +287,12 @@ function TransactionGroupListExpandedImpl({
     }
 
     const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
+        const shouldSuppressPress = shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
+        wasMouseDownOnCopyableTextRef.current = false;
+        if (shouldSuppressPress) {
+            return;
+        }
+
         // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
         if (isMobileSelectionModeEnabled || isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction)) {
             onSelectionButtonPress?.(transaction as ListItem);
@@ -345,7 +354,14 @@ function TransactionGroupListExpandedImpl({
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={transaction.text ?? ''}
                             isNested
-                            onMouseDown={(e) => e.preventDefault()}
+                            onMouseDown={(e) => {
+                                const isCopyableTarget = isCopyableTextTarget(e?.target);
+                                wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
+                                if (isCopyableTarget) {
+                                    return;
+                                }
+                                e.preventDefault();
+                            }}
                             hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG, transaction.isSelected && styles.activeComponentBG]}
                             wrapperStyle={isDeletedOrPendingDelete ? styles.cursorDisabled : undefined}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}

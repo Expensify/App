@@ -134,6 +134,7 @@ function WithdrawalIDListItemHeaderImpl({
                 <TextWithTooltip
                     text={accountLabel}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                    isCopyable
                 />
             </View>
         ),
@@ -147,6 +148,7 @@ function WithdrawalIDListItemHeaderImpl({
                 <TextWithTooltip
                     text={formattedWithdrawalDate}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                    isCopyable
                 />
             </View>
         ),
@@ -166,6 +168,7 @@ function WithdrawalIDListItemHeaderImpl({
                 <TextWithTooltip
                     text={withdrawalIDItem.entryID?.toString() ?? ''}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                    isCopyable
                 />
             </View>
         ),
@@ -216,12 +219,14 @@ function WithdrawalIDListItemHeaderImpl({
                                 <TextWithTooltip
                                     text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                    isCopyable
                                 />
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                                     {statusBadge}
                                     <TextWithTooltip
                                         text={withdrawalInfoText}
                                         style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
+                                        isCopyable
                                     />
                                 </View>
                             </View>

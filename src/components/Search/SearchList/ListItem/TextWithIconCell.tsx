@@ -40,6 +40,7 @@ export default function TextWithIconCell({icon, text, showTooltip, textStyle, nu
                 shouldShowTooltip={showTooltip}
                 numberOfLines={numberOfLines}
                 style={[styles.label, numberOfLines > 1 ? styles.preWrap : styles.pre, styles.justifyContentCenter, styles.textMicro, styles.textSupporting, styles.flexShrink1, textStyle]}
+                isCopyable
             />
         </View>
     );

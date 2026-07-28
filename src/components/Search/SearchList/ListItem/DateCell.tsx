@@ -36,6 +36,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, o
             text={displayText}
             shouldShowTooltip={showTooltip}
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.mutedNormalTextLabel, !!suffixText && styles.flexShrink1]}
+            isCopyable
         />
     );
 

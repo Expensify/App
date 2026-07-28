@@ -59,6 +59,7 @@ import RadioButton from './RadioButton';
 import RenderHTML from './RenderHTML';
 import ReportActionAvatars from './ReportActionAvatars';
 import Text from './Text';
+import {isCopyableTextTarget, shouldSuppressCopyableTextPress} from './TextWithTooltip/selection';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from './utils/getContextMenuAccessibilityProps';
@@ -490,6 +491,9 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
     }
 };
 
+// Mark copyable menu titles so pressable rows and SelectionScraper preserve the selected value.
+const COPYABLE_TEXT_DATA_SET = {copyableText: true};
+
 function MenuItem({
     interactive = true,
     onPress,
@@ -641,6 +645,8 @@ function MenuItem({
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
     const pressableRef = useRef<View>(null);
+    // Remember where this mouse sequence started so an old text selection does not block later menu item clicks.
+    const wasMouseDownOnCopyableTextRef = useRef(false);
     useEffect(() => {
         const element = pressableRef.current;
         if (interactive || !element || typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
@@ -693,6 +699,7 @@ function MenuItem({
             shouldShowBasicTitle ? {} : styles.textStrong,
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
+            copyable ? styles.userSelectText : {},
             styles.ltr,
             isDeleted ? styles.offlineFeedbackDeleted : {},
             shouldBreakWord ? styles.breakWord : {},
@@ -817,6 +824,12 @@ function MenuItem({
             return;
         }
 
+        const shouldSuppressPress = copyable && shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
+        wasMouseDownOnCopyableTextRef.current = false;
+        if (shouldSuppressPress) {
+            return;
+        }
+
         if (event?.type === 'click') {
             (event.currentTarget as HTMLElement).blur();
         }
@@ -879,6 +892,9 @@ function MenuItem({
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onMouseDown={(event) => {
+                                    wasMouseDownOnCopyableTextRef.current = copyable && isCopyableTextTarget(event?.target);
+                                }}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
@@ -1066,7 +1082,11 @@ function MenuItem({
                                                                     <Text
                                                                         style={combinedTitleTextStyle}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
-                                                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                                        dataSet={{
+                                                                            [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
+                                                                            ...(copyable ? COPYABLE_TEXT_DATA_SET : {}),
+                                                                        }}
+                                                                        selectable={copyable}
                                                                         accessibilityRole={titleAccessibilityRole}
                                                                     >
                                                                         {renderTitleContent()}

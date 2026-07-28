@@ -6,6 +6,7 @@ import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+import {isCopyableTextTarget, shouldSuppressCopyableTextPress} from '@components/TextWithTooltip/selection';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -359,6 +360,8 @@ function GroupHeader({
 
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
     const pressableRef = useRef<View>(null);
+    // Remember where this mouse sequence started so an old text selection does not block later group row clicks.
+    const wasMouseDownOnCopyableTextRef = useRef(false);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -375,6 +378,12 @@ function GroupHeader({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
     const handlePress = (event?: ModifiedMouseEvent) => {
+        const shouldSuppressPress = shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
+        wasMouseDownOnCopyableTextRef.current = false;
+        if (shouldSuppressPress) {
+            return;
+        }
+
         if (isExpenseReportType) {
             onSelectRow(withOriginalKey(item), transactionPreviewData, event);
         }
@@ -400,7 +409,14 @@ function GroupHeader({
                 isNested
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                    const isCopyableTarget = isCopyableTextTarget(e?.target);
+                    wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
+                    if (isCopyableTarget) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
                 id={item.keyForList ?? ''}
                 onFocus={onFocus}
                 style={[
@@ -410,7 +426,6 @@ function GroupHeader({
                 wrapperStyle={[
                     styles.mh5,
                     animatedHighlightStyle,
-                    styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItemCollapsed, isItemSelected), isLastItemCollapsed && styles.overflowHidden]
                         : [

@@ -4,6 +4,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
+import {isCopyableTextTarget, shouldSuppressCopyableTextPress} from '@components/TextWithTooltip/selection';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
@@ -54,6 +55,8 @@ function TransactionListItemWide<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
+    // Remember where this mouse sequence started so an old text selection does not block later row clicks.
+    const wasMouseDownOnCopyableTextRef = useRef(false);
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
@@ -93,6 +96,12 @@ function TransactionListItemWide<TItem extends ListItem>({
     });
 
     const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
+        const shouldSuppressPress = shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
+        wasMouseDownOnCopyableTextRef.current = false;
+        if (shouldSuppressPress) {
+            return;
+        }
+
         // Consume the tap that dismissed an editing cell — a second tap will open the row.
         // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
         if (wasEditingOnMouseDownRef.current) {
@@ -115,9 +124,11 @@ function TransactionListItemWide<TItem extends ListItem>({
 
     const handleOnMouseDown = (e?: React.MouseEvent) => {
         wasEditingOnMouseDownRef.current = isEditingCell;
+        const isCopyableTarget = isCopyableTextTarget(e?.target);
+        wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
 
         // Skip preventDefault when editing so the browser naturally blurs the input (triggering save/cancel).
-        if (!isEditingCell) {
+        if (!isEditingCell && !isCopyableTarget) {
             e?.preventDefault();
         }
     };

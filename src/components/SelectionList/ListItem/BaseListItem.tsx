@@ -6,6 +6,7 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import {getItemRole} from '@components/SelectionList/utils/getItemRole';
 import {getSelectableState} from '@components/SelectionList/utils/getSelectableState';
+import {isCopyableTextTarget, shouldSuppressCopyableTextPress} from '@components/TextWithTooltip/selection';
 
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -123,6 +124,8 @@ function BaseListItem<TItem extends ListItem>({
     const {setMouseUp} = useMouseActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
     const pressableRef = useRef<View>(null);
+    // Remember where this mouse sequence started so an old text selection does not block later row clicks.
+    const wasMouseDownOnCopyableTextRef = useRef(false);
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
@@ -200,6 +203,13 @@ function BaseListItem<TItem extends ListItem>({
                     onLongPressRow?.(item);
                 }}
                 onPress={(e) => {
+                    const shouldSuppressPress = shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
+                    wasMouseDownOnCopyableTextRef.current = false;
+                    if (shouldSuppressPress) {
+                        e?.stopPropagation();
+                        return;
+                    }
+
                     if (isMouseDownOnInput) {
                         e?.stopPropagation(); // Preventing the click action
                         return;
@@ -217,7 +227,11 @@ function BaseListItem<TItem extends ListItem>({
                 hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || isRowSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
                 onMouseDown={(e) => {
-                    if ((e?.target as HTMLElement)?.tagName === CONST.ELEMENT_NAME.INPUT) {
+                    const target = e?.target;
+                    const isCopyableTarget = isCopyableTextTarget(target);
+                    wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
+
+                    if ((target as HTMLElement)?.tagName === CONST.ELEMENT_NAME.INPUT || isCopyableTarget) {
                         return;
                     }
                     e.preventDefault();

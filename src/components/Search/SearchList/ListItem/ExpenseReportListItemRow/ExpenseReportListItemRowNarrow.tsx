@@ -1,6 +1,6 @@
 import Checkbox from '@components/Checkbox';
 import getExpenseReportRowDisplayValues from '@components/Search/SearchList/ListItem/getExpenseReportRowDisplayValues';
-import Text from '@components/Text';
+import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -37,17 +37,29 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
             )}
             <View style={[styles.flexColumn, styles.gap1, styles.flex1]}>
                 <View style={[styles.flexRow, styles.gap2]}>
-                    <Text
+                    <TextWithTooltip
+                        text={item.reportName ?? ''}
                         numberOfLines={2}
                         style={[styles.lh20, styles.flex1]}
-                    >
-                        {item.reportName ?? ''}
-                    </Text>
-                    <Text style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}>{amountText}</Text>
+                        isCopyable
+                    />
+                    <TextWithTooltip
+                        text={amountText}
+                        style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}
+                        isCopyable
+                    />
                 </View>
                 <View style={[styles.flexRow, styles.gap2]}>
-                    <Text style={[styles.mutedNormalTextLabel, styles.flex1]}>{formattedDate}</Text>
-                    <Text style={[styles.mutedNormalTextLabel, styles.flexShrink0, styles.textAlignRight]}>{expenseCountText}</Text>
+                    <TextWithTooltip
+                        text={formattedDate}
+                        style={[styles.mutedNormalTextLabel, styles.flex1]}
+                        isCopyable
+                    />
+                    <TextWithTooltip
+                        text={expenseCountText}
+                        style={[styles.mutedNormalTextLabel, styles.flexShrink0, styles.textAlignRight]}
+                        isCopyable
+                    />
                 </View>
             </View>
         </View>

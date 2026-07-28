@@ -932,7 +932,8 @@ function MoneyRequestView({
 
     const distanceCopyValue = !canEditDistance ? distanceToDisplay : undefined;
     const distanceRateCopyValue = !canEditDistanceRate ? rateToDisplay : undefined;
-    const amountCopyValue = !canEditAmount ? amountTitle : undefined;
+    // Keep the visible amount copyable even when it is editable, so users do not need to open the amount step first.
+    const amountCopyValue = amountTitle || undefined;
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
     const descriptionCopyValue = !canEdit && descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
     const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
