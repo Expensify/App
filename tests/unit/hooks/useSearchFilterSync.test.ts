@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchFilterSync, {shouldDeferSearchFilterSync, shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync';
 
 import {updateAdvancedFilters} from '@libs/actions/Search';
-import {resetSearchFilterSyncState} from '@libs/SearchFilterSyncState';
+import {setLastSyncedQuerySignature} from '@libs/SearchFilterSyncState';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -24,7 +24,7 @@ const mockedUseOnyx = jest.mocked(useOnyx);
 describe('useSearchFilterSync', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        resetSearchFilterSyncState();
+        setLastSyncedQuerySignature(null);
         (mockedUseOnyx as jest.Mock).mockReturnValue([{}, {status: 'loaded'}]);
     });
 

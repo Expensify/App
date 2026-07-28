@@ -21,8 +21,4 @@ function setLastSyncedQuerySignature(querySignature: string | null) {
     lastSyncedQuerySignature = querySignature;
 }
 
-function resetSearchFilterSyncState() {
-    lastSyncedQuerySignature = null;
-}
-
-export {getLastSyncedQuerySignature, resetSearchFilterSyncState, setLastSyncedQuerySignature};
+export {getLastSyncedQuerySignature, setLastSyncedQuerySignature};
