@@ -1,4 +1,5 @@
 import useActivePolicy from '@hooks/useActivePolicy';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
@@ -15,7 +16,6 @@ import useTransactionsByID from '@hooks/useTransactionsByID';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
@@ -196,7 +196,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     } = params;
 
     // Localization
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
 
     // Permissions
@@ -638,6 +639,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                formatPhoneNumber,
                 isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;
@@ -743,6 +745,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     accountant: item.accountant,
                     newLogins,
                     newAccountIDs,
+                    formatPhoneNumber,
                 },
                 optimisticChatReportID: optimisticSelfDMReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,
@@ -787,9 +790,17 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
+        // For a brand-new P2P recipient (no existing chat), the confirmation screen has already committed the draft
+        // transaction to a freshly generated optimistic reportID via setTransactionReport. Build the optimistic chat
+        // report at that same ID so the report the screen subscribes to is the one that actually gets created.
+        // Otherwise the builder mints a different ID and the screen hangs waiting on a report that never materializes.
+        const isBrandNewP2PRecipient = !report && !participant.isPolicyExpenseChat && !participant.reportID;
+        const optimisticChatReportID = isBrandNewP2PRecipient && !!transaction.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transaction.reportID : undefined;
+
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
             report,
             participants: selectedParticipantsForRequest,
+            optimisticChatReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             iouType,
@@ -836,6 +847,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             previousOdometerDraft: odometerDraft,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
+            participantsPolicyTags,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -914,6 +927,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         shouldHandleNavigation,
                         shouldDeferForSearch: shouldDeferSplitForSearch,
                         delegateAccountID,
+                        formatPhoneNumber,
                     });
                 }
             }
@@ -956,6 +970,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     shouldDeferForSearch: shouldDeferSplitForSearch,
                     delegateAccountID,
                     isTrackIntentUser,
+                    formatPhoneNumber,
+                    participantsPolicyTags,
                 });
             }
             markSubmitExpenseEnd();
@@ -995,6 +1011,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     shouldDeferForSearch: shouldDeferSplitForSearch,
                     delegateAccountID,
                     isTrackIntentUser,
+                    formatPhoneNumber,
+                    participantsPolicyTags,
                 });
             }
             markSubmitExpenseEnd();
@@ -1019,6 +1037,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
+                formatPhoneNumber,
+                delegateAccountID,
             });
             if (shouldHandleNavigation) {
                 cleanupAndNavigateAfterExpenseCreate({
@@ -1127,6 +1147,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             optimisticChatReportID,
             shouldStartTracking,
             shouldDeferForSearch,
+            delegateAccountID,
         };
 
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {

@@ -3,11 +3,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import NetInfo from '@react-native-community/netinfo';
+import {toDate} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 
 import {getCommandURL} from './ApiUtils';
 import getEnvironment from './Environment/getEnvironment';
-import {onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
+import {onSuccess as onRequestSuccess, onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
 import Log from './Log';
 
 let hasRadio = true;
@@ -24,14 +25,30 @@ let unsubscribeNetInfo: (() => void) | null = null;
 let prevIsInternetReachable: boolean | null | undefined;
 let isPoorConnectionSimulated: boolean | undefined;
 let networkTimeSkew = 0;
-let suppressNextReachabilityRestored = false;
+let pendingReachabilityRecovery = false;
+let configuredReachabilityUrl: string | undefined;
 
 // Subscriber sets
 const listeners = new Set<() => void>();
 const reconnectListeners = new Set<() => void>();
 
-// Wire FailureTracker → NetworkState so sustained failures trigger offline state.
+// Wire FailureTracker → NetworkState so sustained failures trigger offline state and a
+// successful request clears the INTERNET_UNREACHABLE hard stop. Without the latter only
+// the Ping could clear it. Reads and side-effect commands bypass the paused queue, so the
+// app could keep succeeding at real requests while staying stuck offline.
 onSustainedFailureChange((active) => setSustainedFailures(active));
+// A server response proves the network works, same as a passing Ping.
+// prevIsInternetReachable stays false on purpose: the Ping may keep failing, and a repeated
+// false does not re-set the hard stop. When the Ping finally passes, the NetInfo listener
+// sees the app is already online and does nothing.
+onRequestSuccess(() => {
+    if (!internetUnreachable) {
+        return;
+    }
+    Log.info('[NetworkState] INTERNET_UNREACHABLE cleared — a successful request proved connectivity');
+    clearHardStops();
+    scheduleJitteredReconnect();
+});
 
 function getIsOffline(): boolean {
     return !hasRadio || internetUnreachable || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
@@ -142,12 +159,35 @@ function setSustainedFailures(active: boolean) {
         // A reconnect that coincides with one already in flight is collapsed at push time by the
         // reconnect coverage resolver (resolveReconnectDuplicationConflictAction): a redundant one is
         // dropped, a wider one runs after. It consults the ongoing request and the waiting queue.
-
-        // Jitter (0–5s) staggers reconnection across clients after a server-wide outage
-        // to avoid a stampede of ReconnectApp calls hitting the backend simultaneously.
-        const jitter = Math.floor(Math.random() * CONST.NETWORK.RECONNECT_STAMPEDE_JITTER_MS);
-        setTimeout(() => notifyReconnectListeners(), jitter);
+        scheduleJitteredReconnect();
     }
+}
+
+/**
+ * Jitter (0–5s) staggers reconnection across clients after a server-wide outage
+ * to avoid a stampede of ReconnectApp calls hitting the backend simultaneously.
+ */
+function scheduleJitteredReconnect() {
+    const jitter = Math.floor(Math.random() * CONST.NETWORK.RECONNECT_STAMPEDE_JITTER_MS);
+    setTimeout(() => notifyReconnectListeners(), jitter);
+}
+
+function clearHardStops() {
+    internetUnreachable = false;
+    sustainedFailuresActive = false;
+    resetFailureCounters();
+    updateState();
+}
+
+/**
+ * The debug paths clear their hard stop right away, so when the refreshed Ping confirms
+ * reachability the app already looks online and the listener would ignore it. The token
+ * allows that one recovery. Resetting prev makes the listener see a transition again.
+ */
+function armReachabilityRecovery() {
+    prevIsInternetReachable = null;
+    pendingReachabilityRecovery = true;
+    NetInfo.refresh();
 }
 
 /**
@@ -159,12 +199,7 @@ function setForceOffline(force: boolean) {
     updateState();
 
     if (!force) {
-        // Reset so the NetInfo listener sees a genuine transition (e.g. null→true)
-        // and fires onReachabilityRestored(). Without this, prevIsInternetReachable
-        // is already true (we track real state during force-offline) so the listener
-        // sees true→true and skips reconnect.
-        prevIsInternetReachable = null;
-        NetInfo.refresh();
+        armReachabilityRecovery();
     }
 }
 
@@ -186,8 +221,7 @@ function setFailAllRequests(failAll: boolean) {
         resetFailureCounters();
         updateState();
 
-        prevIsInternetReachable = null;
-        NetInfo.refresh();
+        armReachabilityRecovery();
     }
 }
 
@@ -198,10 +232,7 @@ function setFailAllRequests(failAll: boolean) {
 function onReachabilityRestored() {
     Log.info('[NetworkState] Internet reachability restored — clearing hard stops');
     hasRadio = true;
-    internetUnreachable = false;
-    sustainedFailuresActive = false;
-    resetFailureCounters();
-    updateState();
+    clearHardStops();
 
     // Notify reconnect listeners (Reconnect.ts will handle app data sync)
     notifyReconnectListeners();
@@ -227,6 +258,27 @@ function getDBTimeWithSkew(timestamp: string | number = ''): string {
     return formatDBTime(datetime);
 }
 
+/**
+ * Like getDBTimeWithSkew, but applies networkTimeSkew in both directions so the result tracks the server
+ * clock even when the client runs ahead. getDBTimeWithSkew only pushes forward (to avoid reordering), so it
+ * can't be reused. Keeps the Concierge session boundary and question comparable to server-stamped replies.
+ * Relies on networkTimeSkew being set; before it is known the value falls back to the raw client clock.
+ *
+ * notBeforeDBTime clamps the result forward so it never predates that time — used to keep successive optimistic
+ * sends monotonic when skew shifts negative between them (otherwise a later send could sort above an earlier one).
+ */
+function getServerAnchoredDBTime(timestamp: string | number = '', notBeforeDBTime?: string): string {
+    const datetime = timestamp ? new Date(timestamp) : new Date();
+    let anchoredMs = datetime.valueOf() + networkTimeSkew;
+    if (notBeforeDBTime) {
+        const floorMs = toDate(notBeforeDBTime, {timeZone: 'UTC'}).valueOf();
+        if (Number.isFinite(floorMs) && anchoredMs <= floorMs) {
+            anchoredMs = floorMs + 1;
+        }
+    }
+    return formatDBTime(new Date(anchoredMs));
+}
+
 // --- Poor connection simulation ---
 
 let poorConnectionTimerID: NodeJS.Timeout | undefined;
@@ -247,9 +299,7 @@ function simulatePoorConnection(shouldSimulate: boolean) {
         simulatedOffline = false;
         updateState();
 
-        // Reset so NetInfo listener sees a transition and fires onReachabilityRestored().
-        prevIsInternetReachable = null;
-        NetInfo.refresh();
+        armReachabilityRecovery();
     }
 }
 
@@ -270,32 +320,25 @@ function setRandomNetworkStatus(initialCall = false) {
 
 // --- NetInfo configuration and subscription ---
 
+function buildReachabilityUrl(): string {
+    return `${getCommandURL({command: 'Ping'})}accountID=${accountID ?? 'unknown'}`;
+}
+
 /**
  * Configure NetInfo with the reachability URL and subscribe to state changes.
  * Must unsubscribe before calling configure() — configure tears down NetInfo internal state.
  */
 function configureAndSubscribe() {
-    // Treat this as a reconfigure (not an initial subscription) when there's already a listener.
-    // Reconfigure tears down NetInfo internal state, so the new subscription emits a synthetic
-    // null→true transition that would look like a recovery — suppress the next would-be recovery
-    // until reachability settles. Initial subscription is left untouched so boot behavior is
-    // unchanged (prev=undefined boot guard already covers it).
-    // Skip suppression when prev was already false: the app was genuinely offline before
-    // reconfigure, so the next true is a real recovery we must not drop (otherwise
-    // internetUnreachable stays set and the app is stuck offline until a new outage cycle).
-    const isReconfigure = unsubscribeNetInfo !== null;
     if (unsubscribeNetInfo) {
         unsubscribeNetInfo();
         unsubscribeNetInfo = null;
     }
 
-    if (isReconfigure && prevIsInternetReachable !== false) {
-        suppressNextReachabilityRestored = true;
-    }
+    configuredReachabilityUrl = buildReachabilityUrl();
 
     if (!CONFIG.IS_USING_LOCAL_WEB) {
         NetInfo.configure({
-            reachabilityUrl: `${getCommandURL({command: 'Ping'})}accountID=${accountID ?? 'unknown'}`,
+            reachabilityUrl: configuredReachabilityUrl,
             reachabilityMethod: 'GET',
             reachabilityTest: (response) => {
                 if (!response.ok) {
@@ -329,23 +372,17 @@ function configureAndSubscribe() {
             setInternetUnreachable(true);
         }
 
-        // Treat false→true and null→true as genuine recovery. Both mean NetInfo previously
-        // lost reachability (false = confirmed unreachable, null = lost track during outage)
-        // and has now confirmed it's back. Only block undefined→true — that's the initial
-        // NetInfo event on subscribe which delivers current state, not a recovery. Firing
-        // onReachabilityRestored() on boot would duplicate openApp()/reconnectApp().
-        if (!shouldForceOffline && state.isInternetReachable === true && prevIsInternetReachable !== true && prevIsInternetReachable !== undefined) {
-            if (suppressNextReachabilityRestored) {
-                Log.info(`[NetworkState] Suppressing recovery on first stable state after reconfigure (${prevIsInternetReachable}→true)`);
-            } else {
+        // Treat a confirmed-reachable event as a recovery only when the app was actually offline
+        // or a debug path asked for one. Everything else (boot, re-subscription, refresh() re-emits)
+        // is a re-read of an unchanged network and must not fire reconnectApp.
+        if (!shouldForceOffline && state.isInternetReachable === true && prevIsInternetReachable !== true) {
+            if (getIsOffline() || pendingReachabilityRecovery) {
+                pendingReachabilityRecovery = false;
                 Log.info(`[NetworkState] Internet reachability restored (${prevIsInternetReachable}→true)`);
                 onReachabilityRestored();
+            } else {
+                Log.info(`[NetworkState] Ignoring reachability re-confirmation (${prevIsInternetReachable}→true) since the app was never offline`);
             }
-        }
-        // End the post-reconfigure suppression window once reachability settles into a definitive
-        // state. Null/undefined are transient and should not end the window.
-        if (state.isInternetReachable === true || state.isInternetReachable === false) {
-            suppressNextReachabilityRestored = false;
         }
         prevIsInternetReachable = state.isInternetReachable;
     });
@@ -374,15 +411,19 @@ Onyx.connectWithoutView({
     },
 });
 
-// Re-target the reachability ping when the in-app staging-server toggle flips at runtime.
-// queueMicrotask defers configureAndSubscribe so ApiUtils' Onyx callback for the same key —
-// registered later and therefore firing later on the same tick — has already updated
-// shouldUseStagingServer before we re-sample getApiRoot(). Removing the defer causes
-// configureAndSubscribe to read the previous toggle state and invert the URL on every flip.
+// Re-target the reachability ping when the staging-server toggle flips at runtime.
+// queueMicrotask waits for ApiUtils' callback on the same key, which owns the flag behind
+// getApiRoot(). Skip the rebuild when the URL is unchanged: rebuilding tears down NetInfo
+// state and fires extra Pings, and the raw toggle can flip without changing the URL.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     callback: () => {
-        queueMicrotask(configureAndSubscribe);
+        queueMicrotask(() => {
+            if (buildReachabilityUrl() === configuredReachabilityUrl) {
+                return;
+            }
+            configureAndSubscribe();
+        });
     },
 });
 
@@ -438,6 +479,7 @@ export {
     setForceOffline,
     setFailAllRequests,
     getDBTimeWithSkew,
+    getServerAnchoredDBTime,
     refresh,
     simulatePoorConnection,
 };

@@ -143,6 +143,9 @@ type ThemeColors = {
     navigationBarButtonsStyle: NavBarButtonStyle;
     translucentNavigationBarBackgroundColor: Color;
     colorScheme: ColorScheme;
+
+    /** Whether this is a high-contrast theme (light-contrast / dark-contrast). Used to underline links for WCAG 1.4.1. */
+    isHighContrast?: boolean;
 };
 
 export {type ThemePreferenceWithoutSystem, type ThemeColors, type Color};

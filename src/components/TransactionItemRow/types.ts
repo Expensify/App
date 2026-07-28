@@ -56,6 +56,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
+    chatReport?: Report;
     policy?: Policy;
     policyCategories?: PolicyCategories;
     policyTagLists?: PolicyTagLists;
@@ -69,7 +70,7 @@ type TransactionItemRowProps = {
     exportedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
-    onCheckboxPress?: (transactionID: string) => void;
+    onCheckboxPress?: (transactionID: string, shiftKey?: boolean) => void;
     shouldShowCheckbox?: boolean;
     columns?: SearchColumnType[];
     onButtonPress?: (event?: ModifiedMouseEvent) => void;
@@ -118,6 +119,15 @@ type TransactionItemRowProps = {
     canEditCategory?: boolean;
     canEditAmount?: boolean;
     canEditTag?: boolean;
+
+    /** When true, RBR content renders immediately instead of via useDeferredValue. Use in FlashList contexts. */
+    shouldSkipDeferRBR?: boolean;
+};
+
+/** Derived from shouldSkipDeferRBR; passed to layout variants for DeferredTransactionItemRowRBR. */
+type TransactionItemRowRBRDeferControlProps = {
+    /** When false, RBR content renders immediately instead of via useDeferredValue. */
+    shouldDeferRBR?: boolean;
 };
 
 /** Window position of the hovered cell used to anchor the receipt preview beside the row. */
@@ -151,4 +161,11 @@ type TransactionItemRowWideComputedData = Omit<TransactionItemRowNarrowComputedD
     isMarkAsDone: boolean;
 };
 
-export type {AnchorPosition, TransactionWithOptionalSearchFields, TransactionItemRowProps, TransactionItemRowNarrowComputedData, TransactionItemRowWideComputedData};
+export type {
+    AnchorPosition,
+    TransactionWithOptionalSearchFields,
+    TransactionItemRowProps,
+    TransactionItemRowRBRDeferControlProps,
+    TransactionItemRowNarrowComputedData,
+    TransactionItemRowWideComputedData,
+};

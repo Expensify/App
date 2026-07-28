@@ -7,6 +7,8 @@ import usePermissions from '@hooks/usePermissions';
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -15,7 +17,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
 
@@ -107,6 +109,8 @@ function useReportSelectionActions({
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const {removeTransaction} = useSearchSelectionActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
@@ -159,7 +163,10 @@ function useReportSelectionActions({
             clearSubrates(transaction.transactionID);
 
             const newChatReportID = reportOrDraftReportFromValue?.chatReportID ?? reportIDFromRoute;
-            const destinationRoute = ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, newChatReportID);
+            const destinationRoute = createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, newChatReportID),
+            );
             Navigation.goBack(destinationRoute, {compareParams: false});
             return;
         }
@@ -215,6 +222,7 @@ function useReportSelectionActions({
                         allReports,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
+                        selfDMReportActions,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -241,6 +249,7 @@ function useReportSelectionActions({
                     allReports,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
+                    selfDMReportActions,
                 });
                 removeTransaction(transaction.transactionID);
             },

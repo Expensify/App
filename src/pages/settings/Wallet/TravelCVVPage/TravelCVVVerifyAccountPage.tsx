@@ -14,12 +14,13 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {CONST} from 'expensify-common';
 import React, {useCallback} from 'react';
 
 import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider';
 
 /**
- * TravelCVVVerifyAccountPage - Handles magic code verification for Travel CVV reveal.
+ * TravelCVVVerifyAccountPage - Handles validateCode verification for Travel CVV reveal.
  * This is a separate page following the pattern used by ExpensifyCardVerifyAccountPage.
  */
 function TravelCVVVerifyAccountPage() {
@@ -56,11 +57,15 @@ function TravelCVVVerifyAccountPage() {
             });
     };
 
+    if (!travelCard) {
+        return null;
+    }
+
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID: travelCard.cardID})}
             validateCodeActionErrorField="revealExpensifyCardDetails"
             handleSubmitForm={handleRevealCardDetails}
             validateError={validateError}

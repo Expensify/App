@@ -72,6 +72,7 @@ import type {
     RecentWaypoint,
     Report,
     ReportAction,
+    ReportActions,
     ReportNextStepDeprecated,
     ReviewDuplicates,
     Transaction,
@@ -93,7 +94,6 @@ import Onyx from 'react-native-onyx';
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
@@ -849,6 +849,7 @@ type ChangeTransactionsReportProps = {
     skippedReportIDs?: string[];
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
+    selfDMReportActions: OnyxEntry<ReportActions>;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -867,6 +868,7 @@ function getChangeTransactionsReportOnyxData({
     skippedReportIDs,
     isTrackIntentUser,
     personalPolicyOutputCurrency,
+    selfDMReportActions,
 }: ChangeTransactionsReportProps) {
     const reports = allReportsParam ?? allReports;
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -888,6 +890,7 @@ function getChangeTransactionsReportOnyxData({
     for (const id of transactionIDs) {
         currentTransactionViolations[id] = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
     }
+    const movingTransactionIDs = new Set(transactionIDs);
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -1169,17 +1172,57 @@ function getChangeTransactionsReportOnyxData({
             },
         });
 
-        // Optimistically clear all violations for the transaction when moving to self DM report
+        // Clear all violations for the transaction when moving to self DM report.
+        // Also keep duplicate-partner violations cleaned on success so stale queued
+        // responses cannot re-introduce one-sided duplicate warnings after reconnect.
         if (isUnreported) {
             const duplicateTransactionIDs = currentTransactionViolations[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data
                 ?.duplicates;
             if (duplicateTransactionIDs) {
                 for (const id of duplicateTransactionIDs) {
+                    if (movingTransactionIDs.has(id)) {
+                        continue;
+                    }
+
                     const siblingViolations = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+                    const siblingDuplicateViolation = siblingViolations.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
+                    if (!siblingDuplicateViolation?.data?.duplicates?.some((duplicateTransactionID) => movingTransactionIDs.has(duplicateTransactionID))) {
+                        continue;
+                    }
+
+                    const remainingDuplicateTransactionIDs = siblingDuplicateViolation.data.duplicates.filter((duplicateTransactionID) => !movingTransactionIDs.has(duplicateTransactionID));
+                    const updatedSiblingViolations = siblingViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
+                    if (remainingDuplicateTransactionIDs.length > 0) {
+                        updatedSiblingViolations.push({
+                            ...siblingDuplicateViolation,
+                            data: {
+                                ...siblingDuplicateViolation.data,
+                                duplicates: remainingDuplicateTransactionIDs,
+                            },
+                        });
+                    }
+
+                    const updatedSiblingViolationsValue = updatedSiblingViolations.length > 0 ? updatedSiblingViolations : null;
+                    const siblingViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}` as const;
+
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        value: siblingViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                        key: siblingViolationsKey,
+                        value: updatedSiblingViolationsValue,
+                    });
+
+                    successData.push({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: siblingViolationsKey,
+                        value: updatedSiblingViolationsValue,
+                    });
+
+                    failureData.push({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: siblingViolationsKey,
+                        value: siblingViolations,
                     });
                 }
             }
@@ -1441,7 +1484,7 @@ function getChangeTransactionsReportOnyxData({
         }
 
         // 4. Optimistically update the IOU action reportID
-        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID) : undefined;
+        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID, selfDMReportActions) : undefined;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,

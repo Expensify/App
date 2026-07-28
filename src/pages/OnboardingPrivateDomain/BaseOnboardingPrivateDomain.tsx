@@ -25,13 +25,14 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingPrivateDomainProps} from './types';
 
 function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
-    const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
+    const [hasValidateCodeBeenSent, setHasValidateCodeBeenSent] = useState(false);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
@@ -65,7 +66,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         if (!email) {
             return;
         }
-        resendValidateCode(email);
+        resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}, email);
     }, [email]);
 
     const handleBackButtonPress = useCallback(() => {
@@ -160,15 +161,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         validateCodeActionErrorField="getAccessiblePolicies"
                         handleSubmitForm={(code) => {
                             getAccessiblePolicies(code);
-                            setHasMagicCodeBeenSent(false);
+                            setHasValidateCodeBeenSent(false);
                         }}
                         sendValidateCode={() => {
                             sendValidateCode();
-                            setHasMagicCodeBeenSent(true);
+                            setHasValidateCodeBeenSent(true);
                         }}
                         clearError={() => clearGetAccessiblePoliciesErrors()}
                         validateError={getAccessiblePoliciesAction?.errors}
-                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        hasValidateCodeBeenSent={hasValidateCodeBeenSent}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => navigateToNextOnboardingStep(route.params?.backTo)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
