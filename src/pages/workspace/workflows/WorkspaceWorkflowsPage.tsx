@@ -885,7 +885,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         updateApprovalMode,
         currentUserAccountID,
         currentUserEmail,
-        allReportNextSteps,
         transactionViolations,
         betas,
         showConfirmModal,
