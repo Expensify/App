@@ -14,7 +14,7 @@ import type * as MfaRealUiMocks from 'tests/utils/mfa/realUi/mocks';
 import type {SnapshotFrom} from 'xstate';
 
 import Onyx from 'react-native-onyx';
-import {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
+import createInitEvent, {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
 import getWalkedPaths, {
     CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE,
     CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE,
@@ -331,6 +331,53 @@ describe('the real MFA modal matches the machine at every step of every generate
         const {executeScenario} = renderMfaUi();
         await waitForBatchedUpdatesWithAct();
         await path.test({...testConfig, events: createMfaEventExecutors(executeScenario)});
+    });
+});
+
+describe('MFA validate-code loading state', () => {
+    beforeEach(async () => {
+        resetMfaUiMocks();
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: MFA_TEST_ACCOUNT_ID});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('shows the submit spinner for the registration challenge request when the account has 2FA enabled', async () => {
+        const {executeScenario} = renderMfaUi();
+        await waitForBatchedUpdatesWithAct();
+
+        const initEvent = createInitEvent();
+        await act(async () => executeScenario(initEvent.scenarioName, initEvent.payload));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent(screen.getByTestId(TEST_ID.INITIAL_SCREEN), 'layout', {
+            nativeEvent: {layout: {width: 1, height: 1, x: 0, y: 0}},
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => validateDeviceControl.resolve({success: true}));
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => checkLocalCredentialsControl.resolve(false));
+        await waitForBatchedUpdatesWithAct();
+
+        const submitButtonText = screen.getByText(translateLocal('common.verify'));
+        expect(submitButtonText).toBeVisible();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isLoading: true,
+                loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(submitButtonText).not.toBeVisible();
     });
 });
 

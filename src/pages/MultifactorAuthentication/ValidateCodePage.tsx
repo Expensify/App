@@ -18,7 +18,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 
@@ -63,7 +62,8 @@ function MultifactorAuthenticationValidateCodePage() {
     // Derived state
     const hasAccountError = !!account && !isEmptyObject(account?.errors);
     const hasContinuableError = !!continuableError;
-    const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
+    // The MFA registration challenge always uses VALIDATE_CODE_FORM, even when the account has 2FA enabled.
+    const isValidateCodeFormSubmitting = !!account?.isLoading && account.loadingForm === CONST.FORMS.VALIDATE_CODE_FORM;
     const shouldDisableResendCode = isOffline || !canResendValidateCode || !!validateActionCode?.isLoading;
     const validateCodeActionError = getLatestErrorField(validateActionCode, 'actionVerified');
     const hasValidateCodeActionError = !isEmptyObject(validateCodeActionError);
