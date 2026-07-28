@@ -16299,7 +16299,7 @@ describe('ReportUtils', () => {
                 });
 
                 it('still names the report total in the parent chat preview', () => {
-                    // Given the parent chat preview, which summarises the report rather than describing the payment
+                    // Given the parent chat preview, which summarizes the report rather than describing the payment
                     const params = {...crossBorderParams, isPreviewMessageForParentChatReport: true};
                     const paymentWithoutConversion = getReportPreviewMessage(englishTranslate, {
                         reportOrID: settledReport,
