@@ -18,15 +18,34 @@ import {useEffect, useRef} from 'react';
 import useNetwork from './useNetwork';
 
 type UseSearchAutoRefetch = {
+    /** Current Search snapshot */
     searchResults: OnyxEntry<SearchResults>;
+
+    /** Current transactions collection */
     transactions: OnyxCollection<Transaction>;
+
+    /** Previous transactions collection, compared against `transactions` to detect newly-added ones */
     previousTransactions: OnyxCollection<Transaction>;
+
+    /** Current report actions collection */
     reportActions: OnyxCollection<ReportActions>;
+
+    /** Previous report actions collection, compared against `reportActions` to detect new entries */
     previousReportActions: OnyxCollection<ReportActions>;
+
+    /** Parsed search query the refetch is issued for */
     queryJSON: SearchQueryJSON;
+
+    /** Key identifying the current search */
     searchKey: SearchKey | undefined;
+
+    /** Pagination offset for the refetch request */
     offset: number;
+
+    /** Whether the refetch should recalculate result totals */
     shouldCalculateTotals: boolean;
+
+    /** Whether the search is backed by live data (vs. a snapshot) */
     shouldUseLiveData: boolean;
 };
 
