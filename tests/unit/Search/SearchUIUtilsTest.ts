@@ -16,7 +16,7 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
+import type {SelectedTransactionInfo} from '@components/Search/types';
 
 import Navigation from '@navigation/Navigation';
 
@@ -5038,11 +5038,11 @@ describe('SearchUIUtils', () => {
             expect(result.some((item) => item.tag === CONST.SEARCH.TAG_EMPTY_VALUE)).toBe(true);
         });
 
-        it('should handle backend untagged value', () => {
+        it('should handle "(untagged)" value from backend', () => {
             const dataWithUntagged: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
                 [`${CONST.SEARCH.GROUP_PREFIX}untagged` as const]: {
-                    tag: CONST.SEARCH.TAG_UNTAGGED_VALUE,
+                    tag: '(untagged)',
                     count: 3,
                     currency: 'USD',
                     total: 100,
@@ -5067,45 +5067,7 @@ describe('SearchUIUtils', () => {
             );
 
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.tag).toBe(CONST.SEARCH.TAG_UNTAGGED_VALUE);
-        });
-
-        it('should build missing tag query for empty tag group drill-down', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense has:receipt groupBy:tag');
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const dataWithEmptyTag: OnyxTypes.SearchResults['data'] = {
-                personalDetailsList: {},
-                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {
-                    tag: '',
-                    count: 2,
-                    currency: 'USD',
-                    total: 50,
-                },
-            };
-
-            const [result] = getSectionsByType(
-                SearchUIUtils.getSections({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    data: dataWithEmptyTag,
-                    currentAccountID: 2074551,
-                    currentUserEmail: '',
-                    translate: translateLocal,
-                    formatPhoneNumber,
-                    bankAccountList: {},
-                    groupBy: CONST.SEARCH.GROUP_BY.TAG,
-                    conciergeReportID: undefined,
-                    queryJSON: queryJSON as SearchQueryJSON,
-                    convertToDisplayString,
-                    reportAttributesDerivedValue: undefined,
-                }),
-                SearchUIUtils.isTransactionTagGroupListItemType,
-            );
-
-            expect(result.at(0)?.transactionsQueryJSON?.inputQuery).toBe('type:expense sortBy:groupTag sortOrder:asc has:receipt -has:tag');
+            expect(result.at(0)?.tag).toBe('(untagged)');
         });
 
         it('should return isTransactionTagGroupListItemType true for tag group items', () => {
