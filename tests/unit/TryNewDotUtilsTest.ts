@@ -5,6 +5,7 @@ import type {TryNewDot} from '@src/types/onyx';
 import {subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 Onyx.init({keys: ONYXKEYS});
@@ -29,12 +30,12 @@ describe('TryNewDotUtils', () => {
     });
 
     it('keeps mobile-locked HybridApp users in NewApp', () => {
-        const tryNewDot = {
+        const tryNewDot = createMock<TryNewDot>({
             isLockedToNewApp: true,
             classicRedirect: {
                 dismissed: true,
             },
-        } as TryNewDot;
+        });
 
         expect(shouldUseOldApp(tryNewDot)).toBe(false);
     });
@@ -76,8 +77,9 @@ describe('TryNewDotUtils', () => {
                 dismissed: false,
                 timestamp: subDays(new Date(), 31).toISOString(),
             },
-        } as unknown as TryNewDot;
+        };
 
+        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(isOldAppRedirectBlocked(tryNewDot, false)).toBe(true);
     });
 
@@ -87,8 +89,9 @@ describe('TryNewDotUtils', () => {
                 dismissed: false,
                 timestamp: subDays(new Date(), 5).toISOString(),
             },
-        } as unknown as TryNewDot;
+        };
 
+        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(isOldAppRedirectBlocked(tryNewDot, false)).toBe(false);
     });
 
@@ -98,8 +101,9 @@ describe('TryNewDotUtils', () => {
                 dismissed: false,
                 timestamp: subDays(new Date(), 31).toISOString(),
             },
-        } as unknown as TryNewDot;
+        };
 
+        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(hasBeenInNewDot30Days(tryNewDot)).toBe(true);
     });
 
@@ -109,8 +113,9 @@ describe('TryNewDotUtils', () => {
                 dismissed: false,
                 timestamp: subDays(new Date(), 10).toISOString(),
             },
-        } as unknown as TryNewDot;
+        };
 
+        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(hasBeenInNewDot30Days(tryNewDot)).toBe(false);
     });
 
@@ -120,8 +125,9 @@ describe('TryNewDotUtils', () => {
                 dismissed: true,
                 timestamp: subDays(new Date(), 60).toISOString(),
             },
-        } as unknown as TryNewDot;
+        };
 
+        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(hasBeenInNewDot30Days(tryNewDot)).toBe(false);
     });
 
@@ -130,8 +136,9 @@ describe('TryNewDotUtils', () => {
             classicRedirect: {
                 dismissed: false,
             },
-        } as unknown as TryNewDot;
+        };
 
+        // @ts-expect-error - NVP data is serialized with a string timestamp and may omit newer fields.
         expect(hasBeenInNewDot30Days(tryNewDot)).toBe(false);
     });
 

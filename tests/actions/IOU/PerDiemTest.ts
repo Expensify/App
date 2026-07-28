@@ -19,6 +19,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import createRandomPolicyTags from '../../utils/collections/policyTags';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -314,9 +315,9 @@ describe('PerDiem', () => {
             };
 
             const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
+                parentChatReport: createMock<OnyxEntry<Report>>({}),
                 transactionParams: mockTransactionParams,
-                participantParams: mockParticipantParams as unknown as RequestMoneyParticipantParams,
+                participantParams: mockParticipantParams satisfies RequestMoneyParticipantParams,
                 recentlyUsedParams: {},
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
@@ -404,7 +405,7 @@ describe('PerDiem', () => {
 
             // When: Call getPerDiemExpenseInformation
             const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
+                parentChatReport: createMock<OnyxEntry<Report>>({}),
                 transactionParams: mockTransactionParams,
                 participantParams: mockParticipantParams,
                 policyParams: mockPolicyParams,
@@ -598,7 +599,7 @@ describe('PerDiem', () => {
 
             // When: Call getPerDiemExpenseInformation with existing chat report
             const result = getPerDiemExpenseInformation({
-                parentChatReport: existingChatReport as OnyxEntry<Report>,
+                parentChatReport: createMock<OnyxEntry<Report>>(existingChatReport),
                 transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
                 participantParams: mockParticipantParams as RequestMoneyParticipantParams,
                 recentlyUsedParams: {},
@@ -687,7 +688,7 @@ describe('PerDiem', () => {
 
             // When: Call getPerDiemExpenseInformation for policy expense chat
             const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
+                parentChatReport: createMock<OnyxEntry<Report>>({}),
                 transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
                 participantParams: mockParticipantParams as RequestMoneyParticipantParams,
                 policyParams: mockPolicyParams,
@@ -902,7 +903,7 @@ describe('PerDiem', () => {
 
             // When calling getPerDiemExpenseInformation with personalDetails
             const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
+                parentChatReport: createMock<OnyxEntry<Report>>({}),
                 transactionParams: mockTransactionParams,
                 participantParams: {
                     payeeAccountID: RORY_ACCOUNT_ID,
@@ -911,7 +912,7 @@ describe('PerDiem', () => {
                         accountID: RORY_ACCOUNT_ID,
                         login: RORY_EMAIL,
                     },
-                } as unknown as RequestMoneyParticipantParams,
+                } satisfies RequestMoneyParticipantParams,
                 recentlyUsedParams: {},
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,

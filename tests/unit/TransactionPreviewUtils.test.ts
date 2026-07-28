@@ -18,6 +18,7 @@ import type {ReportActions, Transaction} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import {convertToDisplayString} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -140,11 +141,12 @@ describe('TransactionPreviewUtils', () => {
                     modifiedAmount: undefined,
                     merchant: 'Valid Merchant',
                     created: '2024-01-01',
-                } as unknown as Transaction,
+                },
                 violations: [],
                 originalTransaction: undefined,
                 shouldShowRBR: true,
             };
+            // @ts-expect-error - This scenario deliberately passes a transaction without an amount to exercise the missing-amount branch.
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.translationPath).toEqual('iou.missingAmount');
         });
@@ -208,7 +210,7 @@ describe('TransactionPreviewUtils', () => {
                 transactionDetails: {amount: modifiedAmount / 2, currency},
                 transaction: {...basicProps.transaction, amount: modifiedAmount / 2, currency, comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT}},
                 isBillSplit: true,
-                originalTransaction: {
+                originalTransaction: createMock<Transaction>({
                     reportID: CONST.REPORT.SPLIT_REPORT_ID,
                     transactionID: originalTransactionID,
                     comment: {
@@ -220,7 +222,7 @@ describe('TransactionPreviewUtils', () => {
                     modifiedAmount,
                     amount: 0,
                     currency,
-                } as Transaction,
+                }),
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
@@ -790,35 +792,38 @@ describe('TransactionPreviewUtils', () => {
         });
 
         test('returns unique error messages from report actions', () => {
-            const actions = {
+            const actions = createMock<ReportActions>({
                 /* eslint-disable @typescript-eslint/naming-convention */
                 1: {errors: {a: 'Error A', b: 'Error B'}},
                 2: {errors: {c: 'Error C', a: 'Error A2'}},
                 3: {errors: {a: 'Error A', d: 'Error D'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
-            } as unknown as ReportActions;
+            });
 
             const expectedErrors = ['Error B', 'Error C', 'Error D'];
             expect(getUniqueActionErrorsForTransaction(actions, undefined).sort()).toEqual(expectedErrors.sort());
         });
 
         test('returns the latest error message if multiple errors exist under a single action', () => {
-            const actions = {
+            const actions = createMock<ReportActions>({
                 /* eslint-disable @typescript-eslint/naming-convention */
                 1: {errors: {z: 'Error Z2', a: 'Error A', f: 'Error Z'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
-            } as unknown as ReportActions;
+            });
 
             expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error Z2']);
         });
 
         test('filters out non-string error messages', () => {
-            const actions = {
+            const actions = createMock<ReportActions>({
                 /* eslint-disable @typescript-eslint/naming-convention */
-                1: {errors: {a: 404, b: 'Error B'}},
+                1: {
+                    // @ts-expect-error - This deliberately malformed error value tests filtering non-string messages.
+                    errors: {a: 404, b: 'Error B'},
+                },
                 2: {errors: {c: null, d: 'Error D'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
-            } as unknown as ReportActions;
+            });
 
             expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error B', 'Error D']);
         });
@@ -946,7 +951,7 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('should return true when there are report action errors for the transaction', () => {
-            const reportActionsWithErrors = {
+            const reportActionsWithErrors = createMock<ReportActions>({
                 action1: {
                     reportActionID: 'action1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -956,7 +961,7 @@ describe('TransactionPreviewUtils', () => {
                     message: [],
                     pendingAction: null,
                 },
-            } as unknown as ReportActions;
+            });
             expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy, reportActionsWithErrors)).toBe(true);
         });
 
@@ -965,7 +970,7 @@ describe('TransactionPreviewUtils', () => {
                 ...createRandomPolicy(1),
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             };
-            const dewReportActions = {
+            const dewReportActions = createMock<ReportActions>({
                 action1: {
                     reportActionID: 'action1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
@@ -974,7 +979,7 @@ describe('TransactionPreviewUtils', () => {
                     originalMessage: {message: 'Failed to submit'},
                     pendingAction: null,
                 },
-            } as unknown as ReportActions;
+            });
             expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, undefined, dewPolicy, dewReportActions)).toBe(true);
         });
 
