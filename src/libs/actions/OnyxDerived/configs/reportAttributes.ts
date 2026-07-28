@@ -273,10 +273,7 @@ export default createOnyxDerivedValueConfig({
             hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);
 
         const policyChangedReportKeys: string[] = [];
-        // Reports whose only policy change is in badge fields — their name can't have changed, so they reuse
-        // the cached one. Name inputs from a policy are listed in the `nameChanged` check below;
-        // receiver-policy matches never qualify because invoice room names also read
-        // the receiver `role` (see getInvoicesChatName).
+        // Reports whose only policy change is in badge fields — their name can't have changed, so they reuse the cached one.
         const policyBadgeOnlyReportKeys: string[] = [];
         if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, triggeredKeys)) {
             if (!needsFullRecompute) {
