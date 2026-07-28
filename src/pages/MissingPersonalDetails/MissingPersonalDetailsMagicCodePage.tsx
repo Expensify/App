@@ -34,7 +34,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {areAllExpensifyCardsShipped} from '@selectors/Card';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {getSubPageValues} from './utils';
@@ -52,10 +51,13 @@ function MissingPersonalDetailsMagicCodePage({
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
-    const [areAllCardsShipped] = useOnyx(ONYXKEYS.CARD_LIST, {selector: areAllExpensifyCardsShipped});
     const targetCardSelector = useCallback((cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined), [cardID]);
     const [targetCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: targetCardSelector});
     const isVirtualCard = !!targetCard?.nameValuePairs?.isVirtual;
+
+    // Dismissal keys off the card this flow is for, not every Expensify card: a different card that failed to ship must
+    // not keep the user stuck here once their own card has shipped.
+    const isTargetCardShipped = !!targetCard && targetCard.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
     const primaryLogin = usePrimaryContactMethod();
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
@@ -66,13 +68,13 @@ function MissingPersonalDetailsMagicCodePage({
     const missingDetails = arePersonalDetailsMissing(privatePersonalDetails);
 
     useEffect(() => {
-        if (isVirtualCard || missingDetails || !!privateDetailsErrors || !areAllCardsShipped) {
+        if (isVirtualCard || missingDetails || !!privateDetailsErrors || !isTargetCardShipped) {
             return;
         }
 
         clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.dismissModal();
-    }, [isVirtualCard, missingDetails, privateDetailsErrors, areAllCardsShipped]);
+    }, [isVirtualCard, missingDetails, privateDetailsErrors, isTargetCardShipped]);
 
     const clearError = () => {
         setRevealCardError({});
