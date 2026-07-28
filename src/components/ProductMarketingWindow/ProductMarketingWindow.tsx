@@ -36,10 +36,11 @@ type ProductMarketingWindowProps = {
 function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: ProductMarketingWindowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isExtraSmallScreenHeight, isInLandscapeMode} = useResponsiveLayout();
     const insets = useSafeAreaInsets();
     const theme = useTheme();
     const shouldUseLightMarketingWindow = theme.colorScheme === CONST.COLOR_SCHEME.DARK;
+    const shouldUseCompactNarrowLayout = shouldUseNarrowLayout && isExtraSmallScreenHeight && isInLandscapeMode;
     const buttonSize = shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL;
 
     return (
@@ -59,7 +60,9 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                     styles.productMarketingWindowContainer,
                     shouldUseLightMarketingWindow ? styles.productMarketingWindowContainerLight : styles.productMarketingWindowContainerDark,
                     styles.p5,
-                    shouldUseNarrowLayout ? styles.productMarketingWindowContainerNarrow : styles.productMarketingWindowContainerWide,
+                    shouldUseNarrowLayout
+                        ? [styles.productMarketingWindowContainerNarrow, shouldUseCompactNarrowLayout && styles.productMarketingWindowContainerNarrowCompact]
+                        : styles.productMarketingWindowContainerWide,
                 ]}
                 testID={ProductMarketingWindow.displayName}
             >

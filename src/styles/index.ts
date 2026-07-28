@@ -1212,6 +1212,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
             maxWidth: variables.productMarketingWindowMaxWidthNarrow,
         },
+        // Keep the full card visible on short landscape viewports without changing its bottom anchor or cropping the illustration.
+        productMarketingWindowContainerNarrowCompact: {
+            maxWidth: variables.productMarketingWindowWidth,
+        },
         productMarketingWindowIllustrationContainer: {
             alignItems: 'center',
             justifyContent: 'center',

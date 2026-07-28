@@ -5,15 +5,6 @@ import Onyx from 'react-native-onyx';
 
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
 const coveringModalIDs = new Set<number>();
-let nextCoveringModalID = 0;
-
-/**
- * Returns a unique ID for a modal instance's covering-registry entry.
- */
-function generateCoveringModalID() {
-    nextCoveringModalID += 1;
-    return nextCoveringModalID;
-}
 
 let onModalClose: null | (() => void | Promise<void>);
 let isNavigate: undefined | boolean;
@@ -116,31 +107,17 @@ function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
 /**
  * Allows other parts of app to know that an alert modal is about to open.
  * This will trigger as soon as a modal is opened but not yet visible while animation is running.
- * isPopover indicates that the next open modal is popover or bottom docked.
+ * isPopover indicates that the next open modal is popover or bottom docked
  */
 function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false) {
     // We cancel the pending and active tooltips here instead of in setModalVisibility because
     // we want to do it when a modal is going to show. If we do it when the modal is fully shown,
     // the tooltip in that modal won't show.
-    Onyx.merge(ONYXKEYS.MODAL, {
-        willAlertModalBecomeVisible: isVisible,
-        isPopover,
-    });
+    Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible, isPopover});
 }
 
 function areAllModalsHidden() {
     return closeModals.length === 0;
 }
 
-export {
-    setCloseModal,
-    close,
-    onModalDidClose,
-    setModalVisibility,
-    generateCoveringModalID,
-    setModalCovering,
-    willAlertModalBecomeVisible,
-    setDisableDismissOnEscape,
-    closeTop,
-    areAllModalsHidden,
-};
+export {setCloseModal, close, onModalDidClose, setModalVisibility, setModalCovering, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden};

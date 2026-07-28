@@ -45,24 +45,18 @@ type ProductMarketingWindowManagerProps = {
  * Mounted in the authenticated root navigator's extra content so it stays mounted across route changes.
  */
 function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindowManagerProps) {
-    const login = useCurrentUserPersonalDetails().login ?? '';
-    // Subscribe directly so both the eligible workspaces and their loading state are available. The CTA uses
-    // the active/default admin workspace when possible and otherwise falls back to the first eligible workspace.
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [activeAdminPolicies, activeAdminPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login),
+        selector: (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, currentUserLogin),
     });
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // Semantically covering overlays take precedence over the marketing window from pre-show through final hide.
     // Responsive popover sheets and route-backed right-docked navigation remain exempt.
     const [isProductMarketingWindowCovered = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED);
-    // Anonymous sessions (logged-out visitors of public rooms) should never see product marketing.
     const [isAnonymousSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
-    // Copilots must not see (or permanently dismiss) the account owner's announcement.
     const [isActingAsDelegate = false, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [lastDismissedMarketingWindow, lastDismissedMarketingWindowMetadata] = useOnyx(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW);
-    // On a fresh sign-in the cache reads above resolve instantly with empty values, so also wait for the OpenApp
-    // response (which delivers the dismissal NVP and policies) before showing anything. Defaults to true so a
-    // never-written key on a brand-new session is treated as still loading, mirroring useAIFeaturesPromoModal.
+    // OpenApp provides the dismissal and targeting data; wait for it to avoid a startup flash or a wrong CTA destination.
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
@@ -73,8 +67,6 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const targetAdminPolicyID = activeAdminPolicies?.find((policy) => policy.id === activePolicyID)?.id ?? activeAdminPolicies?.at(0)?.id;
     const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
-    // Wait for the dismissal NVP and workspace targeting data to load before showing anything, otherwise a
-    // dismissed window could flash on cold start or the CTA could briefly target the wrong workspace.
     const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, activeAdminPoliciesMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
 
     if (!announcement || !variant || isLoading || isProductMarketingWindowCovered || isAnonymousSession || isActingAsDelegate || isCoveredByCenteredModalScreen) {

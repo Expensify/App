@@ -21,7 +21,7 @@ import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPa
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {areAllModalsHidden, closeTop, generateCoveringModalID, onModalDidClose, setCloseModal, setModalCovering, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
+import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalCovering, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
@@ -111,19 +111,16 @@ function BaseModal({
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
     const bottomDockedDismissButtonRef = useRef<View>(null);
-    const fallbackModalIdRef = useRef<number | undefined>(undefined);
+    const [fallbackModalID] = useState(() => ComposerFocusManager.getId());
+    const coveringModalID = fallbackModalID;
     // On Android the hide callback fires from the reanimated exit-animation snapshot taken when the close began,
     // so it closes over that render's isVisible. Read the current value through a ref instead, or a reopen during
     // the exit would be misread as still closed and its covering entry cleared.
     const isVisibleRef = useRef(isVisible);
-    const [coveringModalID] = useState(generateCoveringModalID);
-    if (fallbackModalIdRef.current === undefined) {
-        fallbackModalIdRef.current = ComposerFocusManager.getId();
-    }
 
     const wasVisible = usePrevious(isVisible);
 
-    const uniqueModalId = modalId ?? fallbackModalIdRef.current;
+    const uniqueModalId = modalId ?? fallbackModalID;
     const saveFocusState = () => {
         if (shouldEnableNewFocusManagement) {
             ComposerFocusManager.saveFocusState(uniqueModalId);

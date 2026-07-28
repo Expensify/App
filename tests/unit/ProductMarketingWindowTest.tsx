@@ -628,4 +628,32 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({minHeight: variables.componentSizeNormal});
         expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({minHeight: variables.componentSizeNormal});
     });
+
+    it('uses the compact card width on extra-short landscape layouts', async () => {
+        mockUseResponsiveLayout.mockReturnValue({
+            ...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE,
+            shouldUseNarrowLayout: true,
+            isExtraSmallScreenHeight: true,
+            isInLandscapeMode: true,
+        });
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('ProductMarketingWindowAnchor')).toHaveStyle({
+            bottom: variables.productMarketingWindowOffsetNarrow,
+        });
+        expect(screen.getByTestId('ProductMarketingWindow')).toHaveStyle({
+            width: '100%',
+            maxWidth: variables.productMarketingWindowWidth,
+            padding: 20,
+        });
+        expect(screen.getByTestId('ProductMarketingWindowVisual')).toHaveStyle({
+            aspectRatio: variables.productMarketingWindowVisualAspectRatio,
+        });
+    });
 });
