@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletDefaultVendor} from '@libs/actions/connections/Rillet';
@@ -45,6 +46,7 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
             keyForList: vendorItem.id,
             isSelected: defaultCompanyCardVendorID === vendorItem.id,
         })) ?? [];
+    const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
         <View>
@@ -77,7 +79,8 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="RilletDefaultCompanyCardVendorPage"
             title="workspace.rillet.defaultCompanyCardVendor.label"
-            data={data}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
             onSelectRow={selectDefaultVendor}

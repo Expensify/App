@@ -761,6 +761,88 @@ describe('useGettingStartedItems', () => {
         });
     });
 
+    describe('row - Setup travel', () => {
+        it('should be shown when the travel feature is enabled', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem).toBeDefined();
+        });
+
+        it('should not be shown when the travel feature is not enabled', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: false},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem).toBeUndefined();
+        });
+
+        it('should navigate to the workspace travel route', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.route).toBe(ROUTES.WORKSPACE_TRAVEL.getRoute(POLICY_ID));
+        });
+
+        it('should be not completed when the workspace has not been provisioned with Spotnana', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true, travelSettings: undefined},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.isComplete).toBe(false);
+        });
+
+        it('should be completed once the workspace is provisioned with a Spotnana company ID', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true, travelSettings: {spotnanaCompanyID: 'spotnana-company-1'}},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.isComplete).toBe(true);
+        });
+
+        it('should be completed once the workspace is provisioned with an associated Spotnana travel domain account (no Spotnana company ID)', async () => {
+            // Real-world Spotnana entity-based provisioning populates associatedTravelDomainAccountID rather
+            // than spotnanaCompanyID, so isComplete must not rely on spotnanaCompanyID alone.
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true, travelSettings: {associatedTravelDomainAccountID: '12345', hasAcceptedTerms: true}},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.isComplete).toBe(true);
+        });
+    });
+
     describe('row 4 - Set up spend rules', () => {
         it('should be shown when areRulesEnabled is true', async () => {
             await setupManageTeamScenario({
@@ -1492,6 +1574,53 @@ describe('useGettingStartedItems', () => {
 
                 const {result} = renderHook(() => useGettingStartedItems());
                 await waitFor(() => expect(result.current.items.find((item) => item.key === 'linkCompanyCards')?.isComplete).toBe(true));
+            });
+        });
+
+        describe('setup travel step', () => {
+            it('should insert setupTravel after linkCompanyCards when both travel and company cards are enabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const keys = result.current.items.map((item) => item.key);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'setupTravel', 'inviteAccountant']);
+            });
+
+            it('should not show setupTravel when travel is not enabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: false}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem).toBeUndefined();
+            });
+
+            it('should navigate to the workspace travel route', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem?.route).toBe(ROUTES.WORKSPACE_TRAVEL.getRoute(POLICY_ID));
+            });
+
+            it('should be completed once the workspace is provisioned with a Spotnana company ID', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, travelSettings: {spotnanaCompanyID: 'spotnana-company-1'}}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem?.isComplete).toBe(true);
+            });
+
+            it('should be completed once the workspace is provisioned with an associated Spotnana travel domain account (no Spotnana company ID)', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, travelSettings: {associatedTravelDomainAccountID: '12345', hasAcceptedTerms: true}}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem?.isComplete).toBe(true);
             });
         });
 
