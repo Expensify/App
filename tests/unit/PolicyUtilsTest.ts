@@ -613,7 +613,9 @@ describe('PolicyUtils', () => {
     });
     describe('getRateDisplayValue', () => {
         it('should return an empty string for NaN', () => {
-            const rate = getRateDisplayValue('invalid' as unknown as number, toLocaleDigitMock);
+            // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The invalid string is the scenario under test.
+            const rate = getRateDisplayValue('invalid' as unknown as Parameters<typeof getRateDisplayValue>[0], toLocaleDigitMock);
             expect(rate).toEqual('');
         });
 
@@ -703,7 +705,9 @@ describe('PolicyUtils', () => {
 
     describe('getUnitRateValue', () => {
         it('should return an empty string for NaN', () => {
-            const rate = getUnitRateValue(toLocaleDigitMock, {rate: 'invalid' as unknown as number});
+            // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The invalid rate is the scenario under test.
+            const rate = getUnitRateValue(toLocaleDigitMock, {rate: 'invalid' as unknown as NonNullable<Parameters<typeof getUnitRateValue>[1]>['rate']});
             expect(rate).toEqual('');
         });
 
@@ -815,10 +819,12 @@ describe('PolicyUtils', () => {
                     category: '',
                     reportID: expenseReport.reportID,
                 };
-                await Onyx.multiSet({
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    }),
+                );
                 expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover1AccountID);
             });
             it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
@@ -874,10 +880,12 @@ describe('PolicyUtils', () => {
                     created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                     reportID: expenseReport.reportID,
                 };
-                await Onyx.multiSet({
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    }),
+                );
                 expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover2AccountID);
             });
             it('should return the first rule approver who is not the current submitter', async () => {
@@ -919,11 +927,13 @@ describe('PolicyUtils', () => {
                     created: testDate,
                 };
 
-                await Onyx.multiSet({
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`]: transaction3,
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`]: transaction3,
+                    }),
+                );
 
                 expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email)).toBe(tagApprover1AccountID);
             });
@@ -957,10 +967,12 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.multiSet({
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                    } as unknown as OnyxMultiSetInput);
+                    await Onyx.multiSet(
+                        createMock<OnyxMultiSetInput>({
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                        }),
+                    );
                     expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
@@ -992,10 +1004,12 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.multiSet({
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                    } as unknown as OnyxMultiSetInput);
+                    await Onyx.multiSet(
+                        createMock<OnyxMultiSetInput>({
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                        }),
+                    );
                     expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover2AccountID);
                 });
             });
@@ -1012,24 +1026,25 @@ describe('PolicyUtils', () => {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 role: '',
             };
-            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The empty role deliberately models malformed persisted policy data.
+            const result = shouldShowPolicy(policy as unknown as Parameters<typeof shouldShowPolicy>[0], false, CARLOS_EMAIL);
             // The result should be false since it is an archived paid policy.
             expect(result).toBe(false);
         });
         it('should return true', () => {
             // Given a paid policy.
-            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null};
-            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            const policy = createMock<OnyxEntry<Policy>>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null});
+            const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
             // The result should be true, since it is an active paid policy.
             expect(result).toBe(true);
         });
         it('should return false', () => {
             // Given a control workspace which is pending delete.
-            const policy = {
+            const policy = createMock<OnyxEntry<Policy>>({
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            };
-            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            });
+            const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
             // The result should be false since it is a policy which is pending deletion.
             expect(result).toEqual(false);
         });
@@ -1407,35 +1422,35 @@ describe('PolicyUtils', () => {
 
     describe('isPolicyMemberWithoutPendingDelete', () => {
         it('should return true if the policy member is not pending delete', () => {
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '1',
                 employeeList: {
                     [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
                 },
-            };
-            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy as unknown as Policy);
+            });
+            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy);
             expect(result).toBe(true);
         });
 
         it('should return false if the policy member is pending delete', () => {
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '1',
                 employeeList: {
                     [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
                 },
-            };
-            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy as unknown as Policy);
+            });
+            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy);
             expect(result).toBe(false);
         });
 
         it('should return false if the policy member is not found', () => {
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '1',
                 employeeList: {
                     [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
                 },
-            };
-            const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy as unknown as Policy);
+            });
+            const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy);
             expect(result).toBe(false);
         });
     });
@@ -3211,7 +3226,12 @@ describe('PolicyUtils', () => {
 
         it('handles undefined and empty inputs gracefully', () => {
             expect(getExpensifyTeamExclusions(undefined, undefined, 'customer@acme.com')).toEqual({});
-            expect(getExpensifyTeamExclusions(null as unknown as OnyxEntry<PersonalDetailsList>, null as unknown as OnyxCollection<Policy>, 'customer@acme.com')).toEqual({});
+            // The null values deliberately exercise the runtime guard for malformed Onyx data.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Null is the malformed-input scenario under test.
+            const nullPersonalDetails = null as unknown as Parameters<typeof getExpensifyTeamExclusions>[0];
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Null is the malformed-input scenario under test.
+            const nullPolicies = null as unknown as Parameters<typeof getExpensifyTeamExclusions>[1];
+            expect(getExpensifyTeamExclusions(nullPersonalDetails, nullPolicies, 'customer@acme.com')).toEqual({});
             expect(getExpensifyTeamExclusions({}, {}, 'customer@acme.com')).toEqual({});
         });
 

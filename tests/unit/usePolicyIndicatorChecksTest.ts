@@ -10,6 +10,7 @@ import type {OnyxMultiSetInput} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const userID = 'admin@expensify.com';
@@ -32,17 +33,19 @@ describe('usePolicyIndicatorChecks', () => {
     describe('policy error statuses', () => {
         it('returns HAS_POLICY_ERRORS when policy has errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                        errors: {policyError: 'Something went wrong'},
-                    },
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            errors: {policyError: 'Something went wrong'},
+                        },
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -55,17 +58,19 @@ describe('usePolicyIndicatorChecks', () => {
 
         it('returns HAS_CUSTOM_UNITS_ERROR when custom units have errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                        customUnits: {errors: {customUnitError: 'Invalid custom unit'}},
-                    },
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            customUnits: {errors: {customUnitError: 'Invalid custom unit'}},
+                        },
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -78,22 +83,24 @@ describe('usePolicyIndicatorChecks', () => {
 
         it('returns HAS_EMPLOYEE_LIST_ERROR when employee list has errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                        employeeList: {
-                            [otherUserID]: {
-                                email: otherUserID,
-                                errors: {employeeError: 'Employee error'},
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            employeeList: {
+                                [otherUserID]: {
+                                    email: otherUserID,
+                                    errors: {employeeError: 'Employee error'},
+                                },
                             },
                         },
-                    },
-                } as unknown as OnyxMultiSetInput);
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -106,29 +113,31 @@ describe('usePolicyIndicatorChecks', () => {
 
         it('returns HAS_SYNC_ERRORS when sync has errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                        connections: {
-                            quickbooksOnline: {
-                                lastSync: {
-                                    errorMessage: 'Sync failed',
-                                    isSuccessful: false,
-                                    errorDate: new Date().toISOString(),
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            connections: {
+                                quickbooksOnline: {
+                                    lastSync: {
+                                        errorMessage: 'Sync failed',
+                                        isSuccessful: false,
+                                        errorDate: new Date().toISOString(),
+                                    },
                                 },
                             },
                         },
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${WORKSPACE.policyID}` as const]: {
-                        stageInProgress: null,
-                        connectionName: 'quickbooksOnline',
-                    },
-                } as unknown as OnyxMultiSetInput);
+                        [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${WORKSPACE.policyID}` as const]: {
+                            stageInProgress: null,
+                            connectionName: 'quickbooksOnline',
+                        },
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -141,24 +150,26 @@ describe('usePolicyIndicatorChecks', () => {
 
         it('returns HAS_QBO_EXPORT_ERROR when QBO export has errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                        connections: {
-                            quickbooksOnline: {
-                                config: {
-                                    reimbursableExpensesExportDestination: 'VENDOR_BILL',
-                                    reimbursableExpensesAccount: undefined,
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            connections: {
+                                quickbooksOnline: {
+                                    config: {
+                                        reimbursableExpensesExportDestination: 'VENDOR_BILL',
+                                        reimbursableExpensesAccount: undefined,
+                                    },
                                 },
                             },
                         },
-                    },
-                } as unknown as OnyxMultiSetInput);
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -171,19 +182,21 @@ describe('usePolicyIndicatorChecks', () => {
 
         it('returns HAS_UBER_CREDENTIALS_ERROR when Uber credentials have errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                        receiptPartners: {
-                            uber: {error: 'Invalid Uber credentials'},
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            receiptPartners: {
+                                uber: {error: 'Invalid Uber credentials'},
+                            },
                         },
-                    },
-                } as unknown as OnyxMultiSetInput);
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -196,23 +209,25 @@ describe('usePolicyIndicatorChecks', () => {
 
         it('returns HAS_POLICY_ADMIN_CARD_FEED_ERRORS when admin has card feed errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                    },
-                    [ONYXKEYS.CARD_LIST]: {
-                        card1: {
-                            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-                            fundID: String(WORKSPACE.policyAccountID),
-                            lastScrapeResult: 403,
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
                         },
-                    },
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.CARD_LIST]: {
+                            card1: {
+                                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                                fundID: String(WORKSPACE.policyAccountID),
+                                lastScrapeResult: 403,
+                            },
+                        },
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -232,24 +247,26 @@ describe('usePolicyIndicatorChecks', () => {
 
         it('returns HAS_MERGE_HR_SETUP_NEEDED when merge HR setup is needed', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                        connections: {
-                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
-                                config: {integration: 'workday'},
-                                data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
-                                lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            connections: {
+                                [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                                    config: {integration: 'workday'},
+                                    data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                                    lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                                },
                             },
                         },
-                    },
-                    [ONYXKEYS.CARD_LIST]: {},
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -263,24 +280,26 @@ describe('usePolicyIndicatorChecks', () => {
 
         it('does not return HAS_MERGE_HR_SETUP_NEEDED for non-admin users', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: otherUserID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'user',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                        connections: {
-                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
-                                config: {integration: 'workday'},
-                                data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
-                                lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: otherUserID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'user',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            connections: {
+                                [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                                    config: {integration: 'workday'},
+                                    data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                                    lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                                },
                             },
                         },
-                    },
-                    [ONYXKEYS.CARD_LIST]: {},
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -300,11 +319,13 @@ describe('usePolicyIndicatorChecks', () => {
 
         it('returns HAS_DOMAIN_ERRORS when domain has errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}domain1` as const]: {
-                        errors: {domainError: 'Domain error'},
-                    },
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}domain1` as const]: {
+                            errors: {domainError: 'Domain error'},
+                        },
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -320,17 +341,19 @@ describe('usePolicyIndicatorChecks', () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                    },
-                    [ONYXKEYS.CARD_LIST]: {},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                        },
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -366,25 +389,27 @@ describe('usePolicyIndicatorChecks', () => {
     describe('error priority', () => {
         beforeAll(async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                        errors: {policyError: 'Policy error'},
-                        customUnits: {errors: {customUnitError: 'Custom unit error'}},
-                        employeeList: {
-                            [otherUserID]: {
-                                email: otherUserID,
-                                errors: {employeeError: 'Employee error'},
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            errors: {policyError: 'Policy error'},
+                            customUnits: {errors: {customUnitError: 'Custom unit error'}},
+                            employeeList: {
+                                [otherUserID]: {
+                                    email: otherUserID,
+                                    errors: {employeeError: 'Employee error'},
+                                },
                             },
                         },
-                    },
-                    [ONYXKEYS.CARD_LIST]: {},
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -407,35 +432,37 @@ describe('usePolicyIndicatorChecks', () => {
 
         it('returns both sync error and merge HR setup statuses when policy has both conditions', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                        connections: {
-                            quickbooksOnline: {
-                                lastSync: {
-                                    errorMessage: 'Sync failed',
-                                    isSuccessful: false,
-                                    errorDate: new Date().toISOString(),
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            connections: {
+                                quickbooksOnline: {
+                                    lastSync: {
+                                        errorMessage: 'Sync failed',
+                                        isSuccessful: false,
+                                        errorDate: new Date().toISOString(),
+                                    },
+                                },
+                                [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                                    config: {integration: 'workday'},
+                                    data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                                    lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
                                 },
                             },
-                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
-                                config: {integration: 'workday'},
-                                data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
-                                lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
-                            },
                         },
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${WORKSPACE.policyID}` as const]: {
-                        stageInProgress: null,
-                        connectionName: 'quickbooksOnline',
-                    },
-                    [ONYXKEYS.CARD_LIST]: {},
-                } as unknown as OnyxMultiSetInput);
+                        [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${WORKSPACE.policyID}` as const]: {
+                            stageInProgress: null,
+                            connectionName: 'quickbooksOnline',
+                        },
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -457,25 +484,27 @@ describe('usePolicyIndicatorChecks', () => {
 
         beforeAll(async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {email: userID},
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: WORKSPACE.policyAccountID,
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}${SECOND_WORKSPACE.policyID}` as const]: {
-                        id: SECOND_WORKSPACE.policyID,
-                        name: SECOND_WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        policyAccountID: SECOND_WORKSPACE.policyAccountID,
-                        errors: {policyError: 'Something went wrong'},
-                    },
-                    [ONYXKEYS.CARD_LIST]: {},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {email: userID},
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}${SECOND_WORKSPACE.policyID}` as const]: {
+                            id: SECOND_WORKSPACE.policyID,
+                            name: SECOND_WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: SECOND_WORKSPACE.policyAccountID,
+                            errors: {policyError: 'Something went wrong'},
+                        },
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
         });

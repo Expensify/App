@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -16,6 +18,10 @@ import * as Welcome from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 
+import type {UseOnyxResult} from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
+
 jest.mock('@hooks/useOnyx', () => {
     return {__esModule: true, default: jest.fn(() => [undefined])};
 });
@@ -26,11 +32,10 @@ jest.mock('@hooks/useLocalize');
 jest.mock('@hooks/usePreferredPolicy');
 jest.mock('@hooks/useOnboardingMessages');
 
-const mockTranslate = jest.fn((key: string) => key);
+const mockTranslate: LocalizedTranslate = (...parameters) => parameters[0];
 const mockFormatPhoneNumber = jest.fn((phone: string) => phone);
 
-// Single shared assertion so individual tests can re-mock useOnyx without repeating the unsafe cast
-const mockUseOnyx = useOnyx as jest.Mock;
+const mockUseOnyx = jest.mocked(useOnyx);
 
 const MOCK_SESSION = {
     accountID: 12345,
@@ -39,42 +44,46 @@ const MOCK_SESSION = {
 
 const MOCK_POLICY_ID = 'mock-policy-id';
 const MOCK_ADMINS_CHAT_REPORT_ID = 'mock-admins-chat-report-id';
-const MOCK_ONBOARDING_MESSAGE = {message: 'Welcome!', video: undefined, tasks: []};
+const MOCK_ONBOARDING_MESSAGE = createMock<ReturnType<typeof useOnboardingMessages>['onboardingMessages'][typeof CONST.ONBOARDING_CHOICES.EMPLOYER]>({
+    message: 'Welcome!',
+    video: undefined,
+    tasks: [],
+});
 
 function setupDefaultMocks() {
     mockUseOnyx.mockImplementation((key: string) => {
         if (key === 'session') {
-            return [MOCK_SESSION];
+            return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
         }
         if (key === 'betas') {
-            return [[]];
+            return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
         }
         if (key.startsWith('policy_')) {
-            return [false];
+            return [false, {status: 'loaded'}] satisfies UseOnyxResult<boolean>;
         }
-        return [undefined];
+        return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
     });
 
-    (useCurrentUserPersonalDetails as jest.Mock).mockReturnValue({
+    jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
         accountID: MOCK_SESSION.accountID,
         login: MOCK_SESSION.email,
         localCurrencyCode: 'USD',
     });
 
-    (useLocalize as jest.Mock).mockReturnValue({
+    jest.mocked(useLocalize).mockReturnValue({
         translate: mockTranslate,
         formatPhoneNumber: mockFormatPhoneNumber,
     });
 
-    (usePreferredPolicy as jest.Mock).mockReturnValue({
+    jest.mocked(usePreferredPolicy).mockReturnValue({
         isRestrictedToPreferredPolicy: false,
         preferredPolicyID: undefined,
         isRestrictedPolicyCreation: false,
     });
 
-    (useHasActiveAdminPolicies as jest.Mock).mockReturnValue(false);
+    jest.mocked(useHasActiveAdminPolicies).mockReturnValue(false);
 
-    (useOnboardingMessages as jest.Mock).mockReturnValue({
+    jest.mocked(useOnboardingMessages).mockReturnValue({
         onboardingMessages: {
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: MOCK_ONBOARDING_MESSAGE,
         },
@@ -82,10 +91,12 @@ function setupDefaultMocks() {
 }
 
 describe('useAutoCreateSubmitWorkspace', () => {
-    const createWorkspaceSpy = jest.spyOn(Policy, 'createWorkspace').mockReturnValue({
-        policyID: MOCK_POLICY_ID,
-        adminsChatReportID: MOCK_ADMINS_CHAT_REPORT_ID,
-    } as ReturnType<typeof Policy.createWorkspace>);
+    const createWorkspaceSpy = jest.spyOn(Policy, 'createWorkspace').mockReturnValue(
+        createMock<ReturnType<typeof Policy.createWorkspace>>({
+            policyID: MOCK_POLICY_ID,
+            adminsChatReportID: MOCK_ADMINS_CHAT_REPORT_ID,
+        }),
+    );
     const completeOnboardingSpy = jest.spyOn(Report, 'completeOnboarding').mockImplementation(jest.fn());
     const setOnboardingAdminsChatReportIDSpy = jest.spyOn(Welcome, 'setOnboardingAdminsChatReportID').mockImplementation(jest.fn());
     const setOnboardingPolicyIDSpy = jest.spyOn(Welcome, 'setOnboardingPolicyID').mockImplementation(jest.fn());
@@ -175,23 +186,23 @@ describe('useAutoCreateSubmitWorkspace', () => {
         const existingPolicyID = 'existing-policy-id';
         const existingAdminsReportID = 'existing-admins-report-id';
 
-        (useOnyx as jest.Mock).mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key: string) => {
             if (key === 'onboardingPolicyID') {
-                return [existingPolicyID];
+                return [existingPolicyID, {status: 'loaded'}] satisfies UseOnyxResult<typeof existingPolicyID>;
             }
             if (key === 'onboardingAdminsChatReportID') {
-                return [existingAdminsReportID];
+                return [existingAdminsReportID, {status: 'loaded'}] satisfies UseOnyxResult<typeof existingAdminsReportID>;
             }
             if (key === 'session') {
-                return [MOCK_SESSION];
+                return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
             }
             if (key === 'betas') {
-                return [[]];
+                return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
             }
             if (key.startsWith('policy_')) {
-                return [false];
+                return [false, {status: 'loaded'}] satisfies UseOnyxResult<boolean>;
             }
-            return [undefined];
+            return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
         });
 
         // When the onboarding flow runs
@@ -211,23 +222,23 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('skips workspace creation when the user is already a paid group policy admin', () => {
         // Given a user who is already an admin of a paid group policy
-        (useOnyx as jest.Mock).mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key: string) => {
             if (key === 'session') {
-                return [MOCK_SESSION];
+                return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
             }
             if (key === 'betas') {
-                return [[]];
+                return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
             }
             if (key === 'onboardingPolicyID') {
-                return [undefined];
+                return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
             }
             if (key === 'onboardingAdminsChatReportID') {
-                return [undefined];
+                return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
             }
             if (key.startsWith('policy_')) {
-                return [true];
+                return [true, {status: 'loaded'}] satisfies UseOnyxResult<boolean>;
             }
-            return [undefined];
+            return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
         });
 
         // When onboarding completes
@@ -241,7 +252,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('skips workspace creation when the user domain restricts policy creation', () => {
         // Given a user whose domain security group has enableRestrictedPolicyCreation set to true
-        (usePreferredPolicy as jest.Mock).mockReturnValue({
+        jest.mocked(usePreferredPolicy).mockReturnValue({
             isRestrictedToPreferredPolicy: false,
             preferredPolicyID: undefined,
             isRestrictedPolicyCreation: true,
@@ -259,7 +270,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('still completes onboarding and navigates even when workspace creation is skipped', async () => {
         // Given a user who cannot create a workspace due to domain restrictions
-        (usePreferredPolicy as jest.Mock).mockReturnValue({
+        jest.mocked(usePreferredPolicy).mockReturnValue({
             isRestrictedToPreferredPolicy: false,
             preferredPolicyID: undefined,
             isRestrictedPolicyCreation: true,
@@ -287,10 +298,10 @@ describe('useAutoCreateSubmitWorkspace', () => {
         };
         mockUseOnyx.mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
             if (key === 'session') {
-                return [MOCK_SESSION];
+                return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
             }
             if (key === 'betas') {
-                return [[]];
+                return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
             }
             if (key.startsWith('policy_')) {
                 // Run the hook's real selectors against a fake policy collection so both the
@@ -298,12 +309,13 @@ describe('useAutoCreateSubmitWorkspace', () => {
                 // Unrelated policy-collection selectors (e.g. useLastWorkspaceNumber's) expect extra
                 // arguments this mock doesn't provide, so fall back to undefined when they throw.
                 try {
-                    return [options?.selector?.({[`policy_${existingSubmitPolicy.id}`]: existingSubmitPolicy})];
+                    const selectedPolicy = options?.selector?.({[`policy_${existingSubmitPolicy.id}`]: existingSubmitPolicy});
+                    return [selectedPolicy, {status: 'loaded'}] satisfies UseOnyxResult<typeof selectedPolicy>;
                 } catch {
-                    return [undefined];
+                    return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
                 }
             }
-            return [undefined];
+            return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
         });
 
         // When the user confirms the Submit plan welcome modal again
@@ -327,19 +339,20 @@ describe('useAutoCreateSubmitWorkspace', () => {
         };
         mockUseOnyx.mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
             if (key === 'session') {
-                return [MOCK_SESSION];
+                return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
             }
             if (key === 'betas') {
-                return [[]];
+                return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
             }
             if (key.startsWith('policy_')) {
                 try {
-                    return [options?.selector?.({[`policy_${existingSubmitPolicy.id}`]: existingSubmitPolicy})];
+                    const selectedPolicy = options?.selector?.({[`policy_${existingSubmitPolicy.id}`]: existingSubmitPolicy});
+                    return [selectedPolicy, {status: 'loaded'}] satisfies UseOnyxResult<typeof selectedPolicy>;
                 } catch {
-                    return [undefined];
+                    return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
                 }
             }
-            return [undefined];
+            return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
         });
 
         // When the onboarding flow runs (shouldCompleteOnboarding defaults to true)
@@ -355,7 +368,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('uses the localCurrencyCode from personal details for workspace currency', () => {
         // Given a user whose personal details have localCurrencyCode set to GBP
-        (useCurrentUserPersonalDetails as jest.Mock).mockReturnValue({
+        jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
             accountID: MOCK_SESSION.accountID,
             login: MOCK_SESSION.email,
             localCurrencyCode: 'GBP',
@@ -375,7 +388,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('falls back to USD when localCurrencyCode is not available', () => {
         // Given a user whose personal details do not have a localCurrencyCode set
-        (useCurrentUserPersonalDetails as jest.Mock).mockReturnValue({
+        jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
             accountID: MOCK_SESSION.accountID,
             login: MOCK_SESSION.email,
             localCurrencyCode: undefined,

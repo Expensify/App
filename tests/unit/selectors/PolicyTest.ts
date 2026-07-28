@@ -13,6 +13,7 @@ import {
 } from '@selectors/Policy';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 
 const OWNER_ACCOUNT_ID = 1;
 
@@ -78,14 +79,14 @@ function buildSelectorPolicy(id: number, overrides: Partial<Policy>): Policy {
 function buildNetSuitePolicy(id: number, overrides: Partial<Policy> = {}): Policy {
     return buildSelectorPolicy(id, {
         role: CONST.POLICY.ROLE.ADMIN,
-        connections: {
+        connections: createMock<Policy['connections']>({
             netsuite: {
                 verified: true,
                 lastSync: {
                     isSuccessful: true,
                 },
             },
-        } as Policy['connections'],
+        }),
         ...overrides,
     });
 }
@@ -93,14 +94,14 @@ function buildNetSuitePolicy(id: number, overrides: Partial<Policy> = {}): Polic
 function buildSageIntacctPolicy(id: number, overrides: Partial<Policy> = {}): Policy {
     return buildSelectorPolicy(id, {
         role: CONST.POLICY.ROLE.ADMIN,
-        connections: {
+        connections: createMock<Policy['connections']>({
             intacct: {
                 lastSync: {
                     isConnected: true,
                     isSuccessful: true,
                 },
             },
-        } as Policy['connections'],
+        }),
         ...overrides,
     });
 }
@@ -156,7 +157,7 @@ describe('activeAdminPoliciesSelector', () => {
 describe('adminPoliciesConnectedToQBDSelector', () => {
     it('returns admin policies with QBD connections', () => {
         const policies: OnyxCollection<Policy> = {
-            policy1: buildSelectorPolicy(1, {name: 'QBD Policy', role: CONST.POLICY.ROLE.ADMIN, connections: {quickbooksDesktop: {}} as Policy['connections']}),
+            policy1: buildSelectorPolicy(1, {name: 'QBD Policy', role: CONST.POLICY.ROLE.ADMIN, connections: createMock<Policy['connections']>({quickbooksDesktop: {}})}),
             policy2: buildSelectorPolicy(2, {name: 'No Connection', role: CONST.POLICY.ROLE.ADMIN}),
         };
 
@@ -167,7 +168,7 @@ describe('adminPoliciesConnectedToQBDSelector', () => {
 
     it('excludes non-admin policies with QBD connections', () => {
         const policies: OnyxCollection<Policy> = {
-            policy1: buildSelectorPolicy(1, {name: 'User QBD', role: CONST.POLICY.ROLE.USER, connections: {quickbooksDesktop: {}} as Policy['connections']}),
+            policy1: buildSelectorPolicy(1, {name: 'User QBD', role: CONST.POLICY.ROLE.USER, connections: createMock<Policy['connections']>({quickbooksDesktop: {}})}),
         };
 
         expect(adminPoliciesConnectedToQBDSelector(policies)).toHaveLength(0);
@@ -189,26 +190,26 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
             policy1: buildSelectorPolicy(1, {
                 name: 'Current Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             isConnected: true,
                             isSuccessful: true,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
             policy2: buildSelectorPolicy(2, {
                 name: 'Healthy Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             isConnected: true,
                             isSuccessful: true,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -224,14 +225,14 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
             policy1: buildSelectorPolicy(1, {
                 name: 'Current Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             isConnected: true,
                             isSuccessful: true,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -248,7 +249,7 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
             policy2: buildSelectorPolicy(2, {
                 name: 'Unsynced Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {quickbooksDesktop: {}} as Policy['connections'],
+                connections: createMock<Policy['connections']>({quickbooksDesktop: {}}),
             }),
         };
 
@@ -262,7 +263,7 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
             policy2: buildSelectorPolicy(2, {
                 name: 'Errored Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             errorDate: new Date().toISOString(),
@@ -270,7 +271,7 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
                             isSuccessful: false,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -286,7 +287,7 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
             policy2: buildSelectorPolicy(2, {
                 name: 'Retrying Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             errorDate: new Date().toISOString(),
@@ -294,7 +295,7 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
                             isSuccessful: false,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -308,14 +309,14 @@ describe('hasReusablePoliciesConnectedToSelector for QBD', () => {
         const policies: OnyxCollection<Policy> = {
             policy1: buildSelectorPolicy(1, {
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             isConnected: true,
                             isSuccessful: true,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -345,7 +346,7 @@ describe('reusablePoliciesConnectedToSelector for NetSuite', () => {
             policy2: buildNetSuitePolicy(2, {name: 'Healthy Workspace'}),
             policy3: buildNetSuitePolicy(3, {
                 name: 'Broken Workspace',
-                connections: {
+                connections: createMock<Policy['connections']>({
                     netsuite: {
                         verified: true,
                         lastSync: {
@@ -353,15 +354,15 @@ describe('reusablePoliciesConnectedToSelector for NetSuite', () => {
                             isSuccessful: false,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
             policy4: buildNetSuitePolicy(4, {
                 name: 'Unverified Workspace',
-                connections: {
+                connections: createMock<Policy['connections']>({
                     netsuite: {
                         verified: false,
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -377,7 +378,7 @@ describe('reusablePoliciesConnectedToSelector for Sage Intacct', () => {
             policy2: buildSageIntacctPolicy(2, {name: 'Healthy Workspace'}),
             policy3: buildSageIntacctPolicy(3, {
                 name: 'Broken Workspace',
-                connections: {
+                connections: createMock<Policy['connections']>({
                     intacct: {
                         lastSync: {
                             errorDate: new Date().toISOString(),
@@ -385,13 +386,13 @@ describe('reusablePoliciesConnectedToSelector for Sage Intacct', () => {
                             isSuccessful: false,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
             policy4: buildSageIntacctPolicy(4, {
                 name: 'Unverified Workspace',
-                connections: {
+                connections: createMock<Policy['connections']>({
                     intacct: {},
-                } as Policy['connections'],
+                }),
             }),
         };
 
