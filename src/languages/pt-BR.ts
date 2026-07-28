@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -440,6 +442,7 @@ const translations: TranslationDeepObject<typeof en> = {
         print: 'Imprimir',
         help: 'Ajuda',
         collapsed: 'Recolhido',
+        expand: 'Expandir',
         expanded: 'Expandido',
         expenseReport: 'Relatório de despesas',
         rateOutOfPolicy: 'Tarifa fora da política',
@@ -2577,6 +2580,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Use este cartão para suas reservas no Expensify Travel. Ele aparecerá como “Travel Card” no checkout.',
         },
         chaseAccountNumberDifferent: 'Por que meu número de conta é diferente?',
+        cardLastSynced: (relativeDate: string) => `Sincronizado em ${relativeDate}`,
+        cardNeverSynced: 'Nunca sincronizado',
+        cardStatus: {
+            active: 'Ativo',
+            inactive: 'Inativo',
+            fixConnection: 'Corrija esta conexão',
+            fixConnectionIn: (companyCardsRoute: string) => `Corrija esta conexão em <a href="${companyCardsRoute}">cartões corporativos</a>`,
+            askAdminToFixConnection: 'Peça para um administrador corrigir essa conexão',
+        },
+        bankAccountStatus: {
+            active: 'Ativo',
+            incomplete: 'Incompleto',
+            pending: 'Pendente',
+            verifying: 'Verificando',
+            reviewingDocumentation: 'Estamos analisando sua documentação',
+            finishAddingBankAccount: 'Concluir adição da conta bancária',
+            finish: 'Concluir',
+            confirmTestTransactions: 'Confirme as transações de teste',
+            accountRequiresAttention: 'Esta conta precisa de atenção',
+            unlock: 'Desbloquear',
+        },
     },
     cardPage: {
         expensifyCard: 'Cartão Expensify',
@@ -5021,7 +5045,9 @@ ${amount} para ${merchant} - ${date}`,
             creditCardAccount: 'Conta de cartão de crédito',
             defaultVendor: 'Fornecedor padrão',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Defina um fornecedor padrão que será aplicado às despesas reembolsáveis ${isReimbursable ? '' : 'não-'} que não tiverem um fornecedor correspondente no Sage Intacct.`,
+                isReimbursable
+                    ? `Defina um fornecedor padrão que será aplicado às despesas reembolsáveis que não tiverem um fornecedor correspondente no Sage Intacct.`
+                    : `As despesas que não puderem ser associadas aos seus fornecedores do Sage Intacct serão atribuídas a este fornecedor por padrão.`,
             exportDescription: 'Configure como os dados do Expensify são exportados para o Sage Intacct.',
             exportPreferredExporterNote:
                 'O exportador preferencial pode ser qualquer administrador do espaço de trabalho, mas também deve ser um Administrador de Domínio se você definir diferentes contas de exportação para cartões corporativos individuais em Configurações de Domínio.',
@@ -6915,6 +6941,12 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             exportCompanyCard: 'Exportar despesas de cartão corporativo como',
             exportDate: 'Data de exportação',
             defaultVendor: 'Fornecedor padrão',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Despesas que não forem correspondidas automaticamente terão este fornecedor como padrão.`
+                    : `Despesas que não forem conciliadas automaticamente serão atribuídas a este fornecedor por padrão. Caso contrário, serão exportadas como Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Escolha um fornecedor padrão do ${connectionName} para despesas que não sejam correspondidas automaticamente.`,
             defaultAccount: 'Conta padrão',
             autoSync: 'Sincronização automática',
             autoSyncDescription: 'Sincronize NetSuite e Expensify automaticamente, todos os dias. Exporte relatórios finalizados em tempo real',
@@ -8897,6 +8929,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagar',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
+            filterType: {label: 'Tipo de filtro', has: {positive: 'tem', negative: 'não tem'}, is: {positive: 'é', negative: 'não é'}},
         },
         display: {
             label: 'Exibir',
