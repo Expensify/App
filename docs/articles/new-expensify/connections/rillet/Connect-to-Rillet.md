@@ -90,4 +90,4 @@ Tax rates are only imported if your Rillet organization returns them. If no tax 
 
 ## Can I change which subsidiary is used?
 
-Yes. If your Rillet organization has multiple subsidiaries, you can select a different subsidiary at any time from the **Connectsions** section. Expensify will sync data from the newly selected subsidiary, including its accounts, dimensions, and tax rates.
+Yes. If your Rillet organization has multiple subsidiaries, you can select a different subsidiary at any time from the **Connections** section. Expensify will sync data from the newly selected subsidiary, including its accounts, dimensions, and tax rates.
