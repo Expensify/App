@@ -346,6 +346,38 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result).toEqual(existingValue);
     });
 
+    it('onReset drops the policy baseline so the next compute recomputes referencing reports (cache-clear lifecycle)', () => {
+        // Seed previousPolicies so an unchanged policy would normally narrow to nothing.
+        config.compute(buildArgs(), {
+            currentValue: undefined,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+        });
+
+        // Simulate the engine's clear reset.
+        config.onReset?.();
+
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Stale r1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Stale r2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+        };
+
+        // Same (unchanged) policies as the seed. Without onReset, previousPolicies would match → no recompute →
+        // stale names kept. After onReset the baseline is gone, so hasPolicyRelevantFieldChanged(undefined, policy)
+        // is true and the referencing reports recompute.
+        const result = config.compute(buildArgs(), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies as never},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+        });
+
+        expect(result?.reports.r1?.reportName).not.toBe('Stale r1');
+        expect(result?.reports.r2?.reportName).not.toBe('Stale r2');
+    });
+
     it('recomputes the parent workspace chat when a transaction on its expense report changes', () => {
         const expenseReport: Report = {...createRandomReport(10, undefined), reportID: 'expense1', policyID: 'policy3', chatReportID: 'chat1'};
         const chatReport: Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: 'chat1', policyID: 'policy3', chatReportID: undefined};
