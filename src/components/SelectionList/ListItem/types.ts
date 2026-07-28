@@ -149,6 +149,9 @@ type ListItem<K extends string | number = string> = {
     /** The style to override the default appearance */
     itemStyle?: StyleProp<ViewStyle>;
 
+    /** Styles applied to the item title */
+    titleStyles?: StyleProp<TextStyle>;
+
     /** Boolean whether to display the right icon */
     shouldShowRightCaret?: boolean;
 
