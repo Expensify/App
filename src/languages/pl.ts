@@ -7786,6 +7786,18 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 editRuleTitle: 'Edytuj regułę',
                 deleteRule: 'Usuń regułę',
                 deleteRuleConfirmation: 'Na pewno chcesz usunąć tę regułę?',
+                unableToRemoveTitle: 'Nie można usunąć',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `<a href="${rulesRoute}">Zasady agenta</a> egzekwowane przez RuleBot muszą najpierw zostać usunięte z przestrzeni roboczej, zanim będzie można usunąć tego agenta.`,
+                unableToCloseAccountTitle: 'Nie można zamknąć konta',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `<a href="${rulesRoute}">Zasady agenta</a> egzekwowane przez RuleBot muszą najpierw zostać usunięte z przestrzeni roboczej, zanim będzie można zamknąć to konto.`,
+                unableToDeleteAgentTitle: 'Nie można usunąć agenta',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `<a href="${rulesRoute}">Zasady agenta</a> egzekwowane przez RuleBot muszą najpierw zostać usunięte z przestrzeni roboczej, zanim będzie można usunąć tego agenta.`,
+                unableToChangeRoleTitle: 'Nie można zmienić roli',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `<a href="${rulesRoute}">Zasady agenta</a> egzekwowane przez RuleBot muszą najpierw zostać usunięte z przestrzeni roboczej, zanim będzie można zmienić rolę tego agenta.`,
                 describeRuleTitle: 'Opisz zasadę, której ma przestrzegać twój agent AI',
                 describeRuleHeadline: 'Opisz swoją regułę',
                 disclaimer: 'Agenci AI mogą popełniać błędy.',

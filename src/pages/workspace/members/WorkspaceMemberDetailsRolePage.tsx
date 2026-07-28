@@ -4,8 +4,10 @@ import type {ListItemType} from '@components/WorkspaceMemberRoleList';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 
 import {updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
+import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -33,6 +35,7 @@ type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingPr
 function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: WorkspaceMemberDetailsRolePageProps) {
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
+    const showRuleBotGuardModal = useRuleBotGuardModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
@@ -48,6 +51,10 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
             return;
         }
         if (!canMemberAssignRole(policy, currentUserLogin, value)) {
+            return;
+        }
+        if (value !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
+            showRuleBotGuardModal('changeRole', policyID);
             return;
         }
         updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);
