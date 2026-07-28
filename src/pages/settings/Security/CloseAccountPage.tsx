@@ -10,8 +10,10 @@ import TextInput from '@components/TextInput';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -32,11 +34,16 @@ import {View} from 'react-native';
 function CloseAccountPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    // The account being closed can be a workspace's RuleBot agent (e.g. when accessed via copilot). Closing it would leave the workspace's Agent rules without an enforcer, so it stays open until those rules are removed.
+    const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(session?.accountID, policies);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
 
     const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
     const showCloseAccountWarningModal = () => {
         return showConfirmModal({
             title: translate('closeAccountPage.closeAccountWarning'),
@@ -56,6 +63,10 @@ function CloseAccountPage() {
     useEffect(() => () => clearError(), []);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
+        if (ruleBotEnforcedPolicy) {
+            showRuleBotGuardModal('closeAccount', ruleBotEnforcedPolicy.id);
+            return;
+        }
         showCloseAccountWarningModal().then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -110,6 +121,10 @@ function CloseAccountPage() {
                 submitButtonText={translate('closeAccountPage.closeAccount')}
                 style={[styles.flexGrow1, styles.mh5]}
                 isSubmitActionDangerous
+                // onSubmit only opens a confirmation modal, so the press spinner would stay on forever when the modal
+                // is dismissed or blocked; the real loading state comes from the form's Onyx isLoading once the
+                // CloseAccount request is sent.
+                shouldShowLoadingImmediatelyOnPress={false}
             >
                 <View
                     fsClass={CONST.FULLSTORY.CLASS.UNMASK}
