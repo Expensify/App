@@ -5733,7 +5733,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             fromOtherWorkspaces: 'Aus anderen Workspaces',
             addWorkEmail: 'Fügen Sie Ihre Arbeits-E-Mail hinzu',
             addWorkEmailDescription:
-                'Bitte fügen Sie Ihre Arbeits-E-Mail hinzu und legen Sie sie als Ihre primäre Kontaktmethode fest, um vorhandene Feeds aus anderen Workspaces zu nutzen.',
+                'Bitte fügen Sie Ihre Arbeits-E-Mail-Adresse hinzu und legen Sie sie als primäre Kontaktmethode fest, um vorhandene Feeds aus anderen Workspaces zu nutzen.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kartendaten konnten nicht geladen werden',
                 workspaceFeedsCouldNotBeLoadedMessage:

@@ -5652,7 +5652,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             selectCards: 'カードを選択',
             fromOtherWorkspaces: '他のワークスペースから',
             addWorkEmail: 'あなたの勤務用メールアドレスを追加',
-            addWorkEmailDescription: '他のワークスペースの既存フィードを使用するには、勤務用メールアドレスを追加し、主要な連絡先に設定してください。',
+            addWorkEmailDescription: '既存の他のワークスペースのフィードを利用するには、勤務先メールアドレスを追加し、主な連絡先として設定してください。',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースカードフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',
