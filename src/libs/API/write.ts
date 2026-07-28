@@ -8,7 +8,7 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import type {ApiRequestCommandParameters, WriteCommand} from './types';
 
-import {buildLogParams, prepareRequest, processRequest} from './requestPipeline';
+import {buildLogParams, prepareRequest, processRequest} from './makeRequest';
 
 /**
  * The `API.write()` implementation. It lives here rather than in index.ts so that `writeWhenReady` can

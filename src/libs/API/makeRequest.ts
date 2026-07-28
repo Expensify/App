@@ -36,7 +36,7 @@ import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType} from './ty
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
 // e.g. an error thrown in Logging or Reauthenticate logic will be caught by the next middleware or the SequentialQueue which retries failing requests.
-// This lives alongside the pipeline (rather than in index.ts) so registration happens for any entry point that can process a request, not just the barrel.
+// This lives alongside prepareRequest/processRequest (rather than in index.ts) so registration happens for any entry point that can process a request, not just the barrel.
 
 // Logging - Logs request details and errors.
 addMiddleware(Logging);

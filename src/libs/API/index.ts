@@ -15,7 +15,7 @@ import type {OnyxKey} from 'react-native-onyx';
 import type {ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
 import type {WriteReadyBarrier} from './writeWhenReady';
 
-import {buildLogParams, prepareRequest, processRequest} from './requestPipeline';
+import {buildLogParams, prepareRequest, processRequest} from './makeRequest';
 import {READ_COMMANDS} from './types';
 import baseWrite from './write';
 import {createTransitionBarrier, writeWhenReady} from './writeWhenReady';

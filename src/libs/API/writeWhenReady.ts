@@ -11,7 +11,7 @@ import {AppState} from 'react-native';
 
 import type {ApiRequestCommandParameters, WriteCommand} from './types';
 
-import {buildLogParams} from './requestPipeline';
+import {buildLogParams} from './makeRequest';
 import write from './write';
 
 /**
