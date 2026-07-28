@@ -10,6 +10,8 @@ import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {expensifyCardFeedsForDisplaySelector} from '@selectors/Card';
+
 import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -61,13 +63,20 @@ const useCardFeedsForDisplay = () => {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [expensifyCardFeeds] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: expensifyCardFeedsForDisplaySelector});
     const eligiblePoliciesIDsArray = eligiblePoliciesSelector(allPolicies);
 
     const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards, allPolicies);
 
     const defaultCardFeed = getDefaultCardFeed(eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare);
 
-    return {defaultCardFeed, cardFeedsByPolicy};
+    // Resolve the Expensify Card feed for the *active* workspace only. A feed belongs to a workspace when its
+    // `fundID` matches that policy's `policyAccountID`. Scoping to the active policy prevents pulling in an
+    // Expensify Card that belongs to a different workspace the user happens to also be a member of.
+    const activePolicyAccountID = activePolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.policyAccountID : undefined;
+    const activeExpensifyCardFeedID = activePolicyAccountID ? expensifyCardFeeds?.find((feed) => feed.fundID === String(activePolicyAccountID))?.id : undefined;
+
+    return {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID};
 };
 
 export default useCardFeedsForDisplay;
