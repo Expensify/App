@@ -78,6 +78,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const backTo = route.params.backTo;
+    // backTo is optional when this page is opened directly (e.g. via a deep link), so fall back to the profile
+    // route instead of letting createDynamicRoute default to the current (details) route as the base path.
+    const contactMethodsBackTo = backTo ?? ROUTES.SETTINGS_PROFILE.route;
 
     /**
      * Gets the current contact method from the route params
@@ -157,13 +160,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         if (isFocused) {
             // Navigate to methods page on successful magic code verification.
             // The validatedDate property indicates successful magic code verification.
-            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo));
+            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, contactMethodsBackTo));
         } else {
             // Set flag to navigate when screen regains focus
             setShouldNavigateOnFocus(true);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Omitting `isFocused` since we don't want this effect to on focus transitions
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, contactMethodsBackTo]);
 
     // Handle navigation when screen regains focus and flag is set
     useEffect(() => {
@@ -171,7 +174,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
         setShouldNavigateOnFocus(false);
-        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo));
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, contactMethodsBackTo));
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Only fire on focus transitions
     }, [isFocused]);
 
@@ -253,8 +256,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 <FullPageNotFoundView
                     shouldShow
                     linkTranslationKey="contacts.goBackContactMethods"
-                    onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo))}
-                    onLinkPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo))}
+                    onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, contactMethodsBackTo))}
+                    onLinkPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, contactMethodsBackTo))}
                 />
             </ScreenWrapper>
         );
@@ -350,7 +353,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             <HeaderWithBackButton
                 title={formattedContactMethod}
                 threeDotsMenuItems={getThreeDotsMenuItems()}
-                onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo))}
+                onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, contactMethodsBackTo))}
                 shouldShowThreeDotsButton={getThreeDotsMenuItems().length > 0}
                 shouldOverlayDots
                 onThreeDotsButtonPress={() => {
@@ -372,7 +375,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         onDismiss={() => {
                             clearContactMethod([contactMethod]);
                             clearUnvalidatedNewContactMethodAction();
-                            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo));
+                            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, contactMethodsBackTo));
                         }}
                     />
                 )}
