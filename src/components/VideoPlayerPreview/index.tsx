@@ -2,7 +2,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
-import {addSkipTimeTagToURL} from '@components/VideoPlayer/utils';
+import {buildVideoSourceURL} from '@components/VideoPlayer/utils';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
@@ -14,7 +14,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import getPlatform from '@libs/getPlatform';
 
 import Navigation from '@navigation/Navigation';
@@ -81,9 +80,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {isOffline} = useNetwork();
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
-    const [sourceURL] = useState(() =>
-        videoUrl.includes('blob:') || videoUrl.includes('file:///') ? videoUrl : addSkipTimeTagToURL(addEncryptedAuthTokenToURL(videoUrl, encryptedAuthToken), 0.001),
-    );
+    const sourceURL = buildVideoSourceURL(videoUrl, encryptedAuthToken);
 
     // While offline, render BaseVideoPlayer instead of the thumbnail so the existing player-level offline state is shown consistently.
     const shouldRenderVideoPlayer = !isDeleted && (isOffline || (!isSmallScreenWidth && !isThumbnail));

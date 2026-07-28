@@ -1,4 +1,11 @@
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileWebKit} from '@libs/Browser';
+
+/**
+ * Skip the first millisecond so a paused video can still show a proper preview frame.
+ * Applied via a `#t=` URL fragment.
+ */
+const VIDEO_SKIP_TIME_SECONDS = 0.001;
 
 /**
  * Converts seconds to '[hours:]minutes:seconds' format
@@ -24,4 +31,16 @@ function addSkipTimeTagToURL(url: string, seconds: number) {
     return `${url}#t=${seconds}`;
 }
 
-export {convertSecondsToTime, addSkipTimeTagToURL};
+/**
+ * Builds the playable video source URL, preserving local/blob URLs and attaching
+ * auth + skip-time tags for remote attachments.
+ */
+function buildVideoSourceURL(url: string, encryptedAuthToken: string) {
+    if (url.includes('blob:') || url.includes('file:///')) {
+        return url;
+    }
+
+    return addSkipTimeTagToURL(addEncryptedAuthTokenToURL(url, encryptedAuthToken), VIDEO_SKIP_TIME_SECONDS);
+}
+
+export {convertSecondsToTime, addSkipTimeTagToURL, buildVideoSourceURL, VIDEO_SKIP_TIME_SECONDS};
