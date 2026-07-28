@@ -67,7 +67,7 @@ jobs:
     with:
       ref: ${{ github.sha }}
       variant: Adhoc
-      seed-cache-only: 'true'
+      seed-cache-only: true
       artifact-prefix: adhoc-seed-
       # The lookup ran on Linux and this build runs on macOS. Passing the hash lets the build say so when the two
       # hosts disagree, which would mean the lookup above is guarding nothing.
@@ -83,7 +83,7 @@ jobs:
     with:
       platform: ios
       traits: device,AdHoc
-      expect-cached: 'true'
+      expect-cached: true
     secrets:
       OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -109,7 +109,7 @@ jobs:
     with:
       ref: ${{ github.sha }}
       variant: Adhoc
-      seed-cache-only: 'true'
+      seed-cache-only: true
       artifact-prefix: adhoc-seed-
       # Both the lookup and this build run on Linux, so the two fingerprints should always agree. Passing the hash
       # keeps that an assertion rather than an assumption.
@@ -123,7 +123,7 @@ jobs:
     with:
       platform: android
       traits: Adhoc
-      expect-cached: 'true'
+      expect-cached: true
     secrets:
       OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

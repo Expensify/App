@@ -26,8 +26,8 @@ on:
         required: true
       expect-cached:
         description: Fail when the cache holds nothing, instead of reporting that a build is needed. Use after a seed build to verify it landed.
-        type: string
-        default: 'false'
+        type: boolean
+        default: false
     # Named rather than inherited: a lookup needs the submodule and the bucket, and nothing else. Callers of the
     # build workflows have to inherit, because a build needs most of the vault.
     secrets:
