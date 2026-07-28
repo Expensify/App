@@ -494,7 +494,6 @@ function MoneyRequestConfirmationList({
         iouType,
         policy,
         transactionID,
-        reportID,
         routeError,
         formError,
         isDelegateAccessRestricted,
