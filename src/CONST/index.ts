@@ -6865,7 +6865,7 @@ const CONST = {
                 VIOLATIONS: {
                     column: this.TABLE_COLUMNS.VIOLATIONS,
                     search: true,
-                    reportView: true,
+                    reportView: false,
                 },
                 TAG_GL_CODE: {
                     column: this.TABLE_COLUMNS.TAG_GL_CODE,

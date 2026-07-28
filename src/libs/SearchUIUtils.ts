@@ -6234,7 +6234,7 @@ function getColumnsToShow({
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
         }
 
-        if (!Array.isArray(data)) {
+        if (!isExpenseReportView && !Array.isArray(data)) {
             const reportActions = Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {});
             if (getSubmittedViolationsForTransaction(reportActions, transaction.transactionID)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS] = true;
