@@ -39,7 +39,7 @@ function PaymentContent({action, policyID}: PaymentContentProps) {
     }
 
     if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-        const last4Digits = getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policy, originalMessage.accountNumber);
+        const last4Digits = getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policy, originalMessage.accountNumber, action.actorAccountID);
         if (wasAutoPaid) {
             const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
             return (

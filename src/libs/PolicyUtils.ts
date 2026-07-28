@@ -716,6 +716,25 @@ function canAccessPolicyBankAccount(policy: OnyxEntry<Policy>, currentUserLogin:
     return isPolicyPayer(policy, currentUserLogin) || !!bankAccountList?.[policyBankAccountID];
 }
 
+/**
+ * Whether a payment made by `payerAccountID` can be assumed to have been funded by the workspace's connected bank
+ * account.
+ *
+ * Only the designated payer pays out of the workspace account; any other admin pays from an account of their own. Their
+ * payment must never be attributed to the workspace account, because that account is what every *other* viewer would
+ * otherwise fall back to — which is how the same payment ends up showing two different accounts to two people.
+ */
+function wasPaidWithPolicyBankAccount(policy: OnyxEntry<Policy>, payerAccountID: number | undefined): boolean {
+    const reimburserEmail = policy?.reimburser ?? policy?.achAccount?.reimburser;
+
+    // With no designated payer, every admin pays out of the workspace account, so any payer qualifies.
+    if (!reimburserEmail) {
+        return true;
+    }
+
+    return !!payerAccountID && getKnownAccountIDByLogin(reimburserEmail) === payerAccountID;
+}
+
 /** Check if the passed employee is an approver in the policy's employeeList */
 function isPolicyApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
     if (policy?.approver === employeeLogin) {
@@ -3037,6 +3056,7 @@ export {
     isPolicyPayer,
     canAdminPayReport,
     canAccessPolicyBankAccount,
+    wasPaidWithPolicyBankAccount,
     arePaymentsEnabled,
     isSubmitterAndApprover,
     isSubmitAndClose,

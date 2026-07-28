@@ -4116,6 +4116,9 @@ describe('canAccessPolicyBankAccount', () => {
         achAccount: {
             bankAccountID: POLICY_BANK_ACCOUNT_ID,
             accountNumber: 'XXXXXX1111',
+            routingNumber: '123456789',
+            addressName: 'Test bank account',
+            bankName: 'Test bank',
             reimburser: PAYER_EMAIL,
             state: CONST.BANK_ACCOUNT.STATE.OPEN,
         },
