@@ -27,6 +27,14 @@ on:
         description: Force a full native build, bypassing Rock remote cache
         type: string
         default: 'false'
+      seed-cache-only:
+        description: Build only to warm the Rock remote cache. Skips re-signing and ad-hoc distribution, so a cached fingerprint costs nothing but the lookup.
+        type: string
+        default: 'false'
+      expected-fingerprint:
+        description: Fingerprint a caller already computed elsewhere. Seed builds warn when theirs differs, which means the caller's cache lookup was answering for a different build.
+        type: string
+        default: ''
 
     outputs:
       IOS_VERSION:
@@ -222,6 +230,25 @@ jobs:
             echo 'PROFILES=[{"name":"(OldApp) AdHoc","file":"./OldApp_AdHoc.mobileprovision"},{"name":"(OldApp) AdHoc: Share Extension","file":"./OldApp_AdHoc_Share_Extension.mobileprovision"},{"name":"(OldApp) AdHoc: Notification Service","file":"./OldApp_AdHoc_Notification_Service.mobileprovision"},{"name":"(OldApp) AdHoc: LiveActivityExtension","file":"./OldApp_AdHoc_LiveActivityExtension.mobileprovision"}]' >> "$GITHUB_OUTPUT"
           fi
 
+      # A caller that skips this build on a cache hit is only as good as its fingerprint matching the one used
+      # here. Warn rather than fail: a mismatch costs the savings, never correctness, because the build below
+      # repeats the lookup itself and stops early when it does hit.
+      - name: Compare fingerprint against the one the caller looked up
+        if: ${{ inputs.seed-cache-only == 'true' && inputs.expected-fingerprint != '' }}
+        env:
+          IS_HYBRID_APP: 'true'
+          EXPECTED_FINGERPRINT: ${{ inputs.expected-fingerprint }}
+        run: |
+          ACTUAL_FINGERPRINT=$(npx rock fingerprint -p ios --raw 2>/dev/null) || ACTUAL_FINGERPRINT=''
+          if [ "$ACTUAL_FINGERPRINT" != "$EXPECTED_FINGERPRINT" ]; then
+            echo "::warning::The caller looked up $EXPECTED_FINGERPRINT but this build computed ${ACTUAL_FINGERPRINT:-nothing}, so its cache check is guarding a different fingerprint and can never skip this build."
+            echo "### Fingerprint mismatch" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Caller looked up \`$EXPECTED_FINGERPRINT\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "- This build computed \`${ACTUAL_FINGERPRINT:-nothing}\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Fingerprint matches the caller's lookup: $ACTUAL_FINGERPRINT"
+          fi
+
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
         uses: callstackincubator/ios@dd30f7e53eee2ea6a59509793d0a30fbb5c91216
@@ -232,8 +259,10 @@ jobs:
           FORCE_NATIVE_BUILD: ${{ inputs.force-native-build == 'true' && github.run_id || '' }}
         with:
           destination: device
-          re-sign: true
-          ad-hoc: ${{ inputs.variant == 'Adhoc' }}
+          # A seed build only needs to upload the base artifact it just compiled, which happens on a cache miss
+          # regardless of these two. Leaving them off means a cache hit stops right after the lookup.
+          re-sign: ${{ inputs.seed-cache-only != 'true' }}
+          ad-hoc: ${{ inputs.variant == 'Adhoc' && inputs.seed-cache-only != 'true' }}
           scheme: ${{ inputs.variant == 'Release' && 'Expensify' || 'Expensify AdHoc' }}
           configuration: ${{ inputs.variant == 'Release' && 'Release' || 'AdHoc' }}
           certificate-file: './Certificates.p12'
