@@ -1,8 +1,9 @@
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
 
 import CONST from '@src/CONST';
 import type {SplitExpense} from '@src/types/onyx/IOU';
+
+import {convertToDisplayString} from '../../utils/TestHelper';
 
 // Minimal translate mock: returns the translation key plus any first argument for verifying
 // which message was chosen without relying on exact English strings.

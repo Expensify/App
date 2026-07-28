@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -528,6 +530,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: 'グラフを表示できません',
         webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。有効にするか、別のブラウザに切り替えてください。',
         apiKey: 'API キー',
+        exportsTo: 'エクスポート先',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -1085,6 +1088,8 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: 'アカウントエグゼクティブに相談する',
             forGuidedSetup: 'ガイド付きセットアップ用です。',
             configureApprovalsSubText: 'レポート承認を定義する',
+            setupTravel: '出張を設定',
+            setupTravelSubText: '出張用のルールを設定する',
         },
         yourSpend: {
             title: 'あなたの支出',
@@ -2572,6 +2577,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'このカードをExpensify Travelでの予約に使用してください。チェックアウト時には「Travel Card」と表示されます。',
         },
         chaseAccountNumberDifferent: '口座番号が異なるのはなぜですか？',
+        cardLastSynced: (relativeDate: string) => `${relativeDate} に同期しました`,
+        cardNeverSynced: '未同期',
+        cardStatus: {
+            active: 'アクティブ',
+            inactive: '無効',
+            fixConnection: 'この接続を修正してください',
+            fixConnectionIn: (companyCardsRoute: string) => `この接続を<a href="${companyCardsRoute}">会社カード</a>で修正してください`,
+            askAdminToFixConnection: '管理者にこの接続の修正を依頼してください',
+        },
+        bankAccountStatus: {
+            active: 'アクティブ',
+            incomplete: '未完了',
+            pending: '保留中',
+            verifying: '確認中',
+            reviewingDocumentation: '書類を審査しています',
+            finishAddingBankAccount: '銀行口座の追加を完了',
+            finish: '完了',
+            confirmTestTransactions: 'テスト取引を確認してください',
+            accountRequiresAttention: 'このアカウントには対応が必要です',
+            unlock: 'ロック解除',
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify カード',
@@ -4409,21 +4435,19 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         nudge: {
             airfareManual:
-                'こんにちは！Expensify でフライトの予約や管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで大丈夫です ✈️',
+                'Expensify でフライトの予約や管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう ✈️',
             airfareCard:
-                'こんにちは！Expensify でフライトの予約と管理ができるのをご存じでしたか？しかも、領収書は自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください ✈️',
+                'Expensify でフライトの予約や管理ができることをご存じでしたか？しかも領収書は自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> で予約してください ✈️',
             hotelManual:
-                'こんにちは！Expensify でホテルの予約や宿泊の管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで済みます。',
-            hotelCard:
-                'こんにちは！Expensify でホテルの予約や宿泊管理ができることをご存じでしたか？次回からは <a href="https://travel.expensify.com">Expensify Travel</a> からかんたんに予約できます。',
+                'Expensify でホテルの予約や管理ができることをご存じですか？次回からは経費を手入力する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🏨',
+            hotelCard: 'Expensify でホテルの予約や管理ができることをご存じでしたか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約してください 🏨',
             carManual:
-                'こんにちは！Expensify でレンタカーの予約と管理ができることをご存じでしたか？次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚗',
-            carCard:
-                'こんにちは！Expensify でレンタカーの予約や管理ができることをご存じでしたか？次回からは <a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約できます。',
+                'Expensify でレンタカーの予約や管理ができることをご存じですか？次回からは経費を手動で作成する手間を省き、<a href="https://travel.expensify.com">Expensify Travel</a> から予約するだけで済みます。',
+            carCard: 'Expensify でレンタカーの予約や管理ができることをご存じですか？次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> からご予約ください。',
             railManual:
-                'Expensify で電車の予約や管理ができることをご存じでしたか？次回からは手動で経費を作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください。',
+                'Expensify で列車の予約や管理ができることをご存じでしたか？次回からは、経費を手動で作成する手間を省いて、<a href="https://travel.expensify.com">Expensify Travel</a> から簡単に予約しましょう。',
             railCard:
-                'Expensify で電車の予約や管理ができることをご存じでしたか？しかも、領収書は自動でアップロードされます。次回からは <a href="https://travel.expensify.com">Expensify Travel</a> 経由で予約しましょう。',
+                'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
         },
     },
     workspace: {
@@ -5008,7 +5032,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             creditCardAccount: 'クレジットカード口座',
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Sage Intacct で対応する仕入先がない ${isReimbursable ? '' : '非'}立替精算費用に適用されるデフォルトの仕入先を設定します。`,
+                isReimbursable
+                    ? `Sage Intacct で一致する仕入先がない立替経費に適用するデフォルトの仕入先を設定します。`
+                    : `Sage Intacct の仕入先に照合できない経費は、デフォルトでこの仕入先に紐づけられます。`,
             exportDescription: 'Expensify のデータを Sage Intacct へエクスポートする方法を設定します。',
             exportPreferredExporterNote:
                 '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
@@ -5723,6 +5749,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 },
                 csvColumns: {
                     cardNumber: 'カード番号',
+                    cardName: 'カード名',
                     postedDate: '日付',
                     merchant: '加盟店',
                     amount: '金額',
@@ -5738,6 +5765,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
                     duplicateColumns: (duplicateColumn: string) => `おっと！1 つのフィールド（"${duplicateColumn}"）を複数の列にマッピングしています。確認して、もう一度お試しください。`,
+                    cardIdentityColumn: '取引をカードに照合できるように、カード番号またはカード名を対応付けてください。',
                 },
                 fileImportDescription: '銀行からフィードを送信できない場合の手動オプションです。',
                 duplicateFeedModal: {title: 'カードフィードはすでに接続されています', prompt: '同じカードフィードを同じワークスペースに二重に追加することはできません。'},
@@ -5987,6 +6015,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             currentTravelSpendLabel: '現在の出張費支出',
                             currentTravelSpendPaymentQueued: (amount: string) => `${amount} の支払いはキューに登録されており、まもなく処理されます。`,
                             currentTravelSpendCta: '残高を支払う',
+                            viewOnSpend: '支出で表示',
                             currentTravelLimitLabel: '現在の出張上限',
                             settlementAccountLabel: '決済口座',
                             settlementFrequencyLabel: '清算頻度',
@@ -6176,6 +6205,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 defaultHourlyRate: 'デフォルトの時給率',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `HR を無効にするには、まずこのワークスペースから ${integration} を切断してください。`},
+            vendors: {title: 'ベンダー', subtitle: '会計ソフトからインポートした取引先にカード経費を照合します。'},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -6530,6 +6560,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             peopleAdmins: 'People 管理者',
             paymentsAdmins: '支払い管理者',
             members: 'メンバー',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `${memberName}さんはExpensify カードをお持ちの間、このワークスペースから削除できません。ワークスペース > Expensify カードでカードを無効化してから、もう一度お試しください。`,
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -6868,6 +6900,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             exportCompanyCard: '法人カード経費のエクスポート形式',
             exportDate: 'エクスポート日',
             defaultVendor: 'デフォルトのベンダー',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。`
+                    : `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。それ以外は「Credit Card Misc」としてエクスポートされます。`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `自動的に照合されない経費に対して使用する、デフォルトの ${connectionName} 仕入先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
             autoSyncDescription: 'NetSuite と Expensify を毎日自動で同期。確定したレポートをリアルタイムでエクスポート',
@@ -6988,6 +7025,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             amountPerUnit: (unit: string) => `${unit}あたりの金額`,
             startDate: '開始日',
             endDate: '終了日',
+            autoGeneratedRateTooltip: 'このレートは自動生成されています。',
         },
         editor: {
             descriptionInputLabel: '説明',
@@ -7530,7 +7568,7 @@ ${reportName}`,
             },
             customRules: {
                 title: '経費ポリシー',
-                cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
+                cardSubtitle: '精算ポリシーをアップロードして、全員が経費として申請できるもの／できないものを理解できるようにしてください。',
                 policyDocument: 'ポリシー文書',
                 policyText: 'ポリシーテキスト',
             },
@@ -8729,6 +8767,7 @@ ${reportName}`,
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',
         searchName: '名前を検索',
         savedSearchesMenuItemTitle: '保存済み',
+        mySavedSearch: '自分の経費',
         urlCopied: 'URLをコピーしました',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
@@ -10047,7 +10086,6 @@ ${reportName}`,
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
-        saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',
         accountSwitcher: '<tooltip>ここから<strong>Copilot アカウント</strong>にアクセスできます</tooltip>',
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
@@ -10329,6 +10367,17 @@ ${reportName}`,
         description: '経費精算の体験をさらに良くできるよう、お知らせください。',
         positiveButton: 'やった！',
         negativeButton: 'そうでもありません',
+    },
+    trialPaymentReminder: {
+        title: '期限に遅れないようにしましょう',
+        subtitle: 'ぎりぎりまで待たずに、今日お支払い方法を追加して、Expensify での経費への継続的なアクセスを確保しましょう。',
+        trialEndsInDays: () => ({
+            one: 'トライアル終了まであと1日',
+            other: (pluralCount: number) => `トライアル終了まであと${pluralCount}日`,
+        }),
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `トライアル終了まで ${hours}時間 : ${minutes}分 : ${seconds}秒`,
+        closeButton: '閉じる',
+        addPaymentCardButton: '支払いカードを追加',
     },
     monthPickerPage: {month: '月', selectMonth: '月を選択してください'},
     aiFeaturesPromoModal: {

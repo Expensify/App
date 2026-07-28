@@ -1,6 +1,6 @@
-import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
