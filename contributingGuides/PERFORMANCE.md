@@ -229,7 +229,7 @@ https://github.com/user-attachments/assets/4c3da04d-87a1-411f-a93b-2b146c115ad5
 
 **Usage:**
 ```bash
-npx react-scan https://localhost:8082
+bunx react-scan https://localhost:8082
 ```
 
 https://github.com/user-attachments/assets/39e8514a-caac-4296-b837-b986e088fa9a

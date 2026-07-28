@@ -72,11 +72,11 @@ Both PR numbers can be entered simultaneously if the changes from both repositor
 
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
 
-### - Web app local production builds SHOULD use `npm run build`
-In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
+### - Web app local production builds SHOULD use `bun run build`
+In order to generate a production web build, run `bun run build`, this will generate a production javascript build in the `dist/` folder.
 
-### - iOS app local production builds SHOULD use `npm run ios-build`
-In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project.
+### - iOS app local production builds SHOULD use `bun run ios-build`
+In order to compile a production iOS build, run `bun run ios-build`, this will generate a `Chat.ipa` in the root directory of this project.
 
-### - Android app local production builds SHOULD use `npm run android-build`
-To build an APK to share run (e.g. via Slack), run `npm run android-build`, this will generate a new APK in the `android/app` folder.
+### - Android app local production builds SHOULD use `bun run android-build`
+To build an APK to share run (e.g. via Slack), run `bun run android-build`, this will generate a new APK in the `android/app` folder.

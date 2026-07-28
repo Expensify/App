@@ -22,7 +22,7 @@ Before using Playwright tools, verify the dev server is running:
 ps aux | grep "rspack" | grep -v grep
 ```
 
-**If server not running**: Inform user to start with `cd App && npm run web`
+**If server not running**: Inform user to start with `cd App && bun run web`
 
 ## Dev Server Details
 - **URL**: `https://dev.new.expensify.com:8082/`

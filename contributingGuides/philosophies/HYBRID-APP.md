@@ -116,7 +116,7 @@ When switching branches, run `git submodule update` to ensure compatibility.
 
 ### Patches
 - Patches are applied automatically during `bun install`
-- Add HybridApp-specific patches: `npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
+- Add HybridApp-specific patches: `bunx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
 
 ### Additional Resources
 For extended documentation, troubleshooting, and pro tips, refer to the platform specific guides:

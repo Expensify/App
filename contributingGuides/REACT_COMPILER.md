@@ -51,15 +51,15 @@ You can run the same check locally before pushing:
 
 ```bash
 # Check specific files, directories, or glob patterns
-npm run react-compiler-compliance-check check src/components/Foo.tsx
-npm run react-compiler-compliance-check check src/components/
-npm run react-compiler-compliance-check check "src/hooks/**/*.ts"
+bun run react-compiler-compliance-check check src/components/Foo.tsx
+bun run react-compiler-compliance-check check src/components/
+bun run react-compiler-compliance-check check "src/hooks/**/*.ts"
 
 # Check only files changed relative to main (same as CI)
-npm run react-compiler-compliance-check check-changed
+bun run react-compiler-compliance-check check-changed
 
 # Show detailed output including files that compiled or were skipped
-npm run react-compiler-compliance-check check --verbose src/components/
+bun run react-compiler-compliance-check check --verbose src/components/
 ```
 
 #### Flags

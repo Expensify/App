@@ -6,25 +6,25 @@ The App is linted with [ESLint](https://eslint.org) and its configuration lives 
 
 ```bash
 # Lint the whole repo (same command CI runs):
-npm run lint
+bun run lint
 
 # Lint only the files added/modified/renamed on this branch vs origin/main:
-npm run lint-changed
+bun run lint-changed
 
 # Lint specific files or directories:
-npm run lint -- src/components/Foo/index.tsx src/libs/bar.ts
+bun run lint -- src/components/Foo/index.tsx src/libs/bar.ts
 
 # Include grandfathered seatbelt warnings in the output:
-npm run lint -- --show-warnings
+bun run lint -- --show-warnings
 
 # Continuously re-lint changed files as you edit:
-npm run lint-watch
+bun run lint-watch
 
 # HTML dashboard: seatbelt baseline broken down by rule and by file:
-npm run eslint-report
+bun run eslint-report
 ```
 
-Prefer `npm run lint` (or `lint-changed` / `lint -- <files>`) over raw `npx eslint` invocations. Those wrappers increase the memory allocation to prevent OOM errors, and also include caching and concurrency flags for faster linting.
+Prefer `bun run lint` (or `lint-changed` / `lint -- <files>`) over raw `bunx eslint` invocations. Those wrappers increase the memory allocation to prevent OOM errors, and also include caching and concurrency flags for faster linting.
 
 By default the wrapper passes `--quiet` to ESLint so only blocking errors are printed — seatbelt-grandfathered violations (which CI does not fail on) are suppressed from the output but still evaluated against the baseline. Pass `--show-warnings` when you want to see them too, e.g. when paying down baselined errors.
 
@@ -55,7 +55,7 @@ In plain English: during normal development, fixing baselined errors does not di
 ### "I just wrote some code — is it clean?"
 
 ```bash
-npm run lint-changed
+bun run lint-changed
 ```
 
 This lints every file added, modified, or renamed on your branch relative to `origin/main`. It's the fastest "am I clean?" check during active development.
@@ -63,15 +63,15 @@ This lints every file added, modified, or renamed on your branch relative to `or
 If you're iterating specifically on a CI failure and you already know which files are flagged, lint just those:
 
 ```bash
-npm run lint -- src/components/Foo/index.tsx src/libs/bar.ts
+bun run lint -- src/components/Foo/index.tsx src/libs/bar.ts
 ```
 
 ### "What if I want to see lint errors broken down by type or by file?"
 
-Use `npm run eslint-report`. It will show an HTML report of current lint errors in the project (populated from `eslint.seatbelt.tsv`)
+Use `bun run eslint-report`. It will show an HTML report of current lint errors in the project (populated from `eslint.seatbelt.tsv`)
 
 ```bash
-npm run eslint-report
+bun run eslint-report
 ```
 
 ![Seatbelt report: breakdown by ESLint rule](https://github.com/user-attachments/assets/2e1cc9dd-155e-4975-8a1f-365c5a830f27)
@@ -80,7 +80,7 @@ npm run eslint-report
 
 ### "I fixed an existing baselined error"
 
-Just run `npm run lint` (or `npm run lint-changed`) locally. Seatbelt notices the count went down and passes. **It does not rewrite `config/eslint/eslint.seatbelt.tsv` locally** — the config sets `readOnly: !process.env.CI`, so the TSV is only rewritten in CI. After your PR merges, the lint job on `main` re-runs, writes the tightened TSV, and OSBotify commits it back to `main` for you.
+Just run `bun run lint` (or `bun run lint-changed`) locally. Seatbelt notices the count went down and passes. **It does not rewrite `config/eslint/eslint.seatbelt.tsv` locally** — the config sets `readOnly: !process.env.CI`, so the TSV is only rewritten in CI. After your PR merges, the lint job on `main` re-runs, writes the tightened TSV, and OSBotify commits it back to `main` for you.
 
 No TSV commit required on your end.
 
@@ -92,7 +92,7 @@ The default assumption is that you fix it. If you genuinely need to land code th
 
     ```bash
     # Allow the new count for one rule:
-    SEATBELT_INCREASE=@typescript-eslint/no-deprecated npm run lint
+    SEATBELT_INCREASE=@typescript-eslint/no-deprecated bun run lint
     ```
 
    That will modify `config/eslint/eslint.seatbelt.tsv`. **Always commit the diff alongside your code**, and expect a reviewer to ask you why a fix wasn't feasible. Because the violation stays visible in the baseline, it can still be fixed later.
@@ -106,7 +106,7 @@ The default assumption is that you fix it. If you genuinely need to land code th
 When you move or rename a file, seatbelt's baseline entry for the old path is no longer matched. Even though you made no logical change to the code, the violations now appear under a path the baseline doesn't know about, so CI will fail. Use `SEATBELT_INCREASE` to re-baseline the file under its new name:
 
 ```bash
-SEATBELT_INCREASE=<rule-id> npm run lint
+SEATBELT_INCREASE=<rule-id> bun run lint
 ```
 
 Commit the updated `config/eslint/eslint.seatbelt.tsv` alongside the rename. The old path will be removed from the TSV automatically by the lint job on `main` after your PR merges.
@@ -117,14 +117,14 @@ Commit the updated `config/eslint/eslint.seatbelt.tsv` alongside the rename. The
 2. Save the initial baseline:
 
     ```bash
-    SEATBELT_INCREASE=<rule-id> npm run lint
+    SEATBELT_INCREASE=<rule-id> bun run lint
     ```
 
 3. Commit the config change and the new lines in `config/eslint/eslint.seatbelt.tsv` together.
 
 ## CI behavior
 
-The [`ESLint check`](../.github/workflows/lint.yml) workflow runs `npm run lint`. In CI, `readOnly` is off (so seatbelt can write) and `SEATBELT_FROZEN=0` is exported from [`scripts/lint.sh`](../scripts/lint.sh) so GitHub Actions' auto-set `CI=true` doesn't flip seatbelt into frozen mode.
+The [`ESLint check`](../.github/workflows/lint.yml) workflow runs `bun run lint`. In CI, `readOnly` is off (so seatbelt can write) and `SEATBELT_FROZEN=0` is exported from [`scripts/lint.sh`](../scripts/lint.sh) so GitHub Actions' auto-set `CI=true` doesn't flip seatbelt into frozen mode.
 
 - **PR runs:** counts go down → passes (TSV rewrite is ephemeral and thrown away with the runner). Counts go up without `SEATBELT_INCREASE` → fails with seatbelt's "exceeds allowed count" error.
 - **`push: main` runs:** same behavior, plus an extra step — if `config/eslint/eslint.seatbelt.tsv` changed, OSBotify commits the tightened baseline straight back to `main`.

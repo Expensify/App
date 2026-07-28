@@ -88,7 +88,7 @@ IMPORTANT: Please execute the following commands from the root of the project!
 
 # Patches
 There is a set of patches, that gets applied only to HybridApp. They are not required by a standalone NewDot build, therefore they have been located in `./Mobile-Expensify/patches`. If you'd like to add a new HybridApp specific patch you can run:
-1. `npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
+1. `bunx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
 
 The `patch-package` takes `.patch` files, and applies the diff to `node_modules` after executing `bun install`. It means that if you'd like to build NewDot after HybridApp, it is best to remove `node_modules`, and run `bun run i-standalone` to make sure that HybridApp-specific patches won't be applied.
 # Environmental variables

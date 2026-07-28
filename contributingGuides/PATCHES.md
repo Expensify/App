@@ -14,12 +14,12 @@ To create a patch for a third-party library that you've modified:
 2. Run the following command to generate the patch file:
 
 ```
-npx patch-package <edited-library> --append "<short-patch-description>" --patch-dir ./patches/<edited-library>
+bunx patch-package <edited-library> --append "<short-patch-description>" --patch-dir ./patches/<edited-library>
 ```
 
 For example:
 ```
-npx patch-package react-native-pdf --append "fix-pdf-rendering-on-ios" --patch-dir ./patches/react-native-pdf
+bunx patch-package react-native-pdf --append "fix-pdf-rendering-on-ios" --patch-dir ./patches/react-native-pdf
 ```
 
 This will create a patch file in the `patches/` directory. After creating the patch:

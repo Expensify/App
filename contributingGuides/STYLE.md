@@ -70,8 +70,8 @@ When writing ES6 or React code, please also refer to the [Airbnb React/JSX Style
 
 We use Oxfmt to automatically style our code.
 
-- You can run Oxfmt to fix the style on all files with `npm run fmt`
-- You can run Oxfmt in watch mode to fix the styles when they are saved with `npm run fmt-watch`
+- You can run Oxfmt to fix the style on all files with `bun run fmt`
+- You can run Oxfmt in watch mode to fix the styles when they are saved with `bun run fmt-watch`
 
 There are a few things that we have customized for our tastes which will take precedence over Airbnb's guide.
 

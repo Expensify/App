@@ -11,7 +11,7 @@ The Storybook docs deploy automatically so there's nothing extra to do here. Sto
 To test a local build, we can run
 
 ```shell
-npm run storybook-build
+bun run storybook-build
 ```
 
 This will create a `/docs` directory in `/dist` with the static site.
@@ -21,7 +21,7 @@ This will create a `/docs` directory in `/dist` with the static site.
 To skip building and load Storybook on a local server, run:
 
 ```shell
-npm run storybook
+bun run storybook
 ```
 
 ### What's a "story" and how do I create one?

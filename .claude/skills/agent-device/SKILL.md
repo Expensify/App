@@ -30,8 +30,8 @@ HybridApp dev builds only (the pre-flight gate enforces this).
 
 | Platform  | Bundle ID                       | Build command from App root |
 | --------- | ------------------------------- | --------------------------- |
-| `ios`     | `com.expensify.expensifylite`   | `npm run ios`               |
-| `android` | `org.me.mobiexpensifyg.dev`     | `npm run android`           |
+| `ios`     | `com.expensify.expensifylite`   | `bun run ios`               |
+| `android` | `org.me.mobiexpensifyg.dev`     | `bun run android`           |
 
 ### 3. Confirm dev build is installed
 

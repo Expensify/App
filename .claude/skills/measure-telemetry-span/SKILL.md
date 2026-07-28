@@ -33,7 +33,7 @@ To pick a **specific** Android AVD or iOS simulator, use the same global flags `
 | Must have | Notes |
 | --------- | ----- |
 | `agent-device` (global install, version per repo agent-device skill) | |
-| Metro on **8081** (`npm run start`) | |
+| Metro on **8081** (`bun run start`) | |
 | Dev build on device | |
 | **iOS** | `agent-device react-devtools` attached so Hermes `console.debug` reaches logs. |
 | **Android** | Span line visible in `adb logcat` at debug once you verify manually. |
