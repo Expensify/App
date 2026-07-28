@@ -66,15 +66,14 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
                   return true;
               }
 
-              for (const filterValue of filterValues) {
-                  const matchedGroup = groups?.find((group) => group.id === filterValue);
-
-                  if (matchedGroup && String(item.accountID) in matchedGroup.details.shared) {
-                      return true;
-                  }
+              // Ignore stale/removed group IDs so the table stays stable until
+              // DomainMembersGroupFilterSync clears invalid selections.
+              const selectedGroups = (groups ?? []).filter((group) => filterValues.includes(group.id));
+              if (selectedGroups.length === 0) {
+                  return true;
               }
 
-              return false;
+              return selectedGroups.some((group) => String(item.accountID) in group.details.shared);
           };
 
     return {
