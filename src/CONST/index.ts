@@ -1961,7 +1961,6 @@ const CONST = {
             WAITING_TO_FIX_ISSUES: 'waitingToFixIssues',
             WAITING_TO_APPROVE: 'waitingToApprove',
             WAITING_TO_PAY: 'waitingToPay',
-            WAITING_FOR_POLICY_BANK_ACCOUNT: 'waitingForPolicyBankAccount',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
             WAITING_TO_EXPORT: 'waitingToExport',
             SUBMITTING_TO_SELF: 'submittingToSelf',

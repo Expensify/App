@@ -1916,16 +1916,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador pague los gastos.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (actor, actorType, _eta, _etaType) => {
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando a que <strong>tú</strong> termines de configurar una cuenta bancaria de empresa.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Esperando a que <strong>${actor}</strong> termine de configurar una cuenta bancaria de empresa.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Esperando a que un administrador termine de configurar una cuenta bancaria de empresa.`;
-                }
-            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (_actor, _actorType, eta, etaType) => {
                 let formattedETA = '';
                 if (eta) {

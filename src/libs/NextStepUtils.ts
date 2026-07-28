@@ -108,7 +108,6 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const hasTransactions = doesReportContainTransactions(report);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const nextStepFixOrPayExpense: ReportNextStep = {
@@ -267,7 +266,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
             // Self review
             nextStep = {
-                messageKey: hasValidAccount ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 actorAccountID: reimburserAccountID,
             };
