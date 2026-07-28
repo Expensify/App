@@ -81,14 +81,29 @@ const useCardFeedsForDisplay = () => {
     // user happens to also be a member of. We intentionally skip the last-selected feed so the default stays
     // deterministic and consistent with the displayed list.
     const {primaryFeeds, allFeeds: expensifyCardFeedEntries} = useExpensifyCardFeedsForFeedSelector(activePolicyID);
-    const activePolicyAccountID = activePolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.policyAccountID : undefined;
+    const activePolicy = activePolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined;
+    const activePolicyAccountID = activePolicy?.policyAccountID;
     const preferredPolicyFeedFundID = activePolicyID
         ? expensifyCardFeedEntries.find((entry) => getPreferredPolicyFromExpensifyCardSettings(entry.settings)?.toUpperCase() === activePolicyID.toUpperCase())?.fundID
         : undefined;
-    const activeExpensifyCardFeedID = [primaryFeeds.at(0)?.fundID, preferredPolicyFeedFundID, activePolicyAccountID]
-        .filter((fundID): fundID is number => fundID != null)
-        .map((fundID) => expensifyCardFeeds?.find((feed) => feed.fundID === String(fundID))?.id)
-        .find((feedID) => !!feedID);
+
+    // Only let the active workspace's Expensify Card override the Card accruals default when the active workspace
+    // is itself eligible for the Card accruals tab — a paid group workspace where the user is an admin/auditor and
+    // approvals are enabled. This mirrors the accrual half of `isEligibleForUnapprovedCardSuggestion` in
+    // SearchUIUtils. Tab visibility is OR-ed across all of a user's workspaces, so without this gate a *different*
+    // eligible workspace could make the tab visible while an unrelated active workspace's Expensify Card silently
+    // hijacked the feed — in that case we keep falling back to `defaultFeedID` (the eligible workspace's feed).
+    const isActivePolicyEligibleForCardAccruals =
+        isPaidGroupPolicy(activePolicy) &&
+        (activePolicy?.role === CONST.POLICY.ROLE.ADMIN || activePolicy?.role === CONST.POLICY.ROLE.AUDITOR) &&
+        (activePolicy?.approvalMode ? activePolicy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false);
+
+    const activeExpensifyCardFeedID = isActivePolicyEligibleForCardAccruals
+        ? [primaryFeeds.at(0)?.fundID, preferredPolicyFeedFundID, activePolicyAccountID]
+              .filter((fundID): fundID is number => fundID != null)
+              .map((fundID) => expensifyCardFeeds?.find((feed) => feed.fundID === String(fundID))?.id)
+              .find((feedID) => !!feedID)
+        : undefined;
 
     return {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID};
 };
