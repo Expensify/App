@@ -579,6 +579,12 @@ function getQueryHashes(query: SearchQueryJSON) {
     }
 
     const filterSet = new Set<string>(orderedQuery);
+    const exactMatchFilterKeys = [...(query.exactMatchFilterKeys ?? [])].sort();
+    if (exactMatchFilterKeys.length > 0) {
+        const exactMatchIdentity = `exactMatch:${exactMatchFilterKeys.join(',')}`;
+        orderedQuery += ` ${exactMatchIdentity}`;
+        filterSet.add(exactMatchIdentity);
+    }
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
     // actually filter out results
@@ -631,6 +637,17 @@ function getQueryHashes(query: SearchQueryJSON) {
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
+}
+
+function withExactMatchFilterKeys(queryJSON: Readonly<SearchQueryJSON>, exactMatchFilterKeys: SearchFilterKey[]): SearchQueryJSON {
+    const queryWithExactMatches = {...queryJSON, exactMatchFilterKeys};
+    const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(queryWithExactMatches);
+    return {
+        ...queryWithExactMatches,
+        hash: primaryHash,
+        recentSearchHash,
+        similarSearchHash,
+    };
 }
 
 /**
@@ -2468,22 +2485,26 @@ function getEmptyDateValues(): SearchDateValues {
  * should be treated as a substring/partial match (`contains`) when querying the backend.
  * This allows searches like `merchant:coffee` to match "Coffee shop".
  */
-const TEXT_SEARCH_FIELDS = new Set<string>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
+function isTextSearchField(key: string): key is SearchFilterKey {
+    return key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION;
+}
 
 /**
  * Recursively traverses a search AST and replaces the `eq` operator with `contains`
  * for free-text filter fields (merchant, description). This enables partial/substring
  * matching on the backend for text searches while preserving the user-facing `:` syntax.
+ * Keys in `exactMatchFilterKeys` keep their original `eq` operator.
  */
-function applyContainsOperatorToTextFields(node: ASTNode): ASTNode {
-    if (typeof node.left === 'string' && TEXT_SEARCH_FIELDS.has(node.left) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+function applyContainsOperatorToTextFields(node: ASTNode, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>): ASTNode {
+    const filterKey = typeof node.left === 'string' && isTextSearchField(node.left) ? node.left : undefined;
+    if (filterKey && !exactMatchFilterKeys?.has(filterKey) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
         return {...node, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
     }
 
     return {
         ...node,
-        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left) : node.left,
-        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right) : node.right,
+        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left, exactMatchFilterKeys) : node.left,
+        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right, exactMatchFilterKeys) : node.right,
     };
 }
 
@@ -2505,13 +2526,14 @@ function getDateModifierTitle(modifier: ValueOf<typeof CONST.SEARCH.DATE_MODIFIE
  * Serializes a query object to a JSON string for backend commands (Search, export, CSV).
  * Applies text-field operator normalization (`eq` → `contains`) for `merchant` and `description`
  * so all backend commands use consistent partial-match semantics — matching what the search view shows.
+ * Keys in `exactMatchFilterKeys` keep exact-match semantics for generated filters.
  * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
  */
-function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T): string {
-    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters) : queryData.filters;
+function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>): string {
+    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters, exactMatchFilterKeys) : queryData.filters;
     const normalizedRawFilterList = queryData.rawFilterList
         ? queryData.rawFilterList.map((filter) => {
-              if (TEXT_SEARCH_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+              if (isTextSearchField(filter.key) && !exactMatchFilterKeys?.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                   return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
               }
               return filter;
@@ -2573,6 +2595,7 @@ export {
     getRangeQueryValue,
     getQueryFilterWithoutKeywordHash,
     getQueryHashes,
+    withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
     getDateFilterRange,

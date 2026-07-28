@@ -13,14 +13,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 import type {TodoCounts} from '@hooks/useTodoCounts';
 
-import {setSearchContext} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
+import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
-import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
 import type {SearchKey, SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 // eslint-disable-next-line no-restricted-imports
@@ -43,22 +41,7 @@ type SectionParams = {
 
 function Section({section, reportCounts, onItemPress}: SectionParams) {
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Basket',
-        'CalendarSolid',
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Document',
-        'Pencil',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(SEARCH_TYPE_MENU_ICON_NAMES);
 
     const {currentSearchKey} = useSearchQueryContext();
 
@@ -123,12 +106,10 @@ function SearchTypeMenuWide() {
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
     };
 
-    const handleTypeMenuItemPress = singleExecution((key: SearchKey, searchQuery: string) => {
-        clearSelectedTransactions();
-        setSearchContext(false);
-        const query = getValidLastQuery(searchFilters?.[key], searchQuery);
-        setCurrentSearchKey(key, buildSearchQueryJSON(query)?.hash !== currentSearchHash);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+    const handleTypeMenuItemPress = singleExecution((searchKey: SearchKey, searchQuery: string) => {
+        const query = getValidLastQuery(searchFilters?.[searchKey], searchQuery);
+        setCurrentSearchKey(searchKey, buildSearchQueryJSON(query)?.hash !== currentSearchHash);
+        navigateToCannedSpendSearch(query, clearSelectedTransactions);
     });
 
     useLayoutEffect(() => {
