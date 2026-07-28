@@ -22,6 +22,7 @@ import {
     getBankCardDetailsImage,
     getBankName,
     getBrokenConnectionUrlToFixPersonalCard,
+    getCardConnectionStatusDisplay,
     getCardDescription,
     getCardDescriptionForSearchTable,
     getCardFeedIcon,
@@ -53,6 +54,7 @@ import {
     getSelectedFeed,
     getTranslationKeyForCardStatus,
     getYearFromExpirationDateString,
+    hasActiveExpensifyCardAssigned,
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
@@ -2230,6 +2232,56 @@ describe('CardUtils', () => {
                 return true;
             });
             expect(callCount).toBe(1);
+        });
+    });
+
+    describe('hasActiveExpensifyCardAssigned', () => {
+        const cardholderAccountID = 11;
+
+        it('returns true when the member holds an Expensify Card on the workspace', () => {
+            const cards = createMock<CardList>({
+                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK},
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(true);
+        });
+
+        it('returns false for an undefined card list', () => {
+            expect(hasActiveExpensifyCardAssigned(undefined, cardholderAccountID)).toBe(false);
+        });
+
+        it('returns false when the Expensify Card belongs to another member', () => {
+            const cards = createMock<CardList>({
+                '1': {cardID: 1, accountID: 22, bank: CONST.EXPENSIFY_CARD.BANK},
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
+        });
+
+        it('returns false when the member only holds a company card', () => {
+            const cards = createMock<CardList>({
+                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA},
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
+        });
+
+        it('returns false when the member only holds a travel card', () => {
+            const cards = createMock<CardList>({
+                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US}},
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
+        });
+
+        it('returns false when the Expensify Card is already pending removal', () => {
+            const cards = createMock<CardList>({
+                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
+        });
+
+        it('skips the cardList bucket of cards still available to assign', () => {
+            const cards = createMock<CardList>({
+                cardList: {'CREDIT CARD...1234': 'encrypted-value'} as Record<string, string>,
+            });
+            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
         });
     });
 
@@ -4651,6 +4703,77 @@ describe('getCompanyCardCustomName', () => {
 
     it('returns undefined when neither NVP has a name for the card', () => {
         expect(getCompanyCardCustomName('9999', sharedCardCustomNames, customCardNames)).toBeUndefined();
+    });
+});
+
+describe('getCardConnectionStatusDisplay', () => {
+    const defaultParams = {
+        shouldShowConnectionStatus: true,
+        isCardBroken: false,
+        shouldShowRBR: false,
+        isCardInactive: false,
+        isPersonalCard: false,
+        isAdminForCardPolicy: false,
+        policyID: undefined,
+    };
+
+    it('returns undefined when connection status is disabled', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, shouldShowConnectionStatus: false})).toBeUndefined();
+    });
+
+    it('returns an active success status for a healthy card', () => {
+        expect(getCardConnectionStatusDisplay(defaultParams)).toEqual({
+            statusKey: 'walletPage.cardStatus.active',
+            statusTone: 'success',
+            messageKey: undefined,
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: false,
+        });
+    });
+
+    it('returns the personal-card fix action for a broken personal card', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, isPersonalCard: true})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.fixConnection',
+            actionKey: 'common.actionBadge.fix',
+            shouldUsePersonalCardFix: true,
+            shouldUseCompanyCardsLink: false,
+        });
+    });
+
+    it('returns the company-cards link message for an admin company card', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, shouldShowRBR: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.fixConnectionIn',
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: true,
+        });
+    });
+
+    it('returns the ask-admin message for a non-admin company card', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.askAdminToFixConnection',
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: false,
+        });
+    });
+
+    it('does not show a company-cards link without a policy ID', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, shouldShowRBR: true, isAdminForCardPolicy: true})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'danger',
+            messageKey: 'walletPage.cardStatus.askAdminToFixConnection',
+            actionKey: undefined,
+            shouldUsePersonalCardFix: false,
+            shouldUseCompanyCardsLink: false,
+        });
     });
 });
 
