@@ -96,8 +96,11 @@ function DynamicTwoFactorAuthPage() {
         }
 
         toggleTwoFactorAuth(true);
+        // `recoveryCodes` is a dependency because the right-modal `beforeRemove` listener clears the 2FA data after
+        // this effect has already run, which happens when a browser back on a freshly loaded page rebuilds the modal.
+        // Without it the page would keep rendering an empty codes box with no way to continue.
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled]);
+    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled, recoveryCodes]);
 
     return (
         <TwoFactorAuthWrapper
@@ -141,26 +144,29 @@ function DynamicTwoFactorAuthPage() {
                                                 </Text>
                                             ))}
                                     </View>
-                                    <PressableWithDelayToggle
-                                        text={translate('twoFactorAuth.copyCodes')}
-                                        textChecked={translate('common.copied')}
-                                        icon={icons.Copy}
-                                        inline={false}
-                                        onPress={() => {
-                                            Clipboard.setString(account?.recoveryCodes ?? '');
-                                            setError('');
-                                            setCodesAreCopied();
-                                            announceStatus(translate('common.copied'));
-                                        }}
-                                        styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
-                                        wrapperStyles={[styles.twoFactorAuthCodesButtonWrapper, styles.twoFactorAuthCodesButton]}
-                                        textStyles={[styles.buttonMediumText]}
-                                        tooltipText=""
-                                        tooltipTextChecked=""
-                                        accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
-                                        accessibilityLabelChecked={translate('common.copied')}
-                                        sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
-                                    />
+                                    {/* Gated like the Download button below, since without codes this copies an empty string */}
+                                    {!!recoveryCodes && (
+                                        <PressableWithDelayToggle
+                                            text={translate('twoFactorAuth.copyCodes')}
+                                            textChecked={translate('common.copied')}
+                                            icon={icons.Copy}
+                                            inline={false}
+                                            onPress={() => {
+                                                Clipboard.setString(account?.recoveryCodes ?? '');
+                                                setError('');
+                                                setCodesAreCopied();
+                                                announceStatus(translate('common.copied'));
+                                            }}
+                                            styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
+                                            wrapperStyles={[styles.twoFactorAuthCodesButtonWrapper, styles.twoFactorAuthCodesButton]}
+                                            textStyles={[styles.buttonMediumText]}
+                                            tooltipText=""
+                                            tooltipTextChecked=""
+                                            accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            accessibilityLabelChecked={translate('common.copied')}
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
+                                        />
+                                    )}
                                 </>
                             )}
                         </View>
