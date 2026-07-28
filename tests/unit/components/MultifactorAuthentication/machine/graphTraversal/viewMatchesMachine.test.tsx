@@ -210,6 +210,9 @@ const testConfig = {
             } else {
                 expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
                 expect(state.context.registrationChallenge).toBeDefined();
+                // The magic-code screen stays visible during this read, but the machine no longer
+                // accepts resend requests after a valid code has advanced the flow.
+                expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeDisabled();
             }
             expect(state.context.accountID).toBeDefined();
             expect(state.context.error).toBeUndefined();

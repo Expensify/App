@@ -13,8 +13,8 @@ type MfaSnapshot = SnapshotFrom<typeof MFAMachine>;
 type MfaState = MfaContext & {
     modalState: MfaModalState;
 
-    /** Whether the entered code is being exchanged for a registration challenge. While true the machine drops further magic-code events. */
-    isSubmittingValidateCode: boolean;
+    /** Whether the machine currently accepts a request for a fresh magic-code email. */
+    canResendValidateCode: boolean;
 };
 
 function getModalState(snapshot: MfaSnapshot): MfaModalState {
@@ -37,7 +37,7 @@ function snapshotToState(snapshot: MfaSnapshot): MfaState {
     return {
         ...snapshot.context,
         modalState: getModalState(snapshot),
-        isSubmittingValidateCode: snapshot.matches({[MFA_STATE.OPEN]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}),
+        canResendValidateCode: snapshot.can({type: 'RESEND_VALIDATE_CODE'}),
     };
 }
 
