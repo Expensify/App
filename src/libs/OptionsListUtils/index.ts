@@ -1933,8 +1933,8 @@ function createDecoratedOptionHeap<T>(reversed: boolean, limit?: number): Decora
             }
 
             const peekedValue = heap.peek();
-            if (!peekedValue) {
-                throw new Error('Heap is empty, cannot peek value');
+            if (peekedValue === null) {
+                return true;
             }
 
             if (reversed ? decoratedOption.key < peekedValue.key : decoratedOption.key > peekedValue.key) {
