@@ -890,7 +890,6 @@ const ONYXKEYS = {
         MERGE_TRANSACTION: 'mergeTransaction_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         CODING_RULE_MATCHING_TRANSACTION: 'codingRuleMatchingTransactions_',
-        NEXT_STEP: 'reportNextStep_',
         // Manual expense tab selector
         SELECTED_TAB: 'selectedTab_',
 
@@ -1470,7 +1469,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME]: string;
     [ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD]: ValueOf<typeof CONST.REPORT.SUBMISSION_METHOD>;
-    [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStepDeprecated;
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
     [ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN]: boolean;
