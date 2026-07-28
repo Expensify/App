@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {useEffect} from 'react';
 
@@ -91,7 +92,7 @@ function ReportCardLostConfirmMagicCodePage({
             isLoading={formData?.isLoading}
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REPLACE_CARD, reasonCardID: Number.parseInt(cardID, 10)})}
             validateError={validateError}
             clearError={() => {
                 if (!physicalCard?.cardID) {
