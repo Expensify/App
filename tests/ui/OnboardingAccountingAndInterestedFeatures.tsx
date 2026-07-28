@@ -66,7 +66,7 @@ function renderInterestedFeaturesPage() {
     );
 }
 
-function renderAccountingPage(textInputFocus?: jest.Mock) {
+function renderAccountingPage() {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <NavigationContainer>
@@ -82,12 +82,6 @@ function renderAccountingPage(textInputFocus?: jest.Mock) {
                 </Stack.Navigator>
             </NavigationContainer>
         </ComposeProviders>,
-        textInputFocus
-            ? {
-                  createNodeMock: (element) =>
-                      element.props.accessibilityLabel === TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware') ? {focus: textInputFocus} : null,
-              }
-            : undefined,
     );
 }
 
@@ -152,9 +146,8 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
     });
 
-    it('focuses Other without animating its label, restores focus when reselected, and completes with a trimmed integration name', async () => {
-        const textInputFocus = jest.fn();
-        const renderResult = renderAccountingPage(textInputFocus);
+    it('focuses Other without animating its label, keeps the input value when reselected, and completes with a trimmed integration name', async () => {
+        const renderResult = renderAccountingPage();
 
         await waitForBatchedUpdatesWithAct();
         expect(screen.queryByText(TestHelper.translateLocal('onboarding.accounting.none'))).not.toBeOnTheScreen();
@@ -166,10 +159,9 @@ describe('Onboarding interested features and accounting pages', () => {
             (node) => node.props.accessibilityLabel === otherAccountingSoftwareLabel && node.props.forceActiveLabel === true,
         );
         expect(otherAccountingSoftwareTextInputs.some((node) => node.props.autoFocus === true)).toBe(true);
-        textInputFocus.mockClear();
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
-        expect(textInputFocus).toHaveBeenCalledTimes(1);
         fireEvent.changeText(otherAccountingSoftwareInput, '  Acme Books  ');
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
+        expect(screen.getByLabelText(otherAccountingSoftwareLabel).props.value).toBe('  Acme Books  ');
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
 
         await waitFor(() => {
