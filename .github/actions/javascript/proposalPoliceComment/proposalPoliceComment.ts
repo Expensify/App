@@ -126,7 +126,6 @@ async function run() {
             // Persist the tracking marker as early as possible: if a later seed chunk fails to send, the next
             // run can still find this Conversation instead of creating (and fragmenting history into) a new one.
             await GithubUtils.createComment(CONST.APP_REPO, issueNumber, buildTrackingCommentBody(conversationID));
-            await GithubUtils.pinIssue(issueNumber);
             for (const chunk of seedItemChunks.slice(1)) {
                 await openAI.addConversationItems(conversationID, chunk);
             }

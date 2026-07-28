@@ -27,7 +27,6 @@ jest.mock('@github/libs/GithubUtils', () => ({
     default: {
         getAllCommentDetails: jest.fn(),
         createComment: jest.fn(),
-        pinIssue: jest.fn(),
         octokit: {issues: {updateComment: jest.fn()}},
     },
 }));
@@ -51,7 +50,6 @@ jest.mock('@actions/github', () => ({
 const MockedGithubUtils = jest.mocked(GithubUtils);
 const mockGetAllCommentDetails = MockedGithubUtils.getAllCommentDetails;
 const mockCreateComment = MockedGithubUtils.createComment;
-const mockPinIssue = MockedGithubUtils.pinIssue;
 // `octokit` is a getter on the real class returning a huge Octokit surface; the mock replaces it with a
 // plain object, so this one property access needs a cast that `jest.mocked()` can't infer through.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-explicit-any
@@ -224,7 +222,6 @@ describe('proposalPoliceComment', () => {
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.createConversation).toHaveBeenCalledTimes(1);
         expect(mockCreateComment).toHaveBeenCalledWith('App', 1, expect.stringContaining('proposal-police-conversation-id: conv_new'));
-        expect(mockPinIssue).toHaveBeenCalledWith(1);
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenNthCalledWith(1, expect.objectContaining({conversation: 'conv_new'}));
     });
@@ -266,7 +263,6 @@ describe('proposalPoliceComment', () => {
         // A Conversation is still created (and tracked) so future proposals on this issue have something to attach to...
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.createConversation).toHaveBeenCalledTimes(1);
-        expect(mockPinIssue).toHaveBeenCalledWith(1);
         // ...but with nothing yet to compare against, only the template-check call should run.
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(1);
@@ -312,7 +308,6 @@ describe('proposalPoliceComment', () => {
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.createConversation).not.toHaveBeenCalled();
-        expect(mockPinIssue).not.toHaveBeenCalled();
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenNthCalledWith(1, expect.objectContaining({conversation: 'conv_existing'}));
     });

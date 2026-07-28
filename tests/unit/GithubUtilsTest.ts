@@ -306,51 +306,6 @@ describe('GithubUtils', () => {
         });
     });
 
-    describe('pinIssue', () => {
-        let mockIssuesGet: jest.Mock;
-        let mockGraphql: jest.Mock;
-
-        beforeEach(() => {
-            mockIssuesGet = jest.fn();
-            mockGraphql = jest.fn();
-            const mockOctokitInstance = {
-                rest: {issues: {get: mockIssuesGet}},
-                graphql: mockGraphql,
-                paginate: jest.fn(),
-            } as unknown as InternalOctokit;
-
-            jest.spyOn(GithubUtils, 'initOctokit').mockImplementation(() => {});
-            GithubUtils.internalOctokit = mockOctokitInstance;
-        });
-
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
-        test('pins the issue via the GraphQL API using the REST-fetched node_id', async () => {
-            mockIssuesGet.mockResolvedValue({data: {node_id: 'MDU6SXNzdWUx'}});
-            mockGraphql.mockResolvedValue({pinIssue: {issue: {id: 'MDU6SXNzdWUx'}}});
-
-            await GithubUtils.pinIssue(42);
-
-            expect(mockIssuesGet).toHaveBeenCalledWith({
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                issue_number: 42,
-            });
-            expect(mockGraphql).toHaveBeenCalledWith(expect.stringContaining('pinIssue'), {issueId: 'MDU6SXNzdWUx'});
-        });
-
-        test('swallows an error instead of throwing (e.g. the repo already has 3 pinned issues)', async () => {
-            const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-            mockIssuesGet.mockResolvedValue({data: {node_id: 'MDU6SXNzdWUx'}});
-            mockGraphql.mockRejectedValue(new Error('You have already pinned the maximum number of issues (3) for this repository.'));
-
-            await expect(GithubUtils.pinIssue(42)).resolves.toBeUndefined();
-            expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Could not pin issue #42'), expect.any(Error));
-        });
-    });
-
     describe('getPullRequestURLFromNumber', () => {
         test.each([
             [1234, `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234`],
