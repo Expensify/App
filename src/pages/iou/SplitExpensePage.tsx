@@ -210,7 +210,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const iouReportIDForActions = expenseReport?.reportID ?? (isSelfDM(draftTransactionReport) ? draftTransactionReport?.reportID : undefined);
     const iouActions = getIOUActionForTransactions([originalTransactionID], allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDForActions}`]);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
-    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
@@ -379,7 +378,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
-            iouReportNextStep,
             betas,
             personalDetails,
             transactionReport: draftTransactionReport,

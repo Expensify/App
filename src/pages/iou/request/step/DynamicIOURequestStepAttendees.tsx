@@ -54,7 +54,6 @@ function DynamicIOURequestStepAttendees({
     const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -88,7 +87,6 @@ function DynamicIOURequestStepAttendees({
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
-                    parentReportNextStep,
                     isOffline,
                     delegateAccountID,
                     reportPolicyTags,
@@ -116,7 +114,6 @@ function DynamicIOURequestStepAttendees({
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
-        parentReportNextStep,
         isOffline,
         delegateAccountID,
         reportPolicyTags,

@@ -265,7 +265,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 )
                 .then(async () => {
                     if (expenseReport) {
-                        const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                         submitReport({
                             submitterLogin: undefined,
                             expenseReport,
@@ -274,7 +273,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
-                            expenseReportCurrentNextStepDeprecated: nextStep,
                             userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
@@ -568,7 +566,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                     )
                     .then(async () => {
                         if (expenseReport) {
-                            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                             submitReport({
                                 submitterLogin: undefined,
                                 expenseReport,
@@ -577,7 +574,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 currentUserEmailParam: CARLOS_EMAIL,
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
-                                expenseReportCurrentNextStepDeprecated: nextStep,
                                 userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
@@ -839,7 +835,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(async () => {
                         mockFetch?.fail?.();
                         if (expenseReport) {
-                            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                             submitReport({
                                 submitterLogin: undefined,
                                 expenseReport,
@@ -848,7 +843,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 currentUserEmailParam: CARLOS_EMAIL,
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
-                                expenseReportCurrentNextStepDeprecated: nextStep,
                                 userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
@@ -1018,7 +1012,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
-                            expenseReportCurrentNextStepDeprecated: undefined,
                             userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
@@ -1091,7 +1084,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
@@ -1195,7 +1187,6 @@ describe('actions/IOU/ReportWorkflow', () => {
 
                 jest.mocked(Navigation.navigate).mockClear();
 
-                const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                 const ownerBillingGracePeriodEnd = Math.floor(Date.now() / 1000) - 86400 * 30;
                 submitReport({
                     submitterLogin: undefined,
@@ -1205,7 +1196,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                     currentUserEmailParam: CARLOS_EMAIL,
                     hasViolations: false,
                     isASAPSubmitBetaEnabled: true,
-                    expenseReportCurrentNextStepDeprecated: nextStep,
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     ownerBillingGracePeriodEnd,
@@ -1267,7 +1257,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1332,7 +1321,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1382,7 +1370,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 hasViolations: false,
                 isTrackIntentUser: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1436,7 +1423,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 hasViolations: false,
                 isTrackIntentUser: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1506,7 +1492,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1596,7 +1581,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1699,7 +1683,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1773,7 +1756,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1843,7 +1825,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1912,7 +1893,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1975,7 +1955,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2018,7 +1997,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: 'submitter@example.com',
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2277,7 +2255,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2314,7 +2291,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2342,7 +2318,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
 
-            unapproveExpenseReport(expenseReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, DELEGATE_EMAIL, false);
+            unapproveExpenseReport(expenseReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, DELEGATE_EMAIL, false);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = jest.mocked(API.write).mock.calls;
@@ -2368,7 +2344,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            retractReport(expenseReport, chatReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, DELEGATE_EMAIL, false);
+            retractReport(expenseReport, chatReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, DELEGATE_EMAIL, false);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = jest.mocked(API.write).mock.calls;
@@ -2402,7 +2378,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -2444,7 +2419,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3030,7 +3004,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
 
-            retractReport(expenseReport, undefined, policy, 1, 'test@example.com', false, false, undefined, undefined, false);
+            retractReport(expenseReport, undefined, policy, 1, 'test@example.com', false, false, undefined, false);
 
             const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
@@ -3070,7 +3044,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             // When retracting the submitted expense report
-            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false, undefined, undefined, false);
+            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false, undefined, false);
 
             // Then the chat report iouReportID should be set back to the retracted expense report
             const iouReportID = await new Promise<string | undefined>((resolve) => {
@@ -3118,7 +3092,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             hasViolations: false,
             isTrackIntentUser: false,
             isASAPSubmitBetaEnabled: false,
-            expenseReportCurrentNextStepDeprecated: undefined,
             betas: [CONST.BETAS.ALL],
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
@@ -3305,7 +3278,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3358,7 +3330,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3407,7 +3378,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3532,7 +3502,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3564,7 +3533,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3594,7 +3562,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3654,7 +3621,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3714,7 +3680,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                         currentUserEmailParam: managerEmail,
                         hasViolations: false,
                         isASAPSubmitBetaEnabled: false,
-                        expenseReportCurrentNextStepDeprecated: undefined,
                         betas: [CONST.BETAS.ALL],
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -3845,7 +3810,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,

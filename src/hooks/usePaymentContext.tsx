@@ -108,7 +108,6 @@ function usePaymentContext(): PaymentContextValue {
 
 function useReportPaymentContext({reportID, chatReportPolicyID}: UseReportPaymentContextParams): ReportPaymentContextValue {
     const paymentContext = usePaymentContext();
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(reportID)}`);
     const chatReportPolicy = usePolicy(chatReportPolicyID);
 
     return {

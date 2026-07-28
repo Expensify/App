@@ -224,7 +224,6 @@ function MoneyRequestView({
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
     const [parentReportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     const parentReport = parentReportFromOnyx ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
@@ -679,7 +678,6 @@ function MoneyRequestView({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
-            parentReportNextStep,
             isOffline,
             delegateAccountID,
             reportPolicyTags,
@@ -704,7 +702,6 @@ function MoneyRequestView({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
-            parentReportNextStep,
             isOffline,
             delegateAccountID,
             reportPolicyTags,
@@ -847,7 +844,6 @@ function MoneyRequestView({
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
-                parentReportNextStep,
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
@@ -883,7 +879,6 @@ function MoneyRequestView({
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
-                parentReportNextStep,
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
@@ -921,7 +916,6 @@ function MoneyRequestView({
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
-                parentReportNextStep,
                 isOffline,
                 delegateAccountID,
                 reportPolicyTags,

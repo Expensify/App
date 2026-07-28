@@ -82,7 +82,6 @@ function SearchChangeApproverPage() {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
@@ -174,8 +173,7 @@ function SearchChangeApproverPage() {
 
             if (report.managerID !== currentUserDetails.accountID) {
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${selectedReport.reportID}`];
-                assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep, isTrackIntentUser);
+                assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser);
             }
         }
 

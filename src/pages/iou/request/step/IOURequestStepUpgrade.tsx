@@ -94,7 +94,6 @@ function IOURequestStepUpgrade({
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -137,7 +136,6 @@ function IOURequestStepUpgrade({
 
             const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser);
 
-            const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
 
             // Move ALL selected transactions to the new report
@@ -148,7 +146,6 @@ function IOURequestStepUpgrade({
                 email: session?.email ?? '',
                 newReport: optimisticReport,
                 policy: newPolicy,
-                reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
                 policyTagList,
                 transactions,
@@ -244,7 +241,6 @@ function IOURequestStepUpgrade({
         hasViolations,
         isASAPSubmitBetaEnabled,
         allPolicies,
-        allReportNextSteps,
         allPolicyCategories,
         session?.accountID,
         session?.email,

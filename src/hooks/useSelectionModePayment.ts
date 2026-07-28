@@ -99,7 +99,6 @@ function useSelectionModePayment({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -180,7 +179,6 @@ function useSelectionModePayment({
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
-                invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
@@ -203,7 +201,6 @@ function useSelectionModePayment({
                 chatReport,
                 iouReport: moneyRequestReport,
                 introSelected,
-                iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
@@ -305,7 +302,6 @@ function useSelectionModePayment({
             isASAPSubmitBetaEnabled,
             confirmApproval,
             iouReport: moneyRequestReport,
-            iouReportNextStep: nextStep,
             betas,
             userBillingGracePeriodEnds,
             amountOwed,

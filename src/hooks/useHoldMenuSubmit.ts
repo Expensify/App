@@ -50,7 +50,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -87,7 +86,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
@@ -105,7 +103,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 chatReport: currentChatReport,
                 iouReport: currentMoneyRequestReport,
                 introSelected,
-                iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 currentUserAccountID: currentUserDetails.accountID,
                 currentUserLogin: currentUserDetails.login ?? '',
                 full,

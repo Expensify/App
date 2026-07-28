@@ -38,7 +38,6 @@ function SearchAddApproverPage() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
@@ -139,7 +138,6 @@ function SearchAddApproverPage() {
                 }
 
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${selectedReport.reportID}`];
                 addReportApprover(
                     report,
                     selectedApproverEmail,
@@ -149,7 +147,6 @@ function SearchAddApproverPage() {
                     policy,
                     hasViolations,
                     isASAPSubmitBetaEnabled,
-                    reportNextStep,
                     isTrackIntentUser,
                 );
             }
