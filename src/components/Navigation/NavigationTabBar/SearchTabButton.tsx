@@ -8,24 +8,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {startNavigateToReportsSpans} from '@libs/telemetry/navigateToReportsSpans';
 
 import navigationRef from '@navigation/navigationRef';
-import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-import getLastRoute from './getLastRoute';
+import getSearchTabRoute from './getSearchTabRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 
@@ -54,27 +49,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             });
             startNavigateToReportsSpans();
 
-            const lastSearchRoute = getLastRoute(navigationRef.getRootState(), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT);
-
-            if (lastSearchRoute) {
-                const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-                const queryJSON = buildSearchQueryJSON(q);
-                if (queryJSON) {
-                    const query = buildSearchQueryString(queryJSON);
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query,
-                            ...rest,
-                        }),
-                    );
-                    return;
-                }
-            }
-
-            const lastQueryJSON = lastSearchParams?.queryJSON;
-            const lastQueryFromOnyx = lastQueryJSON ? buildSearchQueryString(lastQueryJSON) : undefined;
-            const defaultSearchQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultSearchQuery}));
+            Navigation.navigate(getSearchTabRoute(navigationRef.getRootState(), lastSearchParams));
         });
     };
 

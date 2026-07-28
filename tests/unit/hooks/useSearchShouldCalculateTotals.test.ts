@@ -76,4 +76,16 @@ describe('useSearchShouldCalculateTotals', () => {
 
         expect(result.current).toBe(false);
     });
+
+    it('returns true for an ad-hoc search when all matching items are selected', () => {
+        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, true, true));
+
+        expect(result.current).toBe(true);
+    });
+
+    it('returns true when all matching items are selected even when the hook is disabled (select-all bypasses the offset gate)', () => {
+        const {result} = renderHook(() => useSearchShouldCalculateTotals(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 123, false, true));
+
+        expect(result.current).toBe(true);
+    });
 });

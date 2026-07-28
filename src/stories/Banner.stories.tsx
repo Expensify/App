@@ -1,7 +1,7 @@
 import type {BannerProps} from '@components/Banner';
 import Banner from '@components/Banner';
 
-import type {StoryFn} from '@storybook/react-webpack5';
+import type {StoryFn} from 'storybook-react-rsbuild';
 
 import React from 'react';
 

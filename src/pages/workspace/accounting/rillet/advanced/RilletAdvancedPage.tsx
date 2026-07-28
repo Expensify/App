@@ -123,7 +123,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
-                        title={billPaymentAccount?.name}
+                        title={billPaymentAccount ? `${billPaymentAccount?.code} ${billPaymentAccount?.name}` : undefined}
                         description={translate('workspace.rillet.billPaymentAccount.label')}
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_BILL_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                         shouldShowRightIcon
@@ -153,7 +153,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
                             <MenuItemWithTopDescription
-                                title={settlementsBankAccount?.name}
+                                title={settlementsBankAccount ? `${settlementsBankAccount?.accountCode} ${settlementsBankAccount?.name}` : undefined}
                                 description={translate('workspace.rillet.settlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 shouldShowRightIcon
@@ -187,7 +187,9 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
                             <MenuItemWithTopDescription
-                                title={travelInvoicingSettlementsBankAccount?.name}
+                                title={
+                                    travelInvoicingSettlementsBankAccount ? `${travelInvoicingSettlementsBankAccount?.accountCode} ${travelInvoicingSettlementsBankAccount?.name}` : undefined
+                                }
                                 description={translate('workspace.rillet.travelInvoicingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 shouldShowRightIcon

@@ -1,7 +1,8 @@
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 
+import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -13,7 +14,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import DomainMembersTableRow from './DomainMembersTableRow';
 
@@ -33,6 +34,7 @@ type DomainMemberRowData = TableData & {
 };
 
 type DomainMembersTableProps = {
+    domainAccountID: number;
     members: DomainMemberRowData[];
     selectionEnabled: boolean;
     selectedKeys: string[];
@@ -68,9 +70,20 @@ function DomainMembersGroupFilterSync({shouldShowGroupFilter, groupOptionValuesK
     return null;
 }
 
-export default function DomainMembersTable({members, selectionEnabled, selectedKeys, onRowSelectionChange, shouldShowGroupColumn, filterConfig, isItemInFilter}: DomainMembersTableProps) {
+export default function DomainMembersTable({
+    domainAccountID,
+    members,
+    selectionEnabled,
+    selectedKeys,
+    onRowSelectionChange,
+    shouldShowGroupColumn,
+    filterConfig,
+    isItemInFilter,
+}: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const tableRef = useRef<TableHandle<DomainMemberRowData, DomainMembersTableColumnKey, DomainMembersTableFilterKey>>(null);
+    useDomainHighlightOnReturn(domainAccountID, 'members', tableRef);
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const shouldShowGroupFilter = !!filterConfig;
@@ -126,6 +139,7 @@ export default function DomainMembersTable({members, selectionEnabled, selectedK
 
     return (
         <Table
+            ref={tableRef}
             data={members}
             columns={domainMembersTableColumns}
             renderItem={renderTableItem}

@@ -42,6 +42,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
     const theme = useTheme();
     const session = useSession();
 
+    const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const cardholderName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: item.cardholder, translate});
     const narrowLayoutSubtitle = [item.lastFourPAN, item.name].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     const cardType = item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
@@ -101,7 +102,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                             source={item.cardholder?.avatar ?? icons.FallbackAvatar}
                             avatarID={item.cardholder?.accountID}
                             type={CONST.ICON_TYPE_AVATAR}
-                            size={CONST.AVATAR_SIZE.DEFAULT}
+                            size={avatarSize}
                         />
                         <View style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip

@@ -8,6 +8,7 @@ export default {
     ONBOARDING_MODAL_NAVIGATOR: 'OnboardingModalNavigator',
     FEATURE_TRAINING_MODAL_NAVIGATOR: 'FeatureTrainingModalNavigator',
     MIGRATED_USER_MODAL_NAVIGATOR: 'MigratedUserModalNavigator',
+    SUBMIT_PLAN_MODAL_NAVIGATOR: 'SubmitPlanModalNavigator',
     AI_FEATURES_PROMO_MODAL_NAVIGATOR: 'AIFeaturesPromoModalNavigator',
     TEST_DRIVE_DEMO_NAVIGATOR: 'TestDriveDemoNavigator',
     REPORTS_SPLIT_NAVIGATOR: 'ReportsSplitNavigator',

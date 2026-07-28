@@ -9227,6 +9227,7 @@ const CONST = {
         ADD_CONTACT_METHOD: 'add_contact_method',
         VALIDATE_ACCOUNT: 'validate_account',
         REVEAL_CARD_DETAILS: 'reveal_card_details',
+        REGISTER_AUTHENTICATION_KEY: 'register_authentication_key',
     },
     EXPENSIFY_CARD: {
         FEED_NAME: 'Expensify Card',
@@ -12132,7 +12133,116 @@ exports["default"] = new Logger_1.default({
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MAX_LOG_LINE_BYTES = void 0;
+exports.truncateMessageToFitLine = truncateMessageToFitLine;
+exports.serializeLineWithinByteLimit = serializeLineWithinByteLimit;
+exports.utf8ByteLength = utf8ByteLength;
 const MAX_LOG_LINES_BEFORE_FLUSH = 50;
+// The server rejects any single serialized log line larger than 1,048,576 bytes (1 MiB).
+// We enforce a lower cap on the JSON-serialized line (message + parameters + metadata, with
+// escaping) so it stays comfortably under the server limit.
+const MAX_LOG_LINE_BYTES = 1000000;
+exports.MAX_LOG_LINE_BYTES = MAX_LOG_LINE_BYTES;
+/**
+ * Gets the UTF-8 byte length of a single unicode code point.
+ */
+function codePointByteSize(code) {
+    if (code >= 0x10000) {
+        return 4;
+    }
+    if (code >= 0x800) {
+        return 3;
+    }
+    if (code >= 0x80) {
+        return 2;
+    }
+    return 1;
+}
+/**
+ * Gets the total UTF-8 byte length of a string.
+ */
+function utf8ByteLength(input) {
+    return Array.from(input).reduce((sum, char) => { var _a; return sum + codePointByteSize((_a = char.codePointAt(0)) !== null && _a !== void 0 ? _a : 0); }, 0);
+}
+/**
+ * UTF-8 byte length of a single code point *after JSON string escaping*, matching the output of
+ * JSON.stringify: `"` `\` and the short control escapes are 2 bytes, other control characters
+ * and lone surrogates become `\uXXXX` (6 bytes), everything else is its plain UTF-8 size.
+ */
+function jsonEscapedByteSize(code) {
+    if (code === 0x22 || code === 0x5c || code === 0x08 || code === 0x09 || code === 0x0a || code === 0x0c || code === 0x0d) {
+        return 2;
+    }
+    if (code < 0x20 || (code >= 0xd800 && code <= 0xdfff)) {
+        return 6;
+    }
+    return codePointByteSize(code);
+}
+/**
+ * Truncates `message` so that the SERIALIZED `line` fits within maxSize bytes. The serialized
+ * line is `overhead(empty message) + JSON-escaped bytes of the message`, so we measure the
+ * message's escaped size directly (single pass) instead of repeatedly re-serializing the whole
+ * line. This is exact for JSON.stringify's escaping and avoids the cost of a binary search.
+ */
+function truncateMessageToFitLine(line, message, maxSize) {
+    var _a;
+    const overhead = utf8ByteLength(JSON.stringify(Object.assign(Object.assign({}, line), { message: '' })));
+    const totalRawBytes = utf8ByteLength(message);
+    // Marker "...[truncated N bytes]" is escape-free ASCII, so its serialized size equals its
+    // raw size = 21 + digits(N). Reserve for the max possible N so the final line never overflows.
+    const MARKER_STATIC_BYTES = 21;
+    const reservedMarkerBytes = MARKER_STATIC_BYTES + String(totalRawBytes).length;
+    const contentBudget = maxSize - overhead - reservedMarkerBytes;
+    if (contentBudget <= 0) {
+        return '';
+    }
+    // Keep whole code points until the escaped budget is exhausted (never splits a character).
+    let keptUnits = 0;
+    let keptEscapedBytes = 0;
+    let keptRawBytes = 0;
+    for (let i = 0; i < message.length;) {
+        const code = (_a = message.codePointAt(i)) !== null && _a !== void 0 ? _a : 0;
+        const escapedBytes = jsonEscapedByteSize(code);
+        if (keptEscapedBytes + escapedBytes > contentBudget) {
+            break;
+        }
+        keptEscapedBytes += escapedBytes;
+        keptRawBytes += codePointByteSize(code);
+        const units = code > 0xffff ? 2 : 1;
+        i += units;
+        keptUnits += units;
+    }
+    if (keptRawBytes >= totalRawBytes) {
+        return message;
+    }
+    const removed = totalRawBytes - keptRawBytes;
+    return `${message.slice(0, keptUnits)}...[truncated ${removed} bytes]`;
+}
+/**
+ * Serializes a log line while enforcing the per-line byte limit on the *serialized* line — what
+ * the server measures — covering the message, parameters and metadata plus JSON-escaping
+ * overhead. Returns the JSON string for the line (reused to build the packet, so each line is
+ * serialized only once). Oversized `parameters` (structured data we can't safely truncate
+ * mid-JSON) are replaced with a size marker; the message is then truncated to fit the remainder.
+ */
+function serializeLineWithinByteLimit(line, maxSize) {
+    var _a;
+    const serialized = JSON.stringify(line);
+    // Cheap fast path: at most 3 UTF-8 bytes per UTF-16 code unit, so if 3 * length fits the
+    // line is definitely under the limit and we avoid the exact byte count entirely.
+    if (serialized.length * 3 <= maxSize || utf8ByteLength(serialized) <= maxSize) {
+        return serialized;
+    }
+    const result = Object.assign({}, line);
+    // If the line is over the limit even with an empty message, the bulk is in `parameters` —
+    // replace it with a marker so the (human-readable) message is what we keep room for.
+    if (utf8ByteLength(JSON.stringify(Object.assign(Object.assign({}, result), { message: '' }))) > maxSize) {
+        const parametersByteSize = utf8ByteLength(JSON.stringify((_a = result.parameters) !== null && _a !== void 0 ? _a : ''));
+        result.parameters = { truncated: true, originalByteSize: parametersByteSize };
+    }
+    result.message = truncateMessageToFitLine(result, line.message, maxSize);
+    return JSON.stringify(result);
+}
 class Logger {
     constructor({ serverLoggingCallback, isDebug, clientLoggingCallback, maxLogLinesBeforeFlush, getContextEmail }) {
         // An array of log lines that limits itself to a certain number of entries (deleting the oldest)
@@ -12158,16 +12268,20 @@ class Logger {
         if (!this.logLines.length || ((_a = this.logLines) === null || _a === void 0 ? void 0 : _a.every((l) => l.onlyFlushWithOthers))) {
             return;
         }
-        // We don't care about log setting web cookies so let's define it as false
-        const linesToLog = (_b = this.logLines) === null || _b === void 0 ? void 0 : _b.map((l) => {
+        // We don't care about log setting web cookies so let's define it as false.
+        // Serialize each line while bounding it to the server's per-line size limit (covers
+        // message, parameters and JSON-escaping overhead). Building the packet by joining the
+        // per-line JSON keeps each line serialized only once — identical output to
+        // JSON.stringify(array) with no extra pass.
+        const serializedLines = (_b = this.logLines) === null || _b === void 0 ? void 0 : _b.map((l) => {
             // eslint-disable-next-line no-param-reassign
             delete l.onlyFlushWithOthers;
-            return l;
+            return serializeLineWithinByteLimit(l, MAX_LOG_LINE_BYTES);
         });
         this.logLines = [];
         const promise = this.serverLoggingCallback(this, {
             api_setCookie: false,
-            logPacket: JSON.stringify(linesToLog),
+            logPacket: `[${serializedLines.join(',')}]`,
         });
         if (!promise) {
             return;
@@ -12671,8 +12785,8 @@ exports["default"] = {
          * @returns {number} The amount of tax
          */
         calculateTaxFromPercentage(total, percentage) {
-            const percentageAsDecimal = str_1.default.percentageStringToNumber(percentage) / 100;
-            const divisor = percentage ? percentageAsDecimal + 1 : 1;
+            const percentageAsDecimal = percentage ? str_1.default.percentageStringToNumber(percentage) / 100 : 0;
+            const divisor = percentageAsDecimal + 1;
             return this.calculateTaxFromDivisor(total, divisor);
         },
         /**
@@ -16016,7 +16130,7 @@ function isObject(obj) {
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "worklet"; // This function is used in react-native-live-markdown parser and it must be a worklet to run in UI thread (react-native-reanimated)
-"use strict";var __assign=this&&this.__assign||function(){__assign=Object.assign||function(t){for(var s,i=1,n=arguments.length;i<n;i++){s=arguments[i];for(var p in s)if(Object.prototype.hasOwnProperty.call(s,p))t[p]=s[p]}return t};return __assign.apply(this,arguments)};Object.defineProperty(exports, "__esModule", ({value:true}));var named_references_1=__nccwpck_require__(6068);var numeric_unicode_map_1=__nccwpck_require__(5439);var surrogate_pairs_1=__nccwpck_require__(1454);var allNamedReferences=__assign(__assign({},named_references_1.namedReferences),{all:named_references_1.namedReferences.html5});function replaceUsingRegExp(macroText,macroRegExp,macroReplacer){macroRegExp.lastIndex=0;var replaceMatch=macroRegExp.exec(macroText);var replaceResult;if(replaceMatch){replaceResult="";var replaceLastIndex=0;do{if(replaceLastIndex!==replaceMatch.index){replaceResult+=macroText.substring(replaceLastIndex,replaceMatch.index)}var replaceInput=replaceMatch[0];replaceResult+=macroReplacer(replaceInput);replaceLastIndex=replaceMatch.index+replaceInput.length}while(replaceMatch=macroRegExp.exec(macroText));if(replaceLastIndex!==macroText.length){replaceResult+=macroText.substring(replaceLastIndex)}}else{replaceResult=macroText}return replaceResult}var encodeRegExps={specialChars:/[<>'"&]/g,nonAscii:/[<>'"&\u0080-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/g,nonAsciiPrintable:/[<>'"&\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/g,nonAsciiPrintableOnly:/[\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/g,extensive:/[\x01-\x0c\x0e-\x1f\x21-\x2c\x2e-\x2f\x3a-\x40\x5b-\x60\x7b-\x7d\x7f-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/g};var defaultEncodeOptions={mode:"specialChars",level:"all",numeric:"decimal"};function encode(text,_a){var _b=_a===void 0?defaultEncodeOptions:_a,_c=_b.mode,mode=_c===void 0?"specialChars":_c,_d=_b.numeric,numeric=_d===void 0?"decimal":_d,_e=_b.level,level=_e===void 0?"all":_e;if(!text){return""}var encodeRegExp=encodeRegExps[mode];var references=allNamedReferences[level].characters;var isHex=numeric==="hexadecimal";return replaceUsingRegExp(text,encodeRegExp,(function(input){var result=references[input];if(!result){var code=input.length>1?surrogate_pairs_1.getCodePoint(input,0):input.charCodeAt(0);result=(isHex?"&#x"+code.toString(16):"&#"+code)+";"}return result}))}exports.encode=encode;var defaultDecodeOptions={scope:"body",level:"all"};var strict=/&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+);/g;var attribute=/&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+)[;=]?/g;var baseDecodeRegExps={xml:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.xml},html4:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.html4},html5:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.html5}};var decodeRegExps=__assign(__assign({},baseDecodeRegExps),{all:baseDecodeRegExps.html5});var fromCharCode=String.fromCharCode;var outOfBoundsChar=fromCharCode(65533);var defaultDecodeEntityOptions={level:"all"};function getDecodedEntity(entity,references,isAttribute,isStrict){var decodeResult=entity;var decodeEntityLastChar=entity[entity.length-1];if(isAttribute&&decodeEntityLastChar==="="){decodeResult=entity}else if(isStrict&&decodeEntityLastChar!==";"){decodeResult=entity}else{var decodeResultByReference=references[entity];if(decodeResultByReference){decodeResult=decodeResultByReference}else if(entity[0]==="&"&&entity[1]==="#"){var decodeSecondChar=entity[2];var decodeCode=decodeSecondChar=="x"||decodeSecondChar=="X"?parseInt(entity.substr(3),16):parseInt(entity.substr(2));decodeResult=decodeCode>=1114111?outOfBoundsChar:decodeCode>65535?surrogate_pairs_1.fromCodePoint(decodeCode):fromCharCode(numeric_unicode_map_1.numericUnicodeMap[decodeCode]||decodeCode)}}return decodeResult}function decodeEntity(entity,_a){var _b=(_a===void 0?defaultDecodeEntityOptions:_a).level,level=_b===void 0?"all":_b;if(!entity){return""}return getDecodedEntity(entity,allNamedReferences[level].entities,false,false)}exports.decodeEntity=decodeEntity;function decode(text,_a){var _b=_a===void 0?defaultDecodeOptions:_a,_c=_b.level,level=_c===void 0?"all":_c,_d=_b.scope,scope=_d===void 0?level==="xml"?"strict":"body":_d;if(!text){return""}var decodeRegExp=decodeRegExps[level][scope];var references=allNamedReferences[level].entities;var isAttribute=scope==="attribute";var isStrict=scope==="strict";return replaceUsingRegExp(text,decodeRegExp,(function(entity){return getDecodedEntity(entity,references,isAttribute,isStrict)}))}exports.decode=decode;
+"use strict";var __assign=this&&this.__assign||function(){__assign=Object.assign||function(t){for(var s,i=1,n=arguments.length;i<n;i++){s=arguments[i];for(var p in s)if(Object.prototype.hasOwnProperty.call(s,p))t[p]=s[p]}return t};return __assign.apply(this,arguments)};Object.defineProperty(exports, "__esModule", ({value:true}));var named_references_1=__nccwpck_require__(6068);var numeric_unicode_map_1=__nccwpck_require__(5439);var surrogate_pairs_1=__nccwpck_require__(1454);var allNamedReferences=__assign(__assign({},named_references_1.namedReferences),{all:named_references_1.namedReferences.html5});var encodeRegExps={specialChars:/[<>'"&]/g,nonAscii:/[<>'"&\u0080-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,nonAsciiPrintable:/[<>'"&\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,nonAsciiPrintableOnly:/[\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,extensive:/[\x01-\x0c\x0e-\x1f\x21-\x2c\x2e-\x2f\x3a-\x40\x5b-\x60\x7b-\x7d\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g};var defaultEncodeOptions={mode:"specialChars",level:"all",numeric:"decimal"};function encode(text,_a){var _b=_a===void 0?defaultEncodeOptions:_a,_c=_b.mode,mode=_c===void 0?"specialChars":_c,_d=_b.numeric,numeric=_d===void 0?"decimal":_d,_e=_b.level,level=_e===void 0?"all":_e;if(!text){return""}var encodeRegExp=encodeRegExps[mode];var references=allNamedReferences[level].characters;var isHex=numeric==="hexadecimal";return text.replace(encodeRegExp,(function(input){var result=references[input];if(!result){var code=input.length>1?surrogate_pairs_1.getCodePoint(input,0):input.charCodeAt(0);result=(isHex?"&#x"+code.toString(16):"&#"+code)+";"}return result}))}exports.encode=encode;var defaultDecodeOptions={scope:"body",level:"all"};var strict=/&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+);/g;var attribute=/&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+)[;=]?/g;var baseDecodeRegExps={xml:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.xml},html4:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.html4},html5:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.html5}};var decodeRegExps=__assign(__assign({},baseDecodeRegExps),{all:baseDecodeRegExps.html5});var fromCharCode=String.fromCharCode;var outOfBoundsChar=fromCharCode(65533);var defaultDecodeEntityOptions={level:"all"};function getDecodedEntity(entity,references,isAttribute,isStrict){var decodeResult=entity;var decodeEntityLastChar=entity[entity.length-1];if(isAttribute&&decodeEntityLastChar==="="){decodeResult=entity}else if(isStrict&&decodeEntityLastChar!==";"){decodeResult=entity}else{var decodeResultByReference=references[entity];if(decodeResultByReference){decodeResult=decodeResultByReference}else if(entity[0]==="&"&&entity[1]==="#"){var decodeSecondChar=entity[2];var decodeCode=decodeSecondChar=="x"||decodeSecondChar=="X"?parseInt(entity.substr(3),16):parseInt(entity.substr(2));decodeResult=decodeCode>=1114111?outOfBoundsChar:decodeCode>65535?surrogate_pairs_1.fromCodePoint(decodeCode):fromCharCode(numeric_unicode_map_1.numericUnicodeMap[decodeCode]||decodeCode)}}return decodeResult}function decodeEntity(entity,_a){var _b=(_a===void 0?defaultDecodeEntityOptions:_a).level,level=_b===void 0?"all":_b;if(!entity){return""}return getDecodedEntity(entity,allNamedReferences[level].entities,false,false)}exports.decodeEntity=decodeEntity;function decode(text,_a){var _b=_a===void 0?defaultDecodeOptions:_a,_c=_b.level,level=_c===void 0?"all":_c,_d=_b.scope,scope=_d===void 0?level==="xml"?"strict":"body":_d;if(!text){return""}var decodeRegExp=decodeRegExps[level][scope];var references=allNamedReferences[level].entities;var isAttribute=scope==="attribute";var isStrict=scope==="strict";return text.replace(decodeRegExp,(function(entity){return getDecodedEntity(entity,references,isAttribute,isStrict)}))}exports.decode=decode;
 //# sourceMappingURL=./index.js.map
 
 /***/ }),

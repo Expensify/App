@@ -1,5 +1,12 @@
 const oldRoutes: Record<string, string> = {
     /* eslint-disable @typescript-eslint/naming-convention */
+    // Per diem destination step migrated to dynamic routes (#83850). Dynamic suffixes are namespaced `per-diem-*` because
+    // dynamic route paths must be globally unique across DYNAMIC_ROUTES (react-navigation flattens them and a bare
+    // `destination` collides with Sage Intacct's existing `destination` suffix). Edit variant redirects to the
+    // confirmation-based suffix; the wizard variant to the start-based suffix. Query is not preserved (trailing wildcard
+    // would swallow it) - acceptable because callers no longer append `?backTo=`.
+    '/*/*/destination/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-destination-edit',
+    '/*/*/destination/*/*': '/$1/$2/start/$3/$4/per-diem-destination',
     '/settings/*/category/*/edit': '/settings/$1/categories/category-settings/$2/category-edit',
     '/settings/*/category/*': '/settings/$1/categories/category-settings/$2',
     '/settings/*/tags/*/edit': '/settings/$1/tags/settings-tags-edit/$2',
@@ -65,6 +72,7 @@ const oldRoutes: Record<string, string> = {
     '/flag/*/*': '/r/$1/flag/$1/$2',
     '/r/*/details/shareCode': '/r/$1/share-code',
     '/e/*/details/shareCode': '/e/$1/share-code',
+    '/merge/*': '/search/merge/$1',
     '/referral/*': '/home/referral/$1',
     '/a/*/avatar': '/avatar/$1',
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
@@ -73,7 +81,10 @@ const oldRoutes: Record<string, string> = {
     '/new/task/title': '/task-details/task-confirm/task-title',
     '/new/task/description': '/task-details/task-confirm/task-description',
     '/new/task/assignee': '/task-details/task-confirm/task-assignee',
+    '/new/task/share-destination': '/task-details/task-confirm/task-share-destination',
     '/new/task': '/task-details/task-confirm',
+    '/create/*/from/*/*': '/create/$1/confirmation/$2/$3/send-from',
+    '/create/*/company-info/*/*': '/create/$1/confirmation/$2/$3/company-info',
     '/workspaces/*/company-cards/company-card-details/*/*/edit/export': '/workspaces/$1/company-cards/company-card-details/$2/$3/edit/export',
     '/workspaces/*/company-cards/company-card-details/*/*/edit/transaction-start-date': '/workspaces/$1/company-cards/company-card-details/$2/$3/edit/transaction-start-date',
     '/workspaces/*/company-cards/company-card-details/*/*/edit/name': '/workspaces/$1/company-cards/company-card-details/$2/$3/edit/name',
@@ -115,6 +126,11 @@ const oldRoutes: Record<string, string> = {
     '/settings/wallet/enable-payments/fees': '/settings/wallet/enable-payments/fees-and-terms/fees',
     '/settings/wallet/enable-payments/fees/*': '/settings/wallet/enable-payments/fees-and-terms/fees/$1',
     '/settings/wallet/enable-payments/terms*': '/settings/wallet/enable-payments/fees-and-terms/terms$1',
+    '/missing-personal-details/*': '/settings/wallet/missing-personal-details/$1',
+    '/workspaces/*/workflows/approvals/expenses-from': '/workspaces/$1/workflows/approvals/new/expenses-from',
+    '/*/*/taxRate/*/*': '/r/$4/taxRate?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/taxAmount/*/*': '/r/$4/taxAmount?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/attendees/*/*': '/r/$4/attendees?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 
