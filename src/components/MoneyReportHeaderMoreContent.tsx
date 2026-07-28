@@ -26,7 +26,11 @@ import {useMoneyReportTransactionThread} from './MoneyReportTransactionThreadCon
 
 type MoneyReportHeaderMoreContentProps = {
     reportID: string | undefined;
+
+    /** The report's primary action, forwarded to the actions row */
     primaryAction: MoneyReportHeaderActionsProps['primaryAction'];
+
+    /** Route to navigate back to */
     backTo: Route | undefined;
 
     /** Which status bar to render, resolved by the header via useMoneyReportHeaderMoreContentVisibility */

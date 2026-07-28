@@ -51,7 +51,7 @@ const collectParentReportActions = (reportActions: OnyxEntry<OnyxTypes.ReportAct
         if (!transactionID) {
             continue;
         }
-        // eslint-disable-next-line no-param-reassign
+        // eslint-disable-next-line no-param-reassign -- intentionally mutates the shared accumulator so callers can build the map in a single pass across multiple report-action sources
         parentActions[transactionID] = action;
     }
 };
@@ -112,30 +112,42 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             // report actions into one intermediate object (repeated spreads are O(n²) and, with a snapshot,
             // would copy every report's actions), since this selector re-runs on any report-action change.
             // We return a plain object (not a Map) because useOnyx's deepEqual is very slow for Maps.
+            // Reported transactions keep their IOU action on their own report (reportActions_<reportID>), so we only
+            // read the three relevant report-action keys here — no whole-snapshot scan on every report-action change.
             const parentActions: Record<string, OnyxTypes.ReportAction> = {};
-            // Reported transactions keep their IOU action on their own report (reportActions_<reportID>).
             for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
                 const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}` as const;
                 collectParentReportActions(allReportActions?.[key] ?? (snapshot?.data?.[key] as OnyxTypes.ReportActions | undefined), parentActions);
-            }
-            // Unreported transactions (reportID '0') keep their IOU action on a different report (e.g. a self-DM),
-            // so it isn't under reportActions_0. Scan every report's actions from the search snapshot so the action
-            // (and its childReportID thread) can still be located by IOUTransactionID.
-            if (snapshot?.data) {
-                for (const [key, reportActionsForReport] of Object.entries(snapshot.data)) {
-                    if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-                        collectParentReportActions(reportActionsForReport as OnyxTypes.ReportActions, parentActions);
-                    }
-                }
             }
             return parentActions;
         },
         [currentTransaction, nextTransaction, prevTransaction, snapshot],
     );
 
-    const [parentReportActions = getEmptyObject<Record<string, OnyxTypes.ReportAction>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+    const [reportedParentReportActions = getEmptyObject<Record<string, OnyxTypes.ReportAction>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: parentReportActionsSelector,
     });
+
+    // Unreported transactions (reportID '0') keep their IOU action on a different report (e.g. a self-DM), so it
+    // isn't under reportActions_0 and its report key can't be derived from the transaction. We scan every report's
+    // actions from the search snapshot so the action (and its childReportID thread) can still be located by
+    // IOUTransactionID. This lives outside the REPORT_ACTIONS collection selector — it only reads the snapshot — so
+    // it recomputes when the snapshot changes rather than re-scanning the whole snapshot on every report-action change.
+    const snapshotData = snapshot?.data;
+    const snapshotParentReportActions = useMemo(() => {
+        const parentActions: Record<string, OnyxTypes.ReportAction> = {};
+        if (snapshotData) {
+            for (const [key, reportActionsForReport] of Object.entries(snapshotData)) {
+                if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+                    collectParentReportActions(reportActionsForReport as OnyxTypes.ReportActions, parentActions);
+                }
+            }
+        }
+        return parentActions;
+    }, [snapshotData]);
+
+    // Snapshot values take precedence for overlapping transactionIDs, matching the original single-pass ordering.
+    const parentReportActions = useMemo(() => ({...reportedParentReportActions, ...snapshotParentReportActions}), [reportedParentReportActions, snapshotParentReportActions]);
 
     const {prevParentReportAction, nextParentReportAction} = useMemo(() => {
         if (!transactionIDsList || transactionIDsList.length < 2) {
