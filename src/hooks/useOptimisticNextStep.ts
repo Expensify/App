@@ -1,7 +1,7 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {buildOptimisticFixIssueNextStep, getReportNextStep} from '@libs/NextStepUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getFilteredReportActionsForReportView, hasPendingDEWApprove, hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getReasonAndReportActionThatRequiresAttention,

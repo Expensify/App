@@ -48,7 +48,6 @@ type ApproverType = ValueOf<typeof APPROVER_TYPE>;
 type DynamicReportChangeApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT>;
 
 function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: DynamicReportChangeApproverPageProps) {
-    const reportID = report?.reportID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();

@@ -68,7 +68,7 @@ function PayActionButton() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const activePolicy = usePolicy(activePolicyID);
     const actionButtonData = useReportPreviewActionButtonData(iouReportID);
-    const {iouReport, policy, userBillingGracePeriodEnds, iouReportNextStep, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
+    const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -105,7 +105,6 @@ function PayActionButton() {
                     paymentMethodType: type,
                     chatReport: currentChatReport,
                     invoiceReport: iouReport,
-                    invoiceReportCurrentNextStepDeprecated: iouReportNextStep,
                     introSelected,
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserEmail,
@@ -129,7 +128,6 @@ function PayActionButton() {
                     chatReport: currentChatReport,
                     iouReport,
                     introSelected,
-                    iouReportCurrentNextStepDeprecated: iouReportNextStep,
                     currentUserAccountID,
                     currentUserLogin: currentUserDetails.login ?? '',
                     activePolicy,

@@ -238,9 +238,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     // reflect on the badge (per-row selector, not the screen-level collection merge this slice removed).
     const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(snapshotTransactionIDs)});
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID} =
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID} =
         useReportPaymentContext({
-            reportID: reportItem.reportID,
             chatReportPolicyID: chatReport?.policyID,
         });
 
@@ -293,7 +292,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             activePolicy,
             chatReport,
             chatReportPolicy,
-            iouReportCurrentNextStepDeprecated: nextStep,
             searchData,
             chatReportActions,
             delegateEmail,
@@ -334,7 +332,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
-        nextStep,
         chatReportActions,
         delegateEmail,
         delegateAccountID,

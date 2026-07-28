@@ -56,16 +56,7 @@ function SubmitActionButtonContent() {
     const {isSubmittingAnimationRunning} = useReportPreviewAnimationState();
     const {stopAnimation, startSubmittingAnimation} = useReportPreviewActions();
 
-    const {
-        iouReport,
-        policy,
-        ownerLogin: submitterLogin,
-        userBillingGracePeriodEnds,
-        iouReportNextStep,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
-        delegateEmail,
-    } = useReportPreviewActionButtonData(iouReportID);
+    const {iouReport, policy, ownerLogin: submitterLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} = useReportPreviewActionButtonData(iouReportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -109,7 +100,6 @@ function SubmitActionButtonContent() {
                 currentUserEmailParam: currentUserEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 onSubmitted: startSubmittingAnimation,
