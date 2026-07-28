@@ -1,9 +1,9 @@
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import {setAuthToken} from '@libs/Network/NetworkStore';
-import {unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
+import {registerPauseWatchdogEscalation, unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
 
-import {finalReconnectAppAfterActivatingReliableUpdates, getMissingOnyxUpdates, reconnectApp} from '@userActions/App';
+import {finalReconnectAppAfterActivatingReliableUpdates, getMissingOnyxUpdates, reconnectApp, reconnectAppWithSideEffects} from '@userActions/App';
 import updateSessionAuthTokens from '@userActions/Session/updateSessionAuthTokens';
 
 import CONST from '@src/CONST';
@@ -115,6 +115,24 @@ function isFetchAlreadyStalled(lastUpdateIDFromClient: number): boolean {
     setMissingOnyxUpdatesQueryPromise(Promise.resolve());
     return true;
 }
+
+// Watchdog recovery: close the gap with an out-of-queue incremental ReconnectApp before unpausing.
+// Registered here because SequentialQueue can't import App (cycle). Shares the stalled-fetch back-off
+// so a client thrashing on GetMissingOnyxMessages isn't handed another reconnect.
+registerPauseWatchdogEscalation(() => {
+    const lastUpdateIDFromClient = lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
+
+    if (stalledFetch && Date.now() - stalledFetch.time < CONST.NETWORK.STALLED_UPDATES_FETCH_BACKOFF_TIME_MS) {
+        Log.info('[OnyxUpdateManager] Pause watchdog escalation skipped — within the stalled-fetch back-off window', false, {lastUpdateIDFromClient});
+        return Promise.resolve();
+    }
+
+    stalledFetch = {clientUpdateID: lastUpdateIDFromClient, time: Date.now()};
+    Log.info('[OnyxUpdateManager] Pause watchdog escalation — firing an incremental ReconnectApp outside the queue to close the update gap before unpausing', false, {
+        lastUpdateIDFromClient,
+    });
+    return reconnectAppWithSideEffects(lastUpdateIDFromClient);
+});
 
 // Fetches the missing updates and afterwards validates and applies the deferred updates, which recurses
 // while the deferred updates still have gaps. When the fetch settles without progress, escalateIfFetchStalled

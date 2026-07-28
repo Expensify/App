@@ -85,14 +85,18 @@ function clearPauseWatchdog() {
     pauseWatchdogTimeoutID = null;
 }
 
+type PauseWatchdogEscalation = () => Promise<unknown>;
+let pauseWatchdogEscalation: PauseWatchdogEscalation | undefined;
+
+/** Gap-closing step the watchdog runs before unpausing. Registered by OnyxUpdateManager — importing it here would be a dependency cycle. */
+function registerPauseWatchdogEscalation(escalation: PauseWatchdogEscalation) {
+    pauseWatchdogEscalation = escalation;
+}
+
 /**
- * Every pause() must eventually be balanced by an unpause() from the OnyxUpdateManager once the
- * client/server update gap is resolved. Several early-return and failure paths in that async chain can
- * leave the queue paused forever — OpenApp then never runs, IS_LOADING_APP never clears, and the app is
- * stuck on a skeleton until a hard refresh. This watchdog force-unpauses when the queue stays paused
- * without the client applying any newer update for MAX_PAUSE_WATCHDOG_TIME_MS, letting flush() re-run the
- * queued OpenApp/ReconnectApp and self-heal. It re-arms on every applied-update advance (see below), so a
- * genuinely progressing catch-up never trips it — only a stuck pause does.
+ * unpause() is not guaranteed to follow pause() — the async gap-resolution chain can die mid-way, stranding
+ * the app on a skeleton until refresh. Recover when a paused queue applies no newer update for the full
+ * window; progress re-arms the timer, so a slow catch-up never trips it.
  */
 function armPauseWatchdog() {
     clearPauseWatchdog();
@@ -101,14 +105,24 @@ function armPauseWatchdog() {
         if (!isQueuePaused) {
             return;
         }
-        Log.alert('[SequentialQueue] Pause watchdog fired — queue stuck paused with no progress, force-unpausing to self-heal');
-        unpause();
+        Log.alert('[SequentialQueue] Pause watchdog fired — queue stuck paused with no progress, recovering');
+
+        // Close the update gap first, then unpause — capped and failure-swallowed so a hung escalation can't re-deadlock the queue.
+        const escalation = pauseWatchdogEscalation?.().catch(() => undefined) ?? Promise.resolve();
+        const escalationCap = new Promise<void>((resolve) => {
+            setTimeout(resolve, CONST.NETWORK.MAX_PAUSE_WATCHDOG_ESCALATION_TIME_MS);
+        });
+        Promise.race([escalation, escalationCap]).then(() => {
+            // The normal chain may have unpaused meanwhile.
+            if (!isQueuePaused) {
+                return;
+            }
+            unpause();
+        });
     }, CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
 }
 
-// Re-arm the watchdog whenever the client applies a newer update while paused, so the timeout only
-// elapses when the paused queue has genuinely stopped making progress.
-// Use connectWithoutView since this is for network queue and doesn't affect any UI.
+// Progress while paused re-arms the watchdog, so only a stalled pause trips it.
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: () => {
@@ -720,6 +734,7 @@ export {
     isRunning,
     pause,
     push,
+    registerPauseWatchdogEscalation,
     resetQueue,
     sequentialQueueRequestThrottle,
     unpause,

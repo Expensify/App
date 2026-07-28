@@ -541,6 +541,22 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
 }
 
 /**
+ * Incremental ReconnectApp as a side-effect request (bypasses the paused queue) so the pause watchdog can
+ * close the update gap before unpausing. Must not clear IS_LOADING_APP — outside the queue it could race an
+ * in-flight OpenApp (see getOnyxDataForOpenOrReconnect).
+ */
+function reconnectAppWithSideEffects(updateIDFrom = 0): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
+    const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
+    if (updateIDFrom) {
+        params.updateIDFrom = updateIDFrom;
+    }
+
+    // The watchdog must await the gap closing; same justified exception as the sibling functions above.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, !updateIDFrom));
+}
+
+/**
  * Fetches data when the client has discovered it missed some Onyx updates from the server
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param [updateIDTo] the ID of the Onyx update that we want to fetch up to
@@ -978,6 +994,7 @@ export {
     handleRestrictedEvent,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,
+    reconnectAppWithSideEffects,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
     createWorkspaceWithPolicyDraft,
