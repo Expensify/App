@@ -1004,7 +1004,7 @@ function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
               ),
           }
         : queryJSONWithoutFlatFilters;
-    return {backendQueryJSON, limit};
+    return {backendQueryJSON, limit, exactMatchFilterKeys};
 }
 
 function search({
@@ -1046,7 +1046,7 @@ function search({
     inFlightSearchRequests.add(dedupeKey);
 
     const {optimisticData, successData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
-    const {backendQueryJSON, limit} = getBackendQueryJSON(queryJSON);
+    const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
         searchKey,
@@ -1166,12 +1166,15 @@ function getFooterConvertedAmounts({
 
     // searchKey changes what the backend query matches (e.g. unapprovedCash excludes card expenses), so it must be
     // sent exactly as search() sends it or the converted totals cover a different expense set than the snapshot.
-    const {backendQueryJSON} = getBackendQueryJSON(queryJSON);
-    const jsonQuery = serializeQueryJSONForBackend({
-        ...backendQueryJSON,
-        searchKey,
-        filters: backendQueryJSON.filters ?? null,
-    });
+    const {backendQueryJSON, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
+    const jsonQuery = serializeQueryJSONForBackend(
+        {
+            ...backendQueryJSON,
+            searchKey,
+            filters: backendQueryJSON.filters ?? null,
+        },
+        exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined,
+    );
 
     read(
         READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT,
