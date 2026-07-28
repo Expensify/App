@@ -230,9 +230,6 @@
 "../../src/components/LHNOptionsList/OptionRowLHN/OptionRow/Pressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/ValidateCodeInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/ValidateCodeInput.tsx"	"react-hooks/refs"	1
-"../../src/components/ValidateCodeInput.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/components/MapView/GPSMapView.tsx"	"no-restricted-imports"	1
 "../../src/components/MapView/MapView.tsx"	"no-restricted-imports"	1
 "../../src/components/MapView/MapView.tsx"	"react-hooks/set-state-in-effect"	1
@@ -491,6 +488,9 @@
 "../../src/components/UpdateAppModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/UploadFile.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm.tsx"	"no-restricted-imports"	1
+"../../src/components/ValidateCodeInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/components/ValidateCodeInput.tsx"	"react-hooks/refs"	1
+"../../src/components/ValidateCodeInput.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"no-restricted-syntax"	1
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"react-hooks/refs"	13
@@ -1321,9 +1321,8 @@
 "../../src/pages/settings/Report/ReportDetailsColumnsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/settings/Rules/ExpenseRulesPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/settings/Rules/ExpenseRulesPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Security/AddDelegate/ConfirmDelegateValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/AddDelegate/ConfirmDelegatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/settings/Security/AddDelegate/ConfirmDelegatePage.tsx"	"no-restricted-imports"	1
+"../../src/pages/settings/Security/AddDelegate/ConfirmDelegateValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/AddDelegate/UpdateDelegateRole/UpdateDelegateValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/LockAccount/LockAccountPageBase.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/TwoFactorAuth/VerifyPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
