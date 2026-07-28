@@ -4,53 +4,19 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NewLogin} from '@src/types/onyx';
-import type {OnyxData} from '@src/types/onyx/Request';
-
-import type {OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
 import redirectToSignIn from '../../src/libs/actions/SignInRedirect';
 import * as UserActions from '../../src/libs/actions/User';
 import createMock from '../utils/createMock';
+import {anyArray, anyObject, anyString} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
 jest.mock('../../src/libs/actions/SignInRedirect');
 
 const mockAPI = jest.mocked(API);
-const anyArray: unknown = expect.any(Array);
-const anyObject: unknown = expect.any(Object);
-const anyString: unknown = expect.any(String);
-
-type MakeRequestOnyxData = OnyxData<OnyxKey>;
-type OnyxDataField = keyof Pick<MakeRequestOnyxData, 'optimisticData' | 'successData' | 'failureData'>;
-type MakeRequestOnyxUpdate = NonNullable<MakeRequestOnyxData['optimisticData']>[number];
-type LockAccountOnyxKey =
-    | typeof ONYXKEYS.ACCOUNT
-    | `${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`
-    | `${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`
-    | `${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`;
-type LockAccountOnyxUpdate = Extract<MakeRequestOnyxUpdate, {key: LockAccountOnyxKey}>;
-
-function isLockAccountOnyxUpdate(update: MakeRequestOnyxUpdate): update is LockAccountOnyxUpdate {
-    const {key} = update;
-    return (
-        key === ONYXKEYS.ACCOUNT ||
-        key.startsWith(ONYXKEYS.COLLECTION.DOMAIN) ||
-        key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS) ||
-        key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_ERRORS)
-    );
-}
-
-function getOnyxUpdates(onyxData: MakeRequestOnyxData | undefined, field: OnyxDataField): LockAccountOnyxUpdate[] {
-    const updates = onyxData?.[field];
-    if (!updates) {
-        throw new Error(`Expected ${field} in API Onyx data`);
-    }
-
-    return updates.filter(isLockAccountOnyxUpdate);
-}
 
 describe('actions/User', () => {
     beforeAll(() => {
@@ -653,9 +619,9 @@ describe('actions/User', () => {
                 UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
-                const onyxData: MakeRequestOnyxData | undefined = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
+                const onyxData = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
 
-                const optimisticAccountUpdate = getOnyxUpdates(onyxData, 'optimisticData').find((update) => update.key === ONYXKEYS.ACCOUNT);
+                const optimisticAccountUpdate = onyxData?.optimisticData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
                 expect(optimisticAccountUpdate).toEqual({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.ACCOUNT,
@@ -665,7 +631,7 @@ describe('actions/User', () => {
                     },
                 });
 
-                const successAccountUpdate = getOnyxUpdates(onyxData, 'successData').find((update) => update.key === ONYXKEYS.ACCOUNT);
+                const successAccountUpdate = onyxData?.successData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
                 expect(successAccountUpdate).toEqual({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.ACCOUNT,
@@ -675,7 +641,7 @@ describe('actions/User', () => {
                     },
                 });
 
-                const failureAccountUpdate = getOnyxUpdates(onyxData, 'failureData').find((update) => update.key === ONYXKEYS.ACCOUNT);
+                const failureAccountUpdate = onyxData?.failureData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
                 expect(failureAccountUpdate).toEqual(
                     expect.objectContaining({
                         onyxMethod: Onyx.METHOD.MERGE,
@@ -692,17 +658,32 @@ describe('actions/User', () => {
                 UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
-                const onyxData: MakeRequestOnyxData | undefined = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
+                const onyxData = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
 
-                const allUpdates = [...getOnyxUpdates(onyxData, 'optimisticData'), ...getOnyxUpdates(onyxData, 'successData'), ...getOnyxUpdates(onyxData, 'failureData')];
-                const domainUpdates = allUpdates.filter(
-                    (update) =>
-                        update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN) ||
-                        update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS) ||
-                        update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_ERRORS),
-                );
-
-                expect(domainUpdates).toHaveLength(0);
+                expect(
+                    onyxData?.optimisticData?.some(
+                        (update) =>
+                            update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN) ||
+                            update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS) ||
+                            update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_ERRORS),
+                    ) ?? false,
+                ).toBe(false);
+                expect(
+                    onyxData?.successData?.some(
+                        (update) =>
+                            update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN) ||
+                            update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS) ||
+                            update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_ERRORS),
+                    ) ?? false,
+                ).toBe(false);
+                expect(
+                    onyxData?.failureData?.some(
+                        (update) =>
+                            update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN) ||
+                            update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS) ||
+                            update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_ERRORS),
+                    ) ?? false,
+                ).toBe(false);
             });
         });
 
@@ -716,10 +697,10 @@ describe('actions/User', () => {
                 UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
                 await waitForBatchedUpdates();
 
-                const onyxData: MakeRequestOnyxData | undefined = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
-                const optimisticData = getOnyxUpdates(onyxData, 'optimisticData');
-                const failureData = getOnyxUpdates(onyxData, 'failureData');
-                const successData = getOnyxUpdates(onyxData, 'successData');
+                const onyxData = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
+                const optimisticData = onyxData?.optimisticData ?? [];
+                const failureData = onyxData?.failureData ?? [];
+                const successData = onyxData?.successData ?? [];
 
                 // Optimistic: sets lock flag to true
                 expect(optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toEqual({
@@ -780,12 +761,11 @@ describe('actions/User', () => {
                 UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
                 await waitForBatchedUpdates();
 
-                const onyxData: MakeRequestOnyxData | undefined = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
+                const onyxData = mockAPI.makeRequestWithSideEffects.mock.calls.at(0)?.[2];
 
-                const allUpdates = [...getOnyxUpdates(onyxData, 'optimisticData'), ...getOnyxUpdates(onyxData, 'successData'), ...getOnyxUpdates(onyxData, 'failureData')];
-                const accountUpdates = allUpdates.filter((update) => update.key === ONYXKEYS.ACCOUNT);
-
-                expect(accountUpdates).toHaveLength(0);
+                expect(onyxData?.optimisticData?.some((update) => update.key === ONYXKEYS.ACCOUNT) ?? false).toBe(false);
+                expect(onyxData?.successData?.some((update) => update.key === ONYXKEYS.ACCOUNT) ?? false).toBe(false);
+                expect(onyxData?.failureData?.some((update) => update.key === ONYXKEYS.ACCOUNT) ?? false).toBe(false);
             });
         });
     });
