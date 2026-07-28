@@ -1895,7 +1895,7 @@
 "../../tests/unit/ReportActionItemSingleTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ReportActionsFollowupUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/ReportActionsListPaddingViewTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../tests/unit/ReportActionsUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	36
+"../../tests/unit/ReportActionsUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	37
 "../../tests/unit/ReportLayoutUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	3
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	23
