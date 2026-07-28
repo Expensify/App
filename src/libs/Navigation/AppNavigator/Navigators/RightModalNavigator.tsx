@@ -150,7 +150,6 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
             role={hasDialogSemantics ? CONST.ROLE.DIALOG : undefined}
             aria-modal={hasDialogSemantics || undefined}
             aria-label={hasDialogSemantics && hasName ? dialogAriaLabel : undefined}
-            accessibilityLabel={hasDialogSemantics && hasName ? dialogAriaLabel : undefined}
             // Focusable so SRs / claimDialogFocus can land on the dialog when it has no nested controls.
             tabIndex={hasDialogSemantics ? -1 : undefined}
             style={style}

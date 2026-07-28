@@ -6,12 +6,6 @@
 
 // Import the web implementation directly (Jest resolves index.native.ts by default).
 
-let mockOperatingSystem: string | null = 'Windows';
-jest.mock('@libs/getOperatingSystem', () => ({
-    __esModule: true,
-    default: () => mockOperatingSystem,
-}));
-
 const {focusFirstInteractiveElement} = require<{
     focusFirstInteractiveElement: (container: HTMLElement | null) => boolean;
 }>('../../src/hooks/useDialogContainerFocus/index.ts');
@@ -63,7 +57,6 @@ function simulateSpace() {
 afterEach(() => {
     document.body.innerHTML = '';
     resetArbiter();
-    mockOperatingSystem = 'Windows';
 });
 
 describe('focusFirstInteractiveElement', () => {
@@ -89,8 +82,7 @@ describe('focusFirstInteractiveElement', () => {
             });
         });
 
-        it('should focus a dialog on Mac after Tab (keyboard open still steals focus)', () => {
-            mockOperatingSystem = 'Mac OS';
+        it('should focus a dialog after Tab (keyboard open still steals focus)', () => {
             simulateTab();
 
             const activator = document.createElement('button');
@@ -200,31 +192,9 @@ describe('focusFirstInteractiveElement', () => {
     });
 
     describe('when Tab was NOT used (should skip focus)', () => {
-        it('should still move focus into a dialog after mouse open on Windows (JAWS — no prior Tab)', () => {
+        it('should not move focus into a dialog after mouse open (Enter must not close via Back)', () => {
             // Ensure keyboard modality is cleared (prior tests may have pressed Tab).
             simulateMouse();
-            mockOperatingSystem = 'Windows';
-
-            const activator = document.createElement('button');
-            document.body.appendChild(activator);
-            activator.focus();
-
-            const button = document.createElement('button');
-            const container = createContainer(button);
-            container.setAttribute('role', 'dialog');
-            container.setAttribute('aria-label', 'App download links');
-            const buttonSpy = jest.spyOn(button, 'focus');
-
-            expect(focusFirstInteractiveElement(container)).toBe(true);
-            expect(buttonSpy).toHaveBeenCalledWith({
-                preventScroll: true,
-                focusVisible: false,
-            });
-        });
-
-        it('should not move focus into a dialog after mouse open on Mac (Enter must not close via Back)', () => {
-            simulateMouse();
-            mockOperatingSystem = 'Mac OS';
 
             const activator = document.createElement('button');
             document.body.appendChild(activator);
