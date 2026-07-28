@@ -39710,7 +39710,11 @@ async function run() {
             }
         }
         else {
-            console.log('No prior proposals exist for this issue yet; skipping the duplicate-check API call.');
+            // The duplicate-check call is what appends items to the Conversation (via its `conversation` param), so skipping
+            // it here would leave this proposal permanently unrecorded and invisible to every future duplicate check on this
+            // issue. Record it directly instead.
+            console.log('No prior proposals exist for this issue yet; skipping the duplicate-check API call, but recording this proposal for future comparisons.');
+            await openAI.addConversationItems(conversationID, [(0, input_1.buildDuplicateCheckSeedItem)(newProposalBody, commentID)]);
         }
     }
     const instructions = isCommentCreatedEvent(payload) ? (0, instructions_1.buildTemplateCheckInstructions)() : (0, instructions_1.buildEditCheckInstructions)();

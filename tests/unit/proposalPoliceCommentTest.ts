@@ -225,6 +225,33 @@ describe('proposalPoliceComment', () => {
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(1);
         // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment -- expect.anything() is typed as `any`
         expect(MockedOpenAIUtils.prototype.promptResponses).not.toHaveBeenCalledWith(expect.objectContaining({conversation: expect.anything()}));
+        // The proposal must still be recorded directly, since skipping promptResponses also skips its auto-append-to-Conversation behavior.
+        // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
+        expect(MockedOpenAIUtils.prototype.addConversationItems).toHaveBeenCalledWith('conv_new', [expect.objectContaining({content: expect.stringContaining('comment_id="1"')})]);
+    });
+
+    it('records the first proposal so a near-duplicate second proposal can be caught', async () => {
+        // First proposal on a fresh issue: no prior proposals, so the Conversation is created but the
+        // duplicate-check call is skipped (and the proposal is recorded directly instead - see above).
+        setPayload({action: 'created', comment: makeComment({id: 1, created_at: '2026-01-01T00:00:00Z'})});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl_1'});
+        await run();
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.createConversation).toHaveBeenCalledTimes(1);
+
+        // Second proposal on the same issue: the tracking comment now exists, so the Conversation is reused
+        // and the duplicate-check call runs (proving the first proposal wasn't silently lost).
+        jest.clearAllMocks();
+        mockComments([makeComment({id: 1, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_new -->'})]);
+        setPayload({action: 'created', comment: makeComment({id: 2, created_at: '2026-01-02T00:00:00Z'})});
+        MockedOpenAIUtils.prototype.promptResponses
+            .mockResolvedValueOnce({text: duplicateCheckResult({action: 'ACTION_HIDE_DUPLICATE', similarity: 96, duplicateCommentId: 1}), responseID: 'resp_dup_2'})
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl_2'});
+        await run();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenNthCalledWith(1, expect.objectContaining({conversation: 'conv_new'}));
+        expect(mockUpdateComment).toHaveBeenCalledWith(expect.objectContaining({comment_id: 2}));
     });
 
     it('reuses an already-tracked Conversation without creating a new one', async () => {

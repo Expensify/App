@@ -2,7 +2,7 @@ import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import {getIsBotAuthor, getIsProposal} from '@github/libs/ProposalUtils';
 
-import {buildDuplicateCheckInput, buildEditCheckInput, buildTemplateCheckInput} from '@prompts/proposalPolice/input';
+import {buildDuplicateCheckInput, buildDuplicateCheckSeedItem, buildEditCheckInput, buildTemplateCheckInput} from '@prompts/proposalPolice/input';
 import {buildDuplicateCheckInstructions, buildEditCheckInstructions, buildTemplateCheckInstructions} from '@prompts/proposalPolice/instructions';
 import {getDuplicateCheckNoticeMessage, getDuplicateCheckWithdrawMessage} from '@prompts/proposalPolice/messages';
 import {
@@ -166,7 +166,11 @@ async function run() {
                 return;
             }
         } else {
-            console.log('No prior proposals exist for this issue yet; skipping the duplicate-check API call.');
+            // The duplicate-check call is what appends items to the Conversation (via its `conversation` param), so skipping
+            // it here would leave this proposal permanently unrecorded and invisible to every future duplicate check on this
+            // issue. Record it directly instead.
+            console.log('No prior proposals exist for this issue yet; skipping the duplicate-check API call, but recording this proposal for future comparisons.');
+            await openAI.addConversationItems(conversationID, [buildDuplicateCheckSeedItem(newProposalBody, commentID)]);
         }
     }
 
