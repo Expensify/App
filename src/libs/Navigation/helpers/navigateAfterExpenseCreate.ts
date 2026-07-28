@@ -20,12 +20,25 @@ import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 
 type NavigateAfterExpenseCreateParams = {
+    /** Report the expense was created in */
     activeReportID?: string;
+
+    /** The created transaction's ID */
     transactionID?: string;
+
+    /** Whether the expense was started from the global create flow (FAB/no existing report) rather than from within a report */
     isFromGlobalCreate?: boolean;
+
+    /** Whether the created item is an invoice rather than a regular expense */
     isInvoice?: boolean;
+
+    /** Whether the destination report already contains transactions */
     hasMultipleTransactions: boolean;
+
+    /** Whether to record the transaction ID in the report's pendingNewTransactionIDs metadata, used to highlight the newly-added row */
     shouldAddPendingNewTransactionIDs?: boolean;
+
+    /** Whether to perform navigation, or only run the side effects */
     shouldNavigate?: boolean;
 };
 
