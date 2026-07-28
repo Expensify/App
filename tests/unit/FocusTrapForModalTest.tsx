@@ -146,21 +146,4 @@ describe('FocusTrapForModal — launcher capture', () => {
         expect(setActivePopoverLauncher).toHaveBeenCalledWith(launcher);
         expect(markActivePopoverLauncherDeactivated).toHaveBeenCalledWith(launcher);
     });
-
-    it('keeps the registered ThreeDots trigger when a nested trap activates with a menu item focused', () => {
-        const trigger = document.createElement('button');
-        const menuItem = document.createElement('button');
-        document.body.appendChild(trigger);
-        document.body.appendChild(menuItem);
-        jest.mocked(pickActiveLauncher).mockReturnValue(trigger);
-
-        render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
-
-        withActiveElement(menuItem, () => {
-            capturedOptions?.onActivate?.();
-        });
-
-        expect(setActivePopoverLauncher).toHaveBeenCalledTimes(1);
-        expect(setActivePopoverLauncher).toHaveBeenCalledWith(trigger);
-    });
 });

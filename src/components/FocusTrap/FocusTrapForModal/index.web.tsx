@@ -1,28 +1,31 @@
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {markActivePopoverLauncherDeactivated, pickActiveLauncher, pickLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import resolveFocusTrapLauncher from '@libs/resolveFocusTrapLauncher';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import sharedTrapStack from '@libs/sharedTrapStack';
 
 import {FocusTrap} from 'focus-trap-react';
 import React, {useRef} from 'react';
+import {View} from 'react-native';
 
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
 function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true}: FocusTrapForModalProps) {
     // Track this trap's own launcher so onPostDeactivate targets the right shared-stack entry.
     const cachedLauncherRef = useRef<HTMLElement | null>(null);
+    // Host node for this trap — used to detect nested activation after a parent trap moved focus inside.
+    const trapContainerRef = useRef<View | null>(null);
+
     return (
         <FocusTrap
             active={active}
             focusTrapOptions={{
                 onActivate: () => {
-                    // Prefer a still-active registered opener (ThreeDots pre-blur) over document.activeElement.
-                    // PopoverMenu nests Modal + content FocusTraps: after the first moves focus into the menu,
-                    // the second must not push that ephemeral menu item onto the stack (Back would have nothing).
                     const activeElement = document.activeElement;
                     const fromActive = activeElement instanceof HTMLElement && activeElement !== document.body ? activeElement : null;
-                    const launcher = pickActiveLauncher() ?? fromActive ?? pickLauncher();
+                    const container = trapContainerRef.current instanceof HTMLElement ? trapContainerRef.current : null;
+                    const launcher = resolveFocusTrapLauncher(fromActive, pickActiveLauncher(), container, pickLauncher());
                     blurActiveElement();
                     if (launcher && document.contains(launcher)) {
                         cachedLauncherRef.current = launcher;
@@ -50,7 +53,13 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                 setReturnFocus: false,
             }}
         >
-            {children}
+            <View
+                ref={trapContainerRef}
+                // Collapsible host so layout of children is unchanged; web needs a real DOM node for contains().
+                collapsable={false}
+            >
+                {children}
+            </View>
         </FocusTrap>
     );
 }
