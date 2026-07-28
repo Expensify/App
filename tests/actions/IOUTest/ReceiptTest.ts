@@ -268,6 +268,27 @@ describe('actions/IOU/Receipt', () => {
             }
         });
 
+        it('should not replace a receipt while the current transaction has a pending report move', async () => {
+            const writeSpy = mockApiWrite();
+            const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
+
+            try {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                    pendingFields: {reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                });
+                await waitForBatchedUpdates();
+
+                replaceReceipt({transaction, file: createFile(), source, transactionPolicy: undefined, transactionPolicyTagList: undefined});
+                await waitForBatchedUpdates();
+
+                expect(writeSpy).not.toHaveBeenCalled();
+                const updatedTransaction = await getUpdatedTransaction(transactionID);
+                expect(updatedTransaction?.receipt).toEqual(OLD_RECEIPT);
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
         it('should compute violations when policy is paid group', async () => {
             // Given a transaction and expense report linked to a paid group policy with tag definitions
             const reportID = 'replaceReceiptReportID';

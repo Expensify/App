@@ -1139,6 +1139,9 @@ function getChangeTransactionsReportOnyxData({
                 ...transaction,
                 reportID,
                 comment,
+                pendingFields: {
+                    reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
                 originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : null,
                 originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : null,
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -1153,6 +1156,9 @@ function getChangeTransactionsReportOnyxData({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
+                pendingFields: {
+                    reportID: null,
+                },
                 ...(shouldClearAmount && {pendingAction: null}),
             },
         });
@@ -1163,6 +1169,9 @@ function getChangeTransactionsReportOnyxData({
             value: {
                 reportID: transaction.reportID,
                 comment: transaction.comment,
+                pendingFields: {
+                    reportID: transaction.pendingFields?.reportID ?? null,
+                },
                 originalAmount: transaction.originalAmount,
                 originalCurrency: transaction.originalCurrency,
                 ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),

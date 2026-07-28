@@ -30,11 +30,12 @@ import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import createRandomReportAction from 'tests/utils/collections/reportActions';
 
-import {changeTransactionsReport as changeTransactionsReportAction} from '../../src/libs/actions/Transaction';
+import {changeTransactionsReport as changeTransactionsReportAction, getChangeTransactionsReportOnyxData} from '../../src/libs/actions/Transaction';
 import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -184,6 +185,79 @@ describe('actions/Transaction', () => {
     });
 
     describe('changeTransactionsReport', () => {
+        it('marks a moved transaction reportID as pending and clears or restores it with the request outcome', () => {
+            const transactionID = 'pending-report-id-transaction';
+            const sourceReportID = 'pending-report-id-source';
+            const destinationReportID = 'pending-report-id-destination';
+            const sourceReport = {
+                ...createRandomReport(1),
+                reportID: sourceReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+            const destinationReport = {
+                ...createRandomReport(2),
+                reportID: destinationReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+            const transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: sourceReportID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+                pendingFields: {receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            } as Transaction;
+            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const onyxData = getChangeTransactionsReportOnyxData({
+                transactionIDs: [transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: RORY_ACCOUNT_ID,
+                email: RORY_EMAIL,
+                newReport: destinationReport,
+                policy,
+                reportNextStep: undefined,
+                policyCategories: undefined,
+                policyTagList: undefined,
+                transactions: [transaction],
+                allTransactionViolation: {},
+                allReports: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`]: sourceReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`]: destinationReport,
+                },
+                skippedReportIDs: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
+            });
+
+            if (!onyxData) {
+                throw new Error('Expected changeTransactionsReport to create Onyx data');
+            }
+
+            const getTransactionUpdate = (updates: NonNullable<typeof onyxData>['optimisticData']) =>
+                updates.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const optimisticTransactionUpdate = getTransactionUpdate(onyxData.optimisticData);
+            const successTransactionUpdate = onyxData.successData.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const failureTransactionUpdate = onyxData.failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
+            expect(optimisticTransactionUpdate?.value).toEqual(
+                expect.objectContaining({
+                    reportID: destinationReportID,
+                    pendingFields: {
+                        receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                }),
+            );
+            expect(successTransactionUpdate?.value).toEqual(expect.objectContaining({pendingFields: {reportID: null}}));
+            expect(failureTransactionUpdate?.value).toEqual(expect.objectContaining({reportID: sourceReportID, pendingFields: {reportID: null}}));
+        });
+
         it('should set the correct optimistic onyx data for reporting a tracked expense', async () => {
             let personalDetailsList: OnyxEntry<PersonalDetailsList>;
             let expenseReport: OnyxEntry<Report>;

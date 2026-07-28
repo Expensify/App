@@ -838,10 +838,51 @@ describe('canEditFieldOfMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the admin tries to edit the receipt field
-            const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: moneyRequestTransaction});
+            const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: moneyRequestTransaction, report: openExpenseReport});
 
             // Then they should be able to edit the receipt on an open report
             expect(canEditReceipt).toBe(true);
+        });
+
+        it('should return false for all fields while a transaction report move is pending', async () => {
+            const openExpenseReport = {
+                ...createExpenseReport(Number(RECEIPT_IOU_REPORT_ID)),
+                policyID: receiptPolicyID,
+                ownerAccountID: currentUserAccountID,
+                managerID: secondUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const movingTransaction = {
+                ...moneyRequestTransaction,
+                pendingFields: {reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${RECEIPT_IOU_REPORT_ID}`, openExpenseReport);
+            await waitForBatchedUpdates();
+
+            expect(canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: movingTransaction, report: openExpenseReport})).toBe(false);
+            expect(canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.DESCRIPTION, transaction: movingTransaction, report: openExpenseReport})).toBe(false);
+        });
+
+        it('should return false when the linked report is unavailable', () => {
+            const unavailableReportID = 'missing-report';
+            const unavailableReportAction = {
+                ...reportAction,
+                reportID: unavailableReportID,
+            };
+            const transactionWithUnavailableReport = {
+                ...moneyRequestTransaction,
+                reportID: unavailableReportID,
+            };
+
+            expect(
+                canEditFieldOfMoneyRequest({
+                    reportAction: unavailableReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: transactionWithUnavailableReport,
+                }),
+            ).toBe(false);
         });
     });
 });

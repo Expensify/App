@@ -4972,6 +4972,10 @@ function canEditMoneyRequest(
         return false;
     }
 
+    if (linkedTransaction.pendingFields?.reportID) {
+        return false;
+    }
+
     // In case the transaction is failed to be created, we should disable editing the money request
     if (!linkedTransaction.transactionID || (linkedTransaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(linkedTransaction.errors))) {
         return false;
@@ -5241,7 +5245,16 @@ function canEditFieldOfMoneyRequest({
     // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
     // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882.
     const iouReportID = reportAction?.reportID ?? getOriginalMessage(reportAction)?.IOUReportID;
-    const moneyRequestReport = report ?? (iouReportID ? (getReport(iouReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
+    const hasLinkedReport = !!iouReportID && iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+    const resolvedMoneyRequestReport = report ?? (hasLinkedReport ? getReport(iouReportID, deprecatedAllReports) : ({} as Report));
+    // Unreported transaction from OldDot can have the reportID as an empty string
+    const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    if (hasLinkedReport && !resolvedMoneyRequestReport && !isUnreportedExpense) {
+        return false;
+    }
+
+    const moneyRequestReport = resolvedMoneyRequestReport ?? ({} as Report);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
         return false;
@@ -5299,9 +5312,6 @@ function canEditFieldOfMoneyRequest({
             (isDeleteAction ? isRequestor : true)
         );
     }
-
-    // Unreported transaction from OldDot can have the reportID as an empty string
-    const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
         // The distance rate can be modified only on the distance expense reports

@@ -27,7 +27,7 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import {getAllReports} from '.';
+import {getAllReports, getAllTransactions} from '.';
 import {getReceiptError} from './MoneyRequestBuilder';
 
 type ReplaceReceipt = {
@@ -306,6 +306,11 @@ function replaceReceipt({transaction, file, source, state, transactionPolicy, tr
         receiptState: state,
         isSameReceipt,
     };
+
+    const currentTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (currentTransaction?.pendingFields?.reportID) {
+        return;
+    }
 
     API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
