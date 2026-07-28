@@ -46,7 +46,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
             size={CONST.BUTTON_SIZE.LARGE}
             style={styles.mt6}
             onPress={() => {
-                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM_MAGIC_CODE.getRoute(login, role));
+                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM_VALIDATE_CODE.getRoute(login, role));
             }}
         >
             <Button.KeyboardShortcut />
