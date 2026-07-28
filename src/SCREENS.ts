@@ -393,10 +393,10 @@ const SCREENS = {
     },
 
     MERGE_TRANSACTION: {
-        LIST_PAGE: 'Merge_Transaction_List_Page',
-        RECEIPT_PAGE: 'Merge_Transaction_Receipt_Page',
-        DETAILS_PAGE: 'Merge_Transaction_Details_Page',
-        CONFIRMATION_PAGE: 'Merge_Transaction_Confirmation_Page',
+        DYNAMIC_LIST_PAGE: 'Dynamic_Merge_Transaction_List_Page',
+        DYNAMIC_RECEIPT_PAGE: 'Dynamic_Merge_Transaction_Receipt_Page',
+        DYNAMIC_DETAILS_PAGE: 'Dynamic_Merge_Transaction_Details_Page',
+        DYNAMIC_CONFIRMATION_PAGE: 'Dynamic_Merge_Transaction_Confirmation_Page',
     },
 
     IOU_SEND: {
@@ -491,7 +491,12 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_Report_Change_Workspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {DYNAMIC_ROOT: 'Dynamic_Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
+    WORKSPACE_CONFIRMATION: {
+        DYNAMIC_ROOT: 'Dynamic_Workspace_Confirmation_Root',
+        OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector',
+        PLAN_TYPE_SELECTOR: 'Workspace_Confirmation_Plan_Type_Selector',
+        SUCCESS: 'Workspace_Confirmation_Success',
+    },
     WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
     POLICY_COPY_SETTINGS: {
         ROOT: 'Policy_Copy_Settings_Root',
