@@ -1,3 +1,6 @@
+/**
+ * Sub-page for collecting international bank account details (IBAN + SWIFT/BIC) in the Corpay deposit-account flow.
+ */
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -11,11 +14,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import {getInternationalBankAccountDetailsErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const IBAN = 'iban';
@@ -38,21 +42,10 @@ function InternationalBankAccountDetails({isEditing, onNext, formValues}: Custom
     const ibanDefaultValue = formValues[IBAN] || (accountNumber && CONST.BANK_ACCOUNT.REGEX.IBAN.test(String(accountNumber).trim()) ? accountNumber : '');
     const swiftCodeDefaultValue = formValues[SWIFT_CODE] || formValues.swiftBicCode || '';
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
-
-            if (values[IBAN] && !CONST.BANK_ACCOUNT.REGEX.IBAN.test(String(values[IBAN]).trim())) {
-                errors[IBAN] = translate('bankAccount.error.swiftCodeOrIban');
-            }
-            if (values[SWIFT_CODE] && !CONST.BANK_ACCOUNT.REGEX.INTERNATIONAL_SWIFT_CODE.test(String(values[SWIFT_CODE]).trim())) {
-                errors[SWIFT_CODE] = translate('bankAccount.error.swiftCodeOrIban');
-            }
-
-            return errors;
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => ({
+        ...getFieldRequiredErrors(values, STEP_FIELDS, translate),
+        ...getInternationalBankAccountDetailsErrors(values[IBAN], values[SWIFT_CODE], translate),
+    });
 
     return (
         <FormProvider

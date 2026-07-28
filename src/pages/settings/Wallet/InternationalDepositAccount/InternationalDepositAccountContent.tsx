@@ -98,8 +98,6 @@ function InternationalDepositAccountContent({
 
     const initialAccountHolderDetailsValues = getInitialPersonalDetailsValues(privatePersonalDetails);
 
-    const startFrom = getInitialSubstep(values, fieldsMap);
-
     const skipAccountTypeStep = isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE]);
 
     const skipAccountHolderInformationStep = testValidation(initialAccountHolderDetailsValues, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]);
@@ -108,6 +106,8 @@ function InternationalDepositAccountContent({
     // selected bank country, or when we already have them: the account number is an IBAN and a SWIFT/BIC code is set.
     const isAccountNumberIBAN = CONST.BANK_ACCOUNT.REGEX.IBAN.test((values.accountNumber ?? '').trim());
     const skipInternationalBankAccountDetailsStep = !shouldCollectInternationalDepositDetails || (isAccountNumberIBAN && (!!values.swiftCode || !!values.swiftBicCode));
+
+    const startFrom = getInitialSubstep(values, fieldsMap, skipInternationalBankAccountDetailsStep);
 
     const skippedPages = getSkippedPages(skipAccountTypeStep, skipAccountHolderInformationStep, skipInternationalBankAccountDetailsStep);
 

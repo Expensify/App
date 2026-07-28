@@ -1,3 +1,6 @@
+/**
+ * Personal-info substep for collecting international bank account details (IBAN + SWIFT/BIC) when adding a personal bank account.
+ */
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -12,6 +15,8 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
+import {getInternationalBankAccountDetailsErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,18 +36,10 @@ function InternationalBankAccountDetailsStep({onNext, isEditing}: InternationalB
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
-        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
-
-        if (values.iban && !CONST.BANK_ACCOUNT.REGEX.IBAN.test(values.iban.trim())) {
-            errors.iban = translate('bankAccount.error.swiftCodeOrIban');
-        }
-        if (values.swiftCode && !CONST.BANK_ACCOUNT.REGEX.INTERNATIONAL_SWIFT_CODE.test(values.swiftCode.trim())) {
-            errors.swiftCode = translate('bankAccount.error.swiftCodeOrIban');
-        }
-
-        return errors;
-    };
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => ({
+        ...getFieldRequiredErrors(values, STEP_FIELDS, translate),
+        ...getInternationalBankAccountDetailsErrors(values.iban, values.swiftCode, translate),
+    });
 
     const handleSubmit = usePersonalBankAccountDetailsFormSubmit({
         fieldIds: STEP_FIELDS,

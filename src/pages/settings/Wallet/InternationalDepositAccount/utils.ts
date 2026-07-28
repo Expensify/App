@@ -114,12 +114,25 @@ function testValidation(values: InternationalBankAccountForm, fieldsMap: CorpayF
     return true;
 }
 
-function getInitialSubstep(values: InternationalBankAccountForm, fieldsMap: Record<ValueOf<typeof CONST.CORPAY_FIELDS.PAGE_NAME>, CorpayFieldsMap>) {
+function hasValidInternationalBankAccountDetails(values: InternationalBankAccountForm) {
+    return !!values.iban && CONST.BANK_ACCOUNT.REGEX.IBAN.test(values.iban.trim()) && !!values.swiftCode && CONST.BANK_ACCOUNT.REGEX.INTERNATIONAL_SWIFT_CODE.test(values.swiftCode.trim());
+}
+
+function getInitialSubstep(
+    values: InternationalBankAccountForm,
+    fieldsMap: Record<ValueOf<typeof CONST.CORPAY_FIELDS.PAGE_NAME>, CorpayFieldsMap>,
+    skipInternationalBankAccountDetailsStep: boolean,
+) {
     if (values.bankCountry === '' || isEmptyObject(fieldsMap)) {
         return CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR;
     }
     if (values.bankCurrency === '' || !testValidation(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS])) {
         return CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS;
+    }
+    // When the international bank account details step is required but not yet satisfied, start there so a resumed or
+    // deep-linked flow can't land past it and submit without the IBAN/SWIFT.
+    if (!skipInternationalBankAccountDetailsStep && !hasValidInternationalBankAccountDetails(values)) {
+        return CONST.CORPAY_FIELDS.INDEXES.MAPPING.INTERNATIONAL_BANK_ACCOUNT_DETAILS;
     }
     if (!testValidation(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE])) {
         return CONST.CORPAY_FIELDS.INDEXES.MAPPING.ACCOUNT_TYPE;
@@ -150,4 +163,23 @@ function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERN
     return errors;
 }
 
-export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors};
+/**
+ * Shared IBAN/SWIFT format validation for the international bank account details step, used by both the USD and
+ * international personal bank account flows.
+ */
+function getInternationalBankAccountDetailsErrors(
+    iban: string | undefined,
+    swiftCode: string | undefined,
+    translate: LocaleContextProps['translate'],
+): Partial<Record<'iban' | 'swiftCode', string>> {
+    const errors: Partial<Record<'iban' | 'swiftCode', string>> = {};
+    if (iban && !CONST.BANK_ACCOUNT.REGEX.IBAN.test(iban.trim())) {
+        errors.iban = translate('bankAccount.error.swiftCodeOrIban');
+    }
+    if (swiftCode && !CONST.BANK_ACCOUNT.REGEX.INTERNATIONAL_SWIFT_CODE.test(swiftCode.trim())) {
+        errors.swiftCode = translate('bankAccount.error.swiftCodeOrIban');
+    }
+    return errors;
+}
+
+export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors, getInternationalBankAccountDetailsErrors};
