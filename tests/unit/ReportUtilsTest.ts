@@ -16270,6 +16270,48 @@ describe('ReportUtils', () => {
                 // The hardcoded English copy must not drift from the localized function
                 expect(getReportPreviewReportActionMessage(params)).toBe(getReportPreviewMessage(englishTranslate, params));
             });
+
+            describe('cross-border payment', () => {
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+                const crossBorderAction: ReportAction = {
+                    ...payReportAction,
+                    originalMessage: {...payOriginalMessage, creditedAmount: 1340, creditedCurrency: 'GBP', creditBankAccountLast4: '3335'},
+                };
+                const crossBorderParams = {reportOrID: settledReport, iouReportAction: crossBorderAction, originalReportAction: crossBorderAction};
+
+                it('names the credited amount, falling back to the policy default for the debited account', () => {
+                    // Given a converted payment that recorded the employee's account but not the account it was paid from
+                    const result = getReportPreviewMessage(englishTranslate, crossBorderParams);
+
+                    // Then the debited account comes from the policy default, the same fallback the non-converted wording uses
+                    expect(result).toBe(
+                        translate(CONST.LOCALES.EN, 'iou.reimbursedCrossBorder', {
+                            amount: convertToDisplayString(1340, 'GBP'),
+                            debitBankAccount: '0000',
+                            creditBankAccount: '3335',
+                        }),
+                    );
+                });
+
+                it('stores the same wording on the report action as the localized preview shows', () => {
+                    // The hardcoded English copy must not drift from the localized function
+                    expect(getReportPreviewReportActionMessage(crossBorderParams)).toBe(getReportPreviewMessage(englishTranslate, crossBorderParams));
+                });
+
+                it('still names the report total in the parent chat preview', () => {
+                    // Given the parent chat preview, which summarises the report rather than describing the payment
+                    const params = {...crossBorderParams, isPreviewMessageForParentChatReport: true};
+                    const paymentWithoutConversion = getReportPreviewMessage(englishTranslate, {
+                        reportOrID: settledReport,
+                        iouReportAction: payReportAction,
+                        originalReportAction: payReportAction,
+                        isPreviewMessageForParentChatReport: true,
+                    });
+
+                    // Then the credited amount does not replace the report total, which is what the report is denominated in
+                    expect(getReportPreviewMessage(englishTranslate, params)).toBe(paymentWithoutConversion);
+                });
+            });
         });
 
         describe('getReportPreviewMessage (localized)', () => {

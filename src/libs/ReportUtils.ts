@@ -5846,10 +5846,12 @@ function getReportPreviewMessage(translate: LocalizedTranslate, params: GetRepor
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
-            if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
-                return getCrossBorderReimbursedMessage(translate, originalMessage, originalMessage?.accountNumber?.slice(-4));
+            const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+            const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits) : undefined;
+            if (crossBorderMessage) {
+                return crossBorderMessage;
             }
-            return translate(translatePhraseKey, '', originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '');
+            return translate(translatePhraseKey, '', last4Digits);
         }
         if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify') {
             return translate(translatePhraseKey, payerDisplayName ?? '');
