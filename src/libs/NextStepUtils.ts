@@ -320,32 +320,11 @@ function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boo
     return getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
-function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'alert',
+function buildOptimisticNextStepForPreventSelfApprovalsEnabled(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF,
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: "Oops! Looks like you're submitting to ",
-            },
-            {
-                text: 'yourself',
-                type: 'next-step-email',
-            },
-            {
-                text: '. Approving your own reports is ',
-            },
-            {
-                text: 'forbidden',
-                type: 'next-step-email',
-            },
-            {
-                text: ' by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.',
-            },
-        ],
     };
-
-    return optimisticNextStep;
 }
 
 function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep {
