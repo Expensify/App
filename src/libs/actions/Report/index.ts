@@ -4566,8 +4566,15 @@ function clearCreateChatError(
 ) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
+    // A brand-new chat whose server creation failed (e.g. via a failed new-chat expense, see #93542) is reset
+    // to non-optimistic so it can load instead of spinning on an infinite skeleton. In that state a plain error
+    // clear would leave the chat + its linked IOU report orphaned, so dismissing it must remove the chat
+    // entirely — mirroring the failed-expense dismiss path. deleteReport cascades to the IOU report and
+    // transaction thread(s), and we navigate the user out of the now-deleted chat. Only a failed phantom chat
+    // ever reaches this branch: an existing chat's IOU report also carries createChat, but that is handled on
+    // the expense-dismiss path in ReportActionItem, so a non-optimistic report here is always a failed chat.
     if (report?.errorFields?.createChat && !isOptimisticReport) {
-        clearReportFieldKeyErrors(report.reportID, 'createChat');
+        Navigation.goBack(undefined, {afterTransition: () => deleteReport(report.reportID, true)});
         return;
     }
 

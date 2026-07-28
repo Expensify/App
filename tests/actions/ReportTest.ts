@@ -141,7 +141,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getTopmostReportId: jest.fn(() => undefined),
     getTopmostSuperWideRHPReportID: jest.fn(() => undefined),
     getTopmostSearchReportRouteParams: jest.fn(() => undefined),
-    goBack: jest.fn(),
+    goBack: jest.fn((_backToRoute?: string, options?: {afterTransition?: () => void}) => {
+        options?.afterTransition?.();
+    }),
     popToSidebar: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(() => ({routes: []})),
@@ -367,7 +369,7 @@ describe('actions/Report', () => {
             });
     });
 
-    it('clearCreateChatError should not delete the report if it is not optimistic report', () => {
+    it('clearCreateChatError should delete a failed non-optimistic new chat report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT: OnyxTypes.Report = {...createRandomReport(1, undefined), errorFields: {createChat: {error: 'error'}}};
         const REPORT_METADATA: OnyxTypes.ReportMetadata = {isOptimisticReport: false};
@@ -400,9 +402,8 @@ describe('actions/Report', () => {
                                 Onyx.disconnect(connection);
                                 resolve();
 
-                                // The report should exist but the create chat error field should be cleared.
-                                expect(report?.reportID).toBeDefined();
-                                expect(report?.errorFields?.createChat).toBeUndefined();
+                                // A failed brand-new chat (non-optimistic + createChat error) should be deleted, not merely error-cleared.
+                                expect(report).toBeUndefined();
                             },
                         });
                     }),
@@ -441,7 +442,7 @@ describe('actions/Report', () => {
             );
     });
 
-    it('clearCreateChatError should not delete the report with introSelected if it is not optimistic report', () => {
+    it('clearCreateChatError should delete a failed non-optimistic new chat report with introSelected', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT: OnyxTypes.Report = {...createRandomReport(1, undefined), errorFields: {createChat: {error: 'error'}}};
         const REPORT_METADATA: OnyxTypes.ReportMetadata = {isOptimisticReport: false};
@@ -465,9 +466,8 @@ describe('actions/Report', () => {
                                 Onyx.disconnect(connection);
                                 resolve();
 
-                                // The report should exist but the create chat error field should be cleared.
-                                expect(report?.reportID).toBeDefined();
-                                expect(report?.errorFields?.createChat).toBeUndefined();
+                                // A failed brand-new chat (non-optimistic + createChat error) should be deleted, not merely error-cleared.
+                                expect(report).toBeUndefined();
                             },
                         });
                     }),
