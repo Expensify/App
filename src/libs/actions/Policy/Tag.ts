@@ -928,8 +928,10 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
 }
 
 function cleanPolicyTags(policyID: string, shouldRestoreRequiresTagAfterTagCreate = false) {
-    // Remember this locally because the clean response can leave policy.requiresTag false until the next policy refresh.
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {pendingRequiresTagRestore: shouldRestoreRequiresTagAfterTagCreate ? true : null});
+    if (shouldRestoreRequiresTagAfterTagCreate) {
+        // Remember this locally because the clean response can leave policy.requiresTag false until the next policy refresh.
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {pendingRequiresTagRestore: true});
+    }
 
     // We do not have any optimistic data or success data for this command as this action cannot be done offline
     API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID});
