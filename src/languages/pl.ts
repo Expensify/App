@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -2591,6 +2593,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Użyj tej karty do rezerwacji w Expensify Travel. Podczas płatności będzie wyświetlana jako “Travel Card”.',
         },
         chaseAccountNumberDifferent: 'Dlaczego mój numer konta jest inny?',
+        cardLastSynced: (relativeDate: string) => `Zsynchronizowano ${relativeDate}`,
+        cardNeverSynced: 'Nigdy nie zsynchronizowano',
+        cardStatus: {
+            active: 'Aktywne',
+            inactive: 'Nieaktywne',
+            fixConnection: 'Napraw to połączenie',
+            fixConnectionIn: (companyCardsRoute: string) => `Napraw to połączenie w <a href="${companyCardsRoute}">firmowe karty</a>`,
+            askAdminToFixConnection: 'Poproś administratora o naprawienie tego połączenia',
+        },
+        bankAccountStatus: {
+            active: 'Aktywne',
+            incomplete: 'Nieukończone',
+            pending: 'Oczekujące',
+            verifying: 'Weryfikowanie',
+            reviewingDocumentation: 'Sprawdzamy twoją dokumentację',
+            finishAddingBankAccount: 'Dokończ dodawanie konta bankowego',
+            finish: 'Zakończ',
+            confirmTestTransactions: 'Potwierdź proszę transakcje testowe',
+            accountRequiresAttention: 'To konto wymaga uwagi',
+            unlock: 'Odblokuj',
+        },
     },
     cardPage: {
         expensifyCard: 'Karta Expensify',
@@ -5030,7 +5053,9 @@ ${amount} dla ${merchant} - ${date}`,
             creditCardAccount: 'Konto karty kredytowej',
             defaultVendor: 'Domyślny dostawca',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Ustaw domyślnego dostawcę, który zostanie zastosowany do ${isReimbursable ? '' : 'nie-'}wydatków podlegających zwrotowi, nieposiadających pasującego dostawcy w Sage Intacct.`,
+                isReimbursable
+                    ? `Ustaw domyślnego dostawcę, który zostanie zastosowany do wydatków podlegających zwrotowi, niemających pasującego dostawcy w Sage Intacct.`
+                    : `Wydatki, których nie da się dopasować do Twoich dostawców Sage Intacct, zostaną domyślnie przypisane do tego dostawcy.`,
             exportDescription: 'Skonfiguruj sposób eksportu danych z Expensify do Sage Intacct.',
             exportPreferredExporterNote:
                 'Preferowanym eksporterem może być dowolny administrator przestrzeni roboczej, ale musi on również być administratorem domeny, jeśli w Ustawieniach domeny ustawisz różne konta eksportu dla poszczególnych kart firmowych.',
@@ -6918,6 +6943,12 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             exportCompanyCard: 'Eksportuj wydatki z firmowej karty jako',
             exportDate: 'Data eksportu',
             defaultVendor: 'Domyślny dostawca',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Wydatki, które nie dopasują się automatycznie, będą domyślnie przypisane do tego dostawcy.`
+                    : `Wydatki, które nie dopasują się automatycznie, zostaną domyślnie przypisane do tego dostawcy. W przeciwnym razie zostaną wyeksportowane jako Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Wybierz domyślnego dostawcę ${connectionName} dla wydatków, które nie zostaną dopasowane automatycznie.`,
             defaultAccount: 'Domyślne konto',
             autoSync: 'Automatyczna synchronizacja',
             autoSyncDescription: 'Synchronizuj NetSuite i Expensify automatycznie, każdego dnia. Eksportuj sfinalizowany raport w czasie rzeczywistym',
