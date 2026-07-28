@@ -121,6 +121,10 @@ function CloseAccountPage() {
                 submitButtonText={translate('closeAccountPage.closeAccount')}
                 style={[styles.flexGrow1, styles.mh5]}
                 isSubmitActionDangerous
+                // onSubmit only opens a confirmation modal, so the press spinner would stay on forever when the modal
+                // is dismissed or blocked; the real loading state comes from the form's Onyx isLoading once the
+                // CloseAccount request is sent.
+                shouldShowLoadingImmediatelyOnPress={false}
             >
                 <View
                     fsClass={CONST.FULLSTORY.CLASS.UNMASK}
