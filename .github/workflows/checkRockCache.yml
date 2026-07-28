@@ -107,8 +107,28 @@ jobs:
           echo "### Rock remote cache: \`$PLATFORM\` \`$TRAITS\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Fingerprint: \`${FINGERPRINT:-unknown}\`" >> "$GITHUB_STEP_SUMMARY"
 
-          # A lookup that errors out may just be a bad minute for S3, so warn and let the build decide for itself.
-          if ! OUTPUT=$(npx rock remote-cache list -p "$PLATFORM" --traits "$TRAITS" --json); then
+          # A lookup that errors out may just be a bad minute for S3, so give it a few tries before deciding.
+          LOOKUP_OK=false
+          for attempt in 1 2 3; do
+            if OUTPUT=$(npx rock remote-cache list -p "$PLATFORM" --traits "$TRAITS" --json); then
+              LOOKUP_OK=true
+              break
+            fi
+            echo "Lookup attempt $attempt failed"
+            sleep 5
+          done
+
+          if [ "$LOOKUP_OK" != 'true' ]; then
+            # Which way to fail depends on who is asking. A gate can afford to guess "build needed", because the
+            # build repeats this lookup and stops early if it was wrong. A verification has nothing downstream to
+            # correct it, so guessing there would report that a seed landed without having checked - the exact
+            # silent success this job exists to catch.
+            if [ "$EXPECT_CACHED" == 'true' ]; then
+              echo "::error::Could not query the remote cache after 3 attempts, so whether the seed landed is unknown. Nothing downstream re-checks this, so failing rather than reporting an unverified success."
+              echo "- **Lookup failed, so the seed could not be verified.**" >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+
             echo "::warning::Could not query the remote cache, so assuming a build is needed"
             echo "- Lookup failed, assuming a build is needed" >> "$GITHUB_STEP_SUMMARY"
             echo "NEEDS_BUILD=true" >> "$GITHUB_OUTPUT"
