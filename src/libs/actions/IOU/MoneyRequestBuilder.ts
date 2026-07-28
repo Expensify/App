@@ -72,7 +72,7 @@ import type {ValueOf} from 'type-fest';
 import {fastMerge} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-import type {ReplaceReceipt} from './Receipt';
+import type {ReplaceReceiptRetryParams} from './Receipt';
 import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
@@ -203,7 +203,7 @@ type MoneyRequestInformationParams = {
     existingTransactionID?: string;
     optimisticTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
     newReportTotal?: number;
     newNonReimbursableTotal?: number;
     testDriveCommentReportActionID?: string;
@@ -263,7 +263,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     existingTransactionThreadReportID?: string;
     policyParams?: BasePolicyParams;
     optimisticParams: MoneyRequestOptimisticParams;
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
     participant?: Participant;
     shouldGenerateTransactionThreadReport?: boolean;
     isASAPSubmitBetaEnabled: boolean;
@@ -332,7 +332,7 @@ function getReceiptError(
     isScanRequest = true,
     errorKey?: number,
     action?: IOUActionParams,
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt,
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams,
 ): Errors | ErrorFields {
     const formattedRetryParams = typeof retryParams === 'string' ? retryParams : JSON.stringify(retryParams);
 
@@ -429,7 +429,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         existingTransactionThreadReportID,
         policyParams = {},
         optimisticParams,
-        retryParams,
         participant,
         shouldGenerateTransactionThreadReport = true,
         isASAPSubmitBetaEnabled,
@@ -977,7 +976,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                 value: {
-                    errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                    errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST),
                     pendingFields: clearedPendingFields,
                 },
             },
@@ -986,7 +985,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                 value: {
                     [iou.action.reportActionID]: {
-                        errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                        errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST),
                     },
                 },
             },
@@ -1026,7 +1025,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                 value: {
-                    errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                    errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST),
                     pendingFields: clearedPendingFields,
                 },
             },
@@ -1037,7 +1036,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     ...(shouldCreateNewMoneyRequestReport
                         ? {
                               [iou.createdAction.reportActionID]: {
-                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST),
                               },
                               [iou.action.reportActionID]: {
                                   errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
@@ -1045,7 +1044,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                           }
                         : {
                               [iou.action.reportActionID]: {
-                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST),
                               },
                           }),
                 },
@@ -1128,6 +1127,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         policyCategories: policyCategories ?? {},
         hasDependentTags: hasDependentTags(policy, policyTagList ?? {}),
         isInvoiceTransaction: false,
+        ownerLogin: undefined,
     });
 
     if (violationsOnyxData) {
@@ -1162,6 +1162,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                isTrackIntentUser,
             }),
         });
         onyxData.optimisticData?.push({
@@ -1635,6 +1636,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        isTrackIntentUser,
     });
 
     const optimisticNextStep = buildOptimisticNextStep({

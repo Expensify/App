@@ -54,7 +54,11 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     isLargeScreenWidth?: boolean;
 };
 
-function MemberListItemHeader<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function MemberListItemHeaderImpl({
     member: memberItem,
     onCheckboxPress,
     isDisabled,
@@ -65,7 +69,7 @@ function MemberListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     columns,
     isLargeScreenWidth,
-}: MemberListItemHeaderProps<TItem>) {
+}: MemberListItemHeaderProps<ListItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -135,7 +139,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(memberItem as ListItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
@@ -186,6 +190,10 @@ function MemberListItemHeader<TItem extends ListItem>({
             </View>
         </View>
     );
+}
+
+function MemberListItemHeader<TItem extends ListItem>(props: MemberListItemHeaderProps<TItem>) {
+    return <MemberListItemHeaderImpl {...(props as MemberListItemHeaderProps<ListItem>)} />;
 }
 
 export default MemberListItemHeader;

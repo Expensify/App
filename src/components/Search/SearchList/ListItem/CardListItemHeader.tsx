@@ -57,7 +57,11 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function CardListItemHeader<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function CardListItemHeaderImpl({
     card: cardItem,
     onCheckboxPress,
     isDisabled,
@@ -68,7 +72,7 @@ function CardListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     columns,
     isExpanded,
-}: CardListItemHeaderProps<TItem>) {
+}: CardListItemHeaderProps<ListItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -150,7 +154,7 @@ function CardListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(cardItem as ListItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
@@ -198,6 +202,10 @@ function CardListItemHeader<TItem extends ListItem>({
             </View>
         </View>
     );
+}
+
+function CardListItemHeader<TItem extends ListItem>(props: CardListItemHeaderProps<TItem>) {
+    return <CardListItemHeaderImpl {...(props as CardListItemHeaderProps<ListItem>)} />;
 }
 
 export default CardListItemHeader;
