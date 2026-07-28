@@ -37,7 +37,8 @@ const mockRevokeCredentials = jest
     .fn<ReturnType<typeof revokeMultifactorAuthenticationCredentialsType>, Parameters<typeof revokeMultifactorAuthenticationCredentialsType>>()
     .mockResolvedValue(createMock<MultifactorAuthenticationRevokeResponse>({httpStatusCode: 200}));
 jest.mock('@libs/actions/MultifactorAuthentication', () => ({
-    revokeMultifactorAuthenticationCredentials: mockRevokeCredentials,
+    revokeMultifactorAuthenticationCredentials: (...args: Parameters<typeof revokeMultifactorAuthenticationCredentialsType>): Promise<MultifactorAuthenticationRevokeResponse> =>
+        mockRevokeCredentials(...args),
 }));
 
 jest.mock('@userActions/User', () => ({
