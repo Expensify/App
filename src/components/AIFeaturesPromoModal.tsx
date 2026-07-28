@@ -12,11 +12,9 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {FeatureTrainingContentDataProps} from './FeatureTrainingContent';
-
 import Badge from './Badge';
 import CenteredModalLayout from './CenteredModalLayout';
-import {FeatureTrainingCarousel} from './FeatureTrainingContent';
+import FeatureTraining from './FeatureTraining';
 import LottieAnimations from './LottieAnimations';
 import Text from './Text';
 
@@ -38,34 +36,6 @@ function AIFeaturesPromoModal() {
         </View>
     );
 
-    const pages: FeatureTrainingContentDataProps[] = [
-        {
-            animation: LottieAnimations.SpendAnalysis,
-            title: translate('aiFeaturesPromoModal.spendAnalysis.title'),
-            subtitle: translate('aiFeaturesPromoModal.subtitle'),
-            description: translate('aiFeaturesPromoModal.spendAnalysis.description'),
-            confirmText: translate('common.next'),
-        },
-        {
-            animation: LottieAnimations.ExpenseAssistant,
-            title: translate('aiFeaturesPromoModal.expenseAssistant.title'),
-            subtitle: translate('aiFeaturesPromoModal.subtitle'),
-            description: translate('aiFeaturesPromoModal.expenseAssistant.description'),
-            confirmText: canUseCustomAgent ? translate('common.next') : translate('aiFeaturesPromoModal.confirmText'),
-        },
-        ...(canUseCustomAgent
-            ? [
-                  {
-                      animation: LottieAnimations.CustomAgents,
-                      title: customAgentPromoTitle,
-                      subtitle: translate('aiFeaturesPromoModal.subtitle'),
-                      description: translate('aiFeaturesPromoModal.customAgents.description'),
-                      confirmText: translate('aiFeaturesPromoModal.confirmText'),
-                  },
-              ]
-            : []),
-    ];
-
     const dismissNVP = (isDismissedUsingCloseButton: boolean) => {
         dismissProductTraining(CONST.AI_FEATURES_PROMO_MODAL, isDismissedUsingCloseButton);
     };
@@ -80,26 +50,72 @@ function AIFeaturesPromoModal() {
         dismissNVP(true);
     };
 
+    const illustrationAspectRatio = LottieAnimations.SpendAnalysis.w / LottieAnimations.SpendAnalysis.h;
+    const subtitle = translate('aiFeaturesPromoModal.subtitle');
+
     return (
         <CenteredModalLayout
             onBackdropPress={closeModal}
             width={variables.aiFeaturesPromoModalWidth}
             contentStyle={styles.pt0}
         >
-            <FeatureTrainingCarousel
-                pages={pages}
+            <FeatureTraining.Carousel
                 onConfirm={confirmAndCloseModal}
                 onClose={closeModal}
                 width={variables.aiFeaturesPromoModalWidth}
-                shouldRenderHTMLDescription
-                shouldUseScrollView
-                illustrationOuterContainerStyle={styles.p0}
-                illustrationAspectRatio={LottieAnimations.SpendAnalysis.w / LottieAnimations.SpendAnalysis.h}
-                contentInnerContainerStyles={styles.mb4}
-                titleStyles={styles.mb2}
                 confirmSentryLabel={CONST.SENTRY_LABEL.AI_FEATURES_PROMO_MODAL.CONFIRM_BUTTON}
-                helpSentryLabel={CONST.SENTRY_LABEL.AI_FEATURES_PROMO_MODAL.HELP_BUTTON}
-            />
+            >
+                <FeatureTraining.Page>
+                    <FeatureTraining.Illustration
+                        animation={LottieAnimations.SpendAnalysis}
+                        outerContainerStyle={styles.p0}
+                        aspectRatio={illustrationAspectRatio}
+                    />
+                    <FeatureTraining.Body innerStyle={[styles.mb4]}>
+                        <FeatureTraining.Subtitle>{subtitle}</FeatureTraining.Subtitle>
+                        <FeatureTraining.Title style={styles.mb2}>{translate('aiFeaturesPromoModal.spendAnalysis.title')}</FeatureTraining.Title>
+                        <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.spendAnalysis.description')}</FeatureTraining.Description>
+                        <FeatureTraining.ButtonRow>
+                            <FeatureTraining.BackButton />
+                            <FeatureTraining.ConfirmButton>{translate('common.next')}</FeatureTraining.ConfirmButton>
+                        </FeatureTraining.ButtonRow>
+                    </FeatureTraining.Body>
+                </FeatureTraining.Page>
+                <FeatureTraining.Page>
+                    <FeatureTraining.Illustration
+                        animation={LottieAnimations.ExpenseAssistant}
+                        outerContainerStyle={styles.p0}
+                        aspectRatio={illustrationAspectRatio}
+                    />
+                    <FeatureTraining.Body innerStyle={[styles.mb4]}>
+                        <FeatureTraining.Subtitle>{subtitle}</FeatureTraining.Subtitle>
+                        <FeatureTraining.Title style={styles.mb2}>{translate('aiFeaturesPromoModal.expenseAssistant.title')}</FeatureTraining.Title>
+                        <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.expenseAssistant.description')}</FeatureTraining.Description>
+                        <FeatureTraining.ButtonRow>
+                            <FeatureTraining.BackButton />
+                            <FeatureTraining.ConfirmButton>{canUseCustomAgent ? translate('common.next') : translate('aiFeaturesPromoModal.confirmText')}</FeatureTraining.ConfirmButton>
+                        </FeatureTraining.ButtonRow>
+                    </FeatureTraining.Body>
+                </FeatureTraining.Page>
+                {canUseCustomAgent && (
+                    <FeatureTraining.Page>
+                        <FeatureTraining.Illustration
+                            animation={LottieAnimations.CustomAgents}
+                            outerContainerStyle={styles.p0}
+                            aspectRatio={illustrationAspectRatio}
+                        />
+                        <FeatureTraining.Body innerStyle={[styles.mb4]}>
+                            <FeatureTraining.Subtitle>{subtitle}</FeatureTraining.Subtitle>
+                            <FeatureTraining.Title>{customAgentPromoTitle}</FeatureTraining.Title>
+                            <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.customAgents.description')}</FeatureTraining.Description>
+                            <FeatureTraining.ButtonRow>
+                                <FeatureTraining.BackButton />
+                                <FeatureTraining.ConfirmButton>{translate('aiFeaturesPromoModal.confirmText')}</FeatureTraining.ConfirmButton>
+                            </FeatureTraining.ButtonRow>
+                        </FeatureTraining.Body>
+                    </FeatureTraining.Page>
+                )}
+            </FeatureTraining.Carousel>
         </CenteredModalLayout>
     );
 }
