@@ -81,7 +81,6 @@ type TransactionEditPermissions = {
 let allTransactions: NonNullable<OnyxCollection<Transaction>> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allTransactions = value ?? {};
     },
@@ -90,7 +89,6 @@ Onyx.connectWithoutView({
 let allTransactionViolations: NonNullable<OnyxCollection<TransactionViolations>> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allTransactionViolations = value ?? {};
     },
@@ -99,7 +97,6 @@ Onyx.connectWithoutView({
 let allReports: NonNullable<OnyxCollection<Report>> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value ?? {};
     },
@@ -108,7 +105,6 @@ Onyx.connectWithoutView({
 let allReportActions: NonNullable<OnyxCollection<ReportActions>> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReportActions = value ?? {};
     },
