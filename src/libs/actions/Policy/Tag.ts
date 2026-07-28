@@ -61,7 +61,7 @@ type CreatePolicyTagParams = {
     setupCategoriesAndTagsParentReportAction: OnyxEntry<ReportAction>;
     currentUserAccountID: number;
     policyHasCustomCategories: boolean;
-    shouldRestoreRequiresTagAfterSwitch?: boolean;
+    pendingRequiresTagRestore?: boolean;
 };
 
 function getEnabledPolicyTagsCount(policyTagList: PolicyTagList) {
@@ -139,14 +139,14 @@ function createPolicyTag({
     setupCategoriesAndTagsParentReportAction,
     currentUserAccountID,
     policyHasCustomCategories,
-    shouldRestoreRequiresTagAfterSwitch,
+    pendingRequiresTagRestore,
 }: CreatePolicyTagParams) {
     const {policy, tags: policyTags} = policyData;
     const policyID = policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
     // Restore the required toggle only for the first tag created after the switch-level cleanup.
-    const shouldRestoreRequiresTag = !!policyID && shouldRestoreRequiresTagAfterSwitch === true && getEnabledPolicyTagsCount(policyTag) === 0;
+    const shouldRestoreRequiresTag = !!policyID && pendingRequiresTagRestore === true && getEnabledPolicyTagsCount(policyTag) === 0;
     const policyRequiresTagOptimisticData: Partial<Policy> = shouldRestoreRequiresTag ? {requiresTag: true} : {};
     const tagListsOptimisticData = {
         [policyTag.name]: {
@@ -211,7 +211,7 @@ function createPolicyTag({
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 ...policyRequiresTagOptimisticData,
-                shouldRestoreRequiresTagAfterSwitch: null,
+                pendingRequiresTagRestore: null,
             },
         });
         onyxData.successData?.push({
@@ -219,7 +219,7 @@ function createPolicyTag({
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 ...policyRequiresTagOptimisticData,
-                shouldRestoreRequiresTagAfterSwitch: null,
+                pendingRequiresTagRestore: null,
             },
         });
         onyxData.failureData?.push({
@@ -228,7 +228,7 @@ function createPolicyTag({
             value: {
                 requiresTag: policy?.requiresTag ?? false,
                 // Keep the marker if tag creation fails, so retrying the first tag can still restore the required state.
-                shouldRestoreRequiresTagAfterSwitch: true,
+                pendingRequiresTagRestore: true,
             },
         });
     }
@@ -930,7 +930,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
 
 function cleanPolicyTags(policyID: string, shouldRestoreRequiresTagAfterTagCreate = false) {
     // Remember this locally because the clean response can leave policy.requiresTag false until the next policy refresh.
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {shouldRestoreRequiresTagAfterSwitch: shouldRestoreRequiresTagAfterTagCreate ? true : null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {pendingRequiresTagRestore: shouldRestoreRequiresTagAfterTagCreate ? true : null});
 
     // We do not have any optimistic data or success data for this command as this action cannot be done offline
     API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID});
@@ -1069,7 +1069,7 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
     const policyOptimisticData: Partial<Policy> = {
         requiresTag,
         // A manual toggle is explicit, so any pending switch-level restore intent is no longer needed.
-        shouldRestoreRequiresTagAfterSwitch: null,
+        pendingRequiresTagRestore: null,
         errors: {requiresTag: null},
         pendingFields: {
             requiresTag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,

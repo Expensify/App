@@ -2624,7 +2624,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         requiresTag?: boolean;
 
         /** Client-only marker used to restore required tags after switching tag levels clears all tags */
-        shouldRestoreRequiresTagAfterSwitch?: boolean | null;
+        pendingRequiresTagRestore?: boolean | null;
 
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;

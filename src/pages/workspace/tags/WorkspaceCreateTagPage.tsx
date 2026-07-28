@@ -103,7 +103,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             setupCategoriesAndTagsParentReportAction,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             policyHasCustomCategories,
-            shouldRestoreRequiresTagAfterSwitch: policyData.policy?.shouldRestoreRequiresTagAfterSwitch === true,
+            pendingRequiresTagRestore: policyData.policy?.pendingRequiresTagRestore === true,
         });
         Keyboard.dismiss();
         Navigation.goBack(isDynamicFlow ? backPath : undefined);

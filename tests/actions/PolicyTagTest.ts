@@ -419,7 +419,7 @@ describe('actions/Policy', () => {
                 setupCategoriesAndTagsParentReportAction: undefined,
                 currentUserAccountID: 0,
                 policyHasCustomCategories: false,
-                shouldRestoreRequiresTagAfterSwitch: policyData.current.policy?.shouldRestoreRequiresTagAfterSwitch === true,
+                pendingRequiresTagRestore: policyData.current.policy?.pendingRequiresTagRestore === true,
             });
             await waitForBatchedUpdates();
 
@@ -428,7 +428,7 @@ describe('actions/Policy', () => {
 
             expect(policy?.requiresTag).toBe(true);
             expect(policyTags?.[tagListName]?.required).toBe(true);
-            expect(policy?.shouldRestoreRequiresTagAfterSwitch).toBeFalsy();
+            expect(policy?.pendingRequiresTagRestore).toBeFalsy();
 
             mockFetch.resume();
             await waitForBatchedUpdates();
