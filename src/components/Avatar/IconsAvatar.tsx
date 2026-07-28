@@ -17,7 +17,7 @@ type IconsAvatarProps = {
     /** Size of the avatars to render */
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** When omitted, inferred from icons count: 1 icon -> Single, 2+ icons -> Diagonal */
+    /** Layout to render. When omitted, a single avatar is rendered even if a secondary icon is present */
     avatarType?: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
 
     /** Whether to show the user-details tooltip on hover */
@@ -62,9 +62,8 @@ function IconsAvatar({
     }
 
     const secondaryIcon = icons.at(1);
-    const resolvedType = avatarType ?? (icons.length >= 2 ? CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL : CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE);
 
-    if (resolvedType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && secondaryIcon) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && secondaryIcon) {
         return (
             <SubscriptAvatar
                 primaryAvatar={primaryIcon}
@@ -76,7 +75,7 @@ function IconsAvatar({
         );
     }
 
-    if (resolvedType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && secondaryIcon) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && secondaryIcon) {
         return (
             <DiagonalAvatars
                 shouldShowTooltip={shouldShowTooltip}

@@ -510,7 +510,7 @@ describe('ReportActionAvatars', () => {
         it.each([CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE])(
             'applies "%s" sorting to horizontally stacked avatars',
             async (sort) => {
-                const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], horizontalStacking: {sort}});
+                const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], horizontalStacking: true, sort});
                 isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR, stacked: true});
             },
         );

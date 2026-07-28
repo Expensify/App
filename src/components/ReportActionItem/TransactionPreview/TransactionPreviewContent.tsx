@@ -322,9 +322,9 @@ function TransactionPreviewContent({
                                                 <ReportActionAvatars
                                                     accountIDs={participantAccountIDs}
                                                     horizontalStacking={{
-                                                        sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.ID,
                                                         shouldUseCardBackground: true,
                                                     }}
+                                                    sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.ID}
                                                     size={CONST.AVATAR_SIZE.SUBSCRIPT}
                                                 />
                                             </View>

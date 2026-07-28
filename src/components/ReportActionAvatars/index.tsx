@@ -28,12 +28,11 @@ import useReportActionAvatars from './useReportActionAvatars';
 
 type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 
-type HorizontalStacking = HorizontalStackingOptions & {
-    sort?: SortingOptions | SortingOptions[];
-};
-
 type ReportActionAvatarsProps = {
-    horizontalStacking?: HorizontalStacking | boolean;
+    horizontalStacking?: HorizontalStackingOptions | boolean;
+
+    /** How to order the avatars before rendering them. Applies to every layout */
+    sort?: SortingOptions | SortingOptions[];
 
     /** Report ID for the report action avatars */
     reportID?: string;
@@ -118,6 +117,7 @@ function ReportActionAvatars({
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldShowTooltip = true,
     horizontalStacking,
+    sort: sortAvatars,
     singleAvatarContainerStyle,
     subscriptAvatarBorderColor,
     noRightMarginOnSubscriptContainer = false,
@@ -150,7 +150,7 @@ function ReportActionAvatars({
 
     const shouldStackHorizontally = !!horizontalStacking;
     const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
-    const {isHovered = false, sort: sortAvatars, ...horizontalStackingRest} = isHorizontalStackingAnObject ? horizontalStacking : ({} as HorizontalStacking);
+    const {isHovered = false, ...horizontalStackingRest} = isHorizontalStackingAnObject ? horizontalStacking : ({} as HorizontalStackingOptions);
 
     const {
         avatarType: notPreciseAvatarType,
@@ -181,7 +181,7 @@ function ReportActionAvatars({
         }
 
         if (sortAvatars.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE)) {
-            icons = icons.reverse();
+            icons = icons.toReversed();
         }
     }
 

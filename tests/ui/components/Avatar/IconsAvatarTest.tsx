@@ -388,6 +388,20 @@ describe('SearchReportAvatar', () => {
             expect(singleAvatar?.uri).toBe(USER_AVATAR);
         });
 
+        // LHN rows always ask for a diagonal layout when they are not subscripts, even when the row has a single icon
+        it('renders single avatar when secondaryAvatar is missing even if avatarType is MULTIPLE_DIAGONAL', async () => {
+            const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
+            const {images, fragments} = await retrieveAvatarData({
+                primaryAvatar: avatarIcons.at(0),
+                secondaryAvatar: undefined,
+                avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL,
+                reportID: expenseReport.reportID,
+            });
+
+            expect(fragments.some((fragment) => fragment.startsWith('ReportActionAvatars-MultipleAvatars'))).toBe(false);
+            expect(images.find((img) => img.parent === 'ReportActionAvatars-SingleAvatar')?.uri).toBe(USER_AVATAR);
+        });
+
         it('renders single avatar when secondaryAvatar is missing even if avatarType is SUBSCRIPT', async () => {
             const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
             const {images} = await retrieveAvatarData({
@@ -403,17 +417,20 @@ describe('SearchReportAvatar', () => {
         });
     });
 
-    describe('infers the layout from icon count when avatarType is omitted', () => {
+    describe('falls back to a single avatar when avatarType is omitted', () => {
         const expenseIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
 
-        it('infers a single avatar from a single icon', async () => {
+        it('renders a single avatar from a single icon', async () => {
             const {images} = await retrieveAvatarData({primaryAvatar: expenseIcons.at(0), reportID: expenseReport.reportID});
             expect(images.some((img) => img.parent === 'ReportActionAvatars-SingleAvatar')).toBe(true);
         });
 
-        it('infers a diagonal layout from two icons', async () => {
-            const {fragments} = await retrieveAvatarData({primaryAvatar: expenseIcons.at(0), secondaryAvatar: expenseIcons.at(1), reportID: expenseReport.reportID});
-            expect(fragments.some((fragment) => fragment.startsWith('ReportActionAvatars-MultipleAvatars'))).toBe(true);
+        // Search list items leave avatarType undefined, and they expect a single avatar rather than an inferred stack
+        it('renders a single avatar from two icons instead of inferring a diagonal layout', async () => {
+            const {images, fragments} = await retrieveAvatarData({primaryAvatar: expenseIcons.at(0), secondaryAvatar: expenseIcons.at(1), reportID: expenseReport.reportID});
+
+            expect(fragments.some((fragment) => fragment.startsWith('ReportActionAvatars-MultipleAvatars'))).toBe(false);
+            expect(images.some((img) => img.parent === 'ReportActionAvatars-SingleAvatar')).toBe(true);
         });
     });
 

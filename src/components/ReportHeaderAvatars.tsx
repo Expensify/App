@@ -1,15 +1,25 @@
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
+
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 
 import React from 'react';
 import {View} from 'react-native';
 
-import PressableAvatarFromIcon from './Avatar/PressableAvatarFromIcon';
+import Avatar from './Avatar';
+import SingleAvatar from './Avatar/layouts/SingleAvatar';
+import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import useReportActionAvatars from './ReportActionAvatars/useReportActionAvatars';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
@@ -18,11 +28,17 @@ type ReportHeaderAvatarsProps = {
     reportID?: string;
 };
 
-/** Renders the large pressable avatar(s) shown in the report details header for non-group-chat reports. */
+/**
+ * Renders the large pressable avatar(s) shown in the report details header for non-group-chat reports.
+ *
+ * The subscript markup is duplicated from `SubscriptAvatar` on purpose: here the primary and the subscript avatar each
+ * need their own press target and route, which a single pressable around the shared layout cannot provide.
+ */
 function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
 
     // reportID can be an empty string causing Onyx to fetch the whole collection
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -36,6 +52,30 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
         report,
         action: undefined,
     });
+
+    const navigateToAvatarPage = (icon: Icon) => {
+        const avatarID = icon.id ?? CONST.DEFAULT_NUMBER_ID;
+
+        if (icon.type !== CONST.ICON_TYPE_WORKSPACE) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(Number(avatarID))));
+            return;
+        }
+
+        if (reportID) {
+            Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID, String(avatarID)));
+            return;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const firstLetter = (icon.name?.at(0) ?? 'A').toUpperCase() as UpperCaseCharacters;
+        Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(String(avatarID), firstLetter));
+    };
+
+    const getAccessibilityLabel = (icon: Icon) => translate(icon.type === CONST.ICON_TYPE_WORKSPACE ? 'common.workspaces' : 'common.profile');
+
+    if (!icons.length) {
+        return null;
+    }
 
     const [primaryAvatar, secondaryAvatar] = icons;
     const size = CONST.AVATAR_SIZE.X_LARGE;
@@ -57,13 +97,24 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
                     }}
                 >
                     <View>
-                        <PressableAvatarFromIcon
-                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
-                            icon={primaryAvatar}
-                            size={size}
-                            testID="ReportActionAvatars-Subscript-MainAvatar"
-                            reportID={reportID}
-                        />
+                        <PressableWithoutFocus
+                            onPress={() => navigateToAvatarPage(primaryAvatar)}
+                            accessibilityLabel={getAccessibilityLabel(primaryAvatar)}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
+                        >
+                            <Avatar
+                                containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
+                                type={primaryAvatar.type}
+                                source={primaryAvatar.source}
+                                name={primaryAvatar.name ?? ''}
+                                avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                                fallbackIcon={primaryAvatar.fallbackIcon}
+                                fill={primaryAvatar.fill}
+                                size={size}
+                                testID="ReportActionAvatars-Subscript-MainAvatar"
+                            />
+                        </PressableWithoutFocus>
                     </View>
                 </UserDetailsTooltip>
                 <UserDetailsTooltip
@@ -72,13 +123,24 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
                     icon={secondaryAvatar}
                 >
                     <View style={styles.secondAvatarSubscriptXLarge}>
-                        <PressableAvatarFromIcon
-                            iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(subscriptAvatarSize), StyleUtils.getBorderColorStyle(theme.componentBG)]}
-                            icon={secondaryAvatar}
-                            size={subscriptAvatarSize}
-                            testID="ReportActionAvatars-Subscript-SecondaryAvatar"
-                            reportID={reportID}
-                        />
+                        <PressableWithoutFocus
+                            onPress={() => navigateToAvatarPage(secondaryAvatar)}
+                            accessibilityLabel={getAccessibilityLabel(secondaryAvatar)}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
+                        >
+                            <Avatar
+                                iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(subscriptAvatarSize), StyleUtils.getBorderColorStyle(theme.componentBG)]}
+                                type={secondaryAvatar.type}
+                                source={secondaryAvatar.source}
+                                name={secondaryAvatar.name ?? ''}
+                                avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                                fallbackIcon={secondaryAvatar.fallbackIcon}
+                                fill={secondaryAvatar.fill}
+                                size={subscriptAvatarSize}
+                                testID="ReportActionAvatars-Subscript-SecondaryAvatar"
+                            />
+                        </PressableWithoutFocus>
                     </View>
                 </UserDetailsTooltip>
             </View>
@@ -86,24 +148,20 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
     }
 
     return (
-        <UserDetailsTooltip
-            accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-            icon={primaryAvatar}
-            fallbackUserDetails={{
-                displayName: primaryAvatar.name,
-            }}
-            shouldRender
+        <PressableWithoutFocus
+            onPress={() => navigateToAvatarPage(primaryAvatar)}
+            accessibilityLabel={getAccessibilityLabel(primaryAvatar)}
+            accessibilityRole={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
         >
-            <View>
-                <PressableAvatarFromIcon
-                    containerStyles={[]}
-                    icon={primaryAvatar}
-                    size={size}
-                    testID="ReportActionAvatars-SingleAvatar"
-                    reportID={reportID}
-                />
-            </View>
-        </UserDetailsTooltip>
+            <SingleAvatar
+                avatar={primaryAvatar}
+                size={size}
+                containerStyles={[]}
+                shouldShowTooltip
+                accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
+            />
+        </PressableWithoutFocus>
     );
 }
 
