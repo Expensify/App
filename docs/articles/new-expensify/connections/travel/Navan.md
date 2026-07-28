@@ -1,5 +1,6 @@
 ---
 title: Navan
+order: 3
 description: Learn how to connect Navan with Expensify to automatically sync travel receipts for easy expense reporting.
 keywords: [Navan, Expensify Classic, travel integration, expense automation, flight receipts]
 ---

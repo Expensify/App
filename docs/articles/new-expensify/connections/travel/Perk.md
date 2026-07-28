@@ -1,6 +1,6 @@
 ---
-
 title: Connecting Perk to Expensify
+order: 2
 description: Learn how to integrate Perk with Expensify to automate travel expense tracking.
 keywords: [Expensify Classic, Perk integration, connect Perk to Expensify, Travel Perk, travel booking sync, receipts@expensify.com, travel expenses, Receipt upload problem]
 internalScope: Audience is Workspace Admins. Covers connecting Perk (formerly TravelPerk) to Expensify Classic to sync travel bookings as expenses. Does not cover Perk account setup or New Expensify.

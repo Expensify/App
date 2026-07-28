@@ -1,5 +1,6 @@
 ---
 title: Lyft
+order: 5
 description: Learn how to connect your Lyft Business Profile with Expensify to automatically import receipts for work-related rides.
 keywords: [Lyft, Expensify Classic, Business Profile, receipts, integration, expense management]
 ---

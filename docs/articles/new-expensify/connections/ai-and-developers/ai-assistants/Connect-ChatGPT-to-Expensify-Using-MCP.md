@@ -10,7 +10,7 @@ order: 2
 
 You can connect ChatGPT to Expensify using the Expensify MCP server. Once connected, ChatGPT can search and analyze your Expensify data using natural language.
 
-Learn more about supported AI clients, permissions, and security in [Use the Expensify MCP server with AI assistants](/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants).
+Learn more about supported AI clients, permissions, and security in [Use the Expensify MCP server with AI assistants](/articles/new-expensify/connections/ai-and-developers/ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants).
 
 ---
 

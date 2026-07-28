@@ -1,5 +1,6 @@
 ---
 title: Rippling
+order: 4
 description: Learn how to sync employee and expense data between Expensify and Rippling for seamless management.
 keywords: [Rippling, Expensify integration, employee sync, expense reports, payroll]
 ---

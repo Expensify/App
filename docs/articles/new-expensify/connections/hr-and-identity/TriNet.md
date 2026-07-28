@@ -1,5 +1,6 @@
 ---
 title: Connect TriNet to Expensify
+order: 5
 description: Learn how to connect TriNet to your Expensify workspace to automatically sync employees and manage approvals.
 keywords: [New Expensify, TriNet, Zenefits, TriNet integration, HR integration, employee sync, approval workflow, connect TriNet, HR tab, manual sync]
 internalScope: Audience is Workspace Admins on Control plans. Covers connecting TriNet via the HR tab, configuring approval mode, viewing synced employees on the Members tab, and triggering manual re-syncs. Does not cover Expensify Classic TriNet integration or accounting integrations.

@@ -1,5 +1,6 @@
 ---
 title: VAT IT Integration
+order: 2
 description: Learn how to connect Expensify with VAT IT to simplify international VAT refunds for your business expenses.
 keywords: [New Expensify, VAT IT, VAT refund, international expenses, tax compliance]
 ---

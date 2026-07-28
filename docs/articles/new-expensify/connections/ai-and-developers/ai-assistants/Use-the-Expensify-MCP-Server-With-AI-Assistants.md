@@ -53,9 +53,9 @@ Each AI client has its own MCP configuration flow, but the general setup process
 8. Return to your AI client and test the connection using a natural language query.
 
 Supported setup guides: 
- - [Connect ChatGPT to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-ChatGPT-to-Expensify-Using-MCP)
- - [Connect Claude to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP)
- - [Connect Cursor to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP)
+ - [Connect ChatGPT to Expensify using MCP](/articles/new-expensify/connections/ai-and-developers/ai-assistants/Connect-ChatGPT-to-Expensify-Using-MCP)
+ - [Connect Claude to Expensify using MCP](/articles/new-expensify/connections/ai-and-developers/ai-assistants/Connect-Claude-to-Expensify-Using-MCP)
+ - [Connect Cursor to Expensify using MCP](/articles/new-expensify/connections/ai-and-developers/ai-assistants/Connect-Cursor-to-Expensify-Using-MCP)
 
 ## What you can do with Expensify’s MCP server
 

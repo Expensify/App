@@ -1,5 +1,6 @@
 ---
 title: Connect HiBob to Expensify
+order: 3
 description: Learn how to connect HiBob to your Expensify workspace, complete the initial setup, and automatically sync employees and approval workflows.
 keywords: [New Expensify, HiBob, HiBob integration, connect HiBob, HR integration, employee sync, approval workflow]
 internalScope: Audience is Workspace Admins on Control plans. Covers connecting HiBob, completing the initial setup, configuring approval mode, and running the initial employee sync. Does not cover accounting integrations.

@@ -1,5 +1,6 @@
 ---
 title: Connect BambooHR to Expensify
+order: 1
 description: Learn how to connect BambooHR to your Expensify workspace, complete the initial setup, and automatically sync employees and approval workflows.
 keywords: [New Expensify, BambooHR, BambooHR integration, connect BambooHR, HR integration, employee sync, approval workflow]
 internalScope: Audience is Workspace Admins on Control plans. Covers connecting BambooHR, completing the initial setup, configuring approval mode, and running the initial employee sync. Does not cover accounting integrations.

@@ -16,7 +16,7 @@ This feature is available to Workspace Admins whose Workspace:
  - Is connected to QuickBooks Online.
  - Has **Credit card** or **Debit card** selected under **Export company card expenses as** in the QuickBooks Online configuration.
 
-If your Workspace isn't connected to QuickBooks Online yet, learn how to [connect to QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online).
+If your Workspace isn't connected to QuickBooks Online yet, learn how to [connect to QuickBooks Online](/articles/new-expensify/connections/accounting/quickbooks-online/Connect-to-QuickBooks-Online).
 
 ## How vendors are matched to company card expenses
 

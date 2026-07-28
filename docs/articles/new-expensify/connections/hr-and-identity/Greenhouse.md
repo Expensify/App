@@ -1,5 +1,6 @@
 ---
 title: Greenhouse
+order: 8
 description: Learn how to integrate Greenhouse with Expensify to automatically send candidates for seamless reimbursement.
 keywords: [Greenhouse, Expensify Classic, integration, candidate reimbursement]
 ---

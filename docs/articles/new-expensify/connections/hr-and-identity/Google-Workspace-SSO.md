@@ -1,5 +1,6 @@
 ---
-title: Google Apps SSO
+title: Google Workspace SSO
+order: 7
 description: Learn how to integrate Expensify with Google Apps SSO for seamless user management and one-click Workspace invites.
 keywords: [Google Apps SSO, Expensify Classic, Workspace invites, Google Admin]
 ---

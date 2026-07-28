@@ -1,5 +1,6 @@
 ---
 title: Connect Gusto to Expensify
+order: 2
 description: Learn how to connect Gusto to your Expensify workspace to automatically sync employees and manage approvals.
 keywords: [New Expensify, Gusto, Gusto integration, HR integration, employee sync, approval workflow, connect Gusto, HR tab, manual sync]
 internalScope: Audience is Workspace Admins on Control plans. Covers connecting Gusto via the HR tab, configuring approval mode, viewing synced employees on the Members tab, and triggering manual re-syncs. Does not cover Expensify Classic Gusto integration or accounting integrations.

@@ -1,5 +1,6 @@
 ---
 title: Expensify API
+order: 2
 description: User-sourced tips and tricks for using Expensify’s API. 
 keywords: [Expensify Classic, API]
 ---

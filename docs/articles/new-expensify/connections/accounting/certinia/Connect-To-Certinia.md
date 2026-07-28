@@ -72,7 +72,7 @@ If you use Certinia PSA/SRP, complete the following before connecting in Expensi
 4. Follow the on-screen prompts to authorize the connection.
 5. Select the Certinia **company** to use for importing and exporting data.
 
-Once connected, continue to [Configure Certinia](/articles/new-expensify/connections/certinia/Configure-Certinia) to set up import, export, and advanced settings.
+Once connected, continue to [Configure Certinia](/articles/new-expensify/connections/accounting/certinia/Configure-Certinia) to set up import, export, and advanced settings.
 
 ---
 
@@ -86,7 +86,7 @@ If you want to test the integration against a Certinia **sandbox** instead of yo
 4. Log in to your Certinia **sandbox** account and follow the on-screen prompts.
 5. Select the company to use.
 
-Once connected, continue to [Configure Certinia](/articles/new-expensify/connections/certinia/Configure-Certinia) to set up import, export, and advanced settings.
+Once connected, continue to [Configure Certinia](/articles/new-expensify/connections/accounting/certinia/Configure-Certinia) to set up import, export, and advanced settings.
 
 ---
 

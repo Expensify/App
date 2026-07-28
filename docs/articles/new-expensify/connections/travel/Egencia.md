@@ -1,5 +1,6 @@
 ---
 title: Egencia
+order: 1
 description: Learn how to integrate Egencia with Expensify to automatically import travel booking receipts and expenses.
 keywords: [Egencia, travel booking, Expensify Classic]
 ---

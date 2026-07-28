@@ -1,5 +1,6 @@
 ---
 title: Uber for Business
+order: 4
 description: Learn how to connect Uber for Business to your Expensify workspace, invite employees, and automate receipt collection for Uber Rides and Uber Eats.
 keywords: [New Expensify, Uber for Business, Uber integration, automate Uber receipts, connect Uber to Expensify, U4B, Uber Eats, Uber Rides, receipt automation]
 ---

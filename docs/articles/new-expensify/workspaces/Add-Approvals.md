@@ -23,7 +23,7 @@ To enable approvals on a workspace you manage:
 
 Enabling **Approvals** will reveal an option to set a default approval workflow for the workspace.
 
-**Note:** If your workspace is connected to an HR integration such as Gusto or TriNet, approval workflows managed through that integration appear on the **Workflows** tab with the integration's indicator. To manage these approval settings, go to the **HR** tab in your workspace settings. [Learn about connecting Gusto to Expensify](/articles/new-expensify/connections/Connect-Gusto-to-Expensify) or [learn about connecting TriNet to Expensify](/articles/new-expensify/connections/TriNet).
+**Note:** If your workspace is connected to an HR integration such as Gusto or TriNet, approval workflows managed through that integration appear on the **Workflows** tab with the integration's indicator. To manage these approval settings, go to the **HR** tab in your workspace settings. [Learn about connecting Gusto to Expensify](/articles/new-expensify/connections/hr-and-identity/Gusto) or [learn about connecting TriNet to Expensify](/articles/new-expensify/connections/hr-and-identity/TriNet).
 
 ---
 

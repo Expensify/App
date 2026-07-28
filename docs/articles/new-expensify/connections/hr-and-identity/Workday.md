@@ -1,5 +1,6 @@
 ---
 title: Connect Workday to Expensify
+order: 6
 description: Learn how to connect Workday to your Expensify workspace, complete the initial setup, and automatically sync employees and approval workflows.
 keywords: [New Expensify, Workday, Workday integration, connect Workday, HR integration, employee sync, approval workflow]
 internalScope: Audience is Workspace Admins on Control plans. Covers connecting Workday, completing the initial setup, configuring approval mode, and running the initial employee sync. Does not cover accounting integrations.

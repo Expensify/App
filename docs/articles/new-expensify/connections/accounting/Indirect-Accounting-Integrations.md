@@ -1,5 +1,6 @@
 ---
 title: Indirect Accounting Integrations
+order: 7
 description: Learn how to export expenses and reports using a flat-file template compatible with your accounting software.
 keywords: [Expensify Classic, accounting integration, export template, indirect integration, flat-file import]
 ---
