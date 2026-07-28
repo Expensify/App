@@ -719,6 +719,17 @@ function updatePersonalDetailsAndShipExpensifyCards(
                         isLoading: true,
                     },
                 },
+                {
+                    // Clear any RBR left on this card by a previous failed attempt so a successful retry doesn't keep
+                    // showing a stale "Unable to ship Expensify Card" error; the .then re-sets it only if it fails again.
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.CARD_LIST,
+                    value: {
+                        [targetCardID]: {
+                            errors: null,
+                        },
+                    },
+                },
             ],
             finallyData: [
                 {
@@ -755,6 +766,8 @@ function updatePersonalDetailsAndShipExpensifyCards(
                 if (cardShipmentErrors.length > 0) {
                     const cardListErrors: Record<number, Pick<Card, 'errors'>> = {};
                     for (const {cardID, error} of cardShipmentErrors) {
+                        // The shipment error is a pre-formatted, human-readable message rather than a translation key, so we
+                        // deliberately use the deprecated raw-message error helper here; this is a permanent suppression.
                         // eslint-disable-next-line @typescript-eslint/no-deprecated
                         cardListErrors[cardID] = {errors: ErrorUtils.getMicroSecondOnyxErrorWithMessage(translateLocal('cardPage.shipCardError', {reason: getShipmentErrorReason(error)}))};
                     }
