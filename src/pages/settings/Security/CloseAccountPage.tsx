@@ -3,15 +3,14 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
@@ -26,7 +25,6 @@ import {closeAccount} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
 
 import {Str} from 'expensify-common';
@@ -43,9 +41,9 @@ function CloseAccountPage() {
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {environmentURL} = useEnvironment();
 
-    const {showConfirmModal, closeModal} = useConfirmModal();
+    const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
     const showCloseAccountWarningModal = () => {
         return showConfirmModal({
             title: translate('closeAccountPage.closeAccountWarning'),
@@ -66,23 +64,7 @@ function CloseAccountPage() {
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
         if (ruleBotEnforcedPolicy) {
-            const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id);
-            showConfirmModal({
-                shouldShowCancelButton: false,
-                title: translate('workspace.rules.agentRules.unableToCloseAccountTitle'),
-                prompt: (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML
-                            onLinkPress={() => {
-                                closeModal();
-                                Navigation.navigate(workspaceRulesRoute);
-                            }}
-                            html={translate('workspace.rules.agentRules.unableToCloseAccountPrompt', `${environmentURL}/${workspaceRulesRoute}`)}
-                        />
-                    </View>
-                ),
-                confirmText: translate('common.buttonConfirm'),
-            });
+            showRuleBotGuardModal('closeAccount', ruleBotEnforcedPolicy.id);
             return;
         }
         showCloseAccountWarningModal().then((result) => {

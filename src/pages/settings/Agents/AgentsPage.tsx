@@ -13,7 +13,6 @@ import useChatWithAgent from '@hooks/useChatWithAgent';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -21,6 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
@@ -56,8 +56,8 @@ function AgentsPage() {
     const switchToDelegator = useSwitchToDelegator();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const {showConfirmModal, closeModal} = useConfirmModal();
-    const {environmentURL} = useEnvironment();
+    const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     useDocumentTitle(translate('agentsPage.title'));
@@ -151,23 +151,7 @@ function AgentsPage() {
     const askForConfirmationToDelete = async () => {
         const ruleBotEnforcedPolicy = selectedAgentKeys.map((accountIDString) => getRuleBotEnforcedPolicy(Number(accountIDString), allPolicies)).find(Boolean);
         if (ruleBotEnforcedPolicy) {
-            const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id);
-            showConfirmModal({
-                shouldShowCancelButton: false,
-                title: translate('workspace.rules.agentRules.unableToDeleteAgentTitle'),
-                prompt: (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML
-                            onLinkPress={() => {
-                                closeModal();
-                                Navigation.navigate(workspaceRulesRoute);
-                            }}
-                            html={translate('workspace.rules.agentRules.unableToDeleteAgentPrompt', `${environmentURL}/${workspaceRulesRoute}`)}
-                        />
-                    </View>
-                ),
-                confirmText: translate('common.buttonConfirm'),
-            });
+            showRuleBotGuardModal('deleteAgent', ruleBotEnforcedPolicy.id);
             return;
         }
         const result = await showConfirmModal({

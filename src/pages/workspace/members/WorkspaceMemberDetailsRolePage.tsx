@@ -1,14 +1,10 @@
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import type {ListItemType} from '@components/WorkspaceMemberRoleList';
 
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 
 import {updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
@@ -29,7 +25,6 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE> & {
@@ -40,12 +35,7 @@ type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingPr
 function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: WorkspaceMemberDetailsRolePageProps) {
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
-    const {environmentURL} = useEnvironment();
-    const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(policyID);
-    const workspaceRulesPageURL = `${environmentURL}/${workspaceRulesRoute}`;
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const {showConfirmModal, closeModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
@@ -64,22 +54,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
             return;
         }
         if (value !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
-            showConfirmModal({
-                shouldShowCancelButton: false,
-                title: translate('workspace.rules.agentRules.unableToChangeRoleTitle'),
-                prompt: (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML
-                            onLinkPress={() => {
-                                closeModal();
-                                Navigation.navigate(workspaceRulesRoute);
-                            }}
-                            html={translate('workspace.rules.agentRules.unableToChangeRolePrompt', workspaceRulesPageURL)}
-                        />
-                    </View>
-                ),
-                confirmText: translate('common.buttonConfirm'),
-            });
+            showRuleBotGuardModal('changeRole', policyID);
             return;
         }
         updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);

@@ -7,7 +7,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -23,6 +22,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -112,7 +112,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
-    const {showConfirmModal, closeModal} = useConfirmModal();
+    const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
 
     const routeAccountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
@@ -134,8 +135,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyOwnerDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate})) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
-    const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(policyID);
-    const workspaceRulesPageURL = `${environmentURL}/${workspaceRulesRoute}`;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const isReimburser =
@@ -260,22 +259,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const askForConfirmationToRemove = () => {
         if (isRuleBotEnforcingRules(accountID, policy)) {
-            showConfirmModal({
-                shouldShowCancelButton: false,
-                title: translate('workspace.rules.agentRules.unableToRemoveTitle'),
-                prompt: (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML
-                            onLinkPress={() => {
-                                closeModal();
-                                Navigation.navigate(workspaceRulesRoute);
-                            }}
-                            html={translate('workspace.rules.agentRules.unableToRemovePrompt', workspaceRulesPageURL)}
-                        />
-                    </View>
-                ),
-                confirmText: translate('common.buttonConfirm'),
-            });
+            showRuleBotGuardModal('remove', policyID);
             return;
         }
         if (isReimburser) {

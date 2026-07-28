@@ -6,7 +6,6 @@ import DecisionModal from '@components/DecisionModal';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import RenderHTML from '@components/RenderHTML';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceMemberRowData, WorkspaceMembersTableColumnKey} from '@components/Tables/WorkspaceMembersTable';
 import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
@@ -16,7 +15,6 @@ import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,6 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -111,7 +110,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
-    const {showConfirmModal, closeModal} = useConfirmModal();
+    const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     const textInputRef = useRef<BaseTextInputRef>(null);
@@ -140,9 +140,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
-    const {environmentURL} = useEnvironment();
-    const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(policyID);
-    const workspaceRulesPageURL = `${environmentURL}/${workspaceRulesRoute}`;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler', 'EmptyShelves']);
@@ -274,22 +271,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const askForConfirmationToRemove = useCallback(() => {
         const isRuleBotSelected = selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy));
         if (isRuleBotSelected) {
-            showConfirmModal({
-                shouldShowCancelButton: false,
-                title: translate('workspace.rules.agentRules.unableToRemoveTitle'),
-                prompt: (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML
-                            onLinkPress={() => {
-                                closeModal();
-                                Navigation.navigate(workspaceRulesRoute);
-                            }}
-                            html={translate('workspace.rules.agentRules.unableToRemovePrompt', workspaceRulesPageURL)}
-                        />
-                    </View>
-                ),
-                confirmText: translate('common.buttonConfirm'),
-            });
+            showRuleBotGuardModal('remove', policyID);
             return;
         }
         showConfirmModal({
@@ -311,19 +293,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             removeUsers();
         });
-    }, [
-        confirmModalPrompt,
-        removeUsers,
-        selectedEmployees,
-        policyMemberEmailsToAccountIDs,
-        policy,
-        workspaceRulesPageURL,
-        workspaceRulesRoute,
-        styles,
-        showConfirmModal,
-        closeModal,
-        translate,
-    ]);
+    }, [confirmModalPrompt, removeUsers, selectedEmployees, policyMemberEmailsToAccountIDs, policy, policyID, showConfirmModal, showRuleBotGuardModal, translate]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
@@ -535,22 +505,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
         if (role !== CONST.POLICY.ROLE.ADMIN && selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy))) {
-            showConfirmModal({
-                shouldShowCancelButton: false,
-                title: translate('workspace.rules.agentRules.unableToChangeRoleTitle'),
-                prompt: (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML
-                            onLinkPress={() => {
-                                closeModal();
-                                Navigation.navigate(workspaceRulesRoute);
-                            }}
-                            html={translate('workspace.rules.agentRules.unableToChangeRolePrompt', workspaceRulesPageURL)}
-                        />
-                    </View>
-                ),
-                confirmText: translate('common.buttonConfirm'),
-            });
+            showRuleBotGuardModal('changeRole', policyID);
             return;
         }
         const loginsToUpdate = selectedEmployees.filter((login) => {

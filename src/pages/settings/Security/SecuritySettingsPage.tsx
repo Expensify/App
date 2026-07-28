@@ -4,7 +4,6 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -12,13 +11,13 @@ import Section from '@components/Section';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -75,8 +74,8 @@ function SecuritySettingsPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
-    const {showConfirmModal, closeModal} = useConfirmModal();
-    const {environmentURL} = useEnvironment();
+    const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
 
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -206,23 +205,7 @@ function SecuritySettingsPage() {
                     }
                     const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(session?.accountID, allPolicies);
                     if (ruleBotEnforcedPolicy) {
-                        const workspaceRulesRoute = ROUTES.WORKSPACE_RULES.getRoute(ruleBotEnforcedPolicy.id);
-                        showConfirmModal({
-                            shouldShowCancelButton: false,
-                            title: translate('workspace.rules.agentRules.unableToDeleteAgentTitle'),
-                            prompt: (
-                                <View style={[styles.renderHTML, styles.flexRow]}>
-                                    <RenderHTML
-                                        onLinkPress={() => {
-                                            closeModal();
-                                            Navigation.navigate(workspaceRulesRoute);
-                                        }}
-                                        html={translate('workspace.rules.agentRules.unableToDeleteAgentPrompt', `${environmentURL}/${workspaceRulesRoute}`)}
-                                    />
-                                </View>
-                            ),
-                            confirmText: translate('common.buttonConfirm'),
-                        });
+                        showRuleBotGuardModal('deleteAgent', ruleBotEnforcedPolicy.id);
                         return;
                     }
                     const result = await showConfirmModal({
@@ -277,7 +260,7 @@ function SecuritySettingsPage() {
         showDelegateNoAccessModal,
         showLockedAccountModal,
         showConfirmModal,
-        closeModal,
+        showRuleBotGuardModal,
         session?.accountID,
         stashedCredentials,
         stashedSession,
@@ -288,9 +271,6 @@ function SecuritySettingsPage() {
         waitForNavigate,
         translate,
         styles.sectionMenuItemTopDescription,
-        styles.renderHTML,
-        styles.flexRow,
-        environmentURL,
         hasEverRegisteredForMultifactorAuthentication,
         hasDeviceManagementErrorValue,
     ]);
