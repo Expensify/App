@@ -75,6 +75,7 @@ import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {isSupportalSessionSelector} from '@selectors/Session';
 import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
@@ -146,7 +147,7 @@ function isSupportAuthToken(): boolean {
 }
 
 function isSupportalSession(): boolean {
-    return isSupportAuthToken() || !!session?.isSupportAuthTokenUsed;
+    return isSupportalSessionSelector(session);
 }
 
 /**
@@ -528,7 +529,7 @@ function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => an
 }
 
 /**
- * Request a new validate / magic code for user to sign in via passwordless flow
+ * Request a new validateCode for user to sign in via passwordless flow
  */
 function resendValidateCode(reasonParams: ResendValidateCodeParams, login = credentials.login) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
@@ -1022,7 +1023,7 @@ function signInWithValidateCode(accountID: number, code: string, preferredLocale
 }
 
 /**
- * Initializes the state of the automatic authentication when the user clicks on a magic link.
+ * Initializes the state of the automatic authentication when the user clicks on a security link.
  *
  * This method is called in componentDidMount event of the lifecycle.
  * When the user gets authenticated, the component is unmounted and then remounted
@@ -1198,7 +1199,7 @@ function authenticatePusher(socketID: string, channelName: string, callback?: Ch
 }
 
 /**
- * Request a new validation link / magic code to unlink an unvalidated secondary login from a primary login
+ * Request a new validation link / validateCode to unlink an unvalidated secondary login from a primary login
  */
 function requestUnlinkValidationLink() {
     const optimisticData = [
@@ -1512,8 +1513,8 @@ const canAnonymousUserAccessRoute = (route: string) => {
         return true;
     }
 
-    const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
-    if (isMagicLink) {
+    const isSecurityLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
+    if (isSecurityLink) {
         return true;
     }
 

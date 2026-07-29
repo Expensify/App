@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
@@ -7,6 +7,8 @@ import type {ListItem, SelectionListWithSectionsProps} from '@components/Selecti
 import withNavigationFallback from '@components/withNavigationFallback';
 
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
 
 import type {Meta} from 'storybook-react-rsbuild';
 
@@ -341,10 +343,11 @@ function WithConfirmButton(props: SelectionListWithSectionsProps<ListItem>) {
             onSelectRow={onSelectRow}
             footerContent={
                 <Button
-                    success
-                    text="Confirm"
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {}}
-                />
+                >
+                    <Button.Text>Confirm</Button.Text>
+                </Button>
             }
         />
     );
