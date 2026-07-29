@@ -7,6 +7,8 @@ import MenuItemDescription from '@components/MenuItem/leaves/text/MenuItemDescri
 import MenuItemTitle from '@components/MenuItem/leaves/text/MenuItemTitle';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {GestureResponderEvent} from 'react-native';
@@ -44,7 +46,7 @@ type MenuItemStandardProps = {
 function MenuItemStandard({title, icon, onPress, shouldShowChevron = false, description, disabled = false, sentryLabel}: MenuItemStandardProps) {
     return (
         <MenuItemRoot
-            onPress={onPress}
+            onPress={callFunctionIfActionIsAllowed(onPress)}
             isDisabled={disabled}
             sentryLabel={sentryLabel}
         >
