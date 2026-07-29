@@ -160,7 +160,7 @@ function ReportFetchHandler() {
             // initial-load state. The stamp written at creation lives in a RAM-only key and is lost on an app restart,
             // which would leave the report pinned on the loading skeleton once online (the effect below re-arms
             // isLoadingInitialReportActions while hasOnceLoadedReportActions is false). The persisted local actions are
-            // the complete truth for an optimistic report, so reconstruct the readiness stamp here. See #96925.
+            // the complete truth for an optimistic report, so reconstruct the readiness stamp here.
             if (!reportLoadingState.hasOnceLoadedReportActions) {
                 markLocalReportActionsAsLoaded(reportIDFromRoute);
             }

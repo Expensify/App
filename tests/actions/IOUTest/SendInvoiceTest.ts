@@ -288,7 +288,7 @@ describe('actions/SendInvoice', () => {
             expect(result.onyxData.failureData).toBeDefined();
         });
 
-        it('stamps hasOnceLoadedReportActions for the invoice report and the new invoice room (#96925)', () => {
+        it('stamps hasOnceLoadedReportActions for the invoice report and the new invoice room', () => {
             // Given: a brand new invoice (no existing chat report), which creates both an invoice report and an invoice room
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction as OnyxEntry<Transaction>,

@@ -1276,7 +1276,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
     });
 
-    it('markLocalReportActionsAsLoaded settles the initial-load state for an optimistic report (#96925)', async () => {
+    it('markLocalReportActionsAsLoaded settles the initial-load state for an optimistic report', async () => {
         const REPORT_ID = '96925001';
 
         // Given the RAM-only loading state was dropped by an app restart, leaving the report re-armed as loading

@@ -5803,7 +5803,7 @@ function updateLoadingInitialReportAction(reportID: string | undefined, isLoadin
 /**
  * Marks a report's initial actions as loaded without a server round-trip. Used for optimistic reports whose local
  * actions are the complete truth (openReport is intentionally never called for them), so the RAM-only loading state
- * can be reconstructed after an app restart drops the stamp written at creation (see #96925).
+ * can be reconstructed after an app restart drops the stamp written at creation.
  */
 function markLocalReportActionsAsLoaded(reportID: string | undefined) {
     if (!isValidReportIDFromPath(reportID)) {
