@@ -576,6 +576,7 @@ const CONST = {
     },
 
     ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
+    ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID: 'assignCardCardholderRowTestID',
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
@@ -2481,6 +2482,9 @@ const CONST = {
         BAD_GATEWAY: 502,
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
+    },
+    HTTP_HEADER_NAMES: {
+        AUTH_TOKEN: 'authToken',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
@@ -5996,6 +6000,8 @@ const CONST = {
         TABLE: 'table',
         /** Use for table rows. */
         ROW: 'row',
+        /** Use to group table rows together (e.g. thead/tbody). */
+        ROWGROUP: 'rowgroup',
         /** Use for column header cells in a table. */
         COLUMNHEADER: 'columnheader',
         /** Use for data cells in a table row. */
@@ -8170,6 +8176,16 @@ const CONST = {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
         },
+        ENABLE_FLOW: {
+            PAGE_NAME: {
+                LEGAL_NAME: 'legal-name',
+                VERIFY_ACCOUNT: 'verify-account',
+                DOMAIN_SELECTOR: 'domain-selector',
+                WORKSPACE_ADDRESS: 'workspace-address',
+                LEGAL_ENTITY_TAX_ID: 'legal-entity-tax-id',
+                TERMS: 'terms',
+            },
+        },
         UPDATE_OPERATION_TYPE: {
             BOOKING_TICKETED: 'BOOKING_TICKETED',
             TICKET_VOIDED: 'TICKET_VOIDED',
@@ -8448,6 +8464,7 @@ const CONST = {
         },
         TABLE: {
             FILTERS: 'Table-Filters',
+            SETTINGS: 'Table-Settings',
             EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {
@@ -8767,7 +8784,8 @@ const CONST = {
             IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
-                MORE_DROPDOWN: 'WorkspaceCompanyCards-MoreDropdown',
+                SETTINGS_BUTTON: 'WorkspaceCompanyCards-SettingsButton',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceCompanyCards-BulkActionsDropdown',
                 CARD_NAME: 'WorkspaceCompanyCards-CardName',
                 CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
                 UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',

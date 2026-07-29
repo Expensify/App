@@ -1844,42 +1844,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: {
                     screens: {
-                        [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.TAG]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: {
-                            path: ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.route,
-                            exact: true,
-                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE.path,
+                        [SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION]: DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: {
@@ -1941,7 +1914,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS.route,
                         [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: ROUTES.TRAVEL_DOT_LINK_WEB_VIEW.route,
                         [SCREENS.TRAVEL.DYNAMIC_UPGRADE]: DYNAMIC_ROUTES.TRAVEL_UPGRADE.path,
-                        [SCREENS.TRAVEL.DYNAMIC_TCS]: DYNAMIC_ROUTES.TRAVEL_TCS.path,
                         [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
                         [SCREENS.TRAVEL.TRIP_DETAILS]: {
                             path: ROUTES.TRAVEL_TRIP_DETAILS.route,
@@ -1949,13 +1921,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 reservationIndex: (reservationIndex: string) => parseInt(reservationIndex, 10),
                             },
                         },
-                        [SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR]: DYNAMIC_ROUTES.TRAVEL_DOMAIN_SELECTOR.path,
                         [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: DYNAMIC_ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.path,
                         [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path,
                         [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.route,
-                        [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: ROUTES.TRAVEL_WORKSPACE_ADDRESS.route,
-                        [SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID]: ROUTES.TRAVEL_LEGAL_ENTITY_TAX_ID.route,
                         [SCREENS.TRAVEL.VERIFY_ACCOUNT]: ROUTES.TRAVEL_VERIFY_ACCOUNT.route,
+                        [SCREENS.TRAVEL.ENABLE]: {path: ROUTES.TRAVEL_ENABLE.route, exact: true},
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: {
