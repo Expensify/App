@@ -30,7 +30,7 @@ import {
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
-import {isScanRequest} from '@libs/TransactionUtils';
+import {isPerDiemRequest, isScanRequest} from '@libs/TransactionUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -47,9 +47,9 @@ import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
+import DynamicIOURequestStepDestination from './step/DynamicIOURequestStepDestination';
 import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
 import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
-import IOURequestStepDestination from './step/IOURequestStepDestination';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepHours from './step/IOURequestStepHours';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
@@ -241,12 +241,19 @@ function IOURequestStartPage({
                 reportDraft={reportDraft}
             />
         );
-    } else if (isScanRequest(transaction)) {
-        // When switching from the Scan tab, the shared draft is briefly still a scan request (with the uploaded
-        // receipt) until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that
-        // stale scan draft does throwaway work (scan loader, reading the receipt blob and a heavy first render) that
-        // is immediately discarded once the reset lands. Wait for the reset so the manual confirmation mounts once.
-        manualTabContent = <FullScreenLoadingIndicator reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}} />;
+    } else if (isScanRequest(transaction) || isPerDiemRequest(transaction)) {
+        // When switching from the Scan or Per diem tab, the shared draft is briefly still a scan/per-diem request
+        // until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that stale
+        // draft does throwaway work that is immediately discarded once the reset lands - for scan a heavy first
+        // render (scan loader, reading the receipt blob), and for per diem the confirmation renders per-diem UI
+        // (wrong fields, and the "Confirm page shows per diem" bug). Wait for the reset so the manual confirmation
+        // mounts once against the rebuilt manual draft.
+        manualTabContent = (
+            <FullScreenLoadingIndicator
+                testID="manualTabPendingReset"
+                reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}}
+            />
+        );
     } else {
         manualTabContent = (
             <IOURequestStepConfirmation
@@ -330,7 +337,7 @@ function IOURequestStartPage({
                                                         navigation={navigation}
                                                     />
                                                 ) : (
-                                                    <IOURequestStepDestination
+                                                    <DynamicIOURequestStepDestination
                                                         openedFromStartPage
                                                         ref={perDiemInputRef}
                                                         explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}
