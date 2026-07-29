@@ -26,6 +26,7 @@ type ReleaseReason = 'success' | 'rejected' | 'safetyTimeout' | 'appBackground';
 
 // How long writeWhenReady waits for the barrier before executing, so the write happens even if the promise never settles.
 // Must stay longer than the default barrier's worst case (CONST.MAX_TRANSITION_START_WAIT_MS + CONST.MAX_TRANSITION_DURATION_MS); a unit test pins that against drift.
+// Exported for that test so it asserts on the real value rather than a copy of the formula.
 const SAFETY_TIMEOUT_MS = 5 * CONST.MAX_TRANSITION_DURATION_MS;
 
 // Pending deferred writes. Tracked so they can be force-flushed when the app backgrounds.
@@ -99,6 +100,10 @@ const waitForTransition = createTransitionBarrier();
  *   - The write is executed after `safetyTimeoutMs`, regardless of whether the barrier promise has settled.
  *
  * Caveats:
+ *   - A barrier rejection is NOT a cancellation: the write still executes (the rejection is logged with its error).
+ *     The barrier only answers "when" to write, never "whether", so a broken readiness check cannot silently drop a
+ *     user action - there would be no optimistic data, no request, and no `failureData` to roll back or surface.
+ *     A write that should be conditional has to be gated before the call, not by rejecting the barrier.
  *   - This currently does not support the `conflictResolver` param of `write()`.
  *     Any request queued via `writeWhenReady` will not enter the sequential queue or be considered in conflict resolution until the deferred execution happens
  *   - Call order is NOT preserved across multiple deferred writes. If two independent `writeWhenReady` calls are queued, the two barriers race each other.
@@ -198,5 +203,5 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
     });
 }
 
-export {writeWhenReady, createTransitionBarrier};
+export {writeWhenReady, createTransitionBarrier, SAFETY_TIMEOUT_MS};
 export type {WriteReadyBarrier};

@@ -1,6 +1,7 @@
 import * as API from '@libs/API';
 import type {WriteReadyBarrier} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {SAFETY_TIMEOUT_MS} from '@libs/API/writeWhenReady';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
 
@@ -24,8 +25,6 @@ jest.mock('@libs/NetworkState');
 
 const mockPush = jest.mocked(pushToSequentialQueue);
 const mockRunAfterTransitions = jest.mocked(TransitionTracker.runAfterTransitions);
-
-const SAFETY_TIMEOUT_MS = CONST.MAX_TRANSITION_DURATION_MS * 5;
 
 // writeWhenReady's deferral behaviour is command-agnostic; UPDATE_PREFERRED_LOCALE is just an arbitrary write command.
 type DeferWriteOnyxData = Parameters<typeof API.writeWhenReady>[2];
@@ -368,7 +367,12 @@ describe('API.writeWhenReady', () => {
     });
 
     it('flushes every pending write on a single background event', async () => {
+        const addEventListenerSpy = jest.spyOn(AppState, 'addEventListener');
+
         deferWrite(neverSettlingBarrier());
+        // Measured relative to the first deferred write rather than asserting an absolute count, so this does
+        // not depend on whether an earlier test in this file already tripped the one-time registration guard.
+        const registrationsAfterFirstWrite = addEventListenerSpy.mock.calls.length;
         deferWrite(neverSettlingBarrier());
         deferWrite(neverSettlingBarrier());
         await flushMicrotasks();
@@ -378,6 +382,10 @@ describe('API.writeWhenReady', () => {
         await flushMicrotasks(() => mockPush.mock.calls.length >= 3);
 
         expect(mockPush).toHaveBeenCalledTimes(3);
+        // One AppState subscription serves every pending write: the later writes must not add their own, or a
+        // single background event would flush each write once per subscription.
+        expect(addEventListenerSpy).toHaveBeenCalledTimes(registrationsAfterFirstWrite);
+        addEventListenerSpy.mockRestore();
     });
 
     it('does not drop a write whose barrier abort listener throws during background flush, and still flushes the others', async () => {
