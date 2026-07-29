@@ -13,6 +13,7 @@ import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
@@ -70,7 +71,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         [personalDetails, selectedReport?.ownerAccountID],
     );
     const [transactions] = useTransactionsByID(transactionIDs);
-    const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isUnreportedManagedCardTransaction(transaction));
+    const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
+    const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
     const hasPerDiemTransactions = useHasPerDiemTransactions(transactionIDs);
 
     // When moving an expense that belongs to another user, or when the selection includes per diem
@@ -85,6 +87,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
@@ -111,6 +115,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 allReports,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                selfDMReportActions,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -136,6 +141,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             allReports,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            selfDMReportActions,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
@@ -158,6 +164,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             isTrackIntentUser,
             false,
             shouldDismissEmptyReportsConfirmation,
+            {managedCardTransactionID},
         );
         selectReport(
             {

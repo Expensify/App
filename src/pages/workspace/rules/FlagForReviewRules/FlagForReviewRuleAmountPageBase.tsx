@@ -88,7 +88,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName}: FlagForReview
             [FLAG_FOR_REVIEW_RULE_INPUT_IDS.MAX_EXPENSE_AMOUNT]: values.maxAmount.trim(),
             [FLAG_FOR_REVIEW_RULE_INPUT_IDS.EXPENSE_LIMIT_TYPE]: selectedExpenseLimitType,
         });
-        goBack();
+        Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
     };
 
     return (
