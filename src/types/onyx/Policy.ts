@@ -2190,7 +2190,7 @@ type DualEntrySync = {
     syncReimbursedReports: boolean;
 
     /** Account code used for bill payment transactions. */
-    billPaymentAccountCode: string;
+    billPaymentAccountID: string;
 
     /** Whether Expensify Card settlement transactions should be synchronized. */
     syncExpensifyCardSettlements: boolean;
