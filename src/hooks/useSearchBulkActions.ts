@@ -1662,6 +1662,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                   subMenuItems,
               };
 
+        // Move-eligibility (single owner + every expense has `canChangeReport`) is computed from the transactions
+        // currently loaded into the selection. For a "select all matching" selection that only covers the loaded
+        // page, so this gate is best-effort. When all matching items are selected we hand the search `jsonQuery` to
+        // the backend, which is the source of truth for enforcing ownership and change-report eligibility across the
+        // full matching set before moving anything.
         const moveOwnerAccountIDs = new Set<number>();
         let moveHasUnknownOwner = false;
         for (const id of selectedTransactionsKeys) {

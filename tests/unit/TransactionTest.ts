@@ -2007,6 +2007,45 @@ describe('Transaction', () => {
                 const resolvedReport = await getOnyxValue(destinationReportKey);
                 expect(resolvedReport?.pendingFields?.reportID).toBeFalsy();
             });
+
+            it('uses the normal explicit-transaction path when a hash is passed without a jsonQuery', async () => {
+                const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+                const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+                const allTransactions = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                };
+
+                changeTransactionsReport({
+                    transactionIDs: [transaction.transactionID],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CURRENT_USER_ID,
+                    email: 'test@example.com',
+                    newReport: report,
+                    policy: undefined,
+                    allTransactions,
+                    policyTagList: undefined,
+                    transactionViolations: {},
+                    allReports: undefined,
+                    isTrackIntentUser: false,
+                    jsonQuery: undefined,
+                    hash: FAKE_HASH,
+                });
+                await waitForBatchedUpdates();
+
+                expect(mockAPIWrite).toHaveBeenCalled();
+
+                const parameters = mockAPIWrite.mock.calls.at(0)?.[1] as Record<string, unknown>;
+
+                // Without a jsonQuery the explicit transaction list must be sent and no all-matching params leak through.
+                expect(parameters.transactionList).toBe(transaction.transactionID);
+                expect(parameters.jsonQuery).toBeUndefined();
+                expect(parameters.hash).toBeUndefined();
+
+                mockAPIWrite.mockRestore();
+            });
         });
     });
 

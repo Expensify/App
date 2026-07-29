@@ -13,6 +13,7 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
+import Log from '@libs/Log';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -1969,6 +1970,13 @@ function getChangeTransactionsReportOnyxData({
 
 function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    // The "all matching" path needs both the serialized query and its hash. A query without a hash would silently
+    // fall through to the explicit-transaction path below and move only the loaded sample while the UI says "all
+    // matching", so surface it instead of failing quietly. In practice the search query JSON always carries a hash.
+    if (props.jsonQuery && props.hash === undefined) {
+        Log.warn('changeTransactionsReport: received an all-matching jsonQuery without a hash; falling back to the explicit transaction list, which only moves the loaded transactions.');
+    }
 
     if (props.jsonQuery && props.hash !== undefined) {
         const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
