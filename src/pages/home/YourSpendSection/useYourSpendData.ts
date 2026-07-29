@@ -237,6 +237,39 @@ function getYourSpendPendingBuckets(reportsSignature: YourSpendReportsSignature,
     return buckets;
 }
 
+type FrozenSpendRow = {
+    state: YourSpendRowState;
+    totals: YourSpendRowTotals;
+};
+
+// The totals come from server-computed search snapshots we cannot refresh offline, so a row
+// must not appear, disappear or change value while offline — it may only grey out. Local report
+// mutations would otherwise move the row's state (e.g. approving the last outstanding report
+// empties the OUTSTANDING signature and hides the row), producing inconsistent behaviour that
+// depends on which snapshot happened to be cached. Replay the last settled online result for the
+// whole offline session instead. Dropped when the query hash changes so a total from a previous
+// workspace set isn't replayed for the new one.
+function useOfflineFrozenSpendRow(isOffline: boolean, isApplicable: boolean, state: YourSpendRowState, totals: YourSpendRowTotals, queryHash: number | undefined): FrozenSpendRow {
+    const [frozen, setFrozen] = useState<FrozenSpendRow | null>(null);
+    const [frozenHash, setFrozenHash] = useState<number | undefined>(undefined);
+
+    if (frozenHash !== queryHash) {
+        setFrozen(null);
+        setFrozenHash(queryHash);
+    }
+
+    // LOADING is deliberately not captured: replaying it offline would leave the row stuck in a skeleton.
+    const isSettled = state === YOUR_SPEND_ROW_STATE.READY || state === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY;
+    if (!isOffline && isSettled && (frozen?.state !== state || frozen.totals.total !== totals.total || frozen.totals.currency !== totals.currency)) {
+        setFrozen({state, totals});
+    }
+
+    if (!isApplicable || !isOffline || !frozen) {
+        return {state, totals};
+    }
+    return frozen;
+}
+
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {
     if (!isApplicable) {
         return YOUR_SPEND_ROW_STATE.HIDDEN;
@@ -493,10 +526,13 @@ function useYourSpendData(): UseYourSpendDataReturn {
         outstandingReportsSignature !== '';
     const shouldUseCachedPayment = paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing && paymentSearchResults !== undefined && cachedPaymentReady !== null;
 
-    const approvalRowState = shouldUseCachedApproval ? YOUR_SPEND_ROW_STATE.READY : approvalRowStateRaw;
-    const paymentRowState = shouldUseCachedPayment ? YOUR_SPEND_ROW_STATE.READY : paymentRowStateRaw;
-    const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
-    const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
+    const approvalRowStateLive = shouldUseCachedApproval ? YOUR_SPEND_ROW_STATE.READY : approvalRowStateRaw;
+    const paymentRowStateLive = shouldUseCachedPayment ? YOUR_SPEND_ROW_STATE.READY : paymentRowStateRaw;
+    const approvalTotalsLive: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
+    const paymentTotalsLive: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
+
+    const {state: approvalRowState, totals: approvalTotals} = useOfflineFrozenSpendRow(isOffline, isApprovalApplicable, approvalRowStateLive, approvalTotalsLive, approvalHash);
+    const {state: paymentRowState, totals: paymentTotals} = useOfflineFrozenSpendRow(isOffline, isPaymentApplicable, paymentRowStateLive, paymentTotalsLive, paymentQueryJSON?.hash);
 
     // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
     // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
@@ -574,9 +610,11 @@ export {
     getYourSpendReportsSignature,
     getYourSpendRowState,
     projectQueuedSpendRequests,
+    useOfflineFrozenSpendRow,
     useYourSpendData,
 };
 export type {
+    FrozenSpendRow,
     GetYourSpendRowStateParams,
     QueuedSpendRequest,
     UseYourSpendDataReturn,

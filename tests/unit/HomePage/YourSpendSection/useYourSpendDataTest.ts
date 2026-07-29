@@ -9,6 +9,8 @@
  *   - isApprovalStale / isPaymentStale: true only when offline AND a change would move
  *     that specific total — state transitions read from the offline queue, amount edits
  *     from the report's pendingFields.total classified by status
+ *   - summary rows replay their last settled online result while offline, so a row never
+ *     appears, disappears or changes value offline — it may only grey out
  */
 import {act, renderHook} from '@testing-library/react-native';
 
@@ -988,5 +990,140 @@ describe('useYourSpendData — per-row staleness', () => {
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.isApprovalStale).toBe(false);
         expect(result.current.isPaymentStale).toBe(false);
+    });
+});
+
+// Summary rows are frozen while offline — they may only grey out, never move
+
+describe('useYourSpendData — summary rows are frozen while offline', () => {
+    // A zero-result search comes back with `count` missing (undefined), not 0.
+    const WIPED_SNAPSHOT: SearchResults = (() => {
+        const results = makeSearchResultsWithCount(0);
+        return {...results, search: {...results.search, count: undefined}};
+    })();
+
+    function makeReport(overrides: Partial<Report> = {}): Report {
+        return {
+            reportID: 'r1',
+            policyID: 'policy_1',
+            ownerAccountID: ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ...overrides,
+        } as Report;
+    }
+
+    function setupReports(reports: Report[]) {
+        onyxData[ONYXKEYS.COLLECTION.REPORT] = Object.fromEntries(reports.map((r) => [`${ONYXKEYS.COLLECTION.REPORT}${r.reportID}`, r]));
+    }
+
+    function makeSnapshotWithTotal(count: number, total: number): SearchResults {
+        const results = makeSearchResultsWithCount(count);
+        return {...results, search: {...results.search, total, currency: CONST.CURRENCY.USD}};
+    }
+
+    beforeEach(() => {
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('keeps the approval row visible after the last outstanding report is approved offline', () => {
+        setupReports([makeReport()]);
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        setupApprovalSnapshot(WIPED_SNAPSHOT);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+        expect(result.current.approvalTotals.total).toBe(10000);
+    });
+
+    it('does not add the payment row while offline when it was empty online', () => {
+        setupPaymentSnapshot(makeSearchResultsWithCount(0));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.paymentRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupPaymentSnapshot(makeSnapshotWithTotal(1, 5000));
+        rerender(undefined);
+
+        expect(result.current.paymentRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+    });
+
+    it('keeps the last online total when the snapshot value changes offline', () => {
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalTotals.total).toBe(10000);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(makeSnapshotWithTotal(3, 77700));
+        rerender(undefined);
+
+        expect(result.current.approvalTotals.total).toBe(10000);
+    });
+
+    it('releases the freeze once back online', () => {
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(makeSnapshotWithTotal(3, 77700));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(10000);
+
+        mockedUseNetwork.mockReturnValue(networkState(false));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(77700);
+    });
+
+    it('falls through to the live state when the app starts offline with no prior online result', () => {
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(undefined);
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+    });
+
+    it('does not replay a LOADING state offline, which would leave the row stuck in a skeleton', () => {
+        setupApprovalSnapshot(undefined);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.LOADING);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+
+    it('drops the frozen approval row when the query hash changes', () => {
+        const APPROVAL_QUERY_B = `type:expense status:outstanding from:${ACCOUNT_ID} reimbursable:yes policyID:other_policy`;
+
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        // The user's paid-workspace set changes while offline, so the frozen total belongs to a query
+        // that is no longer being rendered.
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY_B);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).not.toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+
+    it('hides the approval row offline when the workspace no longer has an approval flow', () => {
+        setupApprovalSnapshot(makeSnapshotWithTotal(2, 10000));
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        mockedIsPaidGroupPolicy.mockReturnValue(false);
+        rerender(undefined);
+
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN);
     });
 });
