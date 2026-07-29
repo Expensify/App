@@ -43,10 +43,12 @@ import {
     navigateBackOnDeleteTransaction,
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {getChildTransactions, isDistanceRequest as isDistanceRequestTransactionUtils, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
 
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
+import {mergeTransactionIdsHighlightOnSearchRoute} from '@userActions/Transaction';
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
@@ -1865,6 +1867,12 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
     const isReverseSplitOperation =
         splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
+
+    // Newly created split transaction IDs, excluding ones already present in allChildTransactions.
+    function getNewSplitTransactionIDs(): string[] {
+        const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
+        return splitExpenses.map((splitExpense) => splitExpense.transactionID).filter((transactionID) => transactionID && !existingChildTransactionIDs.has(transactionID));
+    }
     const expenseReportID = params.expenseReport?.reportID;
 
     // Detect whether the expense report the user is editing from will be emptied by this save.
@@ -1929,20 +1937,32 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
-    // Register newly created split transaction IDs so they briefly highlight in the expense list.
-    // We skip existing transactions (already in allChildTransactions), reverse splits (no new transactions are created),
-    // and the last-transaction case (the report navigates away before the highlight renders).
-    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
-        const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
-        for (const splitExpense of splitExpenses) {
-            if (!splitExpense.transactionID || existingChildTransactionIDs.has(splitExpense.transactionID)) {
-                continue;
-            }
-            addPendingNewTransactionIDs(targetReportID, splitExpense.transactionID);
+    // Register newly created split transaction IDs so they briefly highlight on the Search/Spend page.
+    // The Search page reads TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, which highlights matching rows
+    // optimistically without waiting for a server re-search. Unlike the auto-detect path in
+    // useSearchHighlightAndScroll (skipped while offline), this makes the highlight work offline too.
+    // Reverse splits create no new transactions, and existing children are already in the list, so both are skipped.
+    function registerSearchRouteHighlight() {
+        if (!isSearchPageTopmostFullScreenRoute || isReverseSplitOperation) {
+            return;
         }
+        const currentSearchType = getCurrentSearchQueryJSON()?.type;
+        if (!currentSearchType) {
+            return;
+        }
+        const newTransactionIDsToHighlight: Record<string, boolean> = {};
+        for (const transactionID of getNewSplitTransactionIDs()) {
+            newTransactionIDsToHighlight[transactionID] = true;
+        }
+        if (isEmptyObject(newTransactionIDsToHighlight)) {
+            return;
+        }
+        mergeTransactionIdsHighlightOnSearchRoute(currentSearchType, newTransactionIDsToHighlight);
     }
 
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
+        registerSearchRouteHighlight();
+
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
         }
@@ -1976,6 +1996,17 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         });
 
         return;
+    }
+
+    // Register newly created split transaction IDs so they briefly highlight in the expense list.
+    // This only runs on the path that opens the expense report (dismissModalWithReport), so the highlight
+    // flags are consumed and cleared on mount. We skip existing transactions (already in allChildTransactions)
+    // and reverse splits (no new transactions are created). The Search/Spend page and last-transaction cases
+    // return earlier above, so they never pollute REPORT_METADATA with flags that would never be cleared.
+    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
+        for (const transactionID of getNewSplitTransactionIDs()) {
+            addPendingNewTransactionIDs(targetReportID, transactionID);
+        }
     }
 
     if (isTracking()) {

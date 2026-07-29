@@ -49,7 +49,7 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import PusherHelper from '../../utils/PusherHelper';
 import * as TestHelper from '../../utils/TestHelper';
-import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {formatPhoneNumber, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -491,6 +491,8 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: '10',
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
             };
             const policyExpenseChat: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -580,6 +582,7 @@ describe('actions/IOU/TrackExpense', () => {
                     accountant,
                     newAccountIDs: [],
                     newLogins: [],
+                    formatPhoneNumber,
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
@@ -628,6 +631,8 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: '10',
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
             };
             const policyExpenseChat: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -719,6 +724,7 @@ describe('actions/IOU/TrackExpense', () => {
                     accountant,
                     newAccountIDs: [],
                     newLogins: [],
+                    formatPhoneNumber,
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
@@ -771,6 +777,8 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: '10',
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
             };
             const policyExpenseChat: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -860,6 +868,7 @@ describe('actions/IOU/TrackExpense', () => {
                     accountant,
                     newAccountIDs: [],
                     newLogins: [],
+                    formatPhoneNumber,
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
@@ -1002,6 +1011,7 @@ describe('actions/IOU/TrackExpense', () => {
                     accountant,
                     newAccountIDs: [],
                     newLogins: [],
+                    formatPhoneNumber,
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
@@ -1164,6 +1174,7 @@ describe('actions/IOU/TrackExpense', () => {
                     accountant,
                     newAccountIDs: [],
                     newLogins: [],
+                    formatPhoneNumber,
                 },
                 reportActionsList: explicitReportActionsList,
                 isASAPSubmitBetaEnabled: false,
@@ -2259,11 +2270,14 @@ describe('actions/IOU/TrackExpense', () => {
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
             await waitForBatchedUpdates();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID, email: TEST_USER_LOGIN});
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
             selfDMReport = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 reportID: '10',
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);

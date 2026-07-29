@@ -1,4 +1,4 @@
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
+import CONST from '@src/CONST';
 
 import type React from 'react';
 
@@ -66,7 +66,7 @@ function useScrollToEndOnNewMessageReceived({
         const didListSizeChange = sizeChangeType === 'grewFromReportActions' ? reportActionSize.current > (reportActionsLength ?? 0) : reportActionSize.current !== visibleActionsLength;
 
         if (
-            scrollOffsetRef.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            scrollOffsetRef.current < CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionID &&
             didListSizeChange &&
             hasNewestReportAction &&
