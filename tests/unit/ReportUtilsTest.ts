@@ -955,9 +955,21 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
-            const personalDetailsCall = mergeSpy.mock.calls.find(
-                (call): call is [typeof ONYXKEYS.PERSONAL_DETAILS_LIST, OnyxMergeInput<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>] => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST,
-            );
+            const personalDetailsCall = mergeSpy.mock.calls.find((call): call is [typeof ONYXKEYS.PERSONAL_DETAILS_LIST, OnyxMergeInput<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>] => {
+                if (call[0] !== ONYXKEYS.PERSONAL_DETAILS_LIST || typeof call[1] !== 'object' || call[1] === null) {
+                    return false;
+                }
+
+                const accountExecutiveDetail = Object.values<unknown>(call[1]).at(0);
+                return (
+                    typeof accountExecutiveDetail === 'object' &&
+                    accountExecutiveDetail !== null &&
+                    'accountID' in accountExecutiveDetail &&
+                    typeof accountExecutiveDetail.accountID === 'number' &&
+                    'avatar' in accountExecutiveDetail &&
+                    typeof accountExecutiveDetail.avatar === 'string'
+                );
+            });
             if (!personalDetailsCall) {
                 throw new Error('Expected personal details merge call');
             }

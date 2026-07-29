@@ -1,5 +1,3 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-
 import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
 
 import CONST from '@src/CONST';
@@ -10,8 +8,7 @@ import {convertToDisplayString} from '../../utils/TestHelper';
 
 // Minimal translate mock: returns the translation key plus any first argument for verifying
 // which message was chosen without relying on exact English strings.
-const translate: jest.MockedFunction<LocalizedTranslate> = jest.fn();
-translate.mockImplementation(<TPath extends TranslationPaths>(key: TPath, ...args: TranslationParameters<TPath>) => (args.length ? `${key}:${String(args.at(0))}` : key));
+const translate = jest.fn(<TPath extends TranslationPaths>(key: TPath, ...args: TranslationParameters<TPath>) => (args.length ? `${key}:${String(args.at(0))}` : key));
 
 function makeSplit(amount: number, transactionID = `tx-${amount}`): SplitExpense {
     return {transactionID, amount, created: '2024-01-01'};

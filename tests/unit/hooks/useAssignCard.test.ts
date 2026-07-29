@@ -8,6 +8,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
+import {getCompanyCardFeed} from '@libs/CardUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CombinedCardFeeds, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
@@ -43,7 +45,7 @@ const mockPlaidFeedData: CombinedCardFeeds = {
         pending: false,
         domainID: workspaceAccountID,
         customFeedName: 'Plaid Bank cards',
-        feed: 'plaid.ins_123',
+        feed: getCompanyCardFeed(mockPlaidFeed),
         accountList: ['Plaid Checking 0000', 'Plaid Credit Card 3333'],
         credentials: 'xxxxx',
         expiration: Date.now() / 1000 + 86400, // expires tomorrow
