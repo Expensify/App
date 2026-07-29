@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LoginList, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {Attendee} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -367,6 +368,7 @@ function getValidOptions(
                 }
             }
         }
+        recentOptions = optionsOrderBy(recentOptions, personalDetailsComparator, recentMaxElements, undefined, true).options;
     } else if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
         const filteringFunction = (option: OptionData) => {
@@ -502,6 +504,37 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
     return translate('common.noResultsFound');
 }
 
+/**
+ * Returns the logins of recent attendees to suggest, ensuring the current user is included, deduplicated,
+ * and excluding attendees that are already selected. The returned logins are fed to getValidOptions as
+ * `recentAttendees`, which rebuilds the full options (matching personal details or creating optimistic ones).
+ */
+function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Attendee[], currentUserEmail: string): string[] {
+    const allRecentAttendees = [...recentAttendees];
+    if (currentUserEmail && !allRecentAttendees.some((attendee) => attendee.email === currentUserEmail)) {
+        allRecentAttendees.push({email: currentUserEmail, displayName: currentUserEmail, avatarUrl: ''});
+    }
+
+    const seenAttendees = new Set<string>();
+    return (
+        allRecentAttendees
+            .filter((attendee) => {
+                // Deduplicate: use email for regular users, displayName for name-only attendees
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                const key = attendee.email || attendee.displayName || '';
+                if (!key || seenAttendees.has(key)) {
+                    return false;
+                }
+                seenAttendees.add(key);
+                return true;
+            })
+            .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
+            // Use || to fall back to displayName for name-only attendees (empty email)
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            .map((attendee) => attendee.email || attendee.displayName)
+    );
+}
+
 export {
     createOption,
     getContactOption,
@@ -512,6 +545,7 @@ export {
     createOptionList,
     getHeaderMessage,
     getUserToInviteOption,
+    getFilteredRecentAttendees,
 };
 
 export type {OptionData};
