@@ -62,7 +62,7 @@ function LanguagePage() {
                 title={translate('languagePage.language')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <FullPageOfflineBlockingView addBottomSafeAreaPadding>
+            <FullPageOfflineBlockingView>
                 <SelectionList
                     data={locales}
                     ListItem={SingleSelectListItem}
