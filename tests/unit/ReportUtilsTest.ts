@@ -217,11 +217,11 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
 import type {Participant, Participants, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
-import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import type {ReceiptErrors, TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -955,7 +955,9 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
-            const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const personalDetailsCall = mergeSpy.mock.calls.find(
+                (call): call is [typeof ONYXKEYS.PERSONAL_DETAILS_LIST, OnyxMergeInput<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>] => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST,
+            );
             if (!personalDetailsCall) {
                 throw new Error('Expected personal details merge call');
             }
@@ -1277,7 +1279,7 @@ describe('ReportUtils', () => {
         it('should return true for transaction has receipt error', () => {
             const parentReport = LHNTestUtils.getFakeReport();
             const report = LHNTestUtils.getFakeReport();
-            const errors: Errors | ErrorFields = {
+            const errors: ReceiptErrors = {
                 '1231231231313221': {
                     error: CONST.IOU.RECEIPT_ERROR,
                     source: 'blob:https://dev.new.expensify.com:8082/6c5b7110-42c2-4e6d-8566-657ff24caf21',

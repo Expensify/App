@@ -3647,7 +3647,6 @@ describe('hasVisibleViolationsForUser', () => {
     const mockTransaction = createMock<Transaction>({
         transactionID: testTransactionID,
         reportID: testReportID,
-        accountID: submitterAccountID,
         amount: 1000,
         created: '2023-01-01',
         currency: 'USD',
@@ -3752,7 +3751,6 @@ describe('hasVisibleViolationsForUser', () => {
         const secondTransaction = createMock<Transaction>({
             transactionID: secondTransactionID,
             reportID: testReportID,
-            accountID: submitterAccountID,
             amount: 2000,
             created: '2023-01-02',
             currency: 'USD',

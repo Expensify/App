@@ -5,7 +5,7 @@ import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
 import {policiesSelector, policyCategoriesSelector, policyTagsSelector} from '@hooks/useFilterFormValues';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyReportField, PolicyTagLists} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -275,7 +275,7 @@ describe('useFilterFormValues selectors', () => {
                 {'a@b.com': {email: 'a@b.com', role: 'admin'}};
             const taxRates = {name: 'Tax', defaultValue: '10%', taxes: {tax1: {name: 'VAT', value: '20%'}}};
             const tax = {trackingEnabled: true};
-            const fieldList = {field1: {name: 'Project', type: 'text'}};
+            const fieldList = {field1: createMock<PolicyReportField>({name: 'Project', type: 'text'})};
             const policies: OnyxCollection<Policy> = {
                 [POLICY_KEY]: createMock<Policy>({
                     id: '1',

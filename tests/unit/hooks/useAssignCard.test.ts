@@ -43,7 +43,6 @@ const mockPlaidFeedData: CombinedCardFeeds = {
         pending: false,
         domainID: workspaceAccountID,
         customFeedName: 'Plaid Bank cards',
-        // @ts-expect-error -- direct Plaid feed values are intentionally outside the public CardFeed union.
         feed: 'plaid.ins_123',
         accountList: ['Plaid Checking 0000', 'Plaid Credit Card 3333'],
         credentials: 'xxxxx',

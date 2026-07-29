@@ -105,10 +105,9 @@ describe('useAccountIndicatorChecks', () => {
                         [ONYXKEYS.LOGINS]: {
                             [`1_${userID}`]: {
                                 partnerID: 1,
-                                partnerName: 'John Doe',
                                 partnerUserID: userID,
                                 validatedDate: new Date().toISOString(),
-                                errorFields: {field: {error: 'Something went wrong'}},
+                                errorFields: {addedLogin: {error: 'Something went wrong'}},
                             },
                         },
                         [ONYXKEYS.SESSION]: {email: userID},
@@ -180,7 +179,7 @@ describe('useAccountIndicatorChecks', () => {
                         [ONYXKEYS.LOGINS]: {},
                         [ONYXKEYS.WALLET_TERMS]: {},
                         [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {
-                            errorFields: {phoneNumber: 'Invalid phone number'},
+                            errorFields: {phoneNumber: {error: 'Invalid phone number'}},
                         },
                         [ONYXKEYS.SESSION]: {email: userID},
                     }),
@@ -261,14 +260,12 @@ describe('useAccountIndicatorChecks', () => {
                         [ONYXKEYS.LOGINS]: {
                             [`1_${userID}`]: {
                                 partnerID: 1,
-                                partnerName: 'John Doe',
                                 partnerUserID: userID,
                                 validatedDate: new Date().toISOString(),
                             },
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '1_otheruser@expensify.com': {
                                 partnerID: 1,
-                                partnerName: 'Other User',
                                 partnerUserID: 'different@expensify.com',
                                 validatedDate: undefined,
                             },
@@ -292,7 +289,7 @@ describe('useAccountIndicatorChecks', () => {
                         [ONYXKEYS.LOGINS]: {},
                         [ONYXKEYS.CARD_LIST]: {
                             card1: {
-                                cardID: 'card1',
+                                cardID: 1,
                                 bank: CONST.EXPENSIFY_CARD.BANK,
                                 nameValuePairs: {isVirtual: false},
                                 state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
@@ -427,14 +424,12 @@ describe('useAccountIndicatorChecks', () => {
                         [ONYXKEYS.LOGINS]: {
                             [`1_${userID}`]: {
                                 partnerID: 1,
-                                partnerName: 'John Doe',
                                 partnerUserID: userID,
                                 validatedDate: new Date().toISOString(),
                             },
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '1_otheruser@expensify.com': {
                                 partnerID: 1,
-                                partnerName: 'Other User',
                                 partnerUserID: 'different@expensify.com',
                                 validatedDate: undefined,
                             },
