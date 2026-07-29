@@ -65,7 +65,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {expandURLPreview} from '@userActions/Report';
-import {clearError} from '@userActions/Transaction';
+import {clearErrorWithOriginalTransactionError} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -205,10 +205,7 @@ function ReportActionItem({
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, datetimeToCalendarTime} = useLocalize();
-    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate)}, [
-        action.actorAccountID,
-        translate,
-    ]);
+    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate)});
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
@@ -263,7 +260,7 @@ function ReportActionItem({
             navigation.setParams({reportActionID: ''});
         }
         if (transactionIDToDismiss) {
-            clearError(transactionIDToDismiss);
+            clearErrorWithOriginalTransactionError(transactionIDToDismiss);
         }
         clearAllRelatedReportActionErrors(reportID, action, originalReportID);
     };

@@ -50,44 +50,6 @@ type SeasonF1AvatarIDs =
     | 'trophy-yellow600'
     | 'wrenches-pink600';
 
-type LetterAvatarIDs =
-    | 'letter-default-avatar_0'
-    | 'letter-default-avatar_1'
-    | 'letter-default-avatar_2'
-    | 'letter-default-avatar_3'
-    | 'letter-default-avatar_4'
-    | 'letter-default-avatar_5'
-    | 'letter-default-avatar_6'
-    | 'letter-default-avatar_7'
-    | 'letter-default-avatar_8'
-    | 'letter-default-avatar_9'
-    | 'letter-default-avatar_a'
-    | 'letter-default-avatar_b'
-    | 'letter-default-avatar_c'
-    | 'letter-default-avatar_d'
-    | 'letter-default-avatar_e'
-    | 'letter-default-avatar_f'
-    | 'letter-default-avatar_g'
-    | 'letter-default-avatar_h'
-    | 'letter-default-avatar_i'
-    | 'letter-default-avatar_j'
-    | 'letter-default-avatar_k'
-    | 'letter-default-avatar_l'
-    | 'letter-default-avatar_m'
-    | 'letter-default-avatar_n'
-    | 'letter-default-avatar_o'
-    | 'letter-default-avatar_p'
-    | 'letter-default-avatar_q'
-    | 'letter-default-avatar_r'
-    | 'letter-default-avatar_s'
-    | 'letter-default-avatar_t'
-    | 'letter-default-avatar_u'
-    | 'letter-default-avatar_v'
-    | 'letter-default-avatar_w'
-    | 'letter-default-avatar_x'
-    | 'letter-default-avatar_y'
-    | 'letter-default-avatar_z';
-
 type UserAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
 
-export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, UserAvatarID};
+export type {DefaultAvatarIDs, SeasonF1AvatarIDs, UserAvatarID};

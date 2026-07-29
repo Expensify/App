@@ -36,6 +36,7 @@ import type {
     AddNewCardFeedStep,
     CardFeedData,
     CardFeedDetails,
+    CardFeedWithNumber,
     CompanyCardFeed,
     CompanyCardFeedWithDomainID,
     CompanyCardFeedWithNumber,
@@ -908,7 +909,8 @@ function setCompanyCardExportAccount(policyID: string, domainOrWorkspaceAccountI
                         errorFields: {
                             [accountKey]: null,
                         },
-                        [accountKey]: newAccount,
+                        // An empty string signifies clearing the custom account
+                        [accountKey]: newAccount || null,
                     },
                 },
             },
@@ -964,7 +966,7 @@ function setCompanyCardExportAccount(policyID: string, domainOrWorkspaceAccountI
     });
 }
 
-function clearCompanyCardErrorField(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeedWithNumber, fieldName: string, isRootLevel?: boolean) {
+function clearCompanyCardErrorField(domainOrWorkspaceAccountID: number, cardID: string, bankName: CardFeedWithNumber, fieldName: string, isRootLevel?: boolean) {
     if (isRootLevel) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`, {
             [cardID]: {

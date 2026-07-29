@@ -160,7 +160,9 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 iouReport={selectedIOUReport}
                 addBankAccountRoute={
-                    isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: currentSelectedPolicyID, backTo: Navigation.getActiveRoute()}) : undefined
+                    isCurrentSelectedExpenseReport
+                        ? () => ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: currentSelectedPolicyID, backTo: Navigation.getActiveRoute()})
+                        : undefined
                 }
                 onSuccessfulKYC={(paymentType) => {
                     confirmPayment?.(paymentType, pendingPaymentAdditionalDataRef.current);
