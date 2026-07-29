@@ -21,7 +21,6 @@ type ReportUtilsMock = Record<string, unknown> & {
 };
 
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
-jest.mock('@libs/Navigation/helpers/swapBackgroundTabForRHPTarget', () => jest.fn());
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
     default: {

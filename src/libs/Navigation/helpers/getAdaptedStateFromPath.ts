@@ -103,7 +103,7 @@ function getSearchScreenNameForRoute(route: NavigationRoute): string {
  * @param isDeeplink - Whether the state is being built from a path (deeplink / browser refresh / cold
  *   load) as opposed to in-app navigation. When true, deeplink-only relations (e.g. RHP_TO_SEARCH_DEEPLINK)
  *   are also considered so an RHP can get a sensible default fullscreen underneath it. In-app callers
- *   (linkTo, swapBackgroundTabForRHPTarget) leave this false so the same RHP can open over any fullscreen
+ *   (linkTo) leave this false so the same RHP can open over any fullscreen
  *   without changing the page currently underneath.
  */
 function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) {
