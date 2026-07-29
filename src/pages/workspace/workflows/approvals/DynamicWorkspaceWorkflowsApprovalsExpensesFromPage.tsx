@@ -87,6 +87,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         excludeLogins: excludedUsers,
         includeRecentReports: false,
         shouldInitialize: true,
+        maxElements: CONST.MAX_SELECTION_LIST_PAGE_LENGTH,
     });
 
     useEffect(() => {
