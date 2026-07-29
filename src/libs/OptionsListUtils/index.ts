@@ -1096,13 +1096,22 @@ type CreateOptionParams = {
  * ranking of shells match the hydrated options. Mirrors createOption's historical asymmetry: the
  * personal details data is only passed through when there is no report.
  */
-function getPersonalDetailOptionText(
-    accountID: number | undefined,
-    hasReport: boolean,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    login: string | undefined,
-    translate: LocalizedTranslate,
-): string {
+type GetPersonalDetailOptionTextProps = {
+      accountID: number | undefined;
+      hasReport: boolean;
+      personalDetails: OnyxEntry<PersonalDetailsList>;
+      login: string | undefined;
+      translate: LocalizedTranslate;
+  };
+
+function getPersonalDetailOptionText({
+      accountID,
+      hasReport,
+      personalDetails,
+      login,
+      translate,
+  }: GetPersonalDetailOptionTextProps): string {
+
     return (
         getDisplayNameForParticipant({
             accountID,
