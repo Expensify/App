@@ -5345,6 +5345,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         },
                         netSuiteAccountIDDescription: 'NetSuite で、*Setup > Integration > SOAP Web Services Preferences* に移動します。',
                     },
+                    enableOAuth: {
+                        title: '[ja] Enable OAuth 2.0',
+                        description: '[ja] In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > under *Manage Authentication*, enable *OAuth 2.0*.',
+                    },
+                    enableRestWebServices: {
+                        title: '[ja] Enable REST web services',
+                        description: '[ja] In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > under *SuiteTalk (Web Services)*, enable *REST Web Services*.',
+                    },
                 },
             },
             import: {

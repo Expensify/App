@@ -5225,6 +5225,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         },
                         netSuiteAccountIDDescription: '在 NetSuite 中，前往 *Setup > Integration > SOAP Web Services Preferences*。',
                     },
+                    enableOAuth: {
+                        title: '[zh-hans] Enable OAuth 2.0',
+                        description: '[zh-hans] In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > under *Manage Authentication*, enable *OAuth 2.0*.',
+                    },
+                    enableRestWebServices: {
+                        title: '[zh-hans] Enable REST web services',
+                        description: '[zh-hans] In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > under *SuiteTalk (Web Services)*, enable *REST Web Services*.',
+                    },
                 },
             },
             import: {
