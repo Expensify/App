@@ -28,8 +28,13 @@ const TARGETED_MESSAGES = ['Cannot call a class as a function'];
  */
 const OPAQUE_FILENAMES = new Set(['', 'app:///', 'app:///<anonymous>', 'app:///[native code]', '<anonymous>', '[native code]', 'native']);
 
-/** Matches the basename our web bundles are emitted with, e.g. `app:///main-33e5c3ee04228117.bundle.js`. */
-const OWN_BUNDLE_REGEX = /\.bundle\.js/;
+/**
+ * Matches the basename our web bundles are emitted with, e.g. `app:///main-33e5c3ee04228117.bundle.js`
+ * (`[name]-[contenthash].bundle.js` in release builds, the only builds that report to Sentry). The
+ * content hash is required so a third-party script that happens to be named `*.bundle.js` cannot be
+ * mistaken for our code.
+ */
+const OWN_BUNDLE_REGEX = /-[0-9a-f]{8,}\.bundle\.js\b/;
 
 /**
  * Schemes whose "host" is a UUID generated per extension installation, so it identifies one browser
@@ -66,6 +71,7 @@ const FRAME_SOURCE = {
 const VENDOR_MARKERS = [
     {key: 'babel-class-helper', pattern: /classCallCheck|Cannot call a class as a function/},
     {key: 'clarity', pattern: /clarity\.ms|window\.clarity/i},
+    // cspell:disable-next-line
     {key: 'convert', pattern: /_conv_|convertexperiments/i},
     {key: 'expensify', pattern: /expensify|onyx/i},
     {key: 'fullstory', pattern: /_fs_|fullstory/i},
@@ -302,7 +308,7 @@ function getLoadedScriptHosts(scripts: ScriptLike[]): {hosts: string[]; truncate
             // Skip unparsable src values
         }
     }
-    if (typeof performance !== 'undefined' && typeof performance.getEntriesByType === 'function') {
+    if (typeof performance !== 'undefined' && typeof performance.getEntriesByType === 'function' && typeof PerformanceResourceTiming !== 'undefined') {
         for (const entry of performance.getEntriesByType('resource')) {
             if (!(entry instanceof PerformanceResourceTiming) || entry.initiatorType !== 'script') {
                 continue;
@@ -338,8 +344,12 @@ function getLoadedScriptHosts(scripts: ScriptLike[]): {hosts: string[]; truncate
  */
 const enrichInjectedScriptError: TelemetryBeforeSendError = (event: ErrorEvent, hint: EventHint): ErrorEvent => {
     try {
+        // Cheap guards first: most events bail on the message check, so frames are only parsed for the few that pass
+        if (typeof document === 'undefined' || !hasTargetedMessage(event)) {
+            return event;
+        }
         const frames = getFrames(event);
-        if (typeof document === 'undefined' || !hasTargetedMessage(event) || !hasOnlyOpaqueFrames(frames)) {
+        if (!hasOnlyOpaqueFrames(frames)) {
             return event;
         }
 

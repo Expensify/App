@@ -298,6 +298,11 @@ describe('enrichInjectedScriptError', () => {
             const stack = 'TypeError: x\n    at a (https://cdn.example.com/tag.js:1:2)';
             expect(describeRawStack(stack, 'https://new.expensify.com')).toEqual({lineCount: 2, referencesOwnBundle: false, referencesOwnOrigin: false});
         });
+
+        it('does not mistake a third-party *.bundle.js for our own bundle', () => {
+            const stack = 'TypeError: x\n    at a (https://cdn.vendor.com/tag.bundle.js:1:2)\n    at b (https://cdn.vendor.com/data.bundle.json:1:2)';
+            expect(describeRawStack(stack, 'https://new.expensify.com')).toEqual({lineCount: 3, referencesOwnBundle: false, referencesOwnOrigin: false});
+        });
     });
 
     describe('middleware', () => {
