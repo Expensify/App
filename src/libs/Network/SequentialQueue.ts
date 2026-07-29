@@ -123,6 +123,7 @@ function armPauseWatchdog() {
 }
 
 // Progress while paused re-arms the watchdog, so only a stalled pause trips it.
+// Use connectWithoutView since this only drives the network queue's watchdog timer and doesn't affect any UI.
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: () => {
