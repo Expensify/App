@@ -2397,6 +2397,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             betas: undefined,
             hasActiveAdminPolicies: false,
             activePolicy: undefined,
+            conciergeChat: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
