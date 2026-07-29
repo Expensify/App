@@ -3977,3 +3977,39 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
     });
 });
+
+describe('getSelectedRouteDistance', () => {
+    const routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString' as const, coordinates: [[1, 1] as [number, number]]}},
+    };
+
+    it('returns the selected route distance in meters when an alternate route is selected', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+    });
+
+    it('returns undefined when the default route is selected or no route is selected', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {selectedRouteKey: 'route0'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
+        expect(TransactionUtils.getSelectedRouteDistance(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, routes}))).toBeUndefined();
+    });
+
+    it('returns undefined when the selected route is no longer available', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {selectedRouteKey: 'route1'}, routes: {route0: routes.route0}});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
+
+        const nullDistance = generateTransaction({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {selectedRouteKey: 'route1'},
+            routes: {route1: {...routes.route1, distance: null}},
+        });
+        expect(TransactionUtils.getSelectedRouteDistance(nullDistance)).toBeUndefined();
+    });
+
+    it('returns undefined for distance requests that are not map based', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
+        expect(TransactionUtils.getSelectedRouteDistance(undefined)).toBeUndefined();
+    });
+});

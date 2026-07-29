@@ -26,7 +26,7 @@ function Directions({directionCoordinates, alternativeDirection, setIsAlternativ
                     <DistanceSymbol
                         distanceInMeters={alternativeDirection.distanceInMeters}
                         unit={unit}
-                        directionCoordinates={utils.isSingleSegmentRoute(alternativeDirectionCoordinates) ? alternativeDirectionCoordinates : alternativeDirectionCoordinates.flat()}
+                        directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(alternativeDirectionCoordinates)}
                         waypoints={waypoints}
                         isSelected={isAlternativeDirectionSelected}
                     />
@@ -37,7 +37,7 @@ function Directions({directionCoordinates, alternativeDirection, setIsAlternativ
             <DistanceSymbol
                 distanceInMeters={distanceInMeters}
                 unit={unit}
-                directionCoordinates={utils.isSingleSegmentRoute(directionCoordinates) ? directionCoordinates : directionCoordinates.flat()}
+                directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinates)}
                 waypoints={waypoints}
                 isSelected={!isAlternativeDirectionSelected}
             />

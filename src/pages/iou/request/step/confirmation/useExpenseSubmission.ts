@@ -46,6 +46,7 @@ import {
     getDistanceRequestType,
     getIsFromGlobalCreate,
     getRateID,
+    getSelectedRouteDistance,
     getTaxValue,
     getValidWaypoints,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -131,7 +132,6 @@ type UseExpenseSubmissionParams = {
     isDistanceRequest: boolean;
     isManualDistanceRequest: boolean;
     isOdometerDistanceRequest: boolean;
-    isMapDistanceRequest: boolean;
     isPerDiemRequest: boolean;
     isTimeRequest: boolean;
     isMovingTransactionFromTrackExpense: boolean;
@@ -182,7 +182,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         iouType,
         action,
         isDistanceRequest,
-        isMapDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
         isPerDiemRequest,
@@ -712,19 +711,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
             const email = currentUserPersonalDetails.email ?? '';
 
-            let gpsCoordinates: string | undefined;
-            if (isGPSDistanceRequest) {
-                gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
-            } else if (isMapDistanceRequest) {
-                const routeKey = item.comment?.selectedRouteKey;
-                if (routeKey && routeKey !== 'route0') {
-                    const coords = item.routes?.[routeKey]?.geometry?.coordinates;
-                    if (coords) {
-                        gpsCoordinates = JSON.stringify(coords);
-                    }
-                }
-            }
-
             trackExpenseIOUActions({
                 report: trackReport,
                 isDraftPolicy,
@@ -768,8 +754,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     odometerStart: isOdometerDistanceRequest ? item.comment?.odometerStart : undefined,
                     odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
-                    gpsCoordinates,
+                    gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                     distanceRequestType,
+                    selectedRouteDistance: getSelectedRouteDistance(item),
                 },
                 accountantParams: {
                     accountant: item.accountant,
@@ -820,18 +807,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
-        let gpsCoordinates: string | undefined;
-        if (isGPSDistanceRequest) {
-            gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
-        } else if (isMapDistanceRequest) {
-            const routeKey = transaction.comment?.selectedRouteKey;
-            if (routeKey && routeKey !== 'route0') {
-                const coords = transaction.routes?.[routeKey]?.geometry?.coordinates;
-                if (coords) {
-                    gpsCoordinates = JSON.stringify(coords);
-                }
-            }
-        }
         // For a brand-new P2P recipient (no existing chat), the confirmation screen has already committed the draft
         // transaction to a freshly generated optimistic reportID via setTransactionReport. Build the optimistic chat
         // report at that same ID so the report the screen subscribes to is the one that actually gets created.
@@ -877,8 +852,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 odometerStart: isOdometerDistanceRequest ? transaction.comment?.odometerStart : undefined,
                 odometerEnd: isOdometerDistanceRequest ? transaction.comment?.odometerEnd : undefined,
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                gpsCoordinates,
+                gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                 distanceRequestType,
+                selectedRouteDistance: getSelectedRouteDistance(transaction),
             },
             isASAPSubmitBetaEnabled,
             transactionViolations: transactionViolationsRef.current,

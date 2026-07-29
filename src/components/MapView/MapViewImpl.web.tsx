@@ -59,7 +59,7 @@ function MapViewImpl({
     ref,
     shouldDisplayCurrentLocation = true,
 }: MapViewProps) {
-    const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
+    const directionCoordinates = utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinatesProp);
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 

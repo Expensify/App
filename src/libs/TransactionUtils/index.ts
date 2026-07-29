@@ -3169,6 +3169,29 @@ function getIsFromGlobalCreate(transaction: OnyxEntry<Transaction> | Partial<Tra
     return transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate;
 }
 
+/**
+ * Distance in meters of the alternate map route the user explicitly picked, or undefined when there is
+ * nothing to send: the expense isn't a map distance request, the default route is selected.
+ *
+ * The map distance is normally calculated by the backend from the waypoints, which always resolves to the
+ * primary route. This value tells the backend to use the alternate route's distance instead.
+ *
+ * This function is placed in a separate file to avoid circular dependencies, so the `distance-map` check is
+ * inlined here instead of reusing `isMapDistanceRequest` from `TransactionUtils`.
+ */
+function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number | undefined {
+    if (isMapDistanceRequest(transaction)) {
+        return undefined;
+    }
+
+    const selectedRouteKey = transaction?.comment?.selectedRouteKey;
+    if (!selectedRouteKey || selectedRouteKey === CONST.TRANSACTION.DEFAULT_ROUTE_KEY) {
+        return undefined;
+    }
+
+    return transaction?.routes?.[selectedRouteKey]?.distance ?? undefined;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -3195,6 +3218,7 @@ export {
     getCurrency,
     shouldClearConvertedAmount,
     getDistanceInMeters,
+    getSelectedRouteDistance,
     getCardID,
     getOriginalCurrency,
     getOriginalAmount,

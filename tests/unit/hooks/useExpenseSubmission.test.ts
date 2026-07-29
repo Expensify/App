@@ -174,7 +174,6 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         requestType: undefined,
         isDistanceRequest: false,
         isManualDistanceRequest: false,
-        isMapDistanceRequest: false,
         isOdometerDistanceRequest: false,
         isPerDiemRequest: false,
         isTimeRequest: false,

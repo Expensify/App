@@ -45,7 +45,7 @@ function DistanceSymbol({distanceInMeters, unit, directionCoordinates, waypoints
             coordinate={distanceSymbolCoordinate}
             allowOverlap
         >
-            <View style={{zIndex: 1}}>
+            <View style={[styles.zIndex1]}>
                 <ToggleDistanceUnitButton
                     accessibilityRole={CONST.ROLE.BUTTON}
                     accessibilityLabel="distance-label"

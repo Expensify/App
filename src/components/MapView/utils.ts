@@ -139,12 +139,18 @@ function getBoundsCenter(bounds: {southWest: Coordinate; northEast: Coordinate})
     return {lng: latitudeCenter, lat: longitudeCenter};
 }
 
+/** Flattens a route made of several segments into a single list of coordinates, leaving a single segment route as is. */
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][]): Coordinate[];
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][] | undefined): Coordinate[] | undefined;
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][] | undefined) {
+    return !directionCoordinates || isSingleSegmentRoute(directionCoordinates) ? directionCoordinates : directionCoordinates.flat();
+}
+
 function getCoordinatesFromAllDirections(directionCoordinates: Coordinate[] | Coordinate[][] | undefined, alternativeDirection: AlternativeDirection | undefined) {
-    const directionCoordinatesFlattened = !directionCoordinates || isSingleSegmentRoute(directionCoordinates) ? directionCoordinates : directionCoordinates.flat();
+    const directionCoordinatesFlattened = convertSegmentedRouteToSingleSegmentRoute(directionCoordinates);
 
     const alternativeDirectionCoordinates = alternativeDirection?.coordinates;
-    const alternativeDirectionCoordinatesFlattened =
-        !alternativeDirectionCoordinates || isSingleSegmentRoute(alternativeDirectionCoordinates) ? alternativeDirectionCoordinates : alternativeDirectionCoordinates.flat();
+    const alternativeDirectionCoordinatesFlattened = convertSegmentedRouteToSingleSegmentRoute(alternativeDirectionCoordinates);
 
     return [...(directionCoordinatesFlattened ?? []), ...(alternativeDirectionCoordinatesFlattened ?? [])];
 }
@@ -157,5 +163,6 @@ export default {
     getBoundsCenter,
     simpleInterpolateCoordinate,
     isSingleSegmentRoute,
+    convertSegmentedRouteToSingleSegmentRoute,
     getCoordinatesFromAllDirections,
 };

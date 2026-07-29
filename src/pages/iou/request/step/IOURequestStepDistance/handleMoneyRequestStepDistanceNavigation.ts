@@ -22,7 +22,7 @@ import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getSelectedRouteDistance, getValidWaypoints} from '@libs/TransactionUtils';
 
 import {setTransactionReport} from '@userActions/Transaction';
 
@@ -212,11 +212,8 @@ function handleMoneyRequestStepDistanceNavigation({
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
-    const isMapDistance = waypoints && !isGPSDistance;
-    const selectedRouteKey = transaction?.comment?.selectedRouteKey;
-    const effectiveGpsCoordinates =
-        isMapDistance && selectedRouteKey && selectedRouteKey !== 'route0' ? JSON.stringify(transaction?.routes?.[selectedRouteKey]?.geometry?.coordinates) : gpsCoordinates;
     const distanceRequestType = getDistanceRequestType(transaction);
+    const selectedRouteDistance = getSelectedRouteDistance(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
@@ -320,8 +317,9 @@ function handleMoneyRequestStepDistanceNavigation({
                                     expenseDate: transaction?.created,
                                 }),
                                 attendees: transaction?.comment?.attendees,
-                                gpsCoordinates: effectiveGpsCoordinates,
+                                gpsCoordinates,
                                 distanceRequestType,
+                                selectedRouteDistance,
                                 odometerStart,
                                 odometerEnd,
                                 taxCode: distanceTaxCode,
@@ -397,8 +395,9 @@ function handleMoneyRequestStepDistanceNavigation({
                             }),
                             splitShares: transaction?.splitShares,
                             attendees: transaction?.comment?.attendees,
-                            gpsCoordinates: effectiveGpsCoordinates,
+                            gpsCoordinates,
                             distanceRequestType,
+                            selectedRouteDistance,
                             odometerStart,
                             odometerEnd,
                             taxCode: distanceTaxCode,
