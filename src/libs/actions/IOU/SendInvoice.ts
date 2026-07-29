@@ -175,10 +175,7 @@ function buildOnyxDataForInvoice(
             },
         },
         {
-            // The optimistic data below is the complete local truth for this offline-created invoice report, so its
-            // initial actions are already "loaded". Without this stamp the report stays pinned at
-            // isLoadingInitialReportActions on reconnect and shows an infinite skeleton (see #96925). Mirrors the
-            // expense flow in MoneyRequestBuilder.
+            // The optimistic data below is the complete local truth for this offline-created invoice report, so its initial actions are already "loaded".
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${iou.report?.reportID}`,
             value: {
@@ -275,7 +272,7 @@ function buildOnyxDataForInvoice(
                 {
                     // The invoice room is an optimistic CHAT, so ReportFetchHandler never fires openReport for it and
                     // nothing else would ever clear its initial-load state. Stamp it as loaded so it doesn't hang on an
-                    // infinite skeleton once online (see #96925).
+                    // infinite skeleton once online.
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chat.report?.reportID}`,
                     value: {
