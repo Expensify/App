@@ -514,6 +514,7 @@ const CONST = {
         RILLET: 'Rillet',
         BILLCOM: 'Bill.com',
         ZENEFITS: 'Zenefits',
+        DUALENTRY: 'DualEntry',
     },
 
     REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
@@ -993,6 +994,7 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
+        DUALENTRY: 'dualentry',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
@@ -3523,6 +3525,8 @@ const CONST = {
         CREDIT_CARD: 'Credit Card',
     },
 
+    DUALENTRY_CONFIG: {},
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
@@ -4248,6 +4252,7 @@ const CONST = {
                 SAGE_INTACCT: 'intacct',
                 CERTINIA: 'financialforce',
                 RILLET: 'rillet',
+                DUALENTRY: 'dualentry',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -4264,6 +4269,7 @@ const CONST = {
                 QBD: 'quickbooks-desktop',
                 CERTINIA: 'certinia',
                 RILLET: 'rillet',
+                DUALENTRY: 'dualentry',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
@@ -4276,6 +4282,7 @@ const CONST = {
                 intacct: 'Sage Intacct',
                 financialforce: 'Certinia',
                 rillet: 'Rillet',
+                dualentry: 'DualEntry',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -4286,7 +4293,7 @@ const CONST = {
                 other: 'Other',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
-                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET] as const;
+                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET, this.NAME.DUALENTRY] as const;
             },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
@@ -4389,6 +4396,9 @@ const CONST = {
                 RILLET_SYNC_TITLE: 'rilletSyncTitle',
                 RILLET_SYNC_CONNECTION: 'rilletSyncConnection',
                 RILLET_SYNC_IMPORT_DATA: 'rilletSyncImportData',
+                DUALENTRY_SYNC_TITLE: 'dualentrySyncTitle',
+                DUALENTRY_SYNC_CONNECTION: 'dualentrySyncConnection',
+                DUALENTRY_SYNC_IMPORT_DATA: 'dualentrySyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -4843,6 +4853,11 @@ const CONST = {
              * Name of Card NVP for Rillet custom export accounts
              */
             NVP_RILLET_EXPORT_ACCOUNT: 'rillet_export_account',
+
+            /**
+             * Name of Card NVP for DualEntry custom export accounts
+             */
+            NVP_DUALENTRY_EXPORT_ACCOUNT: 'dualentry_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -4890,6 +4905,11 @@ const CONST = {
              * Name of Card NVP for Rillet custom export accounts
              */
             NVP_RILLET_EXPORT_ACCOUNT_POLICY_ID: 'rillet_export_account_policy_id',
+
+            /**
+             * Name of Card NVP for Rillet custom export accounts
+             */
+            NVP_DUALENTRY_EXPORT_ACCOUNT_POLICY_ID: 'dualentry_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -7698,6 +7718,14 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.description` as const,
                 icon: 'RilletSquare',
+            },
+            [this.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                id: this.POLICY.CONNECTIONS.NAME.DUALENTRY,
+                alias: 'dualentry',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.dualentry,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DUALENTRY}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DUALENTRY}.description` as const,
+                icon: 'DualEntrySquare',
             },
             approvals: {
                 id: 'approvals' as const,
