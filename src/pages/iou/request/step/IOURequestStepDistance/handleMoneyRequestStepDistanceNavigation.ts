@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import {buildParticipantsPolicyTags} from '@libs/actions/IOU';
 import {
     getMoneyRequestParticipantOptions,
     setCustomUnitRateID,
@@ -86,6 +87,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
     gpsDistance?: number;
+    gpsModifiedDistance?: number;
     odometerStart?: number;
     odometerEnd?: number;
     odometerDistance?: number;
@@ -183,6 +185,7 @@ function handleMoneyRequestStepDistanceNavigation({
     selfDMReport,
     gpsCoordinates,
     gpsDistance,
+    gpsModifiedDistance,
     policyForMovingExpenses,
     odometerStart,
     odometerEnd,
@@ -297,6 +300,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             transactionParams: {
                                 amount,
                                 distance,
+                                modifiedDistance: gpsModifiedDistance,
                                 currency: transaction?.currency ?? 'USD',
                                 created: transaction?.created ?? '',
                                 merchant,
@@ -372,6 +376,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         transactionParams: {
                             amount,
                             distance,
+                            modifiedDistance: gpsModifiedDistance,
                             comment: '',
                             created: transaction?.created ?? '',
                             currency: transaction?.currency ?? 'USD',
@@ -409,6 +414,9 @@ function handleMoneyRequestStepDistanceNavigation({
                         isTrackIntentUser,
                         delegateAccountID,
                         formatPhoneNumber,
+                        // buildParticipantsPolicyTags is deprecated but still needed here until this call site is migrated to useOnyx (https://github.com/Expensify/App/issues/72721)
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        participantsPolicyTags: buildParticipantsPolicyTags(participants),
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

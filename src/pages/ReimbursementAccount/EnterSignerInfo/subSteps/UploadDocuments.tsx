@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -115,7 +115,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
         setErrorFields(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {[inputID]: {onUpload: error}});
     };
 
-    const handleDownload = () => {
+    const downloadPDSAndFSG = () => {
         openExternalLink(`${environmentUrl}/pdfs/PDSAndFSG.pdf`);
         setIsPDSandFSGDownloadedTouched(true);
         setDraftValues(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {[INPUT_IDS.DOWNLOADED_PDS_AND_FSG]: true});
@@ -241,10 +241,9 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
             {isDocumentNeededStatus.isPRDAndFSGNeeded && (
                 <View style={[styles.alignItemsStart]}>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
-                    <Button
-                        onPress={handleDownload}
-                        text={translate('common.download')}
-                    />
+                    <Button onPress={downloadPDSAndFSG}>
+                        <Button.Text>{translate('common.download')}</Button.Text>
+                    </Button>
                     {!isPDSandFSGDownloaded && isPDSandFSGDownloadedTouched && (
                         <DotIndicatorMessage
                             style={[styles.formError, styles.mt3]}

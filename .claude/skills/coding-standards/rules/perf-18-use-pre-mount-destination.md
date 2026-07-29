@@ -109,7 +109,6 @@ Flag when:
 **DO NOT flag if:**
 
 - The code uses `usePreMountDestination` correctly with the matching reveal method for the flow
-- The call site is an approved exception (`IOURequestStepConfirmation`, `useSkipConfirmationPreInsert` until migrated)
 - The flow uses specialized dismiss helpers that intentionally bypass pre-insert/reveal
 
 **Search patterns:**

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -16,7 +16,7 @@ import DebugUtils from '@libs/DebugUtils';
 
 import Debug from '@userActions/Debug';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
@@ -257,11 +257,12 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                 <View style={[styles.ph5, styles.mb3, styles.mt5]}>
                     <Button
-                        danger
-                        large
-                        text={translate('common.delete')}
+                        variant={CONST.BUTTON_VARIANT.DANGER}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={onDelete}
-                    />
+                    >
+                        <Button.Text>{translate('common.delete')}</Button.Text>
+                    </Button>
                 </View>
             </FormProvider>
         </ScrollView>
