@@ -111,7 +111,7 @@ describe('navigateAfterOnboarding', () => {
 
     it('should preserve the revealed report if onboardingAdminsChatReportID is not provided on larger screens', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
-        // A real report is revealed in the topmost split navigator, so we should not yank the user to Home.
+        // A report is revealed in the topmost split navigator, so the user should stay on it.
         mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(true);
 
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
@@ -120,8 +120,8 @@ describe('navigateAfterOnboarding', () => {
 
     it('should navigate to home when the Inbox tab is topmost but no report is revealed on larger screens', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
-        // The Reports split navigator can be topmost showing only the empty Inbox sidebar (no report revealed).
-        // isReportRevealedInTopmostSplitNavigator returns false in that case, so we must still land the onboarding user on Home.
+        // The Reports split navigator is topmost but shows only the empty Inbox sidebar, so the onboarding
+        // user must still land on Home.
         mockIsReportRevealedInTopmostSplitNavigator.mockReturnValue(false);
 
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);

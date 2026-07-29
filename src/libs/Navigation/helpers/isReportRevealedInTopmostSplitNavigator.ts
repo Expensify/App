@@ -6,31 +6,28 @@ import SCREENS from '@src/SCREENS';
 import getTopmostFullScreenRoute from './getTopmostFullScreenRoute';
 
 /**
- * Returns true only when an actual report (SCREENS.REPORT) is revealed in the topmost Reports split
- * navigator — not when the empty Inbox sidebar (SCREENS.INBOX) merely happens to be the topmost tab.
+ * Returns true only when a report is revealed in the topmost Reports split navigator. Returns false when
+ * the Reports tab is topmost but shows only the empty Inbox sidebar.
  *
- * This is the "is a report revealed" question that getCentralPaneReportID also answers, but it adds a
- * live→preserved fallback one level deeper (the split's inner routes) — the same fallback that
- * getTopmostFullScreenRoute already applies at the tab level. Without it, the read can miss a
- * deep-linked report whose split state has been stripped to preserved-only inside the onboarding
- * microtask, which would send the user to Home and reintroduce the regression fixed in #85242.
+ * The read falls back to the preserved navigator state because the split's live state can be stripped to
+ * preserved-only inside the onboarding microtask. Without that fallback a deep-linked report is missed and
+ * the user gets sent to Home.
  */
 function isReportRevealedInTopmostSplitNavigator(): boolean {
     const topmostFullScreenRoute = getTopmostFullScreenRoute();
 
-    // The topmost full-screen tab must be the Reports split navigator. getTopmostFullScreenRoute already
-    // resolves this through its own tab-level live→preserved fallback.
+    // getTopmostFullScreenRoute applies the tab-level preserved-state fallback, so this stays correct when
+    // the live tab state has been stripped.
     if (topmostFullScreenRoute?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
         return false;
     }
 
-    // Descend into the split's inner routes: live state first, then the preserved-state fallback keyed on
-    // the split route's key (the piece getCentralPaneReportID lacks) so a revealed report isn't missed
-    // when the live state has been stripped inside the onboarding microtask.
+    // Read the split's live inner routes first, then fall back to the preserved state keyed on the split
+    // route's key.
     const innerRoutes: ReadonlyArray<{name: string}> | undefined =
         topmostFullScreenRoute.state?.routes ?? (topmostFullScreenRoute.key ? getPreservedNavigatorState(topmostFullScreenRoute.key)?.routes : undefined);
 
-    // A report is revealed only when a SCREENS.REPORT is present in the split, not just the SCREENS.INBOX sidebar.
+    // Only a report counts as revealed. The Inbox sidebar on its own does not.
     return !!innerRoutes?.some((route) => route.name === SCREENS.REPORT);
 }
 
