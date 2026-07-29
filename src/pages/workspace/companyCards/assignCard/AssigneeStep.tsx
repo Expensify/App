@@ -116,8 +116,12 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
                 cardToAssign.cardName = assignCard.cardToAssign.cardName;
                 cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
-                cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
-                cardToAssign.dateOption = getCardAssignmentDateOption(isEditing, assignCard?.cardToAssign?.dateOption);
+                // Preserve any start date the user already picked based on the saved data rather than `isEditing`.
+                // `isEditing` is false on the header-back-then-Next round trip, so keying off it here would wipe the
+                // chosen date. In a fresh flow `startDate`/`dateOption` are undefined, so both helpers still fall back
+                // to today/CUSTOM.
+                cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
+                cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
                 setAssignCardStepAndData({
                     cardToAssign,
                     isEditing: false,
@@ -152,8 +156,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
             cardToAssign.cardName = assignCard.cardToAssign.cardName;
             cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
-            cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
-            cardToAssign.dateOption = getCardAssignmentDateOption(isEditing, assignCard?.cardToAssign?.dateOption);
+            // Preserve the saved start date based on the data, not `isEditing` (see the matching branch above).
+            cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
+            cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
             setAssignCardStepAndData({
                 cardToAssign,
                 isEditing: false,

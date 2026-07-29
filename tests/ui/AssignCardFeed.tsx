@@ -335,6 +335,9 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                // Keep the company-cards feature enabled so AccessOrNotFoundWrapper never fires an incidental redirect,
+                // which would otherwise make the navigate assertions below pass/fail for the wrong reason.
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -367,10 +370,10 @@ describe('AssignCardFeed', () => {
             await waitForBatchedUpdatesWithAct();
             expect(navigateSpy).not.toHaveBeenCalled();
 
-            // Pressing Next should advance the flow
+            // Pressing Next should advance to the card-selection step for the selected cardholder
             fireEvent.press(screen.getByText('Next'));
             await waitForBatchedUpdatesWithAct();
-            expect(navigateSpy).toHaveBeenCalled();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute({policyID: policy.id, feed: COMMERCIAL_FEED, cardID: CARD_ID}));
 
             unmount();
             navigateSpy.mockRestore();
@@ -384,6 +387,8 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                // Enabled so the wrapper never redirects; the "did not navigate" assertion then only reflects our logic.
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -430,6 +435,8 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                // Enabled so the wrapper never redirects and the navigate assertion reflects only our logic.
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -464,10 +471,65 @@ describe('AssignCardFeed', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByText('Please select a cardholder to continue')).not.toBeOnTheScreen();
-            expect(navigateSpy).toHaveBeenCalled();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute({policyID: policy.id, feed: COMMERCIAL_FEED, cardID: CARD_ID}));
 
             unmount();
             navigateSpy.mockRestore();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should preserve the chosen transaction start date and date option when re-confirming the saved cardholder', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const mockedSetAssignCardStepAndData = jest.mocked(setAssignCardStepAndData);
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
+                },
+            };
+
+            // Simulates the state after the user picked "From the beginning" on Confirmation and pressed the header
+            // back arrow to return to this step: cardToAssign carries the chosen date, and isEditing is false because
+            // header back no longer sets it. createMockAssignCardData seeds dateOption FROM_BEGINNING + startDate.
+            const assignCardData = {...createMockAssignCardData({feedType: 'commercial'}), currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE, isEditing: false};
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, assignCardData);
+            });
+
+            const {unmount} = renderAssigneeStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Pressing Next re-confirms the already-saved cardholder without re-visiting the start date step.
+            await waitFor(() => {
+                expect(screen.getByText('Next')).toBeOnTheScreen();
+            });
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            // The saved start date and date option must survive the round trip (regression: they were reset to today/CUSTOM).
+            expect(mockedSetAssignCardStepAndData).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    cardToAssign: expect.objectContaining({
+                        startDate: assignCardData.cardToAssign.startDate,
+                        dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+                    }),
+                }),
+            );
+
+            unmount();
             await waitForBatchedUpdatesWithAct();
         });
 
