@@ -1010,9 +1010,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.UPGRADE]: {
                             path: ROUTES.WORKSPACE_UPGRADE.route,
                         },
-                        [SCREENS.WORKSPACE.DOWNGRADE]: {
-                            path: ROUTES.WORKSPACE_DOWNGRADE.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_DOWNGRADE]: DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_PAY_AND_DOWNGRADE]: DYNAMIC_ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path,
