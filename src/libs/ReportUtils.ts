@@ -12107,7 +12107,9 @@ function prepareOnboardingOnyxData({
         return;
     }
 
-    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] : '';
+    const integrationName = userReportedIntegration
+        ? (CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? userReportedIntegration)
+        : '';
     const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? CONST.EMAIL.QA_GUIDE;
     const assignedGuidePersonalDetail = getPersonalDetailByEmail(assignedGuideEmail);
     let assignedGuideAccountID: number;
@@ -13099,11 +13101,12 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
 }
 
 function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined, translate: LocalizedTranslate): string {
-    if (report && isInvoiceReport(report)) {
-        const properInvoiceReport = report;
-        properInvoiceReport.chatReportID = report.parentReportID;
-
-        return getInvoiceReportName(properInvoiceReport, translate);
+    const reportForHeader = getReportForHeader(report);
+    if (reportForHeader && isInvoiceReport(reportForHeader)) {
+        // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
+        // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
+        const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
+        return getInvoiceReportName(invoiceReport, translate);
     }
 
     if (action?.reportName) {
