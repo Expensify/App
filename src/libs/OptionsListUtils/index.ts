@@ -1088,30 +1088,20 @@ type CreateOptionParams = {
 };
 
 /**
- * Creates a report list option - optimized for SearchOption context
- */
-/**
  * Display name for a personal detail option built with showPersonalDetails. Shared by createOption and the
  * lazy shell in buildPersonalDetailsOptions, which must produce the identical `text` so filtering and
  * ranking of shells match the hydrated options. Mirrors createOption's historical asymmetry: the
  * personal details data is only passed through when there is no report.
  */
 type GetPersonalDetailOptionTextProps = {
-      accountID: number | undefined;
-      hasReport: boolean;
-      personalDetails: OnyxEntry<PersonalDetailsList>;
-      login: string | undefined;
-      translate: LocalizedTranslate;
-  };
+    accountID: number | undefined;
+    hasReport: boolean;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    login: string | undefined;
+    translate: LocalizedTranslate;
+};
 
-function getPersonalDetailOptionText({
-      accountID,
-      hasReport,
-      personalDetails,
-      login,
-      translate,
-  }: GetPersonalDetailOptionTextProps): string {
-
+function getPersonalDetailOptionText({accountID, hasReport, personalDetails, login, translate}: GetPersonalDetailOptionTextProps): string {
     return (
         getDisplayNameForParticipant({
             accountID,
@@ -1122,6 +1112,9 @@ function getPersonalDetailOptionText({
     );
 }
 
+/**
+ * Creates a report list option - optimized for SearchOption context
+ */
 function createOption({
     accountIDs,
     personalDetails,
@@ -1247,9 +1240,11 @@ function createOption({
 
         const computedReportName = deprecatedGetReportName(report, reportAttributesDerived);
 
-        reportName = showPersonalDetails ? getPersonalDetailOptionText(accountIDs.at(0), true, personalDetails, personalDetail?.login, translateFn) : computedReportName;
+        reportName = showPersonalDetails
+            ? getPersonalDetailOptionText({accountID: accountIDs.at(0), hasReport: true, personalDetails, login: personalDetail?.login, translate: translateFn})
+            : computedReportName;
     } else {
-        reportName = getPersonalDetailOptionText(accountIDs.at(0), false, personalDetails, personalDetail?.login, translateFn);
+        reportName = getPersonalDetailOptionText({accountID: accountIDs.at(0), hasReport: false, personalDetails, login: personalDetail?.login, translate: translateFn});
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = formatPhoneNumberPhoneUtils(personalDetails?.[accountIDs[0]]?.login ?? '');
@@ -1694,7 +1689,7 @@ function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Repo
         const detail = getPersonalDetailsForAccountIDs([accountID], personalDetails)[accountID];
         const formattedLogin = formatPhoneNumberPhoneUtils(detail?.login ?? '');
         // Same text createOption computes (translateLocal — the default createOption uses when translate is omitted).
-        const text = getPersonalDetailOptionText(accountID, !!report, personalDetails, detail?.login, translateLocal);
+        const text = getPersonalDetailOptionText({accountID, hasReport: !!report, personalDetails, login: detail?.login, translate: translateLocal});
 
         return {
             item: personalDetail,
