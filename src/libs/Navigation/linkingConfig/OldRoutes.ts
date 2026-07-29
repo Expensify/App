@@ -1,5 +1,12 @@
 const oldRoutes: Record<string, string> = {
     /* eslint-disable @typescript-eslint/naming-convention */
+    // Per diem destination step migrated to dynamic routes (#83850). Dynamic suffixes are namespaced `per-diem-*` because
+    // dynamic route paths must be globally unique across DYNAMIC_ROUTES (react-navigation flattens them and a bare
+    // `destination` collides with Sage Intacct's existing `destination` suffix). Edit variant redirects to the
+    // confirmation-based suffix; the wizard variant to the start-based suffix. Query is not preserved (trailing wildcard
+    // would swallow it) - acceptable because callers no longer append `?backTo=`.
+    '/*/*/destination/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-destination-edit',
+    '/*/*/destination/*/*': '/$1/$2/start/$3/$4/per-diem-destination',
     '/settings/*/category/*/edit': '/settings/$1/categories/category-settings/$2/category-edit',
     '/settings/*/category/*': '/settings/$1/categories/category-settings/$2',
     '/settings/*/tags/*/edit': '/settings/$1/tags/settings-tags-edit/$2',
@@ -28,6 +35,15 @@ const oldRoutes: Record<string, string> = {
     '/r/*/invite': '/r/$1/details/room-invite',
     '/r/*/notes/*/edit': '/r/$1/notes-edit/$2',
     '/r/*/notes': '/r/$1/details/notes',
+    '/r/*/duplicates/review/merchant': '/r/$1/merchant/$1',
+    '/r/*/duplicates/review/category': '/r/$1/transaction-duplicate-category/$1',
+    '/r/*/duplicates/review/tag': '/r/$1/transaction-duplicate-tag/$1',
+    '/r/*/duplicates/review/tax-code': '/r/$1/tax-code/$1',
+    '/r/*/duplicates/review/description': '/r/$1/transaction-duplicate-description/$1',
+    '/r/*/duplicates/review/reimbursable': '/r/$1/reimbursable/$1',
+    '/r/*/duplicates/review/billable': '/r/$1/billable/$1',
+    '/r/*/duplicates/review': '/r/$1/duplicates/review/$1',
+    '/r/*/duplicates/confirm': '/r/$1/confirm/$1',
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
