@@ -1,3 +1,7 @@
+/**
+ * Helpers for detecting explicitly copyable text inside pressable rows, so row handlers can allow
+ * native text selection without triggering row navigation after drag-select.
+ */
 const COPYABLE_TEXT_SELECTOR = '[data-copyable-text=true]';
 
 function getCopyableTextElement(target: EventTarget | Node | null | undefined): HTMLElement | null {
