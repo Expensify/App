@@ -55,8 +55,14 @@
     later, when the surface is flushed, so a canvas that already holds a WebGL
     context (one whose chart rendered before WebGL became unavailable) would return
     null there and turn into an uncatchable "Cannot read properties of null (reading
-    'putImageData')". Checking the 2D context up front keeps that case blank but
-    stable instead.
+    'putImageData')". Checking the 2D context up front keeps that case stable.
+
+    When no surface can be created at all, the renderer dispatches a bubbling
+    "skia-surface-unavailable" CustomEvent on its canvas (a no-op without a listener).
+    A capability check cannot cover this case - it runs at chart mount while the
+    context is created only after the CanvasKit WASM module loads - so the event is
+    the only reliable signal, and SkiaWebChart uses it to swap in its "unable to
+    display chart" empty state instead of leaving a blank canvas.
     ```
 
 - Upstream PR/issue: 🛑 TODO — the same defensive handling should be sent upstream so `onResize` matches the already-guarded `renderPictureToSurface` path.
