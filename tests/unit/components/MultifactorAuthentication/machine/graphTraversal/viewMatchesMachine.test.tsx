@@ -1,10 +1,9 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
 
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import type {MfaEvent, RequestRegistrationChallengeOutput} from '@components/MultifactorAuthentication/machine/types';
+import type {MfaActorDoneEventFor, MfaActorDoneEventType, MfaActorDoneOutputByType, MfaActorErrorEventType} from '@components/MultifactorAuthentication/machine/mfaMachine';
+import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
-
-import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,17 +82,8 @@ type MfaEventExecutors = {
     [Type in MfaEventType]: (step: MfaEventExecutorStep<Type>) => Promise<void>;
 };
 type MfaActorEventExecutors = {
-    [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step: {event: {type: typeof VALIDATE_DEVICE_DONE_EVENT_TYPE; output: MFAResult}}) => Promise<void>;
-    [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => Promise<void>;
-    [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step: {event: {type: typeof READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE; output: boolean}}) => Promise<void>;
-    [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => Promise<void>;
-    [CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE]: (step: {event: {type: typeof CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE; output: boolean}}) => Promise<void>;
-    [CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE]: () => Promise<void>;
-    [REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE]: (step: {
-        event: {type: typeof REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE; output: RequestRegistrationChallengeOutput};
-    }) => Promise<void>;
-    [REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE]: () => Promise<void>;
-};
+    [Type in MfaActorDoneEventType]: (step: {event: {type: Type} | MfaActorDoneEventFor<Type>}) => Promise<void>;
+} & Record<MfaActorErrorEventType, () => Promise<void>>;
 
 type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
 
@@ -105,6 +95,13 @@ type MfaValidateCodeEnteredEvent = Extract<MfaEvent, {type: 'VALIDATE_CODE_ENTER
 
 function isMfaValidateCodeEnteredEvent(event: {type: string}): event is MfaValidateCodeEnteredEvent {
     return event.type === 'VALIDATE_CODE_ENTERED' && 'validateCode' in event;
+}
+
+function getActorDoneOutput<Type extends MfaActorDoneEventType>(step: {event: {type: Type} | MfaActorDoneEventFor<Type>}): MfaActorDoneOutputByType[Type] {
+    if (!('output' in step.event)) {
+        throw new Error(`Actor done executor received event "${step.event.type}" without output.`);
+    }
+    return step.event.output;
 }
 
 /**
@@ -169,13 +166,13 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             fireEvent.changeText(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT), '1');
             await waitForBatchedUpdatesWithAct();
         },
-        [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleActor(() => validateDeviceControl.resolve(step.event.output)),
+        [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleActor(() => validateDeviceControl.resolve(getActorDoneOutput(step))),
         [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleActor(validateDeviceControl.reject),
-        [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step) => settleActor(() => readHasAcceptedSoftPromptControl.resolve(step.event.output)),
+        [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step) => settleActor(() => readHasAcceptedSoftPromptControl.resolve(getActorDoneOutput(step))),
         [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => settleActor(readHasAcceptedSoftPromptControl.reject),
-        [CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE]: (step) => settleActor(() => checkLocalCredentialsControl.resolve(step.event.output)),
+        [CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE]: (step) => settleActor(() => checkLocalCredentialsControl.resolve(getActorDoneOutput(step))),
         [CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE]: () => settleActor(checkLocalCredentialsControl.reject),
-        [REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE]: (step) => settleActor(() => requestRegistrationChallengeControl.resolve(step.event.output)),
+        [REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE]: (step) => settleActor(() => requestRegistrationChallengeControl.resolve(getActorDoneOutput(step))),
         [REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE]: () => settleActor(requestRegistrationChallengeControl.reject),
     } satisfies MfaEventExecutors & MfaActorEventExecutors;
 }

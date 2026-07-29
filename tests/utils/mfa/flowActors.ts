@@ -45,14 +45,14 @@ function createActorAtState(value: StateValue, contextOverrides?: Partial<MfaCon
  * Completes the invoked device-check actor by sending its done event carrying the given output.
  */
 function sendValidateDeviceDone(actor: ReturnType<typeof createActorAtState>, output: ValidateDeviceOutput) {
-    actor.send(createActorDoneEvent(VALIDATE_DEVICE_DONE_EVENT_TYPE, output));
+    actor.send(createActorDoneEvent({type: VALIDATE_DEVICE_DONE_EVENT_TYPE, output}));
 }
 
 /**
  * Completes the invoked credentials-check actor by sending its done event carrying the given output.
  */
 function sendCheckLocalCredentialsDone(actor: ReturnType<typeof createActorAtState>, output: CheckLocalCredentialsOutput) {
-    actor.send(createActorDoneEvent(CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, output));
+    actor.send(createActorDoneEvent({type: CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, output}));
 }
 
 export {createActorAtState, createFlowContext, sendCheckLocalCredentialsDone, sendValidateDeviceDone};

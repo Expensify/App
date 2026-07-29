@@ -1,12 +1,20 @@
-import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
+import type {
+    MfaActorDoneEvent,
+    MfaActorDoneEventFor,
+    MfaActorDoneEventType,
+    MfaActorErrorEventFor,
+    MfaActorErrorEventType,
+    MfaDelayedEventType,
+    MfaMachineEvent,
+} from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 
 import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import CONST from '@src/CONST';
 
-import type {OutputFrom, SnapshotFrom} from 'xstate';
+import type {SnapshotFrom} from 'xstate';
 
 import {matchesState} from 'xstate';
 import {getShortestPaths, TestModel} from 'xstate/graph';
@@ -18,29 +26,31 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const DELAYED_EVENT_PREFIX = 'xstate.after';
 const ACTOR_DONE_EVENT_PREFIX = 'xstate.done.actor.';
 const ACTOR_ERROR_EVENT_PREFIX = 'xstate.error.actor.';
-const VALIDATE_DEVICE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}validateDevice`;
-const VALIDATE_DEVICE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}validateDevice`;
-const READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
-const READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}readHasAcceptedSoftPrompt`;
-const CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}checkLocalCredentials`;
-const CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}checkLocalCredentials`;
-const REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}requestRegistrationChallenge`;
-const REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}requestRegistrationChallenge`;
+const VALIDATE_DEVICE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}validateDevice` satisfies MfaActorDoneEventType;
+const VALIDATE_DEVICE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}validateDevice` satisfies MfaActorErrorEventType;
+const READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}readHasAcceptedSoftPrompt` satisfies MfaActorDoneEventType;
+const READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}readHasAcceptedSoftPrompt` satisfies MfaActorErrorEventType;
+const CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}checkLocalCredentials` satisfies MfaActorDoneEventType;
+const CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}checkLocalCredentials` satisfies MfaActorErrorEventType;
+const REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE = `${ACTOR_DONE_EVENT_PREFIX}requestRegistrationChallenge` satisfies MfaActorDoneEventType;
+const REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE = `${ACTOR_ERROR_EVENT_PREFIX}requestRegistrationChallenge` satisfies MfaActorErrorEventType;
 
 /**
- * Framework actor events are not part of the application's event union, but TestModel accepts them
- * in explicit journeys and forwards their output to the invoked actor transition.
+ * Builds an actor completion event while keeping its event type tied to that actor's output.
  */
-function createActorDoneEvent(type: string, output: unknown): MfaEvent {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return {type, output} as MfaEvent;
+function createActorDoneEvent<Event extends MfaActorDoneEvent>(event: Event): Event {
+    return event;
+}
+
+function createActorErrorEvent<Type extends MfaActorErrorEventType>(type: Type): MfaActorErrorEventFor<Type> {
+    return {type, error: new Error(`Graph-traversal rejection for actor event "${type}"`)};
 }
 
 type DrivingJourney = {
     /** Names the journey in test titles. */
     description: string;
     /** The event sequence the walk drives, in order. */
-    events: MfaEvent[];
+    events: MfaMachineEvent[];
     /** Dot-path state value the journey must end in, compared with `matchesState`. */
     endState: string;
 };
@@ -75,11 +85,14 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         description: 'the resend journey requests a fresh code and still accepts the emailed code',
         events: [
             createInitEvent(),
-            createActorDoneEvent(VALIDATE_DEVICE_DONE_EVENT_TYPE, {success: true}),
-            createActorDoneEvent(CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, false),
+            createActorDoneEvent({type: VALIDATE_DEVICE_DONE_EVENT_TYPE, output: {success: true}}),
+            createActorDoneEvent({type: CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, output: false}),
             {type: 'RESEND_VALIDATE_CODE'},
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
-            createActorDoneEvent(REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+            createActorDoneEvent({
+                type: REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE,
+                output: {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE},
+            }),
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`,
     },
@@ -87,13 +100,19 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         description: 'the invalid-code journey clears the inline error and accepts a corrected code',
         events: [
             createInitEvent(),
-            createActorDoneEvent(VALIDATE_DEVICE_DONE_EVENT_TYPE, {success: true}),
-            createActorDoneEvent(CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, false),
+            createActorDoneEvent({type: VALIDATE_DEVICE_DONE_EVENT_TYPE, output: {success: true}}),
+            createActorDoneEvent({type: CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, output: false}),
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
-            createActorDoneEvent(REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, {success: false, error: MFA_TEST_INVALID_CODE_ERROR}),
+            createActorDoneEvent({
+                type: REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE,
+                output: {success: false, error: MFA_TEST_INVALID_CODE_ERROR},
+            }),
             {type: 'VALIDATE_CODE_CHANGED'},
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
-            createActorDoneEvent(REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE, {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+            createActorDoneEvent({
+                type: REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE,
+                output: {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE},
+            }),
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`,
     },
@@ -122,41 +141,77 @@ function hasMfaEventFixtures(type: string): type is MfaEvent['type'] {
     return Object.hasOwn(MFA_GRAPH_EVENT_FIXTURES, type);
 }
 
-type MfaActors = ReturnType<typeof createActors>;
-
-type MfaActorDoneOutputFixtures = {
-    readonly [Id in keyof MfaActors]: readonly [OutputFrom<MfaActors[Id]>, ...Array<OutputFrom<MfaActors[Id]>>];
+type MfaActorDoneEventFixtures = {
+    readonly [Type in MfaActorDoneEventType]: readonly [MfaActorDoneEventFor<Type>, ...Array<MfaActorDoneEventFor<Type>>];
 };
 
 /**
- * Holds the output variants for each invoked actor's done event, keyed by invoke id. The machine
- * routes a done event through guards on the actor's output, so the traversal must offer every output
- * shape a branch depends on. XState's bare `{type}` synthesis would make those guards read an
- * undefined output. The exhaustive keyed type makes a new actor fail compilation until its output
- * variants are added.
+ * Holds the done-event variants for each invoked actor. The machine routes these events through
+ * guards on the actor's output, so the traversal must offer every output shape a branch depends on.
+ * XState's bare `{type}` synthesis would make those guards read an undefined output. The exhaustive
+ * keyed type makes a new actor fail compilation until its event variants are added.
  */
-const MFA_ACTOR_DONE_OUTPUT_FIXTURES = {
+const MFA_ACTOR_DONE_EVENT_FIXTURES = {
     // The refusal variants mirror the actor's gates. Each reason maps to its own failure screen, so
     // every variant needs a graph branch for the walk to reach that screen.
-    validateDevice: [
-        {success: true},
-        {success: false, error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED, 'Graph-traversal device-check refusal')},
-        {
-            success: false,
-            error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED, 'Graph-traversal device-check enrollment refusal'),
-        },
+    [VALIDATE_DEVICE_DONE_EVENT_TYPE]: [
+        createActorDoneEvent({type: VALIDATE_DEVICE_DONE_EVENT_TYPE, output: {success: true}}),
+        createActorDoneEvent({
+            type: VALIDATE_DEVICE_DONE_EVENT_TYPE,
+            output: {
+                success: false,
+                error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED, 'Graph-traversal device-check refusal'),
+            },
+        }),
+        createActorDoneEvent({
+            type: VALIDATE_DEVICE_DONE_EVENT_TYPE,
+            output: {
+                success: false,
+                error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED, 'Graph-traversal device-check enrollment refusal'),
+            },
+        }),
     ],
-    readHasAcceptedSoftPrompt: [false, true],
-    checkLocalCredentials: [false, true],
-    requestRegistrationChallenge: [
-        {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE},
-        {success: false, error: MFA_TEST_INVALID_CODE_ERROR},
-        {success: false, error: MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR},
+    [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: [
+        createActorDoneEvent({type: READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE, output: false}),
+        createActorDoneEvent({type: READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE, output: true}),
     ],
-} satisfies MfaActorDoneOutputFixtures;
+    [CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE]: [
+        createActorDoneEvent({type: CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, output: false}),
+        createActorDoneEvent({type: CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, output: true}),
+    ],
+    [REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE]: [
+        createActorDoneEvent({
+            type: REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE,
+            output: {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE},
+        }),
+        createActorDoneEvent({
+            type: REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE,
+            output: {success: false, error: MFA_TEST_INVALID_CODE_ERROR},
+        }),
+        createActorDoneEvent({
+            type: REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE,
+            output: {success: false, error: MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR},
+        }),
+    ],
+} satisfies MfaActorDoneEventFixtures;
 
-function hasActorDoneOutputFixtures(actorId: string): actorId is keyof typeof MFA_ACTOR_DONE_OUTPUT_FIXTURES {
-    return Object.hasOwn(MFA_ACTOR_DONE_OUTPUT_FIXTURES, actorId);
+const MFA_ACTOR_ERROR_EVENT_FIXTURES = {
+    [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: createActorErrorEvent(VALIDATE_DEVICE_ERROR_EVENT_TYPE),
+    [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: createActorErrorEvent(READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE),
+    [CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE]: createActorErrorEvent(CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE),
+    [REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE]: createActorErrorEvent(REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE),
+} satisfies {[Type in MfaActorErrorEventType]: MfaActorErrorEventFor<Type>};
+
+function hasActorDoneEventFixtures(type: string): type is keyof typeof MFA_ACTOR_DONE_EVENT_FIXTURES {
+    return Object.hasOwn(MFA_ACTOR_DONE_EVENT_FIXTURES, type);
+}
+
+function hasActorErrorEventFixtures(type: string): type is keyof typeof MFA_ACTOR_ERROR_EVENT_FIXTURES {
+    return Object.hasOwn(MFA_ACTOR_ERROR_EVENT_FIXTURES, type);
+}
+
+function isDelayedEventType(type: string): type is MfaDelayedEventType {
+    return type.startsWith(DELAYED_EVENT_PREFIX);
 }
 
 type PathSteps = ReadonlyArray<{event: {type: string}}>;
@@ -183,39 +238,43 @@ function isUiDrivablePath(path: {steps: PathSteps}): boolean {
 
 /**
  * Supplies explicit fixtures for application events declared by the current state. A custom `events`
- * function replaces XState's default traversal events entirely, so this also mirrors the default bare
- * `{type}` synthesis for the framework event descriptors (delayed transitions and actor completion)
- * that the machine's transitions depend on.
+ * function replaces XState's default traversal events entirely, so this also supplies typed framework
+ * event fixtures for the delayed and invoked-actor transitions that the machine depends on.
  */
-function getTraversalEvents(snapshot: MfaSnapshot): MfaEvent[] {
+function getTraversalEvents(snapshot: MfaSnapshot): MfaMachineEvent[] {
     // `_nodes` is part of the snapshot's public type. XState exports an equivalent helper only as
     // `__unsafe_getAllOwnEventDescriptors`, whose `any[]` return type would weaken the typing, so this
     // reads `_nodes` directly.
     // eslint-disable-next-line no-underscore-dangle
     const declaredEventTypes: string[] = [...new Set(snapshot._nodes.flatMap((node) => node.ownEvents))];
-    const events: MfaEvent[] = [];
+    const events: MfaMachineEvent[] = [];
     for (const type of declaredEventTypes) {
         if (hasMfaEventFixtures(type)) {
             events.push(...MFA_GRAPH_EVENT_FIXTURES[type]);
             continue;
         }
+        if (hasActorDoneEventFixtures(type)) {
+            events.push(...MFA_ACTOR_DONE_EVENT_FIXTURES[type]);
+            continue;
+        }
+        if (type.startsWith(ACTOR_DONE_EVENT_PREFIX)) {
+            throw new Error(`Missing MFA actor done-event fixtures for "${type}"`);
+        }
+        if (hasActorErrorEventFixtures(type)) {
+            events.push(MFA_ACTOR_ERROR_EVENT_FIXTURES[type]);
+            continue;
+        }
+        if (type.startsWith(ACTOR_ERROR_EVENT_PREFIX)) {
+            throw new Error(`Missing MFA actor error-event fixture for "${type}"`);
+        }
+        if (isDelayedEventType(type) || type === 'xstate.init') {
+            events.push({type});
+            continue;
+        }
         if (!type.startsWith('xstate.')) {
             throw new Error(`Missing MFA graph event fixture for application event "${type}"`);
         }
-        if (type.startsWith(ACTOR_DONE_EVENT_PREFIX)) {
-            const actorId = type.slice(ACTOR_DONE_EVENT_PREFIX.length);
-            if (!hasActorDoneOutputFixtures(actorId)) {
-                throw new Error(`Missing MFA actor done-output fixtures for invoked actor "${actorId}"`);
-            }
-            // XState types `events` as the machine's event union, which cannot name framework events, so
-            // this widens the synthesized done events.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            events.push(...MFA_ACTOR_DONE_OUTPUT_FIXTURES[actorId].map((output) => ({type, output}) as MfaEvent));
-            continue;
-        }
-        // This widens the remaining framework events for the same reason as the done events above.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        events.push({type} as MfaEvent);
+        throw new Error(`Unsupported MFA framework event "${type}"`);
     }
     return events;
 }
