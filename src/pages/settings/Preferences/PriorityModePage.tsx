@@ -31,8 +31,6 @@ function PriorityModePage() {
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const styles = useThemeStyles();
 
-    // Keep the selection in local draft state so picking a mode no longer persists and re-sorts the LHN on input.
-    // The change is only applied when the user taps Save (WCAG 3.2.2 On Input).
     const [selectedPriorityMode, setSelectedPriorityMode] = useState(priorityMode);
 
     const priorityModes = Object.values(CONST.PRIORITY_MODE).map<PriorityModeItem>((mode) => ({
@@ -48,21 +46,17 @@ function PriorityModePage() {
     };
 
     const savePriorityMode = useCallback(() => {
-        // Nothing changed, so just close the page without an unnecessary write (matches the original same-mode behavior).
-        if (selectedPriorityMode === priorityMode) {
-            Navigation.goBack();
-            return;
-        }
         updateChatPriorityMode(selectedPriorityMode);
-    }, [selectedPriorityMode, priorityMode]);
+    }, [selectedPriorityMode]);
 
     const confirmButtonOptions = useMemo(
         () => ({
             showButton: true,
             text: translate('common.save'),
             onConfirm: savePriorityMode,
+            isDisabled: selectedPriorityMode === priorityMode,
         }),
-        [translate, savePriorityMode],
+        [translate, savePriorityMode, selectedPriorityMode, priorityMode],
     );
 
     return (

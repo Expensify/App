@@ -48,8 +48,6 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
-    // Keep the selection in local draft state so picking a timezone no longer persists and closes the page on input.
-    // The change is only applied when the user taps Save (WCAG 3.2.2 On Input).
     const [selectedTimezone, setSelectedTimezone] = useState(timezone.selected);
 
     const timezoneData = useMemo(() => timezoneOptions.map((tz) => ({...tz, isSelected: tz.text === selectedTimezone})), [timezoneOptions, selectedTimezone]);
@@ -71,9 +69,9 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
             showButton: true,
             text: translate('common.save'),
             onConfirm: saveSelectedTimezone,
-            isDisabled: !!timezone.automatic,
+            isDisabled: !!timezone.automatic || selectedTimezone === timezone.selected,
         }),
-        [translate, saveSelectedTimezone, timezone.automatic],
+        [translate, saveSelectedTimezone, timezone.automatic, selectedTimezone, timezone.selected],
     );
 
     const filterShownTimezones = useCallback(
