@@ -67,6 +67,11 @@ type UseAutocompleteSuggestionsParams = {
     autocompleteSubstitutions?: SubstitutionMap;
 };
 
+// Stable empty result so the no-suggestions cases (notably the empty-query open) return the same
+// reference every render, instead of a fresh [] that invalidates the consumer's `sections` memo and
+// forces the list to re-render on every parent render.
+const EMPTY_SUGGESTIONS: AutocompleteItemData[] = [];
+
 // Static autocomplete lists derived from CONST values, computed once at module load
 const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
 const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
@@ -148,7 +153,7 @@ function useAutocompleteSuggestions({
     }
 
     if (!autocompleteKey) {
-        return [];
+        return EMPTY_SUGGESTIONS;
     }
 
     const alreadyAutocompletedKeys = new Set(
