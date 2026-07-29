@@ -8,6 +8,7 @@ import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 
 import SubmitDetailsPage from '@pages/Share/SubmitDetailsPage';
 
@@ -23,9 +24,11 @@ import type * as FileUtilsModule from '../../src/libs/fileDownload/FileUtils';
 
 import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import * as ReportUtils from '../../src/libs/ReportUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+type GetReportOrDraftReportFn = typeof getReportOrDraftReport;
+type ReportUtilsActual = Record<string, unknown> & {getReportOrDraftReport: GetReportOrDraftReportFn};
 
 jest.mock('@libs/actions/IOU/TrackExpense', () => {
     const actual = jest.requireActual<typeof TrackExpense>('@libs/actions/IOU/TrackExpense');
@@ -33,6 +36,14 @@ jest.mock('@libs/actions/IOU/TrackExpense', () => {
         ...actual,
         requestMoney: jest.fn(() => ({iouReport: undefined})),
         trackExpense: jest.fn(),
+    };
+});
+
+jest.mock('@libs/ReportUtils', () => {
+    const actual = jest.requireActual<ReportUtilsActual>('@libs/ReportUtils');
+    return {
+        ...actual,
+        getReportOrDraftReport: jest.fn(actual.getReportOrDraftReport),
     };
 });
 
@@ -234,6 +245,8 @@ describe('SubmitDetailsPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        const actualGetReportOrDraftReport = jest.requireActual<ReportUtilsActual>('@libs/ReportUtils').getReportOrDraftReport;
+        jest.mocked(getReportOrDraftReport).mockImplementation(actualGetReportOrDraftReport);
         resetNavigationMocksForSubmitDetailsPageTests();
         await Onyx.clear();
         await waitForBatchedUpdates();
@@ -347,15 +360,16 @@ describe('SubmitDetailsPage', () => {
     // otherwise reveal would mount an empty screen behind the share modal.
     it('does not pre-mount when the destination report is missing from COLLECTION.REPORT', async () => {
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
-        const getReportOrDraftReportSpy = jest.spyOn(ReportUtils, 'getReportOrDraftReport').mockReturnValue(undefined);
+        jest.mocked(getReportOrDraftReport).mockReturnValue(undefined);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, null);
+        });
 
         await renderAndConfirm();
 
-        getReportOrDraftReportSpy.mockRestore();
-
         expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
         expect(Navigation.revealRouteBeforeDismissingModal).not.toHaveBeenCalled();
-        expect(jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0]?.shouldNavigate).toBe(true);
+        expect(jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0]?.shouldNavigate).toBe(false);
     });
 
     // Error #8 — backing out before submit must tear down any pre-inserted destination route before goBack,
