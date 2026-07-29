@@ -34,7 +34,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
 import RECONCILIATION_ACCOUNT_SETTINGS_TYPE from './constants';
@@ -87,15 +87,12 @@ function ReconciliationAccountSettingsLayout({
         isSelected: bankAccount.id === selectedID,
     }));
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: () => onSelectBankAccount(selectedID),
-            isDisabled: selectedID === selectedBankAccountID,
-        }),
-        [translate, onSelectBankAccount, selectedID, selectedBankAccountID],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: () => onSelectBankAccount(selectedID),
+        isDisabled: selectedID === selectedBankAccountID,
+    };
 
     return (
         <ConnectionLayout
@@ -118,6 +115,7 @@ function ReconciliationAccountSettingsLayout({
                 data={options}
                 onSelectRow={({value}) => setDraftBankAccountID(value)}
                 confirmButtonOptions={confirmButtonOptions}
+                addBottomSafeAreaPadding
                 ListItem={SingleSelectListItem}
                 initiallyFocusedItemKey={selectedBankAccountID}
             />

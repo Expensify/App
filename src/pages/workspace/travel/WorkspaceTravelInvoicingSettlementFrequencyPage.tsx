@@ -24,7 +24,7 @@ import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type WorkspaceTravelInvoicingSettlementFrequencyPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY>;
 
@@ -66,22 +66,19 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
     }));
 
     const monthlySettlementDate = travelSettings?.monthlySettlementDate;
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         if (selectedFrequency && (selectedFrequency !== currentFrequency || hasFrequencyError)) {
             updateTravelInvoiceSettlementFrequency(workspaceAccountID, selectedFrequency, monthlySettlementDate ? new Date(monthlySettlementDate) : undefined);
         }
         Navigation.goBack();
-    }, [selectedFrequency, currentFrequency, hasFrequencyError, workspaceAccountID, monthlySettlementDate]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAndGoBack,
-            isDisabled: selectedFrequency === currentFrequency && !hasFrequencyError,
-        }),
-        [saveAndGoBack, translate, selectedFrequency, currentFrequency, hasFrequencyError],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+        isDisabled: selectedFrequency === currentFrequency && !hasFrequencyError,
+    };
 
     return (
         <ScreenWrapper
@@ -97,6 +94,7 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
                 data={data}
                 onSelectRow={(item) => setDraftFrequency(item.value)}
                 confirmButtonOptions={confirmButtonOptions}
+                addBottomSafeAreaPadding
                 ListItem={SingleSelectListItem}
                 initiallyFocusedItemKey={currentFrequency}
                 customListHeaderContent={
