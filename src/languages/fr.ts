@@ -1115,7 +1115,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'Vos dépenses',
             awaitingApproval: 'En attente d’approbation',
-            repaidLast30Days: 'Remboursé au cours des 30 derniers jours',
+            repaidLast30Days: 'Remboursé 30 derniers jours',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transactions récentes • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Voir ${count} de plus`,
@@ -4361,7 +4361,7 @@ ${amount} pour ${merchant} - ${date}`,
         toLearnMore: 'pour en savoir plus.',
         termsAndConditions: {
             header: 'Avant de continuer…',
-            title: 'Conditions générales',
+            title: 'Examiner les conditions générales',
             label: 'J’accepte les conditions générales d’utilisation',
             subtitle: `Veuillez accepter les <a href="${CONST.TRAVEL_TERMS_URL}">conditions générales</a> d’Expensify Travel.`,
             error: 'Vous devez accepter les conditions générales d’Expensify Travel pour continuer',
@@ -4436,10 +4436,12 @@ ${amount} pour ${merchant} - ${date}`,
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Veuillez <a href="${phoneErrorMethodsRoute}">ajouter un e-mail professionnel comme identifiant principal</a> pour réserver un voyage.</rbr>`,
         domainSelector: {
+            headline: 'Quel domaine voulez-vous configurer ?',
             title: 'Domaine',
             subtitle: 'Choisissez un domaine pour la configuration d’Expensify Travel.',
             recommended: 'Recommandé',
         },
+        workspaceAddress: {headline: 'Quelle est l’adresse de votre entreprise ?'},
         domainPermissionInfo: {
             title: 'Domaine',
             restriction: (domain: string) =>
@@ -4494,6 +4496,7 @@ ${amount} pour ${merchant} - ${date}`,
         nightIn: 'nuit dans',
         nightsIn: 'nuits à',
         taxID: {
+            headline: 'Quel est votre numéro d’identification fiscale d’entreprise ?',
             title: 'Identifiant fiscal',
             subtitle: 'Saisissez l’identifiant fiscal de votre entité légale afin que nous puissions configurer la facturation des déplacements dans votre devise locale.',
             inputLabel: 'Identifiant fiscal de l’entité juridique',
@@ -5887,6 +5890,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             directFeed: 'Flux direct',
             whoNeedsCardAssigned: 'Qui doit se voir assigner une carte ?',
             chooseTheCardholder: 'Choisir le titulaire de la carte',
+            pleaseSelectACardholder: 'Veuillez sélectionner un titulaire de carte pour continuer',
             chooseCard: 'Choisir une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Dites-le-nous.</concierge-link>`,

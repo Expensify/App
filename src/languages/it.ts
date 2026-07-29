@@ -1113,7 +1113,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'Le tue spese',
             awaitingApproval: 'In attesa di approvazione',
-            repaidLast30Days: 'Rimborsato negli ultimi 30 giorni',
+            repaidLast30Days: 'Rimborsato ultimi 30 giorni',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transazioni recenti • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Vedi altri ${count}`,
@@ -4333,7 +4333,7 @@ ${amount} per ${merchant} - ${date}`,
         toLearnMore: 'per saperne di più.',
         termsAndConditions: {
             header: 'Prima di continuare...',
-            title: 'Termini e condizioni',
+            title: 'Rivedi termini e condizioni',
             label: 'Accetto i termini e le condizioni',
             subtitle: `Accetta i <a href="${CONST.TRAVEL_TERMS_URL}">termini e condizioni</a> di Expensify Travel.`,
             error: 'Devi accettare i termini e le condizioni di Expensify Travel per continuare',
@@ -4406,11 +4406,8 @@ ${amount} per ${merchant} - ${date}`,
         departs: 'Partenza',
         errorMessage: 'Si è verificato un errore. Riprova più tardi.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Per prenotare viaggi, <a href="${phoneErrorMethodsRoute}">aggiungi un’email di lavoro come login principale</a>.</rbr>`,
-        domainSelector: {
-            title: 'Dominio',
-            subtitle: 'Scegli un dominio per la configurazione di Expensify Travel.',
-            recommended: 'Consigliato',
-        },
+        domainSelector: {headline: 'Quale dominio vuoi configurare?', title: 'Dominio', subtitle: 'Scegli un dominio per la configurazione di Expensify Travel.', recommended: 'Consigliato'},
+        workspaceAddress: {headline: 'Qual è l’indirizzo della tua azienda?'},
         domainPermissionInfo: {
             title: 'Dominio',
             restriction: (domain: string) =>
@@ -4465,6 +4462,7 @@ ${amount} per ${merchant} - ${date}`,
         nightIn: 'notte in',
         nightsIn: 'notti a',
         taxID: {
+            headline: 'Qual è la tua partita IVA aziendale?',
             title: 'Codice fiscale',
             subtitle: 'Inserisci il codice fiscale della tua entità legale così possiamo configurare la fatturazione dei viaggi nella tua valuta locale.',
             inputLabel: 'Partita IVA dell’entità legale',
@@ -5851,6 +5849,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             directFeed: 'Flusso diretto',
             whoNeedsCardAssigned: 'Chi ha bisogno di una carta assegnata?',
             chooseTheCardholder: 'Scegli il titolare della carta',
+            pleaseSelectACardholder: 'Seleziona un titolare della carta per continuare',
             chooseCard: 'Scegli una carta',
             chooseCardFor: (assignee: string) =>
                 `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
