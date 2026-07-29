@@ -88,7 +88,7 @@ function ReportNavigateAwayHandler() {
 
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
-    const prevReportWasDeleted = usePrevious(reportWasDeleted);
+    const previousReportWasDeleted = usePrevious(reportWasDeleted);
 
     // Track whether the current route is an own workspace chat. A vacation delegate split sends
     // a temporary Onyx SET that wipes the report; by the time effects fire, report is undefined
@@ -203,7 +203,7 @@ function ReportNavigateAwayHandler() {
         // Only navigate on the transition into "deleted" (the moment the report is removed), and only if this
         // screen is focused at that moment. A screen deleted while it was underneath (unfocused) must NOT navigate
         // when the user later presses back and refocuses it — that re-focus is what traps the user in a navigation loop.
-        if (!reportWasDeleted || prevReportWasDeleted || !isFocused) {
+        if (!reportWasDeleted || previousReportWasDeleted || !isFocused) {
             return;
         }
 
@@ -235,7 +235,7 @@ function ReportNavigateAwayHandler() {
             // Fallback to Concierge
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, prevReportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
+    }, [reportWasDeleted, previousReportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
 
     return null;
 }
