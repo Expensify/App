@@ -6,6 +6,7 @@ import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestRe
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 
+import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -122,7 +123,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const reportID = report?.reportID;
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
     const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
@@ -152,7 +153,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
     }, [reportID]);
@@ -233,7 +234,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         return;
     }
 
-    if (isLoadingApp) {
+    if (isAppLoadPending) {
         return (
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView reasonAttributes={loadingAppReasonAttributes} />

@@ -52,6 +52,8 @@ type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentV
 
 type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
 
+type ViolationsInactiveVendorParams = {isSupplier?: boolean};
+
 type OptionalParam<T> = Partial<T>;
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
@@ -64,6 +66,7 @@ type IntegrationsMessageParams = {
         code?: number;
         messages?: string[];
         title?: string;
+        reconciled?: boolean;
         link?: {
             url: string;
             text: string;
@@ -83,6 +86,14 @@ type UnshareParams = {to: string};
 
 type ConnectionNameParams = {
     connectionName: AllConnectionName;
+};
+
+type ConnectionDisplayNameParams = {
+    connectionName: string;
+};
+
+type DefaultVendorHelperTextParams = {
+    isSet: boolean;
 };
 
 type ExportAgainModalDescriptionParams = {
@@ -131,6 +142,10 @@ type ConciergeBrokenCardConnectionParams = {
     connectionLink?: string;
 };
 
+type EmptyViolationSnapshotResultsSubtitleParams = {
+    formattedDate: string;
+};
+
 export type {
     MissingPropertyParams,
     InvalidPropertyParams,
@@ -150,6 +165,7 @@ export type {
     ParentNavigationSummaryParams,
     PaidElsewhereParams,
     ConciergeBrokenCardConnectionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -159,6 +175,7 @@ export type {
     StepCounterParams,
     ViolationsModifiedAmountParams,
     ViolationsIncreasedDistanceParams,
+    ViolationsInactiveVendorParams,
     ChangeFieldParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,
@@ -167,6 +184,8 @@ export type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     ConnectionNameParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
     OptionalParam,
