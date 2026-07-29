@@ -284,8 +284,11 @@ function SubmitDetailsPage({
     // Destination report isn't in COLLECTION.REPORT yet (e.g. a recipient with no existing chat) — it will only
     // exist after the expense create writes it optimistically, so pre-mounting is impossible.
     const isDestinationReportMissing = hasNavigationDestination && !destinationReportInCollection?.reportID;
+    // Keep pre-mount off while pending navigation owns the reveal — otherwise once the optimistic
+    // report lands, isDestinationReportMissing flips false and usePreMountDestination would schedule
+    // a narrow pre-insert alongside the pending revealRouteBeforeDismissingModal (dual nav).
     const preMountDestinationRoute =
-        hasNavigationDestination && !isDestinationReportMissing && Navigation.getTopmostReportId() !== postSubmitNavigationReportID
+        hasNavigationDestination && !isDestinationReportMissing && !pendingNavigationReportID && Navigation.getTopmostReportId() !== postSubmitNavigationReportID
             ? ROUTES.REPORT_WITH_ID.getRoute(postSubmitNavigationReportID)
             : undefined;
 

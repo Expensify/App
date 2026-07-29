@@ -372,6 +372,38 @@ describe('SubmitDetailsPage', () => {
         expect(jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0]?.shouldNavigate).toBe(false);
     });
 
+    // Error #7b — after a missing-destination submit, the optimistic report landing must not arm
+    // usePreMountDestination (narrow pre-insert) alongside the pending reveal — that dual-nav race
+    // leaves a stale pre-insert flag under the RHP.
+    it('does not arm pre-mount after the optimistic destination lands on the pending-navigation path', async () => {
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+        jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+        jest.mocked(getReportOrDraftReport).mockReturnValue(undefined);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, null);
+        });
+
+        await renderAndConfirm();
+
+        expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
+        expect(jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0]?.shouldNavigate).toBe(false);
+
+        // Simulate the expense create writing the destination into COLLECTION.REPORT (requestMoney is mocked).
+        const landedReport = createTestReport();
+        jest.mocked(getReportOrDraftReport).mockReturnValue(landedReport);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, landedReport);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
+        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledTimes(1);
+        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(
+            ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID),
+            expect.objectContaining({afterTransition: expect.any(Function)}),
+        );
+    });
+
     // Error #8 — backing out before submit must tear down any pre-inserted destination route before goBack,
     // or the stale route can flash behind the next modal dismiss.
     it('cleans up a pre-inserted destination route before goBack when the user backs out without submitting', async () => {
