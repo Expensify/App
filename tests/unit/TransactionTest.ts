@@ -2037,12 +2037,16 @@ describe('Transaction', () => {
 
                 expect(mockAPIWrite).toHaveBeenCalled();
 
-                const parameters = mockAPIWrite.mock.calls.at(0)?.[1] as Record<string, unknown>;
+                const parameters = mockAPIWrite.mock.calls.at(0)?.[1];
 
                 // Without a jsonQuery the explicit transaction list must be sent and no all-matching params leak through.
-                expect(parameters.transactionList).toBe(transaction.transactionID);
-                expect(parameters.jsonQuery).toBeUndefined();
-                expect(parameters.hash).toBeUndefined();
+                expect(parameters).toEqual(
+                    expect.objectContaining({
+                        transactionList: transaction.transactionID,
+                    }),
+                );
+                expect(parameters).not.toHaveProperty('jsonQuery');
+                expect(parameters).not.toHaveProperty('hash');
 
                 mockAPIWrite.mockRestore();
             });
