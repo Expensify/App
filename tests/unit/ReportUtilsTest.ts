@@ -16989,7 +16989,7 @@ describe('ReportUtils', () => {
             expect(getMissingPaymentMethodForQueuedPayment(CONST.WALLET.TIER_NAME.GOLD, buildQueuedAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY), {})).toBeUndefined();
         });
 
-        // An unactivated wallet must not leak into the bank path: the payment type alone decides which method is missing
+        // A SILVER wallet must not leak into the bank path: the payment type alone decides which method is missing
         it('should ask for a bank account when a bank payment is queued and the user has no deposit account', () => {
             expect(getMissingPaymentMethodForQueuedPayment(CONST.WALLET.TIER_NAME.SILVER, buildQueuedAction(CONST.IOU.PAYMENT_TYPE.VBBA), {})).toBe(
                 CONST.MISSING_PAYMENT_METHODS.BANK_ACCOUNT,
