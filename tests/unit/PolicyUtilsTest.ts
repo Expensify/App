@@ -29,6 +29,7 @@ import {
     getManagerAccountID,
     getMatchingVendorByID,
     getMatchingVendors,
+    getPolicyApproverLogins,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
     getPolicyIDFromDomainName,
@@ -4099,5 +4100,63 @@ describe('getDefaultWorkspacePlanType', () => {
         },
     ])('returns $expected when $description', ({policies, expected}) => {
         expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
+    });
+});
+
+describe('getPolicyApproverLogins', () => {
+    it('returns an empty set when policy is undefined', () => {
+        expect(getPolicyApproverLogins(undefined).size).toBe(0);
+    });
+
+    it('returns an empty set when there is no approver and no employees route anywhere', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: undefined,
+            employeeList: {
+                'employee@test.com': {email: 'employee@test.com', submitsTo: '', forwardsTo: '', overLimitForwardsTo: ''},
+            },
+        };
+        expect(getPolicyApproverLogins(policy).size).toBe(0);
+    });
+
+    it('includes the named policy approver', () => {
+        const policy: Policy = {...createRandomPolicy(0), approver: 'boss@test.com', employeeList: {}};
+        expect([...getPolicyApproverLogins(policy)]).toEqual(['boss@test.com']);
+    });
+
+    it('collects submitsTo, forwardsTo and overLimitForwardsTo targets', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: undefined,
+            employeeList: {
+                'a@test.com': {email: 'a@test.com', submitsTo: 'manager@test.com'},
+                'b@test.com': {email: 'b@test.com', forwardsTo: 'director@test.com'},
+                'c@test.com': {email: 'c@test.com', overLimitForwardsTo: 'vp@test.com'},
+            },
+        };
+        expect([...getPolicyApproverLogins(policy)].sort()).toEqual(['director@test.com', 'manager@test.com', 'vp@test.com']);
+    });
+
+    it('deduplicates approvers referenced by multiple employees or fields', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: 'manager@test.com',
+            employeeList: {
+                'a@test.com': {email: 'a@test.com', submitsTo: 'manager@test.com'},
+                'b@test.com': {email: 'b@test.com', submitsTo: 'manager@test.com', forwardsTo: 'manager@test.com'},
+            },
+        };
+        expect([...getPolicyApproverLogins(policy)]).toEqual(['manager@test.com']);
+    });
+
+    it('ignores empty-string routing fields', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: '',
+            employeeList: {
+                'a@test.com': {email: 'a@test.com', submitsTo: '', forwardsTo: 'director@test.com', overLimitForwardsTo: ''},
+            },
+        };
+        expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
     });
 });
