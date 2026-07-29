@@ -872,7 +872,7 @@ function duplicateExpenseTransaction({
             isDraftPolicy: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
-            // Deferred: thread the real conciergeChat when this cascade is migrated (#66411).
+            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
             conciergeChat: undefined,
             quickAction,
             recentWaypoints,
