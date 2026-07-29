@@ -1075,7 +1075,9 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS);
+    if (reportTransactions.some(hasReceiptTransactionUtils)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS);
+    }
 
     if (!isOpenReportUtils(report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
