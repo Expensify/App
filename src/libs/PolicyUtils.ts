@@ -105,7 +105,7 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
  * These will be policies that has expense chat enabled.
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, isSubmit2026BetaEnabled = false): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy =>
             !!policy &&
@@ -113,7 +113,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
-            isPaidGroupPolicy(policy),
+            (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)),
     );
 }
 
@@ -691,6 +691,26 @@ function isPolicyApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
     return Object.values(policy?.employeeList ?? {}).some(
         (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
     );
+}
+
+/** Set of every approver login in the policy. Prefer over calling isPolicyApprover in a loop (scans employeeList once, not per candidate). */
+function getPolicyApproverLogins(policy: OnyxEntry<Policy>): Set<string> {
+    const approverLogins = new Set<string>();
+    if (policy?.approver) {
+        approverLogins.add(policy.approver);
+    }
+    for (const employee of Object.values(policy?.employeeList ?? {})) {
+        if (employee?.submitsTo) {
+            approverLogins.add(employee.submitsTo);
+        }
+        if (employee?.forwardsTo) {
+            approverLogins.add(employee.forwardsTo);
+        }
+        if (employee?.overLimitForwardsTo) {
+            approverLogins.add(employee.overLimitForwardsTo);
+        }
+    }
+    return approverLogins;
 }
 
 function getUberConnectionErrorDirectlyFromPolicy(policy: OnyxEntry<Policy>) {
@@ -2797,11 +2817,13 @@ function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) 
     return mostFrequent.domain;
 }
 
+const getPolicyIDFromDomainName = (domainName: string): string | undefined => domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1]?.toUpperCase();
+
 const getDescriptionForPolicyDomainCard = (domainName: string, policies: OnyxCollection<Policy>): string => {
     // A domain name containing a policyID indicates that this is a workspace feed
-    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
+    const policyID = getPolicyIDFromDomainName(domainName);
     if (policyID) {
-        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID.toUpperCase()}`];
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
         return policy?.name ?? domainName;
     }
     return domainName;
@@ -2920,6 +2942,7 @@ export {
     canPolicyAccessFeature,
     escapeTagName,
     getActivePolicies,
+    getActivePoliciesWithExpenseChat,
     getAdminEmployees,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -3089,6 +3112,7 @@ export {
     canModifyPlan,
     getAdminsPrivateEmailDomains,
     getMostFrequentEmailDomain,
+    getPolicyIDFromDomainName,
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
     isPreferredExporter,
@@ -3114,6 +3138,7 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    getPolicyApproverLogins,
     tryNavigateToSubmitWorkspaceUpgrade,
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,

@@ -989,6 +989,7 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
+        WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
@@ -2470,7 +2471,7 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
-        INCORRECT_MAGIC_CODE: 451,
+        INCORRECT_VALIDATE_CODE: 451,
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
@@ -2480,6 +2481,9 @@ const CONST = {
         BAD_GATEWAY: 502,
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
+    },
+    HTTP_HEADER_NAMES: {
+        AUTH_TOKEN: 'authToken',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
@@ -2621,8 +2625,8 @@ const CONST = {
 
     TOOLTIP_MAX_LINES: 3,
 
-    MAGIC_CODE_LENGTH: 6,
-    MAGIC_CODE_EMPTY_CHAR: ' ',
+    VALIDATE_CODE_LENGTH: 6,
+    VALIDATE_CODE_EMPTY_CHAR: ' ',
 
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
@@ -5373,7 +5377,7 @@ const CONST = {
     MAP_MARKER_SIZES: {
         CURRENT_LOCATION: {width: 48, height: 48},
         START_WAYPOINT: {width: 48, height: 48},
-        STOP_WAYPOINT: {width: 48, height: 53},
+        STOP_WAYPOINT: {width: 48, height: 53, xAxisLineHeight: 16},
         WAYPOINT: {width: 40, height: 40},
     },
 
@@ -7317,7 +7321,6 @@ const CONST = {
         },
         NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
-        TAG_UNTAGGED_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         MERCHANT_EMPTY_VALUE: 'none',
@@ -7450,6 +7453,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
             };
         },
+        NOT_PREFIX: '-',
         NOT_MODIFIER: 'Not',
         DATE_MODIFIERS: {
             ON: 'On',
@@ -8372,6 +8376,7 @@ const CONST = {
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
+            VICTORY_CHART_EXPAND_BUTTON: 'HTMLRenderer-VictoryChartExpandButton',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
@@ -8390,6 +8395,9 @@ const CONST = {
             BACK_BUTTON: 'HeaderView-BackButton',
             CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
+        },
+        BLOCKING_VIEW: {
+            RETRY_BUTTON: 'BlockingView-RetryButton',
         },
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
@@ -8443,6 +8451,7 @@ const CONST = {
         },
         TABLE: {
             FILTERS: 'Table-Filters',
+            SETTINGS: 'Table-Settings',
             EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {
@@ -8698,7 +8707,9 @@ const CONST = {
             DISTANCE_ODOMETER_SAVE_FOR_LATER_BUTTON: 'IOURequestStep-DistanceOdometerSaveForLaterButton',
             ODOMETER_CHOOSE_FILE_BUTTON: 'IOURequestStep-OdometerChooseFileButton',
             GPS_START_STOP_BUTTON: 'IOURequestStep-GPSStartStopButton',
+            GPS_EDIT_BUTTON: 'IOURequestStep-GPSEditButton',
             GPS_DISCARD_BUTTON: 'IOURequestStep-GPSDiscardButton',
+            GPS_SAVE_EDIT_BUTTON: 'IOURequestStep-GPSSaveEditButton',
             GPS_NEXT_BUTTON: 'IOURequestStep-GPSNextButton',
             GPS_OPEN_MOBILE_BUTTON: 'IOURequestStep-GPSOpenMobileButton',
             WAYPOINT_REMOVE_BUTTON: 'IOURequestStep-WaypointRemoveButton',
@@ -8760,7 +8771,8 @@ const CONST = {
             IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
-                MORE_DROPDOWN: 'WorkspaceCompanyCards-MoreDropdown',
+                SETTINGS_BUTTON: 'WorkspaceCompanyCards-SettingsButton',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceCompanyCards-BulkActionsDropdown',
                 CARD_NAME: 'WorkspaceCompanyCards-CardName',
                 CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
                 UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',
@@ -9016,7 +9028,7 @@ const CONST = {
             SIGN_IN_BUTTON: 'SignIn-SignInButton',
             JOIN: 'SignIn-Join',
             SSO: 'SignIn-SSO',
-            MAGIC_CODE: 'SignIn-MagicCode',
+            VALIDATE_CODE: 'SignIn-ValidateCode',
             UNLINK: 'SignIn-Unlink',
             GO_BACK: 'SignIn-GoBack',
             VALIDATE: 'SignIn-Validate',
@@ -9207,16 +9219,16 @@ const CONST = {
                 publishedDate: '2026-07-20',
             },
             {
+                title: 'New feature: Consolidated travel billing',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
+                publishedDate: '2026-07-13',
+            },
+            {
                 title: 'More Concierge AI upgrades, plus agent beta',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260701645763/en/Expensifys-AI-Expands-to-Expense-Automation-Spend-Insights-and-Agents',
                 publishedDate: '2026-07-01',
-            },
-            {
-                title: 'Ask Concierge AI: charts, insights & more',
-                subtitle: 'Newsletter',
-                url: 'https://use.expensify.com/blog/ask-expensify-ai-anything',
-                publishedDate: '2026-06-30',
             },
         ],
     },

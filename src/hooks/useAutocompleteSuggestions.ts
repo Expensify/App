@@ -36,6 +36,7 @@ import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 
 import {useCurrencyListState} from './useCurrencyList';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
+import useLoadSearchCategoryData from './useLoadSearchCategoryData';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSortedActions from './useSortedActions';
@@ -146,6 +147,9 @@ function useAutocompleteSuggestions({
             }
         }
     }
+
+    const shouldLoadCategoryData = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || ranges.some((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+    useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
     if (!autocompleteKey) {
         return [];

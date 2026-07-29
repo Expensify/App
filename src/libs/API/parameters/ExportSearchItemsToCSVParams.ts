@@ -8,6 +8,7 @@ type ExportSearchItemsToCSVParams = {
     isBasicExport: boolean;
     exportColumnLabels: string;
     exportName: string;
+    isGroupExport?: boolean;
 };
 
 export default ExportSearchItemsToCSVParams;
