@@ -16,18 +16,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, SearchResults} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
-import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
-
-import type {MockFetch} from '../../utils/TestHelper';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyTags from '../../utils/collections/policyTags';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {getGlobalFetchMock, getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -72,8 +71,6 @@ const RORY_ACCOUNT_ID = 3;
 OnyxUpdateManager();
 
 describe('actions/IOU/Receipt', () => {
-    let mockFetch: MockFetch;
-
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -87,12 +84,11 @@ describe('actions/IOU/Receipt', () => {
 
     beforeEach(() => {
         global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     afterEach(() => {
-        mockFetch?.mockClear();
+        jest.mocked(global.fetch).mockClear();
     });
 
     describe('replaceReceipt', () => {
@@ -134,18 +130,15 @@ describe('actions/IOU/Receipt', () => {
             });
         };
 
+        const getSearchSnapshot = async (hash: number): Promise<OnyxEntry<SearchResults>> => {
+            const snapshots = await getOnyxValue(ONYXKEYS.COLLECTION.SNAPSHOT);
+            return snapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
+        };
+
         let getCurrentSearchQueryJSONSpy: jest.SpyInstance;
 
         const mockApiWrite = () => {
             return jest.spyOn(API, 'write').mockImplementation(jest.fn());
-        };
-
-        type OnyxUpdateEntry = {onyxMethod?: string; key: string; value: Record<string, unknown>};
-        type OnyxDataArg = {optimisticData?: OnyxUpdateEntry[]; successData?: OnyxUpdateEntry[]; failureData?: OnyxUpdateEntry[]};
-
-        const getOnyxDataFromWriteSpy = (writeSpy: jest.SpyInstance): OnyxDataArg | undefined => {
-            const firstCall = writeSpy.mock.calls.at(0) as unknown[] | undefined;
-            return firstCall?.at(2) as OnyxDataArg | undefined;
         };
 
         beforeEach(() => {
@@ -153,7 +146,7 @@ describe('actions/IOU/Receipt', () => {
             // within JavaScript's safe integer range so the transaction data and its Onyx key
             // continue to refer to the same ID.
             transactionID = Date.now().toString();
-            getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue({hash: snapshotHash} as SearchQueryJSON);
+            getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(createMock<SearchQueryJSON>({hash: snapshotHash}));
         });
 
         afterEach(() => {
@@ -186,7 +179,7 @@ describe('actions/IOU/Receipt', () => {
             expect(updatedTransaction?.receipt?.source).toBe(source);
             expect(updatedTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
 
-            const updatedSnapshot = (await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as OnyxKey)) as OnyxEntry<SearchResults>;
+            const updatedSnapshot = await getSearchSnapshot(snapshotHash);
             expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
             expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
         });
@@ -204,7 +197,7 @@ describe('actions/IOU/Receipt', () => {
             expect(updatedTransaction?.receipt?.source).toBe(source);
             expect(updatedTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
 
-            const updatedSnapshot = (await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as OnyxKey)) as OnyxEntry<SearchResults>;
+            const updatedSnapshot = await getSearchSnapshot(snapshotHash);
             expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
             expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
         });
@@ -222,7 +215,7 @@ describe('actions/IOU/Receipt', () => {
             expect(updatedTransaction?.receipt?.source).toBe(source);
 
             await waitFor(async () => {
-                const updatedSnapshot = (await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as OnyxKey)) as OnyxEntry<SearchResults>;
+                const updatedSnapshot = await getSearchSnapshot(snapshotHash);
                 expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
             });
         });
@@ -238,9 +231,9 @@ describe('actions/IOU/Receipt', () => {
                 await waitForBatchedUpdates();
 
                 // Then the optimisticData marks the receipt field as pending UPDATE
-                const onyxData = getOnyxDataFromWriteSpy(writeSpy);
-                const transactionOptimistic = onyxData?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-                expect(transactionOptimistic?.value).toEqual(
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const transactionOptimistic = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
+                expect(transactionOptimistic.value).toEqual(
                     expect.objectContaining({
                         receipt: expect.objectContaining({source, state: CONST.IOU.RECEIPT_STATE.OPEN}),
                         pendingFields: {receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -316,15 +309,15 @@ describe('actions/IOU/Receipt', () => {
                 await waitForBatchedUpdates();
 
                 // Then the failureData restores the original receipt, clears pendingFields, and attaches errors
-                const onyxData = getOnyxDataFromWriteSpy(writeSpy);
-                const transactionFailure = onyxData?.failureData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-                expect(transactionFailure?.value).toEqual(
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const transactionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
+                expect(transactionFailure.value).toEqual(
                     expect.objectContaining({
                         receipt: OLD_RECEIPT,
                         pendingFields: {receipt: null},
                     }),
                 );
-                expect(transactionFailure?.value?.errors).toBeDefined();
+                expect(transactionFailure.value.errors).toBeDefined();
             } finally {
                 writeSpy.mockRestore();
             }
@@ -341,9 +334,9 @@ describe('actions/IOU/Receipt', () => {
                 await waitForBatchedUpdates();
 
                 // Then the failureData sets receipt to null since there was nothing to restore
-                const onyxData = getOnyxDataFromWriteSpy(writeSpy);
-                const transactionFailure = onyxData?.failureData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-                expect(transactionFailure?.value).toEqual(
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const transactionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
+                expect(transactionFailure.value).toEqual(
                     expect.objectContaining({
                         receipt: null,
                         pendingFields: {receipt: null},
@@ -365,9 +358,9 @@ describe('actions/IOU/Receipt', () => {
                 await waitForBatchedUpdates();
 
                 // Then the successData clears the pending field for the receipt
-                const onyxData = getOnyxDataFromWriteSpy(writeSpy);
-                const transactionSuccess = onyxData?.successData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-                expect(transactionSuccess?.value).toEqual({
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const transactionSuccess = getRequiredOnyxUpdate(onyxData, 'successData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
+                expect(transactionSuccess.value).toEqual({
                     pendingFields: {receipt: null},
                 });
             } finally {
@@ -387,11 +380,13 @@ describe('actions/IOU/Receipt', () => {
                 await waitForBatchedUpdates();
 
                 // Then no snapshot updates are included in either optimisticData or failureData
-                const onyxData = getOnyxDataFromWriteSpy(writeSpy);
-                const hasSnapshotOptimistic = onyxData?.optimisticData?.some((update) => update.key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT));
-                const hasSnapshotFailure = onyxData?.failureData?.some((update) => update.key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT));
-                expect(hasSnapshotOptimistic).toBe(false);
-                expect(hasSnapshotFailure).toBe(false);
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                expect(getRequiredOnyxUpdates(onyxData, 'optimisticData')).not.toEqual(
+                    expect.arrayContaining([expect.objectContaining({key: expect.stringMatching(new RegExp(`^${ONYXKEYS.COLLECTION.SNAPSHOT}`))})]),
+                );
+                expect(getRequiredOnyxUpdates(onyxData, 'failureData')).not.toEqual(
+                    expect.arrayContaining([expect.objectContaining({key: expect.stringMatching(new RegExp(`^${ONYXKEYS.COLLECTION.SNAPSHOT}`))})]),
+                );
             } finally {
                 writeSpy.mockRestore();
             }
@@ -408,10 +403,15 @@ describe('actions/IOU/Receipt', () => {
                 await waitForBatchedUpdates();
 
                 // Then the failureData restores the original receipt inside the snapshot entry
-                const onyxData = getOnyxDataFromWriteSpy(writeSpy);
-                const snapshotFailure = onyxData?.failureData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
-                const snapshotData = snapshotFailure?.value?.data as Record<string, {receipt?: unknown}> | undefined;
-                expect(snapshotData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt).toEqual(OLD_RECEIPT);
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const snapshotFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, Onyx.METHOD.MERGE, true);
+                expect(snapshotFailure.value).toEqual(
+                    expect.objectContaining({
+                        data: expect.objectContaining({
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: expect.objectContaining({receipt: OLD_RECEIPT}),
+                        }),
+                    }),
+                );
             } finally {
                 writeSpy.mockRestore();
             }
@@ -485,9 +485,9 @@ describe('actions/IOU/Receipt', () => {
                 await waitForBatchedUpdates();
 
                 // Then the failureData restores the original violations
-                const onyxData = getOnyxDataFromWriteSpy(writeSpy);
-                const violationsFailure = onyxData?.failureData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-                expect(violationsFailure?.value).toEqual(existingViolations);
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const violationsFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, Onyx.METHOD.MERGE);
+                expect(violationsFailure.value).toEqual(existingViolations);
             } finally {
                 writeSpy.mockRestore();
             }
@@ -551,9 +551,9 @@ describe('actions/IOU/Receipt', () => {
                 detachReceipt(transaction, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
-                const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData?: Array<{key: string; value: unknown}>};
-                const transactionOptimistic = onyxData?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-                expect(transactionOptimistic?.value).toEqual(
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const transactionOptimistic = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
+                expect(transactionOptimistic.value).toEqual(
                     expect.objectContaining({
                         receipt: null,
                         pendingFields: {receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},

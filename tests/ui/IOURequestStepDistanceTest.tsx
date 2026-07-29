@@ -239,14 +239,15 @@ function renderEditMode() {
                         key: 'Money_Request_Step_Distance-test',
                         name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
                         params: {
-                            action: CONST.IOU.ACTION.EDIT as never,
+                            action: CONST.IOU.ACTION.EDIT,
                             iouType: CONST.IOU.TYPE.SUBMIT,
                             reportID: REPORT_ID,
                             transactionID: TRANSACTION_ID,
-                            backTo: undefined as never,
+                            // @ts-expect-error -- this test intentionally omits the legacy backTo route parameter.
+                            backTo: undefined,
                         },
                     }}
-                    // @ts-expect-error minimal navigation for test
+                    // @ts-expect-error -- this test intentionally supplies a minimal navigation fixture.
                     navigation={undefined}
                 />
             </CurrentUserPersonalDetailsProvider>
@@ -287,14 +288,15 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
                             key: 'Money_Request_Step_Distance-test',
                             name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
                             params: {
-                                action: CONST.IOU.ACTION.CREATE as never,
+                                action: CONST.IOU.ACTION.CREATE,
                                 iouType: CONST.IOU.TYPE.SUBMIT,
                                 reportID: REPORT_ID,
                                 transactionID: TRANSACTION_ID,
-                                backTo: undefined as never,
+                                // @ts-expect-error -- this test intentionally omits the legacy backTo route parameter.
+                                backTo: undefined,
                             },
                         }}
-                        // @ts-expect-error minimal navigation for test
+                        // @ts-expect-error -- this test intentionally supplies a minimal navigation fixture.
                         navigation={undefined}
                     />
                 </CurrentUserPersonalDetailsProvider>
@@ -330,14 +332,15 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
                             key: 'Money_Request_Step_Distance-test',
                             name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
                             params: {
-                                action: CONST.IOU.ACTION.CREATE as never,
+                                action: CONST.IOU.ACTION.CREATE,
                                 iouType: CONST.IOU.TYPE.SUBMIT,
                                 reportID: REPORT_ID,
                                 transactionID: TRANSACTION_ID,
-                                backTo: undefined as never,
+                                // @ts-expect-error -- this test intentionally omits the legacy backTo route parameter.
+                                backTo: undefined,
                             },
                         }}
-                        // @ts-expect-error minimal navigation for test
+                        // @ts-expect-error -- this test intentionally supplies a minimal navigation fixture.
                         navigation={undefined}
                     />
                 </CurrentUserPersonalDetailsProvider>
@@ -537,14 +540,15 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
                             key: 'Money_Request_Step_Distance-test',
                             name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
                             params: {
-                                action: CONST.IOU.ACTION.CREATE as never,
+                                action: CONST.IOU.ACTION.CREATE,
                                 iouType: CONST.IOU.TYPE.SUBMIT,
                                 reportID: REPORT_ID,
                                 transactionID: TRANSACTION_ID,
-                                backTo: undefined as never,
+                                // @ts-expect-error -- this test intentionally omits the legacy backTo route parameter.
+                                backTo: undefined,
                             },
                         }}
-                        // @ts-expect-error minimal navigation for test
+                        // @ts-expect-error -- this test intentionally supplies a minimal navigation fixture.
                         navigation={undefined}
                     />
                 </CurrentUserPersonalDetailsProvider>
@@ -571,7 +575,13 @@ describe('IOURequestStepDistance - manual tab follows the recalculated route dis
     });
     // `getAllByLabelText` matches both the field label <Text> and the underlying <TextInput>; pick the input.
     const distanceInput = () => screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!;
-    const displayedDistance = () => distanceInput().props.value as string;
+    const displayedDistance = () => {
+        const value = distanceInput().props.value;
+        if (typeof value !== 'string') {
+            throw new Error('Expected distance input value to be a string.');
+        }
+        return value;
+    };
     const distanceUnit = () =>
         String(distanceInput().props.accessibilityLabel ?? '').includes(`common.${CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}`)
             ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS
