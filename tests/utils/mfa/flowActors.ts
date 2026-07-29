@@ -1,16 +1,13 @@
-import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
+import type {MfaActorOutput} from '@components/MultifactorAuthentication/machine/machineEvents';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
 import type {MfaContext} from '@components/MultifactorAuthentication/machine/types';
 
-import type {OutputFrom, StateValue} from 'xstate';
+import type {StateValue} from 'xstate';
 
 import {createActor} from 'xstate';
 
 import createInitEvent from './flowFixtures';
-import {CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, createActorDoneEvent, VALIDATE_DEVICE_DONE_EVENT_TYPE} from './flowPaths';
-
-type ValidateDeviceOutput = OutputFrom<ReturnType<typeof createActors>['validateDevice']>;
-type CheckLocalCredentialsOutput = OutputFrom<ReturnType<typeof createActors>['checkLocalCredentials']>;
+import {createActorDoneEvent} from './flowPaths';
 
 /**
  * Builds the context a flow carries right after INIT seeds it. Overrides express a spec's starting
@@ -44,15 +41,15 @@ function createActorAtState(value: StateValue, contextOverrides?: Partial<MfaCon
 /**
  * Completes the invoked device-check actor by sending its done event carrying the given output.
  */
-function sendValidateDeviceDone(actor: ReturnType<typeof createActorAtState>, output: ValidateDeviceOutput) {
-    actor.send(createActorDoneEvent({type: VALIDATE_DEVICE_DONE_EVENT_TYPE, output}));
+function sendValidateDeviceDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'validateDevice'>) {
+    actor.send(createActorDoneEvent('validateDevice', output));
 }
 
 /**
  * Completes the invoked credentials-check actor by sending its done event carrying the given output.
  */
-function sendCheckLocalCredentialsDone(actor: ReturnType<typeof createActorAtState>, output: CheckLocalCredentialsOutput) {
-    actor.send(createActorDoneEvent({type: CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE, output}));
+function sendCheckLocalCredentialsDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'checkLocalCredentials'>) {
+    actor.send(createActorDoneEvent('checkLocalCredentials', output));
 }
 
 export {createActorAtState, createFlowContext, sendCheckLocalCredentialsDone, sendValidateDeviceDone};

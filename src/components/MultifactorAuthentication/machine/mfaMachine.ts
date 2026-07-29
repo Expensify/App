@@ -10,40 +10,15 @@ import {requestValidateCodeAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
-import type {OutputFrom} from 'xstate';
-
 import {CONST as COMMON_CONST} from 'expensify-common';
 import {assign, setup} from 'xstate';
 
-import type {MfaContext, MfaEvent, MfaTag} from './types';
+import type {MfaMachineEvent} from './machineEvents';
+import type {MfaContext, MfaTag} from './types';
 
 import createActors from './mfaActors';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
-
-type MfaActors = ReturnType<typeof createActors>;
-type MfaActorId = Extract<keyof MfaActors, string>;
-type MfaActorDoneEventType = `xstate.done.actor.${MfaActorId}`;
-type MfaActorErrorEventType = `xstate.error.actor.${MfaActorId}`;
-type MfaActorDoneOutputByType = {
-    [Id in MfaActorId as `xstate.done.actor.${Id}`]: OutputFrom<MfaActors[Id]>;
-};
-type MfaActorDoneEventFor<Type extends MfaActorDoneEventType> = {
-    type: Type;
-    output: MfaActorDoneOutputByType[Type];
-};
-type MfaActorErrorEventFor<Type extends MfaActorErrorEventType> = {
-    type: Type;
-    error: unknown;
-};
-type MfaActorDoneEvent = {
-    [Type in MfaActorDoneEventType]: MfaActorDoneEventFor<Type>;
-}[MfaActorDoneEventType];
-type MfaActorErrorEvent = {
-    [Type in MfaActorErrorEventType]: MfaActorErrorEventFor<Type>;
-}[MfaActorErrorEventType];
-type MfaDelayedEventType = `xstate.after${string}`;
-type MfaMachineEvent = MfaEvent | MfaActorDoneEvent | MfaActorErrorEvent | {type: MfaDelayedEventType} | {type: 'xstate.init'};
 
 // Absolute targets for the screen branches. The device check runs under `preparing`, so reaching a
 // sibling branch needs an id target rather than a relative one.
@@ -347,4 +322,3 @@ const MFAMachine = setup({
 });
 
 export default MFAMachine;
-export type {MfaActorDoneEvent, MfaActorDoneEventFor, MfaActorDoneEventType, MfaActorDoneOutputByType, MfaActorErrorEventFor, MfaActorErrorEventType, MfaDelayedEventType, MfaMachineEvent};

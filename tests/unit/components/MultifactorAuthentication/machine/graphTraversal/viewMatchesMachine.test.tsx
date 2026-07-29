@@ -1,8 +1,7 @@
 import {act, fireEvent, screen} from '@testing-library/react-native';
 
+import type {MfaActorDoneEvent, MfaInternalEvent, MfaMachineEvent} from '@components/MultifactorAuthentication/machine/machineEvents';
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import type {MfaActorDoneEventFor, MfaActorDoneEventType, MfaActorDoneOutputByType, MfaActorErrorEventType} from '@components/MultifactorAuthentication/machine/mfaMachine';
-import type {MfaEvent} from '@components/MultifactorAuthentication/machine/types';
 import {mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 
 import CONST from '@src/CONST';
@@ -14,17 +13,7 @@ import type {SnapshotFrom} from 'xstate';
 
 import Onyx from 'react-native-onyx';
 import {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
-import getWalkedPaths, {
-    CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE,
-    CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE,
-    isAutoDrivenEvent,
-    READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE,
-    READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE,
-    REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE,
-    REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE,
-    VALIDATE_DEVICE_DONE_EVENT_TYPE,
-    VALIDATE_DEVICE_ERROR_EVENT_TYPE,
-} from 'tests/utils/mfa/flowPaths';
+import getWalkedPaths, {actorDoneEventType, actorErrorEventType, isAutoDrivenEvent} from 'tests/utils/mfa/flowPaths';
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {
@@ -74,30 +63,41 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 // These UI markers distinguish the closed, closing, and outcome states. The backdrop exists only while the MFA navigator is mounted.
 const TEST_ID = CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID;
 
-type MfaEventType = MfaEvent['type'];
+/** Every event the walk drives as a gesture, which is all of them except the ones XState raises on its own. */
+type MfaDrivableEventType = Exclude<MfaMachineEvent['type'], MfaInternalEvent['type']>;
 
-type MfaInitEvent = Extract<MfaEvent, {type: 'INIT'}>;
-type MfaEventExecutorStep<Type extends MfaEventType> = {event: {type: Type}};
+/**
+ * The step an executor receives. `TestParam` types its event as the bare `{type}`, while the walk
+ * passes the fixture it actually drove. Accepting both keeps each executor assignable to what
+ * `path.test` expects and still lets it narrow back to the payload.
+ */
+type MfaExecutorStep<Type extends MfaDrivableEventType> = {event: {type: Type} | Extract<MfaMachineEvent, {type: Type}>};
+
 type MfaEventExecutors = {
-    [Type in MfaEventType]: (step: MfaEventExecutorStep<Type>) => Promise<void>;
+    [Type in MfaDrivableEventType]: (step: MfaExecutorStep<Type>) => Promise<void>;
 };
-type MfaActorEventExecutors = {
-    [Type in MfaActorDoneEventType]: (step: {event: {type: Type} | MfaActorDoneEventFor<Type>}) => Promise<void>;
-} & Record<MfaActorErrorEventType, () => Promise<void>>;
 
 type ExecuteScenario = ReturnType<typeof renderMfaUi>['executeScenario'];
 
-function isMfaInitEvent(event: {type: string}): event is MfaInitEvent {
-    return event.type === 'INIT' && 'accountID' in event && 'scenarioName' in event && 'scenario' in event && 'payload' in event;
+function getInitEvent(step: MfaExecutorStep<'INIT'>) {
+    if (!('scenario' in step.event)) {
+        throw new Error('MFA INIT executor received a path event without the scenario fixture payload.');
+    }
+    return step.event;
 }
 
-type MfaValidateCodeEnteredEvent = Extract<MfaEvent, {type: 'VALIDATE_CODE_ENTERED'}>;
-
-function isMfaValidateCodeEnteredEvent(event: {type: string}): event is MfaValidateCodeEnteredEvent {
-    return event.type === 'VALIDATE_CODE_ENTERED' && 'validateCode' in event;
+function getValidateCode(step: MfaExecutorStep<'VALIDATE_CODE_ENTERED'>) {
+    if (!('validateCode' in step.event)) {
+        throw new Error('MFA VALIDATE_CODE_ENTERED executor received a path event without the code fixture payload.');
+    }
+    return step.event.validateCode;
 }
 
-function getActorDoneOutput<Type extends MfaActorDoneEventType>(step: {event: {type: Type} | MfaActorDoneEventFor<Type>}): MfaActorDoneOutputByType[Type] {
+/**
+ * Reads the output an actor resolved with. The generic recovers it from the step's own fixture member,
+ * because a mapped executor type cannot infer the actor id back out of an `Extract`.
+ */
+function getActorDoneOutput<TOutput>(step: {event: {type: MfaActorDoneEvent['type']} | {type: MfaActorDoneEvent['type']; output: TOutput}}): TOutput {
     if (!('output' in step.event)) {
         throw new Error(`Actor done executor received event "${step.event.type}" without output.`);
     }
@@ -118,10 +118,7 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
 
     return {
         INIT: async (step) => {
-            const {event} = step;
-            if (!isMfaInitEvent(event)) {
-                throw new Error('MFA INIT executor received a path event without the scenario fixture payload.');
-            }
+            const event = getInitEvent(step);
             await act(async () => {
                 await executeScenario(event.scenarioName, event.payload);
             });
@@ -149,11 +146,7 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             await waitForBatchedUpdatesWithAct();
         },
         VALIDATE_CODE_ENTERED: async (step) => {
-            const {event} = step;
-            if (!isMfaValidateCodeEnteredEvent(event)) {
-                throw new Error('MFA VALIDATE_CODE_ENTERED executor received a path event without the code fixture payload.');
-            }
-            fireEvent.changeText(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT), event.validateCode);
+            fireEvent.changeText(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT), getValidateCode(step));
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(screen.getByTestId(TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON));
             await waitForBatchedUpdatesWithAct();
@@ -166,15 +159,15 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             fireEvent.changeText(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT), '1');
             await waitForBatchedUpdatesWithAct();
         },
-        [VALIDATE_DEVICE_DONE_EVENT_TYPE]: (step) => settleActor(() => validateDeviceControl.resolve(getActorDoneOutput(step))),
-        [VALIDATE_DEVICE_ERROR_EVENT_TYPE]: () => settleActor(validateDeviceControl.reject),
-        [READ_HAS_ACCEPTED_SOFT_PROMPT_DONE_EVENT_TYPE]: (step) => settleActor(() => readHasAcceptedSoftPromptControl.resolve(getActorDoneOutput(step))),
-        [READ_HAS_ACCEPTED_SOFT_PROMPT_ERROR_EVENT_TYPE]: () => settleActor(readHasAcceptedSoftPromptControl.reject),
-        [CHECK_LOCAL_CREDENTIALS_DONE_EVENT_TYPE]: (step) => settleActor(() => checkLocalCredentialsControl.resolve(getActorDoneOutput(step))),
-        [CHECK_LOCAL_CREDENTIALS_ERROR_EVENT_TYPE]: () => settleActor(checkLocalCredentialsControl.reject),
-        [REQUEST_REGISTRATION_CHALLENGE_DONE_EVENT_TYPE]: (step) => settleActor(() => requestRegistrationChallengeControl.resolve(getActorDoneOutput(step))),
-        [REQUEST_REGISTRATION_CHALLENGE_ERROR_EVENT_TYPE]: () => settleActor(requestRegistrationChallengeControl.reject),
-    } satisfies MfaEventExecutors & MfaActorEventExecutors;
+        [actorDoneEventType('validateDevice')]: (step) => settleActor(() => validateDeviceControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('validateDevice')]: () => settleActor(validateDeviceControl.reject),
+        [actorDoneEventType('readHasAcceptedSoftPrompt')]: (step) => settleActor(() => readHasAcceptedSoftPromptControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('readHasAcceptedSoftPrompt')]: () => settleActor(readHasAcceptedSoftPromptControl.reject),
+        [actorDoneEventType('checkLocalCredentials')]: (step) => settleActor(() => checkLocalCredentialsControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('checkLocalCredentials')]: () => settleActor(checkLocalCredentialsControl.reject),
+        [actorDoneEventType('requestRegistrationChallenge')]: (step) => settleActor(() => requestRegistrationChallengeControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('requestRegistrationChallenge')]: () => settleActor(requestRegistrationChallengeControl.reject),
+    } satisfies MfaEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
 
