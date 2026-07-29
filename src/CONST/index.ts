@@ -4721,6 +4721,8 @@ const CONST = {
         BROKEN_CONNECTION_DISMISS_AFTER_DAYS: 90,
         WORKSPACE_FEEDS_LOAD_ERROR: 'workspaceFeedsLoadError',
         FEED_LOAD_ERROR: 'feedLoadError',
+        // Fallback timeout to clear the importing state if imported cards never arrive
+        IMPORTING_CARDS_TIMEOUT_MS: 3 * 60 * 1000,
         STEP: {
             SELECT_BANK: 'SelectBank',
             SELECT_FEED_TYPE: 'SelectFeedType',
