@@ -1,8 +1,10 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
+import {format as formatNumber} from '@libs/NumberFormatUtils';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 
@@ -15,7 +17,7 @@ import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
-import type {Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
+import type {CurrencyList, Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
@@ -24,6 +26,7 @@ import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import currencyListFixture from '../unit/currencyList.json';
 import {isObject} from './typeGuards';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
@@ -69,6 +72,10 @@ const STRIPE_CUSTOMER_ID: OnyxEntry<StripeCustomerID> = {
     currency: 'USD',
     status: 'authentication_required',
 };
+
+const anyArray: unknown = expect.any(Array);
+const anyObject: unknown = expect.any(Object);
+const anyString: unknown = expect.any(String);
 
 function setupApp() {
     beforeAll(() => {
@@ -448,6 +455,35 @@ function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parame
     return translate(currentLocale, phrase, ...parameters);
 }
 
+// Static currency list fixture — the same one initCurrencyListContext seeds into Onyx — so the
+// local helpers below resolve real per-currency decimals without depending on Onyx state.
+const testCurrencyList = currencyListFixture as CurrencyList;
+
+/**
+ * A local version of useCurrencyListActions().getCurrencyDecimals for tests that call lib
+ * functions directly and need to inject the decimals resolver without the full app context.
+ */
+function getCurrencyDecimalsLocal(currencyCode: string | undefined): number {
+    return testCurrencyList?.[currencyCode ?? '']?.decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
+}
+
+/**
+ * A local version of useCurrencyListActions().convertToDisplayString for tests that call lib
+ * functions directly and need to inject the currency formatter without the full app context.
+ * Mirrors the implementation in CurrencyListContextProvider, pinned to the `en` locale.
+ */
+function convertToDisplayString(amountInCents: number | undefined, currencyCode: string | undefined): string {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    const decimals = getCurrencyDecimalsLocal(sanitizedCurrency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
+    return formatNumber(CONST.LOCALES.EN, convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: 2,
+    });
+}
+
 function getNavigateToChatHintRegex(): RegExp {
     const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
     return new RegExp(hintTextPrefix, 'i');
@@ -474,7 +510,11 @@ function localeCompare(a: string, b: string): number {
 
 export type {MockFetch, FormData};
 export {
+    anyArray,
+    anyObject,
+    anyString,
     translateLocal,
+    convertToDisplayString,
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,
