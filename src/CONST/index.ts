@@ -2482,6 +2482,9 @@ const CONST = {
         GATEWAY_TIMEOUT: 504,
         UNKNOWN_ERROR: 520,
     },
+    HTTP_HEADER_NAMES: {
+        AUTH_TOKEN: 'authToken',
+    },
     ERROR: {
         XHR_FAILED: 'xhrFailed',
         THROTTLED: 'throttled',
@@ -8448,6 +8451,7 @@ const CONST = {
         },
         TABLE: {
             FILTERS: 'Table-Filters',
+            SETTINGS: 'Table-Settings',
             EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {
@@ -8767,7 +8771,8 @@ const CONST = {
             IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
-                MORE_DROPDOWN: 'WorkspaceCompanyCards-MoreDropdown',
+                SETTINGS_BUTTON: 'WorkspaceCompanyCards-SettingsButton',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceCompanyCards-BulkActionsDropdown',
                 CARD_NAME: 'WorkspaceCompanyCards-CardName',
                 CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
                 UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',
