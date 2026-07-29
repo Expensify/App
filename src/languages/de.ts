@@ -4351,7 +4351,7 @@ ${amount} für ${merchant} – ${date}`,
         toLearnMore: 'um mehr zu erfahren.',
         termsAndConditions: {
             header: 'Bevor wir fortfahren ...',
-            title: 'Allgemeine Geschäftsbedingungen',
+            title: 'AGB prüfen',
             label: 'Ich stimme den Geschäftsbedingungen zu',
             subtitle: `Bitte stimme den Expensify Travel-<a href="${CONST.TRAVEL_TERMS_URL}">Geschäftsbedingungen</a> zu.`,
             error: 'Sie müssen den Expensify Travel Geschäftsbedingungen zustimmen, um fortzufahren',
@@ -4426,10 +4426,12 @@ ${amount} für ${merchant} – ${date}`,
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Bitte <a href="${phoneErrorMethodsRoute}">fügen Sie eine geschäftliche E-Mail als primäre Anmeldung hinzu</a>, um Reisen zu buchen.</rbr>`,
         domainSelector: {
+            headline: 'Welche Domain möchten Sie einrichten?',
             title: 'Domain',
             subtitle: 'Wählen Sie eine Domain für die Expensify Travel-Einrichtung.',
             recommended: 'Empfohlen',
         },
+        workspaceAddress: {headline: 'Wie lautet Ihre Geschäftsadresse?'},
         domainPermissionInfo: {
             title: 'Domain',
             restriction: (domain: string) =>
@@ -4485,6 +4487,7 @@ ${amount} für ${merchant} – ${date}`,
         nightIn: 'Nacht in',
         nightsIn: 'Nächte in',
         taxID: {
+            headline: 'Wie lautet Ihre geschäftliche Steuer-ID?',
             title: 'Steuer-ID',
             subtitle: 'Geben Sie die Steuer-ID Ihrer juristischen Person ein, damit wir die Reisekostenabrechnung in Ihrer Landeswährung einrichten können.',
             inputLabel: 'Steuer-ID der juristischen Person',
