@@ -83,16 +83,15 @@ describe('useWalletPhoneMagicCode', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('submits directly without routing to the magic-code screen when no phone number is saved yet', async () => {
+    it('routes to the magic-code screen when a phone number is set for the first time (none saved yet)', async () => {
         const {result} = await renderWalletPhoneMagicCode();
 
-        const params = buildParams();
         act(() => {
-            result.current.submitPersonalDetails(params);
+            result.current.submitPersonalDetails(buildParams());
         });
 
-        expect(mockUpdatePersonalDetails).toHaveBeenCalledWith(params);
-        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockUpdatePersonalDetails).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE.getRoute());
     });
 
     it('routes to the magic-code screen and holds the submission when an existing phone number is changed', async () => {
@@ -108,5 +107,17 @@ describe('useWalletPhoneMagicCode', () => {
 
         expect(mockUpdatePersonalDetails).not.toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE.getRoute());
+    });
+
+    it('submits directly without routing to the magic-code screen when no phone number is provided', async () => {
+        const {result} = await renderWalletPhoneMagicCode();
+
+        const params = buildParams({phoneNumber: ''});
+        act(() => {
+            result.current.submitPersonalDetails(params);
+        });
+
+        expect(mockUpdatePersonalDetails).toHaveBeenCalledWith(params);
+        expect(mockNavigate).not.toHaveBeenCalled();
     });
 });
