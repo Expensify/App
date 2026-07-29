@@ -7,6 +7,12 @@ const mockClear = jest.fn();
 const mockGetDBTime = jest.fn();
 
 jest.mock('@libs/Prefetch/clearPrefetchOnAppStart', () => mockClearPrefetchOnAppStart);
+jest.mock('@libs/Log', () => ({
+    __esModule: true,
+    default: {
+        warn: jest.fn(),
+    },
+}));
 jest.mock('@libs/DateUtils', () => ({
     getDBTime: mockGetDBTime,
 }));
@@ -22,6 +28,7 @@ jest.mock('react-native-onyx', () => ({
 describe('auth startup prefetch cleanup', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockClearPrefetchOnAppStart.mockResolvedValue(undefined);
         mockMerge.mockResolvedValue(undefined);
         mockMultiSet.mockResolvedValue(undefined);
         mockClear.mockResolvedValue(undefined);
@@ -50,12 +57,13 @@ describe('auth startup prefetch cleanup', () => {
 
         await clearOnyxAndSeedFullReconnect([ONYXKEYS.SESSION], {[ONYXKEYS.IS_LOADING_APP]: true});
 
-        expect(mockClearPrefetchOnAppStart).toHaveBeenCalledTimes(1);
+        expect(mockClearPrefetchOnAppStart).toHaveBeenCalledTimes(2);
         expect(mockMultiSet).toHaveBeenCalledWith({
             [ONYXKEYS.IS_LOADING_APP]: true,
             [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: '2026-07-16 12:00:00.000',
         });
         expect(mockClear).toHaveBeenCalledWith([ONYXKEYS.SESSION, ONYXKEYS.IS_LOADING_APP, ONYXKEYS.LAST_FULL_RECONNECT_TIME]);
         expect(mockClearPrefetchOnAppStart.mock.invocationCallOrder.at(0)).toBeLessThan(mockMultiSet.mock.invocationCallOrder.at(0) ?? 0);
+        expect(mockClearPrefetchOnAppStart.mock.invocationCallOrder.at(1)).toBeGreaterThan(mockClear.mock.invocationCallOrder.at(0) ?? 0);
     });
 });
