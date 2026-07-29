@@ -1687,7 +1687,6 @@ function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Repo
         const report = reportMapForAccountIDs[accountID];
         // Same lookup createOption performs (also normalizes accountID in place).
         const detail = getPersonalDetailsForAccountIDs([accountID], personalDetails)[accountID];
-        const formattedLogin = formatPhoneNumberPhoneUtils(detail?.login ?? '');
         // Same text createOption computes (translateLocal — the default createOption uses when translate is omitted).
         const text = getPersonalDetailOptionText({accountID, hasReport: !!report, personalDetails, login: detail?.login, translate: translateLocal});
 
@@ -1699,8 +1698,9 @@ function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Repo
             reportID: report?.reportID ?? '',
             keyForList: report ? String(report.reportID) : String(accountID),
             text,
-            // Comparator fallback only; hydrated option recomputes the real alternateText.
-            alternateText: report && detail?.login ? detail.login : formattedLogin,
+            // Shape parity only: every comparator and filter reads `text` (always a string) or `login`, never a
+            // shell's alternateText, so the raw login is enough here and hydration computes the display value.
+            alternateText: detail?.login,
             login: detail?.login,
             accountID: Number(detail?.accountID),
             participantsList: detail ? [detail] : [],
