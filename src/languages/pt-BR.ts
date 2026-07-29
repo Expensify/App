@@ -4321,7 +4321,7 @@ ${amount} para ${merchant} - ${date}`,
         toLearnMore: 'para saber mais.',
         termsAndConditions: {
             header: 'Antes de continuarmos...',
-            title: 'Termos e condições',
+            title: 'Revisar termos e condições',
             label: 'Eu concordo com os termos e condições',
             subtitle: `Concorde com os <a href="${CONST.TRAVEL_TERMS_URL}">termos e condições</a> do Expensify Travel.`,
             error: 'Você deve concordar com os termos e condições do Expensify Travel para continuar',
@@ -4396,10 +4396,12 @@ ${amount} para ${merchant} - ${date}`,
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Por favor, <a href="${phoneErrorMethodsRoute}">adicione um e-mail profissional como seu login principal</a> para reservar viagens.</rbr>`,
         domainSelector: {
+            headline: 'Qual domínio você quer configurar?',
             title: 'Domínio',
             subtitle: 'Escolha um domínio para a configuração do Expensify Travel.',
             recommended: 'Recomendado',
         },
+        workspaceAddress: {headline: 'Qual é o endereço da sua empresa?'},
         domainPermissionInfo: {
             title: 'Domínio',
             restriction: (domain: string) =>
@@ -4454,6 +4456,7 @@ ${amount} para ${merchant} - ${date}`,
         nightIn: 'noite em',
         nightsIn: 'noites em',
         taxID: {
+            headline: 'Qual é o CNPJ da sua empresa?',
             title: 'CPF/CNPJ',
             subtitle: 'Insira o CNPJ da sua empresa para que possamos configurar a cobrança de viagens na sua moeda local.',
             inputLabel: 'CNPJ da pessoa jurídica',

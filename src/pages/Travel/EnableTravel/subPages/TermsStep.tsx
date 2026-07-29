@@ -1,16 +1,13 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
-import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,8 +20,9 @@ import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actio
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+
+import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
 
 import colors from '@styles/theme/colors';
 
@@ -32,22 +30,25 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-import type {TravelProvisioning} from '@src/types/onyx';
-
-import type {StackScreenProps} from '@react-navigation/stack';
 
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 
-type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_TCS>;
+/** Safely reads the provisioning error code from an onyxData update value without asserting its type. */
+function getProvisioningErrorCode(value: unknown): string | undefined {
+    if (typeof value !== 'object' || value === null || !('error' in value)) {
+        return undefined;
+    }
+    const {error} = value;
+    return typeof error === 'string' ? error : undefined;
+}
 
-function DynamicTravelTerms({route}: TravelTermsPageProps) {
+function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageName, resetToPage}: EnableTravelSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
@@ -59,21 +60,17 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
     const [conciergeReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_TCS.path);
 
     const errorMessage = getLatestErrorMessage(travelProvisioning);
     const isLoading = travelProvisioning?.isLoading;
-    const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
-    const policyID = route.params.policyID;
+    const domain = resolvedDomain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : resolvedDomain;
 
     const createTravelEnablementIssue = () => {
         if (!conciergeReportID) {
             return;
         }
 
-        const message = translate('travel.verifyCompany.conciergeMessage', {
-            domain: Str.extractEmailDomain(account?.primaryLogin ?? ''),
-        });
+        const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
 
         addComment({
             report: conciergeReport,
@@ -85,19 +82,30 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
             delegateAccountID,
             conciergeReportID,
         });
+        // Close the Book Travel RHP before navigating to the concierge report, or it stays underneath in the
+        // stack and pressing back lands on a stale, already-submitted Terms screen instead of where the user
+        // was before opening Book Travel.
+        Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     };
 
     const acceptTermsAndOpenTravelDot = () => {
+        // subPage is URL-controlled, so a direct/deep link could reach Terms without having gone through every
+        // required step (e.g. a missing legal name). Redirect to the first genuinely incomplete one instead of
+        // calling the API with incomplete data.
+        if (firstIncompletePrerequisitePageName) {
+            resetToPage?.(firstIncompletePrerequisitePageName);
+            return;
+        }
         acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID)
             .then((response) => {
                 // Extract the error code from onyxData - the backend sets errors in TRAVEL_PROVISIONING via onyxData
                 const travelProvisioningData = response?.onyxData?.find((data) => data.key === ONYXKEYS.TRAVEL_PROVISIONING);
-                const errorCode = (travelProvisioningData?.value as Partial<TravelProvisioning> | undefined)?.error;
+                const errorCode = getProvisioningErrorCode(travelProvisioningData?.value);
 
                 // Handle permission denied error
                 if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.path));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain)));
                     cleanupTravelProvisioningSession();
                     return Promise.reject(new Error('Permission denied'));
                 }
@@ -118,12 +126,17 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
                         imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
                         // Disable browser history handling since we handle navigation ourselves
                         shouldHandleNavigationBack: false,
+                        // Resolve on tap instead of waiting for the modal's own dismiss animation, so the RHP
+                        // close below can start playing at the same time as the modal's dismissal instead of
+                        // only after it finishes.
+                        isConfirmLoading: false,
                     }).then((result) => {
-                        // Only navigate to concierge on confirm, on backdrop just close modal (TravelTerms stays visible)
+                        // Only navigate to concierge on confirm, on backdrop just close modal (TermsStep stays visible)
                         if (result.action !== ModalActions.CONFIRM) {
                             return;
                         }
                         createTravelEnablementIssue();
+                        closeModal();
                     });
                     return Promise.reject(new Error('Verification required'));
                 }
@@ -149,41 +162,32 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
     };
 
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight
-            testID="TravelTerms"
-        >
-            <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
-                <HeaderWithBackButton
-                    title={translate('travel.termsAndConditions.header')}
-                    onBackButtonPress={() => Navigation.goBack(backPath)}
-                />
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>
-                    <View style={styles.flex1}>
-                        <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
-                        <View style={[styles.renderHTML, styles.mt4]}>
-                            <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
-                        </View>
-                        <CheckboxWithLabel
-                            style={styles.mt6}
-                            accessibilityLabel={translate('travel.termsAndConditions.label')}
-                            onInputChange={() => setHasAcceptedTravelTerms((prev) => !prev)}
-                            label={translate('travel.termsAndConditions.label')}
-                        />
+        <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>
+                <View style={styles.flex1}>
+                    <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
+                    <View style={[styles.renderHTML, styles.mt4]}>
+                        <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
                     </View>
-                    <FormAlertWithSubmitButton
-                        buttonText={translate('common.continue')}
-                        isDisabled={!hasAcceptedTravelTerms}
-                        onSubmit={acceptTermsAndOpenTravelDot}
-                        message={errorMessage}
-                        isAlertVisible={!!errorMessage}
-                        containerStyles={[styles.mh0, styles.mt5]}
-                        isLoading={isLoading}
+                    <CheckboxWithLabel
+                        style={styles.mt6}
+                        accessibilityLabel={translate('travel.termsAndConditions.label')}
+                        onInputChange={() => setHasAcceptedTravelTerms((prev) => !prev)}
+                        label={translate('travel.termsAndConditions.label')}
                     />
-                </ScrollView>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+                </View>
+                <FormAlertWithSubmitButton
+                    buttonText={translate('common.confirm')}
+                    isDisabled={!hasAcceptedTravelTerms}
+                    onSubmit={acceptTermsAndOpenTravelDot}
+                    message={errorMessage}
+                    isAlertVisible={!!errorMessage}
+                    containerStyles={[styles.mh0, styles.mt5]}
+                    isLoading={isLoading}
+                />
+            </ScrollView>
+        </FullPageNotFoundView>
     );
 }
 
-export default DynamicTravelTerms;
+export default TermsStep;
