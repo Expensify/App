@@ -24,7 +24,13 @@ async function doesDeviceSupportAuthenticationMethod(): Promise<boolean> {
     return isWebAuthnSupported();
 }
 
-/** Resolves to whether the account has a local passkey the server also knows, meaning it can skip registration. */
+/**
+ * Resolves to whether the account has a local passkey the server also knows, meaning it can skip registration.
+ *
+ * This is the canonical non-React implementation. The legacy `usePasskeys` hook intentionally
+ * performs the same comparison using its reactive Onyx values. Keep both implementations aligned
+ * until the hook is removed.
+ */
 async function areLocalCredentialsKnownToServer(accountID: number, signal?: AbortSignal): Promise<boolean> {
     const [account, localPasskeyCredentials] = await Promise.all([readOnyxValueOnce(ONYXKEYS.ACCOUNT, signal), readOnyxValueOnce(getPasskeyOnyxKey(String(accountID)), signal)]);
     const serverKnownCredentialIDs = new Set(mfaCredentialIDsSelector(account) ?? []);

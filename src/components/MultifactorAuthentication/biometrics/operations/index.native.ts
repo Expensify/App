@@ -42,7 +42,13 @@ async function getLocalCredentialID(accountID: number): Promise<string | undefin
     }
 }
 
-/** Resolves to whether the account has a local HSM key the server also knows, meaning it can skip registration. */
+/**
+ * Resolves to whether the account has a local HSM key the server also knows, meaning it can skip registration.
+ *
+ * This is the canonical non-React implementation. The legacy `useNativeBiometricsHSM` hook
+ * intentionally performs the same comparison using its reactive Onyx values. Keep both
+ * implementations aligned until the hook is removed.
+ */
 async function areLocalCredentialsKnownToServer(accountID: number, signal?: AbortSignal): Promise<boolean> {
     const localCredentialID = await getLocalCredentialID(accountID);
     if (!localCredentialID) {
