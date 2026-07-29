@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,7 +19,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -34,7 +35,7 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
     const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
-    const backPath = policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.path);
 
     return (
         <ConnectionLayout
@@ -79,7 +80,9 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
                                         : undefined
                                 }
                                 onPress={() =>
-                                    policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined
+                                    policyID
+                                        ? Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(feedWithDomainID)))
+                                        : undefined
                                 }
                                 shouldShowRightIcon
                                 brickRoadIndicator={

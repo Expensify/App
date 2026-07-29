@@ -640,6 +640,40 @@ const DYNAMIC_ROUTES = {
         path: 'rillet/export',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
+    POLICY_ACCOUNTING_RILLET_PREFERRED_EXPORTER: {
+        path: 'rillet/export/preferred-exporter',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT],
+    },
+    POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE: {
+        path: 'rillet/export/vendor-bill-date',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT],
+    },
+    POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT: {
+        path: 'rillet/export/company-card-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT],
+    },
+    POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR: {
+        path: 'rillet/export/default-company-card-vendor',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT],
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT: {
+        path: 'rillet/export/card-program-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT],
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        path: 'rillet/export/card-program-account/:feed',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_PROGRAM_ACCOUNT],
+        getRoute: (feed: CardFeedWithDomainID) => `rillet/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT: {
+        path: 'rillet/export/card-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT],
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT_CARD_LIST: {
+        path: 'rillet/export/card-account/:feed',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT],
+        getRoute: (feed: CardFeedWithDomainID) => `rillet/export/card-account/${encodeURIComponent(feed)}` as const,
+    },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
@@ -4177,38 +4211,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_RILLET_IMPORT: {
         route: 'workspaces/:policyID/accounting/rillet/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/import` as const,
-    },
-    POLICY_ACCOUNTING_RILLET_PREFERRED_EXPORTER: {
-        route: 'workspaces/:policyID/accounting/rillet/export/preferred-exporter',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/preferred-exporter` as const,
-    },
-    POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE: {
-        route: 'workspaces/:policyID/accounting/rillet/export/vendor-bill-date',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/vendor-bill-date` as const,
-    },
-    POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/rillet/export/company-card-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/company-card-account` as const,
-    },
-    POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR: {
-        route: 'workspaces/:policyID/accounting/rillet/export/default-company-card-vendor',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/default-company-card-vendor` as const,
-    },
-    POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/rillet/export/card-program-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/card-program-account` as const,
-    },
-    POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR: {
-        route: 'workspaces/:policyID/accounting/rillet/export/card-program-account/:feed',
-        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/rillet/export/card-program-account/${encodeURIComponent(feed)}` as const,
-    },
-    POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/rillet/export/card-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/card-account` as const,
-    },
-    POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT_CARD_LIST: {
-        route: 'workspaces/:policyID/accounting/rillet/export/card-account/:feed',
-        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/rillet/export/card-account/${encodeURIComponent(feed)}` as const,
     },
     POLICY_ACCOUNTING_RILLET_ADVANCED: {
         route: 'workspaces/:policyID/accounting/rillet/advanced',

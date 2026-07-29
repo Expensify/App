@@ -3,6 +3,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
@@ -10,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletDefaultVendor} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
@@ -20,7 +20,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {RilletVendor} from '@src/types/onyx/Policy';
 
 import React from 'react';
@@ -38,7 +38,7 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const defaultCompanyCardVendorID = rilletConfig?.export?.defaultVendorID;
-    const backPath = policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR.path);
 
     const data: VendorListItem[] =
         rilletData?.vendors?.map((vendorItem) => ({

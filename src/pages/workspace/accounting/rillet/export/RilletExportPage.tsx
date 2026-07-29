@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearRilletErrorField, updateRilletExportToMultipleAccounts} from '@libs/actions/connections/Rillet';
 import {areCardsCustomExportInErrorFields, findMatchingCards, getCardsCustomExportPendingAction, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
@@ -21,7 +22,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 import React from 'react';
@@ -72,7 +73,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                 <MenuItemWithTopDescription
                     title={exporter}
                     description={translate('workspace.accounting.preferredExporter')}
-                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_PREFERRED_EXPORTER.getRoute(policyID)) : undefined)}
+                    onPress={() => (policyID ? Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_PREFERRED_EXPORTER.path)) : undefined)}
                     shouldShowRightIcon
                     brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.EXPORTER], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
@@ -91,7 +92,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                 <MenuItemWithTopDescription
                     title={translate(`workspace.rillet.exportDate.values.${exportDate}.label`)}
                     description={translate('workspace.rillet.exportDate.label')}
-                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE.getRoute(policyID)) : undefined)}
+                    onPress={() => (policyID ? Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE.path)) : undefined)}
                     shouldShowRightIcon
                     brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.EXPORT_DATE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
@@ -110,7 +111,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                 <MenuItemWithTopDescription
                     title={defaultCompanyCardVendor?.name}
                     description={translate('workspace.rillet.defaultCompanyCardVendor.label')}
-                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR.getRoute(policyID)) : undefined)}
+                    onPress={() => (policyID ? Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR.path)) : undefined)}
                     shouldShowRightIcon
                     brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.DEFAULT_VENDORID], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
@@ -119,7 +120,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                 <MenuItemWithTopDescription
                     title={companyCardAccount ? `${companyCardAccount?.code} ${companyCardAccount?.name}` : undefined}
                     description={translate('workspace.rillet.companyCardAccount.label')}
-                    onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
+                    onPress={() => (policyID ? Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT.path)) : undefined)}
                     shouldShowRightIcon
                     brickRoadIndicator={
                         areSettingsInErrorFields([CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
@@ -147,7 +148,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                             <MenuItemWithTopDescription
                                 title={translate('workspace.rillet.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
                                 description={translate('workspace.rillet.cardProgramAccount.label')}
-                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
+                                onPress={() => (policyID ? Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.path)) : undefined)}
                                 shouldShowRightIcon
                                 brickRoadIndicator={
                                     areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
@@ -158,7 +159,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                             <MenuItemWithTopDescription
                                 title={translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}
                                 description={translate('workspace.rillet.cardAccount.label')}
-                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
+                                onPress={() => (policyID ? Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT.path)) : undefined)}
                                 shouldShowRightIcon
                                 brickRoadIndicator={
                                     areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT)
