@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
@@ -68,17 +68,18 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
             </NegatableFilter>
             <Button
                 style={[styles.ph5, styles.pb5]}
-                success
-                large={largeButton}
-                text={translate('common.confirm')}
-                pressOnEnter
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={largeButton ? CONST.BUTTON_SIZE.LARGE : undefined}
                 onPress={() => {
                     if (error) {
                         return;
                     }
                     onChange(value, isNegated);
                 }}
-            />
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.confirm')}</Button.Text>
+            </Button>
         </View>
     );
 }

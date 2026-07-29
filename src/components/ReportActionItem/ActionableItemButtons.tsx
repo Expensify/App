@@ -1,8 +1,9 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -40,13 +41,17 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                 <Button
                     key={item.key}
                     onPress={item.onPress}
-                    text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
-                    medium
-                    success={item.isPrimary}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    variant={item.isPrimary ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     innerStyles={props.styles?.button}
-                    primaryTextNumberOfLines={props.primaryTextNumberOfLines}
-                    textStyles={props.styles?.text}
-                />
+                >
+                    <Button.Text
+                        numberOfLines={props.primaryTextNumberOfLines}
+                        style={props.styles?.text}
+                    >
+                        {props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
+                    </Button.Text>
+                </Button>
             ))}
         </View>
     );

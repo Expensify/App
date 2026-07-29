@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
@@ -11,6 +11,8 @@ import {getDateModifierTitle} from '@libs/SearchQueryUtils';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
+import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -61,12 +63,13 @@ function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed,
             {!!selectedDateModifier && (
                 <Button
                     style={[styles.ph5, styles.pb5, styles.pt3]}
-                    text={translate('common.apply')}
-                    success
-                    large={largeButton}
-                    pressOnEnter
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={largeButton ? CONST.BUTTON_SIZE.LARGE : undefined}
                     onPress={() => dateFilterRef.current?.save()}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.apply')}</Button.Text>
+                </Button>
             )}
         </>
     );

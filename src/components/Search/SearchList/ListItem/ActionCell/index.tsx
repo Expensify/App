@@ -1,4 +1,5 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
+import LinkButton from '@components/ButtonComposed/composed/LinkButton';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -32,7 +33,6 @@ type ActionCellProps = {
     reportID?: string;
     hash?: number;
     amount?: number;
-    extraSmall?: boolean;
     shouldDisablePointerEvents?: boolean;
     chatReport?: OnyxEntry<Report>;
 };
@@ -47,7 +47,6 @@ function ActionCell({
     reportID = '',
     hash,
     amount,
-    extraSmall = false,
     shouldDisablePointerEvents,
     chatReport,
 }: ActionCellProps) {
@@ -63,23 +62,22 @@ function ActionCell({
     if (shouldUseViewAction || (isChildListItem && action !== CONST.SEARCH.ACTION_TYPES.UNDELETE)) {
         const text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
         const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
+        const ViewButton = isChildListItem ? LinkButton : Button;
 
         return (
-            <Button
+            <ViewButton
                 testID="ActionCell"
-                text={text}
                 onPress={onButtonPress}
-                small={!extraSmall}
-                extraSmall={extraSmall}
+                size={CONST.BUTTON_SIZE.SMALL}
                 style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
                 isDisabled={shouldDisablePointerEvents}
-                shouldStayNormalOnDisable={shouldDisablePointerEvents}
+                stayNormalOnDisable={shouldDisablePointerEvents}
                 innerStyles={buttonInnerStyles}
-                link={isChildListItem}
-                shouldUseDefaultHover={!isChildListItem}
                 isNested
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_VIEW}
-            />
+            >
+                <ViewButton.Text>{text}</ViewButton.Text>
+            </ViewButton>
         );
     }
 
@@ -110,19 +108,19 @@ function ActionCell({
 
     return (
         <Button
-            text={text}
             onPress={onButtonPress}
-            small={!extraSmall}
-            extraSmall={extraSmall}
+            size={CONST.BUTTON_SIZE.SMALL}
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}
-            success={action !== CONST.SEARCH.ACTION_TYPES.UNDELETE}
+            variant={action !== CONST.SEARCH.ACTION_TYPES.UNDELETE ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
             isDisabled={shouldBeDisabledOffline || shouldDisablePointerEvents}
-            shouldStayNormalOnDisable={shouldDisablePointerEvents}
+            stayNormalOnDisable={shouldDisablePointerEvents}
             innerStyles={buttonInnerStyles}
             isNested
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
-        />
+        >
+            <Button.Text>{text}</Button.Text>
+        </Button>
     );
 }
 

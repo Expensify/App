@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import LinkButton from '@components/ButtonComposed/composed/LinkButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
@@ -390,16 +390,14 @@ function TransactionGroupListExpandedImpl({
             })}
             {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
                 <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
-                    <Button
-                        text={translate('common.showMore')}
+                    <LinkButton
                         onPress={onShowMoreButtonPress}
-                        link
-                        shouldUseDefaultHover={false}
                         isNested
-                        medium
+                        size={CONST.BUTTON_SIZE.MEDIUM}
                         innerStyles={[styles.ph3]}
-                        textStyles={[styles.fontSizeNormal]}
-                    />
+                    >
+                        <LinkButton.Text style={[styles.fontSizeNormal]}>{translate('common.showMore')}</LinkButton.Text>
+                    </LinkButton>
                 </View>
             )}
             {shouldDisplayLoadingIndicator && (
