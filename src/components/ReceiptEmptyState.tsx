@@ -146,7 +146,12 @@ function ReceiptEmptyState({
                                 width={variables.iconSizeNormal}
                                 height={variables.iconSizeNormal}
                             />
-                            <Text style={styles.textStrong}>{translate('dropzone.addReceipt')}</Text>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.textStrong, styles.flexShrink1]}
+                            >
+                                {translate('dropzone.addReceipt')}
+                            </Text>
                         </View>
                     ) : (
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>

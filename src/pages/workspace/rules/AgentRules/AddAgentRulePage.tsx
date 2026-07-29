@@ -1,4 +1,3 @@
-import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {BotAvatarBlue} from '@components/Icon/DefaultBotAvatars';
@@ -218,24 +217,21 @@ function AddAgentRulePage({
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
             >
-                <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                    <HeaderWithBackButton
-                        title={isRulesRevampEnabled ? translate('workspace.rules.agentRules.newRuleTitle') : translate('workspace.rules.agentRules.addRuleTitle')}
-                        shouldDisplayHelpButton
-                        onBackButtonPress={handleBackButtonPress}
-                    />
-                    <View style={[styles.flexShrink0, styles.w100]}>
-                        <TabSelectorContextProvider activeTabKey={activeTab}>
-                            <TabSelectorBase
-                                tabs={tabs}
-                                activeTabKey={activeTab}
-                                onTabPress={selectTab}
-                                equalWidth
-                            />
-                        </TabSelectorContextProvider>
-                    </View>
-                </CollapsibleHeaderOnKeyboard>
-
+                <HeaderWithBackButton
+                    title={isRulesRevampEnabled ? translate('workspace.rules.agentRules.newRuleTitle') : translate('workspace.rules.agentRules.addRuleTitle')}
+                    shouldDisplayHelpButton
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                <View style={[styles.flexShrink0, styles.w100]}>
+                    <TabSelectorContextProvider activeTabKey={activeTab}>
+                        <TabSelectorBase
+                            tabs={tabs}
+                            activeTabKey={activeTab}
+                            onTabPress={selectTab}
+                            equalWidth
+                        />
+                    </TabSelectorContextProvider>
+                </View>
                 <View style={styles.flex1}>
                     <View style={[styles.flex1, activeTab !== CONST.TAB.AGENT_RULE.SUGGESTIONS && styles.dNone]}>
                         <AddAgentRuleSuggestionsTab

@@ -47,6 +47,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
     currentSearchHash,
+    chatReport,
 }: TransactionListItemWideProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -175,6 +176,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     <TransactionItemRow
                         transactionItem={transactionItem}
                         report={transactionItem.report}
+                        chatReport={chatReport}
                         policy={transactionItem.policy}
                         policyCategories={policyCategories}
                         policyTagLists={policyTagLists}
