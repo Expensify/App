@@ -1115,7 +1115,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'Vos dépenses',
             awaitingApproval: 'En attente d’approbation',
-            repaidLast30Days: 'Remboursé au cours des 30 derniers jours',
+            repaidLast30Days: 'Remboursé 30 derniers jours',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transactions récentes • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Voir ${count} de plus`,

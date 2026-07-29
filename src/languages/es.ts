@@ -982,7 +982,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'Tu gasto',
             awaitingApproval: 'Pendiente de aprobación',
-            repaidLast30Days: 'Reembolsado en los últimos 30 días',
+            repaidLast30Days: 'Reembolsado últimos 30 días',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transacciones recientes • ${lastFour}`,
         },
         announcements: 'Anuncios',

@@ -1111,7 +1111,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'Je uitgaven',
             awaitingApproval: 'In afwachting van goedkeuring',
-            repaidLast30Days: 'Terugbetaald in de afgelopen 30 dagen',
+            repaidLast30Days: 'Terugbetaald afgelopen 30 dagen',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recente transacties • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Bekijk nog ${count}`,

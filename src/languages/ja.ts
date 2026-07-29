@@ -1095,7 +1095,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'あなたの支出',
             awaitingApproval: '承認待ち',
-            repaidLast30Days: '過去30日間に返済済み',
+            repaidLast30Days: '過去30日間の返済',
             recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `さらに${count}件表示`,
