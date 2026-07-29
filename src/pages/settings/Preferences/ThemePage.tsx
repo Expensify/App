@@ -37,8 +37,8 @@ function ThemePage() {
 
     const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
 
-    const [selectedBaseTheme, setSelectedBaseTheme] = useState<ValueOf<typeof CONST.THEME>>(getBaseTheme(currentTheme));
-    const [isHighContrast, setIsHighContrast] = useState(isHighContrastTheme(currentTheme));
+    const [selectedBaseTheme, setSelectedBaseTheme] = useState<ValueOf<typeof CONST.THEME>>(() => getBaseTheme(currentTheme));
+    const [isHighContrast, setIsHighContrast] = useState(() => isHighContrastTheme(currentTheme));
     const themeToStore = isHighContrast ? getContrastTheme(selectedBaseTheme) : selectedBaseTheme;
 
     const localesToThemes = BASE_THEMES.map((theme) => ({
