@@ -1061,7 +1061,15 @@ function MenuItem({
                                                                 fsClass={forwardedFSClass}
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                                    <View style={[styles.renderHTMLTitle, styles.textAlignLeft, shouldApplyIconPaddingToHTMLTitle && iconLeftPadding]}>
+                                                                    <View
+                                                                        style={[
+                                                                            styles.renderHTMLTitle,
+                                                                            styles.textAlignLeft,
+                                                                            copyable && styles.userSelectText,
+                                                                            shouldApplyIconPaddingToHTMLTitle && iconLeftPadding,
+                                                                        ]}
+                                                                        dataSet={copyable ? COPYABLE_TEXT_DATA_SET : undefined}
+                                                                    >
                                                                         {/* Use Text instead of RenderHTML when the title is plain text.
                                                                             Titles with shouldRenderAsHTML use baseFontStyle, which differs from combinedTitleTextStyle below.
                                                                         */}
