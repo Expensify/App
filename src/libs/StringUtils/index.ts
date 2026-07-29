@@ -100,6 +100,16 @@ function normalizeAccents(text: string) {
 }
 
 /**
+ * Remove zero-width characters (e.g. zero-width space, zero-width joiner, word joiner, BOM).
+ * Some translations embed these to control line wrapping, which breaks substring/equality matching.
+ * @param text - The input string
+ * @returns The string with all zero-width characters removed
+ */
+function removeZeroWidthCharacters(text: string) {
+    return text.replaceAll(/[\u200b-\u200d\u2060\ufeff]/g, '');
+}
+
+/**
  * Normalize a string by:
  * - removing diacritical marks
  * - Removing non-alphabetic and non-latin characters from a string
@@ -218,6 +228,7 @@ export default {
     removeInvisibleCharacters,
     normalize,
     normalizeAccents,
+    removeZeroWidthCharacters,
     normalizeCRLF,
     lineBreaksToSpaces,
     getFirstLine,
