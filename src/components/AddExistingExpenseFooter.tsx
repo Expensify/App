@@ -6,6 +6,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isIOUReport} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -19,6 +20,7 @@ import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated} from '@
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 import Button from './Button';
@@ -61,6 +63,9 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [chatReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${chatReport?.policyID}`);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const [transactions] = useTransactionsByID([...selectedIds]);
 
@@ -86,7 +91,9 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         personalDetails,
                         betas,
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
+                        selfDMReportActions,
                         delegateAccountID,
+                        isTrackIntentUser,
                     });
                 } else {
                     changeTransactionsReport({
@@ -102,7 +109,9 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         transactions,
                         allTransactionViolation: transactionViolations,
                         allReports,
+                        isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                        selfDMReportActions,
                     });
                 }
             },

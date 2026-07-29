@@ -25,6 +25,7 @@ import type {Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 type PayActionCellProps = {
@@ -49,6 +50,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const {
@@ -64,9 +67,11 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         ownerBillingGracePeriodEnd,
         activePolicyID,
         activePolicy,
+        conciergeChat,
         defaultWorkspaceName,
         nextStep,
         chatReportPolicy,
+        delegateAccountID,
     } = useReportPaymentContext({
         reportID,
         chatReportPolicyID: chatReport?.policyID,
@@ -120,11 +125,14 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 methodID,
                 paymentMethod,
                 activePolicy,
+                conciergeChat,
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName,
                 additionalOnyxData,
                 chatReportActions,
+                delegateAccountID,
+                isTrackIntentUser,
             });
             return;
         }
@@ -148,6 +156,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             additionalOnyxData,
             chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`],
+            delegateAccountID,
+            isTrackIntentUser,
         });
     };
 

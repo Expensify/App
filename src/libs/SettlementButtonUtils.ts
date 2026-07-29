@@ -24,6 +24,7 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
                 text: translate('iou.settleBusiness', ''),
                 icon: icons.Building,
                 value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                shouldUpdateSelectedIndex: false,
                 key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {

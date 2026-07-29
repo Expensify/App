@@ -4,6 +4,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
 import type AgentPrompt from './AgentPrompt';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
@@ -41,6 +42,7 @@ import type {
     WorkspaceCardFeedsStatus,
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
+import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
@@ -106,6 +108,7 @@ import type MapboxAccessToken from './MapboxAccessToken';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
+import type NewAgentTemplate from './NewAgentTemplate';
 import type NewGroupChatDraft from './NewGroupChatDraft';
 import type OdometerDraft from './OdometerDraft';
 import type Onboarding from './Onboarding';
@@ -128,7 +131,7 @@ import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
-import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
+import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -176,6 +179,8 @@ import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type {SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
+import type SuggestedAgent from './SuggestedAgent';
+import type SuggestedAgentRule from './SuggestedAgentRule';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
@@ -193,8 +198,8 @@ import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type VacationDelegate from './VacationDelegate';
 import type ValidateDomainTwoFactorCode from './ValidateDomainTwoFactorCode';
-import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
+import type VerifyValidateCodeAction from './VerifyValidateCodeAction';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
@@ -298,6 +303,7 @@ export type {
     PolicyTag,
     PolicyTags,
     PolicyTagLists,
+    ParticipantsPolicyTags,
     PrivatePersonalDetails,
     QuickAction,
     ShareBankAccount,
@@ -363,6 +369,7 @@ export type {
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
+    NewAgentTemplate,
     NewGroupChatDraft,
     PolicyJoinMember,
     SearchResults,
@@ -391,7 +398,7 @@ export type {
     OnboardingPurpose,
     OnboardingRHPVariant,
     ValidateDomainTwoFactorCode,
-    ValidateMagicCodeAction,
+    VerifyValidateCodeAction,
     ShareTempFile,
     CorpayFields,
     CorpayFormField,
@@ -423,10 +430,14 @@ export type {
     DomainHighlightItems,
     DomainPendingActions,
     DomainSecurityGroup,
+    ChronosTimeTracking,
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
     LocallyProcessed3DSChallengeReviews,
     InitiatingBankAccountUnlock,
+    AgentNewAvatarDraft,
     AgentPrompt,
+    SuggestedAgentRule,
+    SuggestedAgent,
 };

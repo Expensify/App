@@ -11,9 +11,7 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-type ResumePayload = {
-    paymentID: string;
-};
+type ResumePayload = (() => void) | undefined;
 
 const mockVerifyAccountRoute = 'r/123/verify-account?source=pay';
 const mockVerifyAccountPath = 'r/123/verify-account';
@@ -108,14 +106,14 @@ describe('useVerifyAccountAndResume', () => {
 
     it('navigates to verify account and exposes validation state', async () => {
         const onResume = jest.fn();
-        const {result} = renderHook(() => useVerifyAccountAndResume<ResumePayload>(onResume));
+        const {result} = renderHook(() => useVerifyAccountAndResume(onResume));
 
         await waitFor(() => {
             expect(result.current.isUserValidated).toBe(false);
         });
 
         act(() => {
-            result.current.verifyAccountAndResume({paymentID: 'payment-1'});
+            result.current.verifyAccountAndResume(jest.fn());
         });
 
         expect(mockedNavigation.navigate).toHaveBeenCalledWith(mockVerifyAccountRoute);
@@ -125,12 +123,13 @@ describe('useVerifyAccountAndResume', () => {
     it('resumes the stored payload after validation on the same verify account route', async () => {
         const initialOnResume = jest.fn();
         const latestOnResume = jest.fn();
+        const retryAction = jest.fn();
         const {result, rerender} = renderHook(({onResume}: {onResume: (payload: ResumePayload) => void}) => useVerifyAccountAndResume(onResume), {
             initialProps: {onResume: initialOnResume},
         });
 
         act(() => {
-            result.current.verifyAccountAndResume({paymentID: 'payment-1'});
+            result.current.verifyAccountAndResume(retryAction);
         });
         rerender({onResume: latestOnResume});
 
@@ -146,15 +145,16 @@ describe('useVerifyAccountAndResume', () => {
         });
 
         expect(initialOnResume).not.toHaveBeenCalled();
-        expect(latestOnResume).toHaveBeenCalledWith({paymentID: 'payment-1'});
+        expect(latestOnResume).toHaveBeenCalledWith(retryAction);
     });
 
     it('resumes when the verify account route already closed itself before validation was observed', async () => {
         const onResume = jest.fn();
-        const {result} = renderHook(() => useVerifyAccountAndResume<ResumePayload>(onResume));
+        const retryAction = jest.fn();
+        const {result} = renderHook(() => useVerifyAccountAndResume(onResume));
 
         act(() => {
-            result.current.verifyAccountAndResume({paymentID: 'payment-1'});
+            result.current.verifyAccountAndResume(retryAction);
         });
 
         // The verify page's success effect navigates back as soon as validation succeeds, so by the time
@@ -171,15 +171,15 @@ describe('useVerifyAccountAndResume', () => {
             mockPendingTransitionCallbacks.at(0)?.();
         });
 
-        expect(onResume).toHaveBeenCalledWith({paymentID: 'payment-1'});
+        expect(onResume).toHaveBeenCalledWith(retryAction);
     });
 
     it('drops the pending resume when the user leaves the verify account route before validation', async () => {
         const onResume = jest.fn();
-        const {result} = renderHook(() => useVerifyAccountAndResume<ResumePayload>(onResume));
+        const {result} = renderHook(() => useVerifyAccountAndResume(onResume));
 
         act(() => {
-            result.current.verifyAccountAndResume({paymentID: 'payment-1'});
+            result.current.verifyAccountAndResume(jest.fn());
         });
 
         await waitFor(() => {

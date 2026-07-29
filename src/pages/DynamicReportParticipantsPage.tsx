@@ -30,7 +30,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
     isAnnounceRoom,
@@ -247,7 +247,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                             navigateBackToReportDetails();
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(deprecatedGetReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>
                     {isGroupChat && (
@@ -262,7 +262,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                                     onPress={() => null}
                                     isSplitButton={false}
                                     options={bulkActionsButtonOptions}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                                     isDisabled={!selectedMembers.length}
                                 />
                             ) : (
@@ -272,13 +272,13 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                                     text={translate('workspace.invite.member')}
                                     icon={icons.Plus}
                                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                                 />
                             )}
                         </View>
                     )}
                 </View>
-                <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
+                <View style={[styles.w100, styles.flex1]}>
                     <ReportParticipantsTable
                         ref={tableRef}
                         members={participants}

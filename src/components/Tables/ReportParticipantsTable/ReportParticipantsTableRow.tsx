@@ -54,6 +54,7 @@ export default function ReportParticipantsTableRow({item, rowIndex, shouldUseNar
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.PARTICIPANTS_ROW}
             offlineWithFeedback={{pendingAction: item.pendingAction}}
             onPress={item.action}
         >

@@ -13,7 +13,7 @@ import {measureFunction} from 'reassure';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
-import {formatPhoneNumber} from '../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 1000;
@@ -49,7 +49,7 @@ for (let i = 0; i < REPORTS_COUNT; i++) {
     accountIDToReportIDMap[i] = reports[`${ONYXKEYS.COLLECTION.REPORT}${i}`].reportID;
 }
 
-const options = createOptionList(REPORTS_COUNT + 1, personalDetails, accountIDToReportIDMap, reports, undefined, {}, formatPhoneNumber);
+const options = createOptionList(REPORTS_COUNT + 1, personalDetails, accountIDToReportIDMap, reports, undefined, {}, formatPhoneNumber, translateLocal);
 
 const selectedOptions = options.options.map((option, index) => ({
     ...option,

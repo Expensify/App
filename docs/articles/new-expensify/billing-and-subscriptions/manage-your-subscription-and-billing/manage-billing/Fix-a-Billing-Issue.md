@@ -28,6 +28,8 @@ If a billing issue exists, the Workspace owner will see:
 
 The notification remains visible until the billing issue is resolved.
 
+![Account > Subscription showing the red billing-issue banner explaining the payment failure]({{site.url}}/assets/images/ExpensiHelp-Fix-a-Billing-Issue.png){:width="100%"}
+
 ## How to fix a billing issue
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Subscription**.

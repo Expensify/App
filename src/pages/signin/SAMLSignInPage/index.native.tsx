@@ -105,6 +105,11 @@ function SAMLSignInPage() {
         openAuthSessionAsync(SAMLUrl, CONST.SAML_REDIRECT_URL)
             .then((response: WebBrowserAuthSessionResult) => {
                 if (response.type !== 'success') {
+                    // The auth session closed without handing a callback URL back to the app (e.g. the in-app browser
+                    // was dismissed/cancelled, or the redirect to the custom scheme never fired). Log the result type so
+                    // we can distinguish "browser never returned a success result" from "returned but had no token"
+                    // (which is already logged in handleNavigationStateChange) when debugging SAML sign-in loops.
+                    Log.hmmm('SAMLSignInPage - Auth session closed without a successful result', {type: response.type});
                     handleExitSAMLFlow();
                     return;
                 }

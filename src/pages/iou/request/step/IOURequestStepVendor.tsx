@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMatchingVendors, hasVendorFeature} from '@libs/PolicyUtils';
+import {getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -63,12 +63,14 @@ function IOURequestStepVendor({
     const delegateAccountID = useDelegateAccountID();
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isOnXero = isXeroActiveMatchingSource(policy);
 
-    // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the QBO CC vendor-matching flow).
+    // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the vendor-matching flow).
     const isReimbursable = !!transaction?.reimbursable;
     const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const vendors = getMatchingVendors(policy);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
+    const vendorLabel = isOnXero ? translate('common.supplier') : translate('common.vendor');
 
     const trimmedSearch = searchValue.trim().toLowerCase();
     const vendorRows: VendorListItem[] = vendors
@@ -125,36 +127,45 @@ function IOURequestStepVendor({
                 icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                title={isOnXero ? translate('workspace.xero.noSuppliersFound') : translate('workspace.qbo.noAccountsFound')}
+                subtitle={isOnXero ? translate('workspace.xero.noSuppliersFoundDescription') : translate('workspace.qbo.noAccountsFoundDescription')}
                 containerStyle={styles.pb10}
             />
         ) : null;
 
     return (
         <StepScreenWrapper
-            headerTitle={translate('common.vendor')}
+            headerTitle={vendorLabel}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             testID="IOURequestStepVendor"
             includeSafeAreaPaddingBottom
         >
-            <SelectionList
-                data={data}
-                onSelectRow={selectVendor}
-                textInputOptions={{
-                    label: translate('common.search'),
-                    value: searchValue,
-                    onChangeText: setSearchValue,
-                    headerMessage,
-                }}
-                initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
-                ListItem={SingleSelectListItem}
-                shouldShowLoadingPlaceholder={!policy}
-                listEmptyContent={listEmptyContent}
-                shouldSingleExecuteRowSelect
-            />
+            {({didScreenTransitionEnd}) => {
+                // Defer mounting the SelectionList (and its policy-derived data / lazy illustrations)
+                // until the RHP entry animation ends. First-open cost otherwise lands mid-transition
+                // and shows up as a backdrop flicker on the underlying expense view.
+                if (!didScreenTransitionEnd) {
+                    return null;
+                }
+                return (
+                    <SelectionList
+                        data={data}
+                        onSelectRow={selectVendor}
+                        textInputOptions={{
+                            label: translate('common.search'),
+                            value: searchValue,
+                            onChangeText: setSearchValue,
+                            headerMessage,
+                        }}
+                        initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
+                        ListItem={SingleSelectListItem}
+                        listEmptyContent={listEmptyContent}
+                        shouldSingleExecuteRowSelect
+                    />
+                );
+            }}
         </StepScreenWrapper>
     );
 }
