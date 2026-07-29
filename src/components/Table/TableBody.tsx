@@ -1,6 +1,7 @@
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
+import useScrollEnabled from '@hooks/useScrollEnabled';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
@@ -52,6 +53,8 @@ type TableBodyProps = ViewProps & {
 function TableBody<DataType extends TableData>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // On web this is false while another screen (e.g. an RHP) covers this one, so the list behind it can't be scrolled with the keyboard.
+    const scrollEnabled = useScrollEnabled();
     const {
         processedData: filteredAndSortedData,
         activeSearchString,
@@ -116,6 +119,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 ListHeaderComponent={ListHeaderComponent}
                 ListEmptyComponent={ListEmptyComponent}
                 {...restListProps}
+                scrollEnabled={scrollEnabled}
             />
         </View>
     );
