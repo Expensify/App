@@ -31,7 +31,7 @@ data class StringHolder(
   }
 
   override fun hashCode(): Int {
-    return arrayOf(
+    return arrayOf<Any?>(
       value
     ).contentDeepHashCode()
   }

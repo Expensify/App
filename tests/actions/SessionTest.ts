@@ -30,7 +30,7 @@ import type {Credentials, Session} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {openAuthSessionAsync} from 'expo-web-browser';
-import {clearTokenRefresh, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
+import {clearTokenRefresh, removeAllFromAutoprefetch} from 'react-native-nitro-fetch';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
@@ -73,6 +73,34 @@ beforeEach(() => {
 });
 
 describe('Session', () => {
+    describe('isSupportalSession', () => {
+        test('returns true when the session uses a support auth token', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.isSupportalSession()).toBe(true);
+        });
+
+        test('returns true mid-transition when isSupportAuthTokenUsed is set', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {isSupportAuthTokenUsed: true});
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.isSupportalSession()).toBe(true);
+        });
+
+        test('returns false for a non-supportal session', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@example.com'});
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.isSupportalSession()).toBe(false);
+        });
+
+        test('returns false when there is no session', () => {
+            // beforeEach clears Onyx, so the module-level session is empty here
+            expect(SessionUtil.isSupportalSession()).toBe(false);
+        });
+    });
+
     test('reauthenticate redirects to sign in with "No credentials available" when credentials are missing', async () => {
         // Given no signed-in user — beforeEach calls Onyx.clear(), so NetworkStore's credentials are null
 
@@ -435,7 +463,7 @@ describe('Session', () => {
         await SessionUtil.signOut({authToken: 'testAuthToken'});
 
         expect(clearTokenRefresh).toHaveBeenCalledWith('fetch');
-        expect(removeFromAutoPrefetch).toHaveBeenCalledWith(WRITE_COMMANDS.RECONNECT_APP);
+        expect(removeAllFromAutoprefetch).toHaveBeenCalled();
 
         setHasRadio(true);
         await waitForBatchedUpdates();
@@ -443,16 +471,16 @@ describe('Session', () => {
 
     test('SignOut should clear native startup prefetch state before LOG_OUT', async () => {
         const clearTokenRefreshMock = jest.mocked(clearTokenRefresh);
-        const removeFromAutoPrefetchMock = jest.mocked(removeFromAutoPrefetch);
+        const removeAllFromAutoprefetchMock = jest.mocked(removeAllFromAutoprefetch);
         const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
 
         await SessionUtil.signOut({authToken: 'testAuthToken'});
 
         expect(clearTokenRefreshMock).toHaveBeenCalledWith('fetch');
-        expect(removeFromAutoPrefetchMock).toHaveBeenCalledWith(WRITE_COMMANDS.RECONNECT_APP);
+        expect(removeAllFromAutoprefetchMock).toHaveBeenCalled();
         expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'testAuthToken'}), {});
         expect(clearTokenRefreshMock.mock.invocationCallOrder.at(0)).toBeLessThan(makeRequestSpy.mock.invocationCallOrder.at(0) ?? 0);
-        expect(removeFromAutoPrefetchMock.mock.invocationCallOrder.at(0)).toBeLessThan(makeRequestSpy.mock.invocationCallOrder.at(0) ?? 0);
+        expect(removeAllFromAutoprefetchMock.mock.invocationCallOrder.at(0)).toBeLessThan(makeRequestSpy.mock.invocationCallOrder.at(0) ?? 0);
 
         makeRequestSpy.mockRestore();
     });
