@@ -20,9 +20,9 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useEffect} from 'react';
 
-type UpdateDelegateMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE>;
+type UpdateDelegateValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE>;
 
-function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) {
+function UpdateDelegateValidateCodePage({route}: UpdateDelegateValidateCodePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
     const newRole = route.params.newRole as ValueOf<typeof CONST.DELEGATE_ROLE>;
@@ -36,7 +36,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
             return;
         }
 
-        // Dismiss modal on successful magic code verification
+        // Dismiss modal on successful validateCode verification
         Navigation.goBack(ROUTES.SETTINGS_COPILOT);
     }, [login, currentDelegate?.role, currentDelegate?.pendingFields?.role, updateDelegateErrors, newRole]);
 
@@ -61,4 +61,4 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
     );
 }
 
-export default UpdateDelegateMagicCodePage;
+export default UpdateDelegateValidateCodePage;

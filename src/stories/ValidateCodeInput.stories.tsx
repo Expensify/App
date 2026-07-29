@@ -1,5 +1,5 @@
-import MagicCodeInput from '@components/MagicCodeInput';
-import type {MagicCodeInputProps} from '@components/MagicCodeInput';
+import ValidateCodeInput from '@components/ValidateCodeInput';
+import type {ValidateCodeInputProps} from '@components/ValidateCodeInput';
 
 import CONST from '@src/CONST';
 
@@ -7,22 +7,22 @@ import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React, {useState} from 'react';
 
-type MagicCodeInputStory = StoryFn<typeof MagicCodeInput>;
+type ValidateCodeInputStory = StoryFn<typeof ValidateCodeInput>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: Meta<typeof MagicCodeInput> = {
-    title: 'Components/MagicCodeInput',
-    component: MagicCodeInput,
+const story: Meta<typeof ValidateCodeInput> = {
+    title: 'Components/ValidateCodeInput',
+    component: ValidateCodeInput,
 };
 
-function Template(props: MagicCodeInputProps) {
+function Template(props: ValidateCodeInputProps) {
     const [value, setValue] = useState('');
     return (
-        <MagicCodeInput
+        <ValidateCodeInput
             value={value}
             onChangeText={setValue}
             {...props}
@@ -33,14 +33,14 @@ function Template(props: MagicCodeInputProps) {
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 
-const AutoFocus: MagicCodeInputStory = Template.bind({});
+const AutoFocus: ValidateCodeInputStory = Template.bind({});
 AutoFocus.args = {
     name: 'AutoFocus',
     autoFocus: true,
     autoComplete: CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE,
 };
 
-const SubmitOnComplete: MagicCodeInputStory = Template.bind({});
+const SubmitOnComplete: ValidateCodeInputStory = Template.bind({});
 SubmitOnComplete.args = {
     name: 'SubmitOnComplete',
     autoComplete: CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE,
