@@ -43,13 +43,21 @@ function useDiscardChangesConfirmation({
     // `usePreventRemove` reads this during render, so the signal must be state, never a ref (React Compiler)
     const [shouldPreventRemove, setShouldPreventRemove] = useState(false);
     // Deferred past the commit so ref-backed inputs are read after their child state settles, not one event behind
-    const recheckUnsavedChanges = useCallback(() => {
+    const readUnsavedChanges = useCallback(() => {
         setTimeout(() => {
             setShouldPreventRemove(isFocused && !isSavingRef.current && getHasUnsavedChanges());
         }, 0);
     }, [isFocused, getHasUnsavedChanges]);
     // Runs every commit since dirtiness often lives in refs; screens that never re-render on input call `recheckUnsavedChanges` themselves
-    useEffect(recheckUnsavedChanges);
+    useEffect(readUnsavedChanges);
+    // Callers only invoke this from a change handler, so arm now: a swipe starting before the deferred read
+    // would otherwise dismiss a dirty screen. Arming in the effect above would bring the blink back.
+    const recheckUnsavedChanges = useCallback(() => {
+        if (isFocused && !isSavingRef.current) {
+            setShouldPreventRemove(true);
+        }
+        readUnsavedChanges();
+    }, [isFocused, readUnsavedChanges]);
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 

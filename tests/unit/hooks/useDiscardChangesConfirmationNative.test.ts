@@ -186,6 +186,35 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockPreventRemoveFlag).toBe(true);
         });
 
+        it('arms prevention before the deferred read runs', async () => {
+            let hasChanges = false;
+            const {result} = renderDiscardHook(() => hasChanges);
+
+            await flushDeferredRecheck();
+            expect(mockPreventRemoveFlag).toBe(false);
+
+            hasChanges = true;
+            // Not flushing: the call itself must arm the guard, not the timer
+            act(() => result.current.recheckUnsavedChanges());
+            expect(mockPreventRemoveFlag).toBe(true);
+
+            await flushDeferredRecheck();
+            expect(mockPreventRemoveFlag).toBe(true);
+        });
+
+        it('relaxes prevention when the deferred read finds the screen clean', async () => {
+            let hasChanges = true;
+            const {result} = renderDiscardHook(() => hasChanges);
+
+            await flushDeferredRecheck();
+            expect(mockPreventRemoveFlag).toBe(true);
+
+            hasChanges = false;
+            act(() => result.current.recheckUnsavedChanges());
+            await flushDeferredRecheck();
+            expect(mockPreventRemoveFlag).toBe(false);
+        });
+
         it('re-dispatches a beforeRemove fired during the goBack replay instead of re-prompting', async () => {
             renderDiscardHook(() => true);
 
