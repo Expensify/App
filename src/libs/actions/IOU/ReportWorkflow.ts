@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
@@ -1731,8 +1733,9 @@ function assignReportToMe(
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     isTrackIntentUser: boolean | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber);
 
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = buildNextStepNew({
@@ -1849,8 +1852,9 @@ function addReportApprover(
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     isTrackIntentUser: boolean | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, formatPhoneNumber);
 
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = buildNextStepNew({

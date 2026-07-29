@@ -151,6 +151,7 @@ function SearchAddApproverPage() {
                     isASAPSubmitBetaEnabled,
                     reportNextStep,
                     isTrackIntentUser,
+                    formatPhoneNumber,
                 );
             }
 
