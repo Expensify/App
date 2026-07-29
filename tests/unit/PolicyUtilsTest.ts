@@ -22,6 +22,7 @@ import {
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
     getDefaultTimeTrackingRate,
+    getDefaultWorkspacePlanType,
     getEligibleBankAccountShareRecipients,
     getExcludedUsers,
     getExpensifyTeamExclusions,
@@ -30,6 +31,7 @@ import {
     getMatchingVendors,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
+    getPolicyIDFromDomainName,
     getRateDisplayValue,
     getSubmitToAccountID,
     getSubmitToEmail,
@@ -4043,5 +4045,59 @@ describe('getDefaultChatEnabledPolicy', () => {
 
     it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
         expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
+    });
+});
+
+describe('getPolicyIDFromDomainName', () => {
+    it('extracts the policy ID from an Expensify workspace-feed domain name', () => {
+        expect(getPolicyIDFromDomainName('expensify-policyA1B2C3.exfy')).toBe('A1B2C3');
+    });
+
+    it('converts the extracted policy ID to uppercase', () => {
+        expect(getPolicyIDFromDomainName(`expensify-policy${'a1b2c3'}.exfy`)).toBe('A1B2C3');
+    });
+
+    it('returns undefined for a domain name that is not a workspace feed', () => {
+        expect(getPolicyIDFromDomainName('example.com')).toBeUndefined();
+    });
+
+    it('returns undefined for an empty string', () => {
+        expect(getPolicyIDFromDomainName('')).toBeUndefined();
+    });
+
+    it('returns undefined when the extension is missing', () => {
+        expect(getPolicyIDFromDomainName('expensify-policyA1B2C3')).toBeUndefined();
+    });
+});
+
+describe('getDefaultWorkspacePlanType', () => {
+    const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
+    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
+    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
+    const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
+
+    it.each([
+        {description: 'the collection is null', policies: null, expected: CONST.POLICY.TYPE.TEAM},
+        {description: 'the collection is undefined', policies: undefined, expected: CONST.POLICY.TYPE.TEAM},
+        {description: 'the collection is empty', policies: {}, expected: CONST.POLICY.TYPE.TEAM},
+        {description: 'the collection only holds empty entries', policies: {policy_1: undefined, policy_2: undefined}, expected: CONST.POLICY.TYPE.TEAM},
+        {
+            description: 'the collection holds Submit, Collect and Personal workspaces',
+            policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_personal1: personalPolicy},
+            expected: CONST.POLICY.TYPE.TEAM,
+        },
+        {description: 'the collection holds a single Control workspace', policies: {policy_corporate1: corporatePolicy}, expected: CONST.POLICY.TYPE.CORPORATE},
+        {
+            description: 'the collection holds a Control workspace mixed in with other plan types',
+            policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_corporate1: corporatePolicy, policy_personal1: personalPolicy},
+            expected: CONST.POLICY.TYPE.CORPORATE,
+        },
+        {
+            description: 'the collection holds a Control workspace between empty entries',
+            policies: {policy_1: undefined, policy_corporate1: corporatePolicy, policy_2: undefined},
+            expected: CONST.POLICY.TYPE.CORPORATE,
+        },
+    ])('returns $expected when $description', ({policies, expected}) => {
+        expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
     });
 });
