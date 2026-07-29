@@ -19,6 +19,8 @@ import type {SearchKey, SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/S
 
 import navigationRef from '@navigation/navigationRef';
 
+import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -152,8 +154,9 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             <TextWithIconCell
                 text={translate('common.spend')}
                 icon={icons.ReceiptMultiple}
+                iconSize={variables.fontSizeLabel}
                 showTooltip={false}
-                textStyle={styles.textLabelSupporting}
+                textStyle={[styles.textLabelSupporting, styles.label]}
             />
         ),
         getItemText: (item) => translate(item.translationPath),
