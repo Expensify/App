@@ -5905,6 +5905,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             currentBalanceDescription: 'Het huidige saldo is de som van alle geboekte Expensify Kaart-transacties die hebben plaatsgevonden sinds de laatste afwikkelingsdatum.',
             balanceWillBeSettledOn: (settlementDate: string) => `Saldo wordt vereffend op ${settlementDate}`,
             settleBalance: 'Saldo vereffenen',
+            settleBalanceConfirmationTitle: 'Saldo vereffenen?',
+            settleBalanceConfirmationPrompt:
+                'Hiermee wordt je huidige saldo op de volgende werkdag vereffend. Zodra dit is gelukt, wordt het bedrag weer aan je resterende limiet toegevoegd.',
             cardLimit: 'Kaartlimiet',
             remainingLimit: 'Resterende limiet',
             requestLimitIncrease: 'Verhoging van limiet aanvragen',
