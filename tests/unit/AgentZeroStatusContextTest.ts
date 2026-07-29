@@ -1,4 +1,4 @@
-import {act, renderHook, waitFor} from '@testing-library/react-native';
+import {act, render, renderHook, waitFor} from '@testing-library/react-native';
 
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 
@@ -109,6 +109,15 @@ async function setProcessingIndicator(indicator: Record<number, string>) {
 
 function wrapper({children}: {children: React.ReactNode}) {
     return React.createElement(AgentZeroStatusProvider, {reportID}, children);
+}
+
+/** Counts how many times it mounts, so a test can prove the provider didn't remount its subtree. */
+let childMountCount = 0;
+function MountCounter() {
+    React.useEffect(() => {
+        childMountCount += 1;
+    }, []);
+    return null;
 }
 
 describe('AgentZeroStatusContext', () => {
@@ -289,6 +298,21 @@ describe('AgentZeroStatusContext', () => {
 
             // Then the bubble goes away — nothing but the NVP was keeping this report gated in
             expect(result.current.candidateAgentIDs).toEqual([]);
+        });
+
+        it('keeps children mounted when the server starts processing mid-session', async () => {
+            // Given an expense report with no processing indicator yet
+            await seedServerDrivenReport({type: CONST.REPORT.TYPE.EXPENSE});
+            childMountCount = 0;
+            render(React.createElement(AgentZeroStatusProvider, {reportID}, React.createElement(MountCounter)));
+            await waitForBatchedUpdates();
+            expect(childMountCount).toBe(1);
+
+            // When the server starts processing for Concierge on this report
+            await setProcessingIndicator({[CONST.ACCOUNT_ID.CONCIERGE]: 'Concierge is thinking...'});
+
+            // Then the subtree is not remounted — the report feed keeps its scroll position and list state
+            expect(childMountCount).toBe(1);
         });
 
         it('never includes the current user, even when the server names their accountID', async () => {
