@@ -422,7 +422,7 @@ function getExportMenuItem(
                 shouldHideMenuItemDescription: true,
                 shouldShowMenuItemIcon: true,
                 shouldShowMenuItem,
-                exportPageLink: ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.path, backTo ?? ROUTES.POLICY_ACCOUNTING.getRoute(policyID)),
                 data: filteredData,
             };
         }

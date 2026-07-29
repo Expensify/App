@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletExportDate} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
@@ -14,7 +15,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {RilletExportDate} from '@src/types/onyx/Policy';
 
 import React from 'react';
@@ -30,7 +31,7 @@ function RilletVendorBillDatePage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const rilletConfig = policy?.connections?.rillet?.config;
     const exportDate = rilletConfig?.export?.exportDate ?? CONST.RILLET_EXPORT_DATE.LAST_EXPENSE;
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
+    const backPath = policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined;
 
     const data: ExportDateListItem[] = Object.values(CONST.RILLET_EXPORT_DATE).map((exportDateItem) => ({
         value: exportDateItem,

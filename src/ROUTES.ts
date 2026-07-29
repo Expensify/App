@@ -636,6 +636,10 @@ const DYNAMIC_ROUTES = {
         path: 'sage-intacct/export',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
+    POLICY_ACCOUNTING_RILLET_EXPORT: {
+        path: 'rillet/export',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+    },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
@@ -4173,10 +4177,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_RILLET_IMPORT: {
         route: 'workspaces/:policyID/accounting/rillet/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/import` as const,
-    },
-    POLICY_ACCOUNTING_RILLET_EXPORT: {
-        route: 'workspaces/:policyID/accounting/rillet/export',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export` as const,
     },
     POLICY_ACCOUNTING_RILLET_PREFERRED_EXPORTER: {
         route: 'workspaces/:policyID/accounting/rillet/export/preferred-exporter',
