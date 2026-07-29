@@ -25,14 +25,12 @@ function isPartialReport(value: unknown): value is Partial<Report> {
     return isObject(value) && !Array.isArray(value);
 }
 
-type APIWriteSpy = jest.SpiedFunction<typeof API.write>;
-
-function getBulkEditUpdates(writeSpy: APIWriteSpy, callIndex = 0): Record<string, unknown> {
+function getBulkEditUpdates(writeSpy: jest.SpiedFunction<typeof API.write>, callIndex = 0): Record<string, unknown> {
     const [, parameters] = getRequiredWriteCall(writeSpy.mock.calls, callIndex);
     return parseJSONRecord(parameters.updates, 'bulk-edit updates');
 }
 
-function getOptimisticReportNamesFromWriteSpy(writeSpy: APIWriteSpy, reportID: string): Array<string | undefined> {
+function getOptimisticReportNamesFromWriteSpy(writeSpy: jest.SpiedFunction<typeof API.write>, reportID: string): Array<string | undefined> {
     const targetKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
     return writeSpy.mock.calls.flatMap((_, callIndex) => {
         const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, callIndex);
