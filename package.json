@@ -97,8 +97,8 @@
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
     "@expensify/react-native-live-markdown": "0.1.333",
     "@expensify/react-native-wallet": "0.1.22",
-    "@expo/metro-config": "57.0.6",
-    "@expo/metro-runtime": "57.0.6",
+    "@expo/metro-config": "57.0.7",
+    "@expo/metro-runtime": "57.0.7",
     "@formatjs/intl-listformat": "^7.5.7",
     "@formatjs/intl-locale": "^4.0.0",
     "@formatjs/intl-numberformat": "^8.10.3",
@@ -141,18 +141,18 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^5.0.3",
     "expensify-common": "2.0.195",
-    "expo": "57.0.2",
-    "expo-asset": "57.0.6",
-    "expo-audio": "57.0.2",
+    "expo": "57.0.8",
+    "expo-asset": "57.0.7",
+    "expo-audio": "57.0.3",
     "expo-font": "57.0.1",
     "expo-image": "57.0.1",
-    "expo-image-manipulator": "57.0.5",
-    "expo-location": "57.0.5",
-    "expo-modules-core": "57.0.6",
+    "expo-image-manipulator": "57.0.6",
+    "expo-location": "57.0.6",
+    "expo-modules-core": "57.0.7",
     "expo-store-review": "57.0.1",
-    "expo-task-manager": "57.0.5",
-    "expo-video": "57.0.1",
-    "expo-web-browser": "57.0.1",
+    "expo-task-manager": "57.0.6",
+    "expo-video": "57.0.2",
+    "expo-web-browser": "57.0.2",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
     "group-ib-fp": "file:modules/group-ib-fp",
@@ -397,22 +397,22 @@
     "pdfjs-dist": "^5.5.207",
     "lightningcss": "1.30.1",
     "@fullstory/react-native": {
-      "expo": "57.0.2"
+      "expo": "57.0.8"
     },
     "@react-native-firebase/app": {
-      "expo": "57.0.2"
+      "expo": "57.0.8"
     },
     "@react-native-firebase/perf": {
-      "expo": "57.0.2"
+      "expo": "57.0.8"
     },
     "@react-native-google-signin/google-signin": {
-      "expo": "57.0.2"
+      "expo": "57.0.8"
     },
     "@rnmapbox/maps": {
-      "expo": "57.0.2"
+      "expo": "57.0.8"
     },
     "@sentry/react-native": {
-      "expo": "57.0.2"
+      "expo": "57.0.8"
     },
     "expo-modules-core": {
       "react-native-worklets": "0.11.1"

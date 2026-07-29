@@ -29,7 +29,7 @@ PODS:
   - AppLogs (0.1.0)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
-  - EXConstants (57.0.6):
+  - EXConstants (57.0.7):
     - ExpoModulesCore
   - expensify-react-native-background-task (0.0.0):
     - boost
@@ -88,7 +88,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - Expo (57.0.2):
+  - Expo (57.0.8):
     - boost
     - DoubleConversion
     - ExpoModulesCore
@@ -120,9 +120,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - ExpoAsset (57.0.6):
+  - ExpoAsset (57.0.7):
     - ExpoModulesCore
-  - ExpoAudio (57.0.2):
+  - ExpoAudio (57.0.3):
     - ExpoModulesCore
   - ExpoDomWebView (57.0.1):
     - ExpoModulesCore
@@ -135,14 +135,14 @@ PODS:
     - SDWebImageAVIFCoder (~> 0.11.0)
     - SDWebImageSVGCoder (~> 1.7.0)
     - SDWebImageWebPCoder (~> 0.14.6)
-  - ExpoImageManipulator (57.0.5):
+  - ExpoImageManipulator (57.0.6):
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoLocation (57.0.5):
+  - ExpoLocation (57.0.6):
     - ExpoModulesCore
   - ExpoLogBox (57.0.1):
     - React-Core
-  - ExpoModulesCore (57.0.6):
+  - ExpoModulesCore (57.0.7):
     - boost
     - DoubleConversion
     - ExpoModulesJSI
@@ -172,25 +172,25 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - ExpoModulesJSI (57.0.3):
+  - ExpoModulesJSI (57.0.4):
     - React-Core
     - ReactCommon
-  - ExpoModulesWorklets (57.0.6):
+  - ExpoModulesWorklets (57.0.7):
     - ExpoModulesCore
     - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (57.0.6):
+  - ExpoModulesWorkletsAdapter (57.0.7):
     - ExpoModulesCore
     - ExpoModulesJSI
     - ExpoModulesWorklets
     - RNWorklets
   - ExpoStoreReview (57.0.1):
     - ExpoModulesCore
-  - ExpoTaskManager (57.0.5):
+  - ExpoTaskManager (57.0.6):
     - ExpoModulesCore
     - UMAppLoader
-  - ExpoVideo (57.0.1):
+  - ExpoVideo (57.0.2):
     - ExpoModulesCore
-  - ExpoWebBrowser (57.0.1):
+  - ExpoWebBrowser (57.0.2):
     - ExpoModulesCore
   - fast_float (8.0.0)
   - FBLazyVector (0.86.0)
@@ -4866,26 +4866,26 @@ SPEC CHECKSUMS:
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
-  EXConstants: 8641fb5fcb789b2bfc9d01c9206a6826ca9d49e6
+  EXConstants: fa5647482320b7bde855057f8b86580456d4b9f0
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
   ExpensifyNitroUtils: 86109fe1ab88351ed63ffe11b760d537c70019d7
-  Expo: 75ab4fa281afb7fb40136dc714f9f986a926e527
-  ExpoAsset: c270900c121a250ceabbf692dfecc2f1564ec82f
-  ExpoAudio: c306e13ec127338d78b85899d5c22af875921eb7
+  Expo: 1db1ece522ad03f3a2bad1604f0e4460194ebb91
+  ExpoAsset: 98143758ff37e14c9ff2a4e7673097db00473011
+  ExpoAudio: b69f36525132edba8d87a715b3a20c678ef78b30
   ExpoDomWebView: beaec034e51bd028428b98bb1f2633ab79c6d095
   ExpoFont: 59e1faf66ba9bcd232ae1e2ce58d202a48b6f65e
   ExpoImage: 4c1e7634db6033185a98959fb028d8d4b1c89695
-  ExpoImageManipulator: 9431496d31a770dc1d26755300b6be149ca287bd
-  ExpoLocation: b6b92a1228263508b15b902e2db6187372ac9da6
+  ExpoImageManipulator: d3c962dabd86b331980f8ec6794c6073b3cb541a
+  ExpoLocation: 187949911b868f72e34a8a6f8f487207ba86388a
   ExpoLogBox: 8a3cfa2897e088083cd49fc1ff7fdb2de4385547
-  ExpoModulesCore: 8aa0cc6e9fba823dc1f573f62124e8e38380f6df
-  ExpoModulesJSI: 1abe88b923f2233ea75be46693611add7136b3a9
-  ExpoModulesWorklets: 2ba73eabbbd0470e43f8998757f4cb8abff8355b
-  ExpoModulesWorkletsAdapter: f6e197437ec4b17cd455e8c307d793552250d348
+  ExpoModulesCore: 48de9b4d1179bb3a38025a0db36ec6cedc8f580c
+  ExpoModulesJSI: 3accd404d715d63e7b04015d20c857e903e3bc73
+  ExpoModulesWorklets: b21b8f233b5fd71ca74327217601fa4ead9ddaaf
+  ExpoModulesWorkletsAdapter: fbbef35a631ee8ae3f76e3e2133a3158f7c83e24
   ExpoStoreReview: 2a0f6b8e04112aea2f6e3e1cb84109d78f4d041f
-  ExpoTaskManager: fed019ee76e17650f4240f4f0790534d7bb770f0
-  ExpoVideo: 50bc4d4739c754ce05d551a96bd39a2ca0a73a9d
-  ExpoWebBrowser: 2a3445af48b78130a1d570616c83692e9a3d0275
+  ExpoTaskManager: f68326227852a30148700965c37c058c1473c6a2
+  ExpoVideo: b1d9a325ddcd4f3ed8ccb374c01b688e98bc6a04
+  ExpoWebBrowser: 9b98d939d5f1c5dd8f523f0a0683056fb1204434
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 688bade2cc6ee3de2ba9a411c85c21fd908af3bc
   Firebase: 3435bc66b4d494c2f22c79fd3aae4c1db6662327
