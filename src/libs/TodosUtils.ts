@@ -7,8 +7,9 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchKey} from './SearchUIUtils';
 
 import {getLoginByAccountID} from './PersonalDetailsUtils';
+import {isGroupPolicy} from './PolicyUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from './ReportPrimaryActionUtils';
-import {hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions} from './ReportUtils';
+import {hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions, isArchivedReport, isOpenReport} from './ReportUtils';
 
 type CreateTodosReportsAndTransactionsParams = {
     /** Every report, keyed by report Onyx key - iterated to find the expense reports that belong in a to-do bucket */
@@ -103,12 +104,17 @@ function reportMatchesTodoBucket(
 ): boolean {
     switch (searchKey) {
         case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
+            if (report.ownerAccountID !== currentUserAccountID) {
+                return false;
+            }
+
+            // Empty drafts can't be submitted, but they still belong in the Drafts tab and to-do so users can find and clean them up.
+            if (reportTransactions.length === 0) {
+                return isOpenReport(report) && isGroupPolicy(policy) && !isArchivedReport(reportNameValuePair);
+            }
+
             // isSubmitAction also allows workflow approvers to submit on the owner's behalf; the to-do only nudges the owner.
-            return (
-                report.ownerAccountID === currentUserAccountID &&
-                isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePair, undefined, login, currentUserAccountID) &&
-                !allExpensesHeld
-            );
+            return isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld;
         case CONST.SEARCH.SEARCH_KEYS.APPROVE:
             return isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld;
         case CONST.SEARCH.SEARCH_KEYS.PAY:

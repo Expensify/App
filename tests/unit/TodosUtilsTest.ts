@@ -297,6 +297,69 @@ describe('TodosUtils', () => {
             expect(result.reportsToSubmit).toEqual([]);
         });
 
+        it('includes an empty open report owned by the current user in the submit bucket', () => {
+            const emptyReport = createMockReport('empty_draft', {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit.map((report) => report.reportID)).toEqual(['empty_draft']);
+        });
+
+        it('excludes an empty open report owned by another user from the submit bucket', () => {
+            const emptyReport = createMockReport('empty_other_owner', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
+        it('excludes an empty open report on a personal policy from the submit bucket', () => {
+            const emptyReport = createMockReport('empty_personal', {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+            const policy = createMockPolicy(POLICY_ID, {type: CONST.POLICY.TYPE.PERSONAL});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
+        it('excludes an empty archived report from the submit bucket', () => {
+            const emptyReport = createMockReport('empty_archived', {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReportNameValuePairs: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${emptyReport.chatReportID}`]: {private_isArchived: '2024-01-01 00:00:00'},
+                },
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
         it('ignores non-expense reports', () => {
             const chatReport = createMockReport('chat_report', {type: CONST.REPORT.TYPE.CHAT, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
             const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
@@ -386,6 +449,20 @@ describe('TodosUtils', () => {
             });
 
             expect(result.reports).toEqual([]);
+        });
+
+        it('includes an empty open report owned by the current user in the submit bucket', () => {
+            const emptyReport = createMockReport('empty_draft', {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+            const policy = createMockPolicy(POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+
+            const result = getTodoReportsForSearchKey(CONST.SEARCH.SEARCH_KEYS.SUBMIT, {
+                ...baseParams,
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            expect(result.reports.map((report) => report.reportID)).toEqual(['empty_draft']);
         });
     });
 });
