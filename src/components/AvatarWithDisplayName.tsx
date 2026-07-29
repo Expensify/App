@@ -112,8 +112,6 @@ function getCustomDisplayName(
     shouldUseFullTitle: boolean,
     customSearchDisplayStyle: TextStyle[],
     regularStyle: TextStyle[],
-    isAnonymous: boolean,
-    isMoneyRequestOrReport: boolean,
     isCopyable: boolean,
 ): React.ReactNode {
     const reportName = report?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME;
@@ -161,7 +159,7 @@ function getCustomDisplayName(
         return {
             fullTitle: title,
             textStyles: regularStyle,
-            shouldUseFullTitle: isMoneyRequestOrReport || isAnonymous,
+            shouldUseFullTitle,
             ...baseProps,
         };
     }
@@ -294,8 +292,6 @@ function AvatarWithDisplayName({
         shouldUseFullTitle,
         [styles.headerText, styles.pre, customDisplayNameStyle],
         [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
-        isAnonymous,
-        isMoneyRequestOrReport,
         isDisplayNameCopyable,
     );
 
