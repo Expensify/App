@@ -47,7 +47,7 @@ type MenuItemRootProps = PropsWithChildren &
         /** Handles what to do when the row loses focus */
         onBlur?: () => void;
 
-        /** Should we disable this row? */
+        /** Whether the menu item is disabled */
         isDisabled?: boolean;
 
         /** Whether the row uses the active (selected-row) styling */
@@ -207,7 +207,6 @@ function MenuItemRoot({
                                         isDisabled,
                                         isInteractive,
                                         isSuccess,
-                                        isCompact,
                                     }}
                                 >
                                     <View style={styles.flex1}>{children}</View>

@@ -22,9 +22,6 @@ type MenuItemState = {
 
     /** Whether the row uses success (green) styling */
     isSuccess: boolean;
-
-    /** Whether the row is rendered inside a compact popover menu */
-    isCompact: boolean;
 };
 
 const MenuItemContext = createContext<MenuItemState | undefined>(undefined);
