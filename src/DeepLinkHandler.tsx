@@ -184,12 +184,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             return;
         }
         hasRefetchedPublicRoom.current = true;
-        Report.openReport({
-            reportID,
-            introSelected,
-            betas,
-            currentUserAccountID: session?.accountID,
-        });
+        Report.openReport({reportID, introSelected, betas, hasReportActions: false, currentUserAccountID: session?.accountID});
     }, [isLoadingApp, allReports, introSelected, betas, session?.accountID]);
 
     return null;
