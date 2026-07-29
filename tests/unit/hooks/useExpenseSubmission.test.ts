@@ -19,6 +19,11 @@ const mockCleanupAfterExpenseCreate = jest.fn();
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockResolveChatTargetForSubmitCleanup = jest.fn();
 const mockSendInvoiceAction = jest.fn();
+const mockSplitBillAction = jest.fn();
+const mockSplitBillAndOpenReportAction = jest.fn();
+const mockResolveOptimisticSplitChatReportID = jest.fn();
+const mockDismissModalAndOpenReportInInboxTab = jest.fn();
+const mockHasCompletePerDiemCustomUnit = jest.fn();
 
 jest.mock('@userActions/IOU/TrackExpense', () => ({
     requestMoney: (...args: unknown[]) => mockRequestMoneyAction(...args),
@@ -28,11 +33,25 @@ jest.mock('@userActions/IOU/TrackExpense', () => ({
 jest.mock('@userActions/IOU/PerDiem', () => ({
     submitPerDiemExpense: (...args: unknown[]) => mockSubmitPerDiemExpenseAction(...args),
     submitPerDiemExpenseForSelfDM: (...args: unknown[]) => mockSubmitPerDiemExpenseForSelfDMAction(...args),
+    hasCompletePerDiemCustomUnit: (...args: unknown[]) => mockHasCompletePerDiemCustomUnit(...args),
 }));
 
 jest.mock('@userActions/IOU/SendInvoice', () => ({
     sendInvoice: (...args: unknown[]) => mockSendInvoiceAction(...args),
     getReceiverType: jest.fn(),
+}));
+
+jest.mock('@userActions/IOU/Split', () => ({
+    splitBill: (...args: unknown[]) => mockSplitBillAction(...args),
+    splitBillAndOpenReport: (...args: unknown[]) => mockSplitBillAndOpenReportAction(...args),
+    resolveOptimisticSplitChatReportID: (...args: unknown[]) => mockResolveOptimisticSplitChatReportID(...args),
+    startSplitBill: jest.fn(),
+    createDistanceRequest: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab', () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => mockDismissModalAndOpenReportInInboxTab(...args),
 }));
 
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
@@ -198,6 +217,8 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         await Onyx.clear();
         mockRequestMoneyAction.mockReturnValue({iouReport: {reportID: 'iou-1'}});
         mockResolveChatTargetForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, chatReportID: 'fallback-id', optimisticChatReportID: undefined});
+        mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: undefined, chatReportID: REPORT_ID});
+        mockHasCompletePerDiemCustomUnit.mockReturnValue(true);
     });
 
     describe('requestMoney path', () => {
@@ -437,6 +458,155 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             expect(mockSubmitPerDiemExpenseForSelfDMAction).toHaveBeenCalledTimes(1);
             expect(mockRequestMoneyAction).not.toHaveBeenCalled();
+        });
+
+        it('removes the draft and dismisses to the self-DM when shouldHandleNavigation=true', async () => {
+            const perDiemTransaction = buildPerDiemTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledTimes(1);
+        });
+
+        it('removes the draft without dismissing when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
+            const perDiemTransaction = buildPerDiemTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+        });
+
+        it('does not submit, remove the draft, or navigate when the custom unit is incomplete (the action would no-op)', async () => {
+            // The UI gates on the same check the action guards on, so a submit that would bail never runs and the draft survives.
+            mockHasCompletePerDiemCustomUnit.mockReturnValue(false);
+            const perDiemTransaction = buildPerDiemTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSubmitPerDiemExpenseForSelfDMAction).not.toHaveBeenCalled();
+            expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('split path', () => {
+        function buildSplitParams(transactionOverrides: Partial<Transaction> = {}) {
+            const splitTransaction = buildTransaction(transactionOverrides);
+            return buildParams({
+                iouType: CONST.IOU.TYPE.SPLIT,
+                transaction: splitTransaction,
+                transactions: [splitTransaction],
+            });
+        }
+
+        it('dismisses to the report the split was posted in when shouldHandleNavigation=true', async () => {
+            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith(REPORT_ID, undefined, false);
+        });
+
+        it('only removes the draft when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
+            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+        });
+
+        it('threads the pre-generated optimistic chat ID into splitBillAndOpenReport and dismisses to that same report', async () => {
+            // Global create has no existing chat, so the UI mints the ID the action will build the chat under.
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-split-chat', chatReportID: 'optimistic-split-chat'});
+
+            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams({isFromGlobalCreate: true})));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSplitBillAction).not.toHaveBeenCalled();
+            expect(mockSplitBillAndOpenReportAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: 'optimistic-split-chat'}));
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-split-chat', undefined, false);
+        });
+
+        it('dismisses to the existing chat when one already resolves, leaving the optimistic ID undefined', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: undefined, chatReportID: 'existing-group-chat'});
+
+            const {result} = renderHook(() => useExpenseSubmission(buildSplitParams({isFromGlobalCreate: true})));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockSplitBillAndOpenReportAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: undefined}));
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('existing-group-chat', undefined, false);
         });
     });
 });

@@ -14,11 +14,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
+import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -95,6 +98,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const delegateAccountID = useDelegateAccountID();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const chatReportTransactions = useReportTransactions(reportID);
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
         completeSplitBill({
@@ -112,7 +116,10 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             sessionEmail: session?.email,
             formatPhoneNumber,
         });
+        cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+        dismissModalAndOpenReportInInboxTab(reportID, undefined, chatReportTransactions.length > 0);
     }, [
+        chatReportTransactions.length,
         reportID,
         reportAction,
         draftTransaction,
