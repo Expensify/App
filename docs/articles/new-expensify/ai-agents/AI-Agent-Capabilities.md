@@ -216,7 +216,7 @@ Example phrases for your agent's instructions:
 
 ## How to write instructions that manage workspace settings and members
 
-Inspects Workspace configuration, answers membership questions, and — for Workspace Admins — adds or removes members and modifies workspace settings such as categories and approval rules.
+Inspects Workspace configuration, answers membership questions, and — for Workspace Admins — adds or removes members, lists and assigns company cards from a connected card feed, and modifies workspace settings such as categories and approval rules.
 
 Example phrases for your agent's instructions:
 - Add new employees to the workspace when they join
@@ -225,6 +225,7 @@ Example phrases for your agent's instructions:
 - Show me who is on this workspace
 - What is the current approval mode for this workspace?
 - Copy the category list from one workspace to another
+- Assign all unassigned company cards to the matching members
 
 ---
 
