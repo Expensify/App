@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -135,16 +135,16 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
                 />
             </View>
             <Button
-                success
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isDisabled={isOffline}
                 isLoading={inactiveCard?.isLoading}
-                medium={isExtraSmallScreenHeight}
-                large={!isExtraSmallScreenHeight}
+                size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.p5, styles.mtAuto]}
                 onPress={submitAndNavigateToNextPage}
-                pressOnEnter
-                text={translate('activateCardPage.activatePhysicalCard')}
-            />
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('activateCardPage.activatePhysicalCard')}</Button.Text>
+            </Button>
         </IllustratedHeaderPageLayout>
     );
 }

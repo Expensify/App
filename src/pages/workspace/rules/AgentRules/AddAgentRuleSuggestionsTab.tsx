@@ -12,6 +12,8 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -39,6 +41,10 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const {isKeyboardActive} = useKeyboardState();
+    const shouldUseFixedFooter = isInLandscapeMode && isKeyboardActive;
+
     const {data, isLoading} = useSuggestedAgentRules();
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
     const icons = useMemoizedLazyExpensifyIcons([...SUGGESTED_AGENT_RULE_ICON_NAMES]);
@@ -88,6 +94,17 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     }
 
     const hasNoFilteredSuggestions = filteredSuggestions.length === 0;
+
+    const button = (
+        <Button
+            variant="success"
+            size={CONST.BUTTON_SIZE.LARGE}
+            onPress={goToEditWithSelection}
+            isDisabled={!selectedSuggestion}
+        >
+            <Button.Text>{translate('common.next')}</Button.Text>
+        </Button>
+    );
 
     return (
         <View style={styles.flex1}>
@@ -147,17 +164,11 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                         );
                     })
                 )}
+
+                {shouldUseFixedFooter && button}
             </ScrollView>
-            <FixedFooter style={styles.pt5}>
-                <Button
-                    variant="success"
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={goToEditWithSelection}
-                    isDisabled={!selectedSuggestion}
-                >
-                    <Button.Text>{translate('common.next')}</Button.Text>
-                </Button>
-            </FixedFooter>
+
+            {!shouldUseFixedFooter && <FixedFooter style={styles.pt5}>{button}</FixedFooter>}
         </View>
     );
 }
