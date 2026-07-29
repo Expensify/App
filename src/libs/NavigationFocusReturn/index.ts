@@ -1,9 +1,12 @@
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from '@libs/compoundParamsKey';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
-import {MAX_RESTORE_FRAMES, MOUSE_TRIGGER_TTL_MS, RETURN_HOLD_MS, TRIGGER_MAP_MAX} from '@libs/focusReturnTimings';
+import {KEYBOARD_TRIGGER_TTL_MS, MAX_RESTORE_FRAMES, MOUSE_TRIGGER_TTL_MS, RETURN_HOLD_MS, TRIGGER_MAP_MAX} from '@libs/focusReturnTimings';
 import getHadTabNavigation from '@libs/hadTabNavigation';
+import isActivatableTarget from '@libs/isActivatableTarget';
+import isActivationKeydown from '@libs/isActivationKeydown';
 import isEffectivelyVisible from '@libs/isEffectivelyVisible';
+import isFocusMovingKeydown from '@libs/isFocusMovingKeydown';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from '@libs/LauncherStack';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -12,6 +15,8 @@ import {diffNavigationState} from '@libs/navigationStateDiff';
 import {isProgrammaticFocus} from '@libs/programmaticFocus';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
+
+import CONST from '@src/CONST';
 
 import type {NavigationState} from '@react-navigation/native';
 import type {RefObject} from 'react';
@@ -31,6 +36,9 @@ const MOUSE_ACTIVATION_EVENTS = ['pointerdown', 'mousedown', 'click'] as const;
 let lastMouseTrigger: HTMLElement | null = null;
 let lastInteractiveElement: HTMLElement | null = null;
 let lastMouseTriggerAt = 0;
+let lastKeyboardTrigger: HTMLElement | null = null;
+let lastKeyboardTriggerAt = 0;
+let pendingActivationKey: 'Enter' | 'Space' | null = null;
 
 function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
     setFifoEntry(triggerMap, routeKey, entry, TRIGGER_MAP_MAX);
@@ -42,6 +50,8 @@ let isRestoringFocus = false;
 let skipNextRestore = false;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
 let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
+let keyActivationHandler: ((e: KeyboardEvent) => void) | null = null;
+let keyReleaseHandler: ((e: KeyboardEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
 
 function captureTriggerForRoute(routeKey: string): void {
@@ -51,7 +61,10 @@ function captureTriggerForRoute(routeKey: string): void {
 
     const launcher = pickLauncher();
     let inner: HTMLElement | null;
-    if (getHadTabNavigation()) {
+    const keyboardTriggerFresh = lastKeyboardTrigger !== null && performance.now() - lastKeyboardTriggerAt < KEYBOARD_TRIGGER_TTL_MS && document.contains(lastKeyboardTrigger);
+    if (keyboardTriggerFresh) {
+        inner = lastKeyboardTrigger;
+    } else if (getHadTabNavigation()) {
         const active = document.activeElement;
         const innerIsStale = lastInteractiveElement && active && active !== document.body && active !== lastInteractiveElement;
         inner = lastInteractiveElement && document.contains(lastInteractiveElement) && !innerIsStale ? lastInteractiveElement : null;
@@ -82,6 +95,9 @@ function clearTransientCaptures(): void {
     lastInteractiveElement = null;
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
+    lastKeyboardTrigger = null;
+    lastKeyboardTriggerAt = 0;
+    pendingActivationKey = null;
 }
 
 function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
@@ -97,9 +113,11 @@ function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void
     const compoundKey = compoundParamsKey(routeKey, targetParams);
     if (skipNextRestore) {
         applySkippedRestore(compoundKey);
-        return;
+    } else {
+        scheduleRestore(compoundKey, {waitForUpcomingTransition: false});
     }
-    scheduleRestore(compoundKey, {waitForUpcomingTransition: false});
+    // Same-key PUSH_PARAMS looks like a noop to handleStateChange — clear the outgoing capture window here so an Enter-driven Back can't leak its latch into an unrelated forward within the TTL.
+    clearTransientCaptures();
 }
 
 /*
@@ -329,7 +347,6 @@ function handleStateChange(newState: NavigationState | undefined): void {
         skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
-        clearTransientCaptures();
     } else if (action.type === 'backward') {
         if (skipNextRestore) {
             applySkippedRestore(action.restoreKey);
@@ -342,6 +359,10 @@ function handleStateChange(newState: NavigationState | undefined): void {
         cancelPendingRestore();
     } else if (action.type === 'noop') {
         skipNextRestore = false;
+    }
+    // Latch/lastInteractiveElement are per-forward-nav; any real state change ends the capture window.
+    if (action.type !== 'noop' || removedKeys.length > 0) {
+        clearTransientCaptures();
     }
 
     for (const key of removedKeys) {
@@ -392,10 +413,77 @@ function setupNavigationFocusReturn(): void {
                 lastMouseTrigger = next;
             }
             lastMouseTriggerAt = performance.now();
+            // Physical pointer supersedes the keyboard latch. Same-target `click` is preserved (synthetic Enter/Space activation click on the latched element itself); any other click clears.
+            if (e.type !== 'click' || next !== lastKeyboardTrigger) {
+                lastKeyboardTrigger = null;
+                lastKeyboardTriggerAt = 0;
+                pendingActivationKey = null;
+            }
         };
         for (const event of MOUSE_ACTIVATION_EVENTS) {
             document.addEventListener(event, mouseActivationHandler, true);
         }
+    }
+    if (!keyActivationHandler) {
+        // Capture-phase keydown latches the pre-activation target before any destination's synchronous autofocus can overwrite lastInteractiveElement.
+        keyActivationHandler = (e: KeyboardEvent) => {
+            const isEnter = e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
+            const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey;
+            if (isActivationKeydown(e)) {
+                const active = document.activeElement;
+                const key = isEnter ? 'Enter' : 'Space';
+                if (active && active !== document.body && isActivatableTarget(active, key) && hasFocusableAttributes(active)) {
+                    lastKeyboardTrigger = active;
+                    lastKeyboardTriggerAt = performance.now();
+                    pendingActivationKey = key;
+                    return;
+                }
+                // Failed re-activation cannot re-affirm a stale latch.
+                lastKeyboardTrigger = null;
+                lastKeyboardTriggerAt = 0;
+                pendingActivationKey = null;
+                return;
+            }
+            // Rejected Enter/Space: auto-repeats preserve pending (held-key keyup refresh); IME/composition clears it (its keyup mustn't masquerade as our release).
+            if (isEnter || isSpace) {
+                if (!e.repeat) {
+                    pendingActivationKey = null;
+                }
+                return;
+            }
+            // Only focus-movers supersede; standalone modifiers / typing must not (reintroduces #96970 for muscle-memory Shift/Cmd after Enter).
+            if (isFocusMovingKeydown(e)) {
+                lastKeyboardTrigger = null;
+                lastKeyboardTriggerAt = 0;
+                pendingActivationKey = null;
+            }
+        };
+        document.addEventListener('keydown', keyActivationHandler, true);
+    }
+    if (!keyReleaseHandler) {
+        // RNW dispatches onPress from keyup — refresh so TTL measures activation-to-capture. Gated on pendingActivationKey to block IME/rejected keyups from reviving a stale latch.
+        keyReleaseHandler = (e: KeyboardEvent) => {
+            if (pendingActivationKey === null) {
+                return;
+            }
+            const isEnter = e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
+            const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey;
+            // Modifier releases (Shift/Cmd) must not clear pending — Shift+Enter → release-Shift-first still needs the eventual Enter keyup to refresh.
+            if (!isEnter && !isSpace) {
+                return;
+            }
+            const isMatchingRelease = (pendingActivationKey === 'Enter' && isEnter) || (pendingActivationKey === 'Space' && isSpace);
+            pendingActivationKey = null;
+            if (!isMatchingRelease || lastKeyboardTrigger === null) {
+                return;
+            }
+            // Mirror RNW's `isActiveElement` check: if focus moved during hold, keyup targets a different element and onPress is canceled — the latch must not be refreshed.
+            if (e.target !== lastKeyboardTrigger) {
+                return;
+            }
+            lastKeyboardTriggerAt = performance.now();
+        };
+        document.addEventListener('keyup', keyReleaseHandler, true);
     }
     // getRootState() pre-mount triggers React Navigation's "not initialized" console.error. Retries on each setup call so NavigationRoot.onReady picks up live state.
     if (!prevState && navigationRefHasLiveState()) {
@@ -419,9 +507,7 @@ function teardownNavigationFocusReturn(): void {
     // Reset cached state so a remount (logout/HMR) re-seeds — setup's `!prevState` gate would otherwise skip the seed and diff against stale routes.
     prevState = undefined;
     triggerMap.clear();
-    lastInteractiveElement = null;
-    lastMouseTrigger = null;
-    lastMouseTriggerAt = 0;
+    clearTransientCaptures();
     skipNextRestore = false;
     if (typeof document !== 'undefined') {
         if (focusinHandler) {
@@ -432,9 +518,17 @@ function teardownNavigationFocusReturn(): void {
                 document.removeEventListener(event, mouseActivationHandler, true);
             }
         }
+        if (keyActivationHandler) {
+            document.removeEventListener('keydown', keyActivationHandler, true);
+        }
+        if (keyReleaseHandler) {
+            document.removeEventListener('keyup', keyReleaseHandler, true);
+        }
     }
     focusinHandler = null;
     mouseActivationHandler = null;
+    keyActivationHandler = null;
+    keyReleaseHandler = null;
     stateUnsubscribe?.();
     stateUnsubscribe = null;
 }
@@ -446,9 +540,7 @@ function resetForTests(): void {
     resetLauncherStackForTests();
     resetCycle();
     prevState = undefined;
-    lastInteractiveElement = null;
-    lastMouseTrigger = null;
-    lastMouseTriggerAt = 0;
+    clearTransientCaptures();
     lastRestoreTarget = null;
     skipNextRestore = false;
 }
