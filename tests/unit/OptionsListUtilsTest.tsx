@@ -9036,6 +9036,16 @@ describe('OptionsListUtils', () => {
             expect(secondOption?.isSelected).toBeFalsy();
         });
 
+        // conciergeReportID affects the Concierge option's subtitle/alternate text, so a change must
+        // invalidate the cache instead of serving options built with the previous value.
+        it('should recompute cached options when only conciergeReportID changes', () => {
+            const first = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {conciergeReportID: undefined});
+            const second = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {conciergeReportID: '1'});
+
+            // A cache hit would share nested objects between clones (see the pristine-cache test above).
+            expect(second.personalDetails.at(0)?.icons).not.toBe(first.personalDetails.at(0)?.icons);
+        });
+
         // The cached entry is frozen in dev, so a consumer that mutates a nested object shared with the
         // cache throws instead of silently corrupting the results returned to every other screen.
         it('should throw when a nested object shared with the cache is mutated', () => {

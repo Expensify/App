@@ -1707,6 +1707,7 @@ function createFilteredOptionList(
         policyTags,
         visibleReportActionsData,
         isTrackIntentUser,
+        conciergeReportID,
         // Option building translates strings imperatively (translateLocal), so the active locale is part of the output.
         locale ?? IntlStore.getCurrentLocale(),
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,

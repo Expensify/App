@@ -310,7 +310,6 @@ describe('SearchAutocompleteList', () => {
         await flushAllUpdates();
 
         // Then the contextual report (not part of recent reports) is built through createOptionFromReport
-        // with the conciergeReportID threaded from Onyx (#66411)
         expect(createOptionFromReportSpy).toHaveBeenCalled();
         expect(createOptionFromReportSpy.mock.calls.at(0)?.at(0)?.conciergeReportID).toBe('concierge-router-1');
     });
