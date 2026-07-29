@@ -23,7 +23,7 @@ type MemberChangeContentProps = {
 };
 
 function MemberChangeContent({action}: MemberChangeContentProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const reportAttributes = useReportAttributes();
     const memberChangeLogReportActionMessage = isMemberChangeAction(action) ? getOriginalMessage(action) : undefined;
@@ -31,7 +31,7 @@ function MemberChangeContent({action}: MemberChangeContentProps) {
     const [targetAccountDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsListSelector(memberChangeLogReportActionMessage?.targetAccountIDs)});
     const [memberChangeLogRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${memberChangeLogReportActionMessage?.reportID}`);
     const memberChangeLogRoomReportName = deprecatedGetReportName(memberChangeLogRoomReport, reportAttributes) || memberChangeLogReportActionMessage?.roomName;
-    const fragment = getMemberChangeMessageFragment(translate, action, actorDetails, targetAccountDetailsList, memberChangeLogRoomReportName);
+    const fragment = getMemberChangeMessageFragment(translate, formatPhoneNumber, action, actorDetails, targetAccountDetailsList, memberChangeLogRoomReportName);
 
     return (
         <View style={[styles.chatItemMessage]}>

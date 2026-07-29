@@ -1001,6 +1001,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const logMessage =
                         getMemberChangeMessageFragment(
                             translate,
+                            formatPhoneNumber,
                             reportAction,
                             getPersonalDetailsByID(reportAction.actorAccountID, personalDetails),
                             getPersonalDetailsListByIDs(targetAccountIDs, personalDetails),

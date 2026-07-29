@@ -2018,6 +2018,7 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
 
 function getMemberChangeMessageElements(
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAction: OnyxEntry<ReportAction>,
     actorDetails: OnyxEntry<PersonalDetails>,
     targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
@@ -2361,6 +2362,7 @@ function getDynamicExternalWorkflowApproveFailedActionMessage(translate: Localiz
 
 function getMemberChangeMessageFragment(
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAction: OnyxEntry<ReportAction>,
     actorDetails: OnyxEntry<PersonalDetails>,
     targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
@@ -2368,6 +2370,7 @@ function getMemberChangeMessageFragment(
 ): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(
         translate,
+        formatPhoneNumber,
         reportAction,
         actorDetails,
         targetAccountDetailsList,

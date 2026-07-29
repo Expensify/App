@@ -2452,6 +2452,41 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(expected);
         });
     });
+
+    describe('getMemberChangeMessageFragment', () => {
+        it('uses the injected formatter for SMS member mentions', () => {
+            const targetAccountID = 456;
+            const targetLogin = '+919383833920@expensify.sms';
+            const mockFormatPhoneNumber = jest.fn((value: string) => `formatted:${value}`);
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    targetAccountIDs: [targetAccountID],
+                },
+            };
+
+            const fragment = ReportActionsUtils.getMemberChangeMessageFragment(
+                translateLocal,
+                mockFormatPhoneNumber,
+                action,
+                undefined,
+                {
+                    [targetAccountID]: {
+                        accountID: targetAccountID,
+                        login: targetLogin,
+                    },
+                },
+                undefined,
+            );
+
+            expect(mockFormatPhoneNumber).toHaveBeenCalledWith(targetLogin);
+            expect(fragment.html).toContain(`<mention-user accountID=${targetAccountID}>@formatted:${targetLogin}</mention-user>`);
+        });
+    });
+
     describe('isDeletedAction', () => {
         it('should return false if the action is a hold or unhold action', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD | typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD> = {
