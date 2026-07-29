@@ -43,12 +43,12 @@ async function getLocalCredentialID(accountID: number): Promise<string | undefin
 }
 
 /** Resolves to whether the account has a local HSM key the server also knows, meaning it can skip registration. */
-async function areLocalCredentialsKnownToServer(accountID: number): Promise<boolean> {
+async function areLocalCredentialsKnownToServer(accountID: number, signal?: AbortSignal): Promise<boolean> {
     const localCredentialID = await getLocalCredentialID(accountID);
     if (!localCredentialID) {
         return false;
     }
-    const account = await readOnyxValueOnce(ONYXKEYS.ACCOUNT);
+    const account = await readOnyxValueOnce(ONYXKEYS.ACCOUNT, signal);
     return (mfaCredentialIDsSelector(account) ?? []).includes(localCredentialID);
 }
 

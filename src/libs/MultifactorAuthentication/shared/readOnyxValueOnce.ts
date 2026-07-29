@@ -9,6 +9,10 @@ import Onyx from 'react-native-onyx';
  */
 function readOnyxValueOnce<TKey extends OnyxKey>(key: TKey, signal?: AbortSignal): Promise<OnyxValue<TKey>> {
     return new Promise((resolve) => {
+        if (signal?.aborted) {
+            return;
+        }
+
         let connection: Connection;
         const disconnect = () => Onyx.disconnect(connection);
 

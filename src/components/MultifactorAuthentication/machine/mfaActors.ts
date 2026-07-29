@@ -31,7 +31,7 @@ const readHasAcceptedSoftPrompt = fromPromise<boolean, ReadHasAcceptedSoftPrompt
  * Resolves to whether the account's local credentials are known to the server. A returning user
  * (true) skips the registration path entirely.
  */
-const checkLocalCredentials = fromPromise<boolean, CheckLocalCredentialsInput>(({input}) => areLocalCredentialsKnownToServer(input.accountID));
+const checkLocalCredentials = fromPromise<boolean, CheckLocalCredentialsInput>(({input, signal}) => areLocalCredentialsKnownToServer(input.accountID, signal));
 
 /**
  * Exchanges the submitted magic code for a validated registration challenge. The action normalizes

@@ -25,8 +25,8 @@ async function doesDeviceSupportAuthenticationMethod(): Promise<boolean> {
 }
 
 /** Resolves to whether the account has a local passkey the server also knows, meaning it can skip registration. */
-async function areLocalCredentialsKnownToServer(accountID: number): Promise<boolean> {
-    const [account, localPasskeyCredentials] = await Promise.all([readOnyxValueOnce(ONYXKEYS.ACCOUNT), readOnyxValueOnce(getPasskeyOnyxKey(String(accountID)))]);
+async function areLocalCredentialsKnownToServer(accountID: number, signal?: AbortSignal): Promise<boolean> {
+    const [account, localPasskeyCredentials] = await Promise.all([readOnyxValueOnce(ONYXKEYS.ACCOUNT, signal), readOnyxValueOnce(getPasskeyOnyxKey(String(accountID)), signal)]);
     const serverKnownCredentialIDs = new Set(mfaCredentialIDsSelector(account) ?? []);
     return (localPasskeyCredentials ?? []).some((credential) => serverKnownCredentialIDs.has(credential.id));
 }
