@@ -11703,6 +11703,8 @@ type CreateDraftTransactionParams = {
     reportID: string | undefined;
     actionName: IOUAction;
     reportActionID: string | undefined;
+    /** Report actions of the report identified by reportID, used to find the linked track-expense action */
+    reportActions: OnyxEntry<ReportActions>;
     introSelected: OnyxEntry<IntroSelected>;
     draftTransactionIDs: string[] | undefined;
     activePolicy: OnyxEntry<Policy>;
@@ -11731,6 +11733,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     reportID,
     actionName,
     reportActionID,
+    reportActions,
     introSelected,
     draftTransactionIDs,
     activePolicy,
@@ -11753,13 +11756,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         return;
     }
 
-    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
-
-    if (!reportActions) {
-        return;
-    }
-
-    const linkedTrackedExpenseReportAction = Object.values(reportActions)
+    const linkedTrackedExpenseReportAction = Object.values(reportActions ?? {})
         .filter(Boolean)
         .find((action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID === transactionID);
 

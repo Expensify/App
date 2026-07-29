@@ -214,6 +214,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
+    // The report from which a tracked expense would be submitted/categorized/shared, and its actions -
+    // createDraftTransactionAndNavigateToParticipantSelector uses them to find the linked track-expense action
+    const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
+    const [actionReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`);
 
     const {removeTransaction} = useSearchSelectionActions();
 
@@ -516,7 +520,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         }
 
         if (isTrackExpenseReport && !isDeletedParentAction) {
-            const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID, moneyRequestReportActions);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -526,6 +529,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             if (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) {
                 const baseSubmitParams = {
                     reportID: actionReportID,
+                    reportActions: actionReportActions,
                     reportActionID: actionableWhisperReportActionID,
                     introSelected,
                     draftTransactionIDs,
@@ -607,6 +611,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
                             reportID: actionReportID,
+                            reportActions: actionReportActions,
                             actionName: CONST.IOU.ACTION.CATEGORIZE,
                             reportActionID: actionableWhisperReportActionID,
                             introSelected,
@@ -633,6 +638,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     action: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
                             reportID: actionReportID,
+                            reportActions: actionReportActions,
                             actionName: CONST.IOU.ACTION.SHARE,
                             reportActionID: actionableWhisperReportActionID,
                             introSelected,
@@ -769,8 +775,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         styles.ph2,
         shouldOpenRoomMembersPage,
         navigateBackFromReportDetailsPath,
-        parentReportAction,
-        reportActionsForOriginalReportID,
+        actionReportID,
+        actionReportActions,
         iouTransactionID,
         moneyRequestReport?.reportID,
         moneyRequestReportActions,

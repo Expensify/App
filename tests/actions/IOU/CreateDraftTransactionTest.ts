@@ -159,6 +159,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with draftTransactionIDs
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -211,6 +212,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with empty allTransactionDrafts
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -252,6 +254,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined transaction
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: 'some-report-action-id',
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -288,6 +291,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined reportID
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: undefined,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: 'some-report-action-id',
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -366,6 +370,7 @@ describe('actions/IOU', () => {
                 // When the expense is submitted to the employer, skipping the destination picker
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: selfDMReport.reportID,
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.SUBMIT,
                     reportActionID: '1',
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -402,6 +407,7 @@ describe('actions/IOU', () => {
                 // When the expense is submitted to the employer and there is no workspace to submit to
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: selfDMReport.reportID,
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.SUBMIT,
                     reportActionID: '1',
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -432,6 +438,7 @@ describe('actions/IOU', () => {
                 // When the expense is submitted to the employer and there is no workspace to submit to
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: selfDMReport.reportID,
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.SUBMIT,
                     reportActionID: '1',
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -461,6 +468,7 @@ describe('actions/IOU', () => {
                 // When the expense is submitted to the employer
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: selfDMReport.reportID,
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.SUBMIT,
                     reportActionID: '1',
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
