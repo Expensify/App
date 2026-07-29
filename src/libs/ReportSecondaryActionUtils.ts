@@ -917,7 +917,7 @@ function getSecondaryReportActions({
     bankAccountList,
     policy,
     reportNameValuePairs,
-    allReportNameValuePairs,
+    moveExpenseReportNameValuePairs,
     reportActions,
     reportMetadata,
     policies,
@@ -937,7 +937,7 @@ function getSecondaryReportActions({
     bankAccountList: OnyxEntry<BankAccountList>;
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
-    allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    moveExpenseReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportActions?: ReportAction[];
     reportMetadata?: OnyxEntry<ReportMetadata>;
     policies?: OnyxCollection<Policy>;
@@ -1087,7 +1087,7 @@ function getSecondaryReportActions({
                 fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 isChatReportArchived,
                 outstandingReportsByPolicyID,
-                reportNameValuePairs: allReportNameValuePairs,
+                reportNameValuePairs: moveExpenseReportNameValuePairs,
                 transaction,
             });
             const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isChatReportArchived);

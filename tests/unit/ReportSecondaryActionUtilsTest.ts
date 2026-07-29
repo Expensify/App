@@ -3465,7 +3465,7 @@ describe('getSecondaryAction', () => {
         });
         const reportActions = [actionR14932];
         const policy = createMock<Policy>({});
-        const allReportNameValuePairs = {
+        const moveExpenseReportNameValuePairs = {
             [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: createMock<ReportNameValuePairs>({}),
         };
 
@@ -3484,7 +3484,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
-            allReportNameValuePairs,
+            moveExpenseReportNameValuePairs,
 
             isProduction: false,
         });
@@ -3492,7 +3492,7 @@ describe('getSecondaryAction', () => {
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
                 isChatReportArchived: false,
-                reportNameValuePairs: allReportNameValuePairs,
+                reportNameValuePairs: moveExpenseReportNameValuePairs,
             }),
         );
     });
