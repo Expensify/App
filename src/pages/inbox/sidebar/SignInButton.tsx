@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -24,12 +24,13 @@ function SignInButton() {
         >
             <View style={[styles.signInButtonAvatar, styles.ph2]}>
                 <Button
-                    success
-                    text={translate('common.signIn')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         signOutAndRedirectToSignIn();
                     }}
-                />
+                >
+                    <Button.Text>{translate('common.signIn')}</Button.Text>
+                </Button>
             </View>
         </PressableWithoutFeedback>
     );

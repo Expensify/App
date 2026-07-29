@@ -1976,7 +1976,7 @@ class CLI {
             .map((key) => `[--${key} <value>]`)
             .join(' ');
         const flagUsage = [...Object.keys(flags), '--yes', '--no', '--help'].map((key) => `[${key.startsWith('--') ? key : `--${key}`}]`).join(' ');
-        console.log(`\nUsage: npx ts-node ${scriptName} ${flagUsage} ${namedArgUsage} ${positionalUsage}\n`);
+        console.log(`\nUsage: ${CLI.detectRuntimeCommand()} ${scriptName} ${flagUsage} ${namedArgUsage} ${positionalUsage}\n`);
         console.log('Flags:');
         for (const [name, spec] of Object.entries(flags)) {
             console.log(`  --${name.padEnd(20)} ${spec.description}`);
@@ -2003,6 +2003,25 @@ class CLI {
             }
             console.log('');
         }
+    }
+    /**
+     * Attempts to detect the command used to invoke the currently-running script, for display in the usage line of the help message.
+     * Checked in order of most to least reliable signal; falls back to plain `node` if nothing else matches.
+     */
+    static detectRuntimeCommand() {
+        // Bun's own public, documented signal. Cast needed since @types/node's ProcessVersions type has no `bun` key.
+        if (process.versions.bun) {
+            return 'bun';
+        }
+        // Internal symbol ts-node sets on `process` when its register hook is active (the same mechanism other tools, e.g. fastify-autoload, rely on to detect ts-node).
+        if (Reflect.get(process, Symbol.for('ts-node.register.instance'))) {
+            return 'npx ts-node';
+        }
+        // tsx registers its loader hooks via --require/--import flags pointing into its own package, visible in execArgv regardless of how it was installed.
+        if (process.execArgv.some((arg) => arg.includes('tsx/dist/'))) {
+            return 'npx tsx';
+        }
+        return 'node';
     }
     static parseStringArg(rawString, paramName, spec) {
         if ('parse' in spec && !!spec.parse) {

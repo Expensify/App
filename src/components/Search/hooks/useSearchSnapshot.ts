@@ -147,6 +147,12 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
+    // Only CHAT/TASK sections read reportAttributesDerivedValue. It's a derived value that gets a new
+    // reference whenever any report changes (e.g. on every step of a PAY), so keeping it in the deps for
+    // other types forces needless full getSections recomputes. Gate it to undefined elsewhere so the dep
+    // stays stable.
+    const reportAttributesForSections = isChat || isTask ? reportAttributesDerivedValue : undefined;
+
     const isLoading = !!searchResults?.search?.isLoading;
     const hasMore = !!searchResults?.search?.hasMoreResults;
 
@@ -204,7 +210,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             onyxPersonalDetailsList,
             isAttendeesEnabledForMovingPolicy,
             convertToDisplayString,
-            reportAttributesDerivedValue,
+            reportAttributesDerivedValue: reportAttributesForSections,
             optimisticTransactionID,
         });
         return {
@@ -237,7 +243,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         onyxPersonalDetailsList,
         isAttendeesEnabledForMovingPolicy,
         convertToDisplayString,
-        reportAttributesDerivedValue,
+        reportAttributesForSections,
         optimisticTransactionID,
     ]);
 
