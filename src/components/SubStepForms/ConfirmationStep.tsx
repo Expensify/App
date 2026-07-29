@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
@@ -13,6 +13,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -105,13 +107,14 @@ function ConfirmationStep({
                 )}
                 <Button
                     isDisabled={isOffline}
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={isLoading}
                     style={[styles.w100]}
                     onPress={onNext}
-                    text={translate('common.confirm')}
-                />
+                >
+                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                </Button>
             </View>
         </ScrollView>
     );
