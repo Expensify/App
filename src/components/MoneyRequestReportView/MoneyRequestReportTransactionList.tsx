@@ -198,6 +198,9 @@ type MoneyRequestReportTransactionListProps = {
     /** Renders a single report action row in the unified list. */
     renderReportAction: (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => React.ReactElement;
 
+    /** Values outside the list data that should trigger report action rows to update. */
+    reportActionsExtraData: unknown;
+
     /** Report action ID the unified list should initially scroll to, when deep-linked. */
     linkedReportActionID: string | undefined;
 
@@ -262,6 +265,7 @@ function MoneyRequestReportTransactionList({
     isLoadingInitialReportActions = false,
     visibleReportActions,
     renderReportAction,
+    reportActionsExtraData,
     linkedReportActionID,
     listRef,
     onLastItemIndexChange,
@@ -1101,6 +1105,7 @@ function MoneyRequestReportTransactionList({
                 policy={policy}
                 visibleReportActions={visibleReportActions}
                 renderReportAction={renderReportAction}
+                reportActionsExtraData={reportActionsExtraData}
                 linkedReportActionID={linkedReportActionID}
                 newTransactionID={isReportVisible ? newTransactions.at(0)?.transactionID : undefined}
                 listRef={listRef}
