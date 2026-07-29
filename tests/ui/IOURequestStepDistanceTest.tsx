@@ -25,6 +25,7 @@ import Onyx from 'react-native-onyx';
 import type * as IOU from '../../src/libs/actions/IOU';
 
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -186,6 +187,20 @@ const ACCOUNT_LOGIN = 'test@user.com';
 const REPORT_ID = 'report-1';
 const TRANSACTION_ID = 'txn-1';
 const PARTICIPANT_ACCOUNT_ID = 2;
+type IOURequestStepDistanceProps = React.ComponentProps<typeof IOURequestStepDistance>;
+
+const mockNavigation = createMock<IOURequestStepDistanceProps['navigation']>({});
+const createRoute = (action: IOURequestStepDistanceProps['route']['params']['action']): IOURequestStepDistanceProps['route'] =>
+    createMock<IOURequestStepDistanceProps['route']>({
+        key: 'Money_Request_Step_Distance-test',
+        name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
+        params: {
+            action,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            reportID: REPORT_ID,
+            transactionID: TRANSACTION_ID,
+        },
+    });
 
 function createTestReport(): Report {
     return {
@@ -235,20 +250,8 @@ function renderEditMode() {
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
                 <IOURequestStepDistance
-                    route={{
-                        key: 'Money_Request_Step_Distance-test',
-                        name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                        params: {
-                            action: CONST.IOU.ACTION.EDIT,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            reportID: REPORT_ID,
-                            transactionID: TRANSACTION_ID,
-                            // @ts-expect-error -- this test intentionally omits the legacy backTo route parameter.
-                            backTo: undefined,
-                        },
-                    }}
-                    // @ts-expect-error -- this test intentionally supplies a minimal navigation fixture.
-                    navigation={undefined}
+                    route={createRoute(CONST.IOU.ACTION.EDIT)}
+                    navigation={mockNavigation}
                 />
             </CurrentUserPersonalDetailsProvider>
         </OnyxListItemProvider>,
@@ -284,20 +287,8 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
                     <IOURequestStepDistance
-                        route={{
-                            key: 'Money_Request_Step_Distance-test',
-                            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                            params: {
-                                action: CONST.IOU.ACTION.CREATE,
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                reportID: REPORT_ID,
-                                transactionID: TRANSACTION_ID,
-                                // @ts-expect-error -- this test intentionally omits the legacy backTo route parameter.
-                                backTo: undefined,
-                            },
-                        }}
-                        // @ts-expect-error -- this test intentionally supplies a minimal navigation fixture.
-                        navigation={undefined}
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -328,20 +319,8 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
                     <IOURequestStepDistance
-                        route={{
-                            key: 'Money_Request_Step_Distance-test',
-                            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                            params: {
-                                action: CONST.IOU.ACTION.CREATE,
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                reportID: REPORT_ID,
-                                transactionID: TRANSACTION_ID,
-                                // @ts-expect-error -- this test intentionally omits the legacy backTo route parameter.
-                                backTo: undefined,
-                            },
-                        }}
-                        // @ts-expect-error -- this test intentionally supplies a minimal navigation fixture.
-                        navigation={undefined}
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -536,20 +515,8 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
                     <IOURequestStepDistance
-                        route={{
-                            key: 'Money_Request_Step_Distance-test',
-                            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                            params: {
-                                action: CONST.IOU.ACTION.CREATE,
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                reportID: REPORT_ID,
-                                transactionID: TRANSACTION_ID,
-                                // @ts-expect-error -- this test intentionally omits the legacy backTo route parameter.
-                                backTo: undefined,
-                            },
-                        }}
-                        // @ts-expect-error -- this test intentionally supplies a minimal navigation fixture.
-                        navigation={undefined}
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
