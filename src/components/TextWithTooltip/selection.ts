@@ -74,4 +74,4 @@ function useCopyableTextRowPress() {
     };
 }
 
-export {COPYABLE_TEXT_DATA_SET, COPYABLE_TEXT_SELECTOR, isCopyableTextTarget, shouldSuppressCopyableTextPress, useCopyableTextRowPress};
+export {COPYABLE_TEXT_DATA_SET, COPYABLE_TEXT_SELECTOR, useCopyableTextRowPress};
