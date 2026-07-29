@@ -1,3 +1,7 @@
+/**
+ * Dynamic route version of the state selection page. Reads the current state/label from the
+ * dynamic route params and returns the chosen state to the previous screen via the dynamic back path.
+ */
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';

@@ -48,6 +48,8 @@ jest.mock('@hooks/useLocalize', () =>
             }
 
             const [, stateKey, property] = key.split('.');
+            // stateKey is parsed from an `allStates.<key>.*` path generated from mockStates itself, so it is guaranteed valid.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const state = mockStates[stateKey as keyof typeof mockStates];
 
             if (property === 'stateName') {
@@ -106,13 +108,18 @@ describe('DynamicStateSelectionPage', () => {
         const searchedProps = mockedSelectionList.mock.lastCall?.[0];
         const expectedSearchResults = searchOptions(
             'New',
-            Object.keys(mockStates).map((state) => ({
-                value: mockStates[state as keyof typeof mockStates].stateISO,
-                keyForList: mockStates[state as keyof typeof mockStates].stateISO,
-                text: mockStates[state as keyof typeof mockStates].stateName,
-                isSelected: mockStates[state as keyof typeof mockStates].stateISO === 'NY',
-                searchValue: StringUtils.sanitizeString(`${mockStates[state as keyof typeof mockStates].stateISO}${mockStates[state as keyof typeof mockStates].stateName}`),
-            })),
+            Object.keys(mockStates).map((stateKey) => {
+                // stateKey comes from Object.keys(mockStates) itself, so it is guaranteed valid.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const state = mockStates[stateKey as keyof typeof mockStates];
+                return {
+                    value: state.stateISO,
+                    keyForList: state.stateISO,
+                    text: state.stateName,
+                    isSelected: state.stateISO === 'NY',
+                    searchValue: StringUtils.sanitizeString(`${state.stateISO}${state.stateName}`),
+                };
+            }),
         );
 
         expect(searchedProps?.data.map((item) => item.keyForList)).toEqual(expectedSearchResults.map((item) => item.keyForList));

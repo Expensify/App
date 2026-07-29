@@ -7,7 +7,6 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type ROUTES from '@src/ROUTES';
 
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
@@ -41,14 +40,11 @@ type StateSelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    /** Overrides the default dynamic state selector route (e.g. for the Money Request flow's own static state selector) */
-    stateSelectorRoute?: typeof ROUTES.MONEY_REQUEST_STATE_SELECTOR;
-
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 
-function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute, ref}: StateSelectorProps) {
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, ref}: StateSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -98,11 +94,6 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
             errorText={errorText}
             onPress={() => {
                 didOpenStateSelector.current = true;
-                if (stateSelectorRoute) {
-                    const activeRoute = Navigation.getActiveRoute();
-                    Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
-                    return;
-                }
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_STATE.getRoute(stateCode, label)));
             }}
             wrapperStyle={wrapperStyle}
