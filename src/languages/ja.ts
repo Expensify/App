@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -440,6 +442,7 @@ const translations: TranslationDeepObject<typeof en> = {
         print: '印刷',
         help: 'ヘルプ',
         collapsed: '折りたたみ',
+        expand: '展開',
         expanded: '展開',
         expenseReport: '経費精算書',
         rateOutOfPolicy: 'ポリシー外の料率',
@@ -1092,7 +1095,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'あなたの支出',
             awaitingApproval: '承認待ち',
-            repaidLast30Days: '過去30日間に返済済み',
+            repaidLast30Days: '過去30日間の返済',
             recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `さらに${count}件表示`,
@@ -1177,6 +1180,7 @@ const translations: TranslationDeepObject<typeof en> = {
             'アップロードしたファイルは空であるか、無効なデータが含まれています。再度アップロードする前に、ファイルの形式が正しく、必要な情報が含まれていることを確認してください。',
         importSpreadsheetLibraryError: 'スプレッドシートモジュールの読み込みに失敗しました。インターネット接続を確認して、もう一度お試しください。',
         importSpreadsheet: 'スプレッドシートをインポート',
+        importWorkflows: 'ワークフローをインポート',
         downloadCSV: 'CSV をダウンロード',
         importMemberConfirmation: () => ({
             one: `このアップロードの一部として追加される新しいワークスペースメンバーの詳細を、以下で確認してください。既存のメンバーにはロールの更新や招待メッセージは送信されません。`,
@@ -2575,6 +2579,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'このカードをExpensify Travelでの予約に使用してください。チェックアウト時には「Travel Card」と表示されます。',
         },
         chaseAccountNumberDifferent: '口座番号が異なるのはなぜですか？',
+        cardLastSynced: (relativeDate: string) => `${relativeDate} に同期しました`,
+        cardNeverSynced: '未同期',
+        cardStatus: {
+            active: 'アクティブ',
+            inactive: '無効',
+            fixConnection: 'この接続を修正してください',
+            fixConnectionIn: (companyCardsRoute: string) => `この接続を<a href="${companyCardsRoute}">会社カード</a>で修正してください`,
+            askAdminToFixConnection: '管理者にこの接続の修正を依頼してください',
+        },
+        bankAccountStatus: {
+            active: 'アクティブ',
+            incomplete: '未完了',
+            pending: '保留中',
+            verifying: '確認中',
+            reviewingDocumentation: '書類を審査しています',
+            finishAddingBankAccount: '銀行口座の追加を完了',
+            finish: '完了',
+            confirmTestTransactions: 'テスト取引を確認してください',
+            accountRequiresAttention: 'このアカウントには対応が必要です',
+            unlock: 'ロック解除',
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify カード',
@@ -2904,8 +2929,16 @@ ${date} の ${merchant} への ${amount}`,
             updateAvatar: 'このエージェントのアバターを更新する際に問題が発生しました',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: '新しいエージェント',
+        buildCustomAgent: 'カスタムエージェントを作成',
+        orStartWithTemplate: 'または、テンプレートから始める：',
+        role: 'エージェント',
+        emptyTemplatesTitle: 'テンプレートはまだありません',
+        emptyTemplatesSubtitle: 'カスタムエージェントを作成して始めましょう。',
+    },
+    addAgentPage: {
+        title: 'カスタムエージェントを作成',
         agentName: 'エージェント名',
         instructions: 'カスタム指示を作成',
         createAgent: 'エージェントを作成',
@@ -4269,7 +4302,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         toLearnMore: '詳しくはこちらをご覧ください。',
         termsAndConditions: {
             header: '続ける前に…',
-            title: '利用規約',
+            title: '利用規約を確認する',
             label: '利用規約と条件に同意します',
             subtitle: `Expensify Travel の<a href="${CONST.TRAVEL_TERMS_URL}">利用規約</a>に同意してください。`,
             error: '続行するには、Expensify Travel の利用規約に同意する必要があります',
@@ -4342,11 +4375,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         departs: '出発日時',
         errorMessage: '問題が発生しました。後でもう一度お試しください。',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>出張を予約するには、<a href="${phoneErrorMethodsRoute}">勤務先メールアドレスを主なログインとして追加</a>してください。</rbr>`,
-        domainSelector: {
-            title: 'ドメイン',
-            subtitle: 'Expensify Travel のセットアップ用ドメインを選択してください。',
-            recommended: 'おすすめ',
-        },
+        domainSelector: {headline: 'どのドメインを設定しますか？', title: 'ドメイン', subtitle: 'Expensify Travel のセットアップ用ドメインを選択してください。', recommended: 'おすすめ'},
+        workspaceAddress: {headline: '会社の住所は何ですか？'},
         domainPermissionInfo: {
             title: 'ドメイン',
             restriction: (domain: string) =>
@@ -4401,6 +4431,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         nightIn: '宿泊数',
         nightsIn: '泊（滞在先）',
         taxID: {
+            headline: 'あなたの事業の納税者番号は何ですか？',
             title: '納税者番号',
             subtitle: '現地通貨での出張費の請求を設定できるように、法人の納税者番号を入力してください。',
             inputLabel: '法人納税者番号',
@@ -5005,7 +5036,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             creditCardAccount: 'クレジットカード口座',
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Sage Intacct で対応する仕入先がない ${isReimbursable ? '' : '非'}立替精算費用に適用されるデフォルトの仕入先を設定します。`,
+                isReimbursable
+                    ? `Sage Intacct で一致する仕入先がない立替経費に適用するデフォルトの仕入先を設定します。`
+                    : `Sage Intacct の仕入先に照合できない経費は、デフォルトでこの仕入先に紐づけられます。`,
             exportDescription: 'Expensify のデータを Sage Intacct へエクスポートする方法を設定します。',
             exportPreferredExporterNote:
                 '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
@@ -5748,13 +5781,14 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             assign: '割り当て',
             assignCard: 'カードを割り当てる',
-            findCard: 'カードを探す',
+            findCompanyCard: '会社カードを探す',
             cardNumber: 'カード番号',
             commercialFeed: '商用フィード',
             feedName: (feedName: string) => `${feedName}カード`,
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
             chooseTheCardholder: 'カード名義人を選択',
+            pleaseSelectACardholder: '続行するにはカード名義人を選択してください',
             chooseCard: 'カードを選択',
             chooseCardFor: (assignee: string) =>
                 `<strong>${assignee}</strong> に割り当てるカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
@@ -6069,8 +6103,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 transactionStartDate: '取引開始日',
                 updateCard: 'カードを更新',
                 unassignCard: 'カードの割り当てを解除',
+                unassignCards: 'カードの割り当てを解除',
                 unassign: '割り当てを解除',
                 unassignCardDescription: 'このカードの割り当てを解除すると、未送信の取引はすべて削除されます。',
+                unassignCardsDescription: '割り当てを解除すると、選択したカードの未送信の取引はすべて削除されます。',
                 removeCard: 'カードを削除',
                 remove: '削除',
                 removeCardDescription: 'このカードを削除すると、未送信のすべての取引が削除されます。',
@@ -6871,6 +6907,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             exportCompanyCard: '法人カード経費のエクスポート形式',
             exportDate: 'エクスポート日',
             defaultVendor: 'デフォルトのベンダー',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。`
+                    : `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。それ以外は「Credit Card Misc」としてエクスポートされます。`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) => `自動的に照合されない経費に対して使用する、デフォルトの ${connectionName} 仕入先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
             autoSyncDescription: 'NetSuite と Expensify を毎日自動で同期。確定したレポートをリアルタイムでエクスポート',
@@ -7690,6 +7731,18 @@ ${reportName}`,
                 editRuleTitle: 'ルールを編集',
                 deleteRule: 'ルールを削除',
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
+                unableToRemoveTitle: '削除できません',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `このエージェントを削除する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,
+                unableToCloseAccountTitle: 'アカウントを閉鎖できません',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `このアカウントを閉鎖する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,
+                unableToDeleteAgentTitle: 'エージェントを削除できません',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `このエージェントを削除する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,
+                unableToChangeRoleTitle: 'ロールを変更できません',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `このエージェントのロールを変更する前に、RuleBot が適用している<a href="${rulesRoute}">エージェントルール</a>をワークスペースから削除する必要があります。`,
                 describeRuleTitle: 'AI エージェントに従わせるルールを記述してください',
                 describeRuleHeadline: 'ルールを説明する',
                 disclaimer: 'AI エージェントは間違える場合があります。',
@@ -8841,6 +8894,7 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支払う',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
+            filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
         },
         display: {
             label: '表示',
@@ -9308,6 +9362,9 @@ ${reportName}`,
         save: '保存',
         resume: '再開',
         discard: '破棄',
+        edit: '編集',
+        editStop: '停止地点を編集',
+        totalDistance: '合計距離',
         discardDistanceTrackingModal: {
             title: '移動距離の追跡を破棄',
             prompt: '本当によろしいですか？現在の操作は破棄され、元に戻すことはできません。',
