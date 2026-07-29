@@ -17,7 +17,12 @@ type UseFilteredOptionsConfig = {
     maxRecentReports?: number;
     /** Whether the hook should be enabled (default: true) */
     enabled?: boolean;
-    /** Whether to include P2P personal details (default: true) */
+    /**
+     * Whether to include P2P personal details (default: true). Keep the default only on screens that render
+     * contacts: building them costs one shell per personal detail on the account, and any consumer that then
+     * calls getValidOptions/getSearchOptions without maxElements/maxResults also pays a full createOption for
+     * every contact that survives filtering. Pass false on screens that render reports only.
+     */
     includeP2P?: boolean;
     /** Number of reports to load per batch when paginating (default: 100) */
     batchSize?: number;

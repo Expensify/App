@@ -1753,6 +1753,7 @@ function createFilteredOptionList(
     policiesCollection: OnyxCollection<Policy>,
     options: {
         maxRecentReports?: number;
+        /** Whether to build contact shells at all. Pass false from screens that render reports only. */
         includeP2P?: boolean;
         isSearching?: boolean;
         /**
