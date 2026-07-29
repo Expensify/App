@@ -365,5 +365,4 @@ const enrichInjectedScriptError: TelemetryBeforeSendError = (event: ErrorEvent, 
 };
 
 export default enrichInjectedScriptError;
-export {FRAME_SOURCE, describeInlineScripts, describeRawStack, getFrameSource, getOpaqueFrameLocation, getStackScriptHosts, hasOnlyOpaqueFrames, hasTargetedMessage, hashScriptContent};
-export type {InlineScriptShape};
+export {FRAME_SOURCE, describeInlineScripts, describeRawStack, getFrameSource, getOpaqueFrameLocation, getStackScriptHosts, hasOnlyOpaqueFrames, hashScriptContent};
