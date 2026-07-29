@@ -35,8 +35,7 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, childr
     const styles = useThemeStyles();
 
     if (!isEnabled) {
-        // eslint-disable-next-line react/jsx-no-useless-fragment
-        return <>{children}</>;
+        return children;
     }
 
     const renderedChildren: React.ReactNode[] = [];
@@ -70,8 +69,7 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, childr
     }
     flushRowGroup();
 
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{renderedChildren}</>;
+    return renderedChildren;
 }
 
 TableSemanticContainer.displayName = 'TableSemanticContainer';
