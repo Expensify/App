@@ -131,7 +131,7 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`);
     const [iouReportCurrency] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {selector: selectCurrency});
 
-    const chatReportID = chatReport?.reportID;
+    const chatReportID = chatReport?.reportID ?? linkedReportID;
     const tripTransactions = useTripTransactions(chatReportID);
 
     const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, tripTransactions);
