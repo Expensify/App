@@ -842,6 +842,8 @@ function duplicateExpenseTransaction({
             transactionID: '1',
         },
         isSelfTourViewed,
+        // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+        conciergeChat: undefined,
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
@@ -1056,6 +1058,8 @@ function duplicateReport({
                 transactionID: '1',
             },
             isSelfTourViewed,
+            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+            conciergeChat: undefined,
             betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,

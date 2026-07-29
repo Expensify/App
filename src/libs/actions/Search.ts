@@ -229,6 +229,8 @@ type HandleActionButtonPressParams = {
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    /** The Concierge chat report, threaded so payMoneyRequest's onboarding path no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    conciergeChat: OnyxEntry<Report>;
 };
 
 function handleActionButtonPress({
@@ -267,6 +269,7 @@ function handleActionButtonPress({
     delegateEmail,
     delegateAccountID,
     isTrackIntentUser,
+    conciergeChat,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -319,6 +322,7 @@ function handleActionButtonPress({
                 chatReportActions,
                 delegateAccountID,
                 isTrackIntentUser,
+                conciergeChat,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -526,6 +530,8 @@ type GetPayActionCallbackParams = {
     chatReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    /** The Concierge chat report, threaded so payMoneyRequest's onboarding path no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    conciergeChat: OnyxEntry<Report>;
 };
 
 function getPayActionCallback({
@@ -554,6 +560,7 @@ function getPayActionCallback({
     chatReportActions,
     delegateAccountID,
     isTrackIntentUser,
+    conciergeChat,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -603,6 +610,7 @@ function getPayActionCallback({
         chatReportActions,
         delegateAccountID,
         isTrackIntentUser,
+        conciergeChat,
     });
 }
 
