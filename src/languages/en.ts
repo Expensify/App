@@ -4326,6 +4326,7 @@ const translations = {
         proofOf: 'Proof of personal address',
         enterOneEmail: (companyName: string) => `Enter the email of a director at ${companyName}`,
         regulationRequiresOneMoreDirector: 'Regulation requires at least one more director as a signer.',
+        bothSignersMustBeOnIllionReport: "Both signers must be listed as directors on the company's illion report. They can't be any two people at the business.",
         hangTight: 'Hang tight...',
         enterTwoEmails: (companyName: string) => `Enter the emails of two directors at ${companyName}`,
         sendReminder: 'Send a reminder',
@@ -4352,6 +4353,8 @@ const translations = {
         },
     },
     agreementsStep: {
+        bankStatement: 'Bank statement',
+        bankStatementDescription: "Please provide a recent bank statement, dated within the last three months, for the business bank account you're connecting.",
         agreements: 'Agreements',
         pleaseConfirm: 'Please confirm the agreements below',
         regulationRequiresUs: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the business.',

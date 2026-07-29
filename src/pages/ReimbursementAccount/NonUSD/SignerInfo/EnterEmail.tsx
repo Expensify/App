@@ -86,6 +86,7 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail', companyName)}</Text>
             {!shouldGatherBothEmails && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.regulationRequiresOneMoreDirector')}</Text>}
+            {shouldGatherBothEmails && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.bothSignersMustBeOnIllionReport')}</Text>}
             <InputWrapper
                 InputComponent={TextInput}
                 label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}

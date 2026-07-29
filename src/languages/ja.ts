@@ -4183,6 +4183,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         proofOf: '個人住所の証明',
         enterOneEmail: (companyName: string) => `${companyName} のディレクターのメールアドレスを入力してください`,
         regulationRequiresOneMoreDirector: '規定により、署名者として最低でももう一人の取締役が必要です。',
+        bothSignersMustBeOnIllionReport: '両方の署名者は、会社の illion レポートに取締役として記載されている必要があります。事業に関わる任意の2人ではいけません。',
         hangTight: '少々お待ちください…',
         enterTwoEmails: (companyName: string) => `${companyName} の取締役2名のメールアドレスを入力してください`,
         sendReminder: 'リマインダーを送信',
@@ -4209,6 +4210,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
     },
     agreementsStep: {
+        bankStatement: '銀行取引明細書',
+        bankStatementDescription: '接続する法人銀行口座について、過去3か月以内の日付が記載された最近の銀行取引明細書をご提出ください。',
         agreements: '契約書',
         pleaseConfirm: '以下の規約に同意してください',
         regulationRequiresUs: '法律により、事業の持分を25％超所有するすべての個人の本人確認を行うことが求められています。',
