@@ -55,6 +55,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
 import {isBillableEnabledOnPolicy, isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
@@ -137,7 +138,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
@@ -221,8 +222,8 @@ function MoneyRequestView({
     const reportAttributes = useReportAttributes();
 
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
-    let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
-    parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    const [parentReportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+    const parentReport = parentReportFromOnyx ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
@@ -560,7 +561,7 @@ function MoneyRequestView({
             name: deprecatedGetReportName(match, reportAttributes) || match.reportName,
         };
     };
-    const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector}, [transactionTripID, grandparentReportID, reportAttributes]);
+    const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
     const tripRoomReportID = tripRoomInfo?.reportID;
     const tripRoomName = tripRoomInfo?.name;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
@@ -848,6 +849,7 @@ function MoneyRequestView({
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
                 delegateAccountID,
+                reportPolicyTags,
                 isTrackIntentUser,
             });
         });
@@ -1436,12 +1438,8 @@ function MoneyRequestView({
                                 }
 
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction.transactionID,
-                                        transactionThreadReport?.reportID,
-                                        getReportRHPActiveRoute(),
+                                    createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
                                     ),
                                 );
                             }}
@@ -1468,12 +1466,8 @@ function MoneyRequestView({
                                 }
 
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction.transactionID,
-                                        transactionThreadReport?.reportID,
-                                        getReportRHPActiveRoute(),
+                                    createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
                                     ),
                                 );
                             }}
@@ -1509,7 +1503,11 @@ function MoneyRequestView({
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID));
+                                Navigation.navigate(
+                                    createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
+                                    ),
+                                );
                             }}
                             brickRoadIndicator={getErrorForField('attendees') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('attendees')}

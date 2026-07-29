@@ -25,8 +25,8 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useState} from 'react';
 
 type ExpensifyCardVerifyAccountPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE>
-    | PlatformStackScreenProps<DomainCardNavigatorParamList, typeof SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE>;
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE>
+    | PlatformStackScreenProps<DomainCardNavigatorParamList, typeof SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_VALIDATE_CODE>;
 
 function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageProps) {
     const {cardID} = route.params;
@@ -37,7 +37,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const navigateBack = () => {
-        if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE) {
+        if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_VALIDATE_CODE) {
             Navigation.goBack(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID));
             return;
         }
@@ -68,7 +68,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
+            descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin)}
             sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID: Number.parseInt(cardID, 10)})}
             validateCodeActionErrorField="revealExpensifyCardDetails"
             handleSubmitForm={handleRevealCardDetails}

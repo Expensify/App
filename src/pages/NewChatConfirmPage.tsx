@@ -56,7 +56,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const icons = useMemoizedLazyExpensifyIcons(['Camera']);
-    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, newGroupDraft?.participants);
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, translate, newGroupDraft?.participants);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 

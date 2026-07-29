@@ -21,12 +21,14 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -90,7 +92,7 @@ function WalletPage() {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT);
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -100,6 +102,8 @@ function WalletPage() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
+    const {isBetaEnabled} = usePermissions();
+    const shouldShowWalletConnectionStatus = isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const {login: currentUserLogin, email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -662,8 +666,8 @@ function WalletPage() {
         ];
     }, [bottomMountItem, confirmDeleteCard, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
-    if (isLoadingApp) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: !!isLoadingApp};
+    if (isAppLoadPending) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: isAppLoadPending};
         return (
             <ScreenWrapper
                 testID="WalletPage"
@@ -712,6 +716,7 @@ function WalletPage() {
                                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 shouldShowBankAccountSections
+                                shouldShowConnectionStatus={shouldShowWalletConnectionStatus}
                                 threeDotsMenuItems={threeDotMenuItems}
                             />
                         </Section>
@@ -731,6 +736,7 @@ function WalletPage() {
                                     threeDotsMenuItems={cardThreeDotsMenuItems}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    shouldShowConnectionStatus={shouldShowWalletConnectionStatus}
                                 />
                                 <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
                                     <MenuItem
