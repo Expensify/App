@@ -68,8 +68,6 @@ type TransactionItemRowWideProps = Omit<
     TransactionItemRowWideComputedData &
     TransactionItemRowRBRDeferControlProps;
 
-const VALIDATION_ROW_MAIN_CONTENT_HEIGHT = 52;
-
 function TransactionItemRowWide({
     transactionItem,
     report,
@@ -158,7 +156,7 @@ function TransactionItemRowWide({
     const hasValidationMessage = shouldShowErrors && (!!missingFieldError || !!violations?.length);
     let fullHeightMainRowStyle;
     if (shouldUseFullHeightEditableCellHoverTarget) {
-        fullHeightMainRowStyle = hasValidationMessage ? {minHeight: VALIDATION_ROW_MAIN_CONTENT_HEIGHT} : styles.tableRowHeight;
+        fullHeightMainRowStyle = hasValidationMessage ? styles.mnh13 : styles.tableRowHeight;
     }
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
