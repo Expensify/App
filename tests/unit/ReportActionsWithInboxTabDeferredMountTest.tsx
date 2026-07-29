@@ -27,7 +27,7 @@ jest.mock(
 jest.mock('@hooks/useMarkOpenReportEndOnSkeleton', () => () => undefined);
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
-jest.mock('@hooks/usePaginatedReportActions', () => () => ({reportActions: {}}));
+jest.mock('@hooks/usePaginatedReportActions', () => () => ({reportActions: []}));
 jest.mock('@hooks/useReportTransactionsCollection', () => () => ({}));
 
 jest.mock('@react-navigation/native', () => {
