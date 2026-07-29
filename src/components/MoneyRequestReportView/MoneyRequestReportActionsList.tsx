@@ -49,6 +49,7 @@ import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostF
 
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
+import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
@@ -506,6 +507,37 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         scrollToEnd: scrollToBottom,
         resetKey: report?.reportID ?? reportIDFromRoute ?? '',
     });
+
+    // The thinking indicator renders in the list footer, below the last data row that scrollToBottom
+    // targets, so a user sitting at the bottom would otherwise get it just under the viewport. This
+    // list is not inverted and sets no autoscrollToBottomThreshold, so nothing pulls the viewport
+    // down on its own. Route through scrollToEnd rather than scrollToBottom: only scrollToEnd
+    // includes the footer, and its estimated content-end offset is accurate here because we only
+    // fire when the surrounding rows are already rendered at the bottom.
+    const {candidateAgentIDs} = useAgentZeroStatus();
+    const isThinkingIndicatorVisible = candidateAgentIDs.length > 0;
+    // Scroll at most once per appearance. The status label changes many times during a single run
+    // while candidateAgentIDs stays put, and re-running this on an unrelated render would yank the
+    // viewport out from under a user who has since scrolled up.
+    const hasScrolledForThinkingIndicatorRef = useRef(false);
+    useEffect(() => {
+        if (!isThinkingIndicatorVisible) {
+            hasScrolledForThinkingIndicatorRef.current = false;
+            return;
+        }
+        if (hasScrolledForThinkingIndicatorRef.current || scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+            return;
+        }
+        hasScrolledForThinkingIndicatorRef.current = true;
+
+        // Wait for the footer to lay out, otherwise the content hasn't grown yet and there is
+        // nothing to scroll to.
+        const timeoutID = setTimeout(() => {
+            reportScrollManager.scrollToEnd();
+        }, DELAY_FOR_SCROLLING_TO_END);
+
+        return () => clearTimeout(timeoutID);
+    }, [isThinkingIndicatorVisible, reportScrollManager]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
