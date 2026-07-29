@@ -1,4 +1,5 @@
 import Text from '@components/Text';
+import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,9 +40,6 @@ type DisplayNamesTooltipItemProps = ForwardedFSClassProps & {
     /** Whether this display name should be directly selectable/copyable inside pressable rows */
     isCopyable?: boolean;
 };
-
-// Mark individual participant names when DisplayNames is used as a selectable report title.
-const COPYABLE_TEXT_DATA_SET = {copyableText: true};
 
 function DisplayNamesTooltipItem({
     index = 0,

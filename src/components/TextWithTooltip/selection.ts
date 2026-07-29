@@ -1,8 +1,11 @@
+import CONST from '@src/CONST';
+
 /**
  * Helpers for detecting explicitly copyable text inside pressable rows, so row handlers can allow
  * native text selection without triggering row navigation after drag-select.
  */
-const COPYABLE_TEXT_SELECTOR = '[data-copyable-text=true]';
+const COPYABLE_TEXT_SELECTOR = `[data-${CONST.COPYABLE_TEXT_ELEMENT}=true]`;
+const COPYABLE_TEXT_DATA_SET = {[CONST.COPYABLE_TEXT_ELEMENT]: true} as const;
 
 function getCopyableTextElement(target: EventTarget | Node | null | undefined): HTMLElement | null {
     if (typeof HTMLElement === 'undefined') {
@@ -48,4 +51,4 @@ function shouldSuppressCopyableTextPress(didMouseDownStartOnCopyableText: boolea
     return !!anchorCopyableElement || !!focusCopyableElement;
 }
 
-export {isCopyableTextTarget, shouldSuppressCopyableTextPress};
+export {COPYABLE_TEXT_DATA_SET, COPYABLE_TEXT_SELECTOR, isCopyableTextTarget, shouldSuppressCopyableTextPress};

@@ -7,12 +7,11 @@ import React, {useState} from 'react';
 
 import type TextWithTooltipProps from './types';
 
+import {COPYABLE_TEXT_DATA_SET} from './selection';
+
 type LayoutChangeEvent = {
     target: HTMLElement;
 };
-
-// This marker lets pressable rows and SelectionScraper preserve explicitly copyable values inside otherwise non-selectable rows.
-const COPYABLE_TEXT_DATA_SET = {copyableText: true};
 
 function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines = 1, forwardedFSClass, isCopyable = false}: TextWithTooltipProps) {
     const styles = useThemeStyles();

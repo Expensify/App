@@ -1,4 +1,5 @@
 import Text from '@components/Text';
+import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -27,9 +28,6 @@ type DisplayNamesWithoutTooltipProps = ForwardedFSClassProps & {
     /** Whether this display name should be directly selectable/copyable inside pressable rows */
     isCopyable?: boolean;
 };
-
-// Mark report titles rendered through DisplayNames so grouped search rows can allow native selection.
-const COPYABLE_TEXT_DATA_SET = {copyableText: true};
 
 function DisplayNamesWithoutTooltip({
     textStyles = [],

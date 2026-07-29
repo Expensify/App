@@ -1,4 +1,5 @@
 import Text from '@components/Text';
+import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 import Tooltip from '@components/Tooltip';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,8 +17,6 @@ import type DisplayNamesProps from './types';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 
 type HTMLElementWithText = HTMLElement & RNText;
-// Mark report titles rendered through DisplayNames so grouped search rows can allow native selection.
-const COPYABLE_TEXT_DATA_SET = {copyableText: true};
 
 function DisplayNamesWithToolTip({
     shouldUseFullTitle,

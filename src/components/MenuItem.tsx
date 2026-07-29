@@ -59,7 +59,7 @@ import RadioButton from './RadioButton';
 import RenderHTML from './RenderHTML';
 import ReportActionAvatars from './ReportActionAvatars';
 import Text from './Text';
-import {isCopyableTextTarget, shouldSuppressCopyableTextPress} from './TextWithTooltip/selection';
+import {COPYABLE_TEXT_DATA_SET, isCopyableTextTarget, shouldSuppressCopyableTextPress} from './TextWithTooltip/selection';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from './utils/getContextMenuAccessibilityProps';
@@ -490,9 +490,6 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
         return hoveredBackgroundColor;
     }
 };
-
-// Mark copyable menu titles so pressable rows and SelectionScraper preserve the selected value.
-const COPYABLE_TEXT_DATA_SET = {copyableText: true};
 
 function MenuItem({
     interactive = true,
