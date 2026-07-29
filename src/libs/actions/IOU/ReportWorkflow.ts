@@ -1841,6 +1841,7 @@ function assignReportToMe(
     API.write(WRITE_COMMANDS.ASSIGN_REPORT_TO_ME, params, onyxData);
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function addReportApprover(
     report: OnyxTypes.Report,
     newApproverEmail: string,
