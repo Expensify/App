@@ -186,6 +186,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         onCheckboxPress={() => onCheckboxPress?.(item)}
                         shouldUseNarrowLayout={false}
                         shouldUseFullHeightEditableCellHoverTarget
+                        shouldSkipDeferRBR
                         isLargeScreenWidth
                         columns={columns}
                         isActionLoading={isLoading ?? isActionLoading}
