@@ -1,14 +1,20 @@
-import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
+
 import searchOptions from '@libs/searchOptions';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
+
+import React, {useMemo} from 'react';
 
 type PushRowModalProps = {
     /** Whether the modal is visible */
@@ -44,6 +50,8 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
     const {translate} = useLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const initialSelectedValue = useInitialSelection(selectedOption || undefined, {isVisible});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const options = useMemo(
         () =>
@@ -57,6 +65,8 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         [optionsList, selectedOption],
     );
 
+    const orderedOptions = moveInitialSelectionToTop(options, initialSelectedValues);
+
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);
         onClose();
@@ -67,7 +77,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         setSearchValue('');
     };
 
-    const searchResults = searchOptions(debouncedSearchValue, options);
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? options : orderedOptions);
 
     const textInputOptions = useMemo(
         () => ({
@@ -99,10 +109,11 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                 />
                 <SelectionList
                     data={searchResults}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={handleSelectRow}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={selectedOption}
+                    searchValueForFocusSync={debouncedSearchValue}
+                    initiallyFocusedItemKey={initialSelectedValue}
                     disableMaintainingScrollPosition
                     shouldShowTooltips={false}
                     showScrollIndicator

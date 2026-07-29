@@ -1,8 +1,11 @@
-import type {OnyxKey} from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+
 import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import {handleMissingOnyxUpdates} from './OnyxUpdateManager';
 import {doesClientNeedToBeUpdated, apply as onyxApply, saveUpdateInformation} from './OnyxUpdates';
 

@@ -1,6 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,26 +6,38 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDraftValues, clearErrorFields} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
+
 import {applyExpensifyCode} from '@userActions/Subscription';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionExpensifyCodeForm';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 function ExpensifyCodePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [subscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const isExpensifyCodeApplied = !!subscription?.expensifyCode;
+    const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
+    const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
+    const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, false);
+    const isExpensifyCodeApplied = !!privatePromoCode;
 
     const defaultValues = {
         [INPUT_IDS.EXPENSIFY_CODE]: '',
@@ -42,8 +51,7 @@ function ExpensifyCodePage() {
     );
 
     const handleSubmit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>) => {
-        const expensifyCode = values[INPUT_IDS.EXPENSIFY_CODE];
-        applyExpensifyCode(expensifyCode);
+        applyExpensifyCode(values[INPUT_IDS.EXPENSIFY_CODE]);
         clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM);
         setHasSubmitted(true);
     }, []);
@@ -61,7 +69,7 @@ function ExpensifyCodePage() {
         Navigation.goBack();
     }, [hasSubmitted, isExpensifyCodeApplied]);
 
-    if (isExpensifyCodeApplied || subscription?.isSecretPromoCode) {
+    if ((isExpensifyCodeApplied && !hasSubmitted) || isSecretPromoCode) {
         return <NotFoundPage />;
     }
 

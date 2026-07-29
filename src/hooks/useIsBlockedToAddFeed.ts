@@ -1,7 +1,10 @@
-import {useEffect, useState} from 'react';
 import {getCompanyFeeds, isCSVFeedOrExpensifyCard} from '@libs/CardUtils';
 import {isCollectPolicy} from '@libs/PolicyUtils';
+
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useEffect, useState} from 'react';
+
 import useCardFeeds from './useCardFeeds';
 import usePolicy from './usePolicy';
 
@@ -19,7 +22,7 @@ import usePolicy from './usePolicy';
  */
 function useIsBlockedToAddFeed(policyID?: string) {
     const policy = usePolicy(policyID);
-    const [cardFeeds, allFeedsResult, defaultFeed] = useCardFeeds(policyID);
+    const [cardFeeds, allFeedsResult, defaultFeed, , workspaceAccountID] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds, true);
     const isCollect = isCollectPolicy(policy);
     const isAllFeedsResultLoading = isLoadingOnyxValue(allFeedsResult);
@@ -39,6 +42,8 @@ function useIsBlockedToAddFeed(policyID?: string) {
     return {
         isBlockedToAddNewFeeds: isCollect && !isLoading && prevCompanyFeedsLength >= 1,
         isAllFeedsResultLoading: isCollect && (isLoading || isAllFeedsResultLoading),
+        cardFeeds,
+        workspaceAccountID,
     };
 }
 

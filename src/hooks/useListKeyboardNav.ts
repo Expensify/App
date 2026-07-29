@@ -1,7 +1,9 @@
-import {useIsFocused} from '@react-navigation/native';
 import type React from 'react';
-import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useLayoutEffect, useRef, useState} from 'react';
+
 import useArrowKeyFocusManager from './useArrowKeyFocusManager';
 
 type FocusableContainer = {
@@ -41,7 +43,6 @@ function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, d
         maxIndex: itemKeys.length - 1,
         disabledIndexes,
         isActive: isArrowKeyActive,
-        disableCyclicTraversal: true,
     });
 
     useEffect(() => {

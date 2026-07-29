@@ -1,21 +1,26 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle} from 'react-native';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
 
 type AnchorRendererProps = CustomRendererProps<TText | TPhrasing> & {
     /** Key of the element */
@@ -130,7 +135,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             // a new window. On Desktop this means that we will
             // skip the default Save As... download prompt
             // and defer to whatever browser the user has.
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
             style={[
@@ -141,15 +146,14 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 styles.textUnderlinePositionUnder,
                 styles.textDecorationSkipInkNone,
                 isChildOfTaskTitle && styles.taskTitleMenuItem,
-                styles.dInlineFlex,
                 hoverStyle,
             ]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={onLinkPress}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...bind}
             linkHasImage={linkHasImage}
+            isChildOfTaskTitle={isChildOfTaskTitle}
         >
             <TNodeChildrenRenderer
                 tnode={tnode}
@@ -168,7 +172,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                                     textDecorationLineStyle,
                                     styles.textUnderlinePositionUnder,
                                     styles.textDecorationSkipInkNone,
-                                    styles.dInlineFlex,
                                     hoverStyle,
                                 ]}
                             >

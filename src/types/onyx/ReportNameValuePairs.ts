@@ -1,7 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /**
@@ -11,7 +13,7 @@ type CalendlyCall = {
     /** Status of the call */
     status: ValueOf<typeof CONST.SCHEDULE_CALL_STATUS>;
 
-    /** The setup specialist the user confirmed the call with */
+    /** The account executive the user confirmed the call with */
     host: number;
 
     /** The selected date and time in YYYY-MM-DD HH:MM:SS format for the call */
@@ -82,8 +84,17 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The time the report export failed */
     exportFailedTime?: string;
 
-    /** Agent Zero processing request indicator message */
-    agentZeroProcessingRequestIndicator?: string;
+    /**
+     * Agent Zero processing-indicator labels, keyed by the persona accountID (Concierge or a
+     * custom agent) so a room with several agents shows one bubble per actively-thinking agent.
+     * Each value is the status string for that agent. A null value clears that agent's slot during
+     * local Onyx merge transitions. A legacy scalar string may still arrive during a backend/client
+     * deploy overlap and is attributed to Concierge.
+     */
+    agentZeroProcessingRequestIndicator?: Record<string, string | null> | string;
+
+    /** Parent report ID */
+    parentReportID?: string;
 
     /** Title field configuration copied from policy - presence indicates auto-generated names are allowed */
     // eslint-disable-next-line @typescript-eslint/naming-convention

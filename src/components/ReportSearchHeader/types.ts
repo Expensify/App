@@ -1,5 +1,6 @@
+import type {ExpenseReportListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
-import type {ExpenseReportListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 
 type ReportSearchHeaderProps = {
     /** Report, if we're showing the details for one and using AvatarWithDisplay */

@@ -1,0 +1,54 @@
+import Button from '@components/ButtonComposed';
+import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
+
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getNextApproverAccountID, isReportOwner, shouldShowMarkAsDone} from '@libs/ReportUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+
+import useConfirmApproval from './useConfirmApproval';
+
+type ApprovePrimaryActionProps = {
+    reportID: string | undefined;
+};
+
+function ApprovePrimaryAction({reportID}: ApprovePrimaryActionProps) {
+    const {startApprovedAnimation} = usePaymentAnimationsContext();
+    const {translate} = useLocalize();
+
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: moneyRequestReport,
+        policy,
+    });
+
+    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
+    const isSubmitterSameAsNextApprover =
+        isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
+    const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && policy?.preventSelfApproval;
+
+    const confirmApproval = useConfirmApproval(reportID, startApprovedAnimation);
+
+    return (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            onPress={confirmApproval}
+            isDisabled={isBlockSubmitDueToPreventSelfApproval}
+        >
+            <Button.Text>{shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}</Button.Text>
+        </Button>
+    );
+}
+
+export default ApprovePrimaryAction;

@@ -1,11 +1,15 @@
 import {act, render, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import BaseReportActionContextMenu from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ActionSheetAwareScrollView', () => ({
@@ -47,6 +51,7 @@ jest.mock('@components/FocusTrap/FocusTrapForModal', () => {
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     useSession: () => ({encryptedAuthToken: 'token'}),
+    usePersonalDetails: () => ({}),
 }));
 
 jest.mock('@hooks/useArrowKeyFocusManager', () => () => [-1, jest.fn()] as const);
@@ -83,15 +88,22 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/usePaginatedReportActions', () => () => ({reportActions: []}));
 jest.mock('@hooks/useReportIsArchived', () => () => false);
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: true, isSmallScreenWidth: false}));
-jest.mock('@hooks/useRestoreInputFocus', () => () => {});
-jest.mock('@hooks/useStyleUtils', () => () => ({
-    getReportActionContextMenuStyles: () => ({}),
-}));
+jest.mock(
+    '@hooks/useStyleUtils',
+    () => () =>
+        new Proxy(
+            {},
+            {
+                get: () => () => ({}),
+            },
+        ),
+);
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => () => ({transactions: {}}));
 
 jest.mock('@userActions/Session', () => ({
     isAnonymousUser: () => false,
     signOutAndRedirectToSignIn: jest.fn(),
+    callFunctionIfActionIsAllowed: (fn: () => void) => fn,
 }));
 
 jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
@@ -120,6 +132,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: (...args: unknown[]) => mockNavigate(...args) as void,
     setParams: (...args: unknown[]) => mockSetParams(...args) as void,
     getActiveRoute: () => mockGetActiveRoute(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigationRef: {
         isReady: () => mockIsReady(),
         getCurrentRoute: () => mockGetCurrentRoute(),
@@ -127,6 +141,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 const currentUserAccountID = 1;
+const currentUserLogin = 'user@test.com';
 const originalReportID = '100';
 const reportActionID = '200';
 const childReportID = '300';
@@ -176,9 +191,9 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
             reportActionID: 'parentIOUAction',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
+            reportID: iouReportID,
             childReportID,
             originalMessage: {
-                IOUReportID: iouReportID,
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
@@ -203,9 +218,9 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
             reportActionID: 'iouAction',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
+            reportID: iouReportID,
             childReportID,
             originalMessage: {
-                IOUReportID: iouReportID,
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
@@ -252,6 +267,88 @@ async function getContextMenuItemOnPress(sentryLabel: string): Promise<(event: u
 
     return contextMenuItem?.onPress ?? (() => undefined);
 }
+
+describe('BaseReportActionContextMenu edit action', () => {
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockContextMenuItemProps.length = 0;
+    });
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
+    });
+
+    it('shows the edit action for an editable comment by current user', async () => {
+        await seedOnyxData({isOnHold: false});
+
+        // Override the report action to be a plain ADD_COMMENT (editable)
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hello world',
+                        text: 'Hello world',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        render(
+            <BaseReportActionContextMenu
+                reportID={originalReportID}
+                originalReportID={originalReportID}
+                reportActionID={reportActionID}
+                isVisible
+            />,
+        );
+
+        await waitFor(() => {
+            const editItem = mockContextMenuItemProps.find((item) => item.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.EDIT_COMMENT);
+            expect(editItem).toBeDefined();
+        });
+    });
+
+    it('does not show the edit action for a comment by another user', async () => {
+        await seedOnyxData({isOnHold: false});
+
+        const otherUserAccountID = 999;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actorAccountID: otherUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hello from another user',
+                        text: 'Hello from another user',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        render(
+            <BaseReportActionContextMenu
+                reportID={originalReportID}
+                originalReportID={originalReportID}
+                reportActionID={reportActionID}
+                isVisible
+            />,
+        );
+
+        await waitForBatchedUpdates();
+        const editItem = mockContextMenuItemProps.find((item) => item.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.EDIT_COMMENT);
+        expect(editItem).toBeUndefined();
+    });
+});
 
 describe('BaseReportActionContextMenu hold/unhold action', () => {
     beforeEach(async () => {
@@ -302,6 +399,15 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
         });
 
         expect(mockUnholdRequest).toHaveBeenCalledTimes(1);
-        expect(mockUnholdRequest).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}));
+        expect(mockUnholdRequest).toHaveBeenCalledWith(
+            transactionID,
+            childReportID,
+            expect.objectContaining({id: policyID}),
+            false,
+            currentUserLogin,
+            currentUserAccountID,
+            undefined,
+            false,
+        );
     });
 });

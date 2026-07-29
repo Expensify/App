@@ -1,6 +1,9 @@
 import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
+
 import CONST from '@src/CONST';
+
+import {formatPhoneNumber} from '../utils/TestHelper';
 
 jest.mock(
     'expo-web-browser',
@@ -14,7 +17,6 @@ jest.mock('@components/Reactions/MiniQuickEmojiReactions', () => 'MiniQuickEmoji
 jest.mock('@components/Reactions/QuickEmojiReactions', () => 'QuickEmojiReactions');
 
 jest.mock('@libs/Clipboard', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         canSetHtml: jest.fn(),
@@ -24,7 +26,6 @@ jest.mock('@libs/Clipboard', () => ({
 }));
 
 jest.mock('@libs/Clipboard/getClipboardText', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
@@ -41,7 +42,6 @@ type ContextMenuAction = {
     onPress?: (closePopover: boolean, payload: Record<string, unknown>) => void;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const {default: ContextMenuActions} = require('@pages/inbox/report/ContextMenu/ContextMenuActions') as {default: ContextMenuAction[]};
 
 const copyMessageAction = ContextMenuActions.find((action) => action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE);
@@ -57,6 +57,7 @@ const createPayload = (selection: string): Record<string, unknown> => ({
     getLocalDateFromDatetime: jest.fn(),
     policyTags: {},
     translate: (translateKey: string) => translateKey,
+    formatPhoneNumber,
     currentUserPersonalDetails: {
         accountID: 1,
         login: 'user@expensify.com',

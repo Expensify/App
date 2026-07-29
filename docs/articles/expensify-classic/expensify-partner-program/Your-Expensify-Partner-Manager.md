@@ -46,14 +46,14 @@ To be assigned a **Partner Manager**, you must complete the **ExpensifyApproved!
 
 ---
 
-# Client Setup Specialist
+# Client Account Executive
 
 **Purpose:** Ensure seamless onboarding for your referred clients.
 
 **Duties:**
 - Assist with Expensify setup and **accounting integrations**.
 - Ensure clients have the necessary tools and knowledge.
-- To connect with a **Client Setup Specialist**, log in and navigate to `Support`.
+- To connect with a **Client Account Executive**, log in and navigate to `Support`.
 
 ---
 

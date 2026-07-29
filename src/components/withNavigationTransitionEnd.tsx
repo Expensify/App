@@ -1,31 +1,45 @@
-import {useNavigation} from '@react-navigation/native';
-import type {ComponentType} from 'react';
-import React, {useEffect, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
+import type {ComponentType} from 'react';
+
+import {useNavigation} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+
 type WithNavigationTransitionEndProps = {didScreenTransitionEnd: boolean};
+
+type WithNavigationTransitionEndImplProps<TProps> = {
+    WrappedComponent: ComponentType<TProps>;
+} & TProps;
+
+function WithNavigationTransitionEndImpl<TProps>({WrappedComponent, ...props}: WithNavigationTransitionEndImplProps<TProps>) {
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
+
+    useEffect(() => {
+        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
+            setDidScreenTransitionEnd(true);
+        });
+
+        return unsubscribeTransitionEnd;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            didScreenTransitionEnd={didScreenTransitionEnd}
+        />
+    );
+}
 
 export default function <TProps>(WrappedComponent: ComponentType<TProps>): React.ComponentType<TProps> {
     function WithNavigationTransitionEnd(props: TProps) {
-        const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-        const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
-
-        useEffect(() => {
-            const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
-                setDidScreenTransitionEnd(true);
-            });
-
-            return unsubscribeTransitionEnd;
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []);
-
         return (
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
+            <WithNavigationTransitionEndImpl
+                WrappedComponent={WrappedComponent}
                 {...props}
-                didScreenTransitionEnd={didScreenTransitionEnd}
             />
         );
     }

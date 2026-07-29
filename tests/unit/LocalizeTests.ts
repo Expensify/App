@@ -1,6 +1,8 @@
-import Onyx from 'react-native-onyx';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
+
+import Onyx from 'react-native-onyx';
+
 import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -56,7 +58,7 @@ describe('localize', () => {
         Onyx.init({
             keys: {
                 NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE,
-                ARE_TRANSLATIONS_LOADING: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+                ARE_TRANSLATIONS_LOADING: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
                 SESSION: ONYXKEYS.SESSION,
             },
         });

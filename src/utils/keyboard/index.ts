@@ -1,5 +1,7 @@
-import {Keyboard} from 'react-native';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
+import {Keyboard} from 'react-native';
+
 import type {DismissKeyboardOptions} from './types';
 
 type SimplifiedKeyboardEvent = {
@@ -21,7 +23,6 @@ const subscribeKeyboardVisibilityChange = (cb: (isVisible: boolean) => void) => 
     return () => {};
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
     return new Promise((resolve) => {
         if (!isVisible) {
@@ -31,13 +32,12 @@ const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
             return;
         }
 
+        const transitionHandle = TransitionTracker.startTransition();
         const subscription = Keyboard.addListener('keyboardDidHide', () => {
             resolve();
-            TransitionTracker.endTransition();
+            TransitionTracker.endTransition(transitionHandle);
             subscription.remove();
         });
-
-        TransitionTracker.startTransition();
         Keyboard.dismiss();
 
         if (options?.afterTransition) {

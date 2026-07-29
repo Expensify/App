@@ -1,4 +1,3 @@
-import type {SvgProps} from 'react-native-svg';
 import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
@@ -19,8 +18,10 @@ import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-a
 import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
+import BankLock from '@assets/images/bank-lock.svg';
 import Bank from '@assets/images/bank.svg';
 import Basket from '@assets/images/basket.svg';
+import BedCircleSlash from '@assets/images/bed-circle-slash.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
@@ -28,13 +29,16 @@ import Binoculars from '@assets/images/binoculars.svg';
 import boltSlash from '@assets/images/bolt-slash.svg';
 import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
+import Bot from '@assets/images/bot.svg';
 import Box from '@assets/images/box.svg';
+import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
+import CarCircleSlash from '@assets/images/car-circle-slash.svg';
 import CarPlus from '@assets/images/car-plus.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
@@ -54,10 +58,12 @@ import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg'
 import Clock from '@assets/images/clock.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
+import CoinsButton from '@assets/images/coins-button.svg';
 import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Columns from '@assets/images/columns.svg';
 import CommentBubbles from '@assets/images/comment-bubbles.svg';
+import Compass from '@assets/images/compass.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
@@ -65,9 +71,13 @@ import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCardLock from '@assets/images/credit-card-lock.svg';
+import CreditCardMultiple from '@assets/images/credit-card-multiple.svg';
+import CreditCardWithPlaneHourglass from '@assets/images/credit-card-with-plane-hourglass.svg';
+import CreditCardWithPlane from '@assets/images/credit-card-with-plane.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
+import DocumentMagicWand from '@assets/images/document-magic-wand.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import Document from '@assets/images/document.svg';
@@ -81,6 +91,7 @@ import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
+import EnvelopeOpenStar from '@assets/images/envelope-open-star.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
@@ -127,14 +138,17 @@ import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
+import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
+import RilletSquare from '@assets/images/integrationicons/rillet-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
+import TriNetSquare from '@assets/images/integrationicons/trinet-icon-square.svg';
 import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
@@ -145,8 +159,10 @@ import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
 import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
+import LocationAdd from '@assets/images/location-add.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
+import LuggageWithLinesPlus from '@assets/images/luggage-with-lines-plus.svg';
 import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-mouth-closed.svg';
@@ -164,6 +180,7 @@ import MoneyHourglass from '@assets/images/money-hourglass.svg';
 import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
+import Moon from '@assets/images/moon.svg';
 import MultiTag from '@assets/images/multi-tag.svg';
 import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.svg';
 import Mute from '@assets/images/mute.svg';
@@ -175,10 +192,12 @@ import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
+import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
 import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
+import PlaneCircleSlash from '@assets/images/plane-circle-slash.svg';
 import Plane from '@assets/images/plane.svg';
 import Play from '@assets/images/play.svg';
 import PlusMinus from '@assets/images/plus-minus.svg';
@@ -188,10 +207,12 @@ import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptBody from '@assets/images/receipt-body.svg';
+import ReceiptCheck from '@assets/images/receipt-check.svg';
 import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
+import ReceiptSearch from '@assets/images/receipt-search.svg';
 import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
@@ -219,13 +240,16 @@ import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
 import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
+import TablePencil from '@assets/images/table-pencil.svg';
 import Table from '@assets/images/table.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsDown from '@assets/images/thumbs-down.svg';
+import ThumbsUpHourglass from '@assets/images/thumbs-up-hourglass.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
+import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
@@ -234,6 +258,7 @@ import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
+import UserArrowLeft from '@assets/images/user-arrow-left.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
@@ -250,6 +275,16 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+
+// These icons are React components because they have
+// drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
+import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
+import MapCurrentLocationPuck from '@components/MapView/Icons/MapCurrentLocationPuck';
+import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
+import MapStopWaypoint from '@components/MapView/Icons/MapStopWaypoint';
+import MapWaypoint from '@components/MapView/Icons/MapWaypoint';
+
+import type {SvgProps} from 'react-native-svg';
 
 const Expensicons = {
     ReceiptBody,
@@ -269,6 +304,7 @@ const Expensicons = {
     AttachmentNotFound,
     BackArrow,
     Bank,
+    BankLock,
     Basket,
     CircularArrowBackwards,
     Bill,
@@ -276,7 +312,9 @@ const Expensicons = {
     Bell,
     Binoculars,
     Bolt,
+    Bot,
     Box,
+    Briefcase,
     Bug,
     Building,
     Buildings,
@@ -303,12 +341,16 @@ const Expensicons = {
     ConnectionComplete,
     Copy,
     CreditCard,
+    CreditCardMultiple,
     Crop,
     CreditCardHourglass,
     CreditCardExclamation,
     CreditCardLock,
+    CreditCardWithPlane,
+    CreditCardWithPlaneHourglass,
     CircleSlash,
     Document,
+    DocumentMagicWand,
     DocumentMerge,
     DocumentPlus,
     DotIndicator,
@@ -319,6 +361,7 @@ const Expensicons = {
     DragHandles,
     EReceiptIcon,
     Emoji,
+    EnvelopeOpenStar,
     EmptyStateRoutePending,
     ExpenseCopy,
     Exclamation,
@@ -346,6 +389,7 @@ const Expensicons = {
     Tag,
     MultiTag,
     Coins,
+    CoinsButton,
     Thread,
     Gallery,
     GalleryPlus,
@@ -368,6 +412,7 @@ const Expensicons = {
     Link,
     LinkCopy,
     Location,
+    LocationAdd,
     Lock,
     UserMinus,
     Luggage,
@@ -375,6 +420,11 @@ const Expensicons = {
     Mail,
     MakeAdmin,
     Map,
+    MapCurrentLocation,
+    MapCurrentLocationPuck,
+    MapStartWaypoint,
+    MapStopWaypoint,
+    MapWaypoint,
     Menu,
     Meter,
     Megaphone,
@@ -385,6 +435,7 @@ const Expensicons = {
     MoneyWaving,
     MoneyHourglass,
     Monitor,
+    Moon,
     Mute,
     ExpensifyLogoNew,
     NewWindow,
@@ -396,6 +447,7 @@ const Expensicons = {
     OdometerEnd,
     Paperclip,
     Pause,
+    Paycheck,
     Pencil,
     Percent,
     Phone,
@@ -410,14 +462,17 @@ const Expensicons = {
     QuestionMark,
     TreasureChest,
     Receipt,
+    ReceiptCheck,
     ReceiptPlaceholderPlus,
     ReceiptPlus,
     ReceiptScan,
+    ReceiptSearch,
     ReceiptSlash,
     RemoveMembers,
     ReportCopy,
     ReplaceReceipt,
     ReceiptMultiple,
+    RilletSquare,
     Rotate,
     RotateLeft,
     Scan,
@@ -429,9 +484,11 @@ const Expensicons = {
     Sync,
     Task,
     ThumbsUp,
+    ThumbsUpHourglass,
     ThreeDots,
     Transfer,
     Trashcan,
+    TriNetSquare,
     ZenefitsSquare,
     Uber,
     Unlock,
@@ -439,6 +496,7 @@ const Expensicons = {
     Upload,
     UploadAlt,
     User,
+    UserArrowLeft,
     UserCheck,
     Users,
     VideoSlash,
@@ -448,6 +506,7 @@ const Expensicons = {
     Workflows,
     Workspace,
     XeroSquare,
+    GustoSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,
     Zoom,
@@ -462,7 +521,10 @@ const Expensicons = {
     ChatBubbleCounter,
     Lightbulb,
     Plane,
+    PlaneCircleSlash,
     Bed,
+    BedCircleSlash,
+    CarCircleSlash,
     CarWithKey,
     Clear,
     CheckCircle,
@@ -481,6 +543,7 @@ const Expensicons = {
     UserPlus,
     Feed,
     Table,
+    TablePencil,
     SpreadsheetComputer,
     Bookmark,
     Sparkles,
@@ -488,6 +551,7 @@ const Expensicons = {
     QBDSquare,
     GalleryNotFound,
     Train,
+    TrainCircleSlash,
     boltSlash,
     MagnifyingGlassSpyMouthClosed,
     CheckSquare,
@@ -501,8 +565,10 @@ const Expensicons = {
     XeroExport,
     ArrowCircleClockwise,
     LuggageWithLines,
+    LuggageWithLinesPlus,
     TreasureChestGreenWithSparkle,
     UserShield,
+    Compass,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

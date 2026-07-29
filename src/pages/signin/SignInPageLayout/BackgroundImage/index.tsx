@@ -1,9 +1,13 @@
-import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
-import {InteractionManager} from 'react-native';
-import Animated, {FadeIn} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isAnonymousUser} from '@libs/actions/Session';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import CONST from '@src/CONST';
+
+import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
+import Animated, {FadeIn} from 'react-native-reanimated';
+
 import type BackgroundImageProps from './types';
 
 const BackgroundMobile = lazy(() =>
@@ -34,13 +38,12 @@ function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            setIsInteractionComplete(true);
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => setIsInteractionComplete(true),
         });
 
         return () => {
-            interactionTask.cancel();
+            handle.cancel();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

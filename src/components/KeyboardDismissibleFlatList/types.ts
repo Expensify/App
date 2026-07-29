@@ -1,6 +1,7 @@
+import type CONST from '@src/CONST';
+
 import type {ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
 
 type ListBehavior = ValueOf<typeof CONST.LIST_BEHAVIOR>;
 
@@ -19,5 +20,4 @@ type KeyboardDismissibleFlatListActionsContextValue = {
 
 type KeyboardDismissibleFlatListContextValue = KeyboardDismissibleFlatListStateContextValue & KeyboardDismissibleFlatListActionsContextValue;
 
-// eslint-disable-next-line import/prefer-default-export
 export type {KeyboardDismissibleFlatListContextValue, KeyboardDismissibleFlatListStateContextValue, KeyboardDismissibleFlatListActionsContextValue, ListBehavior};

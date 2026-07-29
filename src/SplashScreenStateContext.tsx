@@ -1,20 +1,26 @@
-import React, {useContext, useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
-import CONST from './CONST';
+
+import React, {useContext, useEffect, useState} from 'react';
+
 import type ChildrenProps from './types/utils/ChildrenProps';
+
+import CONFIG from './CONFIG';
+import CONST from './CONST';
+import {addBootsplashBreadcrumb} from './libs/telemetry/bootsplashTelemetry';
+import loadUnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater/load';
 
 type SplashScreenState = ValueOf<typeof CONST.BOOT_SPLASH_STATE>;
 
 type SplashScreenStateContextType = {
-    splashScreenState: SplashScreenState;
+    splashScreenState: SplashScreenState | undefined;
 };
 
 type SplashScreenActionsContextType = {
-    setSplashScreenState: React.Dispatch<React.SetStateAction<SplashScreenState>>;
+    setSplashScreenState: (state: SplashScreenState) => void;
 };
 
 const SplashScreenStateContext = React.createContext<SplashScreenStateContextType>({
-    splashScreenState: CONST.BOOT_SPLASH_STATE.VISIBLE,
+    splashScreenState: undefined,
 });
 
 const SplashScreenActionsContext = React.createContext<SplashScreenActionsContextType>({
@@ -24,11 +30,16 @@ const SplashScreenActionsContext = React.createContext<SplashScreenActionsContex
 function loadPostSplashScreenModules() {
     import('./libs/actions/replaceOptimisticReportWithActualReport');
     import('./libs/registerPaginationConfig');
-    import('./libs/UnreadIndicatorUpdater');
+    loadUnreadIndicatorUpdater();
 }
 
 function SplashScreenStateContextProvider({children}: ChildrenProps) {
-    const [splashScreenState, setSplashScreenState] = useState<SplashScreenState>(CONST.BOOT_SPLASH_STATE.VISIBLE);
+    const [splashScreenState, setSplashScreenStateRaw] = useState<SplashScreenState | undefined>(CONFIG.IS_HYBRID_APP ? undefined : CONST.BOOT_SPLASH_STATE.VISIBLE);
+
+    const setSplashScreenState = (state: SplashScreenState) => {
+        addBootsplashBreadcrumb(`splashScreenState changed to ${state}`);
+        setSplashScreenStateRaw(state);
+    };
 
     // Load post-splash-screen modules when the splash screen is hidden
     useEffect(() => {
@@ -65,5 +76,4 @@ function useSplashScreenActions() {
     return useContext(SplashScreenActionsContext);
 }
 
-export default SplashScreenStateContext;
 export {SplashScreenStateContextProvider, useSplashScreenState, useSplashScreenActions};

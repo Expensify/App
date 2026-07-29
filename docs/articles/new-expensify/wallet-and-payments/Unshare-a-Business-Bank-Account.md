@@ -1,48 +1,50 @@
 ---
-title: Unshare a business bank account
-description: Learn how to unshare a business bank account from other admins in New Expensify to revoke access instantly.
-keywords: [unshare business bank account, remove bank access, New Expensify Wallet, Workspace Admin, revoke bank permission, Expensify Card settlement]
+title: Unshare a Business Bank Account
+description: Remove another member's access to a shared business bank account in Expensify.
+keywords: [New Expensify, unshare business bank account, revoke access, remove admin, Wallet, bank access, shared business account, remove shared access]
+internalScope: Audience is members with a shared business bank account. Covers revoking shared access to a business bank account. Does not cover initial bank account setup, validation, sharing, or unlocking.
 ---
-<div id="new-expensify" markdown="1">
 
-# Unshare a business bank account
+# Unshare a Business Bank Account
 
-If other Workspace Admins have access to your business bank account in Expensify, you can unshare it at any time to revoke their access. Unsharing access is especially helpful when someone changes roles or leaves the company.
+If you’ve shared a business bank account with other members, you can remove their access at any time.
 
-Unsharing the account removes it from the other admin's Wallet immediately and prevents that admin from using it to reimburse reports, pay bills, or use it with the Expensify Card. We'll still complete any payments in process that the admin issued.
+Unsharing removes the account from the other member’s Wallet immediately. Any payments already in progress will still complete.
 
 ---
 
 ## Who can unshare a business bank account
 
-To unshare a business bank account, you must:
-- Be a **Workspace Admin**.
-- Have an active business bank account in your Wallet that at least one other admin can access. 
-
----
-
-## Where to find the unshare business bank account option
-
-1. Select **Wallet** from the navigation tabs on the left.
-2. Choose your business bank account and click the **More** (three-dot) menu.
-3. Select **Unshare**.
+Any member who has a validated business bank account in their **Wallet** that is shared with another member can unshare it.
 
 ---
 
 ## How to unshare a business bank account
 
-1. Go to **Wallet** and open the **More** menu (three dots) on your business bank account.
-2. Click **Unshare**.
-3. A list of all admins with access to that bank account will appear.
-4. Click **Unshare** next to the admin you want to remove.
-5. Confirm in the pop-up modal.
-6. That admin will immediately lose access and receive a Concierge message letting them know.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Wallet**.
+2. In the **Bank accounts** section, find the verified business bank account and select the three dots **(⋮)** next to the account.
+3. Select **Unshare**.
+4. Select the members you want to remove. 
+5. Click **Unshare**.
+6. Click **Confirm**
 
-**Note:** Admins with access can unshare the business bank account from anyone else — even the person who originally added it.
+You'll see a confirmation once the account has been unshared. 
+
+---
+
+## What happens after you unshare a business bank account
+
+ - The account is removed from the unshared member's **Wallet** immediately.
+ - The unshared member can no longer use the account for reimbursements, bill payments, or Expensify Card settlement. 
+ - The unshared member receives a message from Concierge notifying them of the change. 
+
+**Note:** Any payments already in progress before the bank account was unshared will still complete.
+
+--
 
 ![Open the wallet page]({{site.url}}/assets/images/Help-UnshareBankAccount-1.png){:width="100%"}
 
-![Open the three dot menu next to the bank account and tap unshare]({{site.url}}/assets/images/Help-UnshareBankAccount-2.png){:width="100%"}
+![Open the three dots next to the bank account and tap unshare]({{site.url}}/assets/images/Help-UnshareBankAccount-2.png){:width="100%"}
 
 ![Tap unshare for the admin you want to unshare from]({{site.url}}/assets/images/Help-UnshareBankAccount-3.png){:width="100%"}
 
@@ -50,12 +52,11 @@ To unshare a business bank account, you must:
 
 ---
 
-## Unsharing when the account is set as Expensify Card settlement account
+## What to do if you can’t unshare a business bank account
 
-If the admin's copy of the bank account is currently set as the **Expensify Card settlement account**, you'll see an error message and won't be able to unshare from that admin.
+If the bank account is set as an Expensify Card settlement account for that member, you won’t be able to unshare it. 
 
-To resolve this:
-- Click **Reach out to Concierge** in the error message to get help switching the settlement account.
+To resolve this, click **Reach out to Concierge** in the error message. Concierge will help switch the settlement account so you can proceed.
 
 ---
 
@@ -63,18 +64,16 @@ To resolve this:
 
 ## Can I unshare a bank account I didn’t originally add?
 
-Yes. As long as your copy of the business bank account is active, you can unshare it from any admin — including the original sharer.
+Yes. As long as your copy of the business bank account is active, you can unshare it from any member. 
 
-## Will the other admin be notified when I unshare the bank account?
+## Can a bank account be unshared with the original account owner? 
 
-Yes. They’ll receive a message from Concierge letting them know they no longer have access to the bank account.
+Yes. Any member with access can unshare the bank account from another member, including the original account owner.
 
-## What happens to the unshared bank account?
+## Will the unshared member be notified when I unshare the bank account?
 
-The business bank account is removed from the admin's Wallet. The admin can no longer use the account for any payments or reimbursement features. We'll still complete any payments in process that the admin issued beforehand. 
+Yes. They'll receive a message from Concierge letting them know they no longer have access.
 
-</div>
+## What happens to processing reimbursements when a bank account is unshared? 
 
-
-
-
+Processing payments will still complete when the account is unshared. 

@@ -1,14 +1,17 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials, HybridApp, Session, TryNewDot} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import Onyx from 'react-native-onyx';
+
 import {closeReactNativeApp, setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
 import Log from './Log';
 import {getCurrentUserEmail} from './Network/NetworkStore';
+import {shouldUseOldApp} from './TryNewDotUtils';
 
 function isAnonymousUser(sessionParam: OnyxEntry<Session>): boolean {
     return sessionParam?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
@@ -67,13 +70,6 @@ Onyx.connectWithoutView({
         activePolicyID = newActivePolicyID;
     },
 });
-
-function shouldUseOldApp(tryNewDot: TryNewDot) {
-    if (isEmptyObject(tryNewDot) || isEmptyObject(tryNewDot.classicRedirect)) {
-        return true;
-    }
-    return tryNewDot.classicRedirect.dismissed;
-}
 
 /**
  * Signs the user into OldDot when session and credentials are available,

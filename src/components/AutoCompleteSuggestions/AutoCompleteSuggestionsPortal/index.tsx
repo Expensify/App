@@ -1,12 +1,17 @@
-import React from 'react';
+import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
+
+import useStyleUtils from '@hooks/useStyleUtils';
+
 import type {ReactElement} from 'react';
+
+import React from 'react';
 import ReactDOM from 'react-dom';
 import {View} from 'react-native';
-import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
-import useStyleUtils from '@hooks/useStyleUtils';
+
+import type {AutoCompleteSuggestionsPortalProps} from './types';
+
 import getBottomSuggestionPadding from './getBottomSuggestionPadding';
 import TransparentOverlay from './TransparentOverlay/TransparentOverlay';
-import type {AutoCompleteSuggestionsPortalProps} from './types';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -20,6 +25,9 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     width = 0,
     bottom = 0,
     resetSuggestions = () => {},
+    // isInLandscapeMode is only used on native platforms to adjust the bottom padding
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isInLandscapeMode = false,
     ...props
 }: AutoCompleteSuggestionsPortalProps<TSuggestion>): ReactElement | null | false {
     const StyleUtils = useStyleUtils();
@@ -29,7 +37,6 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     const componentToRender = (
         <BaseAutoCompleteSuggestions<TSuggestion>
             width={width}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

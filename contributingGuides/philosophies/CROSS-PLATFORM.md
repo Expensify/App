@@ -28,11 +28,11 @@ Put all platform specific code in dedicated files and folders (see below) and re
 In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.js`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:
 - Mobile => `index.native.js`
 - iOS Native App/Android Native App => `index.ios.js`/`index.android.js`
-- Web => `index.website.js`
+- Web => `index.web.js`
 
 **Note:** `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the web implementation can be contained in a shared `index.js`.
 
-`index.ios.js` and `index.android.js` are used when the app is running natively on respective platforms. These files are not used when users access the app through mobile browsers, but `index.website.js` is used instead. `index.native.js` are for both iOS and Android native apps. `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`.
+`index.ios.js` and `index.android.js` are used when the app is running natively on respective platforms. These files are not used when users access the app through mobile browsers, but `index.web.js` is used instead. `index.native.js` are for both iOS and Android native apps. `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`.
 
 ### Supporting Mobile Web
 The above platform-specific files only work because they are compiled when the app is built for the different platforms. This means that a different mechanism needs to be used for Mobile Web (since "mobile web" and "web" are the same at build time).

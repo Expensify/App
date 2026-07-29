@@ -1,13 +1,20 @@
 import {act, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import {NavigationContainer} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -19,40 +26,22 @@ const FAKE_ACCOUNT_ID = 1;
 const FAKE_SECOND_ACCOUNT_ID = 2;
 
 /**
- * Mock the OptionListContextProvider to provide test data for the component.
- * This ensures consistent test data and isolates the component from external dependencies.
- */
-jest.mock('@components/OptionListContextProvider', () => ({
-    useOptionsList: () => ({
-        options: {
-            reports: [
-                {
-                    reportID: FAKE_REPORT_ID,
-                    text: 'Expense Report',
-                    keyForList: FAKE_REPORT_ID,
-                    brickRoadIndicator: 'error',
-                },
-            ],
-        },
-    }),
-    OptionsListContextProvider: ({children}: {children: React.ReactNode}) => children,
-}));
-
-/**
  * Helper function to render the IOURequestEditReportCommon component with required providers.
  * This encapsulates the component setup and makes tests more readable.
  */
 const renderIOURequestEditReportCommon = ({selectedReportID = '', selectedPolicyID}: {selectedReportID: string; selectedPolicyID?: string}) =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <IOURequestEditReportCommon
-                selectedReportID={selectedReportID}
-                selectedPolicyID={selectedPolicyID}
-                selectReport={jest.fn()}
-                backTo=""
-                isPerDiemRequest={false}
-            />
-        </ComposeProviders>,
+        <NavigationContainer>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <IOURequestEditReportCommon
+                    selectedReportID={selectedReportID}
+                    selectedPolicyID={selectedPolicyID}
+                    selectReport={jest.fn()}
+                    backTo=""
+                    isPerDiemRequest={false}
+                />
+            </ComposeProviders>
+        </NavigationContainer>,
     );
 
 describe('IOURequestEditReportCommon', () => {
@@ -184,7 +173,7 @@ describe('IOURequestEditReportCommon', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the not found page should be displayed
-            // eslint-disable-next-line rulesdir/no-negated-variables
+
             const fullPageNotFoundView = screen.getByTestId('FullPageNotFoundView');
             expect(fullPageNotFoundView).toBeVisible();
         });

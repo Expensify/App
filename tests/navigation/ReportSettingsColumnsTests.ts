@@ -1,4 +1,5 @@
 import {config} from '@libs/Navigation/linkingConfig/config';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -58,7 +59,6 @@ describe('ReportSettingsColumns route and navigation', () => {
 
     describe('ModalStackNavigator registration', () => {
         it('should have ReportSettingsModalStackNavigator exported', () => {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const navigators = require<Record<string, unknown>>('@libs/Navigation/AppNavigator/ModalStackNavigators/index');
 
             expect(navigators.ReportSettingsModalStackNavigator).toBeDefined();

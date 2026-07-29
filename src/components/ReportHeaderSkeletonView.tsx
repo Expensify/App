@@ -1,14 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
-import {Circle} from 'react-native-svg';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+import {Circle} from 'react-native-svg';
+
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import SkeletonRect from './SkeletonRect';
@@ -17,7 +21,7 @@ import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 type ReportHeaderSkeletonViewProps = {
     shouldAnimate?: boolean;
     onBackButtonPress?: () => void;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () => {}, reasonAttributes}: ReportHeaderSkeletonViewProps) {

@@ -1,5 +1,7 @@
 import type {ReactNode} from 'react';
+
 import {useEffect, useRef} from 'react';
+
 import type UseAccessibilityAnnouncementOptions from './types';
 
 const VISUALLY_HIDDEN_STYLE: Partial<CSSStyleDeclaration> = {
@@ -24,16 +26,35 @@ const ANNOUNCEMENT_DELAY_MS = 300;
 
 let wrapper: HTMLDivElement | null = null;
 
+function getAnnouncementRoot(): HTMLElement {
+    const activeElement = document.activeElement;
+    const activeDialog = activeElement instanceof HTMLElement ? activeElement.closest<HTMLElement>('[role="dialog"][aria-modal="true"]') : null;
+
+    if (activeDialog) {
+        return activeDialog;
+    }
+
+    const modalDialogs = document.querySelectorAll<HTMLElement>('[role="dialog"][aria-modal="true"]');
+    return modalDialogs.item(modalDialogs.length - 1) ?? document.body;
+}
+
 function getWrapper(): HTMLDivElement {
-    if (wrapper && document.body.contains(wrapper)) {
+    const root = getAnnouncementRoot();
+
+    if (wrapper && root.contains(wrapper)) {
         return wrapper;
+    }
+
+    if (wrapper?.parentElement && wrapper.parentElement !== root) {
+        wrapper.parentElement.removeChild(wrapper);
+        wrapper = null;
     }
 
     wrapper = document.createElement('div');
     wrapper.setAttribute('aria-live', 'assertive');
     wrapper.setAttribute('aria-atomic', 'true');
     Object.assign(wrapper.style, VISUALLY_HIDDEN_STYLE);
-    document.body.appendChild(wrapper);
+    root.appendChild(wrapper);
 
     return wrapper;
 }
@@ -54,13 +75,13 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
 
         prevShouldAnnounceRef.current = true;
 
-        const container = getWrapper();
-
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
-        }
-
         const timer = setTimeout(() => {
+            const container = getWrapper();
+
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
             const node = document.createElement('div');
             node.setAttribute('role', 'alert');
             node.textContent = message;

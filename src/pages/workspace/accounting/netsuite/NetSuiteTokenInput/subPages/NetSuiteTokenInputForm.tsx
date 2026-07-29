@@ -1,24 +1,29 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isAuthenticationError, isConnectionUnverified} from '@libs/actions/connections';
+
+import {shouldUseUpdateNetSuiteTokens} from '@libs/actions/connections';
 import {connectPolicyToNetSuite, updateNetSuiteTokens} from '@libs/actions/connections/NetSuiteCommands';
 import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
+
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
@@ -49,7 +54,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
                 return;
             }
 
-            if (isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE) && !isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)) {
+            if (shouldUseUpdateNetSuiteTokens(policy)) {
                 updateNetSuiteTokens(policyID, formValues);
             } else {
                 connectPolicyToNetSuite(policyID, formValues);

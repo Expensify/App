@@ -1,5 +1,5 @@
 /** Holds information about device-specific biometrics which:
- * - does need to be persisted
+ * - persists across logout/login (stored as a collection keyed by accountID)
  * - does not need to be kept in secure storage
  * - does not persist across uninstallations
  * (secure storage persists across uninstallation)

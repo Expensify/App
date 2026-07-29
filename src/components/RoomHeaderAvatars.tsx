@@ -1,17 +1,23 @@
-import React, {memo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {memo} from 'react';
+import {View} from 'react-native';
+
 import Avatar from './Avatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
@@ -33,7 +39,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
         }
 
         if (icon.id) {
-            Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(Number(icon.id), Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(Number(icon.id))));
         }
     };
 

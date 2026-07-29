@@ -1,20 +1,27 @@
-import {PortalProvider} from '@gorhom/portal';
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import ExpensifyCodePage from '@pages/settings/Subscription/ExpensifyCodePage';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -38,6 +45,8 @@ jest.mock('@libs/Navigation/Navigation', () => {
         getTopmostReportId: jest.fn(() => undefined),
         dismissModal: jest.fn(),
         getActiveRoute: jest.fn(() => ''),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
         useIsFocused: () => true,
         useNavigation: () => ({
             navigate: jest.fn(),
@@ -100,7 +109,7 @@ describe('ExpensifyCodePage', () => {
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
-            await Onyx.set(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {expensifyCode: null});
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, null);
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -155,7 +164,7 @@ describe('ExpensifyCodePage', () => {
     it('show NotFoundPage when subscription already has expensifyCode', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {expensifyCode: 'APPLIED_CODE'});
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, 'APPLIED_CODE');
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -182,7 +191,7 @@ describe('ExpensifyCodePage', () => {
         expect(applyExpensifyCode).toHaveBeenCalledWith('2026EarlyAdoption50');
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {expensifyCode: '2026EarlyAdoption50'});
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, '2026EarlyAdoption50');
         });
         await waitFor(() => {
             expect(Navigation.goBack).toHaveBeenCalled();

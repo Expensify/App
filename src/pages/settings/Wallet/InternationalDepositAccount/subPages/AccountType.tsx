@@ -1,17 +1,22 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import ValuePicker from '@components/ValuePicker';
+
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setDraftValues} from '@libs/actions/FormActions';
+
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 
 function AccountType({isEditing, onNext, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
@@ -21,7 +26,7 @@ function AccountType({isEditing, onNext, fieldsMap}: CustomSubPageProps) {
     const fieldData = fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE]?.[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY] ?? {};
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
-        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE]),
+        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE] ?? {}),
         onNext,
         shouldSaveDraft: isEditing,
     });

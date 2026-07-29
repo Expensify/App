@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {RenderAPI} from '@testing-library/react-native';
+
 import {getReceiverType, getSendInvoiceInformation, sendInvoice} from '@libs/actions/IOU/SendInvoice';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -13,14 +14,20 @@ import type {PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags, Report} f
 import type {Participant as IOUParticipant} from '@src/types/onyx/IOU';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {InvoiceTestData} from '../../data/Invoice';
+import type {MockFetch} from '../../utils/TestHelper';
+
 import * as InvoiceData from '../../data/Invoice';
-import currencyList from '../../unit/currencyList.json';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import type {MockFetch} from '../../utils/TestHelper';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import initCurrencyListContext from '../../utils/initCurrencyListContext';
+import {formatPhoneNumber, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -44,7 +51,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -57,31 +63,38 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
+function isRecord(input: unknown): input is Record<string, unknown> {
+    return typeof input === 'object' && input !== null;
+}
+
 OnyxUpdateManager();
 describe('actions/SendInvoice', () => {
+    let currencyListProvider: RenderAPI;
+
     beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
-                [ONYXKEYS.CURRENCY_LIST]: currencyList,
-            },
-        });
+        Onyx.init({keys: ONYXKEYS});
         initOnyxDerivedValues();
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
     });
 
     let mockFetch: MockFetch;
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
-        return Onyx.clear().then(waitForBatchedUpdates);
+        mockFetch = getGlobalFetchMock() as unknown as MockFetch;
+        global.fetch = mockFetch;
+        await Onyx.clear();
+        currencyListProvider = await initCurrencyListContext({
+            keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            },
+        });
     });
 
     afterEach(() => {
+        currencyListProvider.unmount();
         jest.clearAllMocks();
     });
 
@@ -121,39 +134,37 @@ describe('actions/SendInvoice', () => {
             expect(result).toBe(CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL);
         });
     });
-    describe('getSendInvoiceInformation', () => {
-        it('should merge policyRecentlyUsedCategories when provided', () => {
-            // Given: Transaction with a category and existing recently used categories
-            const mockTransaction = {
-                transactionID: 'transaction_categories',
-                reportID: 'report_categories',
-                amount: 200,
-                currency: 'USD',
-                created: '2024-02-01',
-                merchant: 'Category Test',
-                category: 'Meals',
-                comment: {
-                    comment: 'Invoice with categories',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_categories',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
 
+    describe('getSendInvoiceInformation', () => {
+        const baseParticipants = [
+            {accountID: 123, isSender: true, policyID: 'workspace_test'},
+            {accountID: 456, isSender: false},
+        ];
+
+        const baseSenderPolicyID = baseParticipants.find((p) => p.isSender)?.policyID;
+
+        let baseSenderPolicyTags: PolicyTagLists;
+        beforeEach(async () => {
+            baseSenderPolicyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${baseSenderPolicyID}`)) ?? {};
+        });
+
+        const baseTransaction = {
+            transactionID: 'transaction_base',
+            reportID: 'report_base',
+            amount: 100,
+            currency: 'USD',
+            created: '2024-02-01',
+            merchant: 'Test Merchant',
+            participants: baseParticipants,
+        };
+
+        it('should merge policyRecentlyUsedCategories when provided', () => {
             const currentUserAccountID = 123;
             const existingRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
 
             // When: Call getSendInvoiceInformation with policyRecentlyUsedCategories
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -164,6 +175,9 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: existingRecentlyUsedCategories,
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             // Then: Verify optimistic data is generated when policyRecentlyUsedCategories are provided
@@ -173,34 +187,11 @@ describe('actions/SendInvoice', () => {
         it('should merge policyRecentlyUsedCurrencies when currency is provided in transaction', () => {
             const testCurrency = CONST.CURRENCY.EUR;
             const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.GBP];
-            const mockTransaction = {
-                transactionID: 'transaction_currency',
-                reportID: 'report_currency',
-                amount: 200,
-                currency: testCurrency,
-                created: '2024-02-01',
-                merchant: 'Currency Test',
-                category: 'Meals',
-                comment: {
-                    comment: 'Invoice with currency',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_currency',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
 
             const currentUserAccountID = 123;
 
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: {...baseTransaction, currency: CONST.CURRENCY.EUR} as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 invoiceChatReport: undefined,
@@ -211,6 +202,9 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: undefined,
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             expect(result.onyxData.optimisticData).toBeDefined();
@@ -224,34 +218,6 @@ describe('actions/SendInvoice', () => {
 
         it('should return correct invoice information with new chat report', () => {
             // Given: Mock transaction data
-            const mockTransaction = {
-                transactionID: 'transaction_123',
-                reportID: 'report_123',
-                amount: 500,
-                currency: 'USD',
-                created: '2024-01-15',
-                merchant: 'Test Company',
-                category: 'Services',
-                tag: 'Project B',
-                taxCode: 'TAX001',
-                taxAmount: 50,
-                billable: true,
-                comment: {
-                    comment: 'Invoice for consulting services',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_123',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
-
             const currentUserAccountID = 123;
             const mockPolicy = createRandomPolicy(1);
 
@@ -278,7 +244,7 @@ describe('actions/SendInvoice', () => {
 
             // When: Call getSendInvoiceInformation
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -289,11 +255,14 @@ describe('actions/SendInvoice', () => {
                 companyName: 'Test Company Inc.',
                 companyWebsite: 'https://testcompany.com',
                 policyRecentlyUsedCategories: ['Services', 'Consulting'],
+                senderPolicyTags: mockPolicyTagList as PolicyTagLists,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             // Then: Verify the result structure and key values
             expect(result).toMatchObject({
-                senderWorkspaceID: 'workspace_123',
+                senderWorkspaceID: 'workspace_test',
                 invoiceReportID: expect.any(String),
                 transactionID: expect.any(String),
                 transactionThreadReportID: expect.any(String),
@@ -317,6 +286,42 @@ describe('actions/SendInvoice', () => {
             expect(result.onyxData.optimisticData).toBeDefined();
             expect(result.onyxData.successData).toBeDefined();
             expect(result.onyxData.failureData).toBeDefined();
+        });
+
+        describe('delegateAccountID forwarding', () => {
+            it('sets delegateAccountID on the IOU action when delegateAccountID is provided', () => {
+                const DELEGATE_ACCOUNT_ID = 999;
+                const mockPolicy = createRandomPolicy(0);
+                mockPolicy.id = 'workspace_test';
+
+                const result = getSendInvoiceInformation({
+                    transaction: baseTransaction as OnyxEntry<Transaction>,
+                    currentUserAccountID: 123,
+                    policyRecentlyUsedCurrencies: [],
+                    invoiceChatReport: undefined,
+                    receiptFile: undefined,
+                    policy: mockPolicy,
+                    policyTagList: undefined,
+                    policyCategories: undefined,
+                    companyName: 'Test Company Inc.',
+                    companyWebsite: 'https://testcompany.com',
+                    policyRecentlyUsedCategories: [],
+                    senderPolicyTags: baseSenderPolicyTags,
+                    formatPhoneNumber,
+                    delegateAccountID: DELEGATE_ACCOUNT_ID,
+                });
+
+                const reportActionsUpdate = result.onyxData.optimisticData?.find((update) => String(update.key) === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.invoiceReportID}`);
+                const reportActionValue: unknown = reportActionsUpdate?.value;
+                let delegateAccountID: number | undefined;
+                if (isRecord(reportActionValue) && result.reportActionID in reportActionValue) {
+                    const action = reportActionValue[result.reportActionID];
+                    if (typeof action === 'object' && action !== null && 'delegateAccountID' in action) {
+                        delegateAccountID = (action as {delegateAccountID?: number}).delegateAccountID;
+                    }
+                }
+                expect(delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            });
         });
 
         it('should return correct invoice information with existing chat report', () => {
@@ -347,39 +352,16 @@ describe('actions/SendInvoice', () => {
                 },
             };
 
-            const mockTransaction = {
-                transactionID: 'transaction_456',
-                reportID: 'report_456',
-                amount: 750,
-                currency: 'EUR',
-                created: '2024-01-20',
-                merchant: 'Client Company',
-                category: 'Development',
-                tag: 'Project C',
-                taxCode: 'TAX002',
-                taxAmount: 75,
-                billable: true,
-                comment: {
-                    comment: 'Invoice for development work',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_456',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
-
             const currentUserAccountID = 123;
+
+            const transaction = {
+                ...baseTransaction,
+                participants: [{...baseParticipants.at(0), policyID: 'workspace_456'}, baseParticipants.at(1)],
+            };
 
             // When: Call getSendInvoiceInformation with existing chat report
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: transaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
@@ -390,6 +372,9 @@ describe('actions/SendInvoice', () => {
                 companyName: 'Client Company Ltd.',
                 companyWebsite: 'https://clientcompany.com',
                 policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             // Then: Verify the result uses existing chat report
@@ -403,33 +388,6 @@ describe('actions/SendInvoice', () => {
 
         it('should handle receipt attachment correctly', () => {
             // Given: Transaction with receipt
-            const mockTransaction = {
-                transactionID: 'transaction_789',
-                reportID: 'report_789',
-                amount: 300,
-                currency: 'USD',
-                created: '2024-01-25',
-                merchant: 'Receipt Company',
-                category: 'Equipment',
-                tag: 'Hardware',
-                taxCode: 'TAX003',
-                taxAmount: 30,
-                billable: true,
-                comment: {
-                    comment: 'Invoice with receipt',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_789',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
 
             const mockReceipt = {
                 source: 'receipt_source_123',
@@ -441,7 +399,7 @@ describe('actions/SendInvoice', () => {
 
             // When: Call getSendInvoiceInformation with receipt
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -452,6 +410,9 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             // Then: Verify receipt handling
@@ -500,6 +461,9 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             // Then: Verify function handles missing data gracefully
@@ -513,33 +477,11 @@ describe('actions/SendInvoice', () => {
 
         it('should use provided invoiceChatReportID when creating new invoice chat', () => {
             const preGeneratedReportID = 'pre_generated_invoice_chat_123';
-            const mockTransaction = {
-                transactionID: 'transaction_with_report_id',
-                reportID: 'report_with_id',
-                amount: 500,
-                currency: 'USD',
-                created: '2024-02-01',
-                merchant: 'Test Merchant',
-                comment: {
-                    comment: 'Invoice with pre-generated report ID',
-                },
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_test',
-                    },
-                    {
-                        accountID: 456,
-                        isSender: false,
-                    },
-                ],
-            };
 
             const currentUserAccountID = 123;
 
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -551,6 +493,9 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -587,30 +532,10 @@ describe('actions/SendInvoice', () => {
                 },
             };
 
-            const mockTransaction = {
-                transactionID: 'transaction_existing_chat',
-                reportID: 'report_existing',
-                amount: 300,
-                currency: 'USD',
-                created: '2024-02-01',
-                merchant: 'Existing Chat Test',
-                participants: [
-                    {
-                        accountID: 123,
-                        isSender: true,
-                        policyID: 'workspace_existing',
-                    },
-                    {
-                        accountID: receiverAccountID,
-                        isSender: false,
-                    },
-                ],
-            };
-
             const currentUserAccountID = 123;
 
             const result = getSendInvoiceInformation({
-                transaction: mockTransaction as OnyxEntry<Transaction>,
+                transaction: baseTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
@@ -622,11 +547,119 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             expect(result.invoiceRoom).toBeDefined();
             expect(result.invoiceRoom.reportID).toBe(existingReportID);
             expect(result.invoiceRoom.reportID).not.toBe(preGeneratedReportID);
+        });
+
+        it('should build optimistic recently used tags from senderPolicyTags', async () => {
+            // Given: A transaction with a tag and policy tags seeded in Onyx
+            const policyID = 'workspace_tags_test';
+            const tagListName = 'Department';
+            const transactionTag = 'Engineering';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                [tagListName]: {
+                    name: tagListName,
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                        Marketing: {name: 'Marketing', enabled: true},
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const senderPolicyTags = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+
+            const policyRecentlyUsedTags: RecentlyUsedTags = {
+                [tagListName]: ['Marketing'],
+            };
+
+            const mockTransaction = {
+                transactionID: 'transaction_tags_test',
+                reportID: 'report_tags_test',
+                amount: 100,
+                currency: 'USD',
+                created: '2024-02-01',
+                merchant: 'Tags Test',
+                tag: transactionTag,
+                participants: [
+                    {accountID: 123, isSender: true, policyID},
+                    {accountID: 456, isSender: false},
+                ],
+            };
+
+            // When: Call getSendInvoiceInformation with senderPolicyTags read from Onyx
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID: 123,
+                policyRecentlyUsedCurrencies: [],
+                policyRecentlyUsedTags,
+                senderPolicyTags: senderPolicyTags ?? {},
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+            });
+
+            // Then: optimisticData should contain a POLICY_RECENTLY_USED_TAGS update with the transaction tag prepended
+            const recentlyUsedTagsUpdate = result.onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+
+            expect(recentlyUsedTagsUpdate).toBeDefined();
+            expect(recentlyUsedTagsUpdate?.value).toMatchObject({
+                [tagListName]: [transactionTag, 'Marketing'],
+            });
+        });
+
+        it('should not include recently used tags update when transaction has no tag', async () => {
+            // Given: A transaction with no tag and policy tags seeded in Onyx
+            const policyID = 'workspace_no_tags';
+            const tagListName = 'Department';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                [tagListName]: {
+                    name: tagListName,
+                    orderWeight: 0,
+                    required: false,
+                    tags: {Engineering: {name: 'Engineering', enabled: true}},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const senderPolicyTags = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+
+            const mockTransaction = {
+                transactionID: 'transaction_no_tags',
+                reportID: 'report_no_tags',
+                amount: 100,
+                currency: 'USD',
+                created: '2024-02-01',
+                merchant: 'No Tags Test',
+                participants: [
+                    {accountID: 123, isSender: true, policyID},
+                    {accountID: 456, isSender: false},
+                ],
+            };
+
+            // When: Call getSendInvoiceInformation without a tag on the transaction
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID: 123,
+                policyRecentlyUsedCurrencies: [],
+                senderPolicyTags: senderPolicyTags ?? {},
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+            });
+
+            // Then: No POLICY_RECENTLY_USED_TAGS update should be in optimisticData
+            const recentlyUsedTagsUpdate = result.onyxData.optimisticData?.find((update) => String(update.key).startsWith(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS));
+
+            expect(recentlyUsedTagsUpdate).toBeUndefined();
         });
     });
     describe('sendInvoice', () => {
@@ -652,13 +685,16 @@ describe('actions/SendInvoice', () => {
                 policy,
                 companyName,
                 companyWebsite,
+                senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
             expect(writeSpy).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({
-                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID) as string,
+                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID),
                 }),
                 expect.anything(),
             );
@@ -667,10 +703,10 @@ describe('actions/SendInvoice', () => {
 
         it('should not clear transaction pending action when send invoice fails', async () => {
             const testCurrency = CONST.CURRENCY.EUR;
-            const transaction = {
+            const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 currency: testCurrency,
-            } as unknown as OnyxEntry<Transaction>;
+            };
             const initialCurrencies: string[] = [];
             await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
 
@@ -679,6 +715,9 @@ describe('actions/SendInvoice', () => {
                 currentUserAccountID: 1,
                 transaction,
                 policyRecentlyUsedCurrencies: initialCurrencies,
+                senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             mockFetch?.fail?.();
@@ -688,7 +727,6 @@ describe('actions/SendInvoice', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
                     callback: (allTransactions) => {
                         Onyx.disconnect(connection);
                         const transactionValue = Object.values(allTransactions).at(0);
@@ -705,7 +743,7 @@ describe('actions/SendInvoice', () => {
 
         it('should handle policyRecentlyUsedCategories when provided', () => {
             // Given a basic transaction and policyRecentlyUsedCategories
-            const transaction = createRandomTransaction(1) as unknown as OnyxEntry<Transaction>;
+            const transaction = createRandomTransaction(1);
             const currentUserAccountID = 1;
             const policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
 
@@ -718,6 +756,9 @@ describe('actions/SendInvoice', () => {
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedCategories,
+                senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             // Then onyxData should be passed to API.write
@@ -745,37 +786,34 @@ describe('actions/SendInvoice', () => {
             const policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags> = {
                 [tagName]: ['old tag'],
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
-                [tagName]: {name: tagName},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
-
             // When sending an invoice
             sendInvoice({
                 currentUserAccountID: 1,
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
+                senderPolicyTags: {
+                    [tagName]: {
+                        name: tagName,
+                        required: false,
+                        tags: {},
+                        orderWeight: 0,
+                    },
+                },
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
-            waitForBatchedUpdates();
+            await waitForBatchedUpdates();
 
             // Then the transaction tag should be added to the recently used tags collection
-            const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
-                const connection = Onyx.connectWithoutView({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
-                    callback: (recentlyUsedTags) => {
-                        resolve(recentlyUsedTags ?? {});
-                        Onyx.disconnect(connection);
-                    },
-                });
-            });
-            expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
-            expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
+            const newPolicyRecentlyUsedTags = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+            expect(newPolicyRecentlyUsedTags?.[tagName]?.length).toBe(2);
+            expect(newPolicyRecentlyUsedTags?.[tagName]?.at(0)).toBe(transactionTag);
         });
 
         it('should use invoiceChatReportID when creating new invoice chat via sendInvoice', () => {
             const preGeneratedReportID = 'pre_generated_report_id_456';
-            const transaction = {
+            const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 participants: [
                     {
@@ -788,7 +826,7 @@ describe('actions/SendInvoice', () => {
                         isSender: false,
                     },
                 ],
-            } as unknown as OnyxEntry<Transaction>;
+            };
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
@@ -798,6 +836,9 @@ describe('actions/SendInvoice', () => {
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReportID: preGeneratedReportID,
+                senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(

@@ -1,12 +1,15 @@
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
 import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {NavigationProp, NavigationState} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type InputType = 'markdown' | 'mask' | 'default';
 type CustomBaseTextInputProps = ForwardedFSClassProps &
@@ -92,6 +95,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Hint text to display below the TextInput */
         hint?: string;
 
+        /** Whether the hint should be rendered as HTML */
+        shouldRenderHintAsHTML?: boolean;
+
         /** Prefix character */
         prefixCharacter?: string;
 
@@ -113,6 +119,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
 
         /** Indicate whether input is multiline */
         multiline?: boolean;
+
+        /** Force the floating label to render on a single line and ellipsize even when the input is multiline */
+        shouldLabelStayOnSingleLine?: boolean;
 
         /** Set the default value to the input if there is a valid saved value */
         shouldUseDefaultValue?: boolean;
@@ -165,6 +174,12 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Style for the icon container */
         iconContainerStyle?: StyleProp<ViewStyle>;
 
+        /** Style for the clear button */
+        clearButtonStyle?: StyleProp<ViewStyle>;
+
+        /** The clear button icon size */
+        clearButtonIconSize?: number;
+
         /** The width of inner content */
         contentWidth?: number;
 
@@ -198,6 +213,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Whether the input prefix should use the default `Text` line height fallback. Disable this if you intentionally want the prefix to have `lineHeight: undefined` */
         shouldUseDefaultLineHeightForPrefix?: boolean;
 
+        /** Component to render on the right hand side of the input - only shown if clear button is not rendered */
+        rightHandSideComponent?: React.ReactNode;
+
         /** Reference to the outer element */
         ref?: ForwardedRef<BaseTextInputRef>;
 
@@ -205,6 +223,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         navigation?: Omit<NavigationProp<ReactNavigation.RootParamList>, 'getState'> & {
             getState(): NavigationState | undefined;
         };
+
+        /** Whether the input should be allowed to be focused in landscape mode */
+        shouldAllowFocusInLandscapeMode?: boolean;
     };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

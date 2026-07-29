@@ -1,19 +1,25 @@
-import {hasStartedLocationUpdatesAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
-import React, {useEffect, useState} from 'react';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import ConfirmModal from '@components/ConfirmModal';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+
+import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
+
 import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {checkAndCleanGpsNotification, startGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+
+import {hasStartedLocationUpdatesAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
+import React, {useEffect, useState} from 'react';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
@@ -27,7 +33,7 @@ function GPSTripStateChecker() {
 
     const reportID = gpsDraftDetails?.reportID ?? generateReportID();
 
-    useUpdateGpsTripOnReconnect();
+    useUpdateGpsTripOnReconnect({gpsPoints: getGpsPoints(gpsDraftDetails)});
     useUpdateGpsNotification();
 
     useEffect(() => {
@@ -36,6 +42,12 @@ function GPSTripStateChecker() {
             const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
             if (!gpsTrip?.isTracking) {
+                const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
+                if (isBackgroundTaskRunning) {
+                    stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
+                        console.error('[GPS distance request] Failed to stop orphaned location tracking', error),
+                    );
+                }
                 return;
             }
 
@@ -43,7 +55,6 @@ function GPSTripStateChecker() {
         }
 
         handleGpsTripInProgressOnAppRestart();
-        checkAndCleanGpsNotification();
 
         return () => {
             hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {
@@ -94,7 +105,7 @@ function GPSTripStateChecker() {
 
     const onViewTrip = () => {
         setShowContinueTripModal(false);
-        stopGpsTrip(isOffline);
+        stopGpsTrip(isOffline, getGpsPoints(gpsDraftDetails));
         navigateToGpsScreen();
     };
 

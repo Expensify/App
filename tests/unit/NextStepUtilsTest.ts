@@ -1,11 +1,27 @@
-import Onyx from 'react-native-onyx';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {buildNextStepNew, buildOptimisticNextStepForDynamicExternalWorkflowSubmitError, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import {
+    buildNextStepMessage,
+    buildNextStepNew,
+    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
+    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
+    buildOptimisticNextStepForStrictPolicyRuleViolations,
+    getReportNextStep,
+    buildOptimisticNextStep,
+} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -77,6 +93,7 @@ describe('libs/NextStepUtils', () => {
         beforeEach(() => {
             report.ownerAccountID = currentUserAccountID;
             report.managerID = currentUserAccountID;
+            report.transactionCount = 1;
             optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
             optimisticNextStep.message = [];
 
@@ -88,6 +105,7 @@ describe('libs/NextStepUtils', () => {
                 const emptyReport = buildOptimisticEmptyReport(
                     'fake-empty-report-id-2',
                     currentUserAccountID,
+                    currentUserEmail,
                     {reportID: 'fake-parent-report-id-3'},
                     'fake-parent-report-action-id-4',
                     policy,
@@ -113,7 +131,6 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStepNew({
                     report: emptyReport,
                     policy,
@@ -125,6 +142,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -150,7 +168,6 @@ describe('libs/NextStepUtils', () => {
                         text: 'fix the issues',
                     },
                 ];
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStepNew({
                     report,
                     policy,
@@ -162,6 +179,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: true,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -189,7 +207,6 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStepNew({
                     report,
                     policy,
@@ -201,6 +218,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -236,7 +254,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -254,6 +271,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -281,7 +299,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -299,6 +316,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -327,7 +345,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -345,6 +362,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -373,7 +391,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -392,6 +409,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -420,7 +438,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -439,6 +456,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -466,7 +484,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -485,6 +502,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -513,7 +531,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -531,6 +548,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -557,7 +575,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -575,6 +592,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -605,7 +623,6 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStepNew({
                     report,
                     policy,
@@ -617,6 +634,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -650,7 +668,6 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -662,6 +679,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -704,7 +722,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -716,6 +733,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -753,7 +771,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -765,6 +782,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: true,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -782,7 +800,6 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -794,6 +811,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -826,7 +844,6 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -838,6 +855,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -870,7 +888,6 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -882,6 +899,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -889,6 +907,35 @@ describe('libs/NextStepUtils', () => {
         });
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {
+            test('disabled reimbursements', () => {
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
+                optimisticNextStep.message = [
+                    {
+                        text: 'No further action required!',
+                    },
+                ];
+
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                }).then(() => {
+                    const result = buildNextStepNew({
+                        report,
+                        policy,
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
+                        isTrackIntentUser: false,
+                    });
+
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
+            });
+
             test('non-payer', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
@@ -901,7 +948,6 @@ describe('libs/NextStepUtils', () => {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                     role: 'user',
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -913,6 +959,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -944,7 +991,6 @@ describe('libs/NextStepUtils', () => {
                 const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
                 report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
                 report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStepNew({
                     report,
                     policy,
@@ -956,6 +1002,7 @@ describe('libs/NextStepUtils', () => {
                     shouldFixViolations: false,
                     isUnapprove: false,
                     isReopen: false,
+                    isTrackIntentUser: false,
                 });
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -993,7 +1040,6 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -1005,6 +1051,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -1019,7 +1066,6 @@ describe('libs/NextStepUtils', () => {
                             text: 'No further action required!',
                         },
                     ];
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -1031,6 +1077,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        isTrackIntentUser: false,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -1073,6 +1120,507 @@ describe('libs/NextStepUtils', () => {
                     },
                 ],
             });
+        });
+    });
+
+    describe('getReportNextStep', () => {
+        const currentUserEmail = 'current-user@expensify.com';
+        const currentUserAccountID = 37;
+        const policyID = 'policy-1';
+
+        beforeAll(() => {
+            Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                        avatar: '',
+                    },
+                },
+            }).then(waitForBatchedUpdates);
+        });
+
+        it('returns the current next step when no special conditions are met', () => {
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-1',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const currentNextStep: ReportNextStepDeprecated = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Current next step'}],
+            };
+
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false);
+            expect(result).toBe(currentNextStep);
+        });
+
+        it('returns an optimistic fix issue next step when all transactions have submission-blocking violations', () => {
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-2',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const transaction: Transaction = {
+                transactionID: 'txn-1',
+                reportID: report.reportID,
+                amount: -500,
+                currency: CONST.CURRENCY.USD,
+            } as Transaction;
+
+            const transactionViolations: OnyxCollection<TransactionViolations> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
+            };
+
+            const result = getReportNextStep(
+                undefined,
+                report,
+                currentUserEmail,
+                [transaction] as Array<OnyxEntry<Transaction>>,
+                undefined,
+                transactionViolations,
+                currentUserEmail,
+                currentUserAccountID,
+                false,
+            );
+
+            expect(result).toEqual({
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+                actorAccountID: report.ownerAccountID,
+            });
+        });
+
+        it('returns an optimistic prevent self-approval next step when preventSelfApproval is enabled and submitter would submit to themselves', async () => {
+            const policy: Policy = {
+                id: policyID,
+                name: 'Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: currentUserEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: currentUserEmail,
+                preventSelfApproval: true,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-3',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false);
+            expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
+        });
+
+        it('prioritizes the fix issue next step over the prevent self-approval next step when both conditions are true', async () => {
+            const policy: Policy = {
+                id: policyID,
+                name: 'Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: currentUserEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: currentUserEmail,
+                preventSelfApproval: true,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-4',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const transaction: Transaction = {
+                transactionID: 'txn-2',
+                reportID: report.reportID,
+                amount: -500,
+                currency: CONST.CURRENCY.USD,
+            } as Transaction;
+
+            const transactionViolations: OnyxCollection<TransactionViolations> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.NO_ROUTE,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const result = getReportNextStep(
+                undefined,
+                report,
+                currentUserEmail,
+                [transaction] as Array<OnyxEntry<Transaction>>,
+                policy,
+                transactionViolations,
+                currentUserEmail,
+                currentUserAccountID,
+                false,
+            );
+
+            expect(result).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: report.ownerAccountID,
+            });
+        });
+
+        it('returns the translatable next step over the deprecated one for the empty-report waiting-to-add-transactions case', () => {
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-5',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const currentNextStep: ReportNextStepDeprecated = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Waiting for '}, {text: 'you', type: 'strong'}, {text: ' to '}, {text: 'add'}, {text: ' %expenses.'}],
+            };
+
+            const reportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
+            expect(result).toBe(reportNextStep);
+        });
+
+        it('falls back to the deprecated next step when the new next step has a different message key', () => {
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-6',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const currentNextStep: ReportNextStepDeprecated = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Current next step'}],
+            };
+
+            const reportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
+            expect(result).toBe(currentNextStep);
+        });
+
+        it('prefers the report-embedded next step over the deprecated value', () => {
+            const embeddedNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-7',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                nextStep: embeddedNextStep,
+            } as Report;
+
+            const currentNextStep: ReportNextStepDeprecated = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Stale deprecated message'}],
+            };
+
+            const result = getReportNextStep(currentNextStep, report, currentUserEmail, [], undefined, {}, currentUserEmail, currentUserAccountID, false, report.nextStep);
+            expect(result).toBe(embeddedNextStep);
+        });
+
+        it('prioritizes a higher-priority override over the new translatable next step', async () => {
+            const overridePolicyID = 'policy-override';
+            const policy: Policy = {
+                id: overridePolicyID,
+                name: 'Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: currentUserEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: currentUserEmail,
+                preventSelfApproval: true,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-7',
+                    policyID: overridePolicyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                policyID: overridePolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const reportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${overridePolicyID}`, policy);
+            await waitForBatchedUpdates();
+
+            // Even though a translatable next step is supplied, the prevent-self-approval override must still win.
+            const result = getReportNextStep(undefined, report, currentUserEmail, [], policy, {}, currentUserEmail, currentUserAccountID, false, reportNextStep);
+            expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
+        });
+    });
+
+    describe('buildNextStepMessage', () => {
+        it('resolves the actor name through the provided translate function', async () => {
+            const hiddenActorAccountID = 780070;
+            // The actor has no displayName/login, so its name resolves to the hidden label provided by translate.
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenActorAccountID]: {accountID: hiddenActorAccountID, login: '', displayName: ''}});
+            await waitForBatchedUpdates();
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: hiddenActorAccountID,
+            };
+            // The provided translate resolves the hidden actor label and renders the message body around the actor name.
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'common.hidden') {
+                    return 'HiddenMarker';
+                }
+                if (path === 'nextStep.message.waitingToSubmit') {
+                    return `Waiting for ${String(parameters.at(0))} to submit expenses.`;
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            // A currentUserAccountID different from the actor renders the actor as an OTHER_USER, so its name appears in the message.
+            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999);
+            expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
+        });
+    });
+
+    describe('buildOptimisticNextStep', () => {
+        const currentUserEmail = 'current-user@expensify.com';
+        const currentUserAccountID = 37;
+        const policyID = 'submit-and-close-policy';
+
+        const policy: Policy = {
+            id: policyID,
+            name: 'Submit and Close Policy',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: currentUserEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            approver: currentUserEmail,
+            harvesting: {
+                enabled: false,
+            },
+            employeeList: {
+                [currentUserEmail]: {
+                    email: currentUserEmail,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    submitsTo: currentUserEmail,
+                },
+            },
+        };
+
+        beforeAll(async () => {
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                        avatar: '',
+                    },
+                },
+                ...policyCollectionDataSet,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        const getOpenSubmitAndCloseReport = (): Report =>
+            ({
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-track-intent',
+                    policyID,
+                    payeeAccountID: currentUserAccountID,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 1,
+            }) as Report;
+
+        it('returns WAITING_TO_MARK_AS_DONE when isTrackIntentUser is true for an open submit-and-close report', () => {
+            const report = getOpenSubmitAndCloseReport();
+
+            const result = buildOptimisticNextStep({
+                report,
+                policy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                shouldFixViolations: false,
+                isUnapprove: false,
+                isReopen: false,
+                isTrackIntentUser: true,
+            });
+
+            expect(result?.messageKey).toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE);
+        });
+
+        it('returns WAITING_TO_SUBMIT when isTrackIntentUser is false for the same report', () => {
+            const report = getOpenSubmitAndCloseReport();
+
+            const result = buildOptimisticNextStep({
+                report,
+                policy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                shouldFixViolations: false,
+                isUnapprove: false,
+                isReopen: false,
+                isTrackIntentUser: false,
+            });
+
+            expect(result?.messageKey).toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT);
         });
     });
 });

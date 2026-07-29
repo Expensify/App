@@ -1,13 +1,18 @@
-import React from 'react';
 import useSidePanelActions from '@hooks/useSidePanelActions';
+import useSidePanelReportID from '@hooks/useSidePanelReportID';
 import useSidePanelState from '@hooks/useSidePanelState';
+
 import type {ExtraContentProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import React from 'react';
+
 import SidePanelModal from './SidePanelModal';
 import SidePanelReport from './SidePanelReport';
 import useSyncSidePanelWithHistory from './useSyncSidePanelWithHistory';
 
 function SidePanel({navigation}: Pick<ExtraContentProps, 'navigation'>) {
-    const {sidePanelNVP, isSidePanelTransitionEnded, shouldHideSidePanel, sidePanelTranslateX, shouldHideSidePanelBackdrop, reportID} = useSidePanelState();
+    const {sidePanelNVP, isSidePanelTransitionEnded, shouldHideSidePanel, sidePanelTranslateX, shouldHideSidePanelBackdrop} = useSidePanelState();
+    const reportID = useSidePanelReportID();
     const {closeSidePanel} = useSidePanelActions();
 
     // Hide side panel once animation ends

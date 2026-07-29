@@ -1,13 +1,19 @@
-import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
-// eslint-disable-next-line no-restricted-imports
-import type {Animated} from 'react-native';
 import type {ThemeColors} from '@styles/theme/types';
+
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
+// eslint-disable-next-line no-restricted-imports
+import type {Animated, StyleProp, ViewStyle} from 'react-native';
 
 type TabSelectorProps = MaterialTopTabBarProps & {
     /* Callback fired when tab is pressed */
     onTabPress?: (name: string) => void;
+
+    /* Callback fired when tab is long pressed */
+    onLongTabPress?: (key: string) => void;
 
     /** Callback to register focus trap container element */
     onFocusTrapContainerElementChanged?: (element: HTMLElement | null) => void;
@@ -17,17 +23,11 @@ type TabSelectorProps = MaterialTopTabBarProps & {
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
-
-    /** Determines whether the product training tooltip should be displayed to the user. */
-    shouldShowProductTrainingTooltip?: boolean;
-
-    /** Function to render the content of the product training tooltip. */
-    renderProductTrainingTooltip?: () => React.JSX.Element;
 };
 
-type TabSelectorBaseItem = WithSentryLabel & {
+type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
     /** Stable key for the tab. */
-    key: string;
+    key: K;
 
     /** Icon to display on the tab. */
     icon?: IconAsset;
@@ -37,17 +37,38 @@ type TabSelectorBaseItem = WithSentryLabel & {
 
     /** Test identifier used to find elements in tests. */
     testID?: string;
+
+    /** Text to display on the badge on the tab. */
+    badgeText?: string;
+
+    /** Whether the tab's badge should use the condensed (smaller) style. */
+    isBadgeCondensed?: boolean;
+
+    /** Additional styles for the tab's badge. */
+    badgeStyles?: StyleProp<ViewStyle>;
+
+    /** Whether this tab is disabled */
+    isDisabled?: boolean;
+
+    /** Pending action for the tab. */
+    pendingAction?: PendingAction;
 };
 
-type TabSelectorBaseProps = {
+type TabSelectorBaseProps<K extends string = string> = {
     /** Tabs to render. */
-    tabs: TabSelectorBaseItem[];
+    tabs: Array<TabSelectorBaseItem<K>>;
 
     /** Key of the currently active tab. */
-    activeTabKey: string;
+    activeTabKey: K | undefined;
 
     /** Called when a tab is pressed with its key. */
-    onTabPress?: (key: string) => void;
+    onTabPress?: (key: K) => void;
+
+    /* Callback fired when tab is long pressed */
+    onLongTabPress?: (key: K) => void;
+
+    /* Callback fired when active tab is pressed */
+    onActiveTabPress?: (key: K) => void;
 
     /** Animated position from a navigator (optional). */
     position?: Animated.AnimatedInterpolation<number>;
@@ -58,11 +79,8 @@ type TabSelectorBaseProps = {
     /** Whether tabs should have equal width. */
     equalWidth?: boolean;
 
-    /** Determines whether the product training tooltip should be displayed to the user. */
-    shouldShowProductTrainingTooltip?: boolean;
-
-    /** Function to render the content of the product training tooltip. */
-    renderProductTrainingTooltip?: () => React.JSX.Element;
+    /** Additional styles for the tabs' scroll content container. */
+    contentContainerStyles?: StyleProp<ViewStyle>;
 };
 
 type TabSelectorItemProps = WithSentryLabel & {
@@ -71,6 +89,9 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Function to call when onPress */
     onPress?: () => void;
+
+    /* Callback fired when tab is long pressed */
+    onLongPress?: () => void;
 
     /** Icon to display on tab */
     icon?: IconAsset;
@@ -99,11 +120,20 @@ type TabSelectorItemProps = WithSentryLabel & {
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
 
-    /** Determines whether the product training tooltip should be displayed to the user. */
-    shouldShowProductTrainingTooltip?: boolean;
+    /** Text to display on the badge on the tab. */
+    badgeText?: string;
 
-    /** Function to render the content of the product training tooltip. */
-    renderProductTrainingTooltip?: () => React.JSX.Element;
+    /** Whether the tab's badge should use the condensed (smaller) style. */
+    isBadgeCondensed?: boolean;
+
+    /** Additional styles for the tab's badge. */
+    badgeStyles?: StyleProp<ViewStyle>;
+
+    /** Whether this tab is disabled */
+    isDisabled?: boolean;
+
+    /** Pending action for the tab. */
+    pendingAction?: PendingAction;
 };
 
 type AnimationConfigBase = {

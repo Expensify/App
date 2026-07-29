@@ -1,4 +1,5 @@
 import type Network from '@src/types/onyx/Network';
+
 import type {RequestQueuesInfo} from './RequestsQueuesState';
 
 /**
@@ -36,7 +37,10 @@ type SessionStateInfo = {
 /**
  * Network connectivity and status.
  */
-type NetworkStateInfo = Pick<Network, 'networkStatus' | 'timeSkew' | 'shouldForceOffline' | 'shouldSimulatePoorConnection' | 'shouldFailAllRequests'>;
+type NetworkStateInfo = Pick<Network, 'timeSkew' | 'shouldForceOffline' | 'shouldSimulatePoorConnection' | 'shouldFailAllRequests'> & {
+    /** Whether the network is currently offline */
+    isOffline?: boolean;
+};
 
 /**
  * Extra loading context for additional debugging information.

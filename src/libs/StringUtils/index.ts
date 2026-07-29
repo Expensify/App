@@ -1,9 +1,13 @@
-import deburr from 'lodash/deburr';
-import type {KebabCase} from 'type-fest';
 import {isSafari} from '@libs/Browser';
+
 import CONST from '@src/CONST';
+
+import type {KebabCase} from 'type-fest';
+
+import {Str} from 'expensify-common';
+import deburr from 'lodash/deburr';
+
 import decodeUnicode from './decodeUnicode';
-import dedent from './dedent';
 import hash from './hash';
 
 /**
@@ -203,6 +207,11 @@ function camelToKebabCase<T extends string>(str: T) {
     return str.replaceAll(/([a-z])([A-Z])/g, '$1-$2').toLowerCase() as KebabCase<T>;
 }
 
+/** Escapes special regex characters in a string so it can be used as a literal pattern in a RegExp. */
+function escapeRegExp(str: string): string {
+    return str.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export default {
     sanitizeString,
     isEmptyString,
@@ -215,7 +224,7 @@ export default {
     removeDoubleQuotes,
     removePreCodeBlock,
     sortStringArrayByLength,
-    dedent,
+    dedent: (str: string) => Str.dedent(str),
     hash,
     getUTF8ByteLength,
     decodeUnicode,
@@ -224,4 +233,5 @@ export default {
     camelToHyphenCase,
     camelToKebabCase,
     toLowerCase,
+    escapeRegExp,
 };

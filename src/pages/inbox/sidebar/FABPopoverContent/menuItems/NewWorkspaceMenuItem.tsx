@@ -1,6 +1,3 @@
-import type {ImageContentFit} from 'expo-image';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMappedPolicies from '@hooks/useMappedPolicies';
@@ -8,24 +5,34 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
+
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
-import {policyMapper} from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {policyMapper} from '@src/selectors/Policy';
 import {emailSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {ImageContentFit} from 'expo-image';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.NEW_WORKSPACE;
 
 function NewWorkspaceMenuItem() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['NewWorkspace'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWorkspace']);
     const {isOffline} = useNetwork();
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -48,8 +55,9 @@ function NewWorkspaceMenuItem() {
             iconHeight={variables.h40}
             title={translate('workspace.new.newWorkspace')}
             description={translate('workspace.new.getTheExpensifyCardAndMore')}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute())))}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)))}
             shouldCallAfterModalHide={shouldUseNarrowLayout}
+            shouldIgnoreCompactStyle
         />
     );
 }

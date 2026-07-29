@@ -1,18 +1,23 @@
-import {FlashList} from '@shopify/flash-list';
-import type {FlashListRef, ListRenderItem} from '@shopify/flash-list';
-import React from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
+
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {EmojiPickerList, EmojiPickerListItem, HeaderIndices} from '@libs/EmojiUtils';
+
 import CONST from '@src/CONST';
+
+import type {FlashListRef, ListRenderItem} from '@shopify/flash-list';
+import type {ForwardedRef} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {FlashList} from '@shopify/flash-list';
+import React from 'react';
+import {View} from 'react-native';
 
 type BaseEmojiPickerMenuProps = {
     /** Indicates if the emoji list is filtered or not */
@@ -23,6 +28,9 @@ type BaseEmojiPickerMenuProps = {
 
     /** Function to scroll to a specific header in the emoji list */
     scrollToHeader: (headerIndex: number) => void;
+
+    /** The index of the currently selected category header */
+    selectedHeaderIndex?: number | null;
 
     /** Style to be applied to the list wrapper */
     listWrapperStyle?: StyleProp<ViewStyle>;
@@ -41,6 +49,9 @@ type BaseEmojiPickerMenuProps = {
 
     /** Whether the list should always bounce vertically */
     alwaysBounceVertical?: boolean;
+
+    /** Callback fired when scroll momentum ends */
+    onMomentumScrollEnd?: () => void;
 
     /** The current search input value, used for accessibility re-announcements */
     searchValue?: string;
@@ -97,6 +108,7 @@ function ListEmptyComponent({searchValue}: {searchValue?: string}) {
 function BaseEmojiPickerMenu({
     headerEmojis,
     scrollToHeader,
+    selectedHeaderIndex = null,
     isFiltered,
     listWrapperStyle = [],
     data,
@@ -104,6 +116,7 @@ function BaseEmojiPickerMenu({
     stickyHeaderIndices = [],
     extraData = [],
     alwaysBounceVertical = false,
+    onMomentumScrollEnd,
     searchValue,
     ref,
 }: BaseEmojiPickerMenuProps) {
@@ -113,6 +126,7 @@ function BaseEmojiPickerMenu({
             {!isFiltered && (
                 <CategoryShortcutBar
                     headerEmojis={headerEmojis}
+                    selectedIndex={selectedHeaderIndex}
                     onPress={scrollToHeader}
                 />
             )}
@@ -131,6 +145,7 @@ function BaseEmojiPickerMenu({
                     contentContainerStyle={styles.ph4}
                     extraData={extraData}
                     getItemType={getItemType}
+                    onMomentumScrollEnd={onMomentumScrollEnd}
                     overrideProps={{
                         // scrollPaddingTop set to consider sticky header while scrolling, https://github.com/Expensify/App/issues/36883
                         style: {

@@ -1,9 +1,12 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
+
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu, {buildKeyPathFromIndexPath, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
+
+import type {PropsWithChildren} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
+
+import React from 'react';
 
 describe('PopoverMenu utils', () => {
     const menuItems: PopoverMenuItem[] = [
@@ -140,7 +143,6 @@ describe('PopoverMenu utils', () => {
 
 jest.mock('@components/PopoverWithMeasuredContent', () => {
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: (props: PropsWithChildren<Record<string, unknown>>) => props.children,
     };
@@ -151,7 +153,6 @@ jest.mock('@components/FocusableMenuItem', () => {
     const {Pressable, Text} = require('react-native');
 
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: (props: {title: string; pressableTestID?: string; onPress?: (event: GestureResponderEvent) => void}) => (
             <Pressable

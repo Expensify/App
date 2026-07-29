@@ -1,8 +1,10 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import CheckboxWithLabel from '@src/components/CheckboxWithLabel';
 import type {CheckboxWithLabelProps} from '@src/components/CheckboxWithLabel';
 import Text from '@src/components/Text';
+
+import React from 'react';
 
 const LABEL = 'Agree to Terms';
 describe('CheckboxWithLabel Component', () => {
@@ -12,7 +14,6 @@ describe('CheckboxWithLabel Component', () => {
             <CheckboxWithLabel
                 label={LABEL}
                 onInputChange={mockOnInputChange}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />,
         );

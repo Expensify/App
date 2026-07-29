@@ -1,7 +1,3 @@
-import React, {useState} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {PixelRatio, StyleSheet, View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
@@ -11,13 +7,24 @@ import type {ImageOnLoadEvent} from '@components/Image/types';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
+
+import useCanvasSize from '@hooks/useCanvasSize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {PixelRatio, StyleSheet, View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const FALLBACK_OFFSET = 2;
@@ -116,13 +123,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
     const isActive = page === activePage;
 
-    const [canvasSize, setCanvasSize] = useState<Dimensions>();
-    const isCanvasLoading = canvasSize === undefined;
-    const updateCanvasSize = ({
-        nativeEvent: {
-            layout: {width, height},
-        },
-    }: LayoutChangeEvent) => setCanvasSize({width: PixelRatio.roundToNearestPixel(width), height: PixelRatio.roundToNearestPixel(height)});
+    const {canvasSize, updateCanvasSize, isCanvasLoading} = useCanvasSize();
 
     const [contentSize, setInternalContentSize] = useState<Dimensions | undefined>(() => cachedImageDimensions.get(uri));
     const setContentSize = (newDimensions: Dimensions | undefined) => {
@@ -232,6 +233,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                 onSwipeDown={onSwipeDown}
                                 externalGestureHandler={externalGestureHandler}
                             >
+                                {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                                 <Image
                                     source={{uri}}
                                     style={[contentSize ?? styles.invisibleImage]}
@@ -261,6 +263,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     {/* Keep rendering the image without gestures as fallback if the carousel item is not active and while the lightbox is loading the image */}
                     {isFallbackVisible && isFallbackInRange && (
                         <View style={StyleUtils.getFullscreenCenteredContentStyles()}>
+                            {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                             <Image
                                 source={{uri}}
                                 resizeMode="contain"

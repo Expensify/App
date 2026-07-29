@@ -1,0 +1,66 @@
+import {useCurrencyListState} from '@hooks/useCurrencyList';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
+import {clearAddNewCardFlow, seedCardFeedRefresh} from '@userActions/CompanyCards';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
+type WorkspaceCompanyCardsVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_VERIFY_ACCOUNT>;
+
+function WorkspaceCompanyCardsVerifyAccountPage({route}: WorkspaceCompanyCardsVerifyAccountPageProps) {
+    const {policyID, feed} = route.params;
+    const policy = usePolicy(policyID);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const {currencyList} = useCurrencyListState();
+
+    const companyCardsRoute = ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID);
+
+    // Seeds Onyx state for the refresh flow; VerifyAccountPageBase handles navigation via navigateForwardTo
+    const onRefreshValidationSuccess = () => {
+        if (!feed) {
+            return;
+        }
+        seedCardFeedRefresh(feed, policy?.outputCurrency, currencyList, countryByIp);
+    };
+
+    const content = feed ? (
+        <VerifyAccountPageBase
+            navigateBackTo={companyCardsRoute}
+            navigateForwardTo={ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute(policyID, feed)}
+            onValidationSuccess={onRefreshValidationSuccess}
+        />
+    ) : (
+        <VerifyAccountPageBase
+            navigateBackTo={companyCardsRoute}
+            navigateForwardTo={createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, companyCardsRoute)}
+            onValidationSuccess={clearAddNewCardFlow}
+        />
+    );
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            {content}
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+export default WorkspaceCompanyCardsVerifyAccountPage;

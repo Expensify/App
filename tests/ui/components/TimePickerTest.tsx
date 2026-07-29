@@ -1,10 +1,13 @@
-import {NavigationContainer} from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import type {Ref} from 'react';
-import React, {act} from 'react';
-import type {TextInput, TextInputProps} from 'react-native';
+
 import TimePicker from '@src/components/TimePicker/TimePicker';
 import type {TimePickerProps} from '@src/components/TimePicker/TimePicker';
+
+import type {Ref} from 'react';
+import type {TextInput, TextInputProps} from 'react-native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React, {act} from 'react';
 
 // Store mocked inputs by testID so we can access them in tests
 const mockInputs: Record<string, TextInput> = {};
@@ -52,7 +55,6 @@ jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => {
     }
 
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: TextInputMock,
     };
@@ -64,7 +66,6 @@ describe('TimePicker Component', () => {
             <NavigationContainer>
                 <TimePicker
                     onSubmit={() => {}}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             </NavigationContainer>,

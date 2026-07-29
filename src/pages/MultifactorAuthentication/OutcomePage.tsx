@@ -1,11 +1,19 @@
-import React from 'react';
 import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
-import type {ErrorState} from '@components/MultifactorAuthentication/Context/State';
 
-/** Server failure screen generally represents "unknown error" so also show when status is unknown (e.g. network/parse error). */
-function isServerError(error: ErrorState): boolean {
-    return error.httpStatusCode === undefined || error.httpStatusCode >= 500;
+import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+
+const SERVER_FAILURE_REASONS = new Set<string>([
+    ...Object.values(CONST.MULTIFACTOR_AUTHENTICATION.REASON.SERVER_ERRORS),
+    CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE,
+]);
+
+function shouldShowServerFailureScreen(error: MFAError): boolean {
+    return SERVER_FAILURE_REASONS.has(error.reason);
 }
 
 function MultifactorAuthenticationOutcomePage() {
@@ -24,7 +32,7 @@ function MultifactorAuthenticationOutcomePage() {
         return reasonScreen;
     }
 
-    if (isServerError(error)) {
+    if (shouldShowServerFailureScreen(error)) {
         return scenario.defaultServerFailureScreen;
     }
 

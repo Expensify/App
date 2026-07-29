@@ -1,7 +1,8 @@
+import type {ReportAction} from '../../src/types/onyx';
+
 import CONST from '../../src/CONST';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '../../src/libs/ReportActionFollowupUtils';
 import {stripFollowupListFromHtml} from '../../src/libs/ReportActionsUtils';
-import type {ReportAction} from '../../src/types/onyx';
 
 describe('ReportActionsFollowupUtils', () => {
     describe('parseFollowupsFromHtml', () => {
@@ -85,6 +86,22 @@ describe('ReportActionsFollowupUtils', () => {
             expect(parseFollowupsFromHtml(html)).toEqual([
                 {text: 'Question without response', response: undefined},
                 {text: 'Question with response', response: 'Here is the cached response'},
+            ]);
+        });
+
+        it('should preserve HTML formatting in followup-response (bullets, breaks, strong tags)', () => {
+            const html = `<followup-list>
+  <followup>
+    <followup-text>How do I set up QuickBooks?</followup-text>
+    <followup-response>To set up QuickBooks:<br><ul><li><strong>Step 1</strong>: Go to Settings</li><li><strong>Step 2</strong>: Click Integrations</li></ul></followup-response>
+  </followup>
+</followup-list>`;
+            const result = parseFollowupsFromHtml(html);
+            expect(result).toEqual([
+                {
+                    text: 'How do I set up QuickBooks?',
+                    response: 'To set up QuickBooks:<br><ul><li><strong>Step 1</strong>: Go to Settings</li><li><strong>Step 2</strong>: Click Integrations</li></ul>',
+                },
             ]);
         });
 

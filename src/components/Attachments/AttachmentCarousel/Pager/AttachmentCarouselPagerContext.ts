@@ -1,4 +1,5 @@
 import {createContext, useContext} from 'react';
+
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from './types';
 
 const AttachmentCarouselPagerStateContext = createContext<AttachmentCarouselPagerStateContextType | null>(null);
@@ -13,4 +14,4 @@ function useAttachmentCarouselPagerActions(): AttachmentCarouselPagerActionsCont
 }
 
 export {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext, useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState};
-export type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerItems, AttachmentCarouselPagerStateContextType} from './types';
+export type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from './types';

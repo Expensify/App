@@ -1,23 +1,40 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {forceClearInput} from '@libs/ComponentUtils';
+import {KeyboardStateProvider} from '@components/withKeyboardState';
+
+import type * as TaskActions from '@libs/actions/Task';
+import {createTaskAndNavigate} from '@libs/actions/Task';
+
 import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
-import ReportActionCompose, {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import useAttachmentPicker from '@pages/inbox/report/ReportActionCompose/useAttachmentPicker';
+import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as NativeNavigation from '@react-navigation/native';
+import type {PropsWithChildren} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const mockForceClearInput = jest.mocked(forceClearInput);
-
 jest.mock('@libs/ComponentUtils', () => ({
     forceClearInput: jest.fn(),
+}));
+
+jest.mock('@libs/actions/Task', () => ({
+    ...jest.requireActual<typeof TaskActions>('@libs/actions/Task'),
+    createTaskAndNavigate: jest.fn(),
 }));
 
 jest.mock('@hooks/useLocalize', () =>
@@ -26,6 +43,29 @@ jest.mock('@hooks/useLocalize', () =>
         numberFormat: jest.fn((num: number) => num.toString()),
     })),
 );
+
+jest.mock('@hooks/usePaginatedReportActions', () => jest.fn(() => ({reportActions: [], hasNewerActions: false, hasOlderActions: false})));
+jest.mock('@hooks/useParentReportAction', () => jest.fn(() => null));
+jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn(() => ({})));
+jest.mock('@hooks/useShortMentionsList', () => jest.fn(() => ({availableLoginsList: []})));
+jest.mock('@hooks/useSidePanelState', () => jest.fn(() => ({sessionStartTime: null})));
+
+jest.mock('@pages/inbox/report/ReportActionCompose/useAttachmentPicker', () => jest.fn());
+
+jest.mock('@pages/Share/getFileSize', () => jest.fn(() => Promise.resolve(100)));
+
+// The composer ref rendered by the test renderer has no native `setSelection` implementation
+jest.mock('@pages/inbox/report/ReportActionCompose/ReportActionComposeUtils', () => ({
+    __esModule: true,
+    default: {updateNativeSelectionValue: jest.fn()},
+}));
+
+jest.mock('@components/DropZone/DualDropZone', () => {
+    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
+    return ({shouldAcceptSingleReceipt}: {shouldAcceptSingleReceipt?: boolean}) => (
+        <RN.Text testID="dual-drop-zone">{shouldAcceptSingleReceipt ? 'receipt-editable' : 'receipt-not-editable'}</RN.Text>
+    );
+});
 
 jest.mock('@react-navigation/native', () => ({
     ...((): typeof NativeNavigation => {
@@ -43,22 +83,31 @@ TestHelper.setupGlobalFetchMock();
 
 const defaultReport = LHNTestUtils.getFakeReport();
 const defaultProps: ReportActionComposeProps = {
-    onSubmit: jest.fn(),
-    isComposerFullSize: false,
     reportID: defaultReport.reportID,
-    report: defaultReport,
 };
+
+function ReportActionEditMessageContextProviderForReport({children}: PropsWithChildren) {
+    return <ReportActionEditMessageContextProvider reportID={defaultReport.reportID}>{children}</ReportActionEditMessageContextProvider>;
+}
+
+function ReportScreenProviders({children}: PropsWithChildren) {
+    return (
+        <ComposeProviders
+            components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForReport]}
+        >
+            {children}
+        </ComposeProviders>
+    );
+}
 
 const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ReportScreenProviders>
             <ReportActionCompose
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
-        </ComposeProviders>,
+        </ReportScreenProviders>,
     );
 };
 
@@ -69,11 +118,26 @@ const simulateSelection = (composer: ReturnType<typeof screen.getByTestId>, star
     });
 };
 
+const mockPickAttachments = jest.fn();
+const mockUseAttachmentPicker = jest.mocked(useAttachmentPicker);
+
+// Helper function to simulate pasting an image from the clipboard
+const simulateImagePaste = (composer: ReturnType<typeof screen.getByTestId>) => {
+    fireEvent(composer, 'paste', {nativeEvent: {items: [{type: 'image/png', data: 'file:///image.png'}]}});
+};
+
 describe('ReportActionCompose Integration Tests', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+    });
+
+    beforeEach(async () => {
+        mockUseAttachmentPicker.mockReturnValue({pickAttachments: mockPickAttachments, PDFValidationComponent: undefined, ErrorModal: <View />});
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${defaultReport.reportID}`, defaultReport);
         });
     });
 
@@ -227,51 +291,269 @@ describe('ReportActionCompose Integration Tests', () => {
         });
     });
 
-    describe('Message validation', () => {
-        beforeEach(() => {
-            jest.useFakeTimers();
-        });
+    describe('Receipt edit check', () => {
+        const currentUserAccountID = 1;
+        const policyID = 'policy_receipt_test';
+        const expenseReportID = 'expense_receipt_123';
+        const parentReportActionID = 'parent_action_1';
+        const transactionID = 'txn_receipt_test';
 
-        afterEach(() => {
-            jest.useRealTimers();
-        });
+        const setupReceiptTestData = async (threadReport: {reportID: string; parentReportID?: string; parentReportActionID?: string}, isSettledReport = false) => {
+            const threadReportID = threadReport.reportID;
+            const iouReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                reportActionID: parentReportActionID,
+                reportID: expenseReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: transactionID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
 
-        it('should send when length is within the limit', async () => {
-            renderReportActionCompose();
-            const composer = screen.getByTestId('composer');
+            const transaction = {
+                transactionID,
+                reportID: expenseReportID,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+                comment: {},
+            };
 
-            // Given a message that is within the length limit
-            const validMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH);
-            fireEvent.changeText(composer, validMessage);
+            await act(async () => {
+                // Session so canEditFieldOfMoneyRequest knows the current user
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'test@test.com'});
+                // Policy where the user is admin
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    name: 'Test Policy',
+                    owner: 'test@test.com',
+                    outputCurrency: CONST.CURRENCY.USD,
+                    isPolicyExpenseChatEnabled: true,
+                });
+                // Parent expense report (the IOUReportID in the action's originalMessage)
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
+                    reportID: expenseReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: currentUserAccountID,
+                    stateNum: isSettledReport ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: isSettledReport ? CONST.REPORT.STATUS_NUM.REIMBURSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+                // IOU report action on the parent expense report (needed for isTransactionThread + isExpenseRequest)
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {
+                    [parentReportActionID]: iouReportAction,
+                });
+                // Also store the same action under the thread report ID so the component can find it via useOnyx
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {
+                    [parentReportActionID]: iouReportAction,
+                });
+                // Thread report (so the component can self-subscribe via useOnyx)
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
+                // Transaction
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            });
+            await waitForBatchedUpdatesWithAct();
 
-            // When the message is submitted
-            act(onSubmitAction);
+            return transaction;
+        };
 
-            // scheduleOnUI mock uses setTimeout(() => ..., 0)
-            act(() => {
-                jest.advanceTimersByTime(1);
+        it('should display the receipt-editable dual drop zone when the user can edit the receipt', async () => {
+            // Build a thread report that points to the parent expense report + parent IOU action
+            // so isReportTransactionThread, canUserPerformWriteAction, and canEditFieldOfMoneyRequest all work with real data
+            const threadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                parentReportID: expenseReportID,
+                parentReportActionID,
+            };
+
+            // Given real Onyx data where the user is admin and the report is open (not settled)
+            await setupReceiptTestData(threadReport);
+
+            // When rendering with the transaction thread report
+            const {unmount} = renderReportActionCompose({
+                reportID: threadReport.reportID,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the DualDropZone should be rendered because canEditFieldOfMoneyRequest returns true
+            await waitFor(() => {
+                expect(screen.getByTestId('dual-drop-zone')).toBeOnTheScreen();
+                expect(screen.getByText('receipt-editable')).toBeOnTheScreen();
             });
 
-            // Then the message should be sent
-            expect(mockForceClearInput).toHaveBeenCalledTimes(1);
+            unmount();
+            await waitForBatchedUpdatesWithAct();
         });
 
-        it('should not send when length exceeds the limit', async () => {
-            renderReportActionCompose();
+        it('should not display the dual drop zone when the expense report is settled', async () => {
+            const threadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                parentReportID: expenseReportID,
+                parentReportActionID,
+            };
+
+            // Given real Onyx data where the expense report is settled/reimbursed
+            await setupReceiptTestData(threadReport, true);
+
+            // When rendering with the transaction thread report
+            const {unmount} = renderReportActionCompose({
+                reportID: threadReport.reportID,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the DualDropZone should NOT be rendered because canEditFieldOfMoneyRequest returns false for settled reports
+            expect(screen.queryByTestId('dual-drop-zone')).toBeNull();
+            expect(screen.queryByText('receipt-editable')).toBeNull();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    describe('Message validation', () => {
+        it('should not show exceeded length error for valid messages', async () => {
+            const {unmount} = renderReportActionCompose();
             const composer = screen.getByTestId('composer');
 
-            // Given a message that is over the length limit
-            const invalidMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH + 1);
-            fireEvent.changeText(composer, invalidMessage);
+            fireEvent.changeText(composer, 'x'.repeat(CONST.MAX_COMMENT_LENGTH));
 
-            // When the message is submitted
-            act(onSubmitAction);
+            // Switch to fake timers to flush the debounced validation without real-time delay
+            jest.useFakeTimers({doNotFake: ['nextTick']});
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME + 1);
+            });
+            jest.useRealTimers();
 
-            // Then the message should NOT be sent
-            expect(mockForceClearInput).toHaveBeenCalledTimes(0);
+            expect(screen.queryByText('composer.commentExceededMaxLength')).not.toBeOnTheScreen();
+            unmount();
+        });
 
-            // And the error should be displayed
-            expect(screen.getByText('composer.commentExceededMaxLength')).toBeOnTheScreen();
+        it('should show exceeded length error for too-long messages', async () => {
+            const {unmount} = renderReportActionCompose();
+            const composer = screen.getByTestId('composer');
+
+            fireEvent.changeText(composer, 'x'.repeat(CONST.MAX_COMMENT_LENGTH + 1));
+
+            // The debounced validation fires on the trailing edge after COMMENT_LENGTH_DEBOUNCE_TIME
+            await waitFor(
+                () => {
+                    expect(screen.getByText('composer.commentExceededMaxLength')).toBeOnTheScreen();
+                },
+                {timeout: CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME + 500},
+            );
+
+            unmount();
+        });
+
+        it('should not send when task title length exceeds the limit', async () => {
+            const {unmount} = renderReportActionCompose();
+            const composer = screen.getByTestId('composer');
+
+            // Given a task title that exceeds the title character limit
+            const taskTitle = 'x'.repeat(CONST.TITLE_CHARACTER_LIMIT + 1);
+            fireEvent.changeText(composer, `[] ${taskTitle}`);
+
+            // The debounced validation fires on the trailing edge after COMMENT_LENGTH_DEBOUNCE_TIME
+            await waitFor(
+                () => {
+                    // And the task-title-specific error should be displayed
+                    expect(screen.getByText('composer.taskTitleExceededMaxLength')).toBeOnTheScreen();
+                },
+                {timeout: CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME + 500},
+            );
+
+            unmount();
+        });
+    });
+
+    describe('Pasting a file', () => {
+        const startEditingMessage = async () => {
+            const reportAction = LHNTestUtils.getFakeReportAction();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${defaultReport.reportID}`, {[reportAction.reportActionID]: reportAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${defaultReport.reportID}`, {[reportAction.reportActionID]: {message: 'Message being edited'}});
+            });
+        };
+
+        it('sends the pasted file to the attachment picker when not editing a message', async () => {
+            const {unmount} = renderReportActionCompose();
+            await waitForBatchedUpdatesWithAct();
+
+            // When an image is pasted into the composer
+            simulateImagePaste(screen.getByTestId('composer'));
+
+            // Then the attachment flow is started
+            await waitFor(() => {
+                expect(mockPickAttachments).toHaveBeenCalled();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('ignores the pasted file while a message is being edited in the composer', async () => {
+            const {unmount} = renderReportActionCompose();
+            await waitForBatchedUpdatesWithAct();
+
+            // When a message is being edited in the composer
+            await startEditingMessage();
+            await waitFor(() => {
+                expect(screen.getByTestId('composer').props.value).toBe('Message being edited');
+            });
+
+            // And an image is pasted into the composer
+            simulateImagePaste(screen.getByTestId('composer'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the attachment flow is not started, so saving the edit can't turn into a separate attachment message
+            expect(mockPickAttachments).not.toHaveBeenCalled();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    describe('Task creation with a short mention', () => {
+        it('assigns the task to the user resolved from a same-private-domain short mention', async () => {
+            // Given a current user on a private domain and a coworker on the same domain
+            const coworkerAccountID = 2;
+            await TestHelper.signInWithTestUser(1, 'user@domain.com');
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [coworkerAccountID]: TestHelper.buildPersonalDetails('mat@domain.com', coworkerAccountID, 'Mat'),
+                });
+            });
+
+            const {unmount} = renderReportActionCompose();
+            await waitForBatchedUpdatesWithAct();
+
+            // When a task with a short mention of the coworker is typed and submitted
+            // (the composer submits by clearing the input, which hands the draft to validateAndSubmitDraft)
+            const composer = screen.getByTestId('composer');
+            fireEvent.changeText(composer, '[] @mat Buy milk');
+            fireEvent(composer, 'clear', {nativeEvent: {text: '[] @mat Buy milk'}});
+
+            // Then the task is created with the mention resolved to the coworker's full login
+            await waitFor(() => {
+                expect(createTaskAndNavigate).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        title: 'Buy milk',
+                        assigneeEmail: 'mat@domain.com',
+                        assigneeAccountID: coworkerAccountID,
+                    }),
+                );
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
         });
     });
 });

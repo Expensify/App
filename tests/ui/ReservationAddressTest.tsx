@@ -1,12 +1,15 @@
 import {render, screen} from '@testing-library/react-native';
+
 import {ReservationView} from '@components/ReportActionItem/TripDetailsView';
+
 import StringUtils from '@libs/StringUtils';
 import {getTripReservationCode} from '@libs/TripReservationUtils';
+
 import HotelTripDetails from '@pages/Travel/HotelTripDetails';
+
 import CONST from '@src/CONST';
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         didScreenTransitionEnd: true, // or false, depending on your desired behavior

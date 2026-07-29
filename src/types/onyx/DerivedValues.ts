@@ -1,9 +1,11 @@
+import type CONST from '@src/CONST';
+
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
-import type {Card} from '.';
+
+import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
-import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
+import type {CardFeedWithDomainID} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -34,6 +36,10 @@ type ReportAttributes = {
      */
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
     /**
+     * The reportActionID that the action badge refers to, used for deep linking when the LHN row is pressed.
+     */
+    actionTargetReportActionID?: string;
+    /**
      * The errors of the report.
      */
     reportErrors: Errors;
@@ -41,6 +47,14 @@ type ReportAttributes = {
      * The reportID of the one-transaction thread report, if applicable.
      */
     oneTransactionThreadReportID?: string;
+
+    /**
+     * True when this report (typically a child expense report) has an RBR-worthy reason that should
+     * propagate up to its parent workspace chat. Set by the per-report pass; consumed by the propagation
+     * loop. We track it separately from `brickRoadStatus` because we suppress the child's own RBR/Fix badge
+     * when the parent workspace chat is accessible (so we can't read `brickRoadStatus` to drive propagation).
+     */
+    needsParentChatErrorPropagation?: boolean;
 };
 
 /**
@@ -153,16 +167,6 @@ type FeedErrors = CardFeedErrorState & {
 };
 
 /**
- * The ID of a card feed in the errors map/object.
- */
-type CardFeedId = CompanyCardFeedWithNumber;
-
-/**
- * The errors of all card feeds by workspace account ID and feed name with domain ID.
- */
-type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
-
-/**
  * The errors of all card feeds.
  */
 type CardFeedErrorsObject = Record<CardFeedWithDomainID, FeedErrors>;
@@ -228,31 +232,15 @@ type CardFeedErrorsDerivedValue = CardFeedErrors;
 type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
 
 /**
- * Metadata for todo search results.
+ * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
  */
-type TodoMetadata = {
-    /** Total number of transactions across all reports */
-    count: number;
-    /** Sum of all report totals (in cents) */
-    total: number;
-    /** Currency of the first report, used as reference currency */
-    currency: string | undefined;
-};
-
-/**
- * The derived value for todos.
- */
-type TodosDerivedValue = {
-    /** Reports that need to be submitted */
-    reportsToSubmit: Report[];
-    /** Reports that need to be approved */
-    reportsToApprove: Report[];
-    /** Reports that need to be paid */
-    reportsToPay: Report[];
-    /** Reports that need to be exported */
-    reportsToExport: Report[];
-    /** Transactions grouped by report ID */
-    transactionsByReportID: Record<string, Transaction[]>;
+type SortedReportActionsDerivedValue = {
+    /** Sorted report actions keyed by report ID */
+    sortedActions: Record<string, ReportAction[]>;
+    /** Last report action for each report, keyed by report ID */
+    lastActions: Record<string, ReportAction>;
+    /** Transaction thread report IDs keyed by parent report action ID */
+    transactionThreadIDs: Record<string, string | undefined>;
 };
 
 /**
@@ -260,7 +248,14 @@ type TodosDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
-export default ReportAttributesDerivedValue;
+/**
+ * The derived value mapping each user's login (lowercased) to their accountID.
+ *
+ * Replaces the imperative `emailToPersonalDetailsCache` login lookup that was built via `Onyx.connect`
+ * in `PersonalDetailsUtils` (see issue #66391). Keys are lowercased since logins/emails are case-insensitive.
+ */
+type LoginToAccountIDMapDerivedValue = Record<string, number>;
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -268,14 +263,12 @@ export type {
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
+    SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
-    TodosDerivedValue,
-    TodoMetadata,
-    AllCardFeedErrorsMap,
+    LoginToAccountIDMapDerivedValue,
     CardFeedErrorsObject,
-    FeedErrors,
     CardFeedErrorState,
     CardFeedErrors,
     CardErrors,

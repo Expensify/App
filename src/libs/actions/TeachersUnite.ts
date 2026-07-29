@@ -1,5 +1,3 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -8,8 +6,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {buildOptimisticChatReport, buildOptimisticCreatedReportAction} from '@libs/ReportUtils';
 import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 type CreationData = {
     reportID: string;
@@ -23,12 +26,13 @@ type ExpenseReportActionData = Record<string, OptimisticCreatedReportAction>;
 /**
  * @param publicRoomReportID - This is the global reportID for the public room, we'll ignore the optimistic one
  */
-function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, lastName: string, policyID: string, publicRoomReportID: string) {
+function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, lastName: string, policyID: string, publicRoomReportID: string, currentUserAccountID: number) {
     const optimisticPublicRoom = buildOptimisticChatReport({
         participantList: [],
         reportName: CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME,
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         policyID,
+        currentUserAccountID,
     });
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
@@ -86,9 +90,10 @@ function addSchoolPrincipal(
         isOwnPolicyExpenseChat: true,
         oldPolicyName: policyName,
         optimisticReportID,
+        currentUserAccountID: sessionAccountID,
     });
     const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(sessionEmail);
+    const expenseReportCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: sessionEmail});
     const expenseReportActionData: ExpenseReportActionData = {
         [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
     };

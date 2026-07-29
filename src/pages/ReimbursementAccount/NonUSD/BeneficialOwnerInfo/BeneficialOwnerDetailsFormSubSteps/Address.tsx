@@ -1,25 +1,24 @@
-import React, {useMemo, useState} from 'react';
 import AddressStep from '@components/SubStepForms/AddressStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import SafeString from '@src/utils/SafeString';
 
-type NameProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
+import {SafeString} from 'expensify-common';
+import React, {useMemo, useState} from 'react';
 
-const {STREET, CITY, STATE, ZIP_CODE, COUNTRY, NATIONALITY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+type NameProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
+
+const {STREET, CITY, STATE, ZIP_CODE, COUNTRY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-    const nationalityInputKey = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
-    const nationality = reimbursementAccountDraft?.[nationalityInputKey] ?? '';
 
     const countryInputKey = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
 
@@ -64,22 +63,9 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
         setShouldDisplayStateSelector(country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA);
     };
 
-    const handleNextStep = () => {
-        // owner is US citizen so we need to gather last four digits of his SSN
-        if (nationality === CONST.COUNTRY.US) {
-            onNext();
-            // currency is set to GBP and owner is UK citizen, so we skip SSN and Documents step
-        } else if (countryStepCountryValue === CONST.COUNTRY.GB && nationality === CONST.COUNTRY.GB) {
-            onMove(7, false);
-            // owner is not US citizen so we skip SSN step
-        } else {
-            onMove(6, false);
-        }
-    };
-
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: stepFields,
-        onNext: handleNextStep,
+        onNext,
         shouldSaveDraft: isEditing,
     });
 
@@ -90,7 +76,7 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={formTitle}
-            formPOBoxDisclaimer={translate('common.noPO')}
+            formPOBoxDisclaimer={translate('personalInfoStep.addressSubtitle')}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             inputFieldsIDs={inputKeys}

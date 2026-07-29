@@ -1,10 +1,13 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type SplitAmountDisplayProps = {
     /** The split item data containing amount, currency, and editable state. */
@@ -17,6 +20,7 @@ type SplitAmountDisplayProps = {
 
 function SplitAmountDisplay({splitItem, contentWidth = '100%', shouldRemoveSpacing = false}: SplitAmountDisplayProps) {
     const styles = useThemeStyles();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
 
     return (

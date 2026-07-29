@@ -16,7 +16,7 @@ New Expensify Chat makes it easy to collaborate with teammates through messaging
 
 You can send messages, attach files, and add emojis from the message bar at the bottom of any chat.
 
-**On Desktop:**
+**On Web:**
 1. Open any chat from your inbox.
 2. Click the field labeled **Write something**, then type your message.
 3. To add an attachment, click the **plus icon** and select **Add attachment**.
@@ -46,11 +46,17 @@ You can send messages, attach files, and add emojis from the message bar at the 
 
 # Edit or Delete Messages
 
-**To edit or delete a message:**
-
+**Desktop:**
 1. Open a chat.
-2. Right-click a message.
+2. Right-click (or hover over) a message.
 3. Select **Edit comment** or **Delete comment**.
+4. If editing, modify the message inline and press **Enter** to save.
+
+**Mobile:**
+1. Open a chat.
+2. Long-press a message.
+3. Select **Edit comment** or **Delete comment**.
+4. If editing, the message text appears in the composer at the bottom of the screen. Edit the text and tap the **Send** icon to save.
 
 ✏️ **Note:** You can only edit or delete your own messages. Deleted messages are permanently removed.
 
@@ -97,10 +103,10 @@ You can invite others in three ways:
 
 # Leave a Chat Room
 
-**To remove a room from your inbox:**
+**To remove a chat room from your inbox:**
 
-1. Open the room.
-2. Click the 3-dot menu in the top right.
+1. Open the chat room.
+2. Click the chat room header.
 3. Select **Leave**.
 
 ---
@@ -132,7 +138,7 @@ No, members must remove themselves.
 Yes, an “edited” label will appear.
 
 ## Why can’t I message in some rooms?
-Rooms may have restricted posting permissions for Admins only.
+Rooms may have restricted posting permissions for Admins only. In other cases, the conversation may be read-only, and you’ll see a "This conversation is read-only" banner at the bottom of the chat.
 
 ## What happens when I flag a message?
 The moderation team reviews it, may hide or delete the message, and can restrict the sender’s account.

@@ -1,14 +1,17 @@
 ---
 title: Connect a Personal Bank Account
 description: Learn how to connect your personal bank account to receive reimbursements in Expensify, including support for both US and international accounts.
-keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, global reimbursements, manual bank connection, add bank account for reimbursement, reimbursement account setup, wallet, deposit account, direct deposit]
+keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, global reimbursements, manual bank connection, add bank account for reimbursement, reimbursement account setup, wallet, deposit account, direct deposit, update bank account, review badge, missing info]
+internalScope: Audience is members receiving reimbursements. Covers connecting and updating personal bank accounts, does not cover business bank accounts or workspace-level payment settings.
 ---
+
+# Connect a Personal Bank Account
 
 You can add a personal bank account to receive reimbursements in over **190 countries**. All personal accounts are managed under **Account > Wallet > Bank Accounts**. The steps differ depending on whether you're connecting a **US** or **non-US** account.
 
 ---
 
-# Add a U.S. Bank Account
+## How to add personal bank account 
 
 For U.S. accounts, Expensify offers two ways to connect your bank account:
 
@@ -38,11 +41,31 @@ To connect a U.S. bank account:
 
 ---
 
+## How to update a bank account with missing information
+
+If a bank account is missing required information (such as your legal name, address, or phone number), a **Review** badge will appear on the bank account row in your Wallet. This information is needed for reimbursement payments to process successfully.
+
+To update your bank account information:
+
+1. Go to **Account > Wallet > Bank Accounts**.
+2. Tap the bank account row that displays the **Review** badge.
+3. Complete the steps that appear. You will only be prompted for information that is currently missing — steps where the bank account already has the data are skipped automatically.
+4. On the last step, tap the button to submit your changes.
+5. A confirmation screen will appear with the message "Bank account updated!" — tap **Continue** to return to the Wallet.
+
+Once updated, the **Review** badge will be removed from the bank account.
+
+---
+
 # FAQ
 
 ## Can I add more than one personal bank account?
 
 Yes. You can add multiple accounts, but only one can be selected as the default for reimbursements.
+
+## Why does my bank account show a "Review" badge?
+
+Your bank account is missing required information — such as your legal name, address, or phone number — that is needed for reimbursement payments. Tap the bank account row and follow the prompts to provide the missing details. The badge will be removed once the information is saved.
 
 ## Can I delete a bank account?
 

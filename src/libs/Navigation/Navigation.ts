@@ -1,46 +1,38 @@
-import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
-import {CommonActions, StackActions} from '@react-navigation/native';
-import {Str} from 'expensify-common';
-// eslint-disable-next-line you-dont-need-lodash-underscore/omit
-import omit from 'lodash/omit';
-import {Dimensions} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {Writable} from 'type-fest';
 import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
+
 import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
+import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Account, SidePanel} from '@src/types/onyx';
-import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import originalCloseRHPFlow from './helpers/closeRHPFlow';
-import getPathFromState from './helpers/getPathFromState';
-import getStateFromPath from './helpers/getStateFromPath';
-import getTopmostReportParams from './helpers/getTopmostReportParams';
-import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
-import isReportOpenInRHP from './helpers/isReportOpenInRHP';
-import isSideModalNavigator from './helpers/isSideModalNavigator';
-import linkTo from './helpers/linkTo';
-import getMinimalAction from './helpers/linkTo/getMinimalAction';
+import type {SidePanel} from '@src/types/onyx';
+
+import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {Writable} from 'type-fest';
+
+import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
+import {CommonActions, StackActions, TabActions} from '@react-navigation/native';
+import {Str} from 'expensify-common';
+// eslint-disable-next-line you-dont-need-lodash-underscore/omit
+import omit from 'lodash/omit';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import type {LinkToOptions} from './helpers/linkTo/types';
-import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
-import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
-import {linkingConfig} from './linkingConfig';
-import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
-import navigationRef from './navigationRef';
-import TransitionTracker from './TransitionTracker';
 import type {
     NavigationPartialRoute,
     NavigationRef,
@@ -52,31 +44,47 @@ import type {
     State,
 } from './types';
 
+import {clearPreInsertedOriginalTabRoute, getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import getActiveTabName from './helpers/getActiveTabName';
+import getPathFromState from './helpers/getPathFromState';
+import getStateFromPath from './helpers/getStateFromPath';
+import getTopmostReportParams from './helpers/getTopmostReportParams';
+import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
+import isReportOpenInRHP from './helpers/isReportOpenInRHP';
+import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
+import isSideModalNavigator from './helpers/isSideModalNavigator';
+import linkTo from './helpers/linkTo';
+import getMinimalAction from './helpers/linkTo/getMinimalAction';
+import {popAndRealignMfaMarker} from './helpers/mfaModalMarkerPreservation';
+import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
+import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
+import {linkingConfig} from './linkingConfig';
+import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
+import navigationRef from './navigationRef';
+import TransitionTracker from './TransitionTracker';
+
 type FocusedScreen = {
     name: string;
     params?: Record<string, unknown>;
 };
 
+// Modality is module-load (must catch the first interaction); focus-return runs under NavigationRoot (needs navigationRef + a teardown point).
+setupHadTabNavigation();
+
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
 const SET_UP_2FA_SCREENS = new Set<string>([
-    SCREENS.TWO_FACTOR_AUTH.ROOT,
-    SCREENS.TWO_FACTOR_AUTH.VERIFY,
-    SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS,
     SCREENS.TWO_FACTOR_AUTH.SUCCESS,
     SCREENS.TWO_FACTOR_AUTH.DISABLED,
     SCREENS.TWO_FACTOR_AUTH.DISABLE,
 ]);
 
 const MFA_FLOW_SCREENS = new Set<string>(Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION));
-
-let account: OnyxEntry<Account>;
-// We have used `connectWithoutView` here because it is not connected to any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value;
-    },
-});
 
 let sidePanelNVP: OnyxEntry<SidePanel>;
 // `connectWithoutView` is used here because we want to avoid unnecessary re-renders when the side panel NVP changes
@@ -94,10 +102,6 @@ function isTwoFactorSetupScreen(screen: string | undefined): boolean {
 
 function isMFAFlowScreen(screen: string | undefined): boolean {
     return screen ? MFA_FLOW_SCREENS.has(screen) : false;
-}
-
-function shouldShowRequire2FAPage() {
-    return !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
 }
 
 let resolveNavigationIsReadyPromise: () => void;
@@ -230,7 +234,7 @@ function getActiveRoute(): string {
         return '';
     }
 
-    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRoute = navigationRef.current?.getCurrentRoute();
     if (!currentRoute?.name) {
         return '';
     }
@@ -249,7 +253,7 @@ function getActiveRoute(): string {
 function getReportRHPActiveRoute(): string {
     // Safe handling when navigation is not yet initialized
     if (!navigationRef.isReady()) {
-        Log.warn('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
+        Log.hmmm('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
         return '';
     }
     if (isReportOpenInRHP(navigationRef.getRootState())) {
@@ -284,6 +288,36 @@ function isActiveRoute(routePath: Route): boolean {
     return cleanRoutePath(activeRoute) === cleanRoutePath(routePath);
 }
 
+function startOpenReportSpan(route: Route) {
+    // Start a Sentry span for report navigation — only for exact report-open routes, not sub-pages.
+    // Matches: r/<id>, search/r/<id>, search/view/<id>, e/<id>
+    const reportOpenMatch = Str.cutAfter(route, '?').match(/^(search\/(?:r|view)|r|e)\/(\w+)$/);
+    if (!reportOpenMatch) {
+        return;
+    }
+
+    const routePrefix = reportOpenMatch.at(1);
+    const reportID = reportOpenMatch.at(2);
+    if (!reportID) {
+        return;
+    }
+
+    const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
+    let span = getSpan(spanId);
+    if (!span) {
+        const spanName = `/${routePrefix}/*`;
+        span = startSpan(spanId, {
+            name: spanName,
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
+    }
+    span?.setAttributes({
+        [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+        [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
+        [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
+    });
+}
+
 /**
  * Navigates to a specified route.
  * Main navigation method for redirecting to a route.
@@ -306,30 +340,7 @@ function navigate(route: Route, options?: LinkToOptions) {
         return;
     }
 
-    // Start a Sentry span for report navigation — only for exact report-open routes, not sub-pages.
-    // Matches: r/<id>, search/r/<id>, search/view/<id>, e/<id>
-    const reportOpenMatch = Str.cutAfter(route, '?').match(/^(search\/(?:r|view)|r|e)\/(\w+)$/);
-    if (reportOpenMatch) {
-        const routePrefix = reportOpenMatch.at(1);
-        const reportID = reportOpenMatch.at(2);
-        if (reportID) {
-            const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
-            let span = getSpan(spanId);
-            if (!span) {
-                const spanName = `/${routePrefix}/*`;
-                span = startSpan(spanId, {
-                    name: spanName,
-                    op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-                });
-            }
-            span?.setAttributes({
-                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
-            });
-        }
-    }
-
+    startOpenReportSpan(route);
     const runImmediately = !options?.waitForTransition;
     TransitionTracker.runAfterTransitions({
         callback: () => {
@@ -380,12 +391,9 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
         return true;
     }
 
-    if (!('params' in minimalAction.payload)) {
-        return false;
-    }
-
     const routeParams = getRouteParamsToCompare(route.params as Record<string, string | undefined>);
-    const minimalActionParams = getRouteParamsToCompare(minimalAction.payload.params as Record<string, string | undefined>);
+    const minimalActionParams =
+        'params' in minimalAction.payload ? getRouteParamsToCompare(minimalAction.payload.params as Record<string, string | undefined>) : ({} as Record<string, string | undefined>);
 
     return shallowCompare(routeParams, minimalActionParams);
 }
@@ -410,6 +418,11 @@ type GoBackOptions = {
     afterTransition?: () => void | undefined;
     // If true, waits for ongoing transitions to finish before going back. Defaults to false (goes back immediately).
     waitForTransition?: boolean;
+    /**
+     * Save handlers pass this to skip the trigger-row focus restore that would otherwise hijack the destination form's next
+     * Enter (parents whose Save is `pressOnEnter`). Esc/Back must not — they need default restore for WCAG 2.4.3.
+     */
+    shouldSkipFocusRestore?: boolean;
 };
 
 const defaultGoBackOptions: Required<Pick<GoBackOptions, 'compareParams' | 'waitForTransition'>> = {
@@ -427,10 +440,10 @@ const defaultGoBackOptions: Required<Pick<GoBackOptions, 'compareParams' | 'wait
  * @param backToRoute - The route to go up.
  * @param options - Optional configuration that affects navigation logic, such as parameter comparison.
  */
-function goUp(backToRoute: Route, options?: GoBackOptions) {
+function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     if (!canNavigate('goUp', {backToRoute}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to go up. Can't navigate.`);
-        return;
+        return false;
     }
 
     const compareParams = options?.compareParams ?? defaultGoBackOptions.compareParams;
@@ -442,14 +455,48 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
 
     if (!action) {
         Log.hmmm(`[Navigation] Unable to go up. Action is undefined.`);
-        return;
+        return false;
     }
 
     const {action: minimalAction, targetState} = getMinimalAction(action, rootState);
 
     if (minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || !targetState) {
         Log.hmmm('[Navigation] Unable to go up. Minimal action type is wrong.');
-        return;
+        return false;
+    }
+
+    // Arms the one-shot inline with each dispatch — no window between "set flag" and dispatch for an early-return to leak it.
+    const dispatch = (actionToDispatch: NavigationAction) => {
+        if (options?.shouldSkipFocusRestore) {
+            skipNextFocusRestore();
+        }
+        navigationRef.current?.dispatch(actionToDispatch);
+    };
+
+    // TabRouter does not handle POP or REPLACE (BaseRouter returns null). Switch tabs with jumpTo.
+    if (targetState.type === 'tab' && targetState?.key) {
+        const payload = minimalAction.payload as NavigationRoute;
+        if (!payload?.name) {
+            Log.hmmm('[Navigation] Unable to go up. Tab target missing screen name.');
+            return false;
+        }
+        // Cross-tab PUSH stacks a new TAB_NAVIGATOR on the root. When an underlying TAB_NAVIGATOR
+        // already has the target tab active, pop to it instead of jumping — otherwise the pushed
+        // tab's deep leaf lingers and resurfaces with a close animation on later tab switches.
+        const topRootIndex = rootState.index ?? rootState.routes.length - 1;
+        const underlyingTabNavIndex = rootState.routes.findLastIndex(
+            (route, idx) => idx < topRootIndex && route.name === NAVIGATORS.TAB_NAVIGATOR && route.state?.routes?.at(route.state?.index ?? 0)?.name === payload.name,
+        );
+        if (underlyingTabNavIndex !== -1) {
+            dispatch(StackActions.pop(topRootIndex - underlyingTabNavIndex));
+            return true;
+        }
+        const jumpParams = 'params' in payload ? payload.params : undefined;
+        dispatch({
+            ...TabActions.jumpTo(payload.name, jumpParams),
+            target: targetState.key,
+        });
+        return true;
     }
 
     const indexOfBackToRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
@@ -458,19 +505,32 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
     if (indexOfBackToRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
         const replaceAction = {...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE} as NavigationAction;
-        navigationRef.current.dispatch(replaceAction);
-        return;
+        dispatch(replaceAction);
+        return true;
     }
 
     /**
      * If we are not comparing params, we want to use popTo action because it will replace params in the route already existing in the state if necessary.
      */
     if (!compareParams) {
-        navigationRef.current.dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
-        return;
+        dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
+        return true;
     }
 
-    navigationRef.current.dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
+    // For TAB_NAVIGATOR targets, POP_TO restores nested state from the payload (#89006). Skip when
+    // there's nothing to pop — POP_TO would otherwise pop to an older matching route (#89209).
+    if (distanceToPop > 0 && (minimalAction.payload as {name?: string} | undefined)?.name === NAVIGATORS.TAB_NAVIGATOR) {
+        dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO, target: targetState.key});
+        return true;
+    }
+
+    // Already at the target — `StackActions.pop(0)` would be a no-op that leaks the just-armed skip into the next Back/Esc.
+    if (distanceToPop <= 0) {
+        return false;
+    }
+
+    dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
+    return true;
 }
 
 /**
@@ -490,16 +550,26 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
     const runImmediately = !options?.waitForTransition;
     TransitionTracker.runAfterTransitions({
         callback: () => {
-            if (backToRoute) {
-                goUp(backToRoute, options);
-            } else if (shouldPopToSidebar) {
-                popToSidebar();
-            } else if (!navigationRef.current?.canGoBack()) {
+            if (!backToRoute && !shouldPopToSidebar && !navigationRef.current?.canGoBack()) {
                 Log.hmmm('[Navigation] Unable to go back');
                 return;
-            } else {
-                navigationRef.current?.goBack();
             }
+
+            popAndRealignMfaMarker(
+                () => {
+                    if (backToRoute) {
+                        goUp(backToRoute, options);
+                    } else if (shouldPopToSidebar) {
+                        popToSidebar({shouldSkipFocusRestore: options?.shouldSkipFocusRestore});
+                    } else if (navigationRef.current) {
+                        if (options?.shouldSkipFocusRestore) {
+                            skipNextFocusRestore();
+                        }
+                        navigationRef.current.goBack();
+                    }
+                },
+                (callback) => TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true}),
+            );
 
             if (options?.afterTransition) {
                 TransitionTracker.runAfterTransitions({callback: options.afterTransition, waitForUpcomingTransition: true});
@@ -514,7 +584,7 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
  * For detailed information about moving between screens,
  * see the NAVIGATION.md documentation.
  */
-function popToSidebar() {
+function popToSidebar(options?: {shouldSkipFocusRestore?: boolean}): boolean {
     setShouldPopToSidebar(false);
 
     const rootState = navigationRef.current?.getRootState();
@@ -522,34 +592,60 @@ function popToSidebar() {
 
     if (!currentRoute) {
         Log.hmmm('[popToSidebar] Unable to pop to sidebar, no current root found in navigator');
-        return;
+        return false;
     }
 
-    if (!isSplitNavigatorName(currentRoute?.name)) {
+    // Split navigators can be nested inside TAB_NAVIGATOR → WORKSPACE_NAVIGATOR.
+    // Drill through the nesting to find the actual split navigator.
+    // Drill through TAB_NAVIGATOR → WORKSPACE_NAVIGATOR to find the active split navigator.
+    let activeRoute = currentRoute as typeof currentRoute | undefined;
+    if (currentRoute.name === NAVIGATORS.TAB_NAVIGATOR) {
+        const tabRoutes = currentRoute.state?.routes;
+        const activeTab = tabRoutes?.[currentRoute.state?.index ?? 0];
+        if (activeTab?.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+            activeRoute = activeTab.state?.routes?.at(-1) as typeof currentRoute | undefined;
+        } else {
+            activeRoute = activeTab as typeof currentRoute | undefined;
+        }
+    }
+
+    if (!activeRoute || !isSplitNavigatorName(activeRoute.name)) {
         Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator');
-        return;
+        return false;
     }
 
-    const topRoute = currentRoute.state?.routes.at(0);
-    const lastRoute = currentRoute.state?.routes.at(-1);
+    const armFocusSkipIfRequested = () => {
+        if (!options?.shouldSkipFocusRestore) {
+            return;
+        }
+        skipNextFocusRestore();
+    };
 
-    const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
+    const topRoute = activeRoute.state?.routes.at(0);
+    const lastRoute = activeRoute.state?.routes.at(-1);
+
+    const currentRouteName = activeRoute.name as keyof typeof SPLIT_TO_SIDEBAR;
     if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRouteName]) {
-        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || currentRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
+        const params = activeRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || activeRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
 
         const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
 
+        armFocusSkipIfRequested();
         navigationRef.dispatch({payload: {name: sidebarName, params}, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE});
-        return;
+        return true;
     }
 
+    armFocusSkipIfRequested();
     navigationRef.current?.dispatch(StackActions.popToTop());
+    return true;
 }
 
 /**
  * Reset the navigation state to Home page.
  */
 function resetToHome() {
+    clearFullscreenPreInsertedFlag();
+
     const isNarrowLayout = getIsNarrowLayout();
     const rootState = navigationRef.getRootState();
     navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
@@ -572,7 +668,7 @@ function goBackToHome() {
     const isNarrowLayout = getIsNarrowLayout();
 
     // This set the right split navigator.
-    goBack(ROUTES.INBOX);
+    goBack(ROUTES.HOME);
 
     // We want to keep the report screen in the split navigator on wide layout.
     if (!isNarrowLayout) {
@@ -580,16 +676,22 @@ function goBackToHome() {
     }
 
     // This set the right route in this split navigator.
-    goBack(ROUTES.INBOX);
+    goBack(ROUTES.HOME);
 }
 
 /**
  * Update route params for the specified route.
+ *
+ * @param targetKey - Optional navigator key to target the dispatch at. When provided,
+ *   the SET_PARAMS action is delivered directly to that navigator, which is required for
+ *   routes nested inside split navigators (where the default dispatch would fail if a
+ *   modal is focused). Can be obtained via `navigation.getState()?.key` in a component.
  */
-function setParams(params: Record<string, unknown>, routeKey = '') {
+function setParams(params: Record<string, unknown>, routeKey = '', targetKey?: string) {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
+        ...(targetKey && {target: targetKey}),
     });
 }
 
@@ -631,6 +733,25 @@ function goToPendingRoute() {
 
 function isNavigationReady(): Promise<void> {
     return navigationIsReadyPromise;
+}
+
+/**
+ * Runs the callback after any active navigation transition completes. If no transitions are
+ * active, the callback fires synchronously. Use this when you need to defer work behind an
+ * in-flight transition but the work is not itself a Navigation call (e.g. pushing on an
+ * independent navigator like the MFA modal).
+ */
+function runAfterTransition(callback: () => void) {
+    return TransitionTracker.runAfterTransitions({callback});
+}
+
+/**
+ * Like {@link runAfterTransition} but waits for the next transition to start before queuing the
+ * callback (with {@link CONST.MAX_TRANSITION_START_WAIT_MS} safety net). Use after dispatching a
+ * navigation action whose transition has not yet started.
+ */
+function runAfterUpcomingTransition(callback: () => void) {
+    return TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
 }
 
 function setIsNavigationReady() {
@@ -710,7 +831,7 @@ function getTopmostSuperWideRHPReportParams(
     }
     const topmostRightModalNavigator = state.routes?.at(-1);
 
-    if (!topmostRightModalNavigator || topmostRightModalNavigator.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (topmostRightModalNavigator?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return;
     }
 
@@ -747,7 +868,7 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
 function dismissModal({ref = navigationRef, afterTransition, waitForTransition}: {ref?: NavigationRef; afterTransition?: () => void; waitForTransition?: boolean} = {}) {
     clearSelectedTextIfComposerBlurred();
     const runImmediately = !waitForTransition;
-    isNavigationReady().then(() => {
+    const performDismiss = () => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
                 ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
@@ -758,7 +879,13 @@ function dismissModal({ref = navigationRef, afterTransition, waitForTransition}:
             },
             runImmediately,
         });
-    });
+    };
+
+    if (ref.isReady()) {
+        performDismiss();
+    } else {
+        isNavigationReady().then(performDismiss);
+    }
 }
 
 /**
@@ -770,39 +897,40 @@ function dismissModal({ref = navigationRef, afterTransition, waitForTransition}:
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
     ref = navigationRef,
-    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
+    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void; afterTransition?: () => void},
 ) => {
-    isNavigationReady().then(() => {
+    const dismissAndOpenReport = () => {
         const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
         let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
             options?.onBeforeNavigate?.(false);
-            dismissToSuperWideRHP();
+            dismissToSuperWideRHP({afterTransition: options?.afterTransition});
             return;
         }
 
         const topmostReportID = getTopmostReportId();
         areReportsIDsDefined = !!topmostReportID && !!reportID;
-        const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+        const isReportsSplitTopmostFullScreen = isReportTopmostSplitNavigator();
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
-            dismissModal();
+            dismissModal({afterTransition: options?.afterTransition});
             return;
         }
         options?.onBeforeNavigate?.(true);
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
-        if (getIsNarrowLayout()) {
-            navigate(reportRoute, {forceReplace: true});
-            return;
-        }
-
         dismissModal({
             afterTransition: () => {
-                navigate(reportRoute);
+                navigate(reportRoute, {afterTransition: options?.afterTransition});
             },
         });
-    });
+    };
+
+    if (ref.isReady()) {
+        dismissAndOpenReport();
+    } else {
+        isNavigationReady().then(dismissAndOpenReport);
+    }
 };
 
 function popRootToTop() {
@@ -924,34 +1052,22 @@ function navigateBackToLastSuperWideRHPScreen(options: {afterTransition?: () => 
 }
 
 function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
-    // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
-    if (getIsNarrowLayout()) {
-        dismissModal(options);
-        return;
-    }
-    // On wide layouts, dismiss back to the Super Wide RHP modal stack
     navigateBackToLastSuperWideRHPScreen(options);
 }
 
 /**
  * Reveals the destination fullscreen route under the currently open RHP before dismissing it.
- * Wide-layout only. Used after expense submission so the user sees the target screen (e.g. Search)
- * sliding in behind the closing RHP instead of a blank flash.
+ * Used after expense submission (and similar flows) so the target screen (e.g. Search inside TabNavigator)
+ * is ready behind the modal: one dismiss animation instead of dismiss-then-navigate (two animations).
  *
  * Two-frame sequence:
  *   Frame 1 - REPLACE_FULLSCREEN_UNDER_RHP inserts the target fullscreen route underneath
- *             the modal: [Home, RHP] -> [Home, Search, RHP]. Browser history is NOT touched
- *             (the custom history extension preserves the old history array).
- *   Frame 2 - DISMISS_MODAL pops the RHP: [Home, Search, RHP] -> [Home, Search].
- *             useLinking detects the stale Home+RHP entry and replaces it with a Search
- *             push, yielding correct browser history [Home, Search].
+ *             the modal (e.g. a new TabNavigator slice with Search selected): [Tab, RHP] -> [Tab, Tab', RHP].
+ *             Browser history is NOT touched (the custom history extension preserves the old history array).
+ *   Frame 2 - DISMISS_MODAL pops the RHP: [Tab, Tab', RHP] -> [Tab, Tab'].
+ *             useLinking syncs browser history to the new top fullscreen route.
  */
-function revealRouteBeforeDismissingModal(route: Route) {
-    if (getIsNarrowLayout()) {
-        Log.warn('[Navigation] revealRouteBeforeDismissingModal should only be used on wide layouts.');
-        return;
-    }
-
+function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void}) {
     if (!canNavigate('revealRouteBeforeDismissingModal', {route}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to reveal route before dismissing modal. Can't navigate.`, {route});
         return;
@@ -962,9 +1078,164 @@ function revealRouteBeforeDismissingModal(route: Route) {
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
             payload: {route},
         });
+        // Nested rAF: the first frame commits the route insertion, the second
+        // frame starts the dismiss. This ensures React processes the two dispatches
+        // in separate renders so the dismiss animation is preserved. On narrow,
+        // wait for the hidden destination transition first so the RHP slides out
+        // over the final page instead of briefly revealing the previous page.
         requestAnimationFrame(() => {
-            dismissModal();
+            dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
         });
+    });
+}
+
+// Module-level state tracking the pre-inserted fullscreen route. This follows the same
+// pattern as other module-level navigation state in this file (e.g. pendingRoute).
+// It is only mutated from preInsertFullscreenUnderRHP / clearFullscreenPreInsertedFlag /
+// removePreInsertedFullscreenIfNeeded, which are always called from the JS thread.
+let isFullscreenPreInsertedUnderRHP = false;
+let preInsertedFullscreenRouteName: string | undefined;
+
+/**
+ * Pre-inserts a fullscreen route (e.g. Search) underneath the currently open RHP on narrow layout.
+ * The route renders behind the fullscreen RHP so that when the user later submits,
+ * we can simply dismiss the RHP to reveal the already-mounted screen.
+ *
+ * This is the mobile counterpart of revealRouteBeforeDismissingModal; the difference
+ * is that the insert happens eagerly (on confirmation screen mount) rather than at
+ * submission time, giving React time to mount the destination component tree while
+ * the user is still filling in details.
+ */
+function preInsertFullscreenUnderRHP(route: Route) {
+    if (!getIsNarrowLayout()) {
+        return;
+    }
+
+    if (isFullscreenPreInsertedUnderRHP) {
+        return;
+    }
+
+    if (!canNavigate('preInsertFullscreenUnderRHP', {route}) || !navigationRef.current) {
+        Log.hmmm(`[Navigation] Unable to pre-insert fullscreen under RHP. Can't navigate.`, {route});
+        return;
+    }
+
+    const stateFromPath = getStateFromPath(route);
+    const outermostFullScreen = stateFromPath?.routes.findLast((r) => isFullScreenName(r.name));
+    // Use the active inner tab name (e.g. REPORTS_SPLIT_NAVIGATOR) when the outermost
+    // fullscreen is a TAB_NAVIGATOR wrapper, so callers comparing against specific tab names match.
+    const targetRouteName = getActiveTabName(outermostFullScreen);
+
+    const stateBefore = navigationRef.current.getRootState();
+    const routeCountBefore = stateBefore.routes.length;
+    const lastKeyBefore = stateBefore.routes.at(-1)?.key;
+
+    navigationRef.current.dispatch({
+        type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+        payload: {route},
+    });
+
+    const stateAfter = navigationRef.current.getRootState();
+    // When the target is a tab (no push), route count and the top key are unchanged.
+    // Check the stored original route to detect a successful tab-switch pre-insertion.
+    const wasTabSwitched = !!getPreInsertedOriginalTabRoute();
+    if (!wasTabSwitched && stateAfter.routes.length === routeCountBefore && stateAfter.routes.at(-1)?.key === lastKeyBefore) {
+        Log.hmmm(`[Navigation] preInsertFullscreenUnderRHP dispatch was ignored`, {route});
+        return;
+    }
+
+    isFullscreenPreInsertedUnderRHP = true;
+    preInsertedFullscreenRouteName = targetRouteName;
+
+    DeviceEventEmitter.emit(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION);
+}
+
+function getIsFullscreenPreInsertedUnderRHP() {
+    return isFullscreenPreInsertedUnderRHP;
+}
+
+function getPreInsertedFullscreenRouteName() {
+    return preInsertedFullscreenRouteName;
+}
+
+function clearFullscreenPreInsertedFlag() {
+    isFullscreenPreInsertedUnderRHP = false;
+    preInsertedFullscreenRouteName = undefined;
+    clearPreInsertedOriginalTabRoute();
+}
+
+/**
+ * Removes a pre-inserted fullscreen route when the user backs out without submitting.
+ * If the RHP is still on top, the pre-inserted route is popped from under it.
+ * If the RHP is already gone (back-dismissed), the pre-inserted route is the topmost
+ * fullscreen and is popped directly.
+ */
+function removePreInsertedFullscreenIfNeeded() {
+    if (!isFullscreenPreInsertedUnderRHP) {
+        return;
+    }
+
+    const routeNameToRemove = preInsertedFullscreenRouteName;
+
+    isFullscreenPreInsertedUnderRHP = false;
+    preInsertedFullscreenRouteName = undefined;
+
+    DeviceEventEmitter.emit(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION);
+
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return;
+    }
+
+    const topRoute = rootState.routes.at(-1);
+    const isRHPStillOnTop = topRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+
+    if (isRHPStillOnTop && routeNameToRemove) {
+        navigationRef.current?.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
+            payload: {expectedRouteName: routeNameToRemove},
+        });
+        return;
+    }
+
+    // RHP already dismissed. For the tab-switch path, jump back to the original tab.
+    // For the push path, pop the pre-inserted route directly.
+    const originalTabRoute = getPreInsertedOriginalTabRoute();
+    if (originalTabRoute) {
+        clearPreInsertedOriginalTabRoute();
+        const originalTabState = originalTabRoute.state;
+        const originalFocusedTabIndex = originalTabState?.index ?? 0;
+        const originalTabName = originalTabState?.routes?.[originalFocusedTabIndex]?.name;
+        if (originalTabName) {
+            requestAnimationFrame(() => {
+                const currentState = navigationRef.getRootState();
+                const tabNavRoute = currentState?.routes.findLast((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
+                if (!tabNavRoute?.state?.key) {
+                    return;
+                }
+                navigationRef.current?.dispatch({
+                    ...TabActions.jumpTo(originalTabName),
+                    target: tabNavRoute.state.key,
+                });
+            });
+        }
+        return;
+    }
+
+    // Push path: the pre-inserted fullscreen is now the topmost route; pop it.
+    // Deferred to the next frame to avoid dispatching during a React commit.
+    // Capture the route key now so the rAF callback can match on identity, not just name.
+    const targetRouteKey = rootState.routes.at(-1)?.key;
+    requestAnimationFrame(() => {
+        const currentState = navigationRef.getRootState();
+        const topmostRoute = currentState?.routes.at(-1);
+        if (!topmostRoute || topmostRoute.key !== targetRouteKey || topmostRoute.name !== routeNameToRemove) {
+            return;
+        }
+        if (!navigationRef.current?.canGoBack()) {
+            return;
+        }
+        navigationRef.current.goBack();
     });
 }
 
@@ -1002,6 +1273,8 @@ export default {
     getActiveRouteWithoutParams,
     getReportRHPActiveRoute,
     goBack,
+    runAfterTransition,
+    runAfterUpcomingTransition,
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,
@@ -1026,6 +1299,11 @@ export default {
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
     revealRouteBeforeDismissingModal,
+    preInsertFullscreenUnderRHP,
+    getIsFullscreenPreInsertedUnderRHP,
+    getPreInsertedFullscreenRouteName,
+    clearFullscreenPreInsertedFlag,
+    removePreInsertedFullscreenIfNeeded,
     getTopmostSearchReportID,
     getTopmostSuperWideRHPReportParams,
     getTopmostSuperWideRHPReportID,
@@ -1033,4 +1311,4 @@ export default {
     navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};
+export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, startOpenReportSpan};

@@ -1,7 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import type {SharedValue} from 'react-native-reanimated';
+
 import {
     AttachmentCarouselPagerActionsContext,
     AttachmentCarouselPagerStateContext,
@@ -17,11 +15,14 @@ import {
 import type {CustomStatusBarAndBackgroundActionsContextType, CustomStatusBarAndBackgroundStateContextType} from '@components/CustomStatusBarAndBackground/types';
 import {DragAndDropActionsContext, DragAndDropStateContext, useDragAndDropActions, useDragAndDropState} from '@components/DragAndDrop/Provider/DragAndDropContext';
 import type {DragAndDropActionsContextType, DragAndDropStateContextType} from '@components/DragAndDrop/Provider/types';
-import MultifactorAuthenticationStateProvider, {
-    DEFAULT_STATE,
-    useMultifactorAuthenticationActions,
-    useMultifactorAuthenticationState,
-} from '@components/MultifactorAuthentication/Context/State';
+import {useMultifactorAuthenticationActions} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationActionsContext';
+import {DEFAULT_STATE, MultifactorAuthenticationStateProvider} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationComposedContextProviders';
+import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationStateContext';
+
+import type {PropsWithChildren} from 'react';
+import type {SharedValue} from 'react-native-reanimated';
+
+import React from 'react';
 
 /**
  * Creates a mock SharedValue that satisfies the SharedValue<T> interface used in reanimated.

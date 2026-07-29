@@ -1,13 +1,18 @@
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
+
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+
+import Onyx from 'react-native-onyx';
+
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
@@ -41,7 +46,6 @@ const optimisticAction = {
 const CURRENT_USER_EMAIL = 'test@example.com';
 const CURRENT_USER_ACCOUNT_ID = 1;
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         email: CURRENT_USER_EMAIL,
@@ -66,7 +70,14 @@ describe('useReportPreviewSenderID', () => {
         });
 
         initOnyxDerivedValues();
-        jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockImplementation((email) => personalDetails[mockedEmailToID[email]]);
+        jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockImplementation((email?: string) => {
+            if (!email) {
+                return undefined;
+            }
+
+            const accountID = mockedEmailToID[email];
+            return accountID ? personalDetails[accountID] : undefined;
+        });
     });
 
     beforeEach(() => {

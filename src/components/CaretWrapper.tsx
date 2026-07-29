@@ -1,11 +1,16 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 
 type CaretWrapperProps = ChildrenProps & {
@@ -18,7 +23,7 @@ type CaretWrapperProps = ChildrenProps & {
 function CaretWrapper({children, style, caretWidth, caretHeight, isActive = false}: CaretWrapperProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow']);
 
     return (
         <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter, style]}>

@@ -1,20 +1,25 @@
-import isBoolean from 'lodash/isBoolean';
-import React, {useEffect} from 'react';
-import type {ComponentType} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
-import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
+
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import withPolicy from './withPolicy';
+
+import type {ComponentType} from 'react';
+
+import isBoolean from 'lodash/isBoolean';
+
 import type {WithPolicyProps} from './withPolicy';
+
+import withPolicy from './withPolicy';
 
 type WithPolicyConnectionsProps = WithPolicyProps & {
     isConnectionDataFetchNeeded: boolean;
 };
+
+type WithPolicyConnectionsImplProps<TProps extends WithPolicyConnectionsProps> = {
+    WrappedComponent: ComponentType<TProps>;
+    shouldBlockView: boolean;
+} & TProps;
 
 /**
  * Higher-order component that fetches the connections data and populates
@@ -26,37 +31,38 @@ type WithPolicyConnectionsProps = WithPolicyProps & {
  * Only the active policy gets the complete policy data upon app start that includes the connections data.
  * For other policies, the connections data needs to be fetched when it's needed.
  */
+function WithPolicyConnectionsImpl<TProps extends WithPolicyConnectionsProps>({WrappedComponent, shouldBlockView, ...props}: WithPolicyConnectionsImplProps<TProps>) {
+    const {
+        isFetchNeeded: isConnectionDataFetchNeeded,
+        isLoadingFetchedFlag: isOnyxDataLoading,
+        hasBeenFetched: hasConnectionsDataBeenFetched,
+    } = usePolicyConnectionsPrefetch(props.policy, true);
+    const isFetchingData = isConnectionDataFetchNeeded && !!props.policy?.id && !isBoolean(hasConnectionsDataBeenFetched);
+
+    if ((isFetchingData || isOnyxDataLoading) && shouldBlockView) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'withPolicyConnections',
+            isFetchingData,
+            isOnyxDataLoading,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            isConnectionDataFetchNeeded={isConnectionDataFetchNeeded}
+        />
+    );
+}
+
 function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>, shouldBlockView = true) {
     function WithPolicyConnections(props: TProps) {
-        const {isOffline} = useNetwork();
-        const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id}`);
-        const isOnyxDataLoading = isLoadingOnyxValue(hasConnectionsDataBeenFetchedResult);
-        const isConnectionDataFetchNeeded =
-            !isOnyxDataLoading && !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
-
-        const isFetchingData = isConnectionDataFetchNeeded && !!props.policy?.id && !isBoolean(hasConnectionsDataBeenFetched);
-
-        useEffect(() => {
-            if (!isConnectionDataFetchNeeded || !props.policy?.id) {
-                return;
-            }
-            openPolicyAccountingPage(props.policy.id);
-        }, [props.policy?.id, isConnectionDataFetchNeeded]);
-
-        if ((isFetchingData || isOnyxDataLoading) && shouldBlockView) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'withPolicyConnections',
-                isFetchingData,
-                isOnyxDataLoading,
-            };
-            return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
-        }
-
         return (
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
+            <WithPolicyConnectionsImpl
+                WrappedComponent={WrappedComponent}
+                shouldBlockView={shouldBlockView}
                 {...props}
-                isConnectionDataFetchNeeded={isConnectionDataFetchNeeded}
             />
         );
     }

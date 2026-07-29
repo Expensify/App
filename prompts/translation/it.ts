@@ -1,4 +1,5 @@
-import dedent from '@libs/StringUtils/dedent';
+import {Str} from 'expensify-common';
+
 import Glossary from './Glossary';
 
 const italianGlossary = new Glossary([
@@ -6,7 +7,7 @@ const italianGlossary = new Glossary([
     {sourceTerm: 'Expensify Card', targetTerm: 'Carta Expensify', usage: 'Branded Expensify payment card'},
 ]);
 
-export default dedent(`
+export default Str.dedent(`
     When translating to Italian, follow these rules:
 
     - Use informal "tu" for user-facing text to match the existing tone of the app.

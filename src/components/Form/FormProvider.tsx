@@ -1,31 +1,44 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {deepEqual} from 'fast-equals';
-import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {InteractionManager} from 'react-native';
-import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import {getIsRestoringKeyboardFocus} from '@components/TextInput';
+
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
+import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
+
 import {isSafari} from '@libs/Browser';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import {clearErrorFields, clearErrors, setDraftValues, setErrors as setFormErrors} from '@userActions/FormActions';
+
+import {clearErrorFields, clearErrors, setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {ForwardedRef, ReactNode, RefObject} from 'react';
+import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {deepEqual} from 'fast-equals';
+import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+
 import type {RegisterInput} from './FormContext';
+import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
+
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
 import isNumericKeyboard from './isNumericKeyboard';
-import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
@@ -100,6 +113,20 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Prevents the submit button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
+    /**
+     * Controls how keyboard dismissal interacts with form submission.
+     * - `DISMISS_THEN_SUBMIT` (default): waits for the keyboard to fully dismiss before calling `onSubmit`.
+     * - `SUBMIT_AND_DISMISS`: calls `onSubmit` immediately while dismissing the keyboard in parallel via `dismissKeyboardAndExecute`.
+     * - `SUBMIT_ONLY`: calls `onSubmit` immediately without any keyboard dismissal (navigation handles keyboard cleanup).
+     */
+    keyboardSubmitBehavior?: ValueOf<typeof CONST.KEYBOARD_SUBMIT_BEHAVIOR>;
+
+    /** Callback fired synchronously when the user presses submit, before validation runs */
+    onBeforeSubmit?: () => void;
+
+    /** Whether the confirm button should show a spinner immediately on press */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 };
@@ -114,14 +141,18 @@ function FormProvider({
     onSubmit,
     shouldTrimValues = true,
     allowHTML = false,
-    isLoading = false,
+    isLoading: isOnyxLoading = false,
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
+    shouldHideFixErrorsAlert = false,
+    keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
+    onBeforeSubmit,
+    shouldShowLoadingImmediatelyOnPress = true,
     ref,
     ...rest
 }: FormProviderProps) {
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
+    const {isOffline} = useNetwork();
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
     const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`);
     const {preferredLocale, translate} = useLocalize();
@@ -138,17 +169,41 @@ function FormProvider({
     }
 
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
-    const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
+    const [errorAnnouncementKey, setErrorAnnouncementKey] = useState(0);
+    const hasServerError = !!formState && !isEmptyObject(formState?.errors);
+    const hasServerErrorFields = !!formState && !isEmptyObject(formState?.errorFields);
     const {setIsBlurred} = useInputBlurActions();
+    const blurTransitionHandle = useRef<CancelHandle | null>(null);
+
+    // Cancel any in-flight blur transition callback on unmount so it doesn't fire after the form is gone.
+    useEffect(() => () => blurTransitionHandle.current?.cancel(), []);
+
+    const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
+    const isGeneralAlertVisible = ((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage;
+    const firstFieldErrorMessage = useMemo(() => {
+        for (const errorMsg of Object.values(errors)) {
+            if (errorMsg) {
+                return errorMsg;
+            }
+        }
+        return '';
+    }, [errors]);
+
+    useAccessibilityAnnouncement(firstFieldErrorMessage, !isGeneralAlertVisible && !!firstFieldErrorMessage && errorAnnouncementKey > 1, {
+        shouldAnnounceOnNative: true,
+        announcementKey: errorAnnouncementKey,
+    });
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
             const trimmedStringValues = shouldTrimValues ? prepareValues(values) : values;
 
-            if (shouldClearServerError) {
+            if (shouldClearServerError && hasServerError) {
                 clearErrors(formID);
             }
-            clearErrorFields(formID);
+            if (hasServerErrorFields) {
+                clearErrorFields(formID);
+            }
 
             const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues, translate) ?? {};
 
@@ -196,13 +251,16 @@ function FormProvider({
 
             const touchedInputErrors = Object.fromEntries(Object.entries(validateErrors).filter(([inputID]) => touchedInputs.current[inputID]));
 
-            if (!deepEqual(errors, touchedInputErrors)) {
-                setErrors(touchedInputErrors);
-            }
+            // Compare against the latest committed errors via a functional update rather than the `errors` captured in this
+            // closure. When a value is selected (e.g. an address suggestion) right after a blur, the delayed blur validation
+            // sets the error before this validation runs; reading `errors` from the closure would still see the pre-error
+            // (empty) snapshot, short-circuit the update, and leave the stale error showing (see
+            // https://github.com/Expensify/App/issues/94519).
+            setErrors((prevErrors) => (deepEqual(prevErrors, touchedInputErrors) ? prevErrors : touchedInputErrors));
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate, allowHTML, shouldUseStrictHtmlTagValidation],
+        [shouldTrimValues, formID, validate, translate, allowHTML, shouldUseStrictHtmlTagValidation, hasServerError, hasServerErrorFields],
     );
 
     // When locales change from another session of the same account,
@@ -232,12 +290,18 @@ function FormProvider({
         [touchedInputs],
     );
 
+    const isExternalLoading = !!formState?.isLoading || isOnyxLoading;
+    const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
+    const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : isExternalLoading;
+
     const submit = useDebounceNonReactive(
         useCallback(() => {
             // Return early if the form is already submitting to avoid duplicate submission
-            if (!!formState?.isLoading || isLoading) {
+            if (isLoading) {
                 return;
             }
+
+            onBeforeSubmit?.();
 
             // Prepare values before submitting
             const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
@@ -253,32 +317,52 @@ function FormProvider({
 
             // Validate form and return early if any errors are found
             if (!isEmptyObject(onValidate(trimmedStringValues))) {
+                setErrorAnnouncementKey((prev) => prev + 1);
                 return;
             }
 
             // Do not submit form if network is offline and the form is not enabled when offline
-            if (network?.isOffline && !enabledWhenOffline) {
+            if (isOffline && !enabledWhenOffline) {
                 return;
             }
 
-            KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError]),
+            const runSubmit = () => {
+                if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
+                    KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+                } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                    KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
+                } else {
+                    onSubmit(trimmedStringValues);
+                }
+            };
+
+            if (!shouldShowLoadingImmediatelyOnPress) {
+                runSubmit();
+                return;
+            }
+
+            startWithLoading(runSubmit);
+        }, [
+            enabledWhenOffline,
+            isLoading,
+            inputValues,
+            isOffline,
+            onSubmit,
+            onValidate,
+            shouldTrimValues,
+            hasServerError,
+            keyboardSubmitBehavior,
+            onBeforeSubmit,
+            shouldShowLoadingImmediatelyOnPress,
+            startWithLoading,
+        ]),
         1000,
         {leading: true, trailing: false},
     );
 
     // Keep track of the focus state of the current screen.
     // This is used to prevent validating the form on blur before it has been interacted with.
-    const isFocusedRef = useRef(true);
-
-    useFocusEffect(
-        useCallback(() => {
-            isFocusedRef.current = true;
-            return () => {
-                isFocusedRef.current = false;
-            };
-        }, []),
-    );
+    const isFocusedRef = useIsFocusedRef();
 
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {
@@ -307,10 +391,9 @@ function FormProvider({
         (inputID: keyof Form) => {
             const newErrors = {...errors};
             delete newErrors[inputID];
-            setFormErrors(formID, newErrors as Errors);
             setErrors(newErrors);
         },
-        [errors, formID],
+        [errors],
     );
 
     const scrollToEnd = useCallback(() => {
@@ -422,17 +505,27 @@ function FormProvider({
                                 return;
                             }
                             setTouchedInput(inputID);
-                            // We don't validate the form on blur in case the current screen is not focused
-                            if (shouldValidateOnBlur && isFocusedRef.current) {
-                                onValidate(inputValues, !hasServerError);
+                            // Skip validation if the screen is not focused or keyboard focus is being restored (Android mWeb)
+                            if (shouldValidateOnBlur && isFocusedRef.current && !getIsRestoringKeyboardFocus()) {
+                                // Validate against the latest committed values rather than the `inputValues` captured in this
+                                // closure when the input blurred. Selecting a value (e.g. an address suggestion) updates the
+                                // field after this blur validation is scheduled, so validating the stale value would re-apply an
+                                // error that the selection just cleared (see https://github.com/Expensify/App/issues/94519).
+                                setInputValues((latestValues) => {
+                                    onValidate(latestValues, !hasServerError);
+                                    return latestValues;
+                                });
                             }
                         }, VALIDATE_DELAY);
                     }
                     inputProps.onBlur?.(event);
                     if (isSafari()) {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        InteractionManager.runAfterInteractions(() => {
-                            setIsBlurred(true);
+                        blurTransitionHandle.current?.cancel();
+                        blurTransitionHandle.current = TransitionTracker.runAfterTransitions({
+                            callback: () => {
+                                setIsBlurred(true);
+                            },
+                            waitForUpcomingTransition: true,
                         });
                     }
                 },
@@ -457,20 +550,46 @@ function FormProvider({
                 },
             };
         },
-        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, setIsBlurred, formID, shouldValidateOnChange],
+        [
+            draftValues,
+            inputValues,
+            formState?.errorFields,
+            errors,
+            submit,
+            setTouchedInput,
+            shouldValidateOnBlur,
+            onValidate,
+            hasServerError,
+            setIsBlurred,
+            formID,
+            shouldValidateOnChange,
+            isFocusedRef,
+        ],
     );
-    const value = useMemo(() => ({registerInput}), [registerInput]);
+    const fallbackAnnouncementMessage = !isGeneralAlertVisible ? firstFieldErrorMessage : '';
+    const getErrorAnnouncementKey = useCallback(() => errorAnnouncementKey, [errorAnnouncementKey]);
+    const getFallbackAnnouncementMessage = useCallback(() => fallbackAnnouncementMessage, [fallbackAnnouncementMessage]);
+    const value = useMemo(() => ({registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage}), [registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage]);
+
+    const submitAndAnnounce = useCallback(() => {
+        if (hasServerError) {
+            setErrorAnnouncementKey((prev) => prev + 1);
+        }
+        submit();
+    }, [hasServerError, submit]);
 
     return (
         <FormContext.Provider value={value}>
-            {/* eslint-disable react/jsx-props-no-spreading */}
             <FormWrapper
                 {...rest}
                 formID={formID}
-                onSubmit={submit}
+                onSubmit={submitAndAnnounce}
                 inputRefs={inputRefs}
                 errors={errors}
-                isLoading={isLoading}
+                isAlertVisible={isGeneralAlertVisible}
+                serverErrorFields={formState?.errorFields}
+                serverErrorMessage={errorMessage}
+                isLoading={!!formState?.isLoading || isLoading}
                 enabledWhenOffline={enabledWhenOffline}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}

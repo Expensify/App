@@ -1,8 +1,9 @@
 import type {ReactNode} from 'react';
-import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
+
+import React from 'react';
+import {View} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type AccordionProps = {
@@ -50,7 +51,7 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
                 easing: Easing.inOut(Easing.quad),
             },
             (finished) => {
-                if (!finished || !isExpanded.get()) {
+                if (!finished) {
                     return;
                 }
                 isAnimating.set(false);
@@ -67,12 +68,17 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             };
         }
 
+        let display = 'inline';
+        if (!isExpanded.get() && !isAnimating.get()) {
+            display = 'none';
+        }
+
         return {
             height: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
             maxHeight: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
             opacity: derivedOpacity.get(),
             overflow: isAnimating.get() ? 'hidden' : 'visible',
-            display: isExpanded.get() ? 'inline' : 'none',
+            display,
         };
     });
 

@@ -1,7 +1,3 @@
-import isEmpty from 'lodash/isEmpty';
-import type {GestureResponderEvent} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {ContinueActionParams} from '@components/KYCWall/types';
@@ -9,7 +5,9 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+
 import type {ThemeStyles} from '@styles/index';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
@@ -18,8 +16,14 @@ import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {ACHAccount} from '@src/types/onyx/Policy';
-import {setPersonalBankAccountContinueKYCOnSuccess} from './actions/BankAccounts';
-import {approveMoneyRequest} from './actions/IOU';
+
+import type {GestureResponderEvent} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {Merge, ValueOf} from 'type-fest';
+
+import isEmpty from 'lodash/isEmpty';
+
+import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
@@ -33,19 +37,24 @@ type SelectPaymentTypeParams = {
     event: KYCFlowEvent;
     iouPaymentType: PaymentMethodType;
     triggerKYCFlow: TriggerKYCFlow;
+    /** The policy corresponding to iouReport.policyID. Used for billing restriction checks. */
+    expenseReportPolicy: OnyxEntry<Policy>;
     policy: OnyxEntry<Policy>;
     onPress: (params: PaymentActionParams) => void;
     currentAccountID: number;
     currentEmail: string;
     hasViolations: boolean;
     isASAPSubmitBetaEnabled: boolean;
-    isUserValidated?: boolean;
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     betas: OnyxEntry<Beta[]>;
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    delegateEmail: string | undefined;
+    isTrackIntentUser: boolean | undefined;
+    ownerLogin: string | undefined;
 };
 
 type BusinessBankAccountOption = {
@@ -150,10 +159,18 @@ function isAccountData(data: unknown): data is AccountData {
 }
 
 /**
+ * Returns whether a payment method's bank currency matches the given currency.
+ * When no currency is provided, all methods are considered a match.
+ */
+function matchesCurrency(method: PaymentMethod, currency?: string): boolean {
+    return !currency || ('bankCurrency' in method && method.bankCurrency === currency);
+}
+
+/**
  * Returns all valid business bank accounts for the pay menu.
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
  */
-function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[]): BusinessBankAccountOption[] {
+function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string): BusinessBankAccountOption[] {
     return formattedPaymentMethods
         .filter((method) => {
             if (!isAccountData(method?.accountData)) {
@@ -161,7 +178,13 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[])
             }
             const accountData = method.accountData;
             const isPartiallySetup = isBankAccountPartiallySetup(accountData.state);
-            return accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN && method?.methodID != null && !isPartiallySetup;
+            return (
+                accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
+                method?.methodID != null &&
+                !isPartiallySetup &&
+                matchesCurrency(method, currency)
+            );
         })
         .map((formattedPaymentMethod) => ({
             text: formattedPaymentMethod?.title ?? '',
@@ -181,29 +204,6 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
 }
 
 /**
- * Navigates the user to the appropriate account verification page based on the current route context.
- */
-const handleUnvalidatedAccount = (iouReport: OnyxEntry<Report>) => {
-    const activeRoute = Navigation.getActiveRoute();
-    const reportID = iouReport?.reportID;
-    if (!reportID) {
-        // Technically possible but should never happen in real life
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
-        return;
-    }
-
-    if (activeRoute.includes(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}))) {
-        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
-    } else if (activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
-        Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
-    } else if (activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}))) {
-        Navigation.navigate(ROUTES.EXPENSE_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
-    } else {
-        Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID));
-    }
-};
-
-/**
  * Determines the appropriate payment action based on user validation and policy restrictions.
  * It navigates users to verification pages if necessary, triggers KYC flows for specific payment methods,
  * handles direct approvals, or proceeds with basic payment processing.
@@ -213,31 +213,36 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         event,
         iouPaymentType,
         triggerKYCFlow,
+        expenseReportPolicy,
         policy,
         onPress,
         currentAccountID,
         currentEmail,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        isUserValidated,
         confirmApproval,
         iouReport,
         iouReportNextStep,
         betas,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         amountOwed,
+        ownerBillingGracePeriodEnd,
+        delegateEmail,
+        isTrackIntentUser,
+        ownerLogin,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed)) {
+    if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
 
     if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-        if (!isUserValidated) {
-            return handleUnvalidatedAccount(iouReport);
-        }
-        triggerKYCFlow({event, iouPaymentType, policy});
-        setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
+        triggerKYCFlow({
+            event,
+            iouPaymentType,
+            policy,
+            personalBankAccountOnSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+        });
         return;
     }
 
@@ -247,16 +252,20 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         } else {
             approveMoneyRequest({
                 expenseReport: iouReport,
-                policy,
+                expenseReportPolicy,
                 currentUserAccountIDParam: currentAccountID,
                 currentUserEmailParam: currentEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 amountOwed,
+                ownerBillingGracePeriodEnd,
+                ownerLogin,
                 full: true,
+                delegateEmail,
+                isTrackIntentUser,
             });
         }
         return;
@@ -269,6 +278,7 @@ type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, '
 type PaymentOption = PopoverMenuItem & DropdownOption<ValueOf<typeof CONST.IOU.PAYMENT_TYPE>>;
 type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType}>;
 type SecondaryActionOption = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>;
+type WorkspacePolicyPaymentOption = PopoverMenuItem & {workspacePolicy: Policy};
 
 const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is PaymentOption => {
     if (!('value' in item)) {
@@ -278,6 +288,8 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
     const isPaymentInArray = Object.values(CONST.IOU.PAYMENT_TYPE).filter((type) => type === payment);
     return isPaymentInArray.length > 0;
 };
+
+const isSecondaryActionAWorkspacePolicyOption = (item: PopoverMenuItem): item is WorkspacePolicyPaymentOption => 'workspacePolicy' in item && !!item.workspacePolicy;
 
 /**
  * Get the appropriate payment type, policy from context (policy related to payment type), policy from payment method, and whether a payment method should be selected
@@ -343,11 +355,12 @@ export {
     getPaymentMethodDescription,
     formatPaymentMethods,
     getBusinessBankAccountOptions,
+    matchesCurrency,
     calculateWalletTransferBalanceFee,
-    handleUnvalidatedAccount,
     selectPaymentType,
     isSecondaryActionAPaymentOption,
+    isSecondaryActionAWorkspacePolicyOption,
     getActivePaymentType,
     getBankAccountLastFourDigits,
 };
-export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams, BusinessBankAccountOption};
+export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, SelectPaymentTypeParams, WorkspacePolicyPaymentOption};

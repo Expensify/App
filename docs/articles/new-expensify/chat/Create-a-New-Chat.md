@@ -25,7 +25,7 @@ Expensify Chat is an instant messaging system that helps you converse with peopl
 
 ## Start a Group Chat
 
-1. Click the green **+** button in the navigation tabs and select **Start Chat**.
+1. Click the **+** button in the navigation tabs and select **Start Chat**.
 2. Enter the name, email, or phone number of each participant and select **Add to group**.
    - Group participants are listed with a green checkmark.
 3. Click or tap **Next**.
@@ -38,7 +38,7 @@ Expensify Chat is an instant messaging system that helps you converse with peopl
 
 ## Start a Chat Room
 
-1. Click the green **+** button in the navigation tabs and select **Start Chat**.
+1. Click the **+** button in the navigation tabs and select **Start Chat**.
 2. Click or tap the **#Room** tab at the top.
 3. Enter a unique name for the room.
 4. (Optional) Add a room description.

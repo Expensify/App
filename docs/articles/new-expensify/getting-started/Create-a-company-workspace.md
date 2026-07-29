@@ -5,7 +5,7 @@ keywords: [New Expensify, how to get started, new workspace, create workspace, a
 ---
 
 
-Setting up a workspace in New Expensify is the first step to managing company expenses. This guide walks you through creating your workspace, inviting team members, setting up categories, enabling features, and more. Your first workspace includes a free 30-day trial and access to a **Setup Specialist** via the **#admins chat room** or **Concierge** in your Inbox.
+Setting up a workspace in New Expensify is the first step to managing company expenses. This guide walks you through creating your workspace, inviting team members, setting up categories, enabling features, and more. Your first workspace includes a free 30-day trial and access to an **Account Executive** via the **#admins chat room** or **Concierge** in your Inbox.
 
 ---
 
@@ -98,7 +98,7 @@ Approval workflows help automate expense report reviews.
 
 ## Enable Approvals
 1. In the left-hand menu, select **Workflows**.
-2. Toggle **Add Approvals** on.
+2. Toggle **Approvals** on.
 
 ## Configure a Default Workflow
 1. In the left-hand menu, select **Workflows**.
@@ -138,6 +138,6 @@ Approval workflows help automate expense report reviews.
 
 Track your trial under **Account > Subscription**:
 - View your start and end dates
-- Get help from **Concierge** or your **Setup Specialist**
+- Get help from **Concierge** or your **Account Executive**
 - Add a **billing card** to continue using Expensify
  

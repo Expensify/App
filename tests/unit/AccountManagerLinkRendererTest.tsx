@@ -1,12 +1,18 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import AccountManagerLinkRenderer from '@components/HTMLEngineProvider/HTMLRenderers/AccountManagerLinkRenderer';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigate: jest.fn(),
 }));
 
@@ -63,7 +69,7 @@ describe('AccountManagerLinkRenderer', () => {
     });
 
     it('should navigate to account manager chat when pressed', async () => {
-        await Onyx.merge(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, ACCOUNT_MANAGER_REPORT_ID);
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerReportID: ACCOUNT_MANAGER_REPORT_ID});
 
         // @ts-expect-error Ignoring type errors for testing purposes
         render(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
@@ -85,7 +91,7 @@ describe('AccountManagerLinkRenderer', () => {
     });
 
     it('should handle multiple presses correctly', async () => {
-        await Onyx.merge(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, ACCOUNT_MANAGER_REPORT_ID);
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerReportID: ACCOUNT_MANAGER_REPORT_ID});
 
         // @ts-expect-error Ignoring type errors for testing purposes
         render(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
@@ -101,7 +107,7 @@ describe('AccountManagerLinkRenderer', () => {
     });
 
     it('should update navigation when accountManagerReportID changes', async () => {
-        await Onyx.merge(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, ACCOUNT_MANAGER_REPORT_ID);
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerReportID: ACCOUNT_MANAGER_REPORT_ID});
 
         // @ts-expect-error Ignoring type errors for testing purposes
         const {rerender} = render(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);
@@ -112,7 +118,7 @@ describe('AccountManagerLinkRenderer', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ACCOUNT_MANAGER_REPORT_ID));
 
         const NEW_ACCOUNT_MANAGER_REPORT_ID = '987654321';
-        await Onyx.merge(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, NEW_ACCOUNT_MANAGER_REPORT_ID);
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerReportID: NEW_ACCOUNT_MANAGER_REPORT_ID});
 
         // @ts-expect-error Ignoring type errors for testing purposes
         rerender(<AccountManagerLinkRenderer tnode={createMockTNode('Account Manager')} />);

@@ -97,6 +97,10 @@ export default {
         alignItems: 'center',
     },
 
+    alignContentCenter: {
+        alignContent: 'center',
+    },
+
     alignItemsEnd: {
         alignItems: 'flex-end',
     },

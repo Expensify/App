@@ -1,15 +1,18 @@
-import type {SharedValue} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {SelectorType} from '@components/SelectionScreen';
+
 import type {SubPageProps} from '@hooks/useSubPage/types';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import type CONST from '@src/CONST';
 import type {NetSuiteCustomFieldForm} from '@src/types/form';
 import type {Policy} from '@src/types/onyx';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
+
+import type {SharedValue} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText'> & {subscribedSettings?: string[]};
 
@@ -78,30 +81,12 @@ type ExpenseRouteParams = {
     policyID: string;
 };
 
-type CustomFieldSubStepWithPolicy = SubStepProps & {
-    /** Current policy in the form steps */
-    policy: Policy | undefined;
-
-    /** Whether the page is a custom segment or custom list */
-    importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
-
-    /** Whether the record is custom segment or custom record  */
-    customSegmentType?: ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES>;
-
-    /** Callback to update the current segment type of the record  */
-    setCustomSegmentType?: (segmentType: ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES>) => void;
-
-    /** NetSuiteCustomFieldForm values */
-    netSuiteCustomFieldFormValues: NetSuiteCustomFieldForm;
-
-    customSegments?: NetSuiteCustomSegment[];
-
-    customLists?: NetSuiteCustomList[];
-};
-
 type CustomFieldSubPageWithPolicy = SubPageProps & {
     /** Current policy in the form steps */
     policy: Policy | undefined;
+
+    /** Policy ID from the parent route's URL params (set before the policy Onyx record finishes hydrating) */
+    policyIDParam?: string;
 
     /** Whether the page is a custom segment or custom list */
     importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -132,9 +117,7 @@ export type {
     MenuItemToRender,
     DividerLineItem,
     ToggleItem,
-    AccordionItem,
     ExpenseRouteParams,
-    CustomFieldSubStepWithPolicy,
     CustomFieldSubPageWithPolicy,
     CustomListSelectorType,
     ExtendedMenuItemWithSubscribedSettings,

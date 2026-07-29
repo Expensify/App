@@ -1,10 +1,14 @@
-import React from 'react';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {getReportFieldAlternativeTextTranslationKey, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
+
 import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
+
+import React from 'react';
 
 type ReportFieldItemType = {
     /** The value */
@@ -22,7 +26,7 @@ type ReportFieldItemType = {
 
 type ReportFieldTypePickerProps = {
     /** Currently selected report field type */
-    defaultValue: PolicyReportFieldType;
+    defaultValue?: PolicyReportFieldType;
 
     /** Function to call when the user selects a report field type */
     onOptionSelected: (reportField: ReportFieldItemType) => void;
@@ -43,7 +47,7 @@ function ReportFieldTypePicker({defaultValue, onOptionSelected}: ReportFieldType
     return (
         <SelectionList
             data={typeOptions}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             onSelectRow={onOptionSelected}
             addBottomSafeAreaPadding
             initiallyFocusedItemKey={selectedOption}

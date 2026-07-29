@@ -1,14 +1,9 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
-import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -16,6 +11,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Account, Onboarding} from '@src/types/onyx';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
+
 import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
@@ -110,6 +116,7 @@ function getOnboardingRoute(): Route {
         currentOnboardingPurposeSelected: onboardingPurposeSelected,
         onboardingInitialPath,
         onboardingValues: onboarding,
+        isAccountValidated: !!account?.validated,
     }) as Route;
 }
 
@@ -168,14 +175,23 @@ const OnboardingGuard: NavigationGuard = {
         const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
-        const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
+        const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
+        const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
         // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
         if ((isOnboardingCompleted || CONFIG.SKIP_ONBOARDING) && isNavigatingToOnboardingFlow(action)) {
             Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
+            return {type: 'REDIRECT', route: ROUTES.HOME};
+        }
+
+        // Test builds must never enter the onboarding UI. REPLACE into onboarding is normally
+        // admitted (real users advance between onboarding steps with forceReplace), but with
+        // SKIP_ONBOARDING there is no legitimate way to be mid-onboarding — bounce those too.
+        // Scoped to the flag so completed users' REPLACE behaviour is unchanged.
+        if (CONFIG.SKIP_ONBOARDING && isNavigatingToOnboardingFlowWithReplaceAction(action)) {
+            Log.info('[OnboardingGuard] SKIP_ONBOARDING: redirecting REPLACE into onboarding to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
@@ -189,12 +205,23 @@ const OnboardingGuard: NavigationGuard = {
             isTransitioning ||
             isOnboardingCompleted ||
             isMigratedUser ||
-            isSingleEntry ||
-            needsExplanationModal ||
             isInvitedOrGroupMember ||
-            isNavigatingWithReplace;
+            isSingleEntry ||
+            isFirstTimeHybridAppTransition ||
+            isNavigatingWithReplace ||
+            context.isSupportalSession ||
+            // Copilots should not be pushed through onboarding on behalf of the account they are accessing
+            isActingAsDelegateSelector(account);
 
         if (shouldSkipOnboarding) {
+            return {type: 'ALLOW'};
+        }
+
+        // If the OnboardingModalNavigator is the currently focused route, the user is already
+        // on the onboarding flow. Redirecting again would produce a redundant state reset that
+        // triggers further actions, creating an infinite navigation loop (APP-7FR).
+        const isOnboardingFocused = state.routes[state.index]?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
+        if (isOnboardingFocused) {
             return {type: 'ALLOW'};
         }
 
@@ -209,7 +236,7 @@ const OnboardingGuard: NavigationGuard = {
             isOnboardingCompleted,
             isMigratedUser,
             isSingleEntry,
-            needsExplanationModal,
+            isFirstTimeHybridAppTransition,
             isInvitedOrGroupMember,
             isNavigatingWithReplace,
         });

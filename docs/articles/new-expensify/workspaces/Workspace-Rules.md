@@ -1,15 +1,15 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant]
-internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, and report rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions]
+internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, merchant rules, prohibited expenses, category rules, tag rules, report rules, and Expensify Card spend rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules 
 
 Workspace Rules let Admins enforce expense policies by setting custom requirements for receipts, spending limits, category behavior, auto-approvals, and more. These rules help ensure compliance and streamline the approval process.
 
-**Note:** Rules are only available on the **Control** plan. You must be a **Workspace Admin** to enable or manage them.
+If your approval requirements can't be handled using Workspace Rules alone, create an Agent Rule. Agent Rules are AI-powered rules that let Workspace Admins automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. [Learn how to create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules).
 
 ---
 
@@ -34,8 +34,8 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **Itemized receipt required over** – Require itemized receipts for expenses over a specific amount.
 - **Max expense amount** – Set a per-expense spending cap (supports decimals).
 - **Max expense age (Days)** – Define how old an expense can be (whole numbers only).
-- **Cash expense default** - Choose whether cash expenses are reimbursable by default. Note: [Workspace Merchant Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
-- **Billable default** – Choose whether expenses are billable by default. Note: [Workspace Merchant Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
+- **Cash expense default** - Choose whether cash expenses are reimbursable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
+- **Billable default** – Choose whether expenses are billable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
 - **Require company cards for all purchases** - Flag out-of-pocket expenses that should have been made with a company card. Only available after company cards are connected to the workspace.
 - **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
 - **Merchant-based automation** – Automatically apply categories, tags, and other fields using Workspace Merchant Rules.
@@ -48,7 +48,7 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 
 When an expense breaks a Workspace Rule or Category Rule, the expense is flagged with a violation and the approver is prompted to manually review it before approval.
 
-![Expense showing violations]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissing|temizedReceipts_02.png){:width="100%"}
+![Expense showing violations]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_02.png){:width="100%"}
 
 ---
 
@@ -62,7 +62,38 @@ Workspace Merchant Rules:
 - Don't change how members submit expenses
 
 To learn how to set up and manage Workspace Merchant Rules, see:
-[**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules)
+[**Workspace Merchant Rules**](/articles/new-expensify/workspaces/Workspace-Merchant-Rules)
+
+---
+
+# How to configure Spend rules for Expensify Cards
+
+Spend rules let Workspace Admins approve or decline Expensify Card transactions in realtime based on the merchant, spend category, and amount of each charge. They appear in the **Spend** section of the **Rules** tab and only show after the [Expensify Card](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card) is enabled for the workspace.
+
+Every Expensify Card includes built-in protection that always declines these charges:
+- Adult services
+- ATMs
+- Gambling
+- Money transfers
+
+To add your own spend rule:
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Rules**.
+4. In the **Spend** section, click **Add spend rule**.
+5. Set the **Restriction type**:
+   - **Allow** – Charges are approved if they match any merchant or category, and don't exceed a max amount.
+   - **Block** – Charges are declined if they match any merchant or category, or exceed a max amount.
+6. (Optional) Click **Add merchant** to restrict by merchant name, then choose a **Match type** of **Contains** or **Matches exactly**.
+7. (Optional) Set a **Spend category** to restrict.
+8. (Optional) Set a **Max amount**. Any charge over this amount is declined, regardless of the merchant and spend category restrictions.
+9. Click **Choose cards** to select which Expensify Cards the rule applies to.
+10. Click **Save rule**.
+
+To edit or delete an existing rule, click the rule in the **Spend** section, make your changes, and click **Save rule** or **Delete rule**.
+
+You can also apply a spend rule to a card while [issuing a new Expensify Card](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card).
 
 ---
 
@@ -77,8 +108,9 @@ To enable it:
 3. Toggle it on and select any categories to monitor:
    - Alcohol
    - Gambling
-   - Tobacco
+   - Handwritten receipts
    - Hotel Incidentals
+   - Tobacco
    - Adult Entertainment
 
 **Note:** Violations appear in both New Expensify and Expensify Classic, but the rule must be enabled in **New Expensify**.
@@ -110,7 +142,7 @@ To manage them:
 Available options:
 
 - **Approver** – Assign a specific approver for expenses in this category.
-- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Default tax rate** – Set a default tax percentage ([Taxes](/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
 - **Flag amounts over** - Set a spending cap for this category.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
@@ -137,9 +169,9 @@ Available option:
 
 # How to manage default categories and billable behavior
 
-You can set workspace-wide defaults to automate categorization and tagging.
+You can set workspace-wide defaults to automate categorization and tagging. 
 
-- **Default categories** – Auto-assign a category based on the merchant’s MCC. Set this under **Categories > Settings**.
+- **Default categories** – Auto-assign a category based on the merchant’s MCC (Merchant Category Code). This is configured under **Categories > Settings**, not under Rules. See [Create Expense Categories](/articles/new-expensify/workspaces/Create-expense-categories). 
 - **Billable expenses** – Decide when tagging is required based on whether an expense is marked billable. Set this under **Tags > Settings**.
 
 **Note:** Default category and billable settings use general automation logic. If you need consistent, merchant-specific outcomes that apply across all members, use **Workspace Merchant Rules** instead.
@@ -171,6 +203,10 @@ This violation is triggered when an expense meets **any** of the following condi
 ## Why don’t I see the toggle for the company card rule?
 
 The **Require Company Card for All Purchases** rule only appears after at least one company card feed is connected to the workspace. If all company card feeds are removed, the rule will automatically disable. 
+
+## Why don't I see the Spend section in Rules?
+
+The **Spend** section only appears after the Expensify Card is enabled for the workspace. Enable it under **Workspaces > [Workspace Name] > More features**, then return to the **Rules** tab.
 
 ## What happens if I disable eReceipts?
 

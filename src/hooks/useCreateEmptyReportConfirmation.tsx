@@ -1,13 +1,17 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
@@ -21,6 +25,8 @@ type UseCreateEmptyReportConfirmationParams = {
     onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void;
     /** Optional callback function to execute when user cancels the confirmation */
     onCancel?: () => void;
+    /** Whether the modal should push a history entry so browser-back dismisses it (default: true) */
+    shouldHandleNavigationBack?: boolean;
 };
 
 type UseCreateEmptyReportConfirmationResult = {
@@ -36,8 +42,7 @@ function ConfirmationPrompt({workspaceName, checkboxRef, onLinkPress}: {workspac
     return (
         <View style={styles.gap4}>
             <Text>
-                {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName})}{' '}
-                <TextLink onPress={onLinkPress}>{translate('report.newReport.emptyReportConfirmationPromptLink')}.</TextLink>
+                {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName})} <TextLink onPress={onLinkPress}>{translate('search.tabs.reports')}.</TextLink>
             </Text>
             <CheckboxWithLabel
                 accessibilityLabel={translate('report.newReport.emptyReportConfirmationDontShowAgain')}
@@ -54,7 +59,12 @@ function ConfirmationPrompt({workspaceName, checkboxRef, onLinkPress}: {workspac
     );
 }
 
-export default function useCreateEmptyReportConfirmation({policyName, onConfirm, onCancel}: UseCreateEmptyReportConfirmationParams): UseCreateEmptyReportConfirmationResult {
+export default function useCreateEmptyReportConfirmation({
+    policyName,
+    onConfirm,
+    onCancel,
+    shouldHandleNavigationBack = true,
+}: UseCreateEmptyReportConfirmationParams): UseCreateEmptyReportConfirmationResult {
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
     const workspaceDisplayName = policyName?.trim().length ? policyName : translate('report.newReport.genericWorkspaceName');
@@ -79,6 +89,7 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
             title: `${translate('report.newReport.emptyReportConfirmationTitle')} `,
             confirmText: translate('report.newReport.createReport'),
             cancelText: translate('common.cancel'),
+            shouldHandleNavigationBack,
             prompt: (
                 <ConfirmationPrompt
                     workspaceName={workspaceDisplayName}

@@ -1,15 +1,21 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
-import Button from './Button';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type DotLottieAnimation from './LottieAnimations/types';
+
+import Button from './Button';
 import MenuItem from './MenuItem';
 import Section from './Section';
 
@@ -63,6 +69,12 @@ type FeatureListProps = {
 
     /** Whether the button should be disabled */
     isButtonDisabled?: boolean;
+
+    /** Additional styles to apply to the CTA button inner container */
+    buttonInnerStyles?: StyleProp<ViewStyle>;
+
+    /** Additional styles to apply to the CTA button on hover */
+    buttonHoverStyles?: StyleProp<ViewStyle>;
 };
 
 function FeatureList({
@@ -80,6 +92,8 @@ function FeatureList({
     contentPaddingOnLargeScreens,
     footer,
     isButtonDisabled = false,
+    buttonInnerStyles,
+    buttonHoverStyles,
     renderSubtitle,
 }: FeatureListProps) {
     const styles = useThemeStyles();
@@ -126,6 +140,8 @@ function FeatureList({
                         onPress={onCtaPress}
                         accessibilityLabel={ctaAccessibilityLabel}
                         style={styles.w100}
+                        innerStyles={buttonInnerStyles}
+                        hoverStyles={buttonHoverStyles}
                         success
                         isDisabled={isButtonDisabled}
                         large

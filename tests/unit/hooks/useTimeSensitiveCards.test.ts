@@ -1,11 +1,16 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useTimeSensitiveCards from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {createRandomExpensifyCard} from '../../utils/collections/card';
+import createRandomReportAction from '../../utils/collections/reportActions';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 describe('useTimeSensitiveCards', () => {
@@ -178,8 +183,15 @@ describe('useTimeSensitiveCards', () => {
             possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 123456},
         });
         const cardList: CardList = {'1': cardWithFraud};
+        const unresolvedFraudAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+        };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${cardWithFraud.nameValuePairs?.possibleFraud?.fraudAlertReportID}`, {
+            [unresolvedFraudAction.reportActionID]: unresolvedFraudAction,
+        });
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useTimeSensitiveCards());
@@ -188,6 +200,34 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.cardsWithFraud.at(0)?.cardID).toBe(1);
         expect(result.current.cardsWithFraud.at(0)?.nameValuePairs?.possibleFraud?.triggerAmount).toBe(5663);
         expect(result.current.shouldShowReviewCardFraud).toBe(true);
+    });
+
+    it('should not show fraud review when card has possibleFraud data but the fraud action is already resolved as recognized', async () => {
+        const cardWithResolvedFraudAlert = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 123457},
+        });
+        const cardList: CardList = {'1': cardWithResolvedFraudAlert};
+        const baseFraudAction = createRandomReportAction(4);
+        const resolvedFraudAction = {
+            ...baseFraudAction,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+            originalMessage: {
+                resolution: CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED,
+            },
+        };
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${cardWithResolvedFraudAlert.nameValuePairs?.possibleFraud?.fraudAlertReportID}`, {
+            [resolvedFraudAction.reportActionID]: resolvedFraudAction,
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsWithFraud).toHaveLength(0);
+        expect(result.current.shouldShowReviewCardFraud).toBe(false);
     });
 
     it('should not show fraud review for cards with fraud type NONE and no possibleFraud data', async () => {
@@ -210,8 +250,15 @@ describe('useTimeSensitiveCards', () => {
             possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 5230242215684213},
         });
         const cardList: CardList = {'1': cardWithPendingFraudAlert};
+        const unresolvedFraudAction = {
+            ...createRandomReportAction(2),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+        };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${cardWithPendingFraudAlert.nameValuePairs?.possibleFraud?.fraudAlertReportID}`, {
+            [unresolvedFraudAction.reportActionID]: unresolvedFraudAction,
+        });
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useTimeSensitiveCards());
@@ -219,5 +266,200 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.cardsWithFraud).toHaveLength(1);
         expect(result.current.cardsWithFraud.at(0)?.cardID).toBe(1);
         expect(result.current.shouldShowReviewCardFraud).toBe(true);
+    });
+
+    it('should exclude cards with custom $0 limit from shipping address to-dos', async () => {
+        const zeroLimitCard: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED}),
+            nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0} as Card['nameValuePairs'],
+        };
+        const cardList: CardList = {'1': zeroLimitCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsNeedingShippingAddress).toHaveLength(0);
+        expect(result.current.shouldShowAddShippingAddress).toBe(false);
+    });
+
+    it('should exclude cards with custom $0 limit from activation to-dos', async () => {
+        const zeroLimitCard: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
+            nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0} as Card['nameValuePairs'],
+        };
+        const cardList: CardList = {'1': zeroLimitCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsNeedingActivation).toHaveLength(0);
+        expect(result.current.shouldShowActivateCard).toBe(false);
+    });
+
+    it('should not exclude cards without custom limit even if unapprovedExpenseLimit is 0', async () => {
+        const groupLimitCard: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
+            nameValuePairs: {hasCustomUnapprovedExpenseLimit: false, unapprovedExpenseLimit: 0} as Card['nameValuePairs'],
+        };
+        const cardList: CardList = {'1': groupLimitCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsNeedingActivation).toHaveLength(1);
+        expect(result.current.shouldShowActivateCard).toBe(true);
+    });
+
+    it('should still show fraud alerts for cards with custom $0 limit', async () => {
+        const zeroLimitFraudCard: Card = {
+            ...createRandomExpensifyCard(1, {
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+                possibleFraud: {triggerAmount: 1000, triggerMerchant: 'SUSPICIOUS MERCHANT', currency: 'USD', fraudAlertReportID: 123456},
+            }),
+            nameValuePairs: {
+                hasCustomUnapprovedExpenseLimit: true,
+                unapprovedExpenseLimit: 0,
+                possibleFraud: {triggerAmount: 1000, triggerMerchant: 'SUSPICIOUS MERCHANT', currency: 'USD', fraudAlertReportID: 123456},
+            } as Card['nameValuePairs'],
+        };
+        const cardList: CardList = {'1': zeroLimitFraudCard};
+        const unresolvedFraudAction = {
+            ...createRandomReportAction(3),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+        };
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${zeroLimitFraudCard.nameValuePairs?.possibleFraud?.fraudAlertReportID}`, {
+            [unresolvedFraudAction.reportActionID]: unresolvedFraudAction,
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsWithFraud).toHaveLength(1);
+        expect(result.current.shouldShowReviewCardFraud).toBe(true);
+    });
+
+    it('should not show fraud review for deactivated cards even when possibleFraud and an unresolved fraud action exist', async () => {
+        const deactivatedFraudCard = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 987654},
+        });
+        const cardList: CardList = {'1': deactivatedFraudCard};
+        const unresolvedFraudAction = {
+            ...createRandomReportAction(10),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+        };
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deactivatedFraudCard.nameValuePairs?.possibleFraud?.fraudAlertReportID}`, {
+            [unresolvedFraudAction.reportActionID]: unresolvedFraudAction,
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsWithFraud).toHaveLength(0);
+        expect(result.current.shouldShowReviewCardFraud).toBe(false);
+    });
+
+    it('should not show fraud review for closed cards even when possibleFraud is set', async () => {
+        const closedFraudCard = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.CLOSED,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 987655},
+        });
+        const cardList: CardList = {'1': closedFraudCard};
+        const unresolvedFraudAction = {
+            ...createRandomReportAction(11),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+        };
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${closedFraudCard.nameValuePairs?.possibleFraud?.fraudAlertReportID}`, {
+            [unresolvedFraudAction.reportActionID]: unresolvedFraudAction,
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsWithFraud).toHaveLength(0);
+        expect(result.current.shouldShowReviewCardFraud).toBe(false);
+    });
+
+    it('should exclude pending-replacement (STATE_NOT_ISSUED) cards from shipping address to-dos', async () => {
+        const pendingReplaceShippingCard: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED}),
+            nameValuePairs: {
+                terminationReason: CONST.EXPENSIFY_CARD.TERMINATION_REASON.LOST,
+                statusChanges: [{date: '2024-01-01', status: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED}],
+            } as Card['nameValuePairs'],
+        };
+        const brandNewShippingCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED});
+        const cardList: CardList = {'1': pendingReplaceShippingCard, '2': brandNewShippingCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        // Only the brand-new pending card (no terminationReason) should surface the shipping to-do
+        expect(result.current.cardsNeedingShippingAddress).toHaveLength(1);
+        expect(result.current.cardsNeedingShippingAddress.at(0)?.cardID).toBe(2);
+        expect(result.current.shouldShowAddShippingAddress).toBe(true);
+    });
+
+    it('should exclude pending-replacement (NOT_ACTIVATED) cards from activation to-dos', async () => {
+        const pendingReplaceActivationCard: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
+            nameValuePairs: {
+                terminationReason: CONST.EXPENSIFY_CARD.TERMINATION_REASON.LOST,
+                statusChanges: [{date: '2024-01-01', status: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED}],
+            } as Card['nameValuePairs'],
+        };
+        const brandNewActivationCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED});
+        const cardList: CardList = {'1': pendingReplaceActivationCard, '2': brandNewActivationCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        // Only the brand-new pending card (no terminationReason) should surface the activation to-do
+        expect(result.current.cardsNeedingActivation).toHaveLength(1);
+        expect(result.current.cardsNeedingActivation.at(0)?.cardID).toBe(2);
+        expect(result.current.shouldShowActivateCard).toBe(true);
+    });
+
+    it('should not surface any to-dos for a deactivated card regardless of other signals', async () => {
+        const deactivatedCard: Card = {
+            ...createRandomExpensifyCard(1, {
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+                possibleFraud: {triggerAmount: 100, triggerMerchant: 'TEST', currency: 'USD', fraudAlertReportID: 555111},
+            }),
+            nameValuePairs: {isVirtual: false, possibleFraud: {triggerAmount: 100, triggerMerchant: 'TEST', currency: 'USD', fraudAlertReportID: 555111}} as Card['nameValuePairs'],
+        };
+        const cardList: CardList = {'1': deactivatedCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsNeedingShippingAddress).toHaveLength(0);
+        expect(result.current.cardsNeedingActivation).toHaveLength(0);
+        expect(result.current.cardsWithFraud).toHaveLength(0);
+        expect(result.current.shouldShowAddShippingAddress).toBe(false);
+        expect(result.current.shouldShowActivateCard).toBe(false);
+        expect(result.current.shouldShowReviewCardFraud).toBe(false);
     });
 });

@@ -1,5 +1,6 @@
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
 import type {CurrencyListActionsContextType, CurrencyListStateContextType} from './types';
 
 const defaultCurrencyListStateContextValue: CurrencyListStateContextType = {
@@ -9,6 +10,8 @@ const defaultCurrencyListStateContextValue: CurrencyListStateContextType = {
 const defaultCurrencyListActionsContextValue: CurrencyListActionsContextType = {
     getCurrencySymbol: () => undefined,
     getCurrencyDecimals: () => 2,
+    convertToDisplayString: () => '',
+    convertToDisplayStringWithoutCurrency: () => '',
 };
 
 export {defaultCurrencyListStateContextValue, defaultCurrencyListActionsContextValue};

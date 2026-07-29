@@ -1,20 +1,26 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {IndicatorTestCase} from 'tests/utils/IndicatorTestUtils';
+
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
+
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
+
 import CONST from '@src/CONST';
 import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+import type {IndicatorTestCase} from 'tests/utils/IndicatorTestUtils';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const userID = 'johndoe12@expensify.com';
 
 const cardFeed = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-    workspaceAccountID: 12345,
+    policyAccountID: 12345,
 };
 
 const accountCardFeedTestCases = {
@@ -68,6 +74,11 @@ const TEST_CASES = {
     },
     hasEmployeeCardFeedErrors: accountCardFeedTestCases.employee,
     hasPolicyAdminCardFeedErrors: accountCardFeedTestCases.admin,
+    hasLockedBankAccount: {
+        name: 'has locked bank account',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
@@ -80,6 +91,12 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
                     status === CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR
                         ? {
                               error: 'Something went wrong',
+                          }
+                        : undefined,
+                accountData:
+                    status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT
+                        ? {
+                              state: CONST.BANK_ACCOUNT.STATE.LOCKED,
                           }
                         : undefined,
             },
@@ -102,9 +119,9 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
                     : undefined,
             chatReportID: status === CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS ? undefined : '123',
         },
-        [ONYXKEYS.LOGIN_LIST]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            [userID]: {
+        [ONYXKEYS.LOGINS]: {
+            [`1_${userID}`]: {
+                partnerID: 1,
                 partnerName: 'John Doe',
                 partnerUserID: userID,
                 validatedDate: status !== CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? new Date().toISOString() : undefined,
@@ -118,7 +135,8 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
                         : undefined,
             },
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            'otheruser@expensify.com': {
+            '1_otheruser@expensify.com': {
+                partnerID: 1,
                 partnerName: 'Other User',
                 partnerUserID: status === CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? 'different@expensify.com' : 'otheruser@expensify.com',
                 validatedDate: status === CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? undefined : new Date().toISOString(),
@@ -152,13 +170,13 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
             name: 'Workspace 1',
             owner: name === accountCardFeedTestCases.admin.name ? 'johndoe12@expensify.com' : 'otheruser@expensify.com',
             role: name === accountCardFeedTestCases.admin.name ? 'admin' : 'user',
-            workspaceAccountID: cardFeed.workspaceAccountID,
+            policyAccountID: cardFeed.policyAccountID,
         },
         [`${ONYXKEYS.CARD_LIST}`]: {
             card123: {
                 bank: 'OTHER_BANK',
                 lastScrapeResult: name === accountCardFeedTestCases.admin.name || name === accountCardFeedTestCases.employee.name ? 403 : 200,
-                fundID: String(cardFeed.workspaceAccountID),
+                fundID: String(cardFeed.policyAccountID),
             },
         },
     }) as unknown as OnyxMultiSetInput;
@@ -201,7 +219,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.USER_WALLET]: {},
                     [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                     [ONYXKEYS.CARD_LIST]: {},
@@ -240,7 +258,7 @@ describe('useAccountTabIndicatorStatus', () => {
                         },
                         chatReportID: '123',
                     },
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                     [ONYXKEYS.CARD_LIST]: {},
@@ -280,7 +298,7 @@ describe('useAccountTabIndicatorStatus', () => {
                         },
                     },
                     [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.LOGINS]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                     [ONYXKEYS.CARD_LIST]: {},
@@ -320,9 +338,10 @@ describe('useAccountTabIndicatorStatus', () => {
                         },
                     },
                     [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {
+                    [ONYXKEYS.LOGINS]: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        'johndoe12@expensify.com': {
+                        '1_johndoe12@expensify.com': {
+                            partnerID: 1,
                             partnerName: 'John Doe',
                             partnerUserID: 'johndoe12@expensify.com',
                             validatedDate: undefined, // This would trigger info status
@@ -361,7 +380,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: null,
                     [ONYXKEYS.USER_WALLET]: null,
                     [ONYXKEYS.WALLET_TERMS]: null,
-                    [ONYXKEYS.LOGIN_LIST]: null,
+                    [ONYXKEYS.LOGINS]: null,
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: null,
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: null,
                     [ONYXKEYS.CARD_LIST]: null,
@@ -392,7 +411,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: cardFeed.feedName,
-                            fundID: String(cardFeed.workspaceAccountID),
+                            fundID: String(cardFeed.policyAccountID),
                             lastScrapeResult: 403,
                         },
                     },
@@ -414,7 +433,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: CONST.EXPENSIFY_CARD.BANK,
-                            fundID: String(cardFeed.workspaceAccountID),
+                            fundID: String(cardFeed.policyAccountID),
                             lastScrapeResult: 403,
                         },
                     },
@@ -435,7 +454,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: cardFeed.feedName,
-                            fundID: String(cardFeed.workspaceAccountID),
+                            fundID: String(cardFeed.policyAccountID),
                             lastScrapeResult: 200,
                         },
                     },

@@ -1,7 +1,10 @@
-import {useLayoutEffect} from 'react';
-import type {ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+
+import type {ViewStyle} from 'react-native';
+
+import {useLayoutEffect} from 'react';
+
 import {useFABMenuContext} from './FABMenuContext';
 
 type FABMenuItemResult = {
@@ -32,7 +35,7 @@ function useFABMenuItem(itemId: string, isVisible = true): FABMenuItemResult {
     }, [isVisible, itemId, registerItem, unregisterItem]);
 
     const itemIndex = registeredItems.indexOf(itemId);
-    const isFocused = focusedIndex === itemIndex;
+    const isFocused = focusedIndex !== -1 && focusedIndex === itemIndex;
     const wrapperStyle = StyleUtils.getItemBackgroundColorStyle(false, isFocused, false, theme.activeComponentBG, theme.hoverComponentBG);
 
     return {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress};

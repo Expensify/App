@@ -84,4 +84,4 @@ type SavedCSVColumnLayoutData = {
 /** Saved CSV column layouts, keyed by cardID or layout name */
 type SavedCSVColumnLayoutList = Record<string, SavedCSVColumnLayoutData>;
 
-export type {ColumnMappingNames, ColumnMappingIndexes, SavedCSVColumnLayoutData, SavedCSVColumnLayoutList, AccountDetails, ColumnMapping};
+export type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList};

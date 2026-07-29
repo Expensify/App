@@ -10,16 +10,20 @@
 
 <p>{{ hub.description }}</p>
 
+{% assign emptyItems = "" | split: "," %}
+{% assign hubArticles = hub.articles | default: emptyItems %}
+{% assign hubSections = hub.sections | default: emptyItems %}
+
 {% if hub.articles %}
-    {% assign sortedSectionsAndArticles = hub.sections | concat: hub.articles | sort: 'title' %}
+    {% assign sortedSectionsAndArticles = hubSections | concat: hubArticles | sort: 'order' %}
 {% else %}
-    {% assign sortedSectionsAndArticles = hub.sections | sort: 'title' %}
+    {% assign sortedSectionsAndArticles = hubSections | sort: 'order' %}
 {% endif%}
 
 <section>
     <div class="cards-group">
         {% for item in sortedSectionsAndArticles %}
-            {% if item.articles %}
+            {% if item.articles or item.sections %}
                 {% include section-card.html platform=activePlatform hub=hub.href section=item.href title=item.title %}
             {% else %}
                 {% include article-card.html hub=hub.href href=item.href title=item.title platform=activePlatform %}

@@ -1,16 +1,20 @@
-import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {usePINActions} from '@pages/MissingPersonalDetails/PINContext';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
+
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
-function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing, shouldCollectPin = false}: CustomSubPageProps) {
+import React, {useMemo} from 'react';
+
+function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing, shouldCollectPIN = false}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const {setIsConfirmStep} = usePINActions();
 
-    const pageIndexes = shouldCollectPin ? CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
+    const pageIndexes = shouldCollectPIN ? CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
     const legalNameIndex = pageIndexes.LEGAL_NAME;
     const dateOfBirthIndex = pageIndexes.DATE_OF_BIRTH;
     const addressIndex = pageIndexes.ADDRESS;
@@ -20,6 +24,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
     const summaryItems = useMemo(() => {
         const baseItems = [
             {
+                id: 'legal-name',
                 description: translate('personalInfoStep.legalName'),
                 title: `${values[INPUT_IDS.LEGAL_FIRST_NAME]} ${values[INPUT_IDS.LEGAL_LAST_NAME]}`,
                 shouldShowRightIcon: true,
@@ -28,6 +33,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
                 },
             },
             {
+                id: 'date-of-birth',
                 description: translate('common.dob'),
                 title: values[INPUT_IDS.DATE_OF_BIRTH],
                 shouldShowRightIcon: true,
@@ -36,6 +42,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
                 },
             },
             {
+                id: 'address',
                 description: translate('personalInfoStep.address'),
                 title: `${values[INPUT_IDS.ADDRESS_LINE_1]}, ${values[INPUT_IDS.ADDRESS_LINE_2] ? `${values[INPUT_IDS.ADDRESS_LINE_2]}, ` : ''}${values[INPUT_IDS.CITY]}, ${
                     values[INPUT_IDS.STATE]
@@ -46,6 +53,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
                 },
             },
             {
+                id: 'phone-number',
                 description: translate('common.phoneNumber'),
                 title: values[INPUT_IDS.PHONE_NUMBER],
                 shouldShowRightIcon: true,
@@ -55,8 +63,9 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
             },
         ];
 
-        if (shouldCollectPin) {
+        if (shouldCollectPIN) {
             baseItems.push({
+                id: 'pin',
                 description: translate('cardPage.physicalCardPin'),
                 title: '••••',
                 shouldShowRightIcon: true,
@@ -68,7 +77,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
         }
 
         return baseItems;
-    }, [translate, values, onMove, legalNameIndex, dateOfBirthIndex, addressIndex, phoneNumberIndex, pinIndex, shouldCollectPin, setIsConfirmStep]);
+    }, [translate, values, onMove, legalNameIndex, dateOfBirthIndex, addressIndex, phoneNumberIndex, pinIndex, shouldCollectPIN, setIsConfirmStep]);
 
     return (
         <ConfirmationStep

@@ -1,48 +1,45 @@
 ---
 title: How to switch between New Expensify and Expensify Classic
-description: Learn the key differences between New Expensify and Expensify Classic, and how to switch between them on web or mobile.
-keywords: New Expensify, Expensify Classic, switch views, revert to Classic, try New Expensify, financial collaboration, chat-based app, new app, old app, old version, Classic View, switch back
+description: Learn how to switch between New Expensify and Expensify Classic on web and mobile, and why switching may be unavailable.
+keywords: [New Expensify, Expensify Classic, switch to classic, classic, switch views, revert to Classic, try New Expensify, financial collaboration, chat-based app, new app, old app, old version, Classic View, switch back]
+internalScope: Audience is all members. Covers switching between New Expensify and Expensify Classic and explains why switching may be unavailable. Does not cover feature differences or migration policy details.
 ---
 
-<div id="new-expensify" markdown="1">
+# How to switch between New Expensify and Expensify Classic
 
-You can switch between New Expensify and Expensify Classic on the web or mobile—unless your organization has disabled this option.
-
-# What’s the difference between New Expensify and Classic Expensify?
-
-New Expensify is the next generation of the Expensify experience—built for real-time collaboration. It combines chat and financial tools in one place, so you can scan receipts, split bills, pay teammates, and track distance—all inside a conversation.
-
-Expensify Classic focuses on traditional business workflows like expense reporting, corporate card management, and approvals.
+You can switch between New Expensify and Expensify Classic on web or mobile, depending on your account configuration and organization settings.
 
 ---
 
-# Who can switch between New Expensify and Expensify Classic?
+## Who can switch between New Expensify and Expensify Classic
 
-Any member can switch between views, unless a **Workspace Admin** or **Domain Admin** has disabled access to Expensify Classic for your organization.
+Most members can switch between experiences unless switching has been restricted for their account or organization.
 
 ---
 
-# Where to find the option to switch views
+## How to switch from New Expensify to Expensify Classic
 
-## From New Expensify to Expensify Classic (mobile and web)
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+2. Click **Troubleshoot**.
+3. Choose **Switch to Expensify Classic**.
 
-1. Tap or click your **profile picture**.
-2. Tap **Troubleshoot**.
-3. Tap **Switch to Expensify Classic**.
+---
 
-## From Classic Expensify to New Expensify
+## How to switch from Expensify Classic to New Expensify
 
-### On web:
-1. Look for the **navigation tabs on the left** side of the screen.
+**On web:**
+
+1. Use the navigation tabs on the left.
 2. Click **Try New Expensify**.
 
-### On mobile:
-1. Tap the **three lines** in the top-left corner to open the navigation tabs.
+**On mobile:** 
+
+1. Tap the hamburger menu in the top-left corner,
 2. Tap **Try New Expensify**.
 
 ---
 
-# Why you might not see the option to switch
+## Why you might not see the option to switch
 
 If you don’t see the option to **Switch to Expensify Classic**, it may have been **disabled at the domain level** by a Domain Admin.
 
@@ -52,13 +49,17 @@ If you don’t see the option to **Switch to Expensify Classic**, it may have be
 
 # FAQ
 
-## Can I use both New Expensify and Expensify Classic?
+## What’s the difference between New Expensify and Classic Expensify?
 
-Yes! You can switch between them at any time—unless restricted by your admin.
+New Expensify is the next generation of the Expensify experience—built for real-time collaboration. It combines chat and financial tools in one place, so you can scan receipts, split bills, pay teammates, and track distance—all inside a conversation.
 
-## Will Classic Expensify be removed?
+## What is the difference between **Go back just once** and **Switch to Classic**?
 
-No. We’re gradually merging the best parts of Expensify Classic and New Expensify into a unified experience. Nothing is being removed without notice.
+**Go back just once** takes you to Expensify Classic temporarily. The next time you visit Expensify, you'll be redirected back to New Expensify automatically. **Switch to Classic** permanently switches you to Expensify Classic until you choose to return to New Expensify.
+
+## Will Expensify Classic be removed?
+
+Expensify continues to evolve and improve both experiences over time. Members will be notified about significant product changes in advance.
 
 ## Can I disable New Expensify for my team?
 
@@ -66,7 +67,5 @@ No. While admins can restrict access to Expensify Classic, there is currently no
 
 ## Why does New Expensify look so different?
 
-Because it’s designed for a chat-first, mobile-friendly experience. Instead of navigating menus, you can just message Concierge, scan receipts, or send money—right from the conversation.
-
-</div>
+Because it’s designed for a chat-first, mobile-friendly experience. New Expensify uses a chat-based interface designed for communication, expense tracking, payments, and collaboration in one place.
 

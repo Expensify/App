@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/events/TopChangeEvent.java b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/events/TopChangeEvent.java
+index 6feb97d..aab7738 100644
+--- a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/events/TopChangeEvent.java
++++ b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/events/TopChangeEvent.java
+@@ -17,6 +17,11 @@ public class TopChangeEvent extends Event<TopChangeEvent> {
+         return "topChange";
+     }
+
++    @Override
++    public boolean canCoalesce() {
++        return false;
++    }
++
+     @Nullable
+     @Override
+     protected WritableMap getEventData() {

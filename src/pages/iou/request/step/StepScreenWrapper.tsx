@@ -1,13 +1,19 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ScreenWrapperChildrenProps} from '@components/ScreenWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import callOrReturn from '@src/types/utils/callOrReturn';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type StepScreenWrapperProps = {
     /** The title to show in the header (should be translated already) */
@@ -39,6 +45,12 @@ type StepScreenWrapperProps = {
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
+
+    /** Menu items to display in the header three-dots / action button */
+    threeDotsMenuItems?: PopoverMenuItem[];
+
+    /** When true and there is a single menu item, renders it as a direct icon button instead of a three-dots menu */
+    shouldMinimizeMenuButton?: boolean;
 };
 
 function StepScreenWrapper({
@@ -52,6 +64,8 @@ function StepScreenWrapper({
     includeSafeAreaPaddingBottom,
     shouldShowOfflineIndicator = true,
     shouldEnableKeyboardAvoidingView = true,
+    threeDotsMenuItems,
+    shouldMinimizeMenuButton,
 }: StepScreenWrapperProps) {
     const styles = useThemeStyles();
 
@@ -74,6 +88,9 @@ function StepScreenWrapper({
                         <HeaderWithBackButton
                             title={headerTitle}
                             onBackButtonPress={onBackButtonPress}
+                            shouldShowThreeDotsButton={!!threeDotsMenuItems?.length}
+                            threeDotsMenuItems={threeDotsMenuItems}
+                            shouldMinimizeMenuButton={shouldMinimizeMenuButton}
                         />
                         {
                             // If props.children is a function, call it to provide the insets to the children

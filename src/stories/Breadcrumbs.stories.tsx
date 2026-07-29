@@ -1,7 +1,9 @@
-import React from 'react';
 import type {BreadcrumbsProps} from '@components/Breadcrumbs';
 import Breadcrumbs from '@components/Breadcrumbs';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -16,7 +18,6 @@ const story = {
 type StoryType = typeof Template & {args?: Partial<BreadcrumbsProps>};
 
 function Template(args: BreadcrumbsProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <Breadcrumbs {...args} />;
 }
 

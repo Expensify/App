@@ -12,7 +12,7 @@ Domain Admins manage your company’s domain settings in Expensify. They can cla
 ## How to add a Domain Admin
 
 **To add a Domain Admin:**
-1. Go to **Workspaces > Domains**.
+1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Open **Domain Admins**.
 4. Enter the admin’s email address or phone number, then click **Add**.
@@ -24,7 +24,7 @@ Domain Admins manage your company’s domain settings in Expensify. They can cla
 ## How to remove a Domain Admin
 
 **To remove a Domain Admin:**
-1. Go to **Workspaces > Domains**.
+1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Open **Domain Admins**.
 4. Select the admin, then click **Remove**.
@@ -47,7 +47,7 @@ Yes. Domain Admins do not need to use your company’s email domain. You can add
 
 ## How do I revoke Domain Admin access?
 
-Go to **Workspaces > Domains**, open your domain, and select **Domain Admins**. From there, click **Remove** next to the person you want to revoke access for.
+Go to **Workspaces**, then select the **Domains** tab, open your domain, and select **Domain Admins**. From there, click **Remove** next to the person you want to revoke access for.
 
 ## Who can be a Domain Admin
 

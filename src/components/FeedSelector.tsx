@@ -1,8 +1,12 @@
-import React from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';
@@ -27,12 +31,15 @@ type Props = {
 
     /** Whether the feed selector should render a loading skeleton */
     isLoading?: boolean;
+
+    /** Style for the wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, shouldShowRBR = false, isLoading = false}: Props) {
+function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, shouldShowRBR = false, isLoading = false, wrapperStyle}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     if (isLoading) {
         return <SearchInputSelectionSkeleton reasonAttributes={{context: 'FeedSelector', isLoading}} />;
@@ -41,7 +48,7 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
     return (
         <PressableWithFeedback
             onPress={onFeedSelect}
-            wrapperStyle={styles.flexShrink1}
+            wrapperStyle={[styles.flexShrink1, wrapperStyle]}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
             accessibilityLabel={feedName ?? ''}
             sentryLabel="FeedSelector"

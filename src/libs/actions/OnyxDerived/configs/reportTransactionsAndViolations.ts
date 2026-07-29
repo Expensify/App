@@ -1,7 +1,9 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
 const transactionReportIDMapping: Record<string, string> = {};
@@ -21,15 +23,37 @@ export default createOnyxDerivedValueConfig({
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
         let transactionsToProcess = Object.keys(transactions);
-        if (transactionsUpdates) {
-            transactionsToProcess = Object.keys(transactionsUpdates);
-        } else if (transactionViolationsUpdates) {
-            transactionsToProcess = Object.keys(transactionViolationsUpdates).map((transactionViolation) =>
-                transactionViolation.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION),
-            );
+        // When we have a delta, process the union of transactions that changed directly and transactions
+        // whose violations changed. Coalescing can put both in the same flush, so an `if/else` would drop
+        // the second trigger (e.g. a transaction change for A batched with a violations change for B).
+        if (transactionsUpdates || transactionViolationsUpdates) {
+            const transactionKeys = new Set<string>();
+            for (const transactionKey of Object.keys(transactionsUpdates ?? {})) {
+                transactionKeys.add(transactionKey);
+            }
+            for (const transactionViolationKey of Object.keys(transactionViolationsUpdates ?? {})) {
+                transactionKeys.add(transactionViolationKey.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION));
+            }
+            transactionsToProcess = Array.from(transactionKeys);
         }
 
-        const reportTransactionsAndViolations = currentValue ?? {};
+        const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
+
+        // Track which reportID entries have been cloned so we only clone once per reportID.
+        // This avoids mutating nested objects that are still referenced by the cached value.
+        const clonedReportIDs = new Set<string>();
+        const ensureCloned = (id: string) => {
+            if (clonedReportIDs.has(id) || !reportTransactionsAndViolations[id]) {
+                return;
+            }
+
+            reportTransactionsAndViolations[id] = {
+                transactions: {...reportTransactionsAndViolations[id].transactions},
+                violations: {...reportTransactionsAndViolations[id].violations},
+            };
+            clonedReportIDs.add(id);
+        };
+
         for (const transactionKey of transactionsToProcess) {
             const transaction = transactions[transactionKey];
             const reportID = transaction?.reportID;
@@ -38,6 +62,7 @@ export default createOnyxDerivedValueConfig({
             const previousReportID = transactionReportIDMapping[transactionKey];
 
             if (previousReportID && previousReportID !== reportID && reportTransactionsAndViolations[previousReportID]) {
+                ensureCloned(previousReportID);
                 delete reportTransactionsAndViolations[previousReportID].transactions[transactionKey];
                 const transactionID = transactionKey.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
                 if (transactionID) {
@@ -59,6 +84,9 @@ export default createOnyxDerivedValueConfig({
                     transactions: {},
                     violations: {},
                 };
+                clonedReportIDs.add(reportID);
+            } else {
+                ensureCloned(reportID);
             }
 
             const transactionID = transaction.transactionID;

@@ -1,18 +1,34 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
+
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockOpenPicker = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        useRoute: () => ({key: 'test', name: 'test', params: {}}),
+    };
+});
 
 jest.mock('@components/AttachmentPicker', () => {
     function MockAttachmentPicker({children}: {children: (props: {openPicker: (opts: {onPicked: (files: unknown[]) => void}) => void}) => React.ReactNode}) {
@@ -36,7 +52,7 @@ jest.mock(
 );
 
 jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {useEffect} = require('react');
     function MockReportActionItemImage({onLoad}: {onLoad?: () => void}) {
         (useEffect as typeof React.useEffect)(() => {
@@ -48,9 +64,9 @@ jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
 });
 
 jest.mock('@src/languages/IntlStore', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const en: Record<string, unknown> = require('@src/languages/en').default;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const flatten: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
     const cache = new Map<string, Record<string, unknown>>();
     cache.set('en', flatten(en));
@@ -70,7 +86,7 @@ jest.mock('@assets/emojis', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         default: actual.default,
         importEmojiLocale: jest.fn(() => Promise.resolve()),
     };
@@ -183,6 +199,25 @@ const transactionWithScanningReceipt: Transaction = {
     },
 };
 
+// A distance expense created from start/stop waypoints renders an auto-generated map as its receipt (a "map distance receipt").
+const transactionWithMapDistanceReceipt: Transaction = {
+    ...transactionWithReceipt,
+    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+    comment: {
+        waypoints: {
+            waypoint0: {address: '123 Start St', lat: 40.7128, lng: -74.006, keyForList: 'start_waypoint'},
+            waypoint1: {address: '456 End Ave', lat: 41.5, lng: -73.5, keyForList: 'stop_waypoint'},
+        },
+    },
+};
+
+// An odometer distance expense carries a real uploaded odometer photo (not a generated map), so its receipt-upload
+// fallback must be preserved on a create failure so the user can still save the file they uploaded.
+const transactionWithOdometerDistanceReceipt: Transaction = {
+    ...transactionWithReceipt,
+    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
@@ -247,7 +282,7 @@ describe('MoneyRequestReceiptView', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
-            expect(screen.queryByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
         });
 
         it('shows action buttons when transaction has a receipt', async () => {
@@ -264,7 +299,7 @@ describe('MoneyRequestReceiptView', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
-            expect(screen.getByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
         });
 
         it('shows action buttons when receipt is scanning', async () => {
@@ -281,7 +316,7 @@ describe('MoneyRequestReceiptView', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
-            expect(screen.getByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
         });
 
         it('does not show action buttons in readonly mode', async () => {
@@ -301,7 +336,86 @@ describe('MoneyRequestReceiptView', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
-            expect(screen.queryByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('shows both action buttons for a map distance receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMapDistanceReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
+        });
+    });
+
+    // A report-creation failure sets report.errorFields.createChat. Because a receipt is present, the view synthesizes a
+    // fallback receipt-upload error - but distance expenses only carry a generated map receipt, so they must not surface it.
+    describe('fallback receipt-upload error on report-creation failure', () => {
+        const reportWithCreationError: Report = {
+            ...testReport,
+            errorFields: {
+                createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage', 1739520725165000),
+            },
+        };
+
+        it('shows the receipt-upload error for a regular receipt expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={reportWithCreationError} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
+        });
+
+        it('does not show the receipt-upload error for a distance expense', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMapDistanceReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={reportWithCreationError} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeNull();
+            expect(screen.queryByText(translateLocal('iou.error.saveReceipt'))).toBeNull();
+        });
+
+        it('shows the receipt-upload error for an odometer distance expense (real uploaded file)', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithOdometerDistanceReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={reportWithCreationError} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.saveReceipt'))).toBeTruthy();
         });
     });
 });

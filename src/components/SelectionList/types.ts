@@ -1,7 +1,13 @@
-import type {ReactElement, RefObject} from 'react';
-import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {ReactElement, Ref} from 'react';
+import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
 import type {ListItem, ValidListItem} from './ListItem/types';
 import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
 
@@ -40,8 +46,8 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Custom content to display in the header of list component. */
     customListHeaderContent?: React.JSX.Element | null;
 
-    /** Called when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    /** Called when a selection button is pressed */
+    onSelectionButtonPress?: (item: TItem) => void;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -54,6 +60,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Configuration options for the text input */
     textInputOptions?: TextInputOptions;
+
+    /** Search value used for focus synchronization. Defaults to textInputOptions.value */
+    searchValueForFocusSync?: string;
 
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
@@ -82,6 +91,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Whether to scroll to the focused item on mount. When false, the list stays at the top to keep header content visible */
     shouldScrollToFocusedIndexOnMount?: boolean;
 
+    /** Whether to visually highlight the initially focused item before any keyboard interaction */
+    shouldHighlightInitiallyFocusedItem?: boolean;
+
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
@@ -109,11 +121,20 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Configuration for the confirm button */
     confirmButtonOptions?: ConfirmButtonOptions<TItem>;
 
+    /** Whether to clear the text input when a row is selected */
+    shouldClearInputOnSelect?: boolean;
+
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;
 
     /** Whether to set the hover style */
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** Which side of the row to render the selection button on */
+    selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 };
 
 /**
@@ -133,7 +154,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         onSelectAll?: () => void;
 
         /** Callback to fire when the item is long pressed */
-        onLongPressRow?: (item: TItem) => void;
+        onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;
@@ -171,14 +192,8 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         /** Whether to place customListHeader in the list so it scrolls with data */
         shouldHeaderBeInsideList?: boolean;
 
-        /** Whether to clear the text input when a row is selected */
-        shouldClearInputOnSelect?: boolean;
-
-        /** Whether to highlight the selected item */
-        shouldHighlightSelectedItem?: boolean;
-
-        /** Whether to show the default right hand side checkmark */
-        shouldUseDefaultRightHandSideCheckmark?: boolean;
+        /** Custom accessibility label for the select all checkbox, providing context about what is being selected */
+        selectAllAccessibilityLabel?: string;
     };
 
 type SelectionListStyle = {
@@ -202,6 +217,9 @@ type SelectionListStyle = {
 
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the default "Select all" label in the list header (merged after textStrong) */
+    listHeaderSelectAllTextStyle?: StyleProp<TextStyle>;
 
     /** Styles for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
@@ -250,6 +268,9 @@ type TextInputOptions = {
     /** Whether the text input auto correct should be disabled */
     disableAutoCorrect?: boolean;
 
+    /** Whether the text input should intercept swipes */
+    shouldInterceptSwipe?: boolean;
+
     /** Styles for the text input */
     style?: {
         /** Styles for the text input container */
@@ -260,7 +281,7 @@ type TextInputOptions = {
     };
 
     /** Reference to the text input component */
-    ref?: RefObject<BaseTextInputRef | null>;
+    ref?: Ref<BaseTextInputRef | null>;
 };
 
 type ConfirmButtonOptions<TItem extends ListItem> = {
@@ -278,9 +299,13 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
 
     /** Whether the button is disabled */
     isDisabled?: boolean;
-};
 
-type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
+    /**
+     * Visual size of the footer confirm button (SelectionList Footer only).
+     * Defaults to large for backwards compatibility.
+     */
+    confirmButtonSize?: 'large' | 'medium' | 'small';
+};
 
 type SelectionListHandle<TItem extends ListItem> = {
     /** Scrolls to and highlights the specified items */
@@ -327,7 +352,6 @@ export type {
     TextInputOptions,
     ConfirmButtonOptions,
     ListItem,
-    ButtonOrCheckBoxRoles,
     SelectionListStyle,
     SelectionListWithSectionsHandle,
     SelectionListWithSectionsProps,

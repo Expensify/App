@@ -1,15 +1,19 @@
-import React from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {BankName} from '@src/types/onyx/Bank';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {ListItem} from './SelectionList/types';
+
 import Icon from './Icon';
 import getBankIcon from './Icon/BankIcons';
 import MenuItem from './MenuItem';
 import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
-import type {ListItem} from './SelectionList/types';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 
 type BankAccountListItem = ListItem & {value: number | undefined};
 
@@ -99,7 +103,7 @@ function SettlementAccountSelector({
         <SelectionList
             addBottomSafeAreaPadding
             data={listOptions}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             onSelectRow={handleSelectRow}
             shouldSingleExecuteRowSelect
             initiallyFocusedItemKey={initiallyFocusedItemKey}
@@ -111,4 +115,4 @@ function SettlementAccountSelector({
 
 export default SettlementAccountSelector;
 export {BankAccountListItemLeftElement};
-export type {BankAccountListItem, SettlementAccountSelectorProps};
+export type {BankAccountListItem};

@@ -4,86 +4,68 @@
 
 [React Compiler](https://react.dev/learn/react-compiler) is a tool designed to enhance the performance of React applications by automatically memoizing components that lack optimizations.
 
-At Expensify, we are early adopters of this tool and aim to fully leverage its capabilities.
+React Compiler is enabled in the web build pipeline via `oxc-transform` (the Rust React Compiler) and in the Metro (mobile) build pipeline via `babel-plugin-react-compiler`. Because these are two different implementations, they don't always memoize a file the same way: a file can be auto-memoized on native but not on web, or vice versa. To catch that, both the CI check and the ESLint processor run BOTH compilers, via the shared helpers in `config/reactCompiler/` (`checkWithBabel.mjs`, `checkWithOxc.mjs`, and `checkBoth.mjs`).
 
-## React Compiler compliance checker
+## React Compiler CI check
 
-We provide a script, `scripts/react-compiler-compliance-check.ts`, which checks for "Rules of React" compliance locally and enforces these in PRs adding or changing React code through a CI check.
+A CI check runs on every PR that modifies `.ts` or `.tsx` files. For each changed file it runs both `babel-plugin-react-compiler` and `oxc-transform` and reports, for each, whether the file compiles and whether it is actually memoized.
 
-### What it does
+### What the CI check enforces
 
-Runs `react-compiler-healthcheck` in verbose mode, parses output, and summarizes which files compiled and which failed, including file, line, column, and reason. It can:
+The check enforces three rules, evaluated against **both** compilers:
 
-- Check all files or a specific file/glob
-- Check only files changed relative to a base branch
-- Optionally generate a machine-readable report `react-compiler-report.json`
-- Exit with non-zero code when failures are found (useful for CI)
+1. **New files must compile.** If you add a new file containing React components or hooks, they must all compile with both React Compilers. This prevents new Rules of React violations from entering the codebase.
+2. **No regressions.** If a file compiles on `main` with a given compiler and your PR breaks that, the check fails. This prevents introducing violations into files that were previously compliant.
+3. **No new memoization divergence.** If your change makes a file divergent -- one compiler memoizes it while the other does not -- and it was not already divergent on `main`, the check fails. Divergent files ship without memoization on one platform, which reintroduces the performance issues React Compiler is meant to fix.
 
-### Usage
+The check does **not** fail if:
+- A file has no React components or hooks (utilities, types, constants are silently skipped)
+- A file was already failing to compile on `main` and still fails on your branch (not a regression)
+- A file was already divergent on `main` (existing divergences are grandfathered; fix them opportunistically by adding manual memoization)
 
-> [!NOTE]
-> This script uses `origin` as the base remote by default. If your GH remote is named differently, use the `--remote <name>` flag.
+### What to do when the check fails
 
-#### Check entire codebase or a specific file/glob
+The CI output shows which files failed, which compiler flagged them, and the reason. Look for lines like:
 
-```bash
-npm run react-compiler-compliance-check check                        # Check all files
-npm run react-compiler-compliance-check check src/path/Component.tsx # Check specific file
-npm run react-compiler-compliance-check check "src/**/*.tsx"         # Check glob pattern
+```
+FAILED   src/components/MyComponent.tsx (new file must compile, oxc)
+    [oxc] 42:8: Hooks must always be called in a consistent order...
+
+FAILED  src/components/MyComponent.tsx (introduces new memoization divergence)
+    Babel memoizes this file but OXC does not (oxc=no-components) -- it will not be memoized on web
 ```
 
-#### Check only changed files (against main)
+Compile-failure messages come directly from React Compiler and describe which [Rule of React](https://react.dev/reference/rules) was violated; see the ["How to fix a particular problem?"](#how-to-fix-a-particular-problem) section below for common fixes.
+
+A **memoization divergence** failure means one compiler auto-memoizes the file and the other does not. Fix it by adding the missing manual memoization so the file behaves the same on both platforms:
+
+- Wrap objects/arrays/callbacks passed as props (or into hook dependency arrays) in `useMemo`/`useCallback` -- especially React Context `value` objects.
+- Extract inline `useOnyx` selectors into a stable `useCallback`.
+- If a whole file bails out under OXC (`oxc=failed`), fixing the underlying Rule of React violation usually restores memoization on web.
+
+You can reproduce the exact list locally with `bun scripts/react-compiler-divergence-audit.ts`, which runs both compilers over `src` and lists every divergent file grouped by direction.
+
+### Local usage
+
+You can run the same check locally before pushing:
 
 ```bash
+# Check specific files, directories, or glob patterns
+npm run react-compiler-compliance-check check src/components/Foo.tsx
+npm run react-compiler-compliance-check check src/components/
+npm run react-compiler-compliance-check check "src/hooks/**/*.ts"
+
+# Check only files changed relative to main (same as CI)
 npm run react-compiler-compliance-check check-changed
+
+# Show detailed output including files that compiled or were skipped
+npm run react-compiler-compliance-check check --verbose src/components/
 ```
 
-#### Generate a detailed report (saved as `./react-compiler-report.json`)
+#### Flags
 
-You can use the `--report` flag with both of the above commands:
-
-```bash
-npm run react-compiler-compliance-check check --report
-npm run react-compiler-compliance-check check-changed --report
-```
-
-#### Additional flags
-
-**Filter by diff changes (`--filterByDiff`)**
-
-Only check files that have been modified in the current diff. This is useful when you want to focus on files that have actual changes:
-
-```bash
-npm run react-compiler-compliance-check check --filterByDiff
-npm run react-compiler-compliance-check check-changed --filterByDiff
-```
-
-**Print successful compilations (`--printSuccesses`)**
-
-By default, the script only shows compilation failures. Use this flag to also display files that compiled successfully:
-
-```bash
-npm run react-compiler-compliance-check check --printSuccesses
-npm run react-compiler-compliance-check check-changed --printSuccesses
-```
-
-**Custom report filename (`--reportFileName`)**
-
-Specify a custom filename for the generated report instead of the default `react-compiler-report.json`:
-
-```bash
-npm run react-compiler-compliance-check check --report --reportFileName my-custom-report.json
-npm run react-compiler-compliance-check check-changed --report --reportFileName my-custom-report.json
-```
-
-**Custom remote name (`--remote`)**
-
-By default, the script uses `origin` as the base remote. If your GitHub remote is named differently, specify it with this flag:
-
-```bash
-npm run react-compiler-compliance-check check-changed --remote upstream
-npm run react-compiler-compliance-check check --filterByDiff --remote my-remote
-```
+- `--verbose` -- Show detailed output including skipped files and files that compiled successfully.
+- `--remote <name>` -- Git remote name for the base branch (default: `origin`).
 
 ## How to fix a particular problem?
 

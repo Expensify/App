@@ -1,11 +1,13 @@
-import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIPOnyx: number;
-// eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs -- may refactor to useOnyx/connectWithoutView later
+
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
     callback: (val) => (countryCodeByIPOnyx = val ?? 1),
@@ -84,8 +86,4 @@ function formatPhoneNumberWithCountryCode(number: string, countryCodeByIP: numbe
     return parsedPhoneNumber.number.international;
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    formatPhoneNumber,
-    formatPhoneNumberWithCountryCode,
-};
+export {formatPhoneNumber, formatPhoneNumberWithCountryCode};

@@ -1,10 +1,14 @@
-import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
+
+import React, {useMemo} from 'react';
+
+import type DisplayNamesProps from './types';
+
 import DisplayNamesWithoutTooltip from './DisplayNamesWithoutTooltip';
 import DisplayNamesWithToolTip from './DisplayNamesWithTooltip';
-import type DisplayNamesProps from './types';
 
 function DisplayNames({
     fullTitle,
@@ -17,6 +21,7 @@ function DisplayNames({
     renderAdditionalText,
     forwardedFSClass,
     shouldParseFullTitle = true,
+    accessibilityLabel,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
     const title = useMemo(() => {
@@ -32,6 +37,7 @@ function DisplayNames({
                 fullTitle={title}
                 renderAdditionalText={renderAdditionalText}
                 forwardedFSClass={forwardedFSClass}
+                accessibilityLabel={accessibilityLabel}
             />
         );
     }
@@ -45,6 +51,7 @@ function DisplayNames({
                 numberOfLines={numberOfLines}
                 renderAdditionalText={renderAdditionalText}
                 forwardedFSClass={forwardedFSClass}
+                accessibilityLabel={accessibilityLabel}
             />
         );
     }
@@ -58,6 +65,7 @@ function DisplayNames({
             numberOfLines={numberOfLines}
             renderAdditionalText={renderAdditionalText}
             forwardedFSClass={forwardedFSClass}
+            accessibilityLabel={accessibilityLabel}
         />
     );
 }

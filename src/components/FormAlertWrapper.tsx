@@ -1,10 +1,13 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import FormHelpMessage from './FormHelpMessage';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -50,6 +53,9 @@ function FormAlertWrapper({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    const defaultFixErrorsMessage = `${translate('common.please')} ${translate('common.fixTheErrors')} ${translate('common.inTheFormBeforeContinuing')}.`;
+    const announcementMessage = message?.length ? message : defaultFixErrorsMessage;
+
     let content;
     if (!message?.length) {
         content = (
@@ -72,8 +78,10 @@ function FormAlertWrapper({
         <View style={containerStyles}>
             {isAlertVisible && (
                 <FormHelpMessage
-                    message={message}
+                    message={announcementMessage}
+                    shouldRenderMessageAsHTML={isMessageHtml}
                     style={[styles.mb3, errorMessageStyle]}
+                    shouldReannounceOnSubmit
                 >
                     {content}
                 </FormHelpMessage>

@@ -5,6 +5,10 @@ const mockKeyboardListeners: Record<string, Array<(e: SimplifiedKeyboardEvent) =
 const mockKeyboardControllerListeners: Record<string, Array<(e: SimplifiedKeyboardEvent) => void>> = {};
 const mockDismissKeyboard = jest.fn();
 
+jest.mock('@libs/Log', () => ({
+    warn: jest.fn(),
+}));
+
 jest.mock('react-native', () => ({
     Keyboard: {
         dismiss: mockDismissKeyboard,
@@ -52,7 +56,6 @@ const clearListeners = () => {
 };
 
 describe('Keyboard utils: general native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let utils: {dismiss: (options?: DismissKeyboardOptions) => Promise<void>; dismissKeyboardAndExecute: (cb: () => void) => Promise<void>};
 
     beforeEach(() => {

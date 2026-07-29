@@ -1,40 +1,81 @@
-import {useIsFocused} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
-import React from 'react';
 import MenuItemList from '@components/MenuItemList';
+import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import type {SearchQueryJSON} from '@components/Search/types';
+
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShareSavedSearch from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+
+import {accountIDSelector} from '@selectors/Session';
+import React from 'react';
+
+import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
+import SearchTypeMenuItem from './SearchTypeMenuItem';
 
 type SavedSearchListProps = {
     hash: number | undefined;
 };
 
+type SavedSearchMenuItemBuilderParams = {
+    item: SaveSearchItem;
+    key: string;
+    index: number;
+    hash: number | undefined;
+    title: string;
+    getOverflowMenu: (itemName: string, itemHash: number, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
+    itemStyle: SavedSearchMenuItem['style'];
+    isCopied: boolean;
+};
+
+function buildSavedSearchMenuItem({item, key, index, hash, title, getOverflowMenu, itemStyle, isCopied}: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
+    const isItemFocused = Number(key) === hash;
+    const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
+
+    return {
+        ...baseMenuItem,
+        role: CONST.ROLE.TAB,
+        sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
+        onPress: () => {
+            setSearchContext(false);
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+        },
+        rightComponent: (
+            <SavedSearchItemThreeDotMenu
+                menuItems={getOverflowMenu(title, Number(key), item.query)}
+                isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                isCopied={isCopied}
+            />
+        ),
+        style: itemStyle,
+    };
+}
+
 function SavedSearchList({hash}: SavedSearchListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isFocused = useIsFocused();
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -43,81 +84,80 @@ function SavedSearchList({hash}: SavedSearchListProps) {
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributes = useReportAttributes();
 
     const {showDeleteModal} = useDeleteSavedSearch();
-    const {
-        shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
-        renderProductTrainingTooltip: renderSavedSearchTooltip,
-        hideProductTrainingTooltip: hideSavedSearchTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
+    const {copiedHash, handleShare} = useShareSavedSearch();
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
 
-    const getOverflowMenu = (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal);
+    const savedSearchTitles = useSavedSearchTitles({
+        savedSearches,
+        PersonalDetails: personalDetails,
+        reports,
+        taxRates,
+        cardList: cardsForSavedSearchDisplay,
+        cardFeeds: allFeeds,
+        policies: allPolicies,
+        currentUserAccountID,
+        translate,
+        feedKeysWithCards,
+        reportAttributes,
+        bankAccountList,
+    });
 
-    const createSavedSearchMenuItem = (item: SaveSearchItem, key: string, index: number) => {
-        let title = item.name;
-        if (title === item.query) {
-            const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-            title = buildUserReadableQueryString({
-                queryJSON: jsonQuery,
-                PersonalDetails: personalDetails,
-                reports,
-                taxRates,
-                cardList: cardsForSavedSearchDisplay,
-                cardFeeds: allFeeds,
-                policies: allPolicies,
-                currentUserAccountID,
-                autoCompleteWithSpace: false,
-                translate,
-                feedKeysWithCards,
-                conciergeReportID,
-            });
-        }
+    const getOverflowMenu = (itemName: string, itemHash: number, itemQuery: string) =>
+        getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal, false, undefined, {
+            onShare: () => handleShare(itemHash, itemQuery),
+            isCopied: copiedHash === itemHash,
+        });
 
-        const isItemFocused = Number(key) === hash;
-        const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
+    const itemStyle = [styles.alignItemsCenter];
 
-        return {
-            ...baseMenuItem,
-            sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
-            onPress: () => {
-                setSearchContext(false);
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
-            },
-            rightComponent: (
-                <SavedSearchItemThreeDotMenu
-                    menuItems={getOverflowMenu(title, Number(key), item.query)}
-                    isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                    hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
-                    shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
-                    renderTooltipContent={renderSavedSearchTooltip}
-                />
-            ),
-            style: [styles.alignItemsCenter],
-            tooltipAnchorAlignment: {
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-            },
-            tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
-            tooltipShiftVertical: variables.savedSearchShiftVertical,
-            tooltipWrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
-            renderTooltipContent: renderSavedSearchTooltip,
-        };
-    };
+    const savedSearchesMenuItems = savedSearches
+        ? Object.entries(savedSearches)
+              .map(([key, item], index) =>
+                  buildSavedSearchMenuItem({
+                      item,
+                      key,
+                      index,
+                      hash,
+                      title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
+                      getOverflowMenu,
+                      itemStyle,
+                      isCopied: copiedHash === Number(key),
+                  }),
+              )
+              .sort((a, b) => localeCompare(a.title ?? '', b.title ?? ''))
+        : [];
 
-    const savedSearchesMenuItems = savedSearches ? Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item, key, index)) : [];
+    if (isVisuallyCollapsed) {
+        return savedSearchesMenuItems.map((item) => (
+            <SearchTypeMenuItem
+                key={item.key}
+                title={item.title ?? ''}
+                icon={expensifyIcons.Bookmark}
+                focused={item.focused}
+                onPress={(event) => {
+                    if (item.disabled || !item.onPress || !event) {
+                        return;
+                    }
+                    return item.onPress(event);
+                }}
+            />
+        ));
+    }
 
     return (
         <MenuItemList
             menuItems={savedSearchesMenuItems}
-            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
+            wrapperStyle={[styles.sectionMenuItem(shouldUseNarrowLayout), styles.searchTypeMenuItemPadding]}
             icon={expensifyIcons.Bookmark}
             iconWidth={variables.iconSizeNormal}
             iconHeight={variables.iconSizeNormal}

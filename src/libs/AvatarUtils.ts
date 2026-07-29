@@ -1,10 +1,12 @@
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {AvatarSource} from './UserUtils';
+
 import {splitExtensionFromFileName, validateImageForCorruption} from './fileDownload/FileUtils';
 import getImageResolution from './fileDownload/getImageResolution';
 import tryResolveUrlFromApiRoot from './tryResolveUrlFromApiRoot';
-import type {AvatarSource} from './UserUtils';
 
 /**
  * Validation result containing error information if validation fails
@@ -110,7 +112,7 @@ async function validateAvatarImage(image: FileObject): Promise<ValidationResult>
     return {isValid: true};
 }
 
-function getValidatedImageSource(source: AvatarSource | undefined) {
+function getValidatedImageSource(source: AvatarSource | undefined, shouldResolveUrlFromApiRoot = true) {
     const numberSource = Number(source);
 
     if (!Number.isNaN(numberSource) && numberSource !== 0) {
@@ -118,7 +120,9 @@ function getValidatedImageSource(source: AvatarSource | undefined) {
     }
 
     if (typeof source === 'string') {
-        return tryResolveUrlFromApiRoot(decodeURIComponent(source));
+        const decoded = decodeURIComponent(source);
+
+        return shouldResolveUrlFromApiRoot ? tryResolveUrlFromApiRoot(decoded) : decoded;
     }
 
     return undefined;

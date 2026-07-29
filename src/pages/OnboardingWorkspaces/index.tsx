@@ -1,14 +1,16 @@
-import React from 'react';
 import OnboardingWrapper from '@components/OnboardingWrapper';
-import BaseOnboardingWorkspaces from './BaseOnboardingWorkspaces';
+
+import React from 'react';
+
 import type {OnboardingWorkspacesProps} from './types';
+
+import BaseOnboardingWorkspaces from './BaseOnboardingWorkspaces';
 
 function OnboardingWorkspaces({...rest}: OnboardingWorkspacesProps) {
     return (
         <OnboardingWrapper>
             <BaseOnboardingWorkspaces
                 shouldUseNativeStyles={false}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
         </OnboardingWrapper>

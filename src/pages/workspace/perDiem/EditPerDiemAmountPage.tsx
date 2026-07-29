@@ -1,27 +1,34 @@
-import React from 'react';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {editPerDiemRateAmount} from '@userActions/Policy/PerDiem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspacePerDiemForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
 
 type EditPerDiemAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_EDIT_AMOUNT>;
 
@@ -38,7 +45,8 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
     const selectedRate = customUnit?.rates?.[rateID];
     const selectedSubrate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
 
-    const defaultAmount = selectedSubrate?.rate ? convertToFrontendAmountAsString(Number(selectedSubrate.rate)) : undefined;
+    // We default to 2 decimals for per diem rates since we always store amounts to include 2 decimal places.
+    const defaultAmount = selectedSubrate?.rate ? convertToFrontendAmountAsString(Number(selectedSubrate.rate), CONST.DEFAULT_CURRENCY_DECIMALS) : undefined;
 
     const {inputCallbackRef} = useAutoFocusInput();
 

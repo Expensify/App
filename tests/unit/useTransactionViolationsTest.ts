@@ -1,49 +1,90 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+import type * as ViolationsUtilsExports from '@libs/Violations/ViolationsUtils';
+
 import type CONST_TYPE from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@libs/Violations/ViolationsUtils', () => {
+    const actual: typeof ViolationsUtilsExports = jest.requireActual('@libs/Violations/ViolationsUtils');
+
+    return {
+        ...actual,
+        syncCustomUnitRateOutOfDateRangeViolation: (violations: TransactionViolation[]) => violations,
+    };
+});
 
 jest.mock('@libs/TransactionUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const CONST_MOCK = jest.requireActual('@src/CONST').default as typeof CONST_TYPE;
-    return {
-        isViolationDismissed: jest.fn(),
-        shouldShowViolation: jest.fn(),
-        mergeProhibitedViolations: (transactionViolations: Array<{name: string; type: string; data?: {prohibitedExpenseRule?: string | string[]}}>) => {
-            const prohibitedViolations = transactionViolations.filter((violation) => violation.name === CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE);
 
-            if (prohibitedViolations.length === 0) {
-                return transactionViolations;
+    const mergeProhibitedViolations = (transactionViolations: Array<{name: string; type: string; showInReview?: boolean; data?: {prohibitedExpenseRule?: string | string[]}}>) => {
+        const prohibitedViolations = transactionViolations.filter((violation) => violation.name === CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE);
+
+        if (prohibitedViolations.length === 0) {
+            return transactionViolations;
+        }
+
+        const prohibitedExpenses = prohibitedViolations.flatMap((violation) => {
+            const rule = violation.data?.prohibitedExpenseRule;
+            if (!rule) {
+                return [];
             }
+            return Array.isArray(rule) ? rule : [rule];
+        });
 
-            const prohibitedExpenses = prohibitedViolations.flatMap((violation) => {
-                const rule = violation.data?.prohibitedExpenseRule;
-                if (!rule) {
-                    return [];
-                }
-                return Array.isArray(rule) ? rule : [rule];
-            });
+        const mergedProhibitedViolations = {
+            name: CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE,
+            data: {
+                prohibitedExpenseRule: prohibitedExpenses,
+            },
+            type: CONST_MOCK.VIOLATION_TYPES.VIOLATION,
+            showInReview: prohibitedViolations.some((v) => v.showInReview),
+        };
 
-            const mergedProhibitedViolations = {
-                name: CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE,
-                data: {
-                    prohibitedExpenseRule: prohibitedExpenses,
-                },
-                type: CONST_MOCK.VIOLATION_TYPES.VIOLATION,
-            };
+        return [...transactionViolations.filter((violation) => violation.name !== CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
+    };
 
-            return [...transactionViolations.filter((violation) => violation.name !== CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
-        },
+    const mockIsViolationDismissed = jest.fn();
+    const mockShouldShowViolation = jest.fn();
+
+    const getVisibleTransactionViolations = (
+        transaction: Transaction | undefined,
+        transactionViolations: TransactionViolations,
+        currentUserEmail: string,
+        currentUserAccountID: number,
+        iouReport: Report | undefined,
+        iouReportOwnerLogin: string | undefined,
+        policy: Policy | undefined,
+        shouldShowRterForSettledReport = true,
+    ) =>
+        mergeProhibitedViolations(
+            transactionViolations.filter(
+                (violation) =>
+                    !mockIsViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin) &&
+                    mockShouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
+            ),
+        );
+
+    return {
+        isDistanceRequest: (transaction: Transaction | undefined) => transaction?.iouRequestType === CONST_MOCK.IOU.REQUEST_TYPE.DISTANCE,
+        isViolationDismissed: mockIsViolationDismissed,
+        shouldShowViolation: mockShouldShowViolation,
+        mergeProhibitedViolations,
+        getVisibleTransactionViolations,
     };
 });
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         email: 'test@example.com',
@@ -104,6 +145,7 @@ describe('useTransactionViolations', () => {
                     data: {
                         prohibitedExpenseRule: 'alcohol',
                     },
+                    showInReview: true,
                 },
             ];
 
@@ -120,6 +162,7 @@ describe('useTransactionViolations', () => {
             expect(result.current.at(0)?.name).toBe(CONST.VIOLATIONS.PROHIBITED_EXPENSE);
             expect(result.current.at(0)?.data?.prohibitedExpenseRule).toEqual(['alcohol']);
             expect(result.current.at(0)?.type).toBe(CONST.VIOLATION_TYPES.VIOLATION);
+            expect(result.current.at(0)?.showInReview).toBe(true);
         });
 
         it('should merge multiple prohibited violations into one', async () => {
@@ -131,6 +174,7 @@ describe('useTransactionViolations', () => {
                     data: {
                         prohibitedExpenseRule: 'alcohol',
                     },
+                    showInReview: true,
                 },
                 {
                     name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
@@ -138,6 +182,7 @@ describe('useTransactionViolations', () => {
                     data: {
                         prohibitedExpenseRule: 'gambling',
                     },
+                    showInReview: true,
                 },
                 {
                     name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
@@ -145,6 +190,7 @@ describe('useTransactionViolations', () => {
                     data: {
                         prohibitedExpenseRule: 'tobacco',
                     },
+                    showInReview: true,
                 },
             ];
 
@@ -161,6 +207,7 @@ describe('useTransactionViolations', () => {
             expect(result.current.at(0)?.name).toBe(CONST.VIOLATIONS.PROHIBITED_EXPENSE);
             expect(result.current.at(0)?.data?.prohibitedExpenseRule).toEqual(['alcohol', 'gambling', 'tobacco']);
             expect(result.current.at(0)?.type).toBe(CONST.VIOLATION_TYPES.VIOLATION);
+            expect(result.current.at(0)?.showInReview).toBe(true);
         });
 
         it('should handle empty prohibitedExpenseRule arrays', async () => {

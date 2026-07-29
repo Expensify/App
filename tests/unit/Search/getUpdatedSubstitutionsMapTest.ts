@@ -53,4 +53,20 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
             'to:Steven': '@steven',
         });
     });
+
+    test('when query has duplicate workspace names with indexed substitution keys', () => {
+        const userTypedQuery = 'workspace:"Test Workspace","Test Workspace"';
+        const substitutionsMock = {
+            'policyID:Test Workspace': 'policyA',
+            'policyID:Test Workspace:1': 'policyB',
+            'policyID:Test Workspace:2': 'policyC',
+        };
+
+        const result = getUpdatedSubstitutionsMap(userTypedQuery, substitutionsMock);
+
+        expect(result).toStrictEqual({
+            'policyID:Test Workspace': 'policyA',
+            'policyID:Test Workspace:1': 'policyB',
+        });
+    });
 });

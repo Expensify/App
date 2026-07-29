@@ -1,11 +1,13 @@
-/* eslint-disable no-param-reassign */
-import {useCallback, useEffect, useState} from 'react';
 import type {PinchGesture} from 'react-native-gesture-handler';
+
+import {useCallback, useEffect, useState} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
 import {useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
+
 import type {MultiGestureCanvasVariables} from './types';
+
+import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
 
 type UsePinchGestureProps = Pick<
     MultiGestureCanvasVariables,
@@ -18,6 +20,7 @@ type UsePinchGestureProps = Pick<
     | 'pinchTranslateY'
     | 'pinchScale'
     | 'shouldDisableTransformationGestures'
+    | 'isTransformGestureActive'
     | 'stopAnimation'
     | 'onScaleChanged'
 >;
@@ -32,6 +35,7 @@ const usePinchGesture = ({
     pinchTranslateY: totalPinchTranslateY,
     pinchScale,
     shouldDisableTransformationGestures,
+    isTransformGestureActive,
     stopAnimation,
     onScaleChanged,
 }: UsePinchGestureProps): PinchGesture => {
@@ -54,6 +58,7 @@ const usePinchGesture = ({
     // we need to have extra "bounce" translation variables
     const pinchBounceTranslateX = useSharedValue(0);
     const pinchBounceTranslateY = useSharedValue(0);
+    const isPinchSettling = useSharedValue(false);
 
     const triggerScaleChangedEvent = () => {
         'worklet';
@@ -63,6 +68,14 @@ const usePinchGesture = ({
         }
 
         scheduleOnRN(onScaleChanged, zoomScale.get());
+    };
+
+    const finishTransformGesture = () => {
+        'worklet';
+
+        isPinchSettling.set(false);
+        triggerScaleChangedEvent();
+        isTransformGestureActive.set(false);
     };
 
     // Update the total (pinch) translation based on the regular pinch + bounce
@@ -118,6 +131,8 @@ const usePinchGesture = ({
         })
         .onStart((evt) => {
             stopAnimation();
+            isPinchSettling.set(false);
+            isTransformGestureActive.set(true);
 
             // Set the origin focal point of the pinch gesture at the start of the gesture
             const adjustedFocal = getAdjustedFocal(evt.focalX, evt.focalY);
@@ -177,16 +192,25 @@ const usePinchGesture = ({
             if (zoomScale.get() < zoomRange.min) {
                 // If the zoom scale is less than the minimum zoom scale, we need to set the zoom scale to the minimum
                 pinchScale.set(zoomRange.min);
-                zoomScale.set(withSpring(zoomRange.min, SPRING_CONFIG, triggerScaleChangedEvent));
+                isPinchSettling.set(true);
+                zoomScale.set(withSpring(zoomRange.min, SPRING_CONFIG, finishTransformGesture));
             } else if (zoomScale.get() > zoomRange.max) {
                 // If the zoom scale is higher than the maximum zoom scale, we need to set the zoom scale to the maximum
                 pinchScale.set(zoomRange.max);
-                zoomScale.set(withSpring(zoomRange.max, SPRING_CONFIG, triggerScaleChangedEvent));
+                isPinchSettling.set(true);
+                zoomScale.set(withSpring(zoomRange.max, SPRING_CONFIG, finishTransformGesture));
             } else {
                 // Otherwise, we just update the pinch scale offset
                 pinchScale.set(zoomScale.get());
-                triggerScaleChangedEvent();
+                finishTransformGesture();
             }
+        })
+        .onFinalize(() => {
+            if (isPinchSettling.get()) {
+                return;
+            }
+
+            isTransformGestureActive.set(false);
         });
 
     return pinchGesture;

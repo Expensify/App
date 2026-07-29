@@ -1,23 +1,32 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import ReactDOM from 'react-dom';
-import type {LayoutChangeEvent} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {ImageOnLoadEvent} from '@components/Image/types';
+import type {AnchorPosition} from '@components/TransactionItemRow/types';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
+
 import Image from '@src/components/Image';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import ReactDOM from 'react-dom';
+import {StyleSheet, View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+
+import getAnchoredPreviewPosition from './getAnchoredPreviewPosition';
 
 type ReceiptPreviewProps = {
     /** Path to the image to be opened in the preview */
@@ -31,9 +40,12 @@ type ReceiptPreviewProps = {
 
     /** Transaction object related to the preview */
     transactionItem: Transaction;
+
+    /** Window position of the hovered cell. When set, the preview is anchored to the right of the row instead of the fixed upper-left corner. */
+    anchorPosition?: AnchorPosition;
 };
 
-function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: ReceiptPreviewProps) {
+function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem, anchorPosition}: ReceiptPreviewProps) {
     const isDistanceEReceipt = isDistanceRequest(transactionItem) && !isManualDistanceRequest(transactionItem);
     const isPerDiemEReceipt = isPerDiemRequest(transactionItem) && !hasReceiptSource(transactionItem) && !!transactionItem.transactionID;
     const styles = useThemeStyles();
@@ -43,8 +55,10 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
     const [shouldShow, debounceShouldShow, setShouldShow] = useDebouncedState(false, CONST.TIMING.SHOW_HOVER_PREVIEW_DELAY);
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const hasMeasured = useRef(false);
-    const {windowHeight} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const [isLoading, setIsLoading] = useState(true);
+    // Measured preview height, used to clamp the vertical position so a tall receipt never runs off the bottom edge.
+    const [previewHeight, setPreviewHeight] = useState(0);
 
     const handleDistanceEReceiptLayout = (e: LayoutChangeEvent) => {
         if (hasMeasured.current) {
@@ -110,16 +124,19 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
     const shouldShowDistanceEReceipt = isDistanceEReceipt && !isEReceipt && !isPerDiemEReceipt;
     const sourceObject = typeof source === 'string' ? {uri: source} : source;
 
+    const anchoredPositionStyle = getAnchoredPreviewPosition(anchorPosition, windowWidth, windowHeight, previewHeight);
+
     return ReactDOM.createPortal(
         <Animated.View
             entering={FadeIn.duration(CONST.TIMING.SHOW_HOVER_PREVIEW_ANIMATION_DURATION)}
             exiting={FadeOut.duration(CONST.TIMING.SHOW_HOVER_PREVIEW_ANIMATION_DURATION)}
-            style={[styles.receiptPreview, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentStart]}
+            onLayout={(e) => setPreviewHeight(e.nativeEvent.layout.height)}
+            style={[styles.receiptPreview, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentStart, anchoredPositionStyle]}
         >
             {shouldShowImage ? (
                 <View style={[styles.w100]}>
                     {isLoading && (
-                        <View style={[StyleSheet.absoluteFillObject, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <View style={[StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <ActivityIndicator
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 reasonAttributes={reasonAttributes}
@@ -128,6 +145,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                     )}
 
                     <View style={[styles.w100, {aspectRatio: imageAspectRatio ?? 1}]}>
+                        {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                         <Image
                             source={sourceObject}
                             style={[styles.w100, styles.h100]}

@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useListKeyboardNav from '@hooks/useListKeyboardNav';
+
 import type Navigation from '@libs/Navigation/Navigation';
 
 type ShortcutCallback = () => void;
@@ -84,6 +86,52 @@ describe('useListKeyboardNav', () => {
 
         pressArrowUp();
         expect(result.current.focusedIndex).toBe(0);
+
+        cleanup();
+    });
+
+    it('should wrap from last item to first on ArrowDown', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+            }),
+        );
+
+        // Navigate to last item
+        pressArrowDown();
+        pressArrowDown();
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(2);
+
+        // ArrowDown at last item should wrap to first
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+
+        cleanup();
+    });
+
+    it('should wrap from first item to last on ArrowUp', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+            }),
+        );
+
+        // Navigate to first item
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+
+        // ArrowUp at first item should wrap to last
+        pressArrowUp();
+        expect(result.current.focusedIndex).toBe(2);
 
         cleanup();
     });

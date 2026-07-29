@@ -1,3 +1,19 @@
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import SidePanelOverlay from '@components/SidePanel/SidePanelOverlay';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
+
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {isRHPVisibleSelector} from '@selectors/Modal';
 import React, {useEffect} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -5,18 +21,7 @@ import {Animated, View} from 'react-native';
 // @ts-expect-error This is a workaround to display SidePanel on top of everything,
 // Modal from react-native can't be used here, as it would block interactions with the rest of the app
 import ModalPortal from 'react-native-web/dist/exports/Modal/ModalPortal';
-import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import SidePanelOverlay from '@components/SidePanel/SidePanelOverlay';
-import {useWideRHPState} from '@components/WideRHPContextProvider';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useThemeStyles from '@hooks/useThemeStyles';
-import ComposerFocusManager from '@libs/ComposerFocusManager';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import type SidePanelModalProps from './types';
 
 function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}: SidePanelModalProps) {
@@ -51,12 +56,16 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
 
     // Web back button: push history state and close Side Panel on popstate
     useEffect(() => {
+        // Side Panel is not a normal modal on ExtraLargeScreenWidth.
+        if (isExtraLargeScreenWidth) {
+            return;
+        }
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
         return () => {
             ComposerFocusManager.setReadyToFocus(uniqueModalId);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isExtraLargeScreenWidth]);
 
     return (
         <ModalPortal>

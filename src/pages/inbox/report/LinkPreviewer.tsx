@@ -1,12 +1,16 @@
-import React from 'react';
-import {Image, View} from 'react-native';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import type {LinkMetadata} from '@src/types/onyx/ReportAction';
+
+import React from 'react';
+import {Image, View} from 'react-native';
 
 const IMAGE_TYPES = new Set(['jpg', 'jpeg', 'png']);
 const MAX_IMAGE_HEIGHT = 180;
@@ -56,6 +60,7 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
                 <View style={styles.flexRow}>
                     {!!logo && (
                         <Image
+                            accessibilityIgnoresInvertColors
                             style={styles.linkPreviewLogoImage}
                             source={{uri: logo.url}}
                         />
@@ -81,6 +86,7 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
                 {!!description && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
                 {!!image?.type && IMAGE_TYPES.has(image.type) && !!image.width && !!image.height && (
                     <Image
+                        accessibilityIgnoresInvertColors
                         style={[
                             styles.linkPreviewImage,
                             {

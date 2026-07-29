@@ -1,15 +1,21 @@
-import type {ForwardedRef} from 'react';
-import React, {useContext, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Text as RNText, StyleSheet} from 'react-native';
-import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
+
 import {containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+
 import type {FontUtilsType} from '@styles/utils/FontUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {ForwardedRef} from 'react';
+import type {TextProps as RNTextProps, TextStyle} from 'react-native';
+
+import React, {useContext, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Platform, Text as RNText, StyleSheet} from 'react-native';
+
 import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';
 
 type TextProps = RNTextProps &
@@ -74,7 +80,9 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
             allowFontScaling={false}
             ref={ref}
             style={componentStyle}
-            // eslint-disable-next-line react/jsx-props-no-spreading
+            // On Android, TalkBack reads style metadata (e.g. color codes) along with text content.
+            // Setting accessibilityLabel explicitly causes TalkBack to read only the label, skipping style info.
+            accessibilityLabel={typeof children === 'string' && !!children && Platform.OS === 'android' ? children : undefined}
             {...props}
         >
             {children}

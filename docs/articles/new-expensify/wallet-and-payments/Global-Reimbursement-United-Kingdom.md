@@ -32,7 +32,7 @@ To comply with financial regulations, the following documents are needed:
 
 1. From the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, choose **GBP £**.
-3. Return to the left-hand menu and select **Workflows > Make or Track Payments**.
+3. Return to the left-hand menu and select **Workflows > Payments**.
 4. Click **Connect bank account**, then confirm your **currency and country** (United Kingdom – GBP £).
 5. Click **Confirm** to proceed.
 
@@ -46,7 +46,7 @@ To comply with financial regulations, the following documents are needed:
    * Account name
 2. **Upload a Recent Bank Statement**
    * The file must match the entered bank details
-   * Accepted formats: PDF, PNG, JPEG
+   * Accepted formats: PDF, PNG, JPEG (2 MB max per file)
 3. **Enter Company Information**
    * Address (auto-filled based on country), phone number
    * Company registration number
@@ -64,13 +64,15 @@ To comply with financial regulations, the following documents are needed:
    * Otherwise, manually enter the director’s personal info.
    * Upload ID and Address Proof for Director
 
+**Note:** The designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
+
 Once you agree to the terms, Expensify’s Compliance Team will review your submission. If any additional documentation is needed, our support team will message you.
 
 ## Acceptable Documents
 
 * Government-issued photo ID
 * Utility bill or bank statement (for proof of address)
-* File types: PDF, PNG, JPEG
+* File types: PDF, PNG, JPEG (each file must be 2 MB or less)
 
 ---
 
@@ -99,7 +101,7 @@ Once you agree to the terms, Expensify’s Compliance Team will review your subm
 
 To begin reimbursing:
 
-1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Payments**.
 2. Set the verified GBP account as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 

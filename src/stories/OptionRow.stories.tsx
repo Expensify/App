@@ -1,10 +1,9 @@
-import React from 'react';
 import {getExpensifyIcon} from '@components/Icon/chunks/expensify-icons.chunk';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionRow from '@components/OptionRow';
 import type {OptionRowProps} from '@components/OptionRow';
 
-/* eslint-disable react/jsx-props-no-spreading */
+import React from 'react';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -23,7 +22,6 @@ export default {
     args: {
         mode: 'default',
         optionIsFocused: false,
-        showSelectedState: false,
         isSelected: false,
         boldStyle: false,
         showTitleTooltip: false,

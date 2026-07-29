@@ -1,0 +1,16 @@
+diff --git a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
+index 5dd4ba7..04396bb 100644
+--- a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
++++ b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
+@@ -140,6 +140,11 @@ static std::unordered_map<std::string, ExpoViewComponentDescriptor::Flavor> _com
+   }
+ }
+
+++ (BOOL)shouldBeRecycled
++{
++    return NO;
++}
++
+ #pragma mark - Events
+
+ - (void)dispatchEvent:(nonnull NSString *)eventName payload:(nullable id)payload

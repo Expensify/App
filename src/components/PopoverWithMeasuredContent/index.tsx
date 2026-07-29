@@ -1,17 +1,22 @@
+import Modal from '@components/Modal';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import CONST from '@src/CONST';
+
 import {circularDeepEqual} from 'fast-equals';
 import React, {useEffect, useState, useTransition} from 'react';
-import Modal from '@components/Modal';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import CONST from '@src/CONST';
-import PopoverWithMeasuredContentBase from './PopoverWithMeasuredContentBase';
+
 import type PopoverWithMeasuredContentProps from './types';
+
+import PopoverWithMeasuredContentBase from './PopoverWithMeasuredContentBase';
 
 /**
  * Logic for PopoverWithMeasuredContent is in PopoverWithMeasuredContentBase.
  * This component is a perf optimization, it return BOTTOM_DOCKED early, for small screens avoiding Popover measurement logic calculations.
  * It defers rendering of PopoverWithMeasuredContentBase to idle time to avoid blocking more priority UI updates with measurements.
  */
-function PopoverWithMeasuredContent(props: PopoverWithMeasuredContentProps) {
+function PopoverWithMeasuredContent({shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode, ...props}: PopoverWithMeasuredContentProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
@@ -31,11 +36,11 @@ function PopoverWithMeasuredContent(props: PopoverWithMeasuredContentProps) {
     if (isSmallScreenWidth) {
         return (
             <Modal
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 animationIn="slideInUp"
                 animationOut="slideOutDown"
+                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode}
             />
         );
     }
@@ -44,7 +49,6 @@ function PopoverWithMeasuredContent(props: PopoverWithMeasuredContentProps) {
         return null;
     }
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <PopoverWithMeasuredContentBase {...props} />;
 }
 

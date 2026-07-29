@@ -1,14 +1,16 @@
-import React from 'react';
 import OnboardingWrapper from '@components/OnboardingWrapper';
-import BaseOnboardingAccounting from './BaseOnboardingAccounting';
+
+import React from 'react';
+
 import type {OnboardingAccountingProps} from './types';
+
+import BaseOnboardingAccounting from './BaseOnboardingAccounting';
 
 function OnboardingAccounting(props: OnboardingAccountingProps) {
     return (
         <OnboardingWrapper>
             <BaseOnboardingAccounting
                 shouldUseNativeStyles={false}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </OnboardingWrapper>

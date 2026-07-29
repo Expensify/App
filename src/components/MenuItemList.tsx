@@ -1,13 +1,20 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useRef} from 'react';
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
+
 import mergeRefs from '@libs/mergeRefs';
+
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useRef} from 'react';
+
 import type {MenuItemProps} from './MenuItem';
+
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
 
@@ -98,12 +105,12 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                     key={key ?? menuItemProps.title}
                     wrapperStyle={wrapperStyle}
                     onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
+                    shouldShowContextMenuHint={menuItemProps.shouldShowContextMenuHint ?? menuItemProps.link !== undefined}
                     ref={mergeRefs(ref, popoverAnchor)}
                     shouldBlockSelection={!!menuItemProps.link}
                     icon={icon}
                     iconWidth={iconWidth}
                     iconHeight={iconHeight}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...menuItemProps}
                     disabled={!!menuItemProps.disabled || isExecuting}
                     onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}

@@ -1,22 +1,25 @@
-import {TabActions} from '@react-navigation/native';
-import React from 'react';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
+import {TabActions} from '@react-navigation/native';
+import React from 'react';
+
+import type {TabSelectorBaseItem, TabSelectorProps} from './types';
+
 import {getIconTitleAndTestID, MEMOIZED_LAZY_TAB_SELECTOR_ICONS} from './getIconTitleAndTestID';
 import TabSelectorBase from './TabSelectorBase';
 import ScrollableTabSelectorContextProvider from './TabSelectorContext';
-import type {TabSelectorBaseItem, TabSelectorProps} from './types';
 
 function TabSelector({
     state,
     navigation,
     onTabPress = () => {},
+    onLongTabPress,
     position,
     onFocusTrapContainerElementChanged,
     shouldShowLabelWhenInactive = true,
-    shouldShowProductTrainingTooltip = false,
-    renderProductTrainingTooltip,
     equalWidth = false,
 }: TabSelectorProps) {
     const icons = useMemoizedLazyExpensifyIcons(MEMOIZED_LAZY_TAB_SELECTOR_ICONS);
@@ -66,10 +69,9 @@ function TabSelector({
                     tabs={tabs}
                     activeTabKey={activeRouteName}
                     onTabPress={handleTabPress}
+                    onLongTabPress={onLongTabPress}
                     position={position}
                     shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                    shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                    renderProductTrainingTooltip={renderProductTrainingTooltip}
                     equalWidth={equalWidth}
                 />
             </ScrollableTabSelectorContextProvider>

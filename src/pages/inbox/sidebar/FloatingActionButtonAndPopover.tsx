@@ -1,11 +1,15 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import useDragoverDismiss from '@hooks/useDragoverDismiss';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {generateReportID} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import FABButtons from './FABPopoverContent/FABButtons';
 import FABPopoverMenu from './FABPopoverContent/FABPopoverMenu';
 import CreateReportMenuItem from './FABPopoverContent/menuItems/CreateReportMenuItem';
@@ -14,7 +18,6 @@ import InvoiceMenuItem from './FABPopoverContent/menuItems/InvoiceMenuItem';
 import NewChatMenuItem from './FABPopoverContent/menuItems/NewChatMenuItem';
 import NewWorkspaceMenuItem from './FABPopoverContent/menuItems/NewWorkspaceMenuItem';
 import QuickActionMenuItem from './FABPopoverContent/menuItems/QuickActionMenuItem';
-import TestDriveMenuItem from './FABPopoverContent/menuItems/TestDriveMenuItem';
 import TrackDistanceMenuItem from './FABPopoverContent/menuItems/TrackDistanceMenuItem';
 import TravelMenuItem from './FABPopoverContent/menuItems/TravelMenuItem';
 
@@ -70,12 +73,11 @@ function FloatingActionButtonAndPopover() {
                 animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
             >
                 <ExpenseMenuItem reportID={reportID} />
-                <TrackDistanceMenuItem reportID={reportID} />
                 <CreateReportMenuItem />
+                <TrackDistanceMenuItem reportID={reportID} />
                 <NewChatMenuItem />
                 <InvoiceMenuItem reportID={reportID} />
                 <TravelMenuItem />
-                <TestDriveMenuItem />
                 <NewWorkspaceMenuItem />
                 <QuickActionMenuItem reportID={reportID} />
             </FABPopoverMenu>

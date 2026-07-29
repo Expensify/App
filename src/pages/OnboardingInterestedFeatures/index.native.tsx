@@ -1,12 +1,13 @@
 import React from 'react';
-import BaseOnboardingInterestedFeatures from './BaseOnboardingInterestedFeatures';
+
 import type {OnboardingInterestedFeaturesProps} from './types';
+
+import BaseOnboardingInterestedFeatures from './BaseOnboardingInterestedFeatures';
 
 function OnboardingInterestedFeatures(props: OnboardingInterestedFeaturesProps) {
     return (
         <BaseOnboardingInterestedFeatures
             shouldUseNativeStyles
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

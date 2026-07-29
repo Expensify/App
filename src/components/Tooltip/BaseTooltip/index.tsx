@@ -1,11 +1,14 @@
-import {BoundsObserver} from '@react-ng/bounds-observer';
-import type {HTMLAttributes} from 'react';
-import React, {memo, useCallback, useRef} from 'react';
-import type {LayoutRectangle} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type TooltipProps from '@components/Tooltip/types';
+
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
+import type {HTMLAttributes} from 'react';
+import type {LayoutRectangle} from 'react-native';
+
+import {BoundsObserver} from '@react-ng/bounds-observer';
+import React, {memo, useCallback, useRef} from 'react';
 
 type MouseEvents = {
     onMouseEnter: (e: React.MouseEvent) => void | undefined;
@@ -98,7 +101,6 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
     }
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <GenericTooltip {...props}>
             {({isVisible, showTooltip, hideTooltip, updateTargetBounds}) =>
                 // Checks if valid element so we can wrap the BoundsObserver around it

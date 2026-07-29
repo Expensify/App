@@ -1,23 +1,26 @@
-import React from 'react';
-import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {startNavigateToReportsSpans} from '@libs/telemetry/navigateToReportsSpans';
+
 import navigationRef from '@navigation/navigationRef';
-import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import getLastRoute from './getLastRoute';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
+import getSearchTabRoute from './getSearchTabRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 
@@ -29,7 +32,7 @@ type SearchTabButtonProps = {
 function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
 
@@ -44,28 +47,9 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
                 op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
                 forceTransaction: true,
             });
+            startNavigateToReportsSpans();
 
-            const lastSearchRoute = getLastRoute(navigationRef.getRootState(), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT);
-
-            if (lastSearchRoute) {
-                const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-                const queryJSON = buildSearchQueryJSON(q);
-                if (queryJSON) {
-                    const query = buildSearchQueryString(queryJSON);
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query,
-                            ...rest,
-                        }),
-                    );
-                    return;
-                }
-            }
-
-            const lastQueryJSON = lastSearchParams?.queryJSON;
-            const lastQueryFromOnyx = lastQueryJSON ? buildSearchQueryString(lastQueryJSON) : undefined;
-            const defaultSearchQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultSearchQuery}));
+            Navigation.navigate(getSearchTabRoute(navigationRef.getRootState(), lastSearchParams));
         });
     };
 
@@ -74,15 +58,15 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             <PressableWithFeedback
                 onPress={navigateToSearch}
                 role={CONST.ROLE.TAB}
-                accessibilityLabel={translate('common.reports')}
+                accessibilityLabel={translate('common.spend')}
                 accessibilityState={searchAccessibilityState}
                 style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
             >
                 {({hovered}) => (
                     <TabBarItem
-                        icon={expensifyIcons.MoneySearch}
-                        label={translate('common.reports')}
+                        icon={expensifyIcons.ReceiptMultiple}
+                        label={translate('common.spend')}
                         isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                         isHovered={hovered}
                     />
@@ -95,15 +79,15 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
         <PressableWithFeedback
             onPress={navigateToSearch}
             role={CONST.ROLE.TAB}
-            accessibilityLabel={translate('common.reports')}
+            accessibilityLabel={translate('common.spend')}
             accessibilityState={searchAccessibilityState}
             wrapperStyle={styles.flex1}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
         >
             <TabBarItem
-                icon={expensifyIcons.MoneySearch}
-                label={translate('common.reports')}
+                icon={expensifyIcons.ReceiptMultiple}
+                label={translate('common.spend')}
                 isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                 numberOfLines={1}
             />

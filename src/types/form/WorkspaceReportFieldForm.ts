@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
+
+import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -18,7 +20,7 @@ type WorkspaceReportFieldForm = Form<
     InputID,
     {
         [INPUT_IDS.NAME]: string;
-        [INPUT_IDS.TYPE]: PolicyReportFieldType;
+        [INPUT_IDS.TYPE]: PolicyReportFieldType | '';
         [INPUT_IDS.INITIAL_VALUE]: string;
         [INPUT_IDS.LIST_VALUES]: string[];
         [INPUT_IDS.DISABLED_LIST_VALUES]: boolean[];

@@ -1,6 +1,10 @@
 import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
+
+import type {Receipt} from '@src/types/onyx/Transaction';
+
 import type PrepareRequestPayload from './types';
 
 /**
@@ -15,15 +19,17 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
         promiseChain = promiseChain.then(() => {
             const value = data[key];
 
-            if (value === undefined) {
+            if (value === undefined || value === null) {
                 return Promise.resolve();
             }
 
             if (key === 'receipt') {
-                const {source, name, type, uri} = value as File;
+                const {source, name, type, uri, receiptTraceId} = value as File & Pick<Receipt, 'receiptTraceId'>;
                 if (source) {
                     return checkFileExists(source).then((exists) => {
                         if (!exists) {
+                            const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
+                            logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name});
                             return;
                         }
                         const receiptFormData = {
