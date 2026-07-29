@@ -24,13 +24,13 @@ import React, {useEffect} from 'react';
 
 import SuccessReportCardLost from './SuccessReportCardLost';
 
-type ReportCardLostConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE>;
+type ReportCardLostConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE>;
 
-function ReportCardLostConfirmMagicCodePage({
+function ReportCardLostConfirmValidateCodePage({
     route: {
         params: {cardID = '', reason = 'damaged', isFromDomainCardDetail},
     },
-}: ReportCardLostConfirmMagicCodePageProps) {
+}: ReportCardLostConfirmValidateCodePageProps) {
     const {translate} = useLocalize();
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
 
@@ -66,7 +66,7 @@ function ReportCardLostConfirmMagicCodePage({
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
-                testID="ReportCardLostConfirmMagicCodePage"
+                testID="ReportCardLostConfirmValidateCodePage"
             >
                 <HeaderWithBackButton
                     title={translate('common.success')}
@@ -106,4 +106,4 @@ function ReportCardLostConfirmMagicCodePage({
     );
 }
 
-export default ReportCardLostConfirmMagicCodePage;
+export default ReportCardLostConfirmValidateCodePage;
