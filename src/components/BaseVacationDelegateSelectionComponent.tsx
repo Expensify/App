@@ -25,13 +25,21 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionList from './SelectionList/SelectionListWithSections';
 
-/** Returns the row title as the raw E.164 phone (e.g. `+9779806050938`) for phone delegates, or the existing text (name/email) otherwise. */
+/** Returns the row title: keeps a real display name, but renders phone logins as raw E.164 (e.g. `+9779806050938`). */
 function getDelegateText(login: string | undefined, text: string | undefined): string {
     const sanitizedLogin = Str.removeSMSDomain(login ?? '');
-    if (sanitizedLogin && parsePhoneNumber(sanitizedLogin).valid) {
+    const sanitizedText = Str.removeSMSDomain(text ?? '');
+
+    if (sanitizedText === '') {
         return sanitizedLogin;
     }
-    return text ?? '';
+
+    const toDigits = (value: string) => value.replace(CONST.REGEX.NON_NUMERIC, '');
+    if (parsePhoneNumber(sanitizedLogin).valid && toDigits(sanitizedText) === toDigits(sanitizedLogin)) {
+        return sanitizedLogin;
+    }
+
+    return sanitizedText;
 }
 
 type BaseVacationDelegateSelectionComponentProps = {
