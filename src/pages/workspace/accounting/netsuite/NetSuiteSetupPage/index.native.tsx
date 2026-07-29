@@ -4,6 +4,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import AccountingSetupWebViewPage from '@pages/workspace/accounting/AccountingSetupWebViewPage';
 
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -24,6 +25,7 @@ function NetSuiteSetupPage({route}: NetSuiteSetupPageProps) {
             testID="NetSuiteSetupPage"
             context="NetSuiteSetupPage"
             shouldAppendShortLivedAuthToken
+            backTo={ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}
         />
     );
 }
