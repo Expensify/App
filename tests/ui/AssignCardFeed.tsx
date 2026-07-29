@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, userEvent, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -90,6 +90,7 @@ jest.mock('react-native-plaid-link-sdk', () => ({
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     goBack: jest.fn(),
@@ -460,6 +461,13 @@ describe('AssignCardFeed', () => {
             await waitFor(() => {
                 expect(screen.getByLabelText('Back')).toBeOnTheScreen();
             });
+
+            // AccessOrNotFoundWrapper can fire a redirect goBack while mounting the step with this fake policy, so clear
+            // the mocks right before the interaction to isolate what the Back press itself does.
+            mockedSetAssignCardStepAndData.mockClear();
+            mockedNavigate.mockClear();
+            mockedGoBack.mockClear();
+
             fireEvent.press(screen.getByLabelText('Back'));
             await waitForBatchedUpdatesWithAct();
 
@@ -885,9 +893,10 @@ describe('AssignCardFeed', () => {
 
             // Tap the "To" (cardholder) row to edit the assignee.
             await waitFor(() => {
-                expect(screen.getByText('testaccount+1@gmail.com')).toBeOnTheScreen();
+                expect(screen.getByTestId(CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID)).toBeOnTheScreen();
             });
-            fireEvent.press(screen.getByText('testaccount+1@gmail.com'));
+            const user = userEvent.setup();
+            await user.press(screen.getByTestId(CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID));
             await waitForBatchedUpdatesWithAct();
 
             // Editing the cardholder is the one entry point that sets isEditing: true and pops back to the assignee step,

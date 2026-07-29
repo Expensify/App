@@ -197,6 +197,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         shouldShowRightIcon
+                        pressableTestID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
                     />
                     <MenuItemWithTopDescription
