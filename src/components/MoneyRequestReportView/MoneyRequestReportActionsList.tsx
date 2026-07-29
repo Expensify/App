@@ -47,6 +47,7 @@ import Visibility from '@libs/Visibility';
 
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 
+import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
@@ -782,6 +783,9 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
                         isLoadingInitialActions={!!showReportActionsLoadingState}
                         skeletonReasonAttributes={skeletonReasonAttributes}
+                        /* This list is not inverted, so the footer is the bottom of the message feed —
+                           the same position the indicator occupies in the inverted ReportActionsList. */
+                        listFooterComponent={<ConciergeThinkingMessage reportID={reportIDFromRoute} />}
                     />
                 )}
             </View>
