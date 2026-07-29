@@ -49,10 +49,9 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     validated?: boolean;
 
     /**
-     * True when this account is closed (merged away, self-closed, or removed from a domain) and
-     * is no longer a live identity. Stamped by Auth in `Account::formatNewDotPersonalDetails`.
-     * A closed merged-away account is served with the `MERGED_` prefix stripped from its login,
-     * so it can collide with the live account's login — use this flag to prefer the live entry.
+     * True when this account was merged away. A merged-away account is served with the `MERGED_`
+     * prefix stripped from its login, so it can collide with the live account's login — use this
+     * flag to prefer the live entry.
      */
     isClosed?: boolean;
 
