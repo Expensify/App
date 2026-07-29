@@ -66,7 +66,6 @@ describe('libs/NextStepUtils', () => {
         }) as Report;
 
         beforeAll(() => {
-            // getReportNextStep threads `translateLocal` into buildNextStepNew to resolve participant names, so the locale bundle must be loaded.
             IntlStore.load(CONST.LOCALES.EN);
             const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
 

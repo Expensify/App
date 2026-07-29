@@ -48,8 +48,6 @@ type BuildNextStepNewParams = {
      */
     bypassNextApproverID?: number;
     isTrackIntentUser: boolean | undefined;
-
-    /** Resolves participant display names. Passed down from the component/hook (via `useLocalize`) so we can drop the deprecated Onyx-fed translation global. */
     translate?: LocaleContextProps['translate'];
 };
 
@@ -386,7 +384,6 @@ type GetReportNextStepParams = {
     currentUserEmail: string;
     currentUserAccountID: number;
     isTrackIntentUser: boolean | undefined;
-    /** Resolves participant display names. Passed down from the component/hook (via `useLocalize`) so we can drop the deprecated Onyx-fed translation global. */
     translate: LocaleContextProps['translate'];
     reportNextStep?: ReportNextStep;
 };
