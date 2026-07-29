@@ -2,6 +2,7 @@ import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -40,6 +41,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const accessibilityLabel = [
         item.name,
@@ -67,7 +69,10 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                    <View
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         <TextWithTooltip
                             shouldShowTooltip
                             numberOfLines={1}
@@ -76,7 +81,10 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                     </View>
 
                     {!shouldUseNarrowTableLayout && shouldShowGLCodeColumn && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -86,7 +94,10 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                     )}
 
                     {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
-                        <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             {!!item.approverDisplayName && !!item.approverAccountID && (
                                 <>
                                     <Avatar
@@ -105,7 +116,10 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         </View>
                     )}
 
-                    <View style={[styles.justifyContentCenter, styles.alignItemsEnd]}>
+                    <View
+                        style={[styles.justifyContentCenter, styles.alignItemsEnd]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         <Switch
                             isOn={item.enabled}
                             showLockIcon={item.isLocked}
@@ -115,13 +129,15 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         />
                     </View>
 
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>

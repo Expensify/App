@@ -98,6 +98,9 @@ type SelectedTransactionInfo = {
 
     /** The group key this transaction belongs to when in a grouped view */
     groupKey?: string;
+
+    /** Whether the transaction was selected through its group header */
+    isSelectedViaGroup?: boolean;
 };
 
 /** Model of selected transactions */
@@ -367,6 +370,8 @@ type SearchQueryJSON = {
     similarSearchHash: number;
     flatFilters: QueryFilters;
     isViewExplicitlySet?: boolean;
+    /** Filters generated for a specific group that must keep exact-match semantics when sent to the backend. */
+    exactMatchFilterKeys?: SearchFilterKey[];
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
