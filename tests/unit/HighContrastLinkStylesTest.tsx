@@ -43,12 +43,13 @@ const NORMAL_THEMES: NamedTheme[] = [
 ];
 
 function renderInApp(theme: ThemePreferenceWithoutSystem, ui: React.ReactElement) {
-    function ThemeProviderForTheme({children}: {children: React.ReactNode}) {
-        return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
-    }
-
+    // ThemeProvider must be the outermost provider so the rest read the selected theme. We render it
+    // directly (rather than as an inline component passed to ComposeProviders) to avoid a React Compiler
+    // memoization divergence between the Babel and OXC compilers.
     return render(
-        <ComposeProviders components={[ThemeProviderForTheme, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>{ui}</ComposeProviders>,
+        <ThemeProvider theme={theme}>
+            <ComposeProviders components={[ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>{ui}</ComposeProviders>
+        </ThemeProvider>,
     );
 }
 
