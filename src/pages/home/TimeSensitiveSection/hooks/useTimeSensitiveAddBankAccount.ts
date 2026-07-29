@@ -7,7 +7,7 @@ import hasCreditBankAccount from '@libs/actions/ReimbursementAccount/hasCreditBa
 import {isNewerReportAction, isReimbursementQueuedAction} from '@libs/ReportActionsUtils';
 import {getMissingPaymentMethodForQueuedPayment} from '@libs/ReportUtils';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -50,7 +50,7 @@ function useTimeSensitiveAddBankAccount() {
 
         return (waitingReportIDs ?? []).some((reportID) => {
             const queuedAction = getLatestReimbursementQueuedAction(reportID, allReportActions);
-            return !!queuedAction && getMissingPaymentMethodForQueuedPayment(userWalletTierName, queuedAction, bankAccountList) === 'bankAccount';
+            return !!queuedAction && getMissingPaymentMethodForQueuedPayment(userWalletTierName, queuedAction, bankAccountList) === CONST.MISSING_PAYMENT_METHODS.BANK_ACCOUNT;
         });
     };
     const [shouldShowAddBankAccount = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: shouldShowAddBankAccountSelector});

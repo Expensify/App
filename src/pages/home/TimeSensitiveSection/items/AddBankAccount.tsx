@@ -20,18 +20,15 @@ function AddBankAccount() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
-    const title = translate('homePage.timeSensitiveSection.addBankAccount.title');
-    const subtitle = translate('common.wallet');
-    const ctaText = translate('common.add');
 
     return (
         <BaseWidgetItem
             icon={icons.Bank}
             iconBackgroundColor={colors.green100}
             iconFill={colors.green500}
-            title={title}
-            subtitle={subtitle}
-            ctaText={ctaText}
+            title={translate('homePage.timeSensitiveSection.addBankAccount.title')}
+            subtitle={translate('common.wallet')}
+            ctaText={translate('common.add')}
             onCtaPress={() => openPersonalBankAccountSetupView({isUserValidated})}
             buttonProps={{success: true}}
         />
