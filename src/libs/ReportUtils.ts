@@ -13609,12 +13609,27 @@ function getReportFieldFromReportNameValuePairs(reportNameValuePairs: OnyxEntry<
     return undefined;
 }
 
+function getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): PolicyReportField[] {
+    const fieldsByID = new Map<string, PolicyReportField>();
+
+    for (const value of Object.values(reportNameValuePairs ?? {})) {
+        if (!isReportNameValuePairField(value) || value.target !== CONST.REPORT_FIELD_TARGETS.INVOICE) {
+            continue;
+        }
+        fieldsByID.set(value.fieldID, value);
+    }
+
+    return [...fieldsByID.values()];
+}
+
 /**
  * Get both field values map and fields-by-name map in a single pass
  */
 function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
-    const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
     const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+    const availableFields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+    const invoiceReportFields = report?.type === CONST.REPORT.TYPE.INVOICE ? getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs) : [];
+    const fields = [...new Map([...availableFields, ...invoiceReportFields].map((field) => [field.fieldID, field])).values()];
     const fieldValues: Record<string, string> = {};
     const fieldsByName: Record<string, PolicyReportField> = {};
 

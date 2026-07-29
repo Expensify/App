@@ -119,6 +119,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionWithSmartscanError,
+    getReportFieldMaps,
     getReportFieldsByPolicyID,
     getReportIDFromLink,
     getReportOrDraftReport,
@@ -16699,6 +16700,57 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getReportFieldMaps', () => {
+        it('returns persisted invoice fields when the receiver has no policy field list', async () => {
+            const report = createMock<Report>({
+                reportID: 'invoiceReceiverWithoutPolicyFields',
+                type: CONST.REPORT.TYPE.INVOICE,
+                fieldList: {},
+            });
+            const invoiceField = createMock<PolicyReportField>({
+                fieldID: 'invoice_field',
+                name: 'Client',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+                value: 'Acme',
+            });
+
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`,
+                Object.fromEntries([
+                    ['expensify_invoice_field', invoiceField],
+                    ['invoice_field', invoiceField],
+                ]),
+            );
+            await waitForBatchedUpdates();
+
+            const {fieldValues, fieldsByName} = getReportFieldMaps(report, {});
+
+            expect(fieldValues).toEqual({client: 'Acme'});
+            expect(fieldsByName).toEqual({client: invoiceField});
+        });
+
+        it('does not use persisted invoice fields for an expense report', async () => {
+            const report = createMock<Report>({
+                reportID: 'expenseReportWithoutPolicyFields',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                fieldList: {},
+            });
+            const invoiceField = createMock<PolicyReportField>({
+                fieldID: 'invoice_field',
+                name: 'Client',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+                value: 'Acme',
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, Object.fromEntries([['invoice_field', invoiceField]]));
+            await waitForBatchedUpdates();
+
+            expect(getReportFieldMaps(report, {})).toEqual({fieldValues: {}, fieldsByName: {}});
+        });
+    });
+
     describe('canEditReportTitle', () => {
         const getTitleField = (deletable: boolean): PolicyReportField => ({
             fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
@@ -16947,22 +16999,22 @@ describe('ReportUtils', () => {
 
         it('returns true for a workspace expense report when report fields are enabled', () => {
             const report = createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
-            const policy = createMock<Policy>({
+            const testPolicy = createMock<Policy>({
                 type: CONST.POLICY.TYPE.TEAM,
                 areReportFieldsEnabled: true,
             });
 
-            expect(shouldDisplayReportFields(report, policy)).toBe(true);
+            expect(shouldDisplayReportFields(report, testPolicy)).toBe(true);
         });
 
         it('returns false for a workspace expense report when report fields are disabled', () => {
             const report = createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
-            const policy = createMock<Policy>({
+            const testPolicy = createMock<Policy>({
                 type: CONST.POLICY.TYPE.TEAM,
                 areReportFieldsEnabled: false,
             });
 
-            expect(shouldDisplayReportFields(report, policy)).toBe(false);
+            expect(shouldDisplayReportFields(report, testPolicy)).toBe(false);
         });
     });
 
