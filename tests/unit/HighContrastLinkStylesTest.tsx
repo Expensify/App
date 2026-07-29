@@ -1,7 +1,10 @@
 import {render, screen} from '@testing-library/react-native';
 
-import AutoEmailLink from '@components/AutoEmailLink';
-import TextLink from '@components/TextLink';
+import SubtitleWithBelowLink from '@components/BlockingViews/SubtitleWithBelowLink';
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PatriotActLink from '@components/PatriotActLink';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
@@ -19,9 +22,13 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
  * Links must be distinguishable by more than color in high-contrast themes (WCAG 1.4.1 - Use of Color),
  * so they are underlined when a high-contrast theme is active and left without an underline otherwise.
  *
- * Rather than asserting on the raw `link`/`emailLink` style objects, these tests render real link
- * components from the app (`TextLink` and `AutoEmailLink`) inside the actual theme providers and read
- * the underline off the element that ends up on screen - the same path a user's link goes through.
+ * These tests take real elements from the app UI that happen to contain a link and render them through
+ * the actual theme providers, then read the underline off the link that ends up on screen - the same
+ * path a user's link goes through:
+ *
+ * - `PatriotActLink` - a help link shown in KYC/additional-details flows (renders a URL link).
+ * - `SubtitleWithBelowLink` - a subtitle used by blocking views that auto-links the email in its text
+ *   (renders an email link).
  */
 type NamedTheme = {name: string; theme: ThemePreferenceWithoutSystem};
 
@@ -35,38 +42,40 @@ const NORMAL_THEMES: NamedTheme[] = [
     {name: 'dark', theme: CONST.THEME.DARK},
 ];
 
-function renderWithTheme(theme: ThemePreferenceWithoutSystem, ui: React.ReactElement) {
+function renderInApp(theme: ThemePreferenceWithoutSystem, ui: React.ReactElement) {
+    function ThemeProviderForTheme({children}: {children: React.ReactNode}) {
+        return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+    }
+
     return render(
-        <ThemeProvider theme={theme}>
-            <ThemeStylesProvider>{ui}</ThemeStylesProvider>
-        </ThemeProvider>,
+        <ComposeProviders components={[ThemeProviderForTheme, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>{ui}</ComposeProviders>,
     );
 }
 
 describe('High contrast link underline', () => {
-    describe('TextLink (a real URL link)', () => {
+    describe('PatriotActLink (a URL link in the app UI)', () => {
         it.each(HIGH_CONTRAST_THEMES)('is underlined in the $name theme', async ({theme}) => {
-            renderWithTheme(theme, <TextLink href="https://new.expensify.com">Open Expensify</TextLink>);
+            renderInApp(theme, <PatriotActLink />);
             await waitForBatchedUpdates();
             expect(screen.getByRole(CONST.ROLE.LINK)).toHaveStyle({textDecorationLine: 'underline'});
         });
 
         it.each(NORMAL_THEMES)('is not underlined in the $name theme', async ({theme}) => {
-            renderWithTheme(theme, <TextLink href="https://new.expensify.com">Open Expensify</TextLink>);
+            renderInApp(theme, <PatriotActLink />);
             await waitForBatchedUpdates();
             expect(screen.getByRole(CONST.ROLE.LINK)).toHaveStyle({textDecorationLine: 'none'});
         });
     });
 
-    describe('AutoEmailLink (a real email link)', () => {
+    describe('SubtitleWithBelowLink (an email link in the app UI)', () => {
         it.each(HIGH_CONTRAST_THEMES)('is underlined in the $name theme', async ({theme}) => {
-            renderWithTheme(theme, <AutoEmailLink text="Reach us at concierge@expensify.com anytime" />);
+            renderInApp(theme, <SubtitleWithBelowLink subtitle="Reach us at concierge@expensify.com anytime" />);
             await waitForBatchedUpdates();
             expect(screen.getByRole(CONST.ROLE.LINK)).toHaveStyle({textDecorationLine: 'underline'});
         });
 
         it.each(NORMAL_THEMES)('is not underlined in the $name theme', async ({theme}) => {
-            renderWithTheme(theme, <AutoEmailLink text="Reach us at concierge@expensify.com anytime" />);
+            renderInApp(theme, <SubtitleWithBelowLink subtitle="Reach us at concierge@expensify.com anytime" />);
             await waitForBatchedUpdates();
             expect(screen.getByRole(CONST.ROLE.LINK)).toHaveStyle({textDecorationLine: 'none'});
         });
