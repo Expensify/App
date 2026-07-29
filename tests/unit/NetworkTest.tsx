@@ -1,5 +1,6 @@
 import {reconnectApp} from '@libs/actions/App';
 import * as Reconnect from '@libs/actions/Reconnect';
+import {AUTHENTICATION_COMMAND} from '@libs/API/types';
 import {reset as resetFailureTracker} from '@libs/FailureTracker';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 
@@ -119,7 +120,7 @@ describe('NetworkTests', () => {
                 // Verify:
                 // 1. We attempted to authenticate twice (first failed, retry succeeded)
                 // 2. The session has the new auth token (user wasn't logged out)
-                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === AUTHENTICATION_COMMAND);
                 expect(callsToAuthenticate.length).toBe(2);
                 expect(sessionState?.authToken).toBe(NEW_AUTH_TOKEN);
             });
@@ -182,7 +183,7 @@ describe('NetworkTests', () => {
         // 5. Authentication Start - Verify authenticate was triggered
         await waitForBatchedUpdates();
         const secondCall = mockedXhr.mock.calls.at(1) as [string, Record<string, unknown>];
-        expect(secondCall[0]).toBe('Authenticate');
+        expect(secondCall[0]).toBe(AUTHENTICATION_COMMAND);
 
         // 6. Network State Change - Set offline and back online while authenticate is pending
         setHasRadio(false);
@@ -247,7 +248,7 @@ describe('NetworkTests', () => {
             .then(() => {
                 // Verify: 3 calls to the API, 1 authenticate call, and reconnect was triggered
                 const callsToOpenPublicProfilePage = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
-                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                const callsToAuthenticate = (HttpUtils.xhr as jest.Mock).mock.calls.filter(([command]) => command === AUTHENTICATION_COMMAND);
                 expect(callsToOpenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectSpy).toHaveBeenCalled();
