@@ -39,7 +39,7 @@ Onyx.connect({
             if (detail?.login) {
                 const key = detail.login.toLowerCase();
                 const existing = acc[key];
-                if (!existing || existing.isClosed) {
+                if (!existing || existing.isClosed || existing.isOptimisticPersonalDetail) {
                     acc[key] = detail;
                 }
             }

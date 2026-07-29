@@ -25,7 +25,8 @@ export default createOnyxDerivedValueConfig({
             }
             const login = personalDetails.login.toLowerCase();
             const existingAccountID = loginToAccountIDMap[login];
-            if (existingAccountID === undefined || personalDetailsList[existingAccountID]?.isClosed) {
+            const existingDetail = existingAccountID === undefined ? undefined : personalDetailsList[existingAccountID];
+            if (!existingDetail || existingDetail.isClosed || existingDetail.isOptimisticPersonalDetail) {
                 loginToAccountIDMap[login] = personalDetails.accountID;
             }
         }

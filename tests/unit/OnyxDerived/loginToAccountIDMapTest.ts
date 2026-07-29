@@ -22,4 +22,20 @@ describe('loginToAccountIDMap', () => {
 
         expect(loginToAccountIDMapConfig.compute([closedHasLowerAccountID], {})).toEqual({[login]: accountID2});
     });
+
+    it('prefers the real account when an optimistic personal detail shares the same login, regardless of order', () => {
+        const optimisticHasHigherAccountID: PersonalDetailsList = {
+            [accountID1]: {accountID: accountID1, login},
+            [accountID2]: {accountID: accountID2, login, isOptimisticPersonalDetail: true},
+        };
+
+        expect(loginToAccountIDMapConfig.compute([optimisticHasHigherAccountID], {})).toEqual({[login]: accountID1});
+
+        const optimisticHasLowerAccountID: PersonalDetailsList = {
+            [accountID1]: {accountID: accountID1, login, isOptimisticPersonalDetail: true},
+            [accountID2]: {accountID: accountID2, login},
+        };
+
+        expect(loginToAccountIDMapConfig.compute([optimisticHasLowerAccountID], {})).toEqual({[login]: accountID2});
+    });
 });
