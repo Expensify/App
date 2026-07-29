@@ -1921,6 +1921,222 @@ type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     RilletCodingOfflineFeedbackKeys | RilletExportOfflineFeedbackKeys | keyof RilletAutoSync | keyof RilletSync
 >;
 
+type DualEntryCompany = {
+    id: string;
+    name: string;
+    currency: string;
+    parentCompanyID?: string;
+    isActive: boolean;
+    isElimination: boolean;
+};
+
+type DualEntryAccount = {
+    id: string;
+    number: string;
+    name: string;
+    accountType: string;
+    currency?: string;
+    isActive: boolean;
+    updatedAt: string;
+};
+
+type DualEntryClassificationValue = {
+    id: string;
+    name: string;
+    deactivated: boolean;
+};
+
+type DualEntryClassification = {
+    id: string;
+    name: string;
+    isActive: boolean;
+    requiredForRecords: string[];
+    values: DualEntryClassificationValue[];
+};
+
+type DualEntryTaxType = ValueOf<typeof CONST.DUALENTRY_TAX_TYPE>;
+
+type DualEntryTaxRate = {
+    id: string;
+    code: string;
+    country: string;
+    description?: string;
+    percentage: string;
+    taxType: DualEntryTaxType;
+};
+
+type DualEntryVendor = {
+    id: string;
+    name: string;
+    companyID?: string;
+    email?: string;
+    isActive: boolean;
+};
+
+/**
+ * Coonection data retrieved from DualEntry.
+ */
+type DualEntryConnectionData = {
+    companies?: DualEntryCompany[];
+    accounts?: DualEntryAccount[];
+    classifications?: DualEntryClassification[];
+    taxRates?: DualEntryTaxRate[];
+    vendors?: DualEntryVendor[];
+    settlementBankTransferIDs?: Record<string, string>;
+    travelSettlementJournalEntryIDs?: Record<string, string>;
+    settlementSyncStartEntryID?: number;
+    travelSettlementSyncStartEntryID?: number;
+};
+
+/**
+ * Coding configuration used when exporting data to DualEntry.
+ */
+type DualEntryCoding = {
+    /**
+     * Mapping of DualEntry field IDs to their configured mapping behavior.
+     */
+    fieldMappings?: Record<string, ValueOf<typeof CONST.DUALENTRY_MAPPING_VALUE>>;
+
+    /** Whether tax rates should be synchronized from DualEntry. */
+    syncTaxRates: boolean;
+};
+
+/** Offline feedback key for field mapping */
+type DualEntryCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.DUALENTRY_CONFIG.FIELD_MAPPING_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `DualEntryCoding`
+ */
+type DualEntryCodingOfflineFeedbackKeys = keyof Omit<DualEntryCoding, 'fieldMappings'> | DualEntryCodingFieldMappingsOfflineFeedbackKey;
+
+/**
+ * Available dates that can be used as the export date.
+ */
+type DualEntryExportDate = ValueOf<typeof CONST.DUALENTRY_EXPORT_DATE>;
+
+/**
+ * Export strategy for reimbursable expenses.
+ */
+type DualEntryExportReimbursable = ValueOf<typeof CONST.DUALENTRY_EXPORT_REIMBURSABLE>;
+
+/**
+ * Export strategy for company card expenses.
+ */
+type DualEntryExportNonReimbursable = ValueOf<typeof CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE>;
+
+/**
+ * Export configuration for sending accounting data to DualEntry.
+ */
+type DualEntryExport = {
+    /** Identifier of the export implementation to use. */
+    exporter: string;
+
+    /** Date source used when generating exported transactions. */
+    exportDate: DualEntryExportDate;
+
+    /** Export behavior for reimbursable expenses. */
+    reimbursable: DualEntryExportReimbursable;
+
+    /** Export behavior for company card expenses. */
+    nonReimbursable: DualEntryExportNonReimbursable;
+
+    creditCardAccountID: string;
+
+    /**
+     * Whether card transactions should be exported to multiple
+     * accounts based on card program mappings.
+     */
+    exportToMultipleAccounts: boolean;
+
+    /**
+     * Mapping of card program identifiers to account codes.
+     */
+    cardProgramAccounts: Record<CardFeedWithNumber, string>;
+
+    expensifyCardAccountID: string;
+    defaultVendorID: string;
+    travelInvoicingPayableAccountID: string;
+
+    /** Accounting method used during export. */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+};
+
+/** Offline feedback key for card program account */
+type DualEntryExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `DualEntryCoding`
+ */
+type DualEntryExportOfflineFeedbackKeys = keyof Omit<DualEntryExport, 'cardProgramAccounts'> | DualEntryExportCardProgramAccountsOfflineFeedbackKey;
+
+/**
+ * Automatic synchronization settings for DualEntry.
+ */
+type DualEntryAutoSync = {
+    /** Whether automatic synchronization is enabled. */
+    enabled: boolean;
+
+    jobID?: string | null;
+};
+
+/**
+ * Synchronization settings for importing and updating data in DualEntry.
+ */
+type DualEntrySync = {
+    /** Whether reimbursed expense reports should be synchronized. */
+    syncReimbursedReports: boolean;
+
+    /** Account code used for bill payment transactions. */
+    billPaymentAccountCode: string;
+
+    /** Whether Expensify Card settlement transactions should be synchronized. */
+    syncExpensifyCardSettlements: boolean;
+
+    /** Bank account used for Expensify Card settlements. */
+    settlementsBankAccountID: string;
+
+    /** Whether travel invoicing settlement transactions should be synchronized. */
+    syncTravelInvoicingSettlements: boolean;
+
+    /** Bank account used for travel invoicing settlements. */
+    travelInvoicingSettlementsBankAccountID: string;
+};
+
+/**
+ * Connection config for DualEntry.
+ */
+type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** The internalID of the selected company in DualEntry */
+        companyID: string;
+
+        /** Whether the connection has been configured */
+        isConfigured: boolean;
+
+        /** Whether to enable a new Expense Category into Expensify */
+        enableNewCategories: boolean;
+
+        /** Coding settings */
+        coding?: DualEntryCoding;
+
+        /** Export settings */
+        export?: DualEntryExport;
+
+        /** Auto-sync settings */
+        autoSync?: DualEntryAutoSync;
+
+        /** Sync settings */
+        sync?: DualEntrySync;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    DualEntryCodingOfflineFeedbackKeys | DualEntryExportOfflineFeedbackKeys | keyof DualEntryAutoSync | keyof DualEntrySync
+>;
+
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
@@ -2125,6 +2341,9 @@ type Connections = {
 
     /** Rillet integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.RILLET]: Connection<RilletConnectionData, RilletConnectionsConfig>;
+
+    /** DualEntry integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: Connection<DualEntryConnectionData, DualEntryConnectionsConfig>;
 
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;

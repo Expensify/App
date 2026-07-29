@@ -3525,7 +3525,34 @@ const CONST = {
         CREDIT_CARD: 'Credit Card',
     },
 
-    DUALENTRY_CONFIG: {},
+    DUALENTRY_CONFIG: {
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
+    },
+
+    DUALENTRY_MAPPING_VALUE: {
+        NONE: 'NONE',
+        TAG: 'TAG',
+    },
+
+    DUALENTRY_EXPORT_REIMBURSABLE: {
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    DUALENTRY_EXPORT_NON_REIMBURSABLE: {
+        DIRECT_EXPENSE: 'DIRECT_EXPENSE',
+    },
+
+    DUALENTRY_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    DUALENTRY_TAX_TYPE: {
+        VAT: 'VAT',
+        GST: 'GST',
+    },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
