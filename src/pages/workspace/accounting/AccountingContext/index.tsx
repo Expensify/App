@@ -44,7 +44,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
     const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
-    const hasReusablePoliciesConnectedToDualEntrty = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, policyID);
+    const hasReusablePoliciesConnectedToDualEntry = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
 
@@ -67,7 +67,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                     qbd: hasReusablePoliciesConnectedToQBD,
                     certinia: hasReusablePoliciesConnectedToCertinia,
                     rillet: hasReusablePoliciesConnectedToRillet,
-                    dualentry: hasReusablePoliciesConnectedToDualEntrty,
+                    dualentry: hasReusablePoliciesConnectedToDualEntry,
                 },
                 undefined,
                 undefined,
@@ -99,6 +99,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             hasReusablePoliciesConnectedToQBD,
             hasReusablePoliciesConnectedToCertinia,
             hasReusablePoliciesConnectedToRillet,
+            hasReusablePoliciesConnectedToDualEntry,
             accountingIcons,
             cardFeeds,
             cardLists,
@@ -147,7 +148,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 qbd: hasReusablePoliciesConnectedToQBD,
                 certinia: hasReusablePoliciesConnectedToCertinia,
                 rillet: hasReusablePoliciesConnectedToRillet,
-                dualentry: hasReusablePoliciesConnectedToDualEntrty,
+                dualentry: hasReusablePoliciesConnectedToDualEntry,
             },
             policy,
             activeIntegration.key,
