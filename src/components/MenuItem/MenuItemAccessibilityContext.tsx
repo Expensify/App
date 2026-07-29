@@ -76,7 +76,7 @@ function useMenuItemAccessibility() {
     // Text contributed by Title/Description children, in render order
     const {entries: labels, register: registerLabel, unregister: unregisterLabel} = useIdKeyedRegistry<string>();
 
-    const accessibilityProps = {accessibilityLabel: [...labels.values()].join(', ') || undefined};
+    const accessibilityProps = {accessibilityLabel: [...labels.values()].join(', ')};
 
     const providerValue: MenuItemAccessibilityActions = useMemo(() => ({registerLabel, unregisterLabel}), [registerLabel, unregisterLabel]);
 
