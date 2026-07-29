@@ -1,3 +1,5 @@
+import type ReportNameUtils = require('@libs/ReportNameUtils');
+
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
 import {hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
 
@@ -10,6 +12,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 
 type ReportAttributesConfig = typeof reportAttributesModuleDefault;
 
@@ -40,7 +43,7 @@ jest.mock('@libs/ReportNameUtils', () => ({
     computeReportName: jest.fn(() => 'Test Report'),
 }));
 
-const basePolicy: Policy = {
+const basePolicy = createMock<Policy>({
     id: 'policy1',
     name: 'Test Policy',
     type: CONST.POLICY.TYPE.CORPORATE,
@@ -50,8 +53,7 @@ const basePolicy: Policy = {
     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
     autoReimbursementLimit: 1000,
     autoReimbursement: {limit: 500},
-} as unknown as Policy;
-
+});
 describe('hasPolicyRelevantFieldChanged', () => {
     describe('null / undefined edge cases', () => {
         it('returns false when both are null', () => {
@@ -83,49 +85,49 @@ describe('hasPolicyRelevantFieldChanged', () => {
         });
 
         it('returns false when only a non-tracked field changes', () => {
-            const updated = {...basePolicy, name: 'Updated Name'} as unknown as Policy;
+            const updated = createMock<Policy>({...basePolicy, name: 'Updated Name'});
             expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(false);
         });
     });
 
     describe('tracked field changes', () => {
         it('returns true when type changes', () => {
-            const updated = {...basePolicy, type: CONST.POLICY.TYPE.TEAM} as unknown as Policy;
+            const updated = createMock<Policy>({...basePolicy, type: CONST.POLICY.TYPE.TEAM});
             expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
         });
 
         it('returns true when approvalMode changes', () => {
-            const updated = {...basePolicy, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL} as unknown as Policy;
+            const updated = createMock<Policy>({...basePolicy, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
             expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
         });
 
         it('returns true when reimbursementChoice changes', () => {
-            const updated = {...basePolicy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO} as unknown as Policy;
+            const updated = createMock<Policy>({...basePolicy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO});
             expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
         });
 
         it('returns true when autoReimbursementLimit changes', () => {
-            const updated = {...basePolicy, autoReimbursementLimit: 2000} as unknown as Policy;
+            const updated = createMock<Policy>({...basePolicy, autoReimbursementLimit: 2000});
             expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
         });
 
         it('returns true when role changes', () => {
-            const updated = {...basePolicy, role: CONST.POLICY.ROLE.USER} as unknown as Policy;
+            const updated = createMock<Policy>({...basePolicy, role: CONST.POLICY.ROLE.USER});
             expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
         });
 
         it('returns true when autoReimbursement.limit changes', () => {
-            const updated = {...basePolicy, autoReimbursement: {limit: 999}} as unknown as Policy;
+            const updated = createMock<Policy>({...basePolicy, autoReimbursement: {limit: 999}});
             expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
         });
 
         it('returns true when autoReimbursement goes from defined to undefined', () => {
-            const updated = {...basePolicy, autoReimbursement: undefined} as unknown as Policy;
+            const updated = createMock<Policy>({...basePolicy, autoReimbursement: undefined});
             expect(hasPolicyRelevantFieldChanged(basePolicy, updated)).toBe(true);
         });
 
         it('returns true when autoReimbursement goes from undefined to defined', () => {
-            const withoutAutoReimburse = {...basePolicy, autoReimbursement: undefined} as unknown as Policy;
+            const withoutAutoReimburse = createMock<Policy>({...basePolicy, autoReimbursement: undefined});
             expect(hasPolicyRelevantFieldChanged(withoutAutoReimburse, basePolicy)).toBe(true);
         });
     });
@@ -134,27 +136,27 @@ describe('hasPolicyRelevantFieldChanged', () => {
 describe('reportAttributes compute — policy change code flow', () => {
     let config: ReportAttributesConfig;
 
-    const report1 = {
+    const report1 = createMock<Report>({
         reportID: 'r1',
         policyID: 'policy1',
         chatReportID: undefined,
         participants: {},
-    } as unknown as Report;
+    });
 
-    const report2 = {
+    const report2 = createMock<Report>({
         reportID: 'r2',
         policyID: 'policy2',
         chatReportID: undefined,
         participants: {},
-    } as unknown as Report;
+    });
 
     const reports: OnyxCollection<Report> = {
         [`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1,
         [`${ONYXKEYS.COLLECTION.REPORT}r2`]: report2,
     };
 
-    const policy1 = {...basePolicy, id: 'policy1'} as unknown as Policy;
-    const policy2 = {...basePolicy, id: 'policy2'} as unknown as Policy;
+    const policy1 = createMock<Policy>({...basePolicy, id: 'policy1'});
+    const policy2 = createMock<Policy>({...basePolicy, id: 'policy2'});
 
     const policies: OnyxCollection<Policy> = {
         [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1,
@@ -164,24 +166,29 @@ describe('reportAttributes compute — policy change code flow', () => {
     beforeEach(() => {
         jest.resetModules();
 
-        config = (require('@userActions/OnyxDerived/configs/reportAttributes') as {default: ReportAttributesConfig}).default;
+        config = jest.requireActual<{default: ReportAttributesConfig}>('@userActions/OnyxDerived/configs/reportAttributes').default;
     });
 
-    const buildArgs = (overridePolicies?: OnyxCollection<Policy>, overrideReports?: OnyxCollection<Report>, transactionsUpdate?: OnyxCollection<Transaction> | null) =>
-        [
+    // Onyx-derived dependency values use undefined for absent entries; null is outside the typed transactions boundary.
+    const buildArgs = (overridePolicies?: OnyxCollection<Policy>, overrideReports?: OnyxCollection<Report>, transactionsUpdate?: OnyxCollection<Transaction>) => {
+        const args: Parameters<ReportAttributesConfig['compute']>[0] = [
             overrideReports ?? reports, // reports
-            null, // preferredLocale
-            null, // transactionViolations
-            null, // reportActions
-            null, // reportNameValuePairs
-            transactionsUpdate ?? null, // transactions
-            null, // personalDetails
-            null, // session
+            undefined, // preferredLocale
+            undefined, // transactionViolations
+            undefined, // reportActions
+            undefined, // reportNameValuePairs
+            transactionsUpdate, // transactions
+            undefined, // personalDetails
+            undefined, // session
             overridePolicies ?? policies, // policies
-            null, // policyTags
-            null, // reportViolations
-            null, // reportMetadata
-        ] as unknown as Parameters<ReportAttributesConfig['compute']>[0];
+            undefined, // policyTags
+            undefined, // conciergeReportID
+            undefined, // introSelected
+            undefined, // reportMetadata
+            undefined, // network
+        ];
+        return args;
+    };
 
     it('computes every report on a cold start (no currentValue) when policies load', () => {
         const result = config.compute(buildArgs(), {
@@ -286,7 +293,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         });
 
         // reimbursementChoice is a badge-relevant field that no report name reads.
-        const policy1Changed = {...policy1, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO} as unknown as Policy;
+        const policy1Changed = createMock<Policy>({...policy1, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO});
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
             [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed,
@@ -300,7 +307,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             locale: null,
         };
 
-        const computeReportNameMock = (jest.requireMock('@libs/ReportNameUtils') as unknown as {computeReportName: jest.Mock}).computeReportName;
+        const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
         computeReportNameMock.mockClear();
 
         const result = config.compute(buildArgs(updatedPolicies), {
@@ -326,7 +333,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         });
 
         // Both a badge field and the name change — the report name must be recomputed.
-        const policy1Changed = {...policy1, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, name: 'Renamed Policy'} as unknown as Policy;
+        const policy1Changed = createMock<Policy>({...policy1, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, name: 'Renamed Policy'});
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
             [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed,
@@ -340,7 +347,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             locale: null,
         };
 
-        const computeReportNameMock = (jest.requireMock('@libs/ReportNameUtils') as unknown as {computeReportName: jest.Mock}).computeReportName;
+        const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
         computeReportNameMock.mockReturnValue('New Name');
 
         const result = config.compute(buildArgs(updatedPolicies), {
@@ -429,7 +436,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         });
 
         // fieldList arrives → emptiness flips. Not a badge field, so this alone must still be detected.
-        const policy1Changed = {...policy1, fieldList: {textTitle: {name: 'title'}}} as unknown as Policy;
+        const policy1Changed = createMock<Policy>({...policy1, fieldList: {textTitle: {name: 'title'}}});
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
             [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed,
@@ -502,7 +509,12 @@ describe('reportAttributes compute — policy change code flow', () => {
         });
 
         // Receiver-policy matches never skip the name recompute.
-        expect(result?.reports.invoiceRoom?.reportName).not.toBe('Old Room');
+        const invoiceRoomResult = result?.reports.invoiceRoom;
+        expect(invoiceRoomResult).toBeDefined();
+        if (!invoiceRoomResult) {
+            return;
+        }
+        expect(invoiceRoomResult.reportName).not.toBe('Old Room');
     });
 
     it('recomputes the name when a badge-only policy change coalesces with a transaction update on the same report', () => {
@@ -513,7 +525,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
-        const policy1Changed = {...policy1, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO} as unknown as Policy;
+        const policy1Changed = createMock<Policy>({...policy1, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO});
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
             [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1Changed,
@@ -554,7 +566,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 
-        const policy1WithUntrackedChange = {...policy1, description: 'New description'} as unknown as Policy;
+        const policy1WithUntrackedChange = createMock<Policy>({...policy1, description: 'New description'});
         const updatedPolicies: OnyxCollection<Policy> = {
             ...policies,
             [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithUntrackedChange,
@@ -570,7 +582,7 @@ describe('reportAttributes compute — policy change code flow', () => {
 
         const result = config.compute(buildArgs(updatedPolicies), {
             currentValue: existingValue,
-            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithUntrackedChange} as never},
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}policy1`]: policy1WithUntrackedChange}},
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
         });
 

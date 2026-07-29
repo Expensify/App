@@ -21,8 +21,8 @@ jest.mock('@libs/CurrentUserStore', () => ({
     getCurrentUserEmail: jest.fn(() => 'jane@example.com'),
 }));
 
-const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
-const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
+const mockReportActionsUtils = jest.mocked(ReportActionsUtils);
+const mockReportUtils = jest.mocked(ReportUtils);
 
 describe('CustomFormula', () => {
     describe('parse()', () => {
@@ -259,10 +259,11 @@ describe('CustomFormula', () => {
             expect(result).toBe('{report:unknown}');
         });
 
+        // FormulaContext.policy is OnyxEntry<Policy> (Policy | undefined), so missing-policy fixtures use undefined; null is outside the typed boundary.
         test('should handle missing report data gracefully', () => {
             const contextWithMissingData: FormulaContext = {
                 report: createMock<Report>({}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const result = compute('{report:total} {report:policyname}', contextWithMissingData);
             expect(result).toBe('{report:total} {report:policyname}'); // Empty data is replaced with definition
@@ -918,7 +919,7 @@ describe('CustomFormula', () => {
         test('should handle undefined amounts', () => {
             const context: FormulaContext = {
                 report: createMock<Report>({total: undefined}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const result = compute('{report:total}', context);
             expect(result).toBe('{report:total}');
@@ -928,7 +929,7 @@ describe('CustomFormula', () => {
             mockReportActionsUtils.getAllReportActions.mockReturnValue({});
             const context: FormulaContext = {
                 report: createMock<Report>({reportID: '123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             const result = compute('{report:created}', context);
@@ -939,7 +940,7 @@ describe('CustomFormula', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
             const context: FormulaContext = {
                 report: createMock<Report>({reportID: '123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const today = new Date();
             const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -951,7 +952,7 @@ describe('CustomFormula', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
             const context: FormulaContext = {
                 report: createMock<Report>({reportID: '123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const today = new Date();
             const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -962,7 +963,7 @@ describe('CustomFormula', () => {
         test('should call getReportTransactions with correct reportID for startdate', () => {
             const context: FormulaContext = {
                 report: createMock<Report>({reportID: 'test-report-123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             compute('{report:startdate}', context);
@@ -972,7 +973,7 @@ describe('CustomFormula', () => {
         test('should call getAllReportActions with correct reportID for created', () => {
             const context: FormulaContext = {
                 report: createMock<Report>({reportID: 'test-report-456'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             compute('{report:created}', context);
@@ -1004,7 +1005,7 @@ describe('CustomFormula', () => {
             mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
             const context: FormulaContext = {
                 report: createMock<Report>({reportID: 'test-report-123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             const result = compute('{report:startdate}', context);
@@ -1065,7 +1066,7 @@ describe('CustomFormula', () => {
             mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
             const context: FormulaContext = {
                 report: createMock<Report>({reportID: 'test-report-123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             const result = compute('{report:startdate}', context);
@@ -1083,7 +1084,7 @@ describe('CustomFormula', () => {
 
         const mockContextWithDate: FormulaContext = {
             report: createMock<Report>({reportID: '123'}),
-            policy: null as unknown as Policy,
+            policy: undefined,
         };
 
         const setupMockDate = (date: string) => {
@@ -1341,7 +1342,7 @@ describe('CustomFormula', () => {
             test('name fields fall back to email when name missing', () => {
                 const contextWithPartialDetails: FormulaContext = {
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 111,
                         login: 'fallback@email.com',
@@ -1456,7 +1457,7 @@ describe('CustomFormula', () => {
             test('firstname - fall back to email when manager name missing', () => {
                 const contextWithPartialManagerDetails: FormulaContext = {
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     managerPersonalDetails: createMock<PersonalDetails>({
                         accountID: 222,
                         login: 'manager@email.com',
@@ -1469,7 +1470,7 @@ describe('CustomFormula', () => {
             test('fullname - fall back to email when manager displayName missing', () => {
                 const contextWithPartialManagerDetails: FormulaContext = {
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     managerPersonalDetails: createMock<PersonalDetails>({
                         accountID: 222,
                         login: 'manager@email.com',
@@ -1537,7 +1538,7 @@ describe('CustomFormula', () => {
             test('empty email - return empty when email empty', () => {
                 const contextWithEmptyEmail: FormulaContext = {
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
@@ -1550,7 +1551,7 @@ describe('CustomFormula', () => {
             test('empty email with name - return empty when name also empty', () => {
                 const contextWithEmptyEmail: FormulaContext = {
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
@@ -1563,7 +1564,7 @@ describe('CustomFormula', () => {
             test('empty firstname - fallback to email when firstname is empty string', () => {
                 const contextWithEmptyFirstName: FormulaContext = {
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         firstName: '',
@@ -1577,7 +1578,7 @@ describe('CustomFormula', () => {
             test('empty lastname - fallback to email when lastname is empty string', () => {
                 const contextWithEmptyLastName: FormulaContext = {
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         lastName: '',
@@ -1591,7 +1592,7 @@ describe('CustomFormula', () => {
             test('empty displayName - fallback to email when displayName is empty string', () => {
                 const contextWithEmptyDisplayName: FormulaContext = {
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         displayName: '',
@@ -1605,7 +1606,7 @@ describe('CustomFormula', () => {
             test('empty email with frontpart - return empty for empty email modifier', () => {
                 const contextWithEmptyEmail: FormulaContext = {
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
