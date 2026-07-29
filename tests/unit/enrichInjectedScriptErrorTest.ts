@@ -303,6 +303,16 @@ describe('enrichInjectedScriptError', () => {
             const stack = 'TypeError: x\n    at a (https://cdn.vendor.com/tag.bundle.js:1:2)\n    at b (https://cdn.vendor.com/data.bundle.json:1:2)';
             expect(describeRawStack(stack, 'https://new.expensify.com')).toEqual({lineCount: 3, referencesOwnBundle: false, referencesOwnOrigin: false});
         });
+
+        it('does not attribute a hashed third-party bundle served from another origin to our code', () => {
+            const stack = 'TypeError: x\n    at a (https://cdn.vendor.com/sdk-0123abcd4567.bundle.js:1:2)';
+            expect(describeRawStack(stack, 'https://new.expensify.com')).toEqual({lineCount: 2, referencesOwnBundle: false, referencesOwnOrigin: false});
+        });
+
+        it('does not treat a superstring of our origin as our origin', () => {
+            const stack = 'TypeError: x\n    at a (https://new.expensify.com.evil.example/main-33e5c3ee04228117.bundle.js:1:2)';
+            expect(describeRawStack(stack, 'https://new.expensify.com')).toEqual({lineCount: 2, referencesOwnBundle: false, referencesOwnOrigin: false});
+        });
     });
 
     describe('middleware', () => {
@@ -358,6 +368,15 @@ describe('enrichInjectedScriptError', () => {
             }
         });
 
+        it('reads the raw stack off a non-Error exception, which is what cross-realm throws look like', () => {
+            const event = buildEvent(['app:///'], TARGET_MESSAGE, {lineno: 1, colno: 5});
+            const hint = {originalException: {stack: `TypeError: x\n    at f (${window.location.origin}/main-33e5c3ee04228117.bundle.js:1:2)`}} as EventHint;
+            const enriched = enrichInjectedScriptError(event, hint);
+
+            expect(enriched?.tags?.[CONST.TELEMETRY.TAGS.INJECTED_SCRIPT_OWN_BUNDLE_ON_STACK]).toBe('true');
+            expect(enriched?.extra?.stackScriptHosts).toEqual([window.location.host]);
+        });
+
         it('passes every event through on native, where the DOM implementation is not bundled', () => {
             const event = buildEvent(['app:///'], TARGET_MESSAGE, {lineno: 1, colno: 1});
             expect(enrichInjectedScriptErrorNative(event, buildHint())).toBe(event);
@@ -374,7 +393,7 @@ describe('enrichInjectedScriptError', () => {
             expect(payload).not.toContain('SECRET123');
             expect(payload).not.toContain('SECRET_TOKEN_abc123');
             expect(payload).not.toContain('bob@corp.com');
-            for (const value of collectStrings(enriched?.extra)) {
+            for (const value of collectStrings({extra: enriched?.extra, tags: enriched?.tags})) {
                 expect(value).toMatch(SAFE_STRING_REGEX);
             }
         });

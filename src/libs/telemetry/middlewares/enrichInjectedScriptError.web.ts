@@ -276,15 +276,20 @@ function getFrameSource(shapes: InlineScriptShape[], location: FrameLocation | u
 }
 
 /**
- * Booleans and counts taken from the raw stack. `referencesOwnBundle` is the decisive one: our web
- * bundles are the only scripts named `*.bundle.js`, so a stack that never names one has no Expensify
- * JavaScript on it. No part of the stack text itself is sent.
+ * Booleans and counts taken from the raw stack. `referencesOwnBundle` is the decisive one: a stack
+ * that never names one of our bundles has no Expensify JavaScript on it. `[name]-[contenthash].bundle.js`
+ * is stock webpack naming rather than Expensify-specific, so a frame only counts as our bundle when its
+ * line also carries our origin — bundles are always served from the page's own origin (`assetPrefix: '/'`),
+ * so requiring both costs no true positives. No part of the stack text itself is sent.
  */
 function describeRawStack(stack: string, origin: string): {lineCount: number; referencesOwnBundle: boolean; referencesOwnOrigin: boolean} {
+    const lines = stack.split('\n');
+    // A stack URL always has a path, so matching `origin/` cannot match a superstring host like `${origin}.evil.example`
+    const originWithSlash = origin ? `${origin}/` : '';
     return {
-        lineCount: stack.split('\n').length,
-        referencesOwnBundle: OWN_BUNDLE_REGEX.test(stack),
-        referencesOwnOrigin: !!origin && stack.includes(origin),
+        lineCount: lines.length,
+        referencesOwnBundle: !!originWithSlash && lines.some((line) => line.includes(originWithSlash) && OWN_BUNDLE_REGEX.test(line)),
+        referencesOwnOrigin: !!originWithSlash && stack.includes(originWithSlash),
     };
 }
 
@@ -308,6 +313,9 @@ function getLoadedScriptHosts(scripts: ScriptLike[]): {hosts: string[]; truncate
             // Skip unparsable src values
         }
     }
+    // Browsers cap the resource timing buffer (commonly 250 entries), so a script loaded after the buffer
+    // filled never appears here — a host missing from this pass is not proof it never loaded. The DOM pass
+    // above still covers every script element currently on the page.
     if (typeof performance !== 'undefined' && typeof performance.getEntriesByType === 'function' && typeof PerformanceResourceTiming !== 'undefined') {
         for (const entry of performance.getEntriesByType('resource')) {
             if (!(entry instanceof PerformanceResourceTiming) || entry.initiatorType !== 'script') {
@@ -344,7 +352,9 @@ function getLoadedScriptHosts(scripts: ScriptLike[]): {hosts: string[]; truncate
  */
 const enrichInjectedScriptError: TelemetryBeforeSendError = (event: ErrorEvent, hint: EventHint): ErrorEvent => {
     try {
-        // Cheap guards first: most events bail on the message check, so frames are only parsed for the few that pass
+        // Cheap guards first: most events bail on the message check, so frames are only parsed for the few
+        // that pass. The `document` check is not dead code even though this module only resolves on web:
+        // it guards non-DOM contexts (workers, test environments without jsdom).
         if (typeof document === 'undefined' || !hasTargetedMessage(event)) {
             return event;
         }
@@ -360,8 +370,12 @@ const enrichInjectedScriptError: TelemetryBeforeSendError = (event: ErrorEvent, 
         const {hosts, truncated: hostsTruncated} = getLoadedScriptHosts(scripts);
         const frameSource = getFrameSource(shapes, location);
 
+        // Duck-typed rather than `instanceof Error`: exceptions thrown across realms (iframes, extension
+        // content scripts) fail instanceof, and injected-script scenarios are exactly where those show up.
+        // Downstream consumers emit only parsed hosts and counts, so any string is safe to accept here.
         const originalException = hint.originalException;
-        const rawStack = originalException instanceof Error ? originalException.stack : undefined;
+        const exceptionStack = typeof originalException === 'object' && originalException !== null && 'stack' in originalException ? originalException.stack : undefined;
+        const rawStack = typeof exceptionStack === 'string' ? exceptionStack : undefined;
         const {hosts: stackHosts, truncated: stackHostsTruncated} = rawStack ? getStackScriptHosts(rawStack) : {hosts: [], truncated: false};
         const rawStackShape = rawStack ? describeRawStack(rawStack, window.location.origin) : undefined;
 
@@ -373,7 +387,9 @@ const enrichInjectedScriptError: TelemetryBeforeSendError = (event: ErrorEvent, 
         };
         extra.injectedScriptInlineShapes = shapes;
         extra.loadedScriptHosts = hosts;
-        extra.injectedScriptTruncated = inlineTruncated || hostsTruncated || stackHostsTruncated;
+        // Split per list so a `true` says exactly which cap was hit — an absent host is only evidence of
+        // absence when the list that would have carried it was not the one truncated
+        extra.injectedScriptTruncated = {inline: inlineTruncated, hosts: hostsTruncated, stackHosts: stackHostsTruncated};
 
         if (rawStack) {
             extra.stackScriptHosts = stackHosts;
