@@ -2,7 +2,7 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
-import {isCopyableTextTarget, shouldSuppressCopyableTextPress} from '@components/TextWithTooltip/selection';
+import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
@@ -153,8 +153,7 @@ function MoneyRequestReportTransactionItemBody({
 
     // Keep this ref local so React Compiler can prove the after-render event mutations are safe.
     const wasEditingOnMouseDownRef = useRef(false);
-    // Remember where this mouse sequence started so an old text selection does not block later row clicks.
-    const wasMouseDownOnCopyableTextRef = useRef(false);
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
 
     useEffect(() => {
         if (!wasRecentlyEditingCell) {
@@ -165,8 +164,7 @@ function MoneyRequestReportTransactionItemBody({
 
     const handleMouseDown = (e?: React.MouseEvent) => {
         wasEditingOnMouseDownRef.current = isEditingCell;
-        const isCopyableTarget = isCopyableTextTarget(e?.target);
-        wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
+        const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
 
         if (!isEditingCell && !isCopyableTarget) {
             e?.preventDefault();
@@ -176,9 +174,7 @@ function MoneyRequestReportTransactionItemBody({
     const handleHoverIn = () => setShouldDisableHoverStyle(false);
 
     const handlePress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = () => {
-        const shouldSuppressPress = shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
-        wasMouseDownOnCopyableTextRef.current = false;
-        if (shouldSuppressPress) {
+        if (shouldSuppressCopyableTextRowPress()) {
             return;
         }
 

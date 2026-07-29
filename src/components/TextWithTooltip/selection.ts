@@ -1,5 +1,7 @@
 import CONST from '@src/CONST';
 
+import {useRef} from 'react';
+
 /**
  * Helpers for detecting explicitly copyable text inside pressable rows, so row handlers can allow
  * native text selection without triggering row navigation after drag-select.
@@ -51,4 +53,25 @@ function shouldSuppressCopyableTextPress(didMouseDownStartOnCopyableText: boolea
     return !!anchorCopyableElement || !!focusCopyableElement;
 }
 
-export {COPYABLE_TEXT_DATA_SET, COPYABLE_TEXT_SELECTOR, isCopyableTextTarget, shouldSuppressCopyableTextPress};
+function useCopyableTextRowPress() {
+    const wasMouseDownOnCopyableTextRef = useRef(false);
+
+    const markMouseDownOnCopyableText = (target: EventTarget | null | undefined, shouldCheck = true): boolean => {
+        const isCopyableTarget = shouldCheck && isCopyableTextTarget(target);
+        wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
+        return isCopyableTarget;
+    };
+
+    const shouldSuppressCopyableTextRowPress = (shouldCheck = true): boolean => {
+        const shouldSuppressPress = shouldCheck && shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
+        wasMouseDownOnCopyableTextRef.current = false;
+        return shouldSuppressPress;
+    };
+
+    return {
+        markMouseDownOnCopyableText,
+        shouldSuppressCopyableTextRowPress,
+    };
+}
+
+export {COPYABLE_TEXT_DATA_SET, COPYABLE_TEXT_SELECTOR, isCopyableTextTarget, shouldSuppressCopyableTextPress, useCopyableTextRowPress};

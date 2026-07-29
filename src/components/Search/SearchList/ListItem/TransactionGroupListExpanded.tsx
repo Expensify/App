@@ -6,7 +6,7 @@ import ScrollView from '@components/ScrollView';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import {isCopyableTextTarget, shouldSuppressCopyableTextPress} from '@components/TextWithTooltip/selection';
+import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -158,8 +158,7 @@ function TransactionGroupListExpandedImpl({
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
-    // Remember where this mouse sequence started so an old text selection does not block later expanded row clicks.
-    const wasMouseDownOnCopyableTextRef = useRef(false);
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
 
@@ -287,9 +286,7 @@ function TransactionGroupListExpandedImpl({
     }
 
     const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
-        const shouldSuppressPress = shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
-        wasMouseDownOnCopyableTextRef.current = false;
-        if (shouldSuppressPress) {
+        if (shouldSuppressCopyableTextRowPress()) {
             return;
         }
 
@@ -355,8 +352,7 @@ function TransactionGroupListExpandedImpl({
                             accessibilityLabel={transaction.text ?? ''}
                             isNested
                             onMouseDown={(e) => {
-                                const isCopyableTarget = isCopyableTextTarget(e?.target);
-                                wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
+                                const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
                                 if (isCopyableTarget) {
                                     return;
                                 }

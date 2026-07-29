@@ -59,7 +59,7 @@ import RadioButton from './RadioButton';
 import RenderHTML from './RenderHTML';
 import ReportActionAvatars from './ReportActionAvatars';
 import Text from './Text';
-import {COPYABLE_TEXT_DATA_SET, isCopyableTextTarget, shouldSuppressCopyableTextPress} from './TextWithTooltip/selection';
+import {COPYABLE_TEXT_DATA_SET, useCopyableTextRowPress} from './TextWithTooltip/selection';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from './utils/getContextMenuAccessibilityProps';
@@ -642,8 +642,7 @@ function MenuItem({
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
     const pressableRef = useRef<View>(null);
-    // Remember where this mouse sequence started so an old text selection does not block later menu item clicks.
-    const wasMouseDownOnCopyableTextRef = useRef(false);
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
     useEffect(() => {
         const element = pressableRef.current;
         if (interactive || !element || typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
@@ -821,9 +820,7 @@ function MenuItem({
             return;
         }
 
-        const shouldSuppressPress = copyable && shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
-        wasMouseDownOnCopyableTextRef.current = false;
-        if (shouldSuppressPress) {
+        if (shouldSuppressCopyableTextRowPress(copyable)) {
             return;
         }
 
@@ -890,7 +887,7 @@ function MenuItem({
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                                 onMouseDown={(event) => {
-                                    wasMouseDownOnCopyableTextRef.current = copyable && isCopyableTextTarget(event?.target);
+                                    markMouseDownOnCopyableText(event?.target, copyable);
                                 }}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}

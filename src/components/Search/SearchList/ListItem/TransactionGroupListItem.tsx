@@ -6,7 +6,7 @@ import {useSearchResultsContext, useSearchSelectionContext} from '@components/Se
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
-import {isCopyableTextTarget, shouldSuppressCopyableTextPress} from '@components/TextWithTooltip/selection';
+import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -252,8 +252,7 @@ function TransactionGroupListItemImpl({
         isItemSelected && styles.activeComponentBG,
     ];
     const pressableRef = useRef<View>(null);
-    // Remember where this mouse sequence started so an old text selection does not block later group row clicks.
-    const wasMouseDownOnCopyableTextRef = useRef(false);
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
 
     useEffect(() => {
         if (!newTransactionID || !isExpanded) {
@@ -312,9 +311,7 @@ function TransactionGroupListItemImpl({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        const shouldSuppressPress = shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
-        wasMouseDownOnCopyableTextRef.current = false;
-        if (shouldSuppressPress) {
+        if (shouldSuppressCopyableTextRowPress()) {
             return;
         }
 
@@ -578,8 +575,7 @@ function TransactionGroupListItemImpl({
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => {
-                    const isCopyableTarget = isCopyableTextTarget(e?.target);
-                    wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
+                    const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
                     if (isCopyableTarget) {
                         return;
                     }

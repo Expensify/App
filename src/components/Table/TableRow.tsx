@@ -4,7 +4,7 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import {isCopyableTextTarget, shouldSuppressCopyableTextPress} from '@components/TextWithTooltip/selection';
+import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 
 import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
 
-import React, {useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -68,8 +68,7 @@ export default function TableRow({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal = false} = useTableContext();
-    // Remember where this mouse sequence started so an old text selection does not block later row clicks.
-    const wasMouseDownOnCopyableTextRef = useRef(false);
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
 
     // Tables inside a narrow pane modal (RHP) opt into keying the selection UX off the real screen size (isSmallScreenWidth),
     // because shouldUseNarrowLayout is always true in an RHP and would otherwise suppress selection entirely. All other
@@ -158,9 +157,7 @@ export default function TableRow({
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
-        const shouldSuppressPress = shouldSuppressCopyableTextPress(wasMouseDownOnCopyableTextRef.current);
-        wasMouseDownOnCopyableTextRef.current = false;
-        if (shouldSuppressPress) {
+        if (shouldSuppressCopyableTextRowPress()) {
             return;
         }
 
@@ -208,8 +205,7 @@ export default function TableRow({
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 onMouseDown={(e) => {
                     const target = e?.target;
-                    const isCopyableTarget = isCopyableTextTarget(target);
-                    wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
+                    const isCopyableTarget = markMouseDownOnCopyableText(target);
 
                     if (isCopyableTarget) {
                         return;
