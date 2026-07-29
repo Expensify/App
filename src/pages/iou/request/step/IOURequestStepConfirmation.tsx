@@ -45,7 +45,7 @@ import {
     isParticipantP2P,
     isSelfDMSoleDestination,
     navigateToStartMoneyRequestStep,
-    reportHasRealPolicy,
+    pickReportForPolicy,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     shouldShowReceiptEmptyState,
@@ -89,6 +89,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {policyDistanceDefaultCategoriesSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -163,7 +164,7 @@ function IOURequestStepConfirmation({
     // expense onto the self-DM, whose report carries the placeholder '_FAKE_' policy. After selecting that workspace
     // chat via the in-place "To" picker, the route report is still that self-DM; its fake policyID must not shadow
     // the selected participant's report, or the workspace expense fields (Category, etc.) never resolve. See #96576.
-    const realPolicyID = getIOURequestPolicyID(initialTransaction, reportHasRealPolicy(reportReal) ? reportReal : (participantReport ?? reportReal));
+    const realPolicyID = getIOURequestPolicyID(initialTransaction, pickReportForPolicy(reportReal, participantReport));
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
@@ -275,6 +276,10 @@ function IOURequestStepConfirmation({
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
 
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
+    // `participantsPolicies` only holds the policies of the participants the transaction has right now, so it can't
+    // resolve the workspace the user is switching *to*. Keep the default distance categories of every policy at hand
+    // for that case instead.
+    const [policyDistanceDefaultCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDistanceDefaultCategoriesSelector});
 
     const participants = useMemo(
         () =>
@@ -415,11 +420,10 @@ function IOURequestStepConfirmation({
                     } else if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
                         // Switching to a different workspace: the previous workspace's category and tag no longer apply,
                         // so reset them to the destination workspace's defaults. This mirrors the legacy participants-step
-                        // flow (useParticipantSubmission.goToNextStep), which resets both on every selection.
-                        const destinationPolicy = participantsPolicies[firstParticipant.policyID];
-                        const policyDistance = Object.values(destinationPolicy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-                        const defaultCategory = isDistanceRequest && policyDistance?.defaultCategory ? policyDistance.defaultCategory : '';
-                        setMoneyRequestCategory(activeTransactionID, defaultCategory, destinationPolicy);
+                        // flow (useParticipantSubmission.goToNextStep), which resets both on every selection and passes no
+                        // policy so the previous workspace's category-derived tax is cleared along with the category.
+                        const defaultCategory = isDistanceRequest ? (policyDistanceDefaultCategories?.[firstParticipant.policyID] ?? '') : '';
+                        setMoneyRequestCategory(activeTransactionID, defaultCategory, undefined);
                         setMoneyRequestTag(activeTransactionID, '');
                     }
                 }
@@ -441,7 +445,7 @@ function IOURequestStepConfirmation({
             transaction,
             personalPolicy?.outputCurrency,
             policyID,
-            participantsPolicies,
+            policyDistanceDefaultCategories,
         ],
     );
 

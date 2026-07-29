@@ -25,7 +25,7 @@ function ParticipantPicker(props: ParticipantPickerProps) {
     }
 
     return (
-        <View style={[StyleSheet.absoluteFill, styles.appBG, {zIndex: 10}]}>
+        <View style={[StyleSheet.absoluteFill, styles.appBG, styles.zIndex10]}>
             <BaseParticipantPicker {...props} />
         </View>
     );

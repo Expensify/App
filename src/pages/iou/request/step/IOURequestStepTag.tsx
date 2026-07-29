@@ -21,7 +21,7 @@ import {getIOURequestPolicyID, setMoneyRequestTag} from '@libs/actions/IOU/Money
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTag} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {reportHasRealPolicy} from '@libs/IOUUtils';
+import {pickReportForPolicy} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -66,7 +66,7 @@ function IOURequestStepTag({
     const {policy: policyFromTransaction} = usePolicyForTransaction({
         transaction,
         // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
-        reportPolicyID: getIOURequestPolicyID(transaction, reportHasRealPolicy(report) ? report : participantReport),
+        reportPolicyID: getIOURequestPolicyID(transaction, pickReportForPolicy(report, participantReport)),
         action,
         iouType,
         isPerDiemRequest: isPerDiemRequest(transaction),

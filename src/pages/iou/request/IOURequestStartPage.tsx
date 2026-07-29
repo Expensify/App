@@ -248,7 +248,12 @@ function IOURequestStartPage({
         // render (scan loader, reading the receipt blob), and for per diem the confirmation renders per-diem UI
         // (wrong fields, and the "Confirm page shows per diem" bug). Wait for the reset so the manual confirmation
         // mounts once against the rebuilt manual draft.
-        manualTabContent = <FullScreenLoadingIndicator reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}} />;
+        manualTabContent = (
+            <FullScreenLoadingIndicator
+                testID="manualTabPendingReset"
+                reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}}
+            />
+        );
     } else {
         manualTabContent = (
             <IOURequestStepConfirmation

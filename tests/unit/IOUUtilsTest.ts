@@ -1180,3 +1180,35 @@ describe('reportHasRealPolicy', () => {
         expect(IOUUtils.reportHasRealPolicy({...createRandomReport(3), policyID: 'ABC123'})).toBe(true);
     });
 });
+
+describe('pickReportForPolicy', () => {
+    const selfDMReport = {...createRandomReport(1), policyID: CONST.POLICY.ID_FAKE};
+    const reportWithoutPolicy = {...createRandomReport(2), policyID: undefined};
+    const workspaceReport = {...createRandomReport(3), policyID: 'ABC123'};
+    const otherWorkspaceReport = {...createRandomReport(4), policyID: 'DEF456'};
+
+    it('should return the first candidate when it has a real policy', () => {
+        expect(IOUUtils.pickReportForPolicy(workspaceReport, otherWorkspaceReport)).toBe(workspaceReport);
+    });
+
+    it('should skip the placeholder self-DM policy in favor of a real one', () => {
+        expect(IOUUtils.pickReportForPolicy(selfDMReport, workspaceReport)).toBe(workspaceReport);
+    });
+
+    it('should skip candidates without a policyID in favor of a real one', () => {
+        expect(IOUUtils.pickReportForPolicy(selfDMReport, reportWithoutPolicy, workspaceReport)).toBe(workspaceReport);
+    });
+
+    it('should skip undefined candidates', () => {
+        expect(IOUUtils.pickReportForPolicy(undefined, workspaceReport)).toBe(workspaceReport);
+    });
+
+    it('should fall back to the first defined candidate when none has a real policy', () => {
+        expect(IOUUtils.pickReportForPolicy(selfDMReport, reportWithoutPolicy)).toBe(selfDMReport);
+        expect(IOUUtils.pickReportForPolicy(undefined, reportWithoutPolicy)).toBe(reportWithoutPolicy);
+    });
+
+    it('should return undefined when there is no candidate at all', () => {
+        expect(IOUUtils.pickReportForPolicy(undefined, undefined)).toBeUndefined();
+    });
+});
