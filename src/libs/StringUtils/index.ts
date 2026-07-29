@@ -100,13 +100,27 @@ function normalizeAccents(text: string) {
 }
 
 /**
- * Remove zero-width characters (e.g. zero-width space, zero-width joiner, word joiner, BOM).
+ * Remove zero-width layout characters: zero-width space (U+200B), word joiner (U+2060), and BOM/zero-width no-break space (U+FEFF).
  * Some translations embed these to control line wrapping, which breaks substring/equality matching.
+ * Note: zero-width joiner (U+200D) and non-joiner (U+200C) are intentionally left in place because they are
+ * semantically meaningful in some scripts and in emoji sequences.
  * @param text - The input string
- * @returns The string with all zero-width characters removed
+ * @returns The string with zero-width layout characters removed
  */
 function removeZeroWidthCharacters(text: string) {
-    return text.replaceAll(/[\u200b-\u200d\u2060\ufeff]/g, '');
+    return text.replaceAll(/[\u200b\u2060\ufeff]/g, '');
+}
+
+/**
+ * Normalize a string for matching/comparison: strip accents/diacritics and zero-width characters.
+ * Prefer this over `normalizeAccents` whenever the result is only used to compare or search two strings,
+ * so invisible characters embedded in labels (e.g. for line wrapping) cannot cause false negatives.
+ * Case is left untouched so callers can apply their own case handling.
+ * @param text - The input string
+ * @returns The normalized string suitable for comparison
+ */
+function normalizeForMatch(text: string) {
+    return removeZeroWidthCharacters(normalizeAccents(text));
 }
 
 /**
@@ -229,6 +243,7 @@ export default {
     normalize,
     normalizeAccents,
     removeZeroWidthCharacters,
+    normalizeForMatch,
     normalizeCRLF,
     lineBreaksToSpaces,
     getFirstLine,

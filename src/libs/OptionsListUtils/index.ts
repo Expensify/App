@@ -3186,7 +3186,7 @@ function filteredPersonalDetailsOfRecentReports(recentReports: SearchOptionData[
  * Filters options based on the search input value
  */
 function filterReports(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
-    const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeAccents(term));
+    const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeForMatch(term));
     // We search eventually for multiple whitespace separated search terms.
     // We start with the search term at the end, and then narrow down those filtered search results with the next search term.
     // We repeat (reduce) this until all search terms have been used:
@@ -3195,22 +3195,22 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
             filterArrayByMatch(items, term, (item) => {
                 const values: string[] = [];
                 if (item.text) {
-                    values.push(StringUtils.normalizeAccents(item.text));
-                    values.push(StringUtils.normalizeAccents(item.text).replaceAll(/['-]/g, ''));
+                    values.push(StringUtils.normalizeForMatch(item.text));
+                    values.push(StringUtils.normalizeForMatch(item.text).replaceAll(/['-]/g, ''));
                 }
 
                 if (item.login) {
-                    values.push(StringUtils.normalizeAccents(item.login));
-                    values.push(StringUtils.normalizeAccents(item.login.replace(CONST.EMAIL_SEARCH_REGEX, '')));
+                    values.push(StringUtils.normalizeForMatch(item.login));
+                    values.push(StringUtils.normalizeForMatch(item.login.replace(CONST.EMAIL_SEARCH_REGEX, '')));
                 }
 
                 if (item.isThread) {
                     if (item.alternateText) {
-                        values.push(StringUtils.normalizeAccents(item.alternateText));
+                        values.push(StringUtils.normalizeForMatch(item.alternateText));
                     }
                 } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
                     if (item.subtitle) {
-                        values.push(StringUtils.normalizeAccents(item.subtitle));
+                        values.push(StringUtils.normalizeForMatch(item.subtitle));
                     }
                 }
 
