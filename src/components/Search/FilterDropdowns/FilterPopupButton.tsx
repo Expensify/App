@@ -18,7 +18,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {useIsFocused} from '@react-navigation/core';
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 
 type PopoverComponentProps = {
     isExpanded: boolean;
@@ -92,6 +92,10 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     };
 
     const calculatePopoverPositionAndToggleOverlay = () => {
+        // Dismiss the soft keyboard first. If the filter is opened while a table search input is still focused,
+        // the bottom-docked popover's KeyboardAvoidingView reserves keyboard-height padding and the sheet renders
+        // in the middle of the screen instead of docking to the bottom (Android).
+        Keyboard.dismiss();
         calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
             setPopoverTriggerPosition({...position, vertical: position.vertical});
             // Latch in the same batch as the open (and only when it will actually open, mirroring toggleOverlay's
