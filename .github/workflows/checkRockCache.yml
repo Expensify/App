@@ -43,12 +43,6 @@ on:
       FINGERPRINT:
         description: The fingerprint this lookup used, so a build can confirm it computed the same one on its own host.
         value: ${{ jobs.check.outputs.FINGERPRINT }}
-      TRAITS:
-        # An echo of the input, on purpose. A seed build verifies afterwards that it wrote what this gate looked for,
-        # and handing it these traits rather than restating them is what stops the two from ever naming different
-        # artifacts.
-        description: The traits this lookup was given, so a seed build can verify against exactly what was looked up.
-        value: ${{ inputs.traits }}
 
 jobs:
   check:
