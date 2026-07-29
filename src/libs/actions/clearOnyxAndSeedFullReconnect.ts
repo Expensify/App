@@ -1,5 +1,4 @@
 import DateUtils from '@libs/DateUtils';
-import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -20,10 +19,6 @@ import Onyx from 'react-native-onyx';
  * preserve list automatically so they survive the clear.
  */
 function clearOnyxAndSeedFullReconnect(keysToPreserve: OnyxKey[], extraSeeds?: OnyxMultiSetInput): Promise<void> {
-    // Any Onyx reset can preserve or replace SESSION/CREDENTIALS while dropping account-scoped data.
-    // Clear native startup prefetches so a cold start cannot replay requests from the previous identity.
-    clearPrefetchOnAppStart();
-
     const seeds: OnyxMultiSetInput = {
         ...extraSeeds,
         [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: DateUtils.getDBTime(),

@@ -25,6 +25,7 @@ import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
+import usePreMountDestination from '@hooks/usePreMountDestination';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
@@ -37,7 +38,6 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
@@ -50,15 +50,11 @@ import {
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
-import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
@@ -77,7 +73,6 @@ import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActio
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -87,7 +82,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -96,6 +91,7 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 import CategoryDefaultsSetter from './confirmation/CategoryDefaultsSetter';
 import DraftWorkspaceOpener from './confirmation/DraftWorkspaceOpener';
 import ExpenseDefaultsSetter from './confirmation/ExpenseDefaultsSetter';
+import getSubmitExpensePreMountDestinationRoute from './confirmation/getSubmitExpensePreMountDestinationRoute';
 import MoneyRequestInitializer from './confirmation/MoneyRequestInitializer';
 import ReceiptFileValidator from './confirmation/ReceiptFileValidator';
 import SubmitExpenseOrchestrator from './confirmation/SubmitExpenseOrchestrator';
@@ -293,6 +289,7 @@ function IOURequestStepConfirmation({
                           reportAttributesDerived,
                           participantReportDraft,
                           currentUserPersonalDetails.accountID,
+                          translate,
                       );
             }) ?? [],
         [
@@ -537,7 +534,6 @@ function IOURequestStepConfirmation({
     // other tabs.
     const canDismissFromSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT;
 
-    const hasPreInsertFired = useRef(false);
     const isTransactionReady = !!transaction;
     const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination ? findSelfDMReportID() : undefined;
     const isMRReport = isMoneyRequestReport(report);
@@ -546,97 +542,29 @@ function IOURequestStepConfirmation({
     const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
 
-    useEffect(() => {
-        if (hasPreInsertFired.current || !isTransactionReady || !getIsNarrowLayout()) {
-            return;
-        }
+    // All reactive inputs are in the deps; the builder's own live Navigation reads aren't reactive values so they don't belong
+    // here. A recompute driven by a non-route-determining dep yields the same string route - a no-op for usePreMountDestination's
+    // value-compared [route] effect. A genuine destinationReportID/iouType change yields a new route string and re-pre-inserts,
+    // which is intended. The builder's hasPreInsertedFullscreen guard keeps its eligibility (not the route value) stable across
+    // its own pre-insert, so it never tears down the route it just inserted.
+    const preMountDestinationRoute = useMemo(
+        () =>
+            getSubmitExpensePreMountDestinationRoute({
+                isTransactionReady,
+                destinationReportID,
+                destinationReport,
+                isFromGlobalCreate,
+                canPreInsertSearch,
+                iouType,
+                isCreatingTrackExpense,
+                isSelfDMDestination,
+            }),
+        [isTransactionReady, destinationReportID, destinationReport, isFromGlobalCreate, canPreInsertSearch, iouType, isCreatingTrackExpense, isSelfDMDestination],
+    );
 
-        // Search pre-insert: global create flows that navigate to Search after submit.
-        // Also pre-insert when Search is already on top but showing a different type
-        // (e.g. Invoice tab when submitting an Expense) so the correct tab is revealed on dismiss.
-        const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
-        const isSearchOnTopWithDifferentType = isSearchTopmostFullScreenRoute() && getCurrentSearchQueryJSON()?.type !== searchType;
-        const shouldPreInsertSearch = isFromGlobalCreate && canPreInsertSearch && !isReportTopmostSplitNavigator() && (!isSearchTopmostFullScreenRoute() || isSearchOnTopWithDifferentType);
-
-        // Report pre-insert: dismiss modal flows that open an existing report after submit.
-        // Skip when the destination is already the topmost fullscreen report to avoid
-        // pushing a duplicate route (which would require an extra back press).
-
-        // Only eligible when search pre-insert didn't win, and the flow ends at a report (not Search).
-        // When Search is the topmost fullscreen and there's no report context (e.g. QAB from Spend tab),
-        // pre-inserting a report is wrong - the user should stay on Search after submission.
-        // Global-create TRACK targets self-DM, PAY and SPLIT target a specific chat report,
-        // so they are also eligible for report pre-insert when Search is NOT topmost.
-        // A self-DM CREATE is effectively a TRACK, so it targets the self-DM report too.
-        // When on Search/Spend the user should stay there after submission.
-        const isReportBoundGlobalCreate = iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SPLIT;
-        const canUseReportPreInsert =
-            !shouldPreInsertSearch &&
-            (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || isSelfDMDestination || isReportBoundGlobalCreate || !isFromGlobalCreate)));
-
-        // RHP has its own dismiss handler; pre-inserting under it would break the stack.
-        const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
-
-        // Don't pre-insert if the report is already showing - it would push a duplicate route.
-        const hasValidDestination = !!destinationReportID && Navigation.getTopmostReportId() !== destinationReportID;
-
-        // The report must be in the REPORT collection so the pre-inserted screen can render immediately. A draft-only
-        // report (e.g. the expense chat of a freshly created draft workspace in the zero-workspace "Submit to my
-        // employer" flow) can't render — the report screen only reads COLLECTION.REPORT — so pre-inserting one would
-        // strand the user on an infinite skeleton if they back out before submitting. Passing an empty draft to
-        // getReportOrDraftReport skips its REPORT_DRAFT fallback while keeping the module-cache fallback for
-        // real reports that useOnyx hasn't hydrated yet.
-        const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
-
-        const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded;
-
-        if (!shouldPreInsertSearch && !shouldPreInsertReport) {
-            return;
-        }
-
-        hasPreInsertFired.current = true;
-
-        const preInsertFullscreenRoute: Route = shouldPreInsertSearch
-            ? ROUTES.SEARCH_ROOT.getRoute({
-                  query: buildCannedSearchQuery({type: searchType}),
-              })
-            : ROUTES.REPORT_WITH_ID.getRoute(destinationReportID);
-
-        const timer = setTimeout(() => {
-            Navigation.preInsertFullscreenUnderRHP(preInsertFullscreenRoute);
-        }, CONST.PRE_INSERT_FULLSCREEN_DELAY);
-
-        return () => {
-            clearTimeout(timer);
-
-            // eslint-disable-next-line react-hooks/exhaustive-deps -- formHasBeenSubmitted is a stable ref from useExpenseSubmission; reading .current in cleanup is intentional
-            if (formHasBeenSubmitted.current) {
-                return;
-            }
-
-            if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
-                Navigation.removePreInsertedFullscreenIfNeeded();
-            }
-
-            // Allow the pre-insert to re-fire when dependencies change (e.g. destinationReportID
-            // transitions from undefined to a valid ID after setTransactionReport resolves).
-            // Without this reset, the guard would permanently block re-firing after the first
-            // pre-insert was torn down due to a dependency change. This must run even when the
-            // 300ms timer was cleared before the pre-insert could execute, otherwise the flag
-            // stays true and blocks all subsequent attempts.
-            hasPreInsertFired.current = false;
-        };
-        // isFromGlobalCreate, iouType, and canPreInsertSearch are stable for the lifetime of
-        // this screen instance. isTransactionReady and destinationReportID may each flip once
-        // (false -> true / undefined -> ID) as data loads asynchronously, re-triggering the effect.
-        // The hasPreInsertFired reset enables at most one additional re-fire when
-        // destinationReportID transitions from undefined to a valid ID. If destinationReportID
-        // were to change from one valid ID to another (extremely unlikely with Onyx), the
-        // pre-insert would re-fire once more, which is acceptable since the cleanup removes the
-        // stale route first. Oscillation is not possible because setTransactionReport only fires
-        // once during resetIOUTypeIfChanged.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isTransactionReady, destinationReportID]);
+    const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
+        shouldPreservePreInsertedRouteOnUnmount: () => formHasBeenSubmitted.current,
+    });
 
     // Cancel the telemetry span when confirmation unmounts without a completed submission.
     // If getPendingSubmitFollowUpAction() is set, the orchestrator (or sendMoney flow) has
@@ -701,6 +629,7 @@ function IOURequestStepConfirmation({
         // The orchestrator never calls navigateBack (it uses dismissModal), so this
         // reliably distinguishes user-initiated back from programmatic dismiss.
         cancelTracking();
+        cleanupPreMount();
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -755,6 +684,9 @@ function IOURequestStepConfirmation({
         participantsAutoAssignedFromRoute,
         backTo,
         backToReport,
+        // usePreMountDestination compiles under React Compiler, so cleanupPreMount has a stable identity (it closes over refs
+        // only) - this dep does not churn navigateBack per render.
+        cleanupPreMount,
     ]);
 
     const setBillable = useCallback(
@@ -972,6 +904,7 @@ function IOURequestStepConfirmation({
                         receiptFiles={receiptFiles}
                         isFromGlobalCreateOnTransaction={!!transaction?.isFromGlobalCreate}
                         isFromFloatingActionButtonOnTransaction={!!transaction?.isFromFloatingActionButton}
+                        revealPreMountDestination={revealPreMountDestination}
                     >
                         {({onConfirm, isConfirming}) => (
                             <MoneyRequestConfirmationList

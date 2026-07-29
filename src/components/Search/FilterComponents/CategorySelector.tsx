@@ -32,24 +32,18 @@ function CategorySelector({value = [], policyID, selectionListTextInputStyle, se
         return {text: category, value: category};
     });
 
-    const availableNonPersonalPolicyCategoriesSelector = (policyCategories: OnyxCollection<PolicyCategories>) =>
-        Object.fromEntries(
-            Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
-                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicyID}`) {
-                    return false;
-                }
-                const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                return availableCategories.length > 0;
-            }),
-        );
-
-    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(
-        ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-        {
-            selector: availableNonPersonalPolicyCategoriesSelector,
-        },
-        [availableNonPersonalPolicyCategoriesSelector],
-    );
+    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
+        selector: (policyCategories: OnyxCollection<PolicyCategories>) =>
+            Object.fromEntries(
+                Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
+                    if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicyID}`) {
+                        return false;
+                    }
+                    const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                    return availableCategories.length > 0;
+                }),
+            ),
+    });
 
     const categoryItems = [{text: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
     const uniqueCategoryNames = new Set<string>(
