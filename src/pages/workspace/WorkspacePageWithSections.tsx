@@ -180,10 +180,19 @@ function WorkspacePageWithSections({
     // The workspace we're viewing is being deleted (optimistically pending delete, or pending delete last render
     // and now gone from Onyx). Latch it so FullPageNotFoundView doesn't flash while goBackFromInvalidPolicy()'s
     // exit animation plays out and the navigation state re-renders this (still-mounted) screen.
-    const [hasWorkspaceBeenDeleted, setHasWorkspaceBeenDeleted] = useState(false);
-    if (!hasWorkspaceBeenDeleted && (isPendingDelete || (prevIsPendingDelete && isEmptyObject(policy)))) {
-        setHasWorkspaceBeenDeleted(true);
+    // We latch the deleted policyID (rather than a plain boolean) so the suppression is scoped to that specific
+    // workspace and clears automatically if this still-mounted screen is later reused for a different policyID.
+    const prevPolicyID = usePrevious(policyID);
+    const [deletedPolicyID, setDeletedPolicyID] = useState<string | undefined>(undefined);
+    if (
+        deletedPolicyID !== policyID &&
+        // The prevIsPendingDelete transition relies on prevPolicy, which belongs to the previous render's
+        // policyID, so only trust it when the screen is still showing the same workspace (policyID unchanged).
+        (isPendingDelete || (prevIsPendingDelete && isEmptyObject(policy) && prevPolicyID === policyID))
+    ) {
+        setDeletedPolicyID(policyID);
     }
+    const hasWorkspaceBeenDeleted = deletedPolicyID !== undefined && deletedPolicyID === policyID;
 
     const shouldShow = useMemo(() => {
         // Once the workspace we're viewing has been deleted by the user, keep the not-found view suppressed

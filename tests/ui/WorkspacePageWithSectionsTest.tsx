@@ -193,5 +193,35 @@ describe('WorkspacePageWithSections', () => {
             // Then the not-found page should be shown
             expect(screen.getByTestId('FullPageNotFoundView')).toBeTruthy();
         });
+
+        it('should show the not-found page again when the same screen instance is reused for a different, inaccessible workspace after a delete', async () => {
+            const OTHER_POLICY_ID = 2;
+
+            // Given the currently viewed workspace is deleted (pending delete -> removed from Onyx) and the latch is set
+            await act(async () => {
+                await Onyx.set(policyKey, {...mockPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+                await waitForBatchedUpdatesWithAct();
+            });
+            const {rerender} = renderWorkspacePageWithSections();
+            await waitForBatchedUpdatesWithAct();
+            await act(async () => {
+                await Onyx.set(policyKey, null);
+                await waitForBatchedUpdatesWithAct();
+            });
+            expect(screen.queryByTestId('FullPageNotFoundView')).toBeNull();
+
+            // When the still-mounted screen is reused for a different workspace that the user cannot access (absent from Onyx)
+            rerender(
+                renderWithProps(
+                    getDefaultProps({
+                        route: {key: 'test-route', name: SCREENS.WORKSPACE.INITIAL, params: {policyID: OTHER_POLICY_ID.toString()}},
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the stale delete latch (keyed by the previous policyID) must not suppress the not-found page for the new workspace
+            expect(screen.getByTestId('FullPageNotFoundView')).toBeTruthy();
+        });
     });
 });
