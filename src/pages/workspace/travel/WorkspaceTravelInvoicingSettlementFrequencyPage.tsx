@@ -46,8 +46,6 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
     const monthlySettlementDateError = getLatestErrorField(travelSettings, CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE);
     const hasFrequencyError = !isEmptyValueObject(monthlySettlementDateError);
 
-    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
-    // persisted frequency, so the change of context (persist + navigate) only happens when the user taps Save.
     const [draftFrequency, setDraftFrequency] = useState<ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>>();
     const selectedFrequency = draftFrequency ?? frequencies.find((frequency) => frequency === currentFrequency);
 
@@ -67,8 +65,6 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
         isSelected: frequency === selectedFrequency,
     }));
 
-    // React Compiler can't preserve the manual memoization when a nested field is read in the dependency array, so
-    // pull it into a local variable and depend on that instead.
     const monthlySettlementDate = travelSettings?.monthlySettlementDate;
     const saveAndGoBack = useCallback(() => {
         if (selectedFrequency && (selectedFrequency !== currentFrequency || hasFrequencyError)) {
@@ -77,8 +73,6 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
         Navigation.goBack();
     }, [selectedFrequency, currentFrequency, hasFrequencyError, workspaceAccountID, monthlySettlementDate]);
 
-    // Nothing to persist when the selection matches the current frequency, so disable Save (unless there's a
-    // settlement-date error to clear, which mirrors the persist guard in saveAndGoBack).
     const confirmButtonOptions = useMemo(
         () => ({
             showButton: true,

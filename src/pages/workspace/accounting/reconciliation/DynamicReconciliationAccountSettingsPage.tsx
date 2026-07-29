@@ -77,9 +77,6 @@ function ReconciliationAccountSettingsLayout({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
-    // persisted account, so the change of context (persist + navigate, done by onSelectBankAccount) only happens when
-    // the user taps Save. Lifted into this shared layout so both reconciliation sections get the behavior once.
     const [draftBankAccountID, setDraftBankAccountID] = useState<string>();
     const selectedID = draftBankAccountID ?? selectedBankAccountID;
 
@@ -90,7 +87,6 @@ function ReconciliationAccountSettingsLayout({
         isSelected: bankAccount.id === selectedID,
     }));
 
-    // Nothing to persist when the selection matches the currently reconciled account, so disable Save.
     const confirmButtonOptions = useMemo(
         () => ({
             showButton: true,
