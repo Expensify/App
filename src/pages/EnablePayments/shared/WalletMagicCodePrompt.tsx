@@ -35,7 +35,7 @@ function WalletMagicCodePrompt({onConfirm, onClose}: WalletMagicCodePromptProps)
             handleSubmitForm={onConfirm}
             isLoading={formData?.isLoading}
             title={translate('delegate.makeSureItIsYou')}
-            descriptionPrimary={translate('contacts.enterMagicCode', primaryLogin ?? '')}
+            descriptionPrimary={translate('contacts.enterSecurityCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction()}
             validateError={getLatestErrorMessageField(walletAdditionalDetails)}
             clearError={clearWalletAdditionalDetailsErrors}
