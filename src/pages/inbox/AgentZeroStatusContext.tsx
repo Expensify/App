@@ -59,12 +59,22 @@ const AgentZeroStatusStateContext = createContext<AgentZeroStatusState>(defaultS
 const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defaultActions);
 
 /**
- * Cheap outer guard — only subscribes to the scalar CONCIERGE_REPORT_ID and the report's chat
- * metadata. For non-AgentZero reports (the common case), returns children directly.
+ * Cheap outer guard — subscribes to the scalar CONCIERGE_REPORT_ID, the report's chat metadata,
+ * and this report's processing-indicator NVP. For non-AgentZero reports (the common case),
+ * returns children directly.
  *
- * AgentZero chats include Concierge DMs, policy #admins rooms, and custom-agent chats (any
- * report with a participant whose personalDetails carries `isCustomAgent: true`, stamped
- * server-side in `Account::formatNewDotPersonalDetails`).
+ * A report qualifies either because the server is *already* processing for an agent in it, or
+ * because it's one of the chat types where an agent responds by default: Concierge DMs, policy
+ * #admins rooms, and custom-agent chats (any report with a participant whose personalDetails
+ * carries `isCustomAgent: true`, stamped server-side in `Account::formatNewDotPersonalDetails`).
+ *
+ * The NVP arm is what makes this work outside those chat types — expense reports, threads,
+ * anywhere else Auth decides to run an agent. Auth owns the rule for where agents respond
+ * (`shouldEmitConciergeStatusUpdates`), so keying off the indicator it writes keeps the client
+ * from re-deriving that rule and drifting from it.
+ *
+ * The chat-type arm still matters: it mounts the gate *before* the first NVP lands, so the
+ * reasoning Pusher subscription is live from the start of a Concierge run.
  */
 function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [reportMeta] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportMetaSelector});
@@ -73,12 +83,18 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
+    // Read once here and hand it to the gate rather than subscribing again inside it — the
+    // selector narrows to a short accountID list, so this only re-renders when the set of
+    // actively-processing agents changes.
+    const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingAgentIDsSelector});
+
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
     const isCustomAgentChat = agentParticipantAccountID !== undefined;
     const otherParticipantCount = currentUserAccountID === undefined ? 0 : (participantAccountIDs ?? []).filter((accountID) => accountID !== currentUserAccountID).length;
     const customAgentDMAccountID = isCustomAgentChat && isDMReport && otherParticipantCount === 1 ? agentParticipantAccountID : undefined;
-    const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
+    const isServerProcessing = (serverAgentIDs ?? []).length > 0;
+    const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat || isServerProcessing;
 
     if (!reportID || !isAgentZeroChat) {
         return children;
@@ -88,6 +104,7 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
         <AgentZeroStatusGate
             key={reportID}
             reportID={reportID}
+            serverAgentIDs={serverAgentIDs}
             includeConcierge={isConciergeChat || isAdmin}
             customAgentDMAccountID={customAgentDMAccountID}
         >
@@ -98,12 +115,12 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
 
 function AgentZeroStatusGate({
     reportID,
+    serverAgentIDs,
     includeConcierge,
     customAgentDMAccountID,
     children,
-}: React.PropsWithChildren<{reportID: string; includeConcierge: boolean; customAgentDMAccountID?: number}>) {
+}: React.PropsWithChildren<{reportID: string; serverAgentIDs: number[] | undefined; includeConcierge: boolean; customAgentDMAccountID?: number}>) {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingAgentIDsSelector});
 
     // When the agent's reply (ADDCOMMENT) lands before the server's indicator-clear NVP update,
     // the thinking bubble would remain visible briefly. Suppress any agent whose reply is already
