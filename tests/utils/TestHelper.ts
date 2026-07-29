@@ -73,6 +73,10 @@ const STRIPE_CUSTOMER_ID: OnyxEntry<StripeCustomerID> = {
     status: 'authentication_required',
 };
 
+const anyArray: unknown = expect.any(Array);
+const anyObject: unknown = expect.any(Object);
+const anyString: unknown = expect.any(String);
+
 function setupApp() {
     beforeAll(() => {
         Linking.setInitialURL('https://new.expensify.com/');
@@ -506,6 +510,9 @@ function localeCompare(a: string, b: string): number {
 
 export type {MockFetch, FormData};
 export {
+    anyArray,
+    anyObject,
+    anyString,
     translateLocal,
     convertToDisplayString,
     assertFormDataMatchesObject,

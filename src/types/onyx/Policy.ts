@@ -2513,6 +2513,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When this policy was created */
         created?: string;
 
+        /** When this policy was archived (format: YYYY-MM-DD HH:mm:ss). Single source of truth for the archived state; absent when the policy is active */
+        archivedDate?: string;
+
         /** The custom units data for this policy */
         customUnits?: Record<string, CustomUnit>;
 

@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {splitCardFeedWithDomainID} from '@libs/CardUtils';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
@@ -141,14 +142,18 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
 
                         if (feed) {
                             if (plaidConnectedFeed && addNewCard?.data?.selectedCountry && plaidConnectedFeedName) {
+                                // Repairing an existing feed: send the existing `feed` (which keeps its `plaid.` prefix and
+                                // originating `#domainID`) rather than the freshly-derived bare institution ID, so the server
+                                // takes its repair branch and refreshes the existing feed instead of minting a duplicate.
                                 importPlaidAccounts(
                                     publicToken,
-                                    plaidConnectedFeed,
+                                    feed,
                                     plaidConnectedFeedName,
                                     addNewCard.data.selectedCountry,
                                     getDomainNameForPolicy(policyID),
                                     JSON.stringify(metadata?.accounts),
                                     '',
+                                    splitCardFeedWithDomainID(feed)?.domainID,
                                 );
                             }
                             setAssignCardStepAndData({
