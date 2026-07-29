@@ -102,7 +102,7 @@ function tokenizeForReveal(html: string): string[] {
     // `recognizeSelfClosing` defaults to false in HTML mode, which makes the parser ignore the trailing slash on
     // custom tags like `<victorypie … />` and nest each following sibling inside the previous one. `decodeEntities`
     // keeps `&amp;`, `&lt;` and `&gt;` escaped on the way back out, so escaped markup in a comment stays text
-    // instead of being re-serialised as live markup.
+    // instead of being re-serialized as live markup.
     const doc = parseDocument(html, {recognizeSelfClosing: true});
     const anchors = collectAnchors(doc);
     const stages: string[] = [''];
