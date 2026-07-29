@@ -62,7 +62,7 @@ function DeleteGroupRow({domainAccountID, groupID}: DeleteGroupRowProps) {
     };
 
     return groupID !== defaultSecurityGroupID ? (
-        <MenuItem
+        <MenuItem.Standard
             icon={icons.Trashcan}
             title={translate('domain.groups.deleteGroup')}
             onPress={() => {

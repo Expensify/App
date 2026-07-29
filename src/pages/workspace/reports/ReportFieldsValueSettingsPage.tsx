@@ -159,7 +159,7 @@ function ReportFieldsValueSettingsPage({
                         onPress={navigateToEditValue}
                     />
                     {canWriteReportFields && !hasAccountingConnections && (
-                        <MenuItem
+                        <MenuItem.Standard
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={confirmAndDeleteListValue}

@@ -232,7 +232,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                     )}
 
                     {canWriteTags && shouldShowDeleteMenuItem && (
-                        <MenuItem
+                        <MenuItem.Standard
                             icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
                             onPress={async () => {

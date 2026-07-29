@@ -236,7 +236,7 @@ function StatusPage() {
                         brickRoadIndicator={brickRoadIndicator}
                     />
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
-                        <MenuItem
+                        <MenuItem.Standard
                             title={translate('statusPage.clearStatus')}
                             icon={icons.Trashcan}
                             onPress={clearStatus}

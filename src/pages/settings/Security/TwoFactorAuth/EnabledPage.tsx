@@ -70,7 +70,7 @@ function EnabledPage() {
                         <Text style={styles.textLabel}>{translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
                     </View>
                 </Section>
-                <MenuItem
+                <MenuItem.Standard
                     title={translate('twoFactorAuth.replaceDevice')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_REPLACE_VERIFY_OLD)}
                     icon={icons.Sync}

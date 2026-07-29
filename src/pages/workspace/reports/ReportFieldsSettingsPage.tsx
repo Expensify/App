@@ -133,7 +133,7 @@ function ReportFieldsSettingsPage({
                     )}
                     {canWriteReportFields && !hasAccountingConnections && (
                         <View style={styles.flexGrow1}>
-                            <MenuItem
+                            <MenuItem.Standard
                                 icon={icons.Trashcan}
                                 title={translate('common.delete')}
                                 onPress={confirmAndDeleteReportField}

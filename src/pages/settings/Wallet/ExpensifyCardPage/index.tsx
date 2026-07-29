@@ -657,7 +657,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         )}
 
                                         {shouldShowEditSpendRules && (
-                                            <MenuItem
+                                            <MenuItem.Standard
                                                 icon={expensifyIcons.CreditCardLock}
                                                 title={translate('cardPage.editSpendRules')}
                                                 onPress={navigateToSpendRulesPage}

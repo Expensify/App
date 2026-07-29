@@ -365,7 +365,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                         />
                     </OfflineWithFeedback>
                     {canWriteCategories && !isThereAnyAccountingConnection && (
-                        <MenuItem
+                        <MenuItem.Standard
                             icon={expensifyIcons.Trashcan}
                             title={translate('workspace.categories.deleteCategory')}
                             onPress={async () => {

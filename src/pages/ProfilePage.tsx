@@ -308,7 +308,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             </OfflineWithFeedback>
                         )}
                         {isOwnedAgent && (
-                            <MenuItem
+                            <MenuItem.Standard
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
                                 onPress={callFunctionIfActionIsAllowed(() => switchToDelegator(login))}

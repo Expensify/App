@@ -196,7 +196,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 )}
                 <View style={styles.mt6} />
                 {!!accountRequiresTwoFactorAuth && (
-                    <MenuItem
+                    <MenuItem.Standard
                         title={translate('domain.common.resetTwoFactorAuth')}
                         icon={icons.CircularArrowBackwards}
                         onPress={() => {

@@ -77,7 +77,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             accountID={accountID}
         >
             {domainHasOnlyOneAdmin && (
-                <MenuItem
+                <MenuItem.Standard
                     title={translate('domain.admins.resetDomain')}
                     icon={icons.ClosedSign}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}

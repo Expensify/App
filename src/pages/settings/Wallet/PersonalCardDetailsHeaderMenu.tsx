@@ -116,7 +116,7 @@ function PersonalCardDetailsHeaderMenu({
             )}
             <View style={styles.mt4}>
                 {isCSVImportedPersonalCard && (
-                    <MenuItem
+                    <MenuItem.Standard
                         icon={icons.Table}
                         title={translate('spreadsheet.importSpreadsheet')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}

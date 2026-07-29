@@ -196,7 +196,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             />
                         )}
                         {isCsvFeed && (
-                            <MenuItem
+                            <MenuItem.Standard
                                 icon={icons.Table}
                                 title={translate('spreadsheet.importSpreadsheet')}
                                 onPress={() => {
@@ -212,7 +212,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                 }}
                             />
                         )}
-                        <MenuItem
+                        <MenuItem.Standard
                             icon={icons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
                             onPress={() => {

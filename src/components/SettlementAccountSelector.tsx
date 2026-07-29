@@ -78,7 +78,7 @@ function SettlementAccountSelector({
     // Render "Add new bank account" as list footer when enabled
     const listFooterContent =
         showAddNewAccountOption && onAddNewBankAccount ? (
-            <MenuItem
+            <MenuItem.Standard
                 icon={icons.Plus}
                 title={translate('workspace.expensifyCard.addNewBankAccount')}
                 onPress={onAddNewBankAccount}
@@ -90,7 +90,7 @@ function SettlementAccountSelector({
         return (
             <View style={styles.flex1}>
                 {customHeaderContent}
-                <MenuItem
+                <MenuItem.Standard
                     icon={icons.Plus}
                     title={translate('workspace.expensifyCard.addNewBankAccount')}
                     onPress={onAddNewBankAccount}

@@ -174,7 +174,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                             <View style={styles.flex1}>
                                 <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
                                 {renderBankOptions()}
-                                <MenuItem
+                                <MenuItem.Standard
                                     icon={icons.Plus}
                                     title={translate('workspace.expensifyCard.addNewBankAccount')}
                                     onPress={handleAddBankAccount}

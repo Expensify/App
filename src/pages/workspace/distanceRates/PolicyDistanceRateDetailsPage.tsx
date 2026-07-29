@@ -306,7 +306,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         </OfflineWithFeedback>
                     )}
                     {canWriteDistanceRates && (
-                        <MenuItem
+                        <MenuItem.Standard
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={async () => {

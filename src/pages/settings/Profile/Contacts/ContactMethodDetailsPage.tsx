@@ -274,7 +274,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     errorRowStyles={[themeStyles.ml8, themeStyles.mr5]}
                     onClose={() => clearContactMethodErrors(contactMethod, 'defaultLogin')}
                 >
-                    <MenuItem
+                    <MenuItem.Standard
                         title={translate('contacts.setAsDefault')}
                         icon={icons.Star}
                         onPress={isAccountLocked ? showLockedAccountModal : navigateToSetDefaultConfirm}
@@ -299,7 +299,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     errorRowStyles={[themeStyles.mt6, themeStyles.ph5]}
                     onClose={() => clearContactMethodErrors(contactMethod, 'deletedLogin')}
                 >
-                    <MenuItem
+                    <MenuItem.Standard
                         title={translate('common.remove')}
                         icon={icons.Trashcan}
                         onPress={() => {

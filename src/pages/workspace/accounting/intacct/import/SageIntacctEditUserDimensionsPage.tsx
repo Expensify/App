@@ -132,7 +132,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                         />
                     </View>
                     <View style={[styles.mhn5]}>
-                        <MenuItem
+                        <MenuItem.Standard
                             title={translate('common.remove')}
                             icon={icons.Trashcan}
                             onPress={() => {

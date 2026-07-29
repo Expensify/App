@@ -156,7 +156,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     onPress={handleCopilotPress}
                     disabled={areActionsDisabled}
                 />
-                <MenuItem
+                <MenuItem.Standard
                     title={translate('editAgentPage.deleteAgent')}
                     icon={icons.Trashcan}
                     onPress={handleDeletePress}

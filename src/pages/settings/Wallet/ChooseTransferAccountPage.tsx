@@ -125,7 +125,7 @@ function ChooseTransferAccountPage() {
                 shouldUpdateFocusedIndex
                 initiallyFocusedItemKey={initiallyFocusedItemKey}
                 listFooterContent={
-                    <MenuItem
+                    <MenuItem.Standard
                         onPress={navigateToAddPaymentMethodPage}
                         title={
                             walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
