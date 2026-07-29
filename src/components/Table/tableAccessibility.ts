@@ -68,11 +68,7 @@ function getTableContainerAccessibilityProps(isEnabled: boolean, label: string |
 
 /** Props for the element grouping rows together, i.e. the table body wrapper. */
 function getRowGroupAccessibilityProps(isEnabled: boolean): TableAccessibilityProps {
-    if (!isEnabled) {
-        return {};
-    }
-
-    return {role: CONST.ROLE.ROWGROUP};
+    return isEnabled ? {role: CONST.ROLE.ROWGROUP} : {};
 }
 
 /**
