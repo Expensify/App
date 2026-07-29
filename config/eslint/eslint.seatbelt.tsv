@@ -65,7 +65,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	96
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	87
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -1122,10 +1122,10 @@
 "../../src/pages/ShareCodePage.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/ShareCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/TeachersUnite/SaveTheWorldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"no-restricted-imports"	1
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/refs"	12
 "../../src/pages/TransactionDuplicate/DuplicateTransactionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"react-hooks/refs"	12
 "../../src/pages/TransactionDuplicate/Review.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionMerge/DynamicConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionMerge/DynamicConfirmationPage.tsx"	"no-restricted-imports"	1
