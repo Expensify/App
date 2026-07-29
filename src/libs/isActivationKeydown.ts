@@ -14,7 +14,8 @@ function isActivationKeydown(e: KeyboardEvent): boolean {
     if (isEnterWhileComposition(e)) {
         return false;
     }
-    return e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey;
+    // Space requires both `.code` (physical key) and `.key` (produced value) — OS-level remaps can turn Space into a printable char while keeping the `.code`.
+    return e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || (e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey && e.key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input);
 }
 
 export default isActivationKeydown;

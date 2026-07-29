@@ -1,24 +1,9 @@
 import isHTMLElement from './isHTMLElement';
 
 const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'password', 'tel', 'url', 'number', 'date', 'datetime-local', 'month', 'time', 'week']);
-const INTERACTIVE_TAGS = new Set(['BUTTON', 'SELECT', 'TEXTAREA', 'INPUT']);
-const INTERACTIVE_ROLES = new Set([
-    'button',
-    'link',
-    'menuitem',
-    'menuitemcheckbox',
-    'menuitemradio',
-    'checkbox',
-    'radio',
-    'tab',
-    'switch',
-    'option',
-    'row',
-    'gridcell',
-    'treeitem',
-    'searchbox',
-    'combobox',
-]);
+const BUTTON_INPUT_TYPES = new Set(['button', 'submit', 'reset', 'image']);
+const INTERACTIVE_TAGS = new Set(['BUTTON', 'SELECT']);
+const INTERACTIVE_ROLES = new Set(['button', 'link', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'tab', 'switch', 'option', 'row', 'gridcell', 'treeitem', 'searchbox', 'combobox']);
 
 type ActivationKey = 'Enter' | 'Space';
 
@@ -35,7 +20,7 @@ function isInteractive(el: HTMLElement): boolean {
 }
 
 /**
- * True when this key on this element would activate a control, not enter text. `<input type=text|...>` is activatable for Enter (form-submit convention) but not Space; `<textarea>` and `[contenteditable]` reject both. Everything else must have interactive semantics — bare focusable helpers (`<div tabindex=0>`, `role=img`) return false because Enter/Space do nothing on them.
+ * True when this key on this element would activate a control, not enter text. Text `<input>`s activate on Enter only (form-submit convention); `<textarea>` and `[contenteditable]` reject both; other `<input>`s activate only when their type is button-like (`button`/`submit`/`reset`/`image`) — `checkbox`/`radio`/`file`/`range`/`color`/`hidden` are stateful or non-activating and would false-latch. Everything else must carry positive interactive semantics.
  * `hasFocusableAttributes` runs alongside for `:disabled` / `aria-disabled` / `aria-hidden` / `[inert]`.
  */
 function isActivatableTarget(el: Element, key: ActivationKey): el is HTMLElement {
@@ -45,8 +30,11 @@ function isActivatableTarget(el: Element, key: ActivationKey): el is HTMLElement
     if (el instanceof HTMLTextAreaElement) {
         return false;
     }
-    if (el instanceof HTMLInputElement && TEXT_INPUT_TYPES.has(el.type)) {
-        return key === 'Enter';
+    if (el instanceof HTMLInputElement) {
+        if (TEXT_INPUT_TYPES.has(el.type)) {
+            return key === 'Enter';
+        }
+        return BUTTON_INPUT_TYPES.has(el.type);
     }
     // Attribute fallback for environments where `isContentEditable` isn't implemented (jsdom).
     if (el.isContentEditable || el.getAttribute('contenteditable') === 'true' || el.getAttribute('contenteditable') === '') {

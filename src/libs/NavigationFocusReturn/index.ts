@@ -61,7 +61,13 @@ function captureTriggerForRoute(routeKey: string): void {
 
     const launcher = pickLauncher();
     let inner: HTMLElement | null;
-    const keyboardTriggerFresh = lastKeyboardTrigger !== null && performance.now() - lastKeyboardTriggerAt < KEYBOARD_TRIGGER_TTL_MS && document.contains(lastKeyboardTrigger);
+    // Direct-only focusability recheck (form-submit spinners disable the trigger between keydown and capture); no ancestor `[aria-hidden]` walk — outgoing RHP panes transiently get it during forward-nav.
+    const keyboardTriggerFresh =
+        lastKeyboardTrigger !== null &&
+        performance.now() - lastKeyboardTriggerAt < KEYBOARD_TRIGGER_TTL_MS &&
+        document.contains(lastKeyboardTrigger) &&
+        !lastKeyboardTrigger.matches(':disabled') &&
+        lastKeyboardTrigger.getAttribute('aria-disabled') !== 'true';
     if (keyboardTriggerFresh) {
         inner = lastKeyboardTrigger;
     } else if (getHadTabNavigation()) {
@@ -90,14 +96,19 @@ function captureTriggerForRoute(routeKey: string): void {
     setTriggerEntry(routeKey, {primary: inner});
 }
 
+/** Single-site latch reset — the three fields are always cleared together, and future additions (per-key TTL, modality tags) get one call site. */
+function clearKeyboardLatch(): void {
+    lastKeyboardTrigger = null;
+    lastKeyboardTriggerAt = 0;
+    pendingActivationKey = null;
+}
+
 /** Loose refs to the prior screen's focused element would pin detached DOM nodes; triggerMap already holds the captured copy. */
 function clearTransientCaptures(): void {
     lastInteractiveElement = null;
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
-    lastKeyboardTrigger = null;
-    lastKeyboardTriggerAt = 0;
-    pendingActivationKey = null;
+    clearKeyboardLatch();
 }
 
 function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
@@ -112,11 +123,13 @@ function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void
     // Honor a one-shot skip on this param-revert too (form-submit goBack can land as PUSH_PARAMS, not a stack pop).
     const compoundKey = compoundParamsKey(routeKey, targetParams);
     if (skipNextRestore) {
+        // Save-driven back may synchronously navigate to a new route — preserve lastInteractiveElement for that follow-up capture; clear only the latch.
         applySkippedRestore(compoundKey);
-    } else {
-        scheduleRestore(compoundKey, {waitForUpcomingTransition: false});
+        clearKeyboardLatch();
+        return;
     }
-    // Same-key PUSH_PARAMS looks like a noop to handleStateChange — clear the outgoing capture window here so an Enter-driven Back can't leak its latch into an unrelated forward within the TTL.
+    scheduleRestore(compoundKey, {waitForUpcomingTransition: false});
+    // Same-key PUSH_PARAMS looks like a noop to handleStateChange — clear here on the real backward path.
     clearTransientCaptures();
 }
 
@@ -360,8 +373,8 @@ function handleStateChange(newState: NavigationState | undefined): void {
     } else if (action.type === 'noop') {
         skipNextRestore = false;
     }
-    // Latch/lastInteractiveElement are per-forward-nav; any real state change ends the capture window.
-    if (action.type !== 'noop' || removedKeys.length > 0) {
+    // End the capture window on real user-visible transitions; `noop` is deliberately excluded — background route cleanups can race with an in-flight activation (keydown-latched, keyup-onPress pending).
+    if (action.type === 'forward' || action.type === 'backward' || action.type === 'lateral') {
         clearTransientCaptures();
     }
 
@@ -413,11 +426,10 @@ function setupNavigationFocusReturn(): void {
                 lastMouseTrigger = next;
             }
             lastMouseTriggerAt = performance.now();
-            // Physical pointer supersedes the keyboard latch. Same-target `click` is preserved (synthetic Enter/Space activation click on the latched element itself); any other click clears.
-            if (e.type !== 'click' || next !== lastKeyboardTrigger) {
-                lastKeyboardTrigger = null;
-                lastKeyboardTriggerAt = 0;
-                pendingActivationKey = null;
+            // Preserve synthetic Enter/Space activation click on the latched element. Uses `.contains` (not FOCUSABLE_SELECTOR closest) so roving-tabindex ARIA widgets don't wrongly clear their own latch.
+            const clickOnLatch = e.type === 'click' && lastKeyboardTrigger !== null && (e.target === lastKeyboardTrigger || lastKeyboardTrigger.contains(e.target));
+            if (!clickOnLatch) {
+                clearKeyboardLatch();
             }
         };
         for (const event of MOUSE_ACTIVATION_EVENTS) {
@@ -428,7 +440,8 @@ function setupNavigationFocusReturn(): void {
         // Capture-phase keydown latches the pre-activation target before any destination's synchronous autofocus can overwrite lastInteractiveElement.
         keyActivationHandler = (e: KeyboardEvent) => {
             const isEnter = e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
-            const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey;
+            // Mirror isActivationKeydown — remapped `code='Space'`/`key='ñ'` is typing, not a rejected activation.
+            const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey && e.key === CONST.KEYBOARD_SHORTCUTS.SPACE.trigger.DEFAULT.input;
             if (isActivationKeydown(e)) {
                 const active = document.activeElement;
                 const key = isEnter ? 'Enter' : 'Space';
@@ -438,43 +451,41 @@ function setupNavigationFocusReturn(): void {
                     pendingActivationKey = key;
                     return;
                 }
-                // Failed re-activation cannot re-affirm a stale latch.
-                lastKeyboardTrigger = null;
-                lastKeyboardTriggerAt = 0;
-                pendingActivationKey = null;
+                // Only supersede when active === body (no target intent); an invalid HTMLElement preserves a prior in-flight latch (user retry while first activation's async is still en route).
+                if (active === null || active === document.body) {
+                    clearKeyboardLatch();
+                }
                 return;
             }
-            // Rejected Enter/Space: auto-repeats preserve pending (held-key keyup refresh); IME/composition clears it (its keyup mustn't masquerade as our release).
+            // Rejected Enter/Space: auto-repeats preserve for held-key keyup refresh; IME/composition clears — user moved contexts.
             if (isEnter || isSpace) {
                 if (!e.repeat) {
-                    pendingActivationKey = null;
+                    clearKeyboardLatch();
                 }
                 return;
             }
             // Only focus-movers supersede; standalone modifiers / typing must not (reintroduces #96970 for muscle-memory Shift/Cmd after Enter).
             if (isFocusMovingKeydown(e)) {
-                lastKeyboardTrigger = null;
-                lastKeyboardTriggerAt = 0;
-                pendingActivationKey = null;
+                clearKeyboardLatch();
             }
         };
         document.addEventListener('keydown', keyActivationHandler, true);
     }
     if (!keyReleaseHandler) {
-        // RNW dispatches onPress from keyup — refresh so TTL measures activation-to-capture. Gated on pendingActivationKey to block IME/rejected keyups from reviving a stale latch.
+        // RNW dispatches onPress from keyup — refresh so TTL measures activation-to-capture. Gated on pendingActivationKey to block IME/rejected key releases from reviving a stale latch.
         keyReleaseHandler = (e: KeyboardEvent) => {
             if (pendingActivationKey === null) {
                 return;
             }
             const isEnter = e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
             const isSpace = e.code === CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey;
-            // Modifier releases (Shift/Cmd) must not clear pending — Shift+Enter → release-Shift-first still needs the eventual Enter keyup to refresh.
-            if (!isEnter && !isSpace) {
+            const isMatchingRelease = (pendingActivationKey === 'Enter' && isEnter) || (pendingActivationKey === 'Space' && isSpace);
+            // Non-matching release (modifier, or the other activation key) must not burn pending — the matching release still needs to refresh.
+            if (!isMatchingRelease) {
                 return;
             }
-            const isMatchingRelease = (pendingActivationKey === 'Enter' && isEnter) || (pendingActivationKey === 'Space' && isSpace);
             pendingActivationKey = null;
-            if (!isMatchingRelease || lastKeyboardTrigger === null) {
+            if (lastKeyboardTrigger === null) {
                 return;
             }
             // Mirror RNW's `isActiveElement` check: if focus moved during hold, keyup targets a different element and onPress is canceled — the latch must not be refreshed.
