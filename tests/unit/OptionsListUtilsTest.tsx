@@ -1898,6 +1898,31 @@ describe('OptionsListUtils', () => {
             expect(hydrated.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
         });
 
+        it('should reuse the built option per shell while still returning a fresh object every time', () => {
+            // Given a shell hydrated once (screens like NewChatPage re-run getValidOptions on every keystroke,
+            // so re-running createOption for every surviving contact would be slower than the eager build)
+            const {lazyList} = buildOptionLists();
+            const shell = lazyList.personalDetails.at(0);
+            expect(shell).toBeDefined();
+            if (!shell) {
+                return;
+            }
+            const first = hydrateLazyPersonalDetailOption(shell);
+
+            // When the same shell is hydrated again
+            const second = hydrateLazyPersonalDetailOption(shell);
+
+            // Then the expensive parts are shared, but the option itself is a new object so consumers marking it
+            // in place (isSelected/isBold) cannot leak into other callers and list rows still see a changed reference
+            expect(second).not.toBe(first);
+            expect(second).toEqual(first);
+            expect(second.icons).toBe(first.icons);
+
+            // And mutating one copy leaves later hydrations of the same shell untouched
+            first.isSelected = true;
+            expect(hydrateLazyPersonalDetailOption(shell).isSelected).toBe(false);
+        });
+
         it('should hydrate lazy shells when mixed with fully-built device contacts', () => {
             // Given a fully-built device contact (no lazyHydrationData) appended onto eager and lazy lists,
             // matching useSearchSelector's contactOptions concat path

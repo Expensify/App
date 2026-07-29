@@ -1711,15 +1711,34 @@ function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Repo
     });
 }
 
+// A shell's hydration inputs are fixed at build time (they live in its lazyHydrationData), so one shell always
+// hydrates to the same option and the result can be cached against the shell itself. Screens that call
+// getValidOptions on every render or keystroke (NewChatPage, whose search bypasses contact pagination and passes
+// no maxElements) would otherwise rebuild every surviving contact each time, which is slower than the eager build
+// they replaced: that one ran once per option list and was reused from the createFilteredOptionList cache.
+// A new option list produces new shells, so entries are never reused across builds and drop out with the shells.
+//
+// The cached option is never handed out directly: consumers mark options in place (getValidOptions sets
+// isBold/isSelected/brickRoadIndicator) and list rows re-render on reference change, so every call returns a fresh
+// shallow copy, exactly like the per-call objects the eager build produced. Only the createOption work is shared.
+// The copies share nested objects (icons, participantsList, item) with the cached entry, matching the
+// cloneOptionList invariant: a consumer that mutates those must clone them first.
+const hydratedPersonalDetailOptions = new WeakMap<SearchOption<PersonalDetails>, SearchOption<PersonalDetails>>();
+
 /**
  * Builds the full display option for a lightweight personal detail option produced by createFilteredOptionList.
  * The createOption inputs come from the context captured at build time, so the result is exactly what the eager
  * build would have produced. Options without lazy hydration data are returned unchanged, so fully-built options
- * (e.g. device contacts) can be passed safely.
+ * (e.g. device contacts) can be passed safely. Results are memoized per shell.
  */
 function hydrateLazyPersonalDetailOption(option: SearchOption<PersonalDetails>): SearchOption<PersonalDetails> {
     if (!option.lazyHydrationData) {
         return option;
+    }
+
+    const alreadyHydrated = hydratedPersonalDetailOptions.get(option);
+    if (alreadyHydrated) {
+        return {...alreadyHydrated};
     }
 
     const {report, context} = option.lazyHydrationData;
@@ -1729,7 +1748,7 @@ function hydrateLazyPersonalDetailOption(option: SearchOption<PersonalDetails>):
     const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
-    return {
+    const hydrated: SearchOption<PersonalDetails> = {
         item: option.item,
         ...createOption({
             accountIDs: [accountID],
@@ -1743,6 +1762,9 @@ function hydrateLazyPersonalDetailOption(option: SearchOption<PersonalDetails>):
             visibleReportActionsData,
         }),
     };
+    hydratedPersonalDetailOptions.set(option, hydrated);
+
+    return {...hydrated};
 }
 
 function createFilteredOptionList(
