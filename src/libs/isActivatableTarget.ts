@@ -20,7 +20,7 @@ function isInteractive(el: HTMLElement): boolean {
 }
 
 /**
- * True when this key on this element would activate a control, not enter text. Text `<input>`s activate on Enter only (form-submit convention); `<textarea>` and `[contenteditable]` reject both; other `<input>`s activate only when their type is button-like (`button`/`submit`/`reset`/`image`) — `checkbox`/`radio`/`file`/`range`/`color`/`hidden` are stateful or non-activating and would false-latch. Everything else must carry positive interactive semantics.
+ * True when this key would activate a control, not type text. Text `<input>`s accept Enter only (form submit); `<textarea>`/`[contenteditable]` reject both; other `<input>`s activate only when button-like. Everything else requires interactive semantics.
  * `hasFocusableAttributes` runs alongside for `:disabled` / `aria-disabled` / `aria-hidden` / `[inert]`.
  */
 function isActivatableTarget(el: Element, key: ActivationKey): el is HTMLElement {

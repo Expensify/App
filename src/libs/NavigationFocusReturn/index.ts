@@ -61,7 +61,7 @@ function captureTriggerForRoute(routeKey: string): void {
 
     const launcher = pickLauncher();
     let inner: HTMLElement | null;
-    // Direct-only focusability recheck (form-submit spinners disable the trigger between keydown and capture); no ancestor `[aria-hidden]` walk — outgoing RHP panes transiently get it during forward-nav.
+    // Direct-only focusability recheck (form-submit spinners disable the trigger inline with dispatching nav); no ancestor `[aria-hidden]` walk — outgoing RHP panes transiently get it during forward-nav.
     const keyboardTriggerFresh =
         lastKeyboardTrigger !== null &&
         performance.now() - lastKeyboardTriggerAt < KEYBOARD_TRIGGER_TTL_MS &&
@@ -488,8 +488,9 @@ function setupNavigationFocusReturn(): void {
             if (lastKeyboardTrigger === null) {
                 return;
             }
-            // Mirror RNW's `isActiveElement` check: if focus moved during hold, keyup targets a different element and onPress is canceled — the latch must not be refreshed.
+            // Mirror RNW's `isActiveElement`: mismatched target means onPress is canceled — clear the latch (not just skip refresh) so an unrelated nav within TTL can't pin the canceled control.
             if (e.target !== lastKeyboardTrigger) {
+                clearKeyboardLatch();
                 return;
             }
             lastKeyboardTriggerAt = performance.now();

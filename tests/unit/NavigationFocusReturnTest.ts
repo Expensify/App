@@ -418,15 +418,12 @@ describe('captureTriggerForRoute', () => {
             const rowB = appendButton();
             rowA.focus();
 
-            // Enter latches A.
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
 
-            // No nav happens (A was a switch/toggle). User Tabs to B — the Tab keydown supersedes the stale latch.
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', code: 'Tab', bubbles: true}));
             rowB.focus();
             fireFocusIn(rowB);
 
-            // Now a shortcut or timer triggers programmatic navigation (no fresh Enter/Space). Capture must use B via lastInteractiveElement, NOT stale-latched A.
             captureTriggerForRoute('route-a');
             rowB.blur();
             expect(restoreTriggerForRoute('route-a')).toBe(true);
@@ -446,7 +443,6 @@ describe('captureTriggerForRoute', () => {
                 captureTriggerForRoute('route-a');
                 destinationInput.remove();
                 row.blur();
-                // Latch expired → fall through to the (poisoned) lastInteractiveElement path, which correctly rejects the detached input.
                 expect(restoreTriggerForRoute('route-a')).toBe(false);
             });
         });
@@ -459,7 +455,6 @@ describe('captureTriggerForRoute', () => {
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
 
             captureTriggerForRoute('route-a');
-            // No latch → falls back to lastInteractiveElement path (row is still valid).
             expect(restoreTriggerForRoute('route-a')).toBe(true);
         });
 
@@ -475,7 +470,6 @@ describe('captureTriggerForRoute', () => {
             captureTriggerForRoute('route-a');
             destinationInput.remove();
             row.blur();
-            // Latch was rejected (aria-disabled); capture used lastInteractiveElement (the input), which is now detached.
             expect(restoreTriggerForRoute('route-a')).toBe(false);
         });
 
@@ -484,22 +478,17 @@ describe('captureTriggerForRoute', () => {
             const rowB = appendButton();
             rowA.focus();
 
-            // First Enter: valid latch on A.
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
 
-            // Focus is lost to body (blur, programmatic focus reset, etc.).
             rowA.blur();
             expect(document.activeElement).toBe(document.body);
 
-            // Second Enter: activation on body cannot re-latch AND must not leave A as a stale latch.
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
 
-            // Now programmatic forward-nav triggers capture with B as the last known interactive element.
             rowB.focus();
             fireFocusIn(rowB);
             captureTriggerForRoute('route-a');
             rowB.blur();
-            // Restore lands on B (via the lastInteractiveElement fallback), NOT on stale-latched A.
             expect(restoreTriggerForRoute('route-a')).toBe(true);
             expect(document.activeElement).toBe(rowB);
         });
@@ -699,6 +688,24 @@ describe('captureTriggerForRoute', () => {
             },
         );
 
+        it('clears the latch on mismatched keyup within TTL — a canceled activation must not pin a subsequent unrelated nav', () => {
+            const rowA = appendButton();
+            const rowB = appendButton();
+            rowA.focus();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            rowB.focus();
+            fireFocusIn(rowB);
+            rowB.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', code: 'Enter', bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+            rowA.remove();
+            rowB.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(document.activeElement).toBe(rowB);
+        });
+
         it('does NOT refresh the latch when focus moves during a held key — RNW cancels the press when keyup targets a different element than keydown', () => {
             withFakeTimers(() => {
                 const rowA = appendButton();
@@ -707,7 +714,6 @@ describe('captureTriggerForRoute', () => {
 
                 document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
 
-                // Focus moves to B while Enter is held; keyup dispatches on B, not A.
                 rowB.focus();
                 fireFocusIn(rowB);
                 jest.advanceTimersByTime(600);
@@ -716,7 +722,6 @@ describe('captureTriggerForRoute', () => {
                 captureTriggerForRoute('route-a');
                 rowA.remove();
                 rowB.blur();
-                // Without the target check the keyup would refresh latch=A to now, and capture would pin the (about-to-be-detached) A.
                 expect(restoreTriggerForRoute('route-a')).toBe(true);
                 expect(document.activeElement).toBe(rowB);
             });
@@ -730,11 +735,10 @@ describe('captureTriggerForRoute', () => {
 
                 document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true, shiftKey: true}));
 
-                // User releases Shift first while still holding Enter.
                 jest.advanceTimersByTime(200);
                 row.dispatchEvent(new KeyboardEvent('keyup', {key: 'Shift', code: 'ShiftLeft', bubbles: true}));
 
-                // Enter release comes past the 500 ms TTL — this is the release that must refresh.
+                // Enter release past TTL — the release that must refresh.
                 jest.advanceTimersByTime(600);
                 row.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', code: 'Enter', bubbles: true}));
 
@@ -774,7 +778,6 @@ describe('captureTriggerForRoute', () => {
 
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
 
-            // User clicks B before nav happens — physical pointer must invalidate the latch.
             rowB.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
 
             captureTriggerForRoute('route-a');
@@ -790,7 +793,6 @@ describe('captureTriggerForRoute', () => {
 
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
 
-            // Assistive tech fires `click` directly on B (no pointerdown) and moves focus along with it.
             rowB.dispatchEvent(new MouseEvent('click', {bubbles: true}));
             rowB.focus();
             fireFocusIn(rowB);
@@ -831,7 +833,6 @@ describe('captureTriggerForRoute', () => {
             row.focus();
 
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
-            // Browser synthesizes a click on the button as part of Enter activation.
             row.dispatchEvent(new MouseEvent('click', {bubbles: true}));
 
             fireFocusIn(destinationInput);
@@ -846,11 +847,10 @@ describe('captureTriggerForRoute', () => {
             const rowA = appendButton();
             const rowB = appendButton();
 
-            // Mouse click on A (mouse modality, sets lastMouseTrigger=A, keeps hadTabNavigation=false).
+            // hadTabNavigation stays false: mouse-click doesn't flip it, arrows don't either.
             rowA.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
             rowA.focus();
 
-            // Arrow keys don't flip hadTabNavigation to true; modality stays "mouse" even though the user is now on the keyboard.
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', code: 'ArrowDown', bubbles: true}));
             rowB.focus();
             fireFocusIn(rowB);
@@ -901,11 +901,9 @@ describe('captureTriggerForRoute', () => {
                 const rowB = appendButton();
                 rowA.focus();
 
-                // Enter on A latches, no nav happens.
                 document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
                 document.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', code: 'Enter', bubbles: true}));
 
-                // Time passes past TTL, then user IME-composes Enter on any input.
                 jest.advanceTimersByTime(600);
                 const composer = appendInput();
                 composer.focus();
@@ -914,7 +912,6 @@ describe('captureTriggerForRoute', () => {
                 document.dispatchEvent(imeKeydown);
                 document.dispatchEvent(new KeyboardEvent('keyup', {key: 'Enter', code: 'Enter', bubbles: true}));
 
-                // A later unrelated forward-nav must NOT reuse the stale latch on A.
                 rowB.focus();
                 fireFocusIn(rowB);
                 captureTriggerForRoute('route-a');
@@ -1126,7 +1123,6 @@ describe('captureTriggerForRoute', () => {
             const rowA = appendButton();
             handleStateChange(stackState(0, [{key: 'home', name: 'Home'}]));
 
-            // Forward #1: latches A, captures A for home, clears.
             rowA.focus();
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
             handleStateChange(
@@ -1136,7 +1132,7 @@ describe('captureTriggerForRoute', () => {
                 ]),
             );
 
-            // Forward #2 with no fresh Enter — a leaked latch would replay rowA for route-a's outgoing capture.
+            // Second forward has no fresh Enter — a leaked latch would replay rowA for route-a.
             handleStateChange(
                 stackState(2, [
                     {key: 'home', name: 'Home'},
@@ -1202,7 +1198,6 @@ describe('captureTriggerForRoute', () => {
             document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true}));
             notifyPushParamsBackward('search', {q: 'A'});
 
-            // A later unrelated forward-nav must NOT reuse rowA via the latch.
             rowA.remove();
             const rowB = appendButton();
             rowB.focus();
