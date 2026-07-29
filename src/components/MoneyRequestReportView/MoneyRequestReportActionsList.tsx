@@ -508,17 +508,12 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         resetKey: report?.reportID ?? reportIDFromRoute ?? '',
     });
 
-    // The thinking indicator renders in the list footer, below the last data row that scrollToBottom
-    // targets, so a user sitting at the bottom would otherwise get it just under the viewport. This
-    // list is not inverted and sets no autoscrollToBottomThreshold, so nothing pulls the viewport
-    // down on its own. Route through scrollToEnd rather than scrollToBottom: only scrollToEnd
-    // includes the footer, and its estimated content-end offset is accurate here because we only
-    // fire when the surrounding rows are already rendered at the bottom.
+    // The indicator renders in the list footer, below the row scrollToBottom targets, so only
+    // scrollToEnd reveals it. This list is not inverted, so nothing sticks to the bottom for us.
     const {candidateAgentIDs} = useAgentZeroStatus();
     const isThinkingIndicatorVisible = candidateAgentIDs.length > 0;
-    // Scroll at most once per appearance. The status label changes many times during a single run
-    // while candidateAgentIDs stays put, and re-running this on an unrelated render would yank the
-    // viewport out from under a user who has since scrolled up.
+    // Scroll once per appearance: the label changes many times per run, and re-firing would yank
+    // the viewport away from a user who has since scrolled up.
     const hasScrolledForThinkingIndicatorRef = useRef(false);
     useEffect(() => {
         if (!isThinkingIndicatorVisible) {

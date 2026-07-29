@@ -97,10 +97,8 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
     const isServerProcessing = (serverAgentIDs ?? []).length > 0;
     const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat || isServerProcessing;
 
-    // The gate is mounted for every report, inert ones included, so `children` keep a stable position
-    // in the tree. A report becomes an AgentZero chat mid-session the moment the server writes the
-    // indicator NVP; swapping between bare children and a wrapper at that point would remount the
-    // whole report feed and drop its scroll position right as the indicator appears.
+    // Mounted for every report, inert ones included, so `children` keep a stable position. A report
+    // becomes an AgentZero chat mid-session, and wrapping it only then would remount the whole feed.
     return (
         <AgentZeroStatusGate
             key={reportID}
