@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type BooleanOption = ListItem & {
@@ -34,9 +34,6 @@ function SearchEditMultipleBooleanPage() {
     const title = isBillableScreen ? translate('common.billable') : translate('common.reimbursable');
     const testID = isBillableScreen ? 'SearchEditMultipleBillablePage' : 'SearchEditMultipleReimbursablePage';
 
-    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
-    // persisted value, so the change of context (persist + navigate) only happens when the user taps Save. `null`
-    // represents an explicit "cleared" selection, mirroring the previous tap-again-to-clear behavior.
     const [draftValue, setDraftValue] = useState<boolean | null>();
     const selectedValue = draftValue === undefined ? persistedValue : draftValue;
 
@@ -59,33 +56,27 @@ function SearchEditMultipleBooleanPage() {
     );
 
     const selectValue = (item: BooleanOption) => {
-        // Tapping the already-selected row clears the value, otherwise select the tapped value.
         setDraftValue((prev) => {
             const current = prev === undefined ? persistedValue : prev;
             return current === item.value ? null : item.value;
         });
     };
 
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         if (isBillableScreen) {
             updateBulkEditDraftTransaction({billable: selectedValue ?? null});
         } else {
             updateBulkEditDraftTransaction({reimbursable: selectedValue ?? null});
         }
         Navigation.goBack();
-    }, [isBillableScreen, selectedValue]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAndGoBack,
-            // Save persists `selectedValue ?? null`, so disable it while that matches the currently persisted value
-            // (normalizing undefined/null, which both represent "no value").
-            isDisabled: (selectedValue ?? null) === (persistedValue ?? null),
-        }),
-        [saveAndGoBack, translate, selectedValue, persistedValue],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+        isDisabled: (selectedValue ?? null) === (persistedValue ?? null),
+    };
 
     return (
         <ScreenWrapper

@@ -20,7 +20,7 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -42,28 +42,22 @@ function DynamicReportParticipantRoleSelectionPage({report, route}: DynamicRepor
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_ROLE.path);
     const member = report.participants?.[accountID];
 
-    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
-    // persisted role, so the change of context (persist + navigate) only happens when the user taps Save.
     const [draftRole, setDraftRole] = useState<ValueOf<typeof CONST.REPORT.ROLE>>();
     const selectedRole = draftRole ?? member?.role;
 
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         if (selectedRole) {
             updateGroupChatMemberRoles(report.reportID, [accountID], selectedRole);
         }
         Navigation.goBack(backPath);
-    }, [report.reportID, accountID, selectedRole, backPath]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAndGoBack,
-            // Nothing to persist while the selection still matches the currently saved role.
-            isDisabled: selectedRole === member?.role,
-        }),
-        [saveAndGoBack, translate, selectedRole, member?.role],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+        isDisabled: selectedRole === member?.role,
+    };
 
     if (!member) {
         return <NotFoundPage />;
