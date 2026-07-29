@@ -1,6 +1,6 @@
 # `expo` patches
 
-### [expo+57.0.2+001+fix-hmrclient-race-condition.patch](expo+57.0.2+001+fix-hmrclient-race-condition.patch)
+### [expo+57.0.8+001+fix-hmrclient-race-condition.patch](expo+57.0.8+001+fix-hmrclient-race-condition.patch)
 
 - Reason:
 
