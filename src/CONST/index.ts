@@ -576,6 +576,7 @@ const CONST = {
     },
 
     ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
+    ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID: 'assignCardCardholderRowTestID',
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
@@ -1675,6 +1676,9 @@ const CONST = {
                     ADD_EMPLOYEE: 'POLICYCHANGELOG_ADD_EMPLOYEE',
                     ADD_CARD_FEED: 'POLICYCHANGELOG_ADD_CARD_FEED',
                     ADD_EXPENSIFY_CARD_RULE: 'POLICYCHANGELOG_ADD_EXPENSIFY_CARD_RULE',
+                    ADD_AGENT_RULE: 'POLICYCHANGELOG_ADD_AGENT_RULE',
+                    UPDATE_AGENT_RULE: 'POLICYCHANGELOG_UPDATE_AGENT_RULE',
+                    DELETE_AGENT_RULE: 'POLICYCHANGELOG_DELETE_AGENT_RULE',
                     ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
                     ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
@@ -4071,6 +4075,7 @@ const CONST = {
             SETTINGS: 'settings',
             EXPORT: 'export',
             SYNC_WITH_HR: 'syncWithHR',
+            ADD_APPROVAL_WORKFLOW: 'addApprovalWorkflow',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -5999,6 +6004,8 @@ const CONST = {
         TABLE: 'table',
         /** Use for table rows. */
         ROW: 'row',
+        /** Use to group table rows together (e.g. thead/tbody). */
+        ROWGROUP: 'rowgroup',
         /** Use for column header cells in a table. */
         COLUMNHEADER: 'columnheader',
         /** Use for data cells in a table row. */
@@ -8173,6 +8180,16 @@ const CONST = {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
         },
+        ENABLE_FLOW: {
+            PAGE_NAME: {
+                LEGAL_NAME: 'legal-name',
+                VERIFY_ACCOUNT: 'verify-account',
+                DOMAIN_SELECTOR: 'domain-selector',
+                WORKSPACE_ADDRESS: 'workspace-address',
+                LEGAL_ENTITY_TAX_ID: 'legal-entity-tax-id',
+                TERMS: 'terms',
+            },
+        },
         UPDATE_OPERATION_TYPE: {
             BOOKING_TICKETED: 'BOOKING_TICKETED',
             TICKET_VOIDED: 'TICKET_VOIDED',
@@ -8857,6 +8874,7 @@ const CONST = {
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
                 ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
+                MORE_DROPDOWN: 'WorkspaceWorkflows-MoreDropdown',
                 LOAD_MORE_APPROVALS: 'WorkspaceWorkflows-LoadMoreApprovals',
                 BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
                 ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',

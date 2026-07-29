@@ -1112,7 +1112,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'Ihre Ausgaben',
             awaitingApproval: 'Ausstehende Genehmigung',
-            repaidLast30Days: 'In den letzten 30 Tagen zurückgezahlt',
+            repaidLast30Days: 'Letzte 30 Tage zurückgezahlt',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Aktuelle Transaktionen • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `${count} weitere anzeigen`,
@@ -1197,6 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
             'Die hochgeladene Datei ist entweder leer oder enthält ungültige Daten. Bitte stelle sicher, dass die Datei korrekt formatiert ist und alle erforderlichen Informationen enthält, bevor du sie erneut hochlädst.',
         importSpreadsheetLibraryError: 'Laden des Tabellenmoduls fehlgeschlagen. Bitte überprüfe deine Internetverbindung und versuche es erneut.',
         importSpreadsheet: 'Tabellenkalkulation importieren',
+        importWorkflows: 'Workflows importieren',
         downloadCSV: 'CSV herunterladen',
         importMemberConfirmation: () => ({
             one: `Bitte bestätige die folgenden Details für ein neues Workspace-Mitglied, das im Rahmen dieses Uploads hinzugefügt wird. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungsnachrichten.`,
@@ -4351,7 +4352,7 @@ ${amount} für ${merchant} – ${date}`,
         toLearnMore: 'um mehr zu erfahren.',
         termsAndConditions: {
             header: 'Bevor wir fortfahren ...',
-            title: 'Allgemeine Geschäftsbedingungen',
+            title: 'AGB prüfen',
             label: 'Ich stimme den Geschäftsbedingungen zu',
             subtitle: `Bitte stimme den Expensify Travel-<a href="${CONST.TRAVEL_TERMS_URL}">Geschäftsbedingungen</a> zu.`,
             error: 'Sie müssen den Expensify Travel Geschäftsbedingungen zustimmen, um fortzufahren',
@@ -4426,10 +4427,12 @@ ${amount} für ${merchant} – ${date}`,
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Bitte <a href="${phoneErrorMethodsRoute}">fügen Sie eine geschäftliche E-Mail als primäre Anmeldung hinzu</a>, um Reisen zu buchen.</rbr>`,
         domainSelector: {
+            headline: 'Welche Domain möchten Sie einrichten?',
             title: 'Domain',
             subtitle: 'Wählen Sie eine Domain für die Expensify Travel-Einrichtung.',
             recommended: 'Empfohlen',
         },
+        workspaceAddress: {headline: 'Wie lautet Ihre Geschäftsadresse?'},
         domainPermissionInfo: {
             title: 'Domain',
             restriction: (domain: string) =>
@@ -4485,6 +4488,7 @@ ${amount} für ${merchant} – ${date}`,
         nightIn: 'Nacht in',
         nightsIn: 'Nächte in',
         taxID: {
+            headline: 'Wie lautet Ihre geschäftliche Steuer-ID?',
             title: 'Steuer-ID',
             subtitle: 'Geben Sie die Steuer-ID Ihrer juristischen Person ein, damit wir die Reisekostenabrechnung in Ihrer Landeswährung einrichten können.',
             inputLabel: 'Steuer-ID der juristischen Person',
@@ -5875,6 +5879,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             directFeed: 'Direktfeed',
             whoNeedsCardAssigned: 'Wer braucht eine zugewiesene Karte?',
             chooseTheCardholder: 'Wähle den Karteninhaber',
+            pleaseSelectACardholder: 'Bitte wähle einen Karteninhaber aus, um fortzufahren',
             chooseCard: 'Wähle eine Karte',
             chooseCardFor: (assignee: string) => `Wähle eine Karte für <strong>${assignee}</strong>. Du findest die gesuchte Karte nicht? <concierge-link>Gib uns Bescheid.</concierge-link>`,
             noActiveCards: 'Keine aktiven Karten in diesem Feed',
@@ -8675,6 +8680,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `hat die Standardausgabenkategorie für „${mccGroupName}“ in „${newCategory}“ geändert (zuvor „${oldCategory}“)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung für Firmenkartenkäufe`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `hat die Agentenregel „${title}“ hinzugefügt: ${prompt}` : `hat eine Agentenregel hinzugefügt: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `hat die Agentenregel „${title}“ aktualisiert zu: ${prompt}` : `hat eine Agentenregel aktualisiert zu: ${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `hat die Agentenregel „${title}“ entfernt` : 'hat eine Agentenregel entfernt'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'blockiert', allow: 'erlaubt'},
             amountOperator: {over: 'über', under: 'unter'},

@@ -8,11 +8,13 @@ import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
 
-import type {KeyValueMapping} from 'react-native-onyx';
-
 import Onyx from 'react-native-onyx';
 
-import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
+import type {Card, DecisionName, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
+import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
+import type {ReportActionsCollectionDataSet} from '../../src/types/onyx/ReportAction';
 
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -66,11 +68,61 @@ import shouldDisplayNewMarkerOnReportAction, {getUnreadMarkerReportAction} from 
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+type TakeControlAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+type TakeControlOriginalMessageFixture = NonNullable<TakeControlAction['originalMessage']>;
+
+type LegacyReportActionFields = {
+    message?: string;
+    originalMessage?: string;
+};
+
+type ExportedToIntegrationAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>;
+type CompanyAddressUpdateAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS>;
+type UpdateACHAccountAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT>;
+
+function buildTakeControlActionFixture(originalMessage: TakeControlOriginalMessageFixture, message?: TakeControlAction['message']): TakeControlAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+        reportActionID: '1',
+        created: '2025-09-29',
+        originalMessage,
+        ...(message ? {message} : {}),
+    };
+}
+
+// These specialized policy-change payloads use production types that are not exposed by the generic ReportAction original-message map.
+// Keep that map boundary explicit in the test fixtures.
+function buildCompanyAddressUpdateActionFixture(originalMessage: CompanyAddressOriginalMessage): CompanyAddressUpdateAction {
+    const action: CompanyAddressUpdateAction = {
+        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+        reportActionID: '1',
+        created: '',
+    };
+    Object.assign(action, {originalMessage});
+    return action;
+}
+
+function buildUpdateACHAccountActionFixture(originalMessage: UpdateACHAccountOriginalMessage): UpdateACHAccountAction {
+    const action: UpdateACHAccountAction = {
+        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+        reportActionID: '1',
+        created: '',
+    };
+    Object.assign(action, {originalMessage});
+    return action;
+}
+
+function addLegacyReportActionFields(action: ReportAction, fields: LegacyReportActionFields): ReportAction {
+    Object.assign(action, fields);
+    return action;
+}
 
 describe('ReportActionsUtils', () => {
     beforeAll(() =>
@@ -95,7 +147,17 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getSortedReportActions', () => {
-        const cases = [
+        const buildReportActionWithoutCreated = (): ReportAction =>
+            createMock<ReportAction>({
+                reportActionID: '2962390724708756',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+            });
+
+        const cases: Array<[ReportAction[], ReportAction[]]> = [
             [
                 [
                     // This is the highest created timestamp, so should appear last
@@ -278,14 +340,7 @@ describe('ReportActionsUtils', () => {
                         },
                     },
                     // this item has no created field, so it should appear right after CONST.REPORT.ACTIONS.TYPE.CREATED
-                    {
-                        reportActionID: '2962390724708756',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                        originalMessage: {
-                            html: 'Hello world',
-                            whisperedTo: [],
-                        },
-                    },
+                    buildReportActionWithoutCreated(),
                     {
                         created: '2022-11-09 22:26:48.889',
                         reportActionID: '1609646094152486',
@@ -315,14 +370,7 @@ describe('ReportActionsUtils', () => {
                             whisperedTo: [],
                         },
                     },
-                    {
-                        reportActionID: '2962390724708756',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                        originalMessage: {
-                            html: 'Hello world',
-                            whisperedTo: [],
-                        },
-                    },
+                    buildReportActionWithoutCreated(),
                     {
                         created: '2022-11-09 22:26:48.889',
                         reportActionID: '1609646094152486',
@@ -355,12 +403,12 @@ describe('ReportActionsUtils', () => {
         ];
 
         test.each(cases)('sorts by created, then actionName, then reportActionID', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[]);
+            const result = ReportActionsUtils.getSortedReportActions(input);
             expect(result).toStrictEqual(expectedOutput);
         });
 
         test.each(cases)('in descending order', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[], true);
+            const result = ReportActionsUtils.getSortedReportActions(input, true);
             expect(result).toStrictEqual(expectedOutput.reverse());
         });
     });
@@ -424,8 +472,10 @@ describe('ReportActionsUtils', () => {
             [IOUReportID]: {...mockIOUReport, reportID: IOUReportID},
             [mockChatReportID]: mockChatReport,
         };
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction) as OriginalMessageIOU;
+        const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction);
+        if (!originalMessage) {
+            throw new Error('Expected the IOU mock action to have an original message');
+        }
 
         const linkedActionWithChildReportID = {
             ...mockIOUAction,
@@ -552,8 +602,10 @@ describe('ReportActionsUtils', () => {
             [mockChatReportID]: mockChatReport,
         };
 
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction) as OriginalMessageIOU;
+        const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction);
+        if (!originalMessage) {
+            throw new Error('Expected the IOU mock action to have an original message');
+        }
         const linkedCreateAction = {
             ...mockIOUAction,
             originalMessage: {...originalMessage, IOUTransactionID},
@@ -1143,11 +1195,11 @@ describe('ReportActionsUtils', () => {
         };
 
         beforeEach(() => {
-            Onyx.multiSet({
+            const updates: ReportActionsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletedIOUReportID}`]: {[deletedIOUReportAction.reportActionID]: deletedIOUReportAction},
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activeIOUReportID}`]: {[activeIOUReportAction.reportActionID]: activeIOUReportAction},
-            } as unknown as KeyValueMapping);
-            return waitForBatchedUpdates();
+            };
+            return Onyx.multiSet(updates).then(waitForBatchedUpdates);
         });
 
         it('should return false for a deleted IOU report action', () => {
@@ -1255,12 +1307,15 @@ describe('ReportActionsUtils', () => {
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
-                    .then(() =>
-                        Onyx.multiSet({
+                    .then(() => {
+                        const reportDataSet: ReportCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                        };
+                        const actionDataSet: ReportActionsCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action, [action2.reportActionID]: action2},
-                        } as unknown as KeyValueMapping),
-                    )
+                        };
+                        return Onyx.multiSet({...reportDataSet, ...actionDataSet});
+                    })
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
@@ -1280,19 +1335,22 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getExportIntegrationActionFragments', () => {
-        function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[]): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
-            return {
+        function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[]): ExportedToIntegrationAction {
+            const action: ExportedToIntegrationAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
                 reportActionID: '1',
                 reportID: '123',
                 created: '2026-05-15 10:00:00.000',
                 message: [],
-                originalMessage: {
-                    label,
-                    lastModified: '2026-05-15 10:00:00.000',
-                    nonReimbursableUrls,
-                },
-            } as unknown as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>;
+            };
+            const originalMessage: OriginalMessageExportIntegration = {
+                label,
+                lastModified: '2026-05-15 10:00:00.000',
+                nonReimbursableUrls,
+            };
+            // The OldDot map intersects this payload with an action wrapper, so keep the mismatch at this fixture boundary.
+            Object.assign(action, {originalMessage});
+            return action;
         }
 
         it.each([CONST.EXPORT_LABELS.INTACCT, CONST.EXPORT_LABELS.SAGE_INTACCT, CONST.EXPORT_LABELS.QBD])('does not link ID-based %s company card export records', (label) => {
@@ -1557,6 +1615,45 @@ describe('ReportActionsUtils', () => {
 
             expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceDefault'));
         });
+
+        it('should return a reconciled integrations message as-is, without the export error framing', () => {
+            const reconciledMessage = "A payment for this report already exists in NetSuite and the report is fully paid there, so there's nothing left to sync.";
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                originalMessage: {
+                    label: 'NetSuite',
+                    result: {
+                        messages: [reconciledMessage],
+                        reconciled: true,
+                    },
+                },
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(reconciledMessage);
+        });
+
+        it('should return an integrations error message with the export error framing when not reconciled', () => {
+            const errorMessage = 'NS0196 Sync Error: Could not mark expense reports as paid. This record already exists';
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                originalMessage: {
+                    label: 'NetSuite',
+                    result: {
+                        messages: [errorMessage],
+                    },
+                },
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.integrationsMessage', errorMessage, 'NetSuite', '', ''));
+        });
     });
 
     describe('getSendMoneyFlowAction', () => {
@@ -1575,8 +1672,10 @@ describe('ReportActionsUtils', () => {
             },
         };
 
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        const originalMessage = getOriginalMessage(mockIOUAction) as OriginalMessageIOU;
+        const originalMessage = getOriginalMessage(mockIOUAction);
+        if (!originalMessage) {
+            throw new Error('Expected the IOU mock action to have an original message');
+        }
         const createAction = {
             ...mockIOUAction,
             childReportID,
@@ -1749,7 +1848,7 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return false for POLICY_CHANGE_LOG.INVITE_TO_ROOM action', () => {
-            const reportAction = {
+            const reportAction: ReportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
                 originalMessage: {
                     html: '',
@@ -1918,19 +2017,21 @@ describe('ReportActionsUtils', () => {
 
         it('should not crash and should return false when originalMessage is a plain string (legacy/OldDot expense-update shape)', () => {
             const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
-            const reportAction = {
-                created: '2021-08-31 10:00:00.000',
-                reportActionID: '8401445780099176',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                originalMessage: legacyNotificationString,
-                message: [
-                    {
-                        html: legacyNotificationString,
-                        type: 'COMMENT',
-                        text: legacyNotificationString,
-                    },
-                ],
-            } as unknown as ReportAction;
+            const reportAction = addLegacyReportActionFields(
+                {
+                    created: '2021-08-31 10:00:00.000',
+                    reportActionID: '8401445780099176',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    message: [
+                        {
+                            html: legacyNotificationString,
+                            type: 'COMMENT',
+                            text: legacyNotificationString,
+                        },
+                    ],
+                },
+                {originalMessage: legacyNotificationString},
+            );
 
             expect(() => ReportActionsUtils.isDeletedAction(reportAction)).not.toThrow();
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
@@ -1938,12 +2039,14 @@ describe('ReportActionsUtils', () => {
 
         it('should not crash and should return false when message is a non-array string and originalMessage is missing', () => {
             const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
-            const reportAction = {
-                created: '2021-08-31 10:00:00.000',
-                reportActionID: '8401445780099177',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                message: legacyNotificationString,
-            } as unknown as ReportAction;
+            const reportAction = addLegacyReportActionFields(
+                {
+                    created: '2021-08-31 10:00:00.000',
+                    reportActionID: '8401445780099177',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                },
+                {message: legacyNotificationString},
+            );
 
             expect(() => ReportActionsUtils.isDeletedAction(reportAction)).not.toThrow();
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
@@ -1953,28 +2056,30 @@ describe('ReportActionsUtils', () => {
     describe('getFirstVisibleReportActionID', () => {
         it('does not crash when sortedReportActions contains a legacy action whose originalMessage is a string', () => {
             const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
-            const createdAction = {
+            const createdAction: ReportAction = {
                 created: '2021-08-31 09:00:00.000',
                 reportActionID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 message: [{html: '__FAKE__', type: 'COMMENT', text: '__FAKE__'}],
-            } as unknown as ReportAction;
+            };
 
-            const legacyExpenseUpdateAction = {
-                created: '2021-08-31 10:00:00.000',
-                reportActionID: '2',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                originalMessage: legacyNotificationString,
-                message: [{html: legacyNotificationString, type: 'COMMENT', text: legacyNotificationString}],
-            } as unknown as ReportAction;
+            const legacyExpenseUpdateAction = addLegacyReportActionFields(
+                {
+                    created: '2021-08-31 10:00:00.000',
+                    reportActionID: '2',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    message: [{html: legacyNotificationString, type: 'COMMENT', text: legacyNotificationString}],
+                },
+                {originalMessage: legacyNotificationString},
+            );
 
-            const visibleAction = {
+            const visibleAction: ReportAction = {
                 created: '2021-08-31 11:00:00.000',
                 reportActionID: '3',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 originalMessage: {html: 'Hello', whisperedTo: []},
                 message: [{html: 'Hello', type: 'COMMENT', text: 'Hello'}],
-            } as unknown as ReportAction;
+            };
 
             // Mirror the production sort used by getSortedReportActionsForDisplay (descending, CREATED last)
             // so this test exercises the same ordering invariant the helper relies on.
@@ -1987,31 +2092,38 @@ describe('ReportActionsUtils', () => {
 
     describe('getOriginalMessage', () => {
         it('returns undefined when the underlying originalMessage is a plain string (legacy shape)', () => {
-            const reportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportActionID: 'legacy-1',
-                originalMessage: 'plain string from legacy backend',
-            } as unknown as ReportAction;
+            const reportAction = addLegacyReportActionFields(
+                {
+                    created: '',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    reportActionID: 'legacy-1',
+                },
+                {originalMessage: 'plain string from legacy backend'},
+            );
 
             expect(getOriginalMessage(reportAction)).toBeUndefined();
         });
 
         it('returns undefined when message is a non-array string and originalMessage is missing', () => {
-            const reportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportActionID: 'legacy-2',
-                message: 'plain string from legacy backend',
-            } as unknown as ReportAction;
+            const reportAction = addLegacyReportActionFields(
+                {
+                    created: '',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    reportActionID: 'legacy-2',
+                },
+                {message: 'plain string from legacy backend'},
+            );
 
             expect(getOriginalMessage(reportAction)).toBeUndefined();
         });
 
         it('returns the object when originalMessage is object-shaped', () => {
-            const reportAction = {
+            const reportAction: ReportAction = {
+                created: '',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 reportActionID: 'shaped-1',
                 originalMessage: {html: 'hi', whisperedTo: []},
-            } as unknown as ReportAction;
+            };
 
             expect(getOriginalMessage(reportAction)).toEqual({html: 'hi', whisperedTo: []});
         });
@@ -2260,16 +2372,11 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
-            const reportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-                reportActionID: '1',
-                created: '2025-09-29',
-                originalMessage: {
-                    lastModified: '2025-09-29',
-                    mentionedAccountIDs: [] as number[],
-                    automaticAction: true,
-                },
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+            const reportAction = buildTakeControlActionFixture({
+                lastModified: '2025-09-29',
+                mentionedAccountIDs: [],
+                automaticAction: true,
+            });
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(false);
@@ -2297,17 +2404,14 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is true but mentionedAccountIDs has values', () => {
-            const reportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-                reportActionID: '1',
-                created: '2025-09-29',
-                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
-                originalMessage: {
+            const reportAction = buildTakeControlActionFixture(
+                {
                     lastModified: '2025-09-29',
                     mentionedAccountIDs: [123],
                     automaticAction: true,
                 },
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+                [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+            );
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
@@ -2335,33 +2439,27 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
-            const reportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-                reportActionID: '1',
-                created: '2025-09-29',
-                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
-                originalMessage: {
+            const reportAction = buildTakeControlActionFixture(
+                {
                     lastModified: '2025-09-29',
-                    mentionedAccountIDs: [] as number[],
+                    mentionedAccountIDs: [],
                     automaticAction: false,
                 },
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+                [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+            );
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is not set', () => {
-            const reportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-                reportActionID: '1',
-                created: '2025-09-29',
-                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
-                originalMessage: {
+            const reportAction = buildTakeControlActionFixture(
+                {
                     lastModified: '2025-09-29',
                     mentionedAccountIDs: [456],
                 },
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+                [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+            );
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
@@ -3444,16 +3542,16 @@ describe('ReportActionsUtils', () => {
             };
 
             // When extending the collection with DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
-            const secondDEWAction = {
+            const secondDEWAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 reportActionID: '2DEW',
                 originalMessage: {to: 'example@gmail.com', message: ''},
-            } as ReportAction;
-            const fourthDEWAction = {
+            });
+            const fourthDEWAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 reportActionID: '4DEW',
                 originalMessage: {to: 'example2@gmail.com', message: ''},
-            } as ReportAction;
+            });
             const expected: ReportActions = {
                 [firstAction.reportActionID]: firstAction,
                 [secondAction.reportActionID]: secondAction,
@@ -3854,7 +3952,7 @@ describe('ReportActionsUtils', () => {
 
     describe('getUpdatedCardFeedStatementPeriodMessage', () => {
         it('should return translated message with numeric day values', () => {
-            const action = {
+            const action: ReportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
                 reportActionID: '1',
                 created: '',
@@ -3863,13 +3961,13 @@ describe('ReportActionsUtils', () => {
                     statementPeriodEndDay: '15',
                     previousStatementPeriodEndDay: '20',
                 },
-            } as ReportAction;
+            };
             const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
             expect(result).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
         });
 
         it('should translate LAST_DAY_OF_MONTH value', () => {
-            const action = {
+            const action: ReportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
                 reportActionID: '1',
                 created: '',
@@ -3878,7 +3976,7 @@ describe('ReportActionsUtils', () => {
                     statementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH,
                     previousStatementPeriodEndDay: '10',
                 },
-            } as ReportAction;
+            };
             const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
             expect(result).toBe('changed card feed "Amex Corporate" statement period end day to "Last day of the month" (previously "10")');
         });
@@ -3901,68 +3999,53 @@ describe('ReportActionsUtils', () => {
 
     describe('getCompanyAddressUpdateMessage', () => {
         it('should return "set" message when setting address for first time', () => {
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    newAddress: {
-                        addressStreet: '123 Main St',
-                        city: 'San Francisco',
-                        state: 'CA',
-                        zipCode: '94102',
-                        country: 'US',
-                    },
-                    oldAddress: null,
+            const action = buildCompanyAddressUpdateActionFixture({
+                newAddress: {
+                    addressStreet: '123 Main St',
+                    city: 'San Francisco',
+                    state: 'CA',
+                    zipCode: '94102',
+                    country: 'US',
                 },
-            } as ReportAction;
+                oldAddress: null,
+            });
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, San Francisco, CA 94102"');
         });
 
         it('should return "changed" message when updating existing address', () => {
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    newAddress: {
-                        addressStreet: '456 New Ave',
-                        city: 'Los Angeles',
-                        state: 'CA',
-                        zipCode: '90001',
-                        country: 'US',
-                    },
-                    oldAddress: {
-                        addressStreet: '123 Old St',
-                        city: 'San Francisco',
-                        state: 'CA',
-                        zipCode: '94102',
-                        country: 'US',
-                    },
+            const action = buildCompanyAddressUpdateActionFixture({
+                newAddress: {
+                    addressStreet: '456 New Ave',
+                    city: 'Los Angeles',
+                    state: 'CA',
+                    zipCode: '90001',
+                    country: 'US',
                 },
-            } as ReportAction;
+                oldAddress: {
+                    addressStreet: '123 Old St',
+                    city: 'San Francisco',
+                    state: 'CA',
+                    zipCode: '94102',
+                    country: 'US',
+                },
+            });
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('changed the company address to "456 New Ave, Los Angeles, CA 90001" (previously "123 Old St, San Francisco, CA 94102")');
         });
         it('should handle address with street2 (newline separated)', () => {
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    newAddress: {
-                        addressStreet: '123 Main St\nSuite 500',
-                        city: 'New York',
-                        state: 'NY',
-                        zipCode: '10001',
-                        country: 'US',
-                    },
-                    oldAddress: null,
+            const action = buildCompanyAddressUpdateActionFixture({
+                newAddress: {
+                    addressStreet: '123 Main St\nSuite 500',
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10001',
+                    country: 'US',
                 },
-            } as ReportAction;
+                oldAddress: null,
+            });
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
 
@@ -3971,66 +4054,51 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should handle address with separate addressStreet2 field', () => {
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    newAddress: {
-                        addressStreet: '123 Main St',
-                        addressStreet2: 'Suite 500',
-                        city: 'New York',
-                        state: 'NY',
-                        zipCode: '10001',
-                        country: 'US',
-                    },
-                    oldAddress: null,
+            const action = buildCompanyAddressUpdateActionFixture({
+                newAddress: {
+                    addressStreet: '123 Main St',
+                    addressStreet2: 'Suite 500',
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10001',
+                    country: 'US',
                 },
-            } as ReportAction;
+                oldAddress: null,
+            });
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
 
         it('should prefer addressStreet2 over newline-split second line when both are present', () => {
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    newAddress: {
-                        addressStreet: '123 Main St\nOld Unit',
-                        addressStreet2: 'Suite 500',
-                        city: 'New York',
-                        state: 'NY',
-                        zipCode: '10001',
-                        country: 'US',
-                    },
-                    oldAddress: null,
+            const action = buildCompanyAddressUpdateActionFixture({
+                newAddress: {
+                    addressStreet: '123 Main St\nOld Unit',
+                    addressStreet2: 'Suite 500',
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10001',
+                    country: 'US',
                 },
-            } as ReportAction;
+                oldAddress: null,
+            });
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
 
         it('should fallback to newline-split second line when addressStreet2 is empty', () => {
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    newAddress: {
-                        addressStreet: '123 Main St\nSuite 500',
-                        addressStreet2: '   ',
-                        city: 'New York',
-                        state: 'NY',
-                        zipCode: '10001',
-                        country: 'US',
-                    },
-                    oldAddress: null,
+            const action = buildCompanyAddressUpdateActionFixture({
+                newAddress: {
+                    addressStreet: '123 Main St\nSuite 500',
+                    addressStreet2: '   ',
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10001',
+                    country: 'US',
                 },
-            } as ReportAction;
+                oldAddress: null,
+            });
 
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
@@ -4040,15 +4108,10 @@ describe('ReportActionsUtils', () => {
     describe('getUpdateACHAccountMessage', () => {
         it('should return "set" message when setting the default bank account for the first time', () => {
             // Given an UPDATE_ACH_ACCOUNT action with only new bank account info
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    bankAccountName: 'Business Checking',
-                    maskedBankAccountNumber: 'XXXX1234',
-                },
-            } as ReportAction;
+            const action = buildUpdateACHAccountActionFixture({
+                bankAccountName: 'Business Checking',
+                maskedBankAccountNumber: 'XXXX1234',
+            });
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
@@ -4059,15 +4122,10 @@ describe('ReportActionsUtils', () => {
 
         it('should return "set" message without bank name when bankAccountName is empty', () => {
             // Given an UPDATE_ACH_ACCOUNT action with only new bank account maskedBankAccountNumber
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    bankAccountName: '',
-                    maskedBankAccountNumber: 'XXXX1234',
-                },
-            } as ReportAction;
+            const action = buildUpdateACHAccountActionFixture({
+                bankAccountName: '',
+                maskedBankAccountNumber: 'XXXX1234',
+            });
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
@@ -4078,15 +4136,10 @@ describe('ReportActionsUtils', () => {
 
         it('should return "removed" message when removing the default bank account', () => {
             // Given an UPDATE_ACH_ACCOUNT action with only old bank account info
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    oldBankAccountName: 'Business Checking',
-                    oldMaskedBankAccountNumber: 'XXXX5678',
-                },
-            } as ReportAction;
+            const action = buildUpdateACHAccountActionFixture({
+                oldBankAccountName: 'Business Checking',
+                oldMaskedBankAccountNumber: 'XXXX5678',
+            });
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
@@ -4097,15 +4150,10 @@ describe('ReportActionsUtils', () => {
 
         it('should return "removed" message without bank name when oldBankAccountName is empty', () => {
             // Given an UPDATE_ACH_ACCOUNT action with only old bank account maskedBankAccountNumber
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    oldBankAccountName: '',
-                    oldMaskedBankAccountNumber: 'XXXX5678',
-                },
-            } as ReportAction;
+            const action = buildUpdateACHAccountActionFixture({
+                oldBankAccountName: '',
+                oldMaskedBankAccountNumber: 'XXXX5678',
+            });
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
@@ -4116,17 +4164,12 @@ describe('ReportActionsUtils', () => {
 
         it('should return "changed" message when changing from one bank account to another', () => {
             // Given an UPDATE_ACH_ACCOUNT action with both new and old bank account info
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    bankAccountName: 'Savings Account',
-                    maskedBankAccountNumber: 'XXXX5678',
-                    oldBankAccountName: 'Business Checking',
-                    oldMaskedBankAccountNumber: 'XXXX1234',
-                },
-            } as ReportAction;
+            const action = buildUpdateACHAccountActionFixture({
+                bankAccountName: 'Savings Account',
+                maskedBankAccountNumber: 'XXXX5678',
+                oldBankAccountName: 'Business Checking',
+                oldMaskedBankAccountNumber: 'XXXX1234',
+            });
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
@@ -4137,17 +4180,12 @@ describe('ReportActionsUtils', () => {
 
         it('should return "changed" message with partial bank names when some names are empty', () => {
             // Given an UPDATE_ACH_ACCOUNT action where new bank has a name but old bank does not
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
-                reportActionID: '1',
-                created: '',
-                originalMessage: {
-                    bankAccountName: 'Savings Account',
-                    maskedBankAccountNumber: 'XXXX5678',
-                    oldBankAccountName: '',
-                    oldMaskedBankAccountNumber: 'XXXX1234',
-                },
-            } as ReportAction;
+            const action = buildUpdateACHAccountActionFixture({
+                bankAccountName: 'Savings Account',
+                maskedBankAccountNumber: 'XXXX5678',
+                oldBankAccountName: '',
+                oldMaskedBankAccountNumber: 'XXXX1234',
+            });
 
             // When getting the update message
             const result = getUpdateACHAccountMessage(translateLocal, action);
@@ -4802,7 +4840,7 @@ describe('ReportActionsUtils', () => {
                 creditBankAccountLast4: '5678',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, 2);
 
             // Then the message shows the last 4 digits of the account that funded the payment
             const expected = `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '4321')}${translateLocal('iou.reimbursedWithACH', {
@@ -4820,7 +4858,7 @@ describe('ReportActionsUtils', () => {
                 creditBankAccountLast4: '5678',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, 2);
 
             expect(result).toBe(
                 `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
@@ -4828,6 +4866,42 @@ describe('ReportActionsUtils', () => {
                     expectedDate: undefined,
                 })}`,
             );
+        });
+
+        it('shows "your" wording for Fast_ACH when the current user is the report owner', () => {
+            const action = buildReimbursedAction({
+                paymentMethod: 'Fast_ACH',
+                creditBankAccountLast4: '1111',
+                expectedDate: '2025-03-15',
+            });
+
+            const ownerAccountID = 42;
+            const submitterLogin = 'submitter@example.com';
+
+            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, ownerAccountID);
+            expect(resultCurrentUser).toContain('your');
+            expect(resultCurrentUser).not.toContain(submitterLogin);
+
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, 999);
+            expect(resultOtherUser).toContain(submitterLogin);
+            expect(resultOtherUser).not.toContain('your');
+        });
+
+        it('shows "your" wording for StripeConnect when the current user is the report owner', () => {
+            const action = buildReimbursedAction({
+                paymentMethod: 'StripeConnect',
+                creditBankAccountLast4: '2222',
+                stripePaymentType: 'bank_transfer',
+            });
+
+            const ownerAccountID = 42;
+            const submitterLogin = 'submitter@example.com';
+
+            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, ownerAccountID);
+            expect(resultCurrentUser).toContain('your');
+
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, 999);
+            expect(resultOtherUser).toContain(submitterLogin);
         });
     });
 
@@ -5824,14 +5898,13 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getCombinedReportActions', () => {
-        const makeAction = (id: string, actionName: string, created: string, overrides: Partial<ReportAction> = {}): ReportAction =>
-            ({
-                reportActionID: id,
-                actionName,
-                created,
-                message: [{type: 'TEXT', html: '', text: '', isEdited: false, isDeletedParentAction: false}],
-                ...overrides,
-            }) as unknown as ReportAction;
+        const makeAction = (id: string, actionName: ReportAction['actionName'], created: string, overrides: Partial<ReportAction> = {}): ReportAction => ({
+            reportActionID: id,
+            actionName,
+            created,
+            message: [{type: 'TEXT', html: '', text: '', isEdited: false, isDeletedParentAction: false}],
+            ...overrides,
+        });
 
         const makeIOUAction = (id: string, created: string, type: string, hasIOUDetails = false): ReportAction =>
             makeAction(id, CONST.REPORT.ACTIONS.TYPE.IOU, created, {
@@ -6015,7 +6088,7 @@ describe('ReportActionsUtils', () => {
                 reportID: '123',
                 created: '2026-05-15 10:00:00.000',
                 message: [],
-            } as unknown as ReportAction;
+            };
         }
 
         it.each([
