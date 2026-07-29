@@ -47,7 +47,7 @@ const SCREENS = {
     SEARCH: {
         ROOT: 'Search_Root',
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
-        MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
+        DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Dynamic_Search_Money_Request_Report_Hold_Transactions',
         MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: 'Search_Money_Request_Report_Reject_Transactions',
         COLUMNS_RHP: 'Search_Columns_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',

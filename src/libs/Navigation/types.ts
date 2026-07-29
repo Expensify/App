@@ -3234,10 +3234,7 @@ type SearchReportActionsParamList = {
         /** Hash that includes info about what is searched for */
         searchHash?: number;
     };
-    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
-        /** Link to previous page */
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
+    [SCREENS.SEARCH.DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
         /** Selected transactions' report ID  */
         reportID: string;
     };

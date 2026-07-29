@@ -1151,6 +1151,10 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
+    HOLD_TRANSACTIONS: {
+        path: 'hold',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
     WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
         path: 'initial-list-value',
         entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
@@ -1303,14 +1307,6 @@ const ROUTES = {
         route: 'search/r/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
             const baseRoute = `search/r/${reportID}` as const;
-
-            return getUrlWithBackToParam(baseRoute, backTo);
-        },
-    },
-    SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
-        route: 'search/r/:reportID/hold',
-        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `search/r/${reportID}/hold` as const;
 
             return getUrlWithBackToParam(baseRoute, backTo);
         },

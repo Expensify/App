@@ -73,7 +73,7 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
         animationTypeForReplace: 'push',
     },
-    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
+    [SCREENS.SEARCH.DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
         animation: Animations.NONE,
     },
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: {
@@ -1194,7 +1194,7 @@ const MergeTransactionStackNavigator = createModalStackNavigator<MergeTransactio
 });
 
 const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchReportActionsParamList>({
-    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
+    [SCREENS.SEARCH.DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_SEARCH]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
