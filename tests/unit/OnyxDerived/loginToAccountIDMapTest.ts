@@ -3,19 +3,23 @@ import loginToAccountIDMapConfig from '@libs/actions/OnyxDerived/configs/loginTo
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 describe('loginToAccountIDMap', () => {
+    const accountID1 = 1;
+    const accountID2 = 2;
+    const login = 'user1@example.com';
+
     it('prefers the live account when a closed merged-away account shares the same login, regardless of order', () => {
         const closedHasHigherAccountID: PersonalDetailsList = {
-            1: {accountID: 1, login: 'user1@example.com'},
-            2: {accountID: 2, login: 'user1@example.com', isClosed: true},
+            [accountID1]: {accountID: accountID1, login},
+            [accountID2]: {accountID: accountID2, login, isClosed: true},
         };
 
-        expect(loginToAccountIDMapConfig.compute([closedHasHigherAccountID], {})).toEqual({'user1@example.com': 1});
+        expect(loginToAccountIDMapConfig.compute([closedHasHigherAccountID], {})).toEqual({[login]: accountID1});
 
         const closedHasLowerAccountID: PersonalDetailsList = {
-            1: {accountID: 1, login: 'user1@example.com', isClosed: true},
-            2: {accountID: 2, login: 'user1@example.com'},
+            [accountID1]: {accountID: accountID1, login, isClosed: true},
+            [accountID2]: {accountID: accountID2, login},
         };
 
-        expect(loginToAccountIDMapConfig.compute([closedHasLowerAccountID], {})).toEqual({'user1@example.com': 2});
+        expect(loginToAccountIDMapConfig.compute([closedHasLowerAccountID], {})).toEqual({[login]: accountID2});
     });
 });
