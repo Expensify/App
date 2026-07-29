@@ -218,7 +218,6 @@ import type {
     TransactionViolation,
 } from '@src/types/onyx';
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
-import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
 import type {Participant, Participants, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -227,7 +226,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput, OnyxMergeInput} from 'react-native-onyx';
 
 import {addDays, format as formatDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
@@ -264,6 +263,13 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+type ClosedReportActionMessage = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>['message'];
+type ClosedReportActionMessageArray = Extract<NonNullable<ClosedReportActionMessage>, readonly unknown[]>;
+
+function isClosedReportActionMessageArray(message: ClosedReportActionMessage): message is ClosedReportActionMessageArray {
+    return Array.isArray(message);
+}
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
@@ -308,7 +314,7 @@ jest.mock('@libs/PolicyUtils', () => {
     };
 });
 
-const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
+const mockedPolicyUtils = jest.mocked(PolicyUtils);
 
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
@@ -950,7 +956,10 @@ describe('ReportUtils', () => {
             });
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
-            const personalDetailsData = personalDetailsCall?.[1] as Record<string, {accountID: number; avatar?: string; login?: string; displayName?: string}>;
+            if (!personalDetailsCall) {
+                throw new Error('Expected personal details merge call');
+            }
+            const personalDetailsData: OnyxMergeInput<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> = personalDetailsCall[1];
             const accountExecutiveDetail = Object.values(personalDetailsData ?? {}).at(0);
 
             expect(accountExecutiveDetail).toBeDefined();
@@ -1281,7 +1290,7 @@ describe('ReportUtils', () => {
             const currentReportId = '';
             const transactionID = 1;
 
-            const transaction = {
+            const transaction: OnyxInputOrEntry<Transaction> = {
                 ...createRandomTransaction(transactionID),
                 category: '',
                 tag: '',
@@ -1293,7 +1302,7 @@ describe('ReportUtils', () => {
                 },
                 errors,
             };
-            expect(hasReceiptError(transaction as OnyxInputOrEntry<Transaction>)).toBe(true);
+            expect(hasReceiptError(transaction)).toBe(true);
         });
     });
 
@@ -1305,7 +1314,7 @@ describe('ReportUtils', () => {
             const currentReportId = '';
             const transactionID = 1;
 
-            const transaction = {
+            const transaction: OnyxInputOrEntry<Transaction> = {
                 ...createRandomTransaction(transactionID),
                 category: '',
                 tag: '',
@@ -1316,7 +1325,7 @@ describe('ReportUtils', () => {
                     liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
                 },
             };
-            expect(hasReceiptError(transaction as OnyxInputOrEntry<Transaction>)).toBe(false);
+            expect(hasReceiptError(transaction)).toBe(false);
         });
     });
 
@@ -6950,12 +6959,14 @@ describe('ReportUtils', () => {
                     [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
-            const reportCollectionDataSet = toCollectionDataSet(
-                ONYXKEYS.COLLECTION.REPORT,
-                [invoiceReport, taskReport, iouReport, groupChatReport, oneOnOneChatReport],
-                (item) => item.reportID,
-            );
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet as OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.REPORT>);
+            const reportCollectionDataSet: OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.REPORT> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${invoiceReport.reportID}`]: invoiceReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`]: taskReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`]: groupChatReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`]: oneOnOneChatReport,
+            };
+            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet);
         });
         it('should return the 1:1 chat', () => {
             const report = getChatByParticipants([currentUserAccountID, userAccountID]);
@@ -8088,7 +8099,8 @@ describe('ReportUtils', () => {
         it('should return false when the report is null', () => {
             expect(
                 shouldReportBeInOptionList({
-                    report: null as unknown as Report,
+                    // @ts-expect-error -- null intentionally exercises the runtime null report case.
+                    report: null,
                     chatReport: mockedChatReport,
                     currentReportId: '',
                     isInFocusMode: false,
@@ -8282,24 +8294,27 @@ describe('ReportUtils', () => {
         it('should not assign a role to participants for workspace chat type', () => {
             const currentUser = 100;
             const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], currentUser);
-            const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`));
-            const report = reportData?.value as Report | undefined;
-            expect(report?.participants?.[currentUser]?.role).toBeUndefined();
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${result.announceChatReportID}`;
+            const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key === reportKey);
+            expect(reportData).toBeDefined();
+            expect(reportData?.value).toHaveProperty(['participants', String(currentUser)]);
+
+            expect(reportData?.value).not.toHaveProperty(['participants', String(currentUser), 'role']);
         });
 
         it('should create announce chat with POLICY_ANNOUNCE chat type', () => {
             const currentUser = 100;
             const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], currentUser);
             const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`) && !data.key.includes('Draft'));
-            const report = reportData?.value as Report | undefined;
-            expect(report?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
+            expect(reportData).toBeDefined();
+            expect(reportData?.value).toMatchObject({chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE});
         });
 
         it('should set writeCapability to ADMINS for announce chat', () => {
             const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], 100);
             const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`) && !data.key.includes('Draft'));
-            const report = reportData?.value as Report | undefined;
-            expect(report?.writeCapability).toBe(CONST.REPORT.WRITE_CAPABILITIES.ADMINS);
+            expect(reportData).toBeDefined();
+            expect(reportData?.value).toMatchObject({writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS});
         });
     });
 
@@ -8374,7 +8389,7 @@ describe('ReportUtils', () => {
                     oldName: 'workspace 1',
                 },
             };
-            expect(getWorkspaceNameUpdatedMessage(translateLocal, action as ReportAction)).toEqual(
+            expect(getWorkspaceNameUpdatedMessage(translateLocal, createMock<ReportAction>(action))).toEqual(
                 'updated the name of this workspace to &quot;&amp;#104;&amp;#101;&amp;#108;&amp;#108;&amp;#111;&quot; (previously &quot;workspace 1&quot;)',
             );
         });
@@ -8392,14 +8407,14 @@ describe('ReportUtils', () => {
         };
 
         function buildCopyAction(actionName: ReportAction['actionName'], originalMessage?: {sourcePolicyID?: string; quantity?: number}): ReportAction {
-            return {
+            return createMock<ReportAction>({
                 actionName,
                 reportActionID: '1',
                 reportID: '123',
                 created: '2026-05-15 10:00:00.000',
                 message: [],
                 originalMessage,
-            } as unknown as ReportAction;
+            });
         }
 
         beforeEach(async () => {
@@ -10421,7 +10436,8 @@ describe('ReportUtils', () => {
             const joinRequestReportAction: ReportAction = {
                 ...createRandomReportAction(50400),
                 originalMessage: {
-                    choice: '' as JoinWorkspaceResolution,
+                    // @ts-expect-error -- empty choice intentionally models an incomplete legacy join request.
+                    choice: '',
                     policyID: '1',
                 },
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
@@ -13137,7 +13153,7 @@ describe('ReportUtils', () => {
             await flushPromises();
         });
 
-        const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
+        const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
 
         afterAll(() => {
             mockIsSearchTopmostFullScreenRoute.mockRestore();
@@ -13567,10 +13583,11 @@ describe('ReportUtils', () => {
             });
 
             it('should handle empty string policy type gracefully', () => {
-                const policyWithEmptyType = {
+                const policyWithEmptyType: Policy = {
                     ...createRandomPolicy(5),
+                    // @ts-expect-error -- empty type intentionally exercises runtime handling.
                     type: '',
-                } as unknown as Policy;
+                };
                 expect(shouldEnableNegative(chatReport, policyWithEmptyType)).toBe(false);
             });
         });
@@ -18909,11 +18926,7 @@ describe('ReportUtils', () => {
 
     describe('getAddExpenseDropdownOptions', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
-        const mockIcons = {
-            Location: jest.fn() as unknown as IconAsset,
-            ReceiptPlus: jest.fn() as unknown as IconAsset,
-            Plus: jest.fn() as unknown as IconAsset,
-        };
+        const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()});
         const mockIouReportID = '12345';
 
         it('should return exactly 3 dropdown options', () => {
@@ -19483,7 +19496,8 @@ describe('ReportUtils', () => {
 
         it('should return empty string for unknown column', () => {
             const transaction = createMockTransaction();
-            const result = getTransactionSortValue(transaction, 'UNKNOWN_COLUMN' as typeof CONST.SEARCH.TABLE_COLUMNS.DATE, mockReport, mockPolicy);
+            // @ts-expect-error -- unknown column intentionally exercises the default branch.
+            const result = getTransactionSortValue(transaction, 'UNKNOWN_COLUMN', mockReport, mockPolicy);
             expect(result).toBe('');
         });
     });
@@ -19958,7 +19972,7 @@ describe('ReportUtils', () => {
             const currency = 'GBP';
             const action = buildOptimisticCancelPaymentReportAction(expenseReportID, amount, currency, currentUserAccountID);
 
-            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>)).toMatchObject({
+            expect(getOriginalMessage(action)).toMatchObject({
                 expenseReportID,
                 amount,
                 currency,
@@ -20052,9 +20066,11 @@ describe('ReportUtils', () => {
         it('should set message with the emailClosingReport as the first text', () => {
             const emailClosingReport = 'admin@company.com';
             const action = buildOptimisticClosedReportAction(emailClosingReport, 'Test Policy', currentUserAccountID);
-            const messages = action.message as Array<{type: string; style: string; text: string}>;
+            if (!isClosedReportActionMessageArray(action.message)) {
+                throw new Error('Expected closed report action message to be an array');
+            }
 
-            expect(messages.at(0)).toMatchObject({
+            expect(action.message.at(0)).toMatchObject({
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
                 text: emailClosingReport,

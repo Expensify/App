@@ -132,6 +132,21 @@ const duplicatedTransactionViolation = {
     type: CONST.VIOLATION_TYPES.WARNING,
 };
 
+function getTransactionViolationsFromResult(result: ReturnType<typeof ViolationsUtils.getViolationsOnyxData>, fallbackToEmpty = false) {
+    if (result.onyxMethod !== Onyx.METHOD.SET) {
+        throw new Error('Expected a SET transaction violation update with a value');
+    }
+
+    if (result.value === null || result.value === undefined) {
+        if (fallbackToEmpty) {
+            return [];
+        }
+        throw new Error('Expected a SET transaction violation update with a value');
+    }
+
+    return result.value;
+}
+
 describe('getViolationsOnyxData', () => {
     let transaction: Transaction;
     let transactionViolations: TransactionViolation[];
@@ -150,7 +165,7 @@ describe('getViolationsOnyxData', () => {
             currency: CONST.CURRENCY.USD,
         };
         transactionViolations = [];
-        policy = {requiresTag: false, requiresCategory: false} as Policy;
+        policy = createMock<Policy>({requiresTag: false, requiresCategory: false});
         policyTags = {};
         policyCategories = {};
     });
@@ -904,7 +919,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined();
             expect(itemizedReceiptViolation?.type).toBe(CONST.VIOLATION_TYPES.VIOLATION);
@@ -926,7 +941,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const foundReceiptRequiredViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
             expect(foundReceiptRequiredViolation).toBeUndefined();
         });
@@ -947,7 +962,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             // Should have itemized receipt violation but NOT regular receipt violation
@@ -971,7 +986,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined();
         });
@@ -992,7 +1007,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined();
         });
@@ -1044,7 +1059,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined();
             expect(itemizedReceiptViolation?.data).toBeUndefined(); // Category-level violations don't have data
@@ -1064,7 +1079,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined(); // Category "Never" should override policy
         });
@@ -1083,7 +1098,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined(); // Should follow policy threshold
         });
@@ -1108,7 +1123,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
 
             // Then the itemized violation should be removed and replaced with receiptRequired because the policy still requires receipts
             const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -1136,7 +1151,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
 
             // Then the violation should have updated threshold data to reflect the current policy settings
             const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -1165,7 +1180,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
 
             // Then itemized should supersede receipt because itemized is more restrictive
             const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
@@ -1194,7 +1209,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = result.value as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result);
 
             // Then no receipt violations should exist because category overrides take precedence over policy settings
             const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -1420,7 +1435,7 @@ describe('getViolationsOnyxData', () => {
             };
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
-                updatedTransaction: transactionWithModifiedDetails as unknown as Transaction,
+                updatedTransaction: createMock<Transaction>(transactionWithModifiedDetails),
                 transactionViolations,
                 policy,
                 policyTagList: policyTags,
@@ -2002,10 +2017,10 @@ describe('getViolationsOnyxData', () => {
                 },
             };
             transaction.category = 'Meals';
-            iouReport = {
+            iouReport = createMock<Report>({
                 reportID: '1234',
                 ownerAccountID,
-            } as Report;
+            });
         });
 
         it('should add missingAttendees violation when no attendees are present', () => {
@@ -2746,7 +2761,7 @@ describe('getViolationsOnyxData', () => {
         // Pass a `vendors` array to control the synced list, or `null` to simulate the list still
         // hydrating (`data.vendors` absent, so `isMatchingVendorListLoaded` returns false).
         const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> | null = [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]) =>
-            ({
+            createMock<Policy>({
                 requiresTag: false,
                 requiresCategory: false,
                 connections: {
@@ -2755,7 +2770,7 @@ describe('getViolationsOnyxData', () => {
                         data: vendors ? {vendors} : {},
                     },
                 },
-            }) as unknown as Policy;
+            });
 
         beforeEach(async () => {
             // Default to beta-enabled so the four branches of the violation logic are reachable.
@@ -2804,7 +2819,8 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            expect((result.value as TransactionViolation[]).filter((v) => v.name === CONST.VIOLATIONS.INACTIVE_VENDOR)).toHaveLength(1);
+            const violations = getTransactionViolationsFromResult(result);
+            expect(violations.filter((v) => v.name === CONST.VIOLATIONS.INACTIVE_VENDOR)).toHaveLength(1);
         });
 
         it('removes an existing violation when the vendor is restored in the policy list', () => {
@@ -2840,7 +2856,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('removes an existing violation when the vendor feature is disabled (QBO export type changed)', () => {
-            policy = {
+            policy = createMock<Policy>({
                 requiresTag: false,
                 requiresCategory: false,
                 connections: {
@@ -2849,7 +2865,7 @@ describe('getViolationsOnyxData', () => {
                         data: {vendors: [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]},
                     },
                 },
-            } as unknown as Policy;
+            });
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData({
                 ownerLogin: undefined,
@@ -3161,7 +3177,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
                 shouldRemoveRejectedExpenseViolation: true,
             });
-            const violations = (result.value ?? []) as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result, true);
             expect(violations.some((v) => v.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(false);
         });
 
@@ -3176,7 +3192,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = (result.value ?? []) as TransactionViolation[];
+            const violations = getTransactionViolationsFromResult(result, true);
             expect(violations.some((v) => v.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(true);
         });
     });
@@ -3614,21 +3630,21 @@ describe('hasVisibleViolationsForUser', () => {
     const testTransactionID = 'test-transaction-123';
     const testPolicyID = 'test-policy-123';
 
-    const mockReport = {
+    const mockReport = createMock<Report>({
         reportID: testReportID,
         ownerAccountID: submitterAccountID,
         policyID: testPolicyID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-    } as Report;
+    });
 
-    const mockPolicy = {
+    const mockPolicy = createMock<Policy>({
         id: testPolicyID,
         role: CONST.POLICY.ROLE.ADMIN,
         type: CONST.POLICY.TYPE.TEAM,
-    } as Policy;
+    });
 
-    const mockTransaction = {
+    const mockTransaction = createMock<Transaction>({
         transactionID: testTransactionID,
         reportID: testReportID,
         accountID: submitterAccountID,
@@ -3636,7 +3652,7 @@ describe('hasVisibleViolationsForUser', () => {
         created: '2023-01-01',
         currency: 'USD',
         merchant: 'Test Merchant',
-    } as Transaction;
+    });
 
     beforeEach(() => {
         Onyx.set(ONYXKEYS.SESSION, {accountID: submitterAccountID});
@@ -3733,7 +3749,7 @@ describe('hasVisibleViolationsForUser', () => {
 
     it('should handle multiple transactions correctly', () => {
         const secondTransactionID = 'test-transaction-456';
-        const secondTransaction = {
+        const secondTransaction = createMock<Transaction>({
             transactionID: secondTransactionID,
             reportID: testReportID,
             accountID: submitterAccountID,
@@ -3741,7 +3757,7 @@ describe('hasVisibleViolationsForUser', () => {
             created: '2023-01-02',
             currency: 'USD',
             merchant: 'Test Merchant 2',
-        } as Transaction;
+        });
 
         const violations = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [
