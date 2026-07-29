@@ -25,14 +25,14 @@ The Rillet integration is currently in beta and is available to select customers
 To connect Rillet, you must:
 
 - Be a Workspace Admin.
-- Be using a workspace on the **Collect** or **Control** plan.
+- Be using a workspace on the **Control** plan.
 - Be able to generate an API key in Rillet.
 
 ---
 
 ## How to connect Rillet to Expensify
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Accounting**.
 3. In the **Connections** section next to **Rillet**, select **Connect**.
 4. In the **Rillet setup** page that opens, follow the on-screen instructions to generate an API key in Rillet, paste it into the **API key** field, and click **Confirm**.
@@ -58,7 +58,7 @@ After the connection is established, the **Connections** section updates to show
 
 If your Rillet organization has multiple subsidiaries, you can choose which one to connect. If only one eligible subsidiary is available, Expensify selects it automatically. The selected subsidiary determines which accounting data is available in Expensify.
 
-After the initial sync completes, you can configure your import, export, and advanced accounting settings. Learn how to [configure your Rillet import, export, and advanced settings](/articles/new-expensify/connections/rillet/Configure-Rillet).
+After the initial sync completes, you can configure your import, export, and advanced accounting settings. Learn how to [configure your Rillet import, export, and advanced settings](/articles/Unlisted/Configure-Rillet).
 
 ---
 
