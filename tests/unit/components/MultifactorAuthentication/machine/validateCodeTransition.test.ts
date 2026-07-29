@@ -122,7 +122,7 @@ describe('MFA magic code and registration decision', () => {
         actor.send({type: 'RESEND_VALIDATE_CODE'});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.IDLE}}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.AWAITING_INPUT}}})).toBe(true);
         expect(result.hasTag('showsInvalidCodeError')).toBe(false);
         expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
 
@@ -249,7 +249,7 @@ describe('MFA magic code and registration decision', () => {
         actor.send({type: 'VALIDATE_CODE_CHANGED'});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.IDLE}}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.AWAITING_INPUT}}})).toBe(true);
         expect(result.hasTag('showsInvalidCodeError')).toBe(false);
 
         actor.stop();

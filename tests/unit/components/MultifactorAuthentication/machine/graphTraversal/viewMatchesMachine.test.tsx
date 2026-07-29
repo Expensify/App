@@ -218,7 +218,7 @@ const testConfig = {
             expect(screen.getByText(translateLocal('multifactorAuthentication.letsVerifyItsYou'))).toBeOnTheScreen();
             expect(state.context.error).toBeUndefined();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.IDLE}`]: () => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.AWAITING_INPUT}`]: () => {
             expect(screen.queryByText(translateLocal('validateCodeForm.error.incorrectSecurityCode'))).not.toBeOnTheScreen();
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.MAGIC_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.INVALID_CODE}`]: () => {

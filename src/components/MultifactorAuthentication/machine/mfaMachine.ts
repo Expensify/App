@@ -226,13 +226,13 @@ const MFAMachine = setup({
                         // while the challenge request is in flight is dropped instead of emailing a
                         // code the pending submission ignores.
                         [MFA_STATE.AWAITING_VALIDATE_CODE]: {
-                            initial: MFA_STATE.IDLE,
+                            initial: MFA_STATE.AWAITING_INPUT,
                             on: {
                                 VALIDATE_CODE_ENTERED: {target: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE, actions: 'submitValidateCode'},
-                                RESEND_VALIDATE_CODE: {target: `.${MFA_STATE.IDLE}`, actions: 'requestValidateCode'},
+                                RESEND_VALIDATE_CODE: {target: `.${MFA_STATE.AWAITING_INPUT}`, actions: 'requestValidateCode'},
                             },
                             states: {
-                                [MFA_STATE.IDLE]: {},
+                                [MFA_STATE.AWAITING_INPUT]: {},
                                 // The backend rejected the submitted code. The screen shows the
                                 // inline error exactly while this state is active, so every way out
                                 // (typing, a resend, a new submission) drops the error by
@@ -240,7 +240,7 @@ const MFAMachine = setup({
                                 [MFA_STATE.INVALID_CODE]: {
                                     tags: 'showsInvalidCodeError',
                                     on: {
-                                        VALIDATE_CODE_CHANGED: MFA_STATE.IDLE,
+                                        VALIDATE_CODE_CHANGED: MFA_STATE.AWAITING_INPUT,
                                     },
                                 },
                             },
