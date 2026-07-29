@@ -1186,8 +1186,8 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: variables.modalBaseZIndex,
         },
         productMarketingWindowAnchorNarrow: {
-            left: variables.productMarketingWindowOffsetNarrow,
-            right: variables.productMarketingWindowOffsetNarrow,
+            left: variables.productMarketingWindowHorizontalOffsetNarrow,
+            right: variables.productMarketingWindowHorizontalOffsetNarrow,
         },
         productMarketingWindowAnchorWide: {
             bottom: variables.productMarketingWindowOffset,

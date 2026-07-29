@@ -12,7 +12,7 @@ import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 
 import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
@@ -42,7 +42,7 @@ const USER_ACCOUNT_ID = 7;
 const OLDER_UPDATE_KEY = 'productUpdateJune2026';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
-jest.mock('@hooks/useSafeAreaInsets', () => jest.fn());
+jest.mock('@hooks/useSafeAreaPaddings', () => jest.fn());
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -68,7 +68,7 @@ if (!announcement) {
 const mockSetNameValuePair = jest.mocked(setNameValuePair);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
-const mockUseSafeAreaInsets = jest.mocked(useSafeAreaInsets);
+const mockUseSafeAreaPaddings = jest.mocked(useSafeAreaPaddings);
 
 const adminHeading = en.productMarketingWindow.roleTypes.admin.heading;
 const adminBody = en.productMarketingWindow.roleTypes.admin.body;
@@ -123,7 +123,13 @@ describe('ProductMarketingWindowManager', () => {
 
     beforeEach(() => {
         mockUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE});
-        mockUseSafeAreaInsets.mockReturnValue({top: 0, right: 0, bottom: 0, left: 0});
+        mockUseSafeAreaPaddings.mockReturnValue({
+            paddingTop: 0,
+            paddingBottom: 0,
+            unmodifiedPaddings: {},
+            insets: {top: 0, right: 0, bottom: 0, left: 0},
+            safeAreaPaddingBottomStyle: {paddingBottom: 0},
+        });
     });
 
     afterEach(async () => {
@@ -609,8 +615,14 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByText(en.common.dismiss)).toHaveStyle({color: headingColor});
     });
 
-    it('uses the near-full-width bottom card on narrow layouts', async () => {
-        mockUseSafeAreaInsets.mockReturnValue({top: 0, right: 0, bottom: 34, left: 0});
+    it('places the narrow card above the tab bar safe area and margin', async () => {
+        mockUseSafeAreaPaddings.mockReturnValue({
+            paddingTop: 0,
+            paddingBottom: 23.8,
+            unmodifiedPaddings: {},
+            insets: {top: 0, right: 0, bottom: 34, left: 0},
+            safeAreaPaddingBottomStyle: {paddingBottom: 23.8},
+        });
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
             await waitForBatchedUpdatesWithAct();
@@ -620,17 +632,17 @@ describe('ProductMarketingWindowManager', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('ProductMarketingWindowAnchor')).toHaveStyle({
-            left: variables.productMarketingWindowOffsetNarrow,
-            right: variables.productMarketingWindowOffsetNarrow,
-            bottom: variables.productMarketingWindowOffsetNarrow,
+            left: variables.productMarketingWindowHorizontalOffsetNarrow,
+            right: variables.productMarketingWindowHorizontalOffsetNarrow,
+            bottom: 23.8 + variables.productMarketingWindowOffsetNarrow,
             alignItems: 'center',
         });
-        // Full width up to the cap, so phones keep the edge-to-edge card while tablet-width viewports get a centered, clamped card.
+        expect(mockUseSafeAreaPaddings).toHaveBeenCalledWith(true);
+        // Full width up to the cap, so phones keep the near-full-width card while tablet-width viewports get a centered, clamped card.
         expect(screen.getByTestId('ProductMarketingWindow')).toHaveStyle({
             width: '100%',
             maxWidth: variables.productMarketingWindowMaxWidthNarrow,
             padding: 20,
-            paddingBottom: 22,
         });
         expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({minHeight: variables.componentSizeNormal});
         expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({minHeight: variables.componentSizeNormal});

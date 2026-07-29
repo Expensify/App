@@ -294,6 +294,7 @@ export default {
     productMarketingWindowIllustrationSize: 128,
     productMarketingWindowOffset: 20,
     productMarketingWindowOffsetNarrow: 12,
+    productMarketingWindowHorizontalOffsetNarrow: 16,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     wideConfirmModalWidth: 400,
