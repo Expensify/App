@@ -5830,6 +5830,14 @@ const translations = {
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
         },
+        dualentry: {
+            dualentrySetup: 'DualEntry setup',
+            enterCredentials: 'Enter your DualEntry API key',
+            howToFindAPIKey: '<strong>Finding your API key.</strong><ol><li>Log in to DualEntry</li><li>Navigate to Account -> Settings</li><li>Copy the API key below</li></ol>',
+            company: 'Company',
+            companySelectDescription: "Choose the company in DualEntry that you'd like to import data from.",
+            noCompaniesFound: 'No companies found',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -6840,6 +6848,7 @@ const translations = {
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualentry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6859,6 +6868,8 @@ const translations = {
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -7092,6 +7103,12 @@ const translations = {
                         case 'rilletSyncConnection':
                             return 'Initializing connection to Rillet';
                         case 'rilletSyncImportData':
+                            return 'Loading data';
+                        case 'dualentrySyncTitle':
+                            return 'Syncing DualEntry data';
+                        case 'dualentrySyncConnection':
+                            return 'Initializing connection to DualEntry';
+                        case 'dualentrySyncImportData':
                             return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
