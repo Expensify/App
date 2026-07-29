@@ -21,6 +21,7 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 
 type UseHoldRejectActionsParams = {
     reportID: string | undefined;
@@ -54,6 +55,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const isChatReportDM = isDM(chatReport);
@@ -76,7 +78,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
-                if (isDismissed || isChatReportDM) {
+                if (isDismissed || isChatReportDM || shouldSuppressPromotionalUI) {
                     changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser);
                 } else if (isReportSubmitter) {
                     onHoldEducationalOpen();
@@ -118,7 +120,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
-                if (dismissedRejectUseExplanation) {
+                if (dismissedRejectUseExplanation || shouldSuppressPromotionalUI) {
                     Navigation.navigate(ROUTES.REJECT_EXPENSE_REPORT.getRoute(moneyRequestReport.reportID));
                 } else {
                     onRejectModalOpen(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_REPORT);

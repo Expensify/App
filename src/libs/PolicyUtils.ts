@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
+import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import type {
     OnyxInputOrEntry,
     PersonalDetailsList,
@@ -104,7 +105,7 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
  * These will be policies that has expense chat enabled.
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, isSubmit2026BetaEnabled = false): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy =>
             !!policy &&
@@ -112,7 +113,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
-            isPaidGroupPolicy(policy),
+            (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)),
     );
 }
 
@@ -690,6 +691,26 @@ function isPolicyApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
     return Object.values(policy?.employeeList ?? {}).some(
         (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
     );
+}
+
+/** Set of every approver login in the policy. Prefer over calling isPolicyApprover in a loop (scans employeeList once, not per candidate). */
+function getPolicyApproverLogins(policy: OnyxEntry<Policy>): Set<string> {
+    const approverLogins = new Set<string>();
+    if (policy?.approver) {
+        approverLogins.add(policy.approver);
+    }
+    for (const employee of Object.values(policy?.employeeList ?? {})) {
+        if (employee?.submitsTo) {
+            approverLogins.add(employee.submitsTo);
+        }
+        if (employee?.forwardsTo) {
+            approverLogins.add(employee.forwardsTo);
+        }
+        if (employee?.overLimitForwardsTo) {
+            approverLogins.add(employee.overLimitForwardsTo);
+        }
+    }
+    return approverLogins;
 }
 
 function getUberConnectionErrorDirectlyFromPolicy(policy: OnyxEntry<Policy>) {
@@ -1474,6 +1495,33 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
 
 function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+}
+
+/**
+ * Returns true when the user is both a submitter and an approver, mirroring the Submit/Approve suggested-search eligibility in
+ * `getSuggestedSearchesVisibility` (SearchUIUtils): a submitter is a member of any group workspace, and an approver is a member of a
+ * group workspace with a non-optional approval flow whom `isPolicyApprover` recognizes (named approver or someone reports submit/forward to).
+ */
+function isSubmitterAndApprover(policies: OnyxCollection<Policy> | null | undefined, currentUserEmail: string | undefined): boolean {
+    if (!policies || !currentUserEmail) {
+        return false;
+    }
+    let isSubmitter = false;
+    let isApprover = false;
+    for (const policy of Object.values(policies)) {
+        if (!policy) {
+            continue;
+        }
+        isSubmitter = isSubmitter || isGroupPolicy(policy);
+        if (!isApprover) {
+            const hasApprovalFlow = isGroupPolicy(policy) && !!policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+            isApprover = hasApprovalFlow && isPolicyApprover(policy, currentUserEmail);
+        }
+        if (isSubmitter && isApprover) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
@@ -2575,6 +2623,15 @@ function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY
     }
 }
 
+/**
+ * Returns the plan type to pre-select when creating a workspace: Corporate when the user already belongs to a
+ * Control workspace, otherwise Team.
+ */
+function getDefaultWorkspacePlanType(policies: OnyxCollection<Policy> | null): PolicyType {
+    const isMemberOfControlWorkspace = Object.values(policies ?? {}).some((policy) => policy?.type === CONST.POLICY.TYPE.CORPORATE);
+    return isMemberOfControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+}
+
 function isPolicyAccessible(policy: OnyxEntry<Policy>, currentUserLogin: string): boolean {
     return (
         !isEmptyObject(policy) &&
@@ -2760,11 +2817,13 @@ function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) 
     return mostFrequent.domain;
 }
 
+const getPolicyIDFromDomainName = (domainName: string): string | undefined => domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1]?.toUpperCase();
+
 const getDescriptionForPolicyDomainCard = (domainName: string, policies: OnyxCollection<Policy>): string => {
     // A domain name containing a policyID indicates that this is a workspace feed
-    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
+    const policyID = getPolicyIDFromDomainName(domainName);
     if (policyID) {
-        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID.toUpperCase()}`];
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
         return policy?.name ?? domainName;
     }
     return domainName;
@@ -2883,6 +2942,7 @@ export {
     canPolicyAccessFeature,
     escapeTagName,
     getActivePolicies,
+    getActivePoliciesWithExpenseChat,
     getAdminEmployees,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -2964,6 +3024,7 @@ export {
     isPolicyMember,
     isPolicyPayer,
     arePaymentsEnabled,
+    isSubmitterAndApprover,
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,
@@ -3041,6 +3102,7 @@ export {
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
     getUserFriendlyWorkspaceType,
+    getDefaultWorkspacePlanType,
     isPolicyAccessible,
     hasOtherControlWorkspaces,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
@@ -3050,6 +3112,7 @@ export {
     canModifyPlan,
     getAdminsPrivateEmailDomains,
     getMostFrequentEmailDomain,
+    getPolicyIDFromDomainName,
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
     isPreferredExporter,
@@ -3075,6 +3138,7 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    getPolicyApproverLogins,
     tryNavigateToSubmitWorkspaceUpgrade,
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,

@@ -22,14 +22,17 @@ import {
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
     getDefaultTimeTrackingRate,
+    getDefaultWorkspacePlanType,
     getEligibleBankAccountShareRecipients,
     getExcludedUsers,
     getExpensifyTeamExclusions,
     getManagerAccountID,
     getMatchingVendorByID,
     getMatchingVendors,
+    getPolicyApproverLogins,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
+    getPolicyIDFromDomainName,
     getRateDisplayValue,
     getSubmitToAccountID,
     getSubmitToEmail,
@@ -4043,5 +4046,117 @@ describe('getDefaultChatEnabledPolicy', () => {
 
     it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
         expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
+    });
+});
+
+describe('getPolicyIDFromDomainName', () => {
+    it('extracts the policy ID from an Expensify workspace-feed domain name', () => {
+        expect(getPolicyIDFromDomainName('expensify-policyA1B2C3.exfy')).toBe('A1B2C3');
+    });
+
+    it('converts the extracted policy ID to uppercase', () => {
+        expect(getPolicyIDFromDomainName(`expensify-policy${'a1b2c3'}.exfy`)).toBe('A1B2C3');
+    });
+
+    it('returns undefined for a domain name that is not a workspace feed', () => {
+        expect(getPolicyIDFromDomainName('example.com')).toBeUndefined();
+    });
+
+    it('returns undefined for an empty string', () => {
+        expect(getPolicyIDFromDomainName('')).toBeUndefined();
+    });
+
+    it('returns undefined when the extension is missing', () => {
+        expect(getPolicyIDFromDomainName('expensify-policyA1B2C3')).toBeUndefined();
+    });
+});
+
+describe('getDefaultWorkspacePlanType', () => {
+    const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
+    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
+    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
+    const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
+
+    it.each([
+        {description: 'the collection is null', policies: null, expected: CONST.POLICY.TYPE.TEAM},
+        {description: 'the collection is undefined', policies: undefined, expected: CONST.POLICY.TYPE.TEAM},
+        {description: 'the collection is empty', policies: {}, expected: CONST.POLICY.TYPE.TEAM},
+        {description: 'the collection only holds empty entries', policies: {policy_1: undefined, policy_2: undefined}, expected: CONST.POLICY.TYPE.TEAM},
+        {
+            description: 'the collection holds Submit, Collect and Personal workspaces',
+            policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_personal1: personalPolicy},
+            expected: CONST.POLICY.TYPE.TEAM,
+        },
+        {description: 'the collection holds a single Control workspace', policies: {policy_corporate1: corporatePolicy}, expected: CONST.POLICY.TYPE.CORPORATE},
+        {
+            description: 'the collection holds a Control workspace mixed in with other plan types',
+            policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_corporate1: corporatePolicy, policy_personal1: personalPolicy},
+            expected: CONST.POLICY.TYPE.CORPORATE,
+        },
+        {
+            description: 'the collection holds a Control workspace between empty entries',
+            policies: {policy_1: undefined, policy_corporate1: corporatePolicy, policy_2: undefined},
+            expected: CONST.POLICY.TYPE.CORPORATE,
+        },
+    ])('returns $expected when $description', ({policies, expected}) => {
+        expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
+    });
+});
+
+describe('getPolicyApproverLogins', () => {
+    it('returns an empty set when policy is undefined', () => {
+        expect(getPolicyApproverLogins(undefined).size).toBe(0);
+    });
+
+    it('returns an empty set when there is no approver and no employees route anywhere', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: undefined,
+            employeeList: {
+                'employee@test.com': {email: 'employee@test.com', submitsTo: '', forwardsTo: '', overLimitForwardsTo: ''},
+            },
+        };
+        expect(getPolicyApproverLogins(policy).size).toBe(0);
+    });
+
+    it('includes the named policy approver', () => {
+        const policy: Policy = {...createRandomPolicy(0), approver: 'boss@test.com', employeeList: {}};
+        expect([...getPolicyApproverLogins(policy)]).toEqual(['boss@test.com']);
+    });
+
+    it('collects submitsTo, forwardsTo and overLimitForwardsTo targets', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: undefined,
+            employeeList: {
+                'a@test.com': {email: 'a@test.com', submitsTo: 'manager@test.com'},
+                'b@test.com': {email: 'b@test.com', forwardsTo: 'director@test.com'},
+                'c@test.com': {email: 'c@test.com', overLimitForwardsTo: 'vp@test.com'},
+            },
+        };
+        expect([...getPolicyApproverLogins(policy)].sort()).toEqual(['director@test.com', 'manager@test.com', 'vp@test.com']);
+    });
+
+    it('deduplicates approvers referenced by multiple employees or fields', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: 'manager@test.com',
+            employeeList: {
+                'a@test.com': {email: 'a@test.com', submitsTo: 'manager@test.com'},
+                'b@test.com': {email: 'b@test.com', submitsTo: 'manager@test.com', forwardsTo: 'manager@test.com'},
+            },
+        };
+        expect([...getPolicyApproverLogins(policy)]).toEqual(['manager@test.com']);
+    });
+
+    it('ignores empty-string routing fields', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            approver: '',
+            employeeList: {
+                'a@test.com': {email: 'a@test.com', submitsTo: '', forwardsTo: 'director@test.com', overLimitForwardsTo: ''},
+            },
+        };
+        expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
     });
 });

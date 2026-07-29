@@ -36,6 +36,7 @@ import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 
 import {useCurrencyListState} from './useCurrencyList';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
+import useLoadSearchCategoryData from './useLoadSearchCategoryData';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSortedActions from './useSortedActions';
@@ -72,7 +73,7 @@ const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
 const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
-const RECEIPT_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
+const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
 const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
@@ -146,6 +147,9 @@ function useAutocompleteSuggestions({
             }
         }
     }
+
+    const shouldLoadCategoryData = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || ranges.some((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+    useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
     if (!autocompleteKey) {
         return [];

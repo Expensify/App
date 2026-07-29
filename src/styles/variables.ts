@@ -140,6 +140,7 @@ export default {
     tableCheckboxColumnWidth: 20,
     tableStatusColumnWidth: 56,
     tableTypeColumnWidth: 84,
+    tableRequireFieldsTypeColumnWidth: 112,
     tableSwitchColumnWidth: 58,
     tableCaretColumnWidth: 20,
     workspaceTagsTableCountColumnWidth: 100,
@@ -395,8 +396,6 @@ export default {
     searchListContentMarginTop: 118,
     searchListContentWithFiltersMarginTop: 162,
     searchTopBarZIndex: 9,
-
-    scrollToNewTransactionOffset: 300,
 
     searchAutocompleteInputSkeletonHeight: 8,
     searchAutocompleteInputSkeletonWidth: 145,

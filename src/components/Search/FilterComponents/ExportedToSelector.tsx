@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 
+import useCombinedExportTemplates from '@hooks/useCombinedExportTemplates';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -9,7 +10,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSearchValueForConnection} from '@libs/AccountingUtils';
-import {getExportTemplates} from '@libs/actions/Search';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -18,8 +18,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-import type {TupleToUnion} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -37,7 +35,7 @@ const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
 
 function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -52,11 +50,12 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         'Table',
         'TablePencil',
     ]);
-    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
-    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyID);
+
+    const policiesToLoadTemplatesFrom = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
+    const {combinedExportTemplates: deduplicatedExportTemplates} = useCombinedExportTemplates(policiesToLoadTemplatesFrom);
 
     const integrationConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
 
@@ -97,18 +96,6 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             });
 
         const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => item.value));
-        const policiesToLoadTemplatesFrom = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
-        const exportTemplatesFromPolicies = policiesToLoadTemplatesFrom.flatMap((policy) => getExportTemplates([], {}, translate, policy, false));
-        const exportTemplatesFromAccount = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
-        const allExportTemplates = [...exportTemplatesFromAccount, ...exportTemplatesFromPolicies];
-
-        const exportTemplatesByTemplateId = new Map<string, TupleToUnion<typeof allExportTemplates>>();
-        for (const template of allExportTemplates) {
-            if (template.templateName && !exportTemplatesByTemplateId.has(template.templateName)) {
-                exportTemplatesByTemplateId.set(template.templateName, template);
-            }
-        }
-        const deduplicatedExportTemplates = Array.from(exportTemplatesByTemplateId.values());
 
         const standardAndIntegrationCustomTemplatePickerItems = [];
 

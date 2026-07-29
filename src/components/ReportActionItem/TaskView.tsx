@@ -95,6 +95,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         false,
         localeCompare,
         formatPhoneNumber,
+        translate,
     );
 
     const isOpen = isOpenTaskReport(report);
