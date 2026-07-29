@@ -194,6 +194,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             isInvoice: true,
             hasMultipleTransactions: false,
             shouldAddPendingNewTransactionIDs: false,
+            shouldNavigate: true,
         });
     });
 
