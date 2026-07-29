@@ -169,7 +169,8 @@ function ReportNavigateAwayHandler() {
                 isAnnounceRoom(prevReport) ||
                 // Tasks no longer classify as their parent's chat type (see getChatType), so removal
                 // must be expected for the task type itself to keep the Concierge redirect working.
-                isTaskReport(prevReport));
+                // Gated on `wasReportRemoved` so a retarget to a not-yet-loaded report isn't read as removal.
+                (isTaskReport(prevReport) && wasReportRemoved));
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report?.statusNum && !prevReport?.parentReportID && prevReport?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
