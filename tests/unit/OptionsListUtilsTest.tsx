@@ -8465,7 +8465,7 @@ describe('OptionsListUtils', () => {
             expect(result.reportID).toBe('1');
         });
 
-        it('should keep the room name for a chat room unless showPersonalDetails is enabled', () => {
+        it('should keep the room name for a chat room unless showPersonalDetails is enabled', async () => {
             const report: Report = {
                 reportID: '20',
                 reportName: '#admins',
@@ -8484,11 +8484,15 @@ describe('OptionsListUtils', () => {
             const reportAction = createRandomReportAction(1);
             const sortedActions = {[report.reportID]: [reportAction]};
 
+            // The participant's display name is resolved from Onyx, so seed it to keep the assertion below deterministic.
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+
             const roomOption = createOptionFromReport(report, PERSONAL_DETAILS, undefined, POLICY, sortedActions);
             const personalDetailsOption = createOptionFromReport(report, PERSONAL_DETAILS, undefined, POLICY, sortedActions, undefined, {showPersonalDetails: true});
 
             expect(roomOption.text).toBe('#admins');
-            expect(personalDetailsOption.text).not.toBe('#admins');
+            // With showPersonalDetails the option is named after the other participant (account 1 in PERSONAL_DETAILS).
+            expect(personalDetailsOption.text).toBe('Mister Fantastic');
         });
     });
 
