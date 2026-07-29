@@ -72,7 +72,7 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig} from '@src/types/onyx/Policy';
 
-import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -819,12 +819,8 @@ describe('PolicyUtils', () => {
                     category: '',
                     reportID: expenseReport.reportID,
                 };
-                await Onyx.multiSet(
-                    createMock<OnyxMultiSetInput>({
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                    }),
-                );
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
                 expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover1AccountID);
             });
             it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
@@ -880,12 +876,8 @@ describe('PolicyUtils', () => {
                     created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                     reportID: expenseReport.reportID,
                 };
-                await Onyx.multiSet(
-                    createMock<OnyxMultiSetInput>({
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                    }),
-                );
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
                 expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover2AccountID);
             });
             it('should return the first rule approver who is not the current submitter', async () => {
@@ -927,13 +919,9 @@ describe('PolicyUtils', () => {
                     created: testDate,
                 };
 
-                await Onyx.multiSet(
-                    createMock<OnyxMultiSetInput>({
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`]: transaction3,
-                    }),
-                );
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`, transaction3);
 
                 expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email)).toBe(tagApprover1AccountID);
             });
@@ -967,12 +955,8 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.multiSet(
-                        createMock<OnyxMultiSetInput>({
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                        }),
-                    );
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
                     expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
@@ -1004,12 +988,8 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.multiSet(
-                        createMock<OnyxMultiSetInput>({
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                        }),
-                    );
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
                     expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover2AccountID);
                 });
             });
