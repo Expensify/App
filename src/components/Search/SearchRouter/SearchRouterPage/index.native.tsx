@@ -3,6 +3,7 @@ import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import {useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 
 import useKeyboardState from '@hooks/useKeyboardState';
+import useNetwork from '@hooks/useNetwork';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,11 +18,12 @@ function SearchRouterPage() {
     const {closeSearchRouter} = useSearchRouterActions();
     const {isSearchRouterDisplayed} = useSearchRouterState();
     const {isKeyboardActive, keyboardHeight, keyboardActiveHeight} = useKeyboardState();
+    const {isOffline} = useNetwork();
     const {paddingTop} = useSafeAreaPaddings();
     const {bottom} = useSafeAreaInsets();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
-    const effectiveKeyboardHeight = isKeyboardActive ? keyboardHeight || getKeyboardHeight(keyboardActiveHeight, bottom) : 0;
+    const effectiveKeyboardHeight = isOffline && isKeyboardActive ? keyboardHeight || getKeyboardHeight(keyboardActiveHeight, bottom) : 0;
     const availableHeight = effectiveKeyboardHeight ? Math.max(windowHeight - effectiveKeyboardHeight - paddingTop, 0) : undefined;
 
     return (
