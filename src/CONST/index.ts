@@ -3526,6 +3526,7 @@ const CONST = {
     },
 
     DUALENTRY_CONFIG: {
+        COMPANY_ID: 'companyID',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
         CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
     },
