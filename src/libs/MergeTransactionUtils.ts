@@ -357,10 +357,7 @@ function getTransactionThreadReportID(transaction: OnyxEntry<Transaction>) {
 }
 
 /**
- * Whether merging the source into the target leaves its report with a single expense (a one-transaction thread report).
- * Looks at both Onyx and the Search snapshot, and skips the source. Unreported and split expenses share a reportID, so
- * they never count as a single-expense report. A sibling that's being deleted is skipped too, unless we're offline -
- * the Search report keeps those rows visible while offline, so they still count towards keeping the report open.
+ * Whether merging the source away leaves the target's report with a single expense (a one-transaction thread report).
  */
 function willReportBecomeOneTransactionReportAfterMerge(
     reportID: string | undefined,
@@ -373,13 +370,11 @@ function willReportBecomeOneTransactionReportAfterMerge(
         return false;
     }
 
-    // Only Search snapshot entries that are transactions carry a string transactionID (report actions, personal
-    // details, etc. are keyed records), so this narrows to transactions without a cast.
+    // In the Search snapshot only transactions carry a string transactionID, so this narrows without a cast.
     const isSearchResultTransaction = (value: unknown): value is Transaction =>
         typeof value === 'object' && value !== null && 'transactionID' in value && typeof value.transactionID === 'string';
 
-    // Merge both sources into one map keyed by transactionID before filtering. The Onyx copy overrides the snapshot
-    // one, so the optimistic reportID/pendingAction wins and a stale snapshot row can't slip past the filter below.
+    // Merge both sources by transactionID; Onyx overrides the snapshot so the optimistic values win over stale rows.
     const transactionsByID = new Map<string, Transaction>();
     for (const value of Object.values(searchResultsData ?? {})) {
         if (!isSearchResultTransaction(value)) {
@@ -394,15 +389,13 @@ function willReportBecomeOneTransactionReportAfterMerge(
         transactionsByID.set(transaction.transactionID, transaction);
     }
 
-    // Match how the Search report decides what's visible: a stale pending Expensify Card auth is hidden once its
-    // posted counterpart is present, so it must not count towards keeping the report open.
+    // A stale pending card auth is hidden once its posted counterpart exists, so it must not keep the report open.
     const reportTransactions = [...transactionsByID.values()].filter((transaction) => transaction.reportID === reportID);
     const supersededPendingCardTransactionIDs = getSupersededPendingCardTransactionIDs(reportTransactions);
 
     let remainingTransactions = 0;
     for (const transaction of reportTransactions) {
-        // Skip the source (merged away), superseded pending card auths, and - unless we're offline - siblings being
-        // deleted. The Search report hides deleting rows only while online, so offline they still keep it open.
+        // Skip the source, superseded card auths, and (online only) siblings being deleted, matching the Search report.
         if (
             transaction.transactionID === sourceTransactionID ||
             supersededPendingCardTransactionIDs.has(transaction.transactionID) ||

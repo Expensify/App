@@ -124,21 +124,17 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
 
         const searchReportIDToOpen = targetTransactionThreadReportID ?? reportIDToDismiss;
 
-        // If we're in search (or the topmost route is search), dismiss the modal and open the expense in the RHP
+        // In search, dismiss the merge modal and reopen the expense in the RHP.
         if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
-            // The expense stays in the same report, so we can keep the RHP underneath open by just closing the merge modal.
             if (targetTransaction.reportID === mergeTransaction.reportID) {
-                // Only keep the RHP underneath when it actually belongs to the target. If the merge swapped target and
-                // source (e.g. merging a cash expense into a selected card/split expense), the RHP underneath is the
-                // source's, so we fall through to the full dismiss below instead of leaving that stale report stacked.
-                // These are cheap navigation lookups, so we check them before the expensive one-transaction computation.
+                // Only keep the RHP underneath if it belongs to the target. A swapped merge (e.g. cash into a
+                // card/split expense) leaves the source's report underneath, so fall through to the full dismiss.
                 const topmostSearchReportID = Navigation.getTopmostSearchReportID();
                 const isTargetThreadTopmost = !!targetTransactionThreadReportID && topmostSearchReportID === targetTransactionThreadReportID;
                 const isTargetReportUnderneath = Navigation.getTopmostSuperWideRHPReportID() === targetTransaction.reportID;
 
                 if (isTargetThreadTopmost || isTargetReportUnderneath) {
-                    // But if the report is left with a single expense, it turns into a one-transaction thread report and
-                    // keeping the RHP open would stack it on top of the expense thread. Fall through to the full dismiss below.
+                    // A report left with a single expense becomes a one-transaction thread, so fall through to the full dismiss.
                     const willTargetReportBeOneTransactionReport = willReportBecomeOneTransactionReportAfterMerge(
                         targetTransaction.reportID,
                         sourceTransaction.transactionID,
@@ -154,9 +150,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                             return;
                         }
 
-                        // The target's multi-expense report is underneath, but a different thread may sit on top of it (e.g.
-                        // the swapped-away source's thread). Dismiss down to that shared super wide report so the stale
-                        // thread isn't left stacked, then open the merged expense's thread over it.
+                        // The target's report is underneath but another thread may sit on top, so dismiss to that shared
+                        // report to clear the stale thread, then open the merged expense's thread over it.
                         Navigation.dismissToSuperWideRHP();
                         Navigation.setNavigationActionToMicrotaskQueue(() => {
                             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
