@@ -6,7 +6,8 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {AgentRowData} from '@components/Tables/AgentsTable';
+import type {TableHandle} from '@components/Table';
+import type {AgentRowData, AgentsTableColumnKey} from '@components/Tables/AgentsTable';
 import AgentsTable from '@components/Tables/AgentsTable';
 
 import useChatWithAgent from '@hooks/useChatWithAgent';
@@ -19,6 +20,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -41,7 +43,8 @@ import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import React, {useEffect, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 function AgentsPage() {
@@ -60,6 +63,7 @@ function AgentsPage() {
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const isFocused = useIsFocused();
     useDocumentTitle(translate('agentsPage.title'));
 
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
@@ -121,6 +125,30 @@ function AgentsPage() {
             },
         ];
     });
+
+    const tableRef = useRef<TableHandle<AgentRowData, AgentsTableColumnKey, string>>(null);
+    const agentKeys = agents.map((agent) => agent.keyForList);
+    const prevAgentKeys = usePrevious(agentKeys);
+
+    // Highlight (and scroll to) a newly created agent's row once it appears in the table, mirroring
+    // the same pattern used for newly-invited workspace members (see WorkspaceMembersPage).
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
+        const newAgentKeys = agentKeys.filter((key) => !prevAgentKeys.includes(key));
+        if (!newAgentKeys.length) {
+            return;
+        }
+
+        const tableAgents = tableRef.current?.getProcessedData() ?? [];
+        const newAgentIndex = tableAgents.findIndex((agent) => newAgentKeys.includes(agent.keyForList));
+        if (newAgentIndex !== -1) {
+            tableRef.current?.scrollToIndex({index: newAgentIndex, animated: false});
+        }
+        tableRef.current?.highlightItems(newAgentKeys);
+    }, [isFocused, agentKeys, prevAgentKeys]);
 
     const agentsByAccountID = new Map(agents.map((agent) => [agent.keyForList, agent]));
     const selectedAgentKeys = selectedAgents.filter((accountIDString) => {
@@ -247,6 +275,7 @@ function AgentsPage() {
                 </View>
             )}
             <AgentsTable
+                ref={tableRef}
                 agents={agents}
                 canSelectAgents
                 selectedKeys={selectedAgentKeys}
