@@ -33,4 +33,3 @@ function useMenuItemState(): MenuItemState {
 
 export default MenuItemContext;
 export {useMenuItemState};
-export type {MenuItemState};
