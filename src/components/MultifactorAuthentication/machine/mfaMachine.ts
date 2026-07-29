@@ -14,7 +14,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import {assign, setup} from 'xstate';
 
 import type {MfaMachineEvent} from './machineEvents';
-import type {MfaContext, MfaTag} from './types';
+import type {MfaContext} from './types';
 
 import createActors from './mfaActors';
 
@@ -56,7 +56,6 @@ const MFAMachine = setup({
     types: {
         context: {} as MfaContext,
         events: {} as MfaMachineEvent,
-        tags: {} as MfaTag,
     },
     /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
     actors: createActors(),
@@ -238,7 +237,6 @@ const MFAMachine = setup({
                                 // (typing, a resend, a new submission) drops the error by
                                 // construction and nothing stale can outlive the screen.
                                 [MFA_STATE.INVALID_CODE]: {
-                                    tags: 'showsInvalidCodeError',
                                     on: {
                                         VALIDATE_CODE_CHANGED: MFA_STATE.AWAITING_INPUT,
                                     },

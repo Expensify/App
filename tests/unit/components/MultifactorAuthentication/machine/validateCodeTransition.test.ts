@@ -1,4 +1,5 @@
 import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
+import snapshotToState from '@components/MultifactorAuthentication/machine/snapshotToState';
 import type {CheckLocalCredentialsInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
 
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
@@ -123,7 +124,7 @@ describe('MFA magic code and registration decision', () => {
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.AWAITING_INPUT}}})).toBe(true);
-        expect(result.hasTag('showsInvalidCodeError')).toBe(false);
+        expect(snapshotToState(result).showsInvalidCodeError).toBe(false);
         expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
 
         actor.stop();
@@ -183,7 +184,7 @@ describe('MFA magic code and registration decision', () => {
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE}}})).toBe(true);
-        expect(result.hasTag('showsInvalidCodeError')).toBe(true);
+        expect(snapshotToState(result).showsInvalidCodeError).toBe(true);
         expect(result.context.registrationChallenge).toBeUndefined();
         expect(result.context.error).toBeUndefined();
         expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
@@ -198,14 +199,14 @@ describe('MFA magic code and registration decision', () => {
         actor.start();
         actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
         await waitForBatchedUpdates();
-        expect(actor.getSnapshot().hasTag('showsInvalidCodeError')).toBe(true);
+        expect(snapshotToState(actor.getSnapshot()).showsInvalidCodeError).toBe(true);
         actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
         expect(result.context.registrationChallenge).toBe(MFA_TEST_REGISTRATION_CHALLENGE);
         expect(result.context.validateCode).toBe(MFA_TEST_VALIDATE_CODE);
-        expect(result.hasTag('showsInvalidCodeError')).toBe(false);
+        expect(snapshotToState(result).showsInvalidCodeError).toBe(false);
 
         actor.stop();
     });
@@ -250,7 +251,7 @@ describe('MFA magic code and registration decision', () => {
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.MAGIC_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.AWAITING_INPUT}}})).toBe(true);
-        expect(result.hasTag('showsInvalidCodeError')).toBe(false);
+        expect(snapshotToState(result).showsInvalidCodeError).toBe(false);
 
         actor.stop();
     });

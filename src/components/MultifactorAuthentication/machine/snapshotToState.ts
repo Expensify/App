@@ -41,7 +41,13 @@ function snapshotToState(snapshot: MfaSnapshot): MfaState {
         ...snapshot.context,
         modalState: getModalState(snapshot),
         canResendValidateCode: snapshot.can({type: 'RESEND_VALIDATE_CODE'}),
-        showsInvalidCodeError: snapshot.hasTag('showsInvalidCodeError'),
+        showsInvalidCodeError: snapshot.matches({
+            [MFA_STATE.OPEN]: {
+                [MFA_STATE.MAGIC_CODE]: {
+                    [MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE,
+                },
+            },
+        }),
     };
 }
 

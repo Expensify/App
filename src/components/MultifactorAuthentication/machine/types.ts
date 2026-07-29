@@ -74,13 +74,6 @@ type MfaEvent =
     | {type: 'RESEND_VALIDATE_CODE'}
     | {type: 'VALIDATE_CODE_CHANGED'};
 
-/**
- * Tags the chart marks UI-facing conditions with. The view bridge reads them through `hasTag`
- * instead of matching a concrete state path, so a chart restructuring that moves the tagged state
- * does not break the bridge.
- */
-type MfaTag = 'showsInvalidCodeError';
-
 /** Describes the input the machine passes to the device-check actor. */
 type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};
 
@@ -101,7 +94,6 @@ export type {
     MfaContext,
     MfaEvent,
     MfaModalState,
-    MfaTag,
     MultifactorAuthenticationInitEvent,
     ReadHasAcceptedSoftPromptInput,
     RequestRegistrationChallengeInput,
