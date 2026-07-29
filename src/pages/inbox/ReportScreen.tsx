@@ -40,7 +40,7 @@ import ReportActionCompose from './report/ReportActionCompose/ReportActionCompos
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
 import useClearReportActionDraftsOnReportChange from './report/useClearReportActionDraftsOnReportChange';
-import {ReportActionsWithInboxTabDeferredMount} from './ReportActions';
+import ReportActions from './ReportActions';
 import ReportDragAndDropProvider from './ReportDragAndDropProvider';
 import ReportFetchHandler from './ReportFetchHandler';
 import ReportHeader from './ReportHeader';
@@ -50,10 +50,7 @@ import ReportNotFoundGuard from './ReportNotFoundGuard';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
 import WideRHPReceiptPanel from './WideRHPReceiptPanel';
 
-type ReportScreenProps = ReportScreenNavigationProps & {
-    /** Whether to defer mounting report actions during the initial Inbox tab navigation */
-    shouldDeferReportActions?: boolean;
-};
+type ReportScreenProps = ReportScreenNavigationProps;
 
 type ReportScreenEditMessageProviderProps = {
     /** The report ID */
@@ -75,7 +72,7 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
     return <ReportScreenEditMessageProviderWithTransactionThread reportID={reportID}>{children}</ReportScreenEditMessageProviderWithTransactionThread>;
 }
 
-function ReportScreen({route, navigation, shouldDeferReportActions = false}: ReportScreenProps) {
+function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {isInNarrowPaneModal} = useResponsiveLayout();
@@ -154,10 +151,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                                             testID="report-actions-view-wrapper"
                                                         >
-                                                            <ReportActionsWithInboxTabDeferredMount
-                                                                reportID={reportIDFromRoute}
-                                                                shouldDefer={shouldDeferReportActions}
-                                                            />
+                                                            <ReportActions />
                                                             {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
                                                         </View>
                                                     </ConciergeDraftProvider>
@@ -177,4 +171,3 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
 }
 
 export default ReportScreen;
-export type {ReportScreenProps};
