@@ -1921,55 +1921,134 @@ type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     RilletCodingOfflineFeedbackKeys | RilletExportOfflineFeedbackKeys | keyof RilletAutoSync | keyof RilletSync
 >;
 
+/**
+ * Company retrieved from DualEntry.
+ */
 type DualEntryCompany = {
+    /** Unique identifier of the company. */
     id: string;
+
+    /** Name of the company. */
     name: string;
+
+    /** Currency used by the company. */
     currency: string;
+
+    /** Unique identifier of the parent company, if applicable. */
     parentCompanyID?: string;
+
+    /** Whether the company is active. */
     isActive: boolean;
+
+    /** Whether the company is used for elimination entries. */
     isElimination: boolean;
 };
 
+/**
+ * Account retrieved from DualEntry.
+ */
 type DualEntryAccount = {
+    /** Unique identifier of the account. */
     id: string;
+
+    /** Account number. */
     number: string;
+
+    /** Name of the account. */
     name: string;
+
+    /** Type of the account. */
     accountType: string;
+
+    /** Currency associated with the account. */
     currency?: string;
+
+    /** Whether the account is active. */
     isActive: boolean;
+
+    /** Date and time when the account was last updated. */
     updatedAt: string;
 };
 
+/**
+ * Classification value retrieved from DualEntry.
+ */
 type DualEntryClassificationValue = {
+    /** Unique identifier of the classification value. */
     id: string;
+
+    /** Name of the classification value. */
     name: string;
+
+    /** Whether the classification value is deactivated. */
     deactivated: boolean;
 };
 
+/**
+ * Classification retrieved from DualEntry.
+ */
 type DualEntryClassification = {
+    /** Unique identifier of the classification. */
     id: string;
+
+    /** Name of the classification. */
     name: string;
+
+    /** Whether the classification is active. */
     isActive: boolean;
+
+    /** Record types for which the classification is required. */
     requiredForRecords: string[];
+
+    /** Available values for the classification. */
     values: DualEntryClassificationValue[];
 };
 
+/**
+ * Tax type supported by DualEntry.
+ */
 type DualEntryTaxType = ValueOf<typeof CONST.DUALENTRY_TAX_TYPE>;
 
+/**
+ * Tax rate retrieved from DualEntry.
+ */
 type DualEntryTaxRate = {
+    /** Unique identifier of the tax rate. */
     id: string;
+
+    /** Code used to identify the tax rate. */
     code: string;
+
+    /** Country associated with the tax rate. */
     country: string;
+
+    /** Description of the tax rate. */
     description?: string;
+
+    /** Tax percentage applied by the tax rate. */
     percentage: string;
+
+    /** Type of tax represented by the tax rate. */
     taxType: DualEntryTaxType;
 };
 
+/**
+ * Vendor retrieved from DualEntry.
+ */
 type DualEntryVendor = {
+    /** Unique identifier of the vendor. */
     id: string;
+
+    /** Name of the vendor. */
     name: string;
+
+    /** Unique identifier of the company associated with the vendor. */
     companyID?: string;
+
+    /** Email address associated with the vendor. */
     email?: string;
+
+    /** Whether the vendor is active. */
     isActive: boolean;
 };
 
@@ -1977,14 +2056,31 @@ type DualEntryVendor = {
  * Coonection data retrieved from DualEntry.
  */
 type DualEntryConnectionData = {
+    /** Companies available in DualEntry. */
     companies?: DualEntryCompany[];
+
+    /** Accounts available in DualEntry. */
     accounts?: DualEntryAccount[];
+
+    /** Classifications available in DualEntry. */
     classifications?: DualEntryClassification[];
+
+    /** Tax rates available in DualEntry. */
     taxRates?: DualEntryTaxRate[];
+
+    /** Vendors available in DualEntry. */
     vendors?: DualEntryVendor[];
+
+    /** Mapping of settlement identifiers to their corresponding bank transfer identifiers. */
     settlementBankTransferIDs?: Record<string, string>;
+
+    /** Mapping of travel settlement identifiers to their corresponding journal entry identifiers. */
     travelSettlementJournalEntryIDs?: Record<string, string>;
+
+    /** Entry identifier from which settlement synchronization should start. */
     settlementSyncStartEntryID?: number;
+
+    /** Entry identifier from which travel settlement synchronization should start. */
     travelSettlementSyncStartEntryID?: number;
 };
 
@@ -2040,6 +2136,7 @@ type DualEntryExport = {
     /** Export behavior for company card expenses. */
     nonReimbursable: DualEntryExportNonReimbursable;
 
+    /** Account used when exporting company card expenses. */
     creditCardAccountID: string;
 
     /**
@@ -2053,8 +2150,13 @@ type DualEntryExport = {
      */
     cardProgramAccounts: Record<CardFeedWithNumber, string>;
 
+    /** Account used when exporting Expensify Card expenses. */
     expensifyCardAccountID: string;
+
+    /** Default vendor used when exporting transactions. */
     defaultVendorID: string;
+
+    /** Payable account used when exporting travel invoices. */
     travelInvoicingPayableAccountID: string;
 
     /** Accounting method used during export. */
@@ -2076,6 +2178,7 @@ type DualEntryAutoSync = {
     /** Whether automatic synchronization is enabled. */
     enabled: boolean;
 
+    /** Unique identifier of the automatic synchronization job. */
     jobID?: string | null;
 };
 
