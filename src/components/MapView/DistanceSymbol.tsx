@@ -6,12 +6,11 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 
 import CONST from '@src/CONST';
 
-import {MarkerView} from '@rnmapbox/maps';
 import {View} from 'react-native';
 
 import type {DistanceSymbolProps} from './MapViewTypes';
 
-import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
+import DistanceSymbolMarker from './DistanceSymbolMarker';
 import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
 
@@ -41,22 +40,14 @@ function DistanceSymbol({distanceInMeters, unit, directionCoordinates, waypoints
     }
 
     return (
-        <MarkerView
-            coordinate={distanceSymbolCoordinate}
-            allowOverlap
+        <DistanceSymbolMarker
+            distanceSymbolCoordinate={distanceSymbolCoordinate}
+            toggleDistanceUnit={toggleDistanceUnit}
         >
-            <View style={[styles.zIndex1]}>
-                <ToggleDistanceUnitButton
-                    accessibilityRole={CONST.ROLE.BUTTON}
-                    accessibilityLabel="distance-label"
-                    onPress={toggleDistanceUnit}
-                >
-                    <View style={[isSelected ? styles.distanceLabelWrapper : styles.alternativeDistanceLabelWrapper]}>
-                        <Text style={isSelected ? styles.distanceLabelText : styles.alternativeDistanceLabelText}> {distanceLabelText}</Text>
-                    </View>
-                </ToggleDistanceUnitButton>
+            <View style={[isSelected ? styles.distanceLabelWrapper : styles.alternativeDistanceLabelWrapper]}>
+                <Text style={isSelected ? styles.distanceLabelText : styles.alternativeDistanceLabelText}> {distanceLabelText}</Text>
             </View>
-        </MarkerView>
+        </DistanceSymbolMarker>
     );
 }
 

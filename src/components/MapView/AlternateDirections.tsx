@@ -1,72 +1,14 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import CONST from '@src/CONST';
-
-import type {Feature, FeatureCollection, LineString, MultiLineString} from 'geojson';
-
 import Mapbox from '@rnmapbox/maps';
 
-import type {Coordinate, DirectionsProps} from './MapViewTypes';
+import type {AlternateDirectionsProps} from './MapViewTypes';
 
-import utils from './utils';
-
-type DirectionFeatureProperties = {
-    isAlternative: boolean;
-    isSelected: boolean;
-};
-
-type AlternateDirectionsProps = Required<Pick<DirectionsProps, 'directionCoordinates' | 'alternativeDirection'>> & Pick<DirectionsProps, 'setIsAlternativeDirectionSelected'>;
-
-const SOURCE_ID = `alternate-directions-${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}`;
-const UNSELECTED_FILL_ID = `alternate-directions-unselected-${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}`;
-const UNSELECTED_BORDER_ID = `alternate-directions-unselected-${CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}`;
-const SELECTED_FILL_ID = `alternate-directions-selected-${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}`;
-const SELECTED_BORDER_ID = `alternate-directions-selected-${CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}`;
-
-function getDirectionFeature(
-    coordinates: Coordinate[] | Coordinate[][],
-    isAlternative: boolean,
-    isSelected: boolean,
-): Feature<LineString | MultiLineString, DirectionFeatureProperties> | undefined {
-    if (utils.isSingleSegmentRoute(coordinates)) {
-        if (coordinates.length < 2) {
-            return undefined;
-        }
-
-        return {
-            type: 'Feature',
-            properties: {isAlternative, isSelected},
-            geometry: {
-                type: 'LineString',
-                coordinates,
-            },
-        };
-    }
-
-    const validSegments = coordinates.filter((segment) => segment.length >= 2);
-    if (validSegments.length === 0) {
-        return undefined;
-    }
-
-    return {
-        type: 'Feature',
-        properties: {isAlternative, isSelected},
-        geometry: {
-            type: 'MultiLineString',
-            coordinates: validSegments,
-        },
-    };
-}
+import {getAlternateDirectionsShape, SELECTED_BORDER_ID, SELECTED_FILL_ID, SOURCE_ID, UNSELECTED_BORDER_ID, UNSELECTED_FILL_ID} from './alternateDirectionsUtils';
 
 function AlternateDirections({directionCoordinates, alternativeDirection, setIsAlternativeDirectionSelected}: AlternateDirectionsProps) {
     const styles = useThemeStyles();
-    const directionShape: FeatureCollection<LineString | MultiLineString, DirectionFeatureProperties> = {
-        type: 'FeatureCollection',
-        features: [
-            getDirectionFeature(directionCoordinates, false, !alternativeDirection.isSelected),
-            getDirectionFeature(alternativeDirection.coordinates, true, alternativeDirection.isSelected),
-        ].filter((feature): feature is Feature<LineString | MultiLineString, DirectionFeatureProperties> => !!feature),
-    };
+    const directionShape = getAlternateDirectionsShape(directionCoordinates, alternativeDirection);
 
     return (
         <Mapbox.ShapeSource

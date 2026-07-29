@@ -188,6 +188,10 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
+type DistanceSymbolMarkerProps = {distanceSymbolCoordinate: Coordinate; children: React.ReactNode; toggleDistanceUnit: () => void};
+
+type AlternateDirectionsProps = Required<Pick<DirectionsProps, 'directionCoordinates' | 'alternativeDirection'>> & Pick<DirectionsProps, 'setIsAlternativeDirectionSelected'>;
+
 export type {
     WayPoint,
     MapViewProps,
@@ -198,6 +202,8 @@ export type {
     GPSDirectionProps,
     CompassProps,
     DistanceSymbolProps,
+    DistanceSymbolMarkerProps,
+    AlternateDirectionsProps,
     DirectionsProps,
     AlternativeDirection,
 };

@@ -9251,6 +9251,14 @@ const CONST = {
         WAYPOINTS: 'waypoints',
     },
 
+    ALTERNATE_DIRECTIONS_MAP_VIEW_LAYERS: {
+        SOURCE: 'alternate-directions-route-source',
+        UNSELECTED_FILL: 'alternate-directions-unselected-route-fill',
+        UNSELECTED_BORDER: 'alternate-directions-unselected-route-border',
+        SELECTED_FILL: 'alternate-directions-selected-route-fill',
+        SELECTED_BORDER: 'alternate-directions-selected-route-border',
+    },
+
     MAP_CURRENT_LOCATION_FILL_COLOR: '#0185FF',
 
     PARTNER_ID: {

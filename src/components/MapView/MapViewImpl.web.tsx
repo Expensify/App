@@ -2,8 +2,6 @@ import Button from '@components/Button';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 import ImageSVG from '@components/ImageSVG';
-import {PressableWithoutFeedback} from '@components/Pressable';
-import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +10,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 
@@ -24,7 +21,7 @@ import useNetwork from '@src/hooks/useNetwork';
 import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {MapRef, ViewState} from 'react-map-gl/mapbox';
+import type {MapMouseEvent, MapRef, ViewState} from 'react-map-gl/mapbox';
 
 // Explanation: Different Mapbox libraries are required for web and native mobile platforms.
 // This is why we have separate components for web and native to handle the specific implementations.
@@ -38,11 +35,11 @@ import {View} from 'react-native';
 import type {MapViewProps} from './MapViewTypes';
 
 import './mapbox.css';
-import Direction from './Direction';
+import {ALTERNATE_DIRECTIONS_LAYER_IDS} from './AlternateDirections.web';
+import Directions from './Directions';
 import MapMarkerIcon from './MapMarkerIcon';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
-import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
 
 function MapViewImpl({
@@ -52,6 +49,8 @@ function MapViewImpl({
     mapPadding,
     accessToken,
     directionCoordinates: directionCoordinatesProp,
+    alternativeDirection,
+    setIsAlternativeDirectionSelected,
     initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
     interactive = true,
     distanceInMeters,
@@ -59,13 +58,14 @@ function MapViewImpl({
     ref,
     shouldDisplayCurrentLocation = true,
 }: MapViewProps) {
-    const directionCoordinates = utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinatesProp);
+    // Coordinates of every rendered route (the main one and the alternative one, if any), used to frame the map around all of them.
+    const directionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinatesProp, alternativeDirection);
+    const hasAlternativeDirection = !!alternativeDirection?.coordinates?.length;
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -253,18 +253,19 @@ function MapViewImpl({
         };
     }, [waypoints, directionCoordinates, interactive, currentPosition?.longitude, currentPosition?.latitude, initialState.zoom]);
 
-    const distanceSymbolCoordinate = useMemo(() => {
-        if (!directionCoordinates?.length || !waypoints?.length) {
-            return;
-        }
-        const {northEast, southWest} = utils.getBounds(
-            waypoints.map((waypoint) => waypoint.coordinate),
-            directionCoordinates,
-        );
-        const boundsCenter = utils.getBoundsCenter({northEast, southWest});
+    // The route layers only need to be interactive when there is an alternative route to pick, so that clicking a route selects it.
+    const interactiveLayerIds = useMemo(() => (interactive && hasAlternativeDirection ? ALTERNATE_DIRECTIONS_LAYER_IDS : undefined), [interactive, hasAlternativeDirection]);
 
-        return utils.findClosestCoordinateOnLineFromCenter(boundsCenter, directionCoordinates);
-    }, [waypoints, directionCoordinates]);
+    const selectClickedDirection = useCallback(
+        (event: MapMouseEvent) => {
+            const isAlternative: unknown = event.features?.at(0)?.properties?.isAlternative;
+            if (typeof isAlternative !== 'boolean') {
+                return;
+            }
+            setIsAlternativeDirectionSelected?.(isAlternative);
+        },
+        [setIsAlternativeDirectionSelected],
+    );
 
     return !isOffline && !!accessToken && !!initialViewState ? (
         <View
@@ -279,6 +280,8 @@ function MapViewImpl({
                 style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
                 mapStyle={styleURL}
                 interactive={interactive}
+                interactiveLayerIds={interactiveLayerIds}
+                onClick={selectClickedDirection}
             >
                 {interactive && shouldDisplayCurrentLocation && (
                     <Marker
@@ -291,24 +294,6 @@ function MapViewImpl({
                             width={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.width}
                             height={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.height}
                         />
-                    </Marker>
-                )}
-                {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
-                    <Marker
-                        key="distance-label"
-                        longitude={distanceSymbolCoordinate.at(0) ?? 0}
-                        latitude={distanceSymbolCoordinate.at(1) ?? 0}
-                    >
-                        <PressableWithoutFeedback
-                            sentryLabel="MapView-ToggleDistanceUnit"
-                            accessibilityLabel={CONST.ROLE.BUTTON}
-                            role={CONST.ROLE.BUTTON}
-                            onPress={toggleDistanceUnit}
-                        >
-                            <View style={styles.distanceLabelWrapper}>
-                                <Text style={styles.distanceLabelText}> {DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters, distanceUnit)}</Text>
-                            </View>
-                        </PressableWithoutFeedback>
                     </Marker>
                 )}
                 {waypoints?.map(({coordinate, markerType, id}) => {
@@ -329,7 +314,13 @@ function MapViewImpl({
                         </Marker>
                     );
                 })}
-                {!!directionCoordinatesProp && <Direction coordinates={directionCoordinatesProp} />}
+                <Directions
+                    directionCoordinates={directionCoordinatesProp}
+                    alternativeDirection={alternativeDirection}
+                    distanceInMeters={distanceInMeters}
+                    unit={unit}
+                    waypoints={waypoints}
+                />
             </Map>
             {interactive && (
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>

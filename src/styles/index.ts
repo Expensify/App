@@ -7029,6 +7029,11 @@ const plainStyles = (theme: ThemeColors) =>
             paint: {'line-color': colors.green400, 'line-width': 6},
         },
 
+        alternativeMapDirectionLayer: {
+            layout: {'line-join': 'round', 'line-cap': 'round'},
+            paint: {'line-color': colors.green200, 'line-width': 6},
+        },
+
         mapDirectionLayerBorder: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': colors.green600, 'line-width': 8},
