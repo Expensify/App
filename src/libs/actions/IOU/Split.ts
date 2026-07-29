@@ -113,6 +113,7 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     validWaypoints?: WaypointCollection;
     splitShares?: SplitShares;
     distance?: number;
+    modifiedDistance?: number;
     receipt?: Receipt;
     odometerStart?: number;
     odometerEnd?: number;
@@ -1282,6 +1283,7 @@ function setDraftSplitTransaction(
     transactionChanges: TransactionChanges = {},
     policy?: OnyxEntry<OnyxTypes.Policy>,
     personalPolicyOutputCurrency?: string,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ) {
     if (!transactionID) {
         return undefined;
@@ -1299,6 +1301,7 @@ function setDraftSplitTransaction(
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,
               policy,
+              policies,
               isSplitTransaction: true,
               personalPolicyOutputCurrency,
           })
@@ -1987,6 +1990,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         amount,
         comment,
         distance,
+        modifiedDistance,
         currency,
         created,
         category,
@@ -2138,7 +2142,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 amount,
                 modifiedAmount,
                 modifiedMerchant,
-                distance,
+                distance: modifiedDistance ?? distance,
                 currency,
                 comment,
                 created,
@@ -2204,6 +2208,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             waypoints: JSON.stringify(sanitizedWaypoints),
             distance: distance !== undefined ? roundToTwoDecimalPlaces(distance) : undefined,
+            modifiedDistance: modifiedDistance !== undefined ? roundToTwoDecimalPlaces(modifiedDistance) : undefined,
             receipt,
             odometerStart,
             odometerEnd,

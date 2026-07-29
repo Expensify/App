@@ -387,6 +387,7 @@ function ParticipantSearchResults({
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
                               translate,
+                              currentUserAccountID,
                               reportAttributesDerived,
                           )
                         : getParticipantsOption(participant, personalDetails, translate);

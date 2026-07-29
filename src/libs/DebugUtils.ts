@@ -1560,6 +1560,7 @@ function getReasonAndReportActionForRBRInLHNRow(
     hasViolations: boolean,
     reportErrors: Errors,
     isOffline: boolean,
+    currentUserAccountID: number,
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
@@ -1571,6 +1572,7 @@ function getReasonAndReportActionForRBRInLHNRow(
             reportErrors,
             transactions,
             isOffline,
+            currentUserAccountID,
             transactionViolations,
             isArchivedReport,
         ) ?? {};
