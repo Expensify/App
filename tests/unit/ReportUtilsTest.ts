@@ -226,7 +226,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput, OnyxMergeInput} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput} from 'react-native-onyx';
 
 import {addDays, format as formatDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
@@ -955,26 +955,22 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
-            const personalDetailsCall = mergeSpy.mock.calls.find((call): call is [typeof ONYXKEYS.PERSONAL_DETAILS_LIST, OnyxMergeInput<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>] => {
-                if (call[0] !== ONYXKEYS.PERSONAL_DETAILS_LIST || typeof call[1] !== 'object' || call[1] === null) {
-                    return false;
-                }
-
-                const accountExecutiveDetail = Object.values<unknown>(call[1]).at(0);
-                return (
-                    typeof accountExecutiveDetail === 'object' &&
-                    accountExecutiveDetail !== null &&
-                    'accountID' in accountExecutiveDetail &&
-                    typeof accountExecutiveDetail.accountID === 'number' &&
-                    'avatar' in accountExecutiveDetail &&
-                    typeof accountExecutiveDetail.avatar === 'string'
-                );
-            });
-            if (!personalDetailsCall) {
+            const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
+            if (!personalDetailsCall || typeof personalDetailsCall[1] !== 'object' || personalDetailsCall[1] === null) {
                 throw new Error('Expected personal details merge call');
             }
-            const personalDetailsData: OnyxMergeInput<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> = personalDetailsCall[1];
-            const accountExecutiveDetail = Object.values(personalDetailsData ?? {}).at(0);
+            const personalDetailsData = personalDetailsCall[1];
+            const accountExecutiveDetail = Object.values<unknown>(personalDetailsData).at(0);
+            if (
+                typeof accountExecutiveDetail !== 'object' ||
+                accountExecutiveDetail === null ||
+                !('accountID' in accountExecutiveDetail) ||
+                typeof accountExecutiveDetail.accountID !== 'number' ||
+                !('avatar' in accountExecutiveDetail) ||
+                typeof accountExecutiveDetail.avatar !== 'string'
+            ) {
+                throw new Error('Expected Account Executive personal details');
+            }
 
             expect(accountExecutiveDetail).toBeDefined();
             expect(accountExecutiveDetail?.accountID).toBeDefined();

@@ -132,15 +132,12 @@ const duplicatedTransactionViolation = {
     type: CONST.VIOLATION_TYPES.WARNING,
 };
 
-function getTransactionViolationsFromResult(result: ReturnType<typeof ViolationsUtils.getViolationsOnyxData>, fallbackToEmpty = false) {
+function getTransactionViolationsFromResult(result: ReturnType<typeof ViolationsUtils.getViolationsOnyxData>) {
     if (result.onyxMethod !== Onyx.METHOD.SET) {
         throw new Error('Expected a SET transaction violation update with a value');
     }
 
     if (result.value === null || result.value === undefined) {
-        if (fallbackToEmpty) {
-            return [];
-        }
         throw new Error('Expected a SET transaction violation update with a value');
     }
 
@@ -3177,7 +3174,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
                 shouldRemoveRejectedExpenseViolation: true,
             });
-            const violations = getTransactionViolationsFromResult(result, true);
+            const violations = getTransactionViolationsFromResult(result);
             expect(violations.some((v) => v.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(false);
         });
 
@@ -3192,7 +3189,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            const violations = getTransactionViolationsFromResult(result, true);
+            const violations = getTransactionViolationsFromResult(result);
             expect(violations.some((v) => v.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(true);
         });
     });
