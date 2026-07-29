@@ -289,11 +289,49 @@ describe('CardFeedErrors Derived Value', () => {
             });
 
             it('should still show the RBR for a personal card with an unrelated error and a healthy connection', () => {
+                // Synced yesterday, so the card is inside the grace period and its errors surface normally.
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
                 const card = createCard({
                     cardID: CARD_IDS.card1,
-                    lastScrapeResult: 200, // Not a broken connection, so the grace period does not apply
-                    lastScrape: '2020-01-01 00:00:00',
+                    lastScrapeResult: 200, // Not a broken connection
+                    lastScrape: recentScrape,
                     errors: {unrelatedError: 'Something else went wrong.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
+            });
+
+            // The server keeps re-sending the connection error even when lastScrapeResult is one of the IGNORED
+            // statuses (e.g. 434), which isCardConnectionBroken treats as not broken. The dismissal is therefore keyed
+            // on the last successful sync, not on the broken check — otherwise these cards light the Account/Wallet
+            // dots forever (the reported production case).
+            it('should NOT show the RBR for a card with an ignored scrape status (434) whose last sync is past the grace period', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 434, // In BROKEN_CONNECTION_IGNORED_STATUSES — not "broken", but still carries the error
+                    lastScrape: '2024-08-26 18:58:19', // Last successful sync is well beyond the grace period
+                    errors: {connectionError: 'Your card connection is broken.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(false);
+                expect(result.personalCard.isFeedConnectionBroken).toBe(false);
+            });
+
+            it('should still show the RBR for a card with an ignored scrape status (434) whose last sync is within the grace period', () => {
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 434,
+                    lastScrape: recentScrape,
+                    errors: {connectionError: 'Your card connection is broken.'},
                 });
 
                 const globalCardList: CardList = {card1: card};

@@ -1413,18 +1413,19 @@ function getCardConnectionStatusDisplay({
 }
 
 /**
- * Check whether a broken card connection has been unresolved long enough that we should stop
- * actively prompting the user (remove the time-sensitive task and the RBR). The error itself is
- * kept, so this is only used to gate the proactive surfacing, not the underlying broken state.
+ * Check whether a card's last successful sync is at least the dismiss threshold (90 days) old.
  *
  * `lastScrape` is the last successful update timestamp (a separate `lastImportAttempt` tracks
- * attempts), so for a broken connection its age equals how long the connection has been failing.
+ * attempts), so its age equals how long the card has gone without a working sync. A card can carry
+ * a server-set connection error even when `lastScrapeResult` is one of the ignored statuses (e.g.
+ * 434), so this deliberately does NOT require `isCardConnectionBroken` — use it to decide whether
+ * a card's errors should still surface account-level indicators.
  *
  * @param card the card to check
- * @returns true if the connection is broken and has been unresolved for at least the grace period
+ * @returns true if the last successful sync is at least the grace period old
  */
-function isBrokenConnectionPastDismissThreshold(card: Card): boolean {
-    if (!isCardConnectionBroken(card) || !card.lastScrape) {
+function isLastScrapePastDismissThreshold(card: Card): boolean {
+    if (!card.lastScrape) {
         return false;
     }
     // `card.lastScrape` is usually the Expensify DB datetime format ("2024-11-27 11:00:53"), but a personal card's value can
@@ -1439,6 +1440,18 @@ function isBrokenConnectionPastDismissThreshold(card: Card): boolean {
         return false;
     }
     return DateUtils.getDifferenceInDaysFromNow(lastScrapeDate) >= CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS;
+}
+
+/**
+ * Check whether a broken card connection has been unresolved long enough that we should stop
+ * actively prompting the user (remove the time-sensitive task and the RBR). The error itself is
+ * kept, so this is only used to gate the proactive surfacing, not the underlying broken state.
+ *
+ * @param card the card to check
+ * @returns true if the connection is broken and has been unresolved for at least the grace period
+ */
+function isBrokenConnectionPastDismissThreshold(card: Card): boolean {
+    return isCardConnectionBroken(card) && isLastScrapePastDismissThreshold(card);
 }
 
 /**
@@ -2137,6 +2150,7 @@ export {
     isCardConnectionBroken,
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
+    isLastScrapePastDismissThreshold,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     isMatchingCard,
