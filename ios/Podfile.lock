@@ -410,7 +410,37 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroModules (0.35.0):
+  - NitroFetch (1.5.4):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - NitroModules
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
+  - NitroModules (0.36.3):
     - boost
     - DoubleConversion
     - fast_float
@@ -4384,6 +4414,7 @@ DEPENDENCIES:
   - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - NitroFetch (from `../node_modules/react-native-nitro-fetch`)
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - "pusher-websocket-react-native (from `../node_modules/@pusher/pusher-websocket-react-native`)"
@@ -4615,6 +4646,8 @@ EXTERNAL SOURCES:
     :tag: hermes-v250829098.0.14
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
+  NitroFetch:
+    :path: "../node_modules/react-native-nitro-fetch"
   NitroModules:
     :path: "../node_modules/react-native-nitro-modules"
   onfido-react-native-sdk:
@@ -4868,7 +4901,7 @@ SPEC CHECKSUMS:
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: fa5647482320b7bde855057f8b86580456d4b9f0
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
-  ExpensifyNitroUtils: 86109fe1ab88351ed63ffe11b760d537c70019d7
+  ExpensifyNitroUtils: b7225649e39a31eab926dc8551c9c64e15b98d47
   Expo: 1db1ece522ad03f3a2bad1604f0e4460194ebb91
   ExpoAsset: 98143758ff37e14c9ff2a4e7673097db00473011
   ExpoAudio: b69f36525132edba8d87a715b3a20c678ef78b30
@@ -4915,7 +4948,8 @@ SPEC CHECKSUMS:
   MapboxCoreMaps: de1a4461d0ab5d65d907f06e8d82fdbe06bb3213
   MapboxMaps: 22340ae0e0d47b2e4761019b1d6c569ab04e088d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroModules: f8c2cc3025e4550aee15ff77c525622bf98e774a
+  NitroFetch: 4941ca1e41fc72ebdad33c50c85fee59a3dd6871
+  NitroModules: 1961fff19baf1f4a5221dd2fea7d4de95941f9e4
   NWWebSocket: b4741420f1976e1dff4da3edad00c401e4f1d769
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
   onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
