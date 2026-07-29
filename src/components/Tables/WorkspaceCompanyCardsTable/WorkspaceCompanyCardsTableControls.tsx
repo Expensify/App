@@ -187,6 +187,10 @@ function WorkspaceCompanyCardsTableControls({policyID, domainOrWorkspaceAccountI
                         options={getBulkActionOptions()}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_DROPDOWN}
                         wrapperStyle={[shouldUseNarrowTableLayout ? styles.w100 : styles.flexGrow0, styles.tableBulkActionsButton(shouldUseNarrowTableLayout)]}
                     />
