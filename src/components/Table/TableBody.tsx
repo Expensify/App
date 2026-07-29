@@ -11,6 +11,7 @@ import {StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
 
+import {getRowGroupAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext} from './TableContext';
 
 /**
@@ -95,6 +96,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     return (
         <View
             style={[styles.flex1, styles.mnh0, style]}
+            {...getRowGroupAccessibilityProps(shouldUseTableSemantics(shouldUseNarrowTableLayout))}
             {...props}
         >
             <FlashList<DataType>
