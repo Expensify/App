@@ -10,7 +10,7 @@ import ROUTES from '@src/ROUTES';
 
 import Onyx from 'react-native-onyx';
 
-import type {UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
+import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
 import type {Card, DecisionName, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
@@ -78,12 +78,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 type TakeControlAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
 type TakeControlOriginalMessageFixture = NonNullable<TakeControlAction['originalMessage']>;
 
-type CompanyAddress = Exclude<Parameters<typeof ReportActionsUtils.formatAddressToString>[0], null | undefined>;
-type CompanyAddressOriginalMessageFixture = {
-    newAddress: CompanyAddress;
-    oldAddress?: CompanyAddress | null;
-};
-
 type LegacyReportActionFields = {
     message?: string;
     originalMessage?: string;
@@ -103,9 +97,9 @@ function buildTakeControlActionFixture(originalMessage: TakeControlOriginalMessa
     };
 }
 
-// These backend payloads are not accurately represented by the current ReportAction original-message map.
-// Keep that type-model gap at explicit test-fixture boundaries instead of changing production types in this cleanup.
-function buildCompanyAddressUpdateActionFixture(originalMessage: CompanyAddressOriginalMessageFixture): CompanyAddressUpdateAction {
+// These specialized policy-change payloads use production types that are not exposed by the generic ReportAction original-message map.
+// Keep that map boundary explicit in the test fixtures.
+function buildCompanyAddressUpdateActionFixture(originalMessage: CompanyAddressOriginalMessage): CompanyAddressUpdateAction {
     const action: CompanyAddressUpdateAction = {
         actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
         reportActionID: '1',
@@ -153,19 +147,15 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getSortedReportActions', () => {
-        const buildReportActionWithoutCreated = (): ReportAction => {
-            const action: ReportAction = {
-                created: '',
+        const buildReportActionWithoutCreated = (): ReportAction =>
+            createMock<ReportAction>({
                 reportActionID: '2962390724708756',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 originalMessage: {
                     html: 'Hello world',
                     whisperedTo: [],
                 },
-            };
-            Reflect.deleteProperty(action, 'created');
-            return action;
-        };
+            });
 
         const cases: Array<[ReportAction[], ReportAction[]]> = [
             [
