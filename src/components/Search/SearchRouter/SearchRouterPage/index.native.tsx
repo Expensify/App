@@ -6,6 +6,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -22,6 +23,7 @@ function SearchRouterPage() {
     const {paddingTop} = useSafeAreaPaddings();
     const {bottom} = useSafeAreaInsets();
     const {windowHeight} = useWindowDimensions();
+    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const effectiveKeyboardHeight = isOffline && isKeyboardActive ? keyboardHeight || getKeyboardHeight(keyboardActiveHeight, bottom) : 0;
     // Keep the router between the top safe area and keyboard. ScreenWrapper and the list handle bottom safe-area and offline-indicator spacing; clamp transient dimensions to zero.
@@ -35,7 +37,7 @@ function SearchRouterPage() {
             includePaddingTop
             includeSafeAreaPaddingBottom
         >
-            <View style={[styles.flex1, availableHeight !== undefined && {maxHeight: availableHeight}]}>
+            <View style={[styles.flex1, availableHeight !== undefined && StyleUtils.getMaximumHeight(availableHeight)]}>
                 <SearchRouter
                     onRouterClose={closeSearchRouter}
                     shouldHideInputCaret={false}
