@@ -1,7 +1,8 @@
 import CONST from '@src/CONST';
 import * as UserUtils from '@src/libs/UserUtils';
 import type {LoginList} from '@src/types/onyx';
-import {translateLocal} from '../utils/TestHelper';
+
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 
 describe('UserUtils', () => {
     describe('getContactMethodsOptions', () => {
@@ -64,10 +65,29 @@ describe('UserUtils', () => {
 
         describe.each(TEST_CASES)('$name', ({loginList, defaultEmail, expectedIndicators}) => {
             test('verifies indicator states', () => {
-                const options = UserUtils.getContactMethodsOptions(translateLocal, loginList, defaultEmail);
+                const options = UserUtils.getContactMethodsOptions(translateLocal, formatPhoneNumber, loginList, defaultEmail);
                 const indicators = options.map((o) => o?.indicator);
                 expect(indicators).toEqual(expectedIndicators);
             });
+        });
+
+        it('formats SMS contact method titles using the passed formatter', () => {
+            const phoneLogin = '+18172057554@expensify.sms';
+            const formatPhoneNumberMock = jest.fn(() => '(817) 205-7554');
+            const options = UserUtils.getContactMethodsOptions(
+                translateLocal,
+                formatPhoneNumberMock,
+                {
+                    [phoneLogin]: {
+                        partnerUserID: phoneLogin,
+                        validatedDate: '2024-01-01',
+                    },
+                },
+                phoneLogin,
+            );
+
+            expect(options.at(0)?.menuItemTitle).toBe('(817) 205-7554');
+            expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneLogin);
         });
     });
 
@@ -133,6 +153,117 @@ describe('UserUtils', () => {
                 const result = UserUtils.getLoginListBrickRoadIndicator(loginList, email);
                 expect(result).toBe(expected);
             });
+        });
+    });
+
+    describe('expensifyLoginsSelector', () => {
+        test('returns undefined when there are no logins', () => {
+            expect(UserUtils.expensifyLoginsSelector(undefined)).toBeUndefined();
+        });
+
+        test('keeps Expensify contact methods and excludes device and synthetic policy-domain logins', () => {
+            const logins = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1_user@example.com': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: 'user@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: '2024-01-01',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1_card@expensify-policy7c203ee7387a8f06.exfy': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: 'card@expensify-policy7c203ee7387a8f06.exfy',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '14_device': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.IPHONE,
+                    partnerUserID: 'device@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+            };
+
+            const result = UserUtils.expensifyLoginsSelector(logins);
+
+            expect(Object.keys(result ?? {})).toEqual(['user@example.com']);
+        });
+    });
+
+    describe('getDeviceLogins', () => {
+        test('returns an empty array when there are no logins', () => {
+            expect(UserUtils.getDeviceLogins(undefined)).toEqual([]);
+        });
+
+        test('sorts device logins by most recent timestamp first', () => {
+            const logins = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '14_oldest': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.IPHONE,
+                    partnerUserID: 'oldest@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '16_newest': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.ANDROID,
+                    partnerUserID: 'newest@example.com',
+                    lastLogin: '2024-03-10',
+                    validatedDate: null,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '83_middle': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.NEWDOT,
+                    partnerUserID: 'middle@example.com',
+                    lastLogin: '2024-02-05',
+                    validatedDate: null,
+                },
+            };
+
+            const result = UserUtils.getDeviceLogins(logins);
+
+            expect(result.map((login) => login.partnerUserID)).toEqual(['newest@example.com', 'middle@example.com', 'oldest@example.com']);
+        });
+
+        test('falls back to created when lastLogin is the default 2008 value', () => {
+            const logins = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '14_a': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.IPHONE,
+                    partnerUserID: 'a@example.com',
+                    lastLogin: '2008-01-01',
+                    validatedDate: null,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '16_b': {
+                    created: '2024-05-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.ANDROID,
+                    partnerUserID: 'b@example.com',
+                    lastLogin: '2008-01-01',
+                    validatedDate: null,
+                },
+            };
+
+            const result = UserUtils.getDeviceLogins(logins);
+
+            expect(result.map((login) => login.partnerUserID)).toEqual(['b@example.com', 'a@example.com']);
         });
     });
 });

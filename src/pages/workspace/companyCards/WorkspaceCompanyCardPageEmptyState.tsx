@@ -1,10 +1,8 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import React from 'react';
-import {View} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,14 +11,23 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasIssuedExpensifyCard} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import colors from '@styles/theme/colors';
+
 import {clearAddNewCardFlow} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import {isUserValidatedSelector} from '@selectors/Account';
+import React from 'react';
+import {View} from 'react-native';
+
 import WorkspaceCompanyCardExpensifyCardPromotionBanner from './WorkspaceCompanyCardExpensifyCardPromotionBanner';
 
 type WorkspaceCompanyCardPageEmptyStateProps = {
@@ -39,7 +46,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const policy = usePolicy(policyID);
-    const {withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+    const {showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards);
     const otherFeeds = useOtherFeedsForFeedSelector(policyID);
@@ -112,7 +119,13 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
 
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {shouldShowExpensifyCardPromotionBanner && <WorkspaceCompanyCardExpensifyCardPromotionBanner policy={policy} />}
+            {shouldShowExpensifyCardPromotionBanner && (
+                <WorkspaceCompanyCardExpensifyCardPromotionBanner
+                    policy={policy}
+                    canWriteCompanyCards={canWriteCompanyCards}
+                    onReadOnlyAction={showReadOnlyModal}
+                />
+            )}
             <FeatureList
                 menuItems={companyCardFeatures as FeatureListItem[]}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}

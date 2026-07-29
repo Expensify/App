@@ -1,24 +1,28 @@
-import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
+
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
-import cancelTabNavigationSpans from '@libs/telemetry/cancelTabNavigationSpans';
-import CONST from '@src/CONST';
+import cancelTabNavigationSpans, {INBOX_TAB_SPAN_IDS, REPORTS_TAB_SPAN_IDS} from '@libs/telemetry/cancelTabNavigationSpans';
+
 import SCREENS from '@src/SCREENS';
 
-const NAVIGATION_TAB_TO_SPAN: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, string>> = {
-    [NAVIGATION_TABS.INBOX]: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-    [NAVIGATION_TABS.SEARCH]: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
+import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
+const NAVIGATION_TAB_TO_SPANS: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, readonly string[]>> = {
+    [NAVIGATION_TABS.INBOX]: INBOX_TAB_SPAN_IDS,
+    [NAVIGATION_TABS.SEARCH]: REPORTS_TAB_SPAN_IDS,
 };
 
 /**
@@ -60,7 +64,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     // Cancel any in-flight tab-navigation span that doesn't match the new focused tab.
     // The span for the new tab is started by the tab button before navigation, so we keep it via `except`.
     useEffect(() => {
-        cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPAN[selectedTab]);
+        cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPANS[selectedTab]);
     }, [selectedTab]);
 
     const isHidden = shouldHide || (shouldApplyDelay && animationDoneKey !== stateKey);

@@ -1,7 +1,0 @@
-{
-    "name": "react-native-gesture-handler",
-    "version": "0.0.0-stub",
-    "private": true,
-    "type": "module",
-    "main": "./index.ts"
-}

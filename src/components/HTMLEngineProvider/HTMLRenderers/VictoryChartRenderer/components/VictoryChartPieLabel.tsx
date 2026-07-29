@@ -1,44 +1,64 @@
-import React from 'react';
-import type {TNode} from 'react-native-render-html';
+import type {LabelItem, ResolvedPieLabel} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+
+import type {Color} from '@shopify/react-native-skia';
 import type {PieSliceData} from 'victory-native';
-import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import type {LabelItem, PolarChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+
+import React from 'react';
+
 import VictoryChartLabel from './VictoryChartLabel';
+import VictoryChartPieLabelIndicator from './VictoryChartPieLabelIndicator';
 
 type VictoryChartPieLabelProps = {
-    tnode: TNode;
     slice: PieSliceData;
-    labelItemTemplate?: LabelItem;
+    baseLabelItem: LabelItem;
+    label: string;
+    resolvedLabel: ResolvedPieLabel;
+    labelIndicatorXShift: number | undefined;
+    labelIndicatorYShift: number | undefined;
+    labelIndicatorStroke: Color | undefined;
+    labelIndicatorStrokeWidth: number | undefined;
+    labelIndicatorInnerOffset: number | undefined;
+    labelIndicatorOuterOffset: number | undefined;
 };
 
-const RADIAN = Math.PI / 180;
-
-function VictoryChartPieLabel({tnode, slice, labelItemTemplate}: VictoryChartPieLabelProps) {
-    const {data} = useVictoryChartContext();
-
-    if (!labelItemTemplate) {
-        return null;
-    }
-
-    const dataLabels = Object.values(data).map((entry) => (entry as PolarChartData).label);
-    const labels = parseAttribute<string[]>(tnode.attributes.labels);
-    const text = labels?.[dataLabels.indexOf(slice.label)] ?? slice.label;
-
-    const labelRadius = tnode.attributes.labelradius !== undefined ? Number(parseAttribute(tnode.attributes.labelradius)) : slice.radius;
-    const midAngle = (slice.startAngle + slice.endAngle) / 2;
-    const x = slice.center.x + labelRadius * Math.cos(-midAngle * RADIAN);
-    const y = slice.center.y + labelRadius * Math.sin(midAngle * RADIAN);
-
+function VictoryChartPieLabel({
+    slice,
+    baseLabelItem,
+    label,
+    resolvedLabel,
+    labelIndicatorXShift,
+    labelIndicatorYShift,
+    labelIndicatorStroke,
+    labelIndicatorStrokeWidth,
+    labelIndicatorInnerOffset,
+    labelIndicatorOuterOffset,
+}: VictoryChartPieLabelProps) {
     const labelItem: LabelItem = {
-        ...labelItemTemplate,
-        text,
-        x,
-        y,
-        textAnchor: 'middle',
+        ...baseLabelItem,
+        text: label,
+        x: resolvedLabel.x,
+        y: resolvedLabel.y,
+        textAnchor: resolvedLabel.textAnchor,
+        verticalAnchor: 'middle',
     };
 
-    return <VictoryChartLabel {...labelItem} />;
+    return (
+        <>
+            {!!labelIndicatorStrokeWidth && (
+                <VictoryChartPieLabelIndicator
+                    slice={slice}
+                    resolvedLabel={resolvedLabel}
+                    labelIndicatorXShift={labelIndicatorXShift}
+                    labelIndicatorYShift={labelIndicatorYShift}
+                    labelIndicatorStroke={labelIndicatorStroke}
+                    labelIndicatorStrokeWidth={labelIndicatorStrokeWidth}
+                    labelIndicatorInnerOffset={labelIndicatorInnerOffset}
+                    labelIndicatorOuterOffset={labelIndicatorOuterOffset}
+                />
+            )}
+            <VictoryChartLabel {...labelItem} />
+        </>
+    );
 }
 
 export default VictoryChartPieLabel;

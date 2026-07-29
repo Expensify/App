@@ -1,17 +1,24 @@
-import React, {useCallback, useEffect} from 'react';
-import type {ComponentType} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountEnterSignerInfoNavigatorParamList} from '@navigation/types';
+
 import {clearEnterSignerInformationFormSave, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import type {ComponentType} from 'react';
+
+import React, {useCallback, useEffect} from 'react';
+
 import Address from './subSteps/Address';
 import Confirmation from './subSteps/Confirmation';
 import DateOfBirth from './subSteps/DateOfBirth';

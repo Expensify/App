@@ -1,8 +1,9 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ShareTempFile} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import Onyx from 'react-native-onyx';
 
 /**
 Function for clearing old saved data before at the start of share-extension flow
@@ -11,6 +12,10 @@ function clearShareData() {
     Onyx.multiSet({
         [ONYXKEYS.SHARE_TEMP_FILE]: null,
         [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: null,
+        // Also clear any file validated in a previous share session. Otherwise a HEIC/`image/*` share
+        // could reuse the previous session's validated file (which ShareDetailsPage uploads) during the
+        // window before the new async validation overwrites VALIDATED_FILE_OBJECT.
+        [ONYXKEYS.VALIDATED_FILE_OBJECT]: null,
     });
 }
 

@@ -1,30 +1,38 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import {openOldDotLink} from '@libs/actions/Link';
 import {AddWorkEmail} from '@libs/actions/Session';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
+
 import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
+
 import CONST from '@src/CONST';
 import {MergeIntoAccountAndLogin} from '@src/libs/actions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Response as OnyxResponse} from '@src/types/onyx';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -235,6 +243,37 @@ function AddWorkEmailShouldValidate() {
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
+function AddWorkEmailWith2FAError() {
+    const originalXhr = HttpUtils.xhr;
+    HttpUtils.xhr = jest.fn().mockImplementation(() => {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
+            jsonCode: CONST.JSON_CODE.EXP_ERROR,
+            message: `${workEmail} ${CONST.MERGE_ACCOUNT_2FA_ERROR}`,
+            title: '401 work account uses 2FA',
+        };
+
+        return Promise.resolve(mockedResponse);
+    });
+    AddWorkEmail(workEmail);
+    return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
+}
+
+function AddWorkEmailWithSingleSignOnError() {
+    const originalXhr = HttpUtils.xhr;
+    HttpUtils.xhr = jest.fn().mockImplementation(() => {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
+            jsonCode: CONST.JSON_CODE.EXP_ERROR,
+            message: `${workEmail} ${CONST.MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR}`,
+            title: '401 work account uses SAML',
+            onyxData: [],
+        };
+
+        return Promise.resolve(mockedResponse);
+    });
+    AddWorkEmail(workEmail);
+    return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
+}
+
 describe('OnboardingWorkEmail Page', () => {
     beforeAll(() => {
         Onyx.init({
@@ -265,7 +304,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -293,7 +332,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -325,7 +364,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -352,7 +391,7 @@ describe('OnboardingWorkEmail Page', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -378,7 +417,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -401,6 +440,67 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should navigate to Onboarding employees page when skip is pressed and user is routed app via vsb', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('onboardingPrivateEmailSkipButton'));
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should navigate VSB users to Onboarding employees page when merge is blocked and Got it is pressed', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                isMergingAccountBlocked: true,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        const gotItButton = screen.getByText(TestHelper.translateLocal('common.buttonConfirm'));
+
+        const mockEvent = {
+            nativeEvent: {},
+            type: 'press',
+            target: gotItButton,
+            currentTarget: gotItButton,
+        };
+
+        fireEvent.press(gotItButton, mockEvent);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should still navigate to Onboarding work email validation page when caller is on a public domain', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -412,7 +512,7 @@ describe('OnboardingWorkEmail Page', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -439,7 +539,7 @@ describe('OnboardingWorkEmail Page', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -466,12 +566,64 @@ describe('OnboardingWorkEmail Page', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: true});
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should display correct error message when an existing work email is submitted with 2FA enabled', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        AddWorkEmailWith2FAError();
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail2FAError'))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should display correct error message when an existing work email is submitted with SSO enabled', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        AddWorkEmailWithSingleSignOnError();
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.singleSignOnError'))).toBeOnTheScreen();
         });
 
         unmount();
@@ -514,12 +666,12 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmailValidation.magicCodeSent', workEmail))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmailValidation.securityCodeSent', workEmail))).toBeOnTheScreen();
         });
 
         unmount();
@@ -539,7 +691,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -565,7 +717,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -590,7 +742,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
         const skipButton = screen.getByText(TestHelper.translateLocal('common.skip'));
@@ -625,7 +777,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -654,7 +806,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -684,7 +836,37 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        MergeIntoAccountAndLoginSuccessful();
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should navigate to Onboarding employees page when validate code step is successful and user is routed app via vsb', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -717,7 +899,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, specificErrorMessage);
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -743,12 +925,50 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.subtitle', workEmail))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should navigate VSB users to Onboarding employees page from validation when merge is blocked and Got it is pressed', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                isMergingAccountBlocked: true,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        const gotItButton = screen.getByText(TestHelper.translateLocal('common.buttonConfirm'));
+
+        const mockEvent = {
+            nativeEvent: {},
+            type: 'press',
+            target: gotItButton,
+            currentTarget: gotItButton,
+        };
+
+        fireEvent.press(gotItButton, mockEvent);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
         });
 
         unmount();

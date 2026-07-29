@@ -1,6 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,23 +5,32 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ConfirmButtonOptions, ListItem, TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+// eslint-disable-next-line no-restricted-imports -- genuine paid-only check: copy-settings carries paid features, so only paid group (Collect/Control) workspaces are valid targets; Submit/Personal are intentionally excluded.
+import {isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 const SEARCH_THRESHOLD = 12;
 
@@ -48,19 +54,11 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     const [selectedTargetIDs, setSelectedTargetIDs] = useState<string[] | null>(null);
     const resolvedSelectedTargetIDs = selectedTargetIDs ?? copyPolicySettings?.targetPolicyIDs ?? [];
 
-    const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
-    const isSourceCorporate = sourcePolicy?.type === CONST.POLICY.TYPE.CORPORATE;
-
     const eligiblePolicies: EligiblePolicyItem[] = !policies
         ? []
         : Object.values(policies)
               .filter((policy): policy is Policy => {
-                  if (!policy || policy.id === sourcePolicyID || policy.type === CONST.POLICY.TYPE.PERSONAL || isPendingDeletePolicy(policy) || !isPolicyAdmin(policy, currentUserEmail)) {
-                      return false;
-                  }
-                  // Release 1: when copying from a Corporate workspace, only allow Corporate targets.
-                  // Issue 7 (R2) lifts this restriction by inserting an upgrade step.
-                  if (isSourceCorporate && policy.type !== CONST.POLICY.TYPE.CORPORATE) {
+                  if (!policy || policy.id === sourcePolicyID || !isPaidGroupPolicy(policy) || isPendingDeletePolicy(policy) || !isPolicyAdmin(policy, currentUserEmail)) {
                       return false;
                   }
                   return true;
@@ -129,8 +127,17 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         if (!sourcePolicyID) {
             return;
         }
-        setCopyPolicySettingsData({sourcePolicyID, targetPolicyIDs: resolvedSelectedTargetIDs});
-        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
+
+        const previousTargetIDs = copyPolicySettings?.targetPolicyIDs ?? [];
+        const shouldClearParts = previousTargetIDs.length !== resolvedSelectedTargetIDs.length || !previousTargetIDs.every((id) => resolvedSelectedTargetIDs.includes(id));
+
+        setCopyPolicySettingsData({
+            sourcePolicyID,
+            targetPolicyIDs: resolvedSelectedTargetIDs,
+            ...(shouldClearParts ? {parts: []} : {}),
+        }).then(() => {
+            Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
+        });
     };
 
     const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {

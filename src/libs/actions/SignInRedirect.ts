@@ -1,11 +1,14 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import Onyx from 'react-native-onyx';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
+
 import CONFIG from '@src/CONFIG';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import Onyx from 'react-native-onyx';
+
 import {resetSignInFlow} from './HybridApp';
 
 let currentShouldForceOffline: boolean | undefined;
@@ -51,6 +54,7 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
     keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
     keysToPreserve.push(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
     keysToPreserve.push(ONYXKEYS.PREFERRED_THEME);
+    keysToPreserve.push(ONYXKEYS.NVP_SEARCH_SIDEBAR);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
     keysToPreserve.push(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
@@ -71,7 +75,7 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
-    // When the user is in the middle of a 2FA sign-in flow (they've entered their magic code but not yet completed
+    // When the user is in the middle of a 2FA sign-in flow (they've entered their validateCode but not yet completed
     // 2FA), we want to preserve their credentials and account state so that after a page refresh they are still
     // prompted to enter their 2FA code rather than being sent back to the initial sign-in page.
     const isIncompleteSignIn = !currentSessionAuthToken && !!currentCredentialsValidateCode;

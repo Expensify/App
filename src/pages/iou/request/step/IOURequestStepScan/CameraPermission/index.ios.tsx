@@ -1,4 +1,5 @@
 import {check, PERMISSIONS, request} from 'react-native-permissions';
+
 import type CameraPermissionModule from './types';
 
 function requestCameraPermission() {

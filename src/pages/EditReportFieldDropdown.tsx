@@ -1,12 +1,16 @@
-import React from 'react';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 type EditReportFieldDropdownPageProps = {
     /** Value of the policy report field */

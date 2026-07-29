@@ -1,7 +1,10 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import Text from './Text';
 import TextLink from './TextLink';
 

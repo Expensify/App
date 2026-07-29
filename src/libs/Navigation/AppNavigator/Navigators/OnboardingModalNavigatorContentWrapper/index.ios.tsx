@@ -1,8 +1,9 @@
-import React from 'react';
-import {View} from 'react-native';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type OnboardingModalNavigatorContentWrapperProps = {
     /** Rendered child component */

@@ -1,7 +1,11 @@
-import Onyx from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({

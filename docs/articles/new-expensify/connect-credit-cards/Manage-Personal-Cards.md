@@ -1,7 +1,7 @@
 ---
 title: Manage Personal Cards
 description: Learn how to view, manage, and fix broken connections for personal credit cards in New Expensify.
-keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, New Expensify, assigned cards, card details, broken connection, fix card]
+keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, cards, card details, broken connection, fix card]
 internalScope: Audience is members with personal credit cards already connected to their account. Covers viewing and managing existing personal cards in the Wallet, including reimbursable settings and fixing broken card connections. Does not cover connecting new personal cards or company card programs.
 ---
 
@@ -22,7 +22,7 @@ Anyone with a personal credit card connected to their Expensify account can mana
 ## How to view personal cards in Wallet
 
 1. Click the navigation tabs (on the left on web, on the bottom on mobile), then select **Account > Wallet**.
-2. Under **Assigned cards**:
+2. Under **Cards**:
    - Personal cards will appear in the **Personal** section. 
    - You'll see the card name, bank icon, and last 4 digits.
 
@@ -50,7 +50,7 @@ You can manage the following settings for a personal card:
 ## How to update personal card settings
 
 1. Click the navigation tabs (on the left on web, on the bottom on mobile), then select **Account > Wallet**.
-2. Under **Assigned cards**, select a personal card.
+2. Under **Cards**, select a personal card.
 3. On the **Card details** page, you can:
    - Rename the card
    - Update the card to pull in new transactions (if not CSV-imported)
@@ -93,7 +93,7 @@ Design request: https://github.com/Expensify/Expensify/issues/620248
 ## How to fix a broken personal card connection 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) navigate to **Account > Wallet**. 
-2. Under **Assigned cards**, select the card with the broken connection. 
+2. Under **Cards**, select the card with the broken connection. 
 3. Choose **Fix card**.
 4. Log into your bank when prompted to re-authenticate the connection.
 
@@ -117,6 +117,10 @@ You can tap the hyperlinked text in the violation to go directly to the **Card d
 ## Can I change the reimbursable setting for past transactions?
 
 No. Changes to the reimbursable setting only apply to transactions imported after the change.
+
+## Can I set the transaction start date to a future date?
+
+Yes. The **Transaction start date** can be set to a past or future date. If you choose a future date, Expensify begins importing transactions for the card from that date onward.
 
 ## Why don't I see my personal card in the Wallet?
 

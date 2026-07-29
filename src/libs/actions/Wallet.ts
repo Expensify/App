@@ -1,14 +1,18 @@
-import type {AndroidCardData, IOSEncryptPayload} from '@expensify/react-native-wallet';
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePersonalDetailsForWalletParams, VerifyIdentityParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ProvisioningCardData, WalletAdditionalQuestionDetails} from '@src/types/onyx';
+
+import type {AndroidCardData, IOSEncryptPayload} from '@expensify/react-native-wallet';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import pkg from '../../../package.json';
 
 type WalletQuestionAnswer = {
@@ -224,6 +228,16 @@ function openEnablePaymentsPage() {
         },
     ];
 
+    // Only mark wallet data as fresh when the read succeeds, otherwise a transient API failure
+    // would suppress refetching for the rest of the session.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA,
+            value: true,
+        },
+    ];
+
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -234,7 +248,7 @@ function openEnablePaymentsPage() {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, null, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
 function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP> | null) {

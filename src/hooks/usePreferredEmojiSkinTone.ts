@@ -1,7 +1,10 @@
-import {useCallback} from 'react';
 import {updatePreferredSkinTone as updatePreferredSkinToneAction} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useCallback} from 'react';
+
 import useOnyx from './useOnyx';
 
 export default function usePreferredEmojiSkinTone() {

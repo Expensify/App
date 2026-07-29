@@ -1,6 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ErrorMessageRow from '@components/ErrorMessageRow';
@@ -15,12 +12,14 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
     clearContactMethod,
@@ -39,7 +38,10 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import {close} from '@userActions/Modal';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -47,12 +49,17 @@ import type {Login} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import {useIsFocused} from '@react-navigation/native';
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+
 import getDecodedContactMethodFromUriParam from './utils';
 
 type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
 function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
-    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
@@ -87,7 +94,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
 
     /**
-     * Navigate to the magic code verification page before setting contact method as default
+     * Navigate to the validateCode verification page before setting contact method as default
      */
     const navigateToSetDefaultConfirm = useCallback(() => {
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.getRoute(contactMethod, backTo));
@@ -147,8 +154,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         }
 
         if (isFocused) {
-            // Navigate to methods page on successful magic code verification.
-            // The validatedDate property indicates successful magic code verification.
+            // Navigate to methods page on successful validateCode verification.
+            // The validatedDate property indicates successful validateCode verification.
             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
         } else {
             // Set flag to navigate when screen regains focus
@@ -172,7 +179,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     useEffect(() => {
-        if (!loginData?.partnerUserID || loginData?.validatedDate || prevPendingDeletedLogin) {
+        if (!loginData?.partnerUserID || loginData?.validatedDate || loginData?.pendingFields?.deletedLogin || prevPendingDeletedLogin) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
@@ -254,7 +261,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     // Replacing spaces with "hard spaces" to prevent breaking the number
     const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod) : contactMethod;
-    const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
+    const hasValidateCodeBeenSent = !!loginData.validateCodeSent;
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
     const shouldSkipInitialValidation = route.params?.shouldSkipInitialValidation === 'true';
@@ -370,24 +377,24 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 )}
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
                     <ValidateCodeActionForm
-                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        handleSubmitForm={(validateCode) => validateSecondaryLogin(contactMethod, validateCode, formatPhoneNumber)}
+                        hasValidateCodeBeenSent={hasValidateCodeBeenSent}
+                        handleSubmitForm={(validateCode) => validateSecondaryLogin(contactMethod, validateCode)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => {
                             // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
                             // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
-                            if (!loginDataRef.current?.partnerUserID) {
+                            if (!loginDataRef.current?.partnerUserID || loginDataRef.current?.pendingFields?.deletedLogin) {
                                 return;
                             }
                             clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
                         }}
                         sendValidateCode={() => {
-                            if (!loginData.partnerUserID) {
+                            if (!loginData.partnerUserID || loginData.pendingFields?.deletedLogin) {
                                 return;
                             }
                             requestContactMethodValidateCode(contactMethod);
                         }}
-                        descriptionPrimary={translate('contacts.enterMagicCode', formattedContactMethod)}
+                        descriptionPrimary={translate('contacts.enterSecurityCode', formattedContactMethod)}
                         ref={validateCodeFormRef}
                         shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />

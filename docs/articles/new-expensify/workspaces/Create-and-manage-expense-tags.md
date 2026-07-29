@@ -1,8 +1,8 @@
 ---
 title: Create and Manage Expense Tags
 description: Add tags to use for coding expenses.
-keywords: [New Expensify, expense tags, class tracking, cost center, import tags, coding expenses, tag GL code]
-internalScope: Audience is Workspace Admins. Covers enabling, creating, importing, activating, and managing expense tags, including multi-level tags and tag GL codes. Does not cover personal expense rules or accounting system configuration.
+keywords: [New Expensify, expense tags, class tracking, cost center, import tags, coding expenses, tag GL code, tag approver, tag rules, tag approval]
+internalScope: Audience is Workspace Admins. Covers enabling, creating, importing, activating, and managing expense tags, including multi-level tags, tag GL codes, and tag approvers (Tag Rules) and how Tag/Category/workspace approvers combine in the approval chain. Does not cover personal expense rules or accounting system configuration.
 ---
 
 # Create and Manage Expense Tags
@@ -173,6 +173,22 @@ Expensify may suggest Tags based on how similar expenses were coded previously.
 
 ---
 
+## How to assign an approver to a tag
+
+You can require a specific person to approve any expense that uses a particular tag. This is useful when certain projects, departments, or cost centers need sign-off from a designated owner.
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[Workspace name]**.
+2. Select **Tags**.
+3. Select a tag to open its detail panel.
+4. Under **Tag Rules**, select **Approver**.
+5. Choose the member who should approve expenses with this tag, then select **Save**.
+
+Once set, any report that contains an expense with this tag is automatically routed to the Tag approver as part of the report's approval chain.
+
+**Note:** Tag approvers are available on the **Control** plan only.
+
+---
+
 # FAQ
 
 ## Can I edit expense tags on a submitted expense report?
@@ -181,6 +197,14 @@ Yes. You can edit tags until the expense is approved or reimbursed.
 
 Approvers can also edit tags after approval by taking control of the report.
 
+## How does a Tag approver fit into the Workspace approval workflow?
+
+Tag approvers are added to the beginning of a Workspace's approval workflow. When a report contains expenses assigned to a Tag with an approver, that approver must approve the report before it moves through the Workspace's standard approval workflow.
+
+If a Category approver is also assigned, the Category approver approves before the Tag approver.
+
+To learn how Category approvers, Tag approvers, and Workspace approvers work together, see [Set Category and Tag approvers](/articles/new-expensify/workspaces/Add-Approvals#set-category-and-tag-approvers).
+
 ## Can I see an audit trail of tag changes?
 
 Yes. When a tag is changed manually, the update appears in the expense chat.
@@ -188,6 +212,14 @@ Yes. When a tag is changed manually, the update appears in the expense chat.
 ## What happens if a tag is disabled in my accounting system?
 
 It will be removed from the workspace’s tag list. However, it will still appear on expenses or reports where it was previously applied.
+
+## What happens to an expense if its tag is disabled on the workspace?
+
+If tags are disabled on the workspace while an expense still has a tag applied, the **Tag** field stays on the expense with a **Tag no longer valid** violation.
+
+To resolve the violation, select the **Tag** field on the expense. A **Tag disabled** alert appears with options for managing the disabled tag.
+
+Alternatively, you can enable tags on the workspace to edit the tag directly.
 
 ## Why can’t I enable multi-level tags?
 

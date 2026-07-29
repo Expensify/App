@@ -1,6 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
+
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {

@@ -1,11 +1,15 @@
-import {Str} from 'expensify-common';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
 
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
     const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
@@ -143,6 +147,14 @@ function isCategoryDescriptionRequired(policyCategories: PolicyCategories | unde
     return !!policyCategories[category]?.areCommentsRequired;
 }
 
+function getCategoryGLCode(policyCategories: PolicyCategories | undefined, category: string | undefined): string {
+    if (!policyCategories || !category) {
+        return '';
+    }
+    const glCode = policyCategories[category]?.['GL Code'];
+    return glCode != null ? String(glCode).replaceAll('"', '') : '';
+}
+
 function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
@@ -208,6 +220,25 @@ function getAvailableNonPersonalPolicyCategories(policyCategories: OnyxCollectio
     );
 }
 
+function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean {
+    return Object.values(categories ?? {}).some((category) => {
+        if (category.maxExpenseAmount !== undefined && category.maxExpenseAmount !== null && category.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
+            return true;
+        }
+        // null means "use policy default" (inactive); 0 = always required, DISABLED_MAX_EXPENSE_VALUE = never required — both are explicit overrides
+        if (category.maxAmountNoReceipt !== undefined && category.maxAmountNoReceipt !== null) {
+            return true;
+        }
+        if (category.maxAmountNoItemizedReceipt !== undefined && category.maxAmountNoItemizedReceipt !== null) {
+            return true;
+        }
+        if (category.areCommentsRequired || category.areAttendeesRequired) {
+            return true;
+        }
+        return !!category.commentHint;
+    });
+}
+
 export {
     formatDefaultTaxRateText,
     formatRequireReceiptsOverText,
@@ -219,8 +250,10 @@ export {
     getEnabledCategoriesCount,
     isCategoryMissing,
     isCategoryDescriptionRequired,
+    getCategoryGLCode,
     getDecodedCategoryName,
     getDecodedLeafCategoryName,
     processCategoryNameSegments,
     getAvailableNonPersonalPolicyCategories,
+    hasAnyCategoryRules,
 };

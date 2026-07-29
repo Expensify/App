@@ -1,24 +1,33 @@
-import React, {useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {getCardAssignmentDateOption, getCardAssignmentStartDate, getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import Navigation from '@navigation/Navigation';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceInviteMessageComponent';
+
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import {clearInviteDraft} from '@userActions/Policy/Member';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {AssignCardData} from '@src/types/onyx/AssignCard';
+
+import React, {useEffect} from 'react';
 
 type InviteeNewMemberStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER> &
     WithCurrentUserPersonalDetailsProps;
@@ -70,7 +79,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
                 cardToAssign,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams), {forceReplace: true});
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path), {forceReplace: true});
         } else if (hasOnlyOneCardToAssign(filteredCardList)) {
             const onlyCard = filteredCardList.at(0);
             cardToAssign.cardName = onlyCard?.cardName;
@@ -82,7 +91,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
                 cardToAssign,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams), {forceReplace: true});
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path), {forceReplace: true});
         } else {
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CARD,
@@ -104,26 +113,33 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
     }, [assignCard?.cardToAssign?.invitingMemberEmail, policy?.employeeList, goToNextStep, assignCard?.cardToAssign?.invitingMemberAccountID, policyID]);
 
     return (
-        <InteractiveStepWrapper
-            wrapperID="InviteNewMemberStep"
-            shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
-            headerTitle={translate('workspace.companyCards.assignCard')}
-            handleBackButtonPress={handleBackButtonPress}
-            enableEdgeToEdgeBottomSafeAreaPadding
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
-            <WorkspaceInviteMessageComponent
-                policy={policy}
-                policyID={policyID}
-                backTo={undefined}
-                currentUserPersonalDetails={currentUserPersonalDetails}
-                shouldShowBackButton={false}
-                isInviteNewMemberStep
-                goToNextStep={goToNextStep}
-                shouldShowTooltip={false}
-                shouldShowMemberNames={false}
-            />
-        </InteractiveStepWrapper>
+            <InteractiveStepWrapper
+                wrapperID="InviteNewMemberStep"
+                shouldEnablePickerAvoiding={false}
+                shouldEnableMaxHeight
+                headerTitle={translate('workspace.companyCards.assignCard')}
+                handleBackButtonPress={handleBackButtonPress}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                <WorkspaceInviteMessageComponent
+                    policy={policy}
+                    policyID={policyID}
+                    backTo={undefined}
+                    currentUserPersonalDetails={currentUserPersonalDetails}
+                    shouldShowBackButton={false}
+                    isInviteNewMemberStep
+                    goToNextStep={goToNextStep}
+                    shouldShowTooltip={false}
+                    shouldShowMemberNames={false}
+                />
+            </InteractiveStepWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

@@ -1,10 +1,14 @@
-import React from 'react';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {getReportFieldAlternativeTextTranslationKey, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
+
 import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
+
+import React from 'react';
 
 type ReportFieldItemType = {
     /** The value */

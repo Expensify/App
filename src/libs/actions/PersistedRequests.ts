@@ -1,11 +1,14 @@
-import {deepEqual} from 'fast-equals';
-import type {OnyxKey} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import type {AnyRequest} from '@src/types/onyx/Request';
+
+import type {OnyxKey} from 'react-native-onyx';
+
+import {deepEqual} from 'fast-equals';
+import Onyx from 'react-native-onyx';
 
 let persistedRequests: AnyRequest[] = [];
 let ongoingRequest: AnyRequest | null = null;
@@ -260,10 +263,12 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<vo
                 queueLength: getLength(),
             });
         })
-        .catch(() => {
-            Log.info('[PersistedRequests] ERROR: Failed to persist request to disk', false, {
+        .catch((error) => {
+            // Disk-write failure risks losing this request on a crash — alert as a storage emergency.
+            Log.alert('[PersistedRequests] ERROR: Failed to persist request to disk', {
                 command: requestToPersist.command,
                 queueLength: getLength(),
+                error,
             });
         });
 }
@@ -334,9 +339,18 @@ function deleteRequestsByIndices(indices: number[]): Promise<void> {
     persistedRequests = persistedRequests.filter((_, index) => !indicesSet.has(index));
 
     // Update the persisted requests in storage or state as necessary
-    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests)).then(() => {
-        Log.info(`Multiple (${indices.length}) requests removed from the queue. Queue length is ${persistedRequests.length}`);
-    });
+    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests))
+        .then(() => {
+            Log.info(`Multiple (${indices.length}) requests removed from the queue. Queue length is ${persistedRequests.length}`);
+        })
+        .catch((error) => {
+            // Swallow so the conflict promise resolves (in-memory queue is the source of truth); alert as a storage emergency.
+            Log.alert('[PersistedRequests] ERROR: Failed to persist request deletion to disk', {
+                indicesCount: indices.length,
+                queueLength: getLength(),
+                error,
+            });
+        });
 }
 
 function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>): Promise<void> {
@@ -349,7 +363,14 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     if (requestIndex != null) {
         knownRequestIDs.add(requestIndex);
     }
-    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests));
+    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)).catch((error) => {
+        // Swallow so the conflict promise resolves (in-memory queue is the source of truth); alert as a storage emergency.
+        Log.alert('[PersistedRequests] ERROR: Failed to persist updated request to disk', {
+            command: newRequest.command,
+            queueLength: getLength(),
+            error,
+        });
+    });
 }
 
 function shouldPersistOngoingRequest(request: AnyRequest | null): boolean {

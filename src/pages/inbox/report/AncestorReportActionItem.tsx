@@ -1,18 +1,27 @@
-import {personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
-import React from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isTripPreview} from '@libs/ReportActionsUtils';
 import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isArchivedReport, navigateToLinkedReportAction} from '@libs/ReportUtils';
+
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type {Beta, IntroSelected, PersonalDetails, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
+import React from 'react';
+
 import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
@@ -86,7 +95,8 @@ function AncestorReportActionItem({
 }: AncestorReportActionItemProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailByAccountIDSelector(report?.ownerAccountID)});
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
 
     const shouldDisplayThreadDivider = !isTripPreview(reportAction);
     const isAncestorReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
@@ -150,6 +160,7 @@ function AncestorReportActionItem({
                 onPress={canOpenAncestorReport ? openAncestorReport : undefined}
                 parentReportAction={parentReportAction}
                 transactionThreadReport={transactionThreadReport}
+                chatReport={chatReport}
                 displayAsGroup={false}
                 shouldDisplayNewMarker={shouldDisplayNewMarker}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}

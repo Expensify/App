@@ -1,7 +1,7 @@
 ---
 title: Manage Logged-in Devices
 description: View signed-in devices and revoke device access for your Expensify account.
-keywords: [manage devices, revoke device access. log out remotely, revoke logged-in device, signed in devices, account security, New Expensify]
+keywords: [manage devices, revoke device access, log out remotely, revoke logged-in device, signed in devices, account security, OAuth connection, MCP connection, AI assistant access, New Expensify]
 internalScope: Audience is all Expensify members. Covers viewing and revoking signed-in device sessions in New Expensify. Does not cover two-factor authentication, account lock, or SAML/SSO configuration.
 ---
 
@@ -28,12 +28,24 @@ All Expensify members can view and revoke device access on web or mobile for the
 
 Each listed device represents an active login session on your account. Devices may appear multiple times if you signed in using different browsers, apps, or devices.
 
+The list is ordered by most recent activity, so the device you most recently used or added appears at the top.
+
 ---
 
 <!-- SCREENSHOT:
 Account > Security > Device Management with a list of devices 
 Design request:https://github.com/Expensify/Expensify/issues/637256
 -->
+
+---
+
+## What OAuth and MCP connections appear in Device management
+
+Some entries in your device list are app connections you authorized through OAuth rather than a phone, tablet, or browser. These include AI assistants and other tools connected through the Model Context Protocol (MCP), such as Claude, Cursor, or ChatGPT.
+
+These connections appear with a label like **OAuth - MCP (Claude)** instead of a device name and operating system. If the connected tool isn't recognized, the entry shows **OAuth - MCP**.
+
+To disconnect one of these tools from your account, click **Revoke** next to it. The tool immediately loses access and must be reauthorized before it can connect again.
 
 ---
 
@@ -65,4 +77,8 @@ No, devices must be revoked individually.
 
 ## What information can I see for each device?
 
-The device list shows the device name, operating system or browser, and the last time the device accessed your account.
+The device list shows the device name, operating system or browser, and the last time the device accessed your account. Authorized app connections appear with a label like **OAuth - MCP (Claude)** instead of a device name and operating system.
+
+## What the OAuth - MCP (Claude) label means in your device list
+
+It's an app you authorized to access your Expensify account through OAuth, such as an AI assistant connected through the Model Context Protocol (MCP). The label shows which tool is connected, for example **OAuth - MCP (Cursor)** or **OAuth - MCP (ChatGPT)**. Click **Revoke** to disconnect it.

@@ -1,22 +1,28 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addSageIntacctUserDimensions} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SageIntacctDimensionsForm';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import DimensionTypeSelector from './DimensionTypeSelector';
 
 function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {

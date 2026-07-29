@@ -1,5 +1,3 @@
-import React, {useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -8,13 +6,20 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
+
 import CONST from '@src/CONST';
+
+import type {View} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {TransactionListItemWideProps} from './types';
 
 function TransactionListItemWide<TItem extends ListItem>({
@@ -35,11 +40,15 @@ function TransactionListItemWide<TItem extends ListItem>({
     isLastItem,
     transactionViolations,
     handleActionButtonPress,
+    shouldDisableActionPointerEvents,
     transactionPreviewData,
     exportedReportActions,
+    policyCategories,
+    policyTagLists,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
     currentSearchHash,
+    chatReport,
 }: TransactionListItemWideProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -94,7 +103,11 @@ function TransactionListItemWide<TItem extends ListItem>({
         if (isEditingCell) {
             return;
         }
-        if (isDeletedTransaction && !canSelectMultiple) {
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isDeletedTransaction) {
+            if (canSelectMultiple) {
+                onCheckboxPress?.(item);
+            }
             return;
         }
         onSelectRow(item, transactionPreviewData, event);
@@ -166,7 +179,10 @@ function TransactionListItemWide<TItem extends ListItem>({
                     <TransactionItemRow
                         transactionItem={transactionItem}
                         report={transactionItem.report}
+                        chatReport={chatReport}
                         policy={transactionItem.policy}
+                        policyCategories={policyCategories}
+                        policyTagLists={policyTagLists}
                         shouldShowTooltip={showTooltip}
                         onButtonPress={handleActionButtonPress}
                         onCheckboxPress={() => onCheckboxPress?.(item)}
@@ -176,6 +192,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         isActionLoading={isLoading ?? isActionLoading}
                         isSelected={isSelected}
                         isDisabled={!!isDisabled}
+                        shouldDisableActionPointerEvents={shouldDisableActionPointerEvents}
                         dateColumnSize={dateColumnSize}
                         submittedColumnSize={submittedColumnSize}
                         approvedColumnSize={approvedColumnSize}

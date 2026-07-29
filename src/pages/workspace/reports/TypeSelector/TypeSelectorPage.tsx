@@ -1,26 +1,32 @@
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setDraftValues} from '@libs/actions/FormActions';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {ReportFieldItemType} from '@pages/workspace/reports/ReportFieldTypePicker';
 import ReportFieldTypePicker from '@pages/workspace/reports/ReportFieldTypePicker';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TypeSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_TYPE_SELECTOR>;
 

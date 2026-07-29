@@ -1,18 +1,20 @@
-import {addDays, format, startOfDay, subYears} from 'date-fns';
-import {TextEncoder} from 'util';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {
     containsHtmlTag,
     getAgeRequirementError,
+    getInvalidAddressErrorTranslationPath,
     isInvalidMerchantValue,
+    isPOBoxOrMailDrop,
     isRequiredFulfilled,
     isValidAccountRoute,
+    isValidAddress,
     isValidDate,
     isValidEmailWithTLD,
     isValidExpirationDate,
     isValidInputLength,
     isValidLegalName,
+    isValidNANPPhone,
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
@@ -25,6 +27,10 @@ import {
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
 } from '@src/libs/ValidationUtils';
+
+import {addDays, format, startOfDay, subYears} from 'date-fns';
+import {TextEncoder} from 'util';
+
 import {translateLocal} from '../utils/TestHelper';
 
 global.TextEncoder = TextEncoder as typeof global.TextEncoder;
@@ -590,6 +596,40 @@ describe('ValidationUtils', () => {
         });
     });
 
+    describe('isValidNANPPhone', () => {
+        test('Should return true for a standard US phone number', () => {
+            expect(isValidNANPPhone('+12018675309')).toBe(true);
+        });
+
+        test('Should return true for a Puerto Rico phone number', () => {
+            expect(isValidNANPPhone('+17873464732')).toBe(true);
+        });
+
+        test('Should return true for a US Virgin Islands phone number', () => {
+            expect(isValidNANPPhone('+13405551234')).toBe(true);
+        });
+
+        test('Should return true for a Guam phone number', () => {
+            expect(isValidNANPPhone('+16715551234')).toBe(true);
+        });
+
+        test('Should return true for a Northern Mariana Islands phone number', () => {
+            expect(isValidNANPPhone('+16705551234')).toBe(true);
+        });
+
+        test('Should return true for a Canadian phone number', () => {
+            expect(isValidNANPPhone('+14165551234')).toBe(true);
+        });
+
+        test('Should return false for a UK phone number', () => {
+            expect(isValidNANPPhone('+442071234567')).toBe(false);
+        });
+
+        test('Should return false for an empty string', () => {
+            expect(isValidNANPPhone('')).toBe(false);
+        });
+    });
+
     describe('isInvalidMerchantValue', () => {
         test('Valid merchnt name', () => {
             expect(isInvalidMerchantValue('test name')).toBe(false);
@@ -603,6 +643,76 @@ describe('ValidationUtils', () => {
             expect(isInvalidMerchantValue('')).toBe(true);
             expect(isInvalidMerchantValue('Expense')).toBe(true);
             expect(isInvalidMerchantValue('(none)')).toBe(true);
+        });
+    });
+
+    describe('isValidAddress', () => {
+        describe('invalid PO box formats', () => {
+            test.each([['PO Box 123'], ['P.O. Box 456'], ['Post Office Box 789'], ['po box 100'], ['PO Box #123']])('Should return false for PO box format: %s', (address) => {
+                expect(isValidAddress(address)).toBe(false);
+            });
+        });
+
+        describe('invalid PMB formats', () => {
+            test.each([
+                ['PMB 123'],
+                ['PMB#456'],
+                ['PMB# 456'],
+                ['PMB #456'],
+                ['PMB # 456'],
+                ['Private Mail Box 789'],
+                ['Private Mail Box #789'],
+                ['Private Mail Box # 789'],
+                ['private mailbox 100'],
+            ])('Should return false for PMB format: %s', (address) => {
+                expect(isValidAddress(address)).toBe(false);
+            });
+        });
+
+        describe('valid physical addresses', () => {
+            test.each([['742 Evergreen Terrace'], ['1600 Pennsylvania Ave NW'], ['100 Market Street, Apt 5'], ['123 Blackbox Hill Road'], ['123 Boxwood Lane'], ['456 Mailbox Drive']])(
+                'Should return true for valid physical address: %s',
+                (address) => {
+                    expect(isValidAddress(address)).toBe(true);
+                },
+            );
+        });
+
+        describe('invalid non-address values', () => {
+            test('Should return false for empty string', () => {
+                expect(isValidAddress('')).toBe(false);
+            });
+
+            test('Should return false for addresses containing only emojis', () => {
+                expect(isValidAddress('😊')).toBe(false);
+            });
+        });
+    });
+
+    describe('isPOBoxOrMailDrop', () => {
+        test.each([['PO Box 123'], ['P.O. Box 456'], ['po box 100'], ['PMB 123'], ['PMB # 456'], ['Private Mail Box #789']])('Should return true for PO box/PMB value: %s', (address) => {
+            expect(isPOBoxOrMailDrop(address)).toBe(true);
+        });
+
+        test.each([['742 Evergreen Terrace'], ['456 Mailbox Drive'], [''], ['😊']])('Should return false for non PO box/PMB value: %s', (address) => {
+            expect(isPOBoxOrMailDrop(address)).toBe(false);
+        });
+    });
+
+    describe('getInvalidAddressErrorTranslationPath', () => {
+        test.each([['PO Box 123'], ['P.O. Box 456'], ['PMB 123'], ['PMB # 456'], ['Private Mail Box #789']])(
+            'Should return the physical address required copy for PO box/PMB value: %s',
+            (address) => {
+                expect(getInvalidAddressErrorTranslationPath(address)).toBe('bankAccount.error.physicalAddressRequired');
+            },
+        );
+
+        test.each([['😊'], ['742 Evergreen Terrace 🏠'], ['']])('Should return the generic street address copy for other invalid value not related to PO box/PMB: %s', (address) => {
+            expect(getInvalidAddressErrorTranslationPath(address)).toBe('bankAccount.error.addressStreet');
+        });
+
+        test.each([['742 Evergreen Terrace'], ['1600 Pennsylvania Ave NW'], ['123 Boxwood Lane']])('Should return undefined for valid physical address: %s', (address) => {
+            expect(getInvalidAddressErrorTranslationPath(address)).toBeUndefined();
         });
     });
 

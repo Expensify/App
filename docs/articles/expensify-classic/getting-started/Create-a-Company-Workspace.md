@@ -126,6 +126,8 @@ Enable Two-Factor Authentication (2FA) to protect your account.
 
 At future logins, Expensify will send a **magic code** to your email. You must also enter a new 6-digit code from your authenticator app.
 
+Check out this resource for additional instructions on [setting up 2FA](/articles/expensify-classic/settings/Two-Factor-Authentication).
+
 ---
 
 # Navigating Multiple Workspaces
@@ -148,5 +150,5 @@ By reinforcing this process, you help prevent expense reports from being mis-cat
 
 ---
 
-**Need help?** Schedule a free onboarding session with a Setup Specialist! Check your email and Expensify notifications for your unique signup link.
+**Need help?** Schedule a free onboarding session with an Account Executive! Check your email and Expensify notifications for your unique signup link.
 

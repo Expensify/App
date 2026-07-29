@@ -1,7 +1,9 @@
 import React from 'react';
 import {Linking} from 'react-native';
-import BaseLocationErrorMessage from './BaseLocationErrorMessage';
+
 import type LocationErrorMessageProps from './types';
+
+import BaseLocationErrorMessage from './BaseLocationErrorMessage';
 
 /** Opens app level settings from the native system settings  */
 const openAppSettings = () => {

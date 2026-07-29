@@ -1,11 +1,18 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
+import Table from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import Text from '@components/Text';
+
+import type Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+
+import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
-import Table from '@components/Table';
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Text from '@components/Text';
-import type Navigation from '@libs/Navigation/Navigation';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -82,6 +89,12 @@ jest.mock('@components/Icon', () => {
     return MockIcon;
 });
 
+// Table.Row reads the ScreenWrapper transition context, which isn't present in this isolated render
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    __esModule: true,
+    default: () => ({didScreenTransitionEnd: true}),
+}));
+
 // Mock the responsive hook so that we are rendering in web mode
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
@@ -135,21 +148,35 @@ jest.mock('@components/Pressable', () => ({
 
 // Sample data types for testing
 type TestItem = {
+    keyForList: string;
     id: string;
     name: string;
     category: string;
     value: number;
+    disabled?: boolean;
 };
 
 type TestColumnKey = 'name' | 'category' | 'value';
 
 // Sample test data
 const mockData: TestItem[] = [
-    {id: '1', name: 'Apple', category: 'fruit', value: 100},
-    {id: '2', name: 'Banana', category: 'fruit', value: 200},
-    {id: '3', name: 'Carrot', category: 'vegetable', value: 50},
-    {id: '4', name: 'Date', category: 'fruit', value: 150},
-    {id: '5', name: 'Eggplant', category: 'vegetable', value: 75},
+    {keyForList: '1', id: '1', name: 'Apple', category: 'fruit', value: 100},
+    {keyForList: '2', id: '2', name: 'Banana', category: 'fruit', value: 200},
+    {
+        keyForList: '3',
+        id: '3',
+        name: 'Carrot',
+        category: 'vegetable',
+        value: 50,
+    },
+    {keyForList: '4', id: '4', name: 'Date', category: 'fruit', value: 150},
+    {
+        keyForList: '5',
+        id: '5',
+        name: 'Eggplant',
+        category: 'vegetable',
+        value: 75,
+    },
 ];
 
 const mockColumns: Array<TableColumn<TestColumnKey>> = [
@@ -288,7 +315,12 @@ describe('Table', () => {
             const props = createDefaultProps();
             const customColumns: Array<TableColumn<TestColumnKey>> = [
                 {key: 'name', label: 'Name', styling: {flex: 2}, sortable: true},
-                {key: 'category', label: 'Category', styling: {flex: 1}, sortable: true},
+                {
+                    key: 'category',
+                    label: 'Category',
+                    styling: {flex: 1},
+                    sortable: true,
+                },
                 {key: 'value', label: 'Value', styling: {flex: 1}, sortable: true},
             ];
 
@@ -311,7 +343,7 @@ describe('Table', () => {
     });
 
     describe('search functionality', () => {
-        it('should render search bar when SearchBar component is used', () => {
+        it('should render search bar when FilterBar component is used', () => {
             const props = createDefaultProps();
             render(
                 <Table<TestItem, TestColumnKey>
@@ -321,7 +353,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -339,7 +371,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -362,7 +394,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -385,7 +417,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -410,7 +442,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -436,7 +468,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -460,7 +492,7 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -481,13 +513,13 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
-                    filterType: 'single-select',
+                    label: 'test',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [
                         {label: 'All', value: 'all'},
                         {label: 'Fruit', value: 'fruit'},
                         {label: 'Vegetable', value: 'vegetable'},
                     ],
-                    default: 'all',
                 },
             };
 
@@ -693,7 +725,7 @@ describe('Table', () => {
             expect(screen.getByTestId('row-1')).toBeTruthy();
         });
 
-        it('should work with SearchBar and Body', () => {
+        it('should work with FilterBar and Body', () => {
             const props = createDefaultProps();
             render(
                 <Table<TestItem, TestColumnKey>
@@ -703,7 +735,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -717,27 +749,28 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
-                    filterType: 'single-select',
+                    label: 'test',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [{label: 'All', value: 'all'}],
-                    default: 'all',
                 },
             };
 
             render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    isItemInSearch={props.isItemInSearch}
-                    compareItems={props.compareItems}
-                    filters={filterConfig}
-                >
-                    <Table.SearchBar label="Search" />
-                    <Table.FilterButtons />
-                    <Table.Header />
-                    <Table.Body />
-                </Table>,
+                <NavigationContainer>
+                    <Table<TestItem, TestColumnKey>
+                        data={props.data}
+                        columns={props.columns}
+                        renderItem={props.renderItem}
+                        keyExtractor={props.keyExtractor}
+                        isItemInSearch={props.isItemInSearch}
+                        compareItems={props.compareItems}
+                        filters={filterConfig}
+                    >
+                        <Table.FilterBar label="Search" />
+                        <Table.Header />
+                        <Table.Body />
+                    </Table>
+                </NavigationContainer>,
             );
 
             expect(screen.getByTestId('search-input')).toBeTruthy();
@@ -756,7 +789,7 @@ describe('Table', () => {
                     isItemInSearch={props.isItemInSearch}
                 >
                     <Table.Header />
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -771,15 +804,16 @@ describe('Table', () => {
     describe('combined search and filter', () => {
         it('should apply both search and filter together', () => {
             const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
 
-            const filterConfig: FilterConfig = {
+            const filterConfig: FilterConfig<'category'> = {
                 category: {
-                    filterType: 'single-select',
+                    label: 'test',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [
                         {label: 'All', value: 'all'},
                         {label: 'Fruit', value: 'fruit'},
                     ],
-                    default: 'fruit',
                 },
             };
 
@@ -791,19 +825,26 @@ describe('Table', () => {
             };
 
             render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    filters={filterConfig}
-                    isItemInFilter={isItemInFilter}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.SearchBar label="Search" />
-                    <Table.Body />
-                </Table>,
+                <NavigationContainer>
+                    <Table<TestItem, TestColumnKey, 'category'>
+                        ref={tableRef}
+                        data={props.data}
+                        columns={props.columns}
+                        renderItem={props.renderItem}
+                        keyExtractor={props.keyExtractor}
+                        filters={filterConfig}
+                        isItemInFilter={isItemInFilter}
+                        isItemInSearch={props.isItemInSearch}
+                    >
+                        <Table.FilterBar label="Search" />
+                        <Table.Body />
+                    </Table>
+                </NavigationContainer>,
             );
+
+            act(() => {
+                tableRef.current?.updateFilter({key: 'category', value: ['fruit']});
+            });
 
             const searchInput = screen.getByTestId('search-input');
 
@@ -824,6 +865,7 @@ describe('Table', () => {
     describe('performance and edge cases', () => {
         it('should handle large datasets', () => {
             const largeData: TestItem[] = Array.from({length: 100}, (_, i) => ({
+                keyForList: String(i + 1),
                 id: String(i + 1),
                 name: `Item ${i + 1}`,
                 category: i % 2 === 0 ? 'fruit' : 'vegetable',
@@ -857,7 +899,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -881,7 +923,7 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
                 >
-                    <Table.SearchBar label="Search" />
+                    <Table.FilterBar label="Search" />
                     <Table.Body />
                 </Table>,
             );
@@ -894,6 +936,108 @@ describe('Table', () => {
             // All items should remain visible with whitespace-only search
             expect(screen.getByTestId('row-1')).toBeTruthy();
             expect(screen.getByTestId('row-2')).toBeTruthy();
+        });
+    });
+
+    describe('row selection (shift+click)', () => {
+        const renderSelectableRow = ({item, index}: ListRenderItemInfo<TestItem>) => (
+            <Table.Row
+                interactive
+                rowIndex={index}
+                disabled={item.disabled}
+                accessibilityLabel={item.name}
+            >
+                <Text testID={`name-${item.id}`}>{item.name}</Text>
+            </Table.Row>
+        );
+
+        function ControlledSelectableTable({data = mockData, initialSelected = []}: {data?: TestItem[]; initialSelected?: string[]}) {
+            const [selectedKeys, setSelectedKeys] = React.useState<string[]>(initialSelected);
+            const props = createDefaultProps();
+            return (
+                <View>
+                    <Text testID="selected-keys">{[...selectedKeys].sort().join(',')}</Text>
+                    <Table<TestItem, TestColumnKey>
+                        data={data}
+                        columns={props.columns}
+                        renderItem={renderSelectableRow}
+                        keyExtractor={props.keyExtractor}
+                        selectionEnabled
+                        selectedKeys={selectedKeys}
+                        onRowSelectionChange={setSelectedKeys}
+                    >
+                        <Table.Header />
+                        <Table.Body />
+                    </Table>
+                </View>
+            );
+        }
+
+        const pressRow = (index: number, shiftKey = false) => {
+            const checkbox = screen.getAllByLabelText('common.select').at(index);
+            if (!checkbox) {
+                throw new Error(`No selectable row at index ${index}`);
+            }
+            fireEvent.press(checkbox, shiftKey ? {shiftKey: true} : undefined);
+        };
+
+        it('should select the range between a clicked anchor and a shift+clicked row', () => {
+            render(<ControlledSelectableTable />);
+
+            pressRow(0);
+            pressRow(3, true);
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3,4$/);
+        });
+
+        it('should move the range endpoint on a consecutive shift+click, deselecting rows that fall out of the range', () => {
+            render(<ControlledSelectableTable />);
+
+            pressRow(0);
+            pressRow(4, true);
+            pressRow(2, true);
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3$/);
+        });
+
+        it('should range-select when the press event carries shiftKey only on nativeEvent', () => {
+            render(<ControlledSelectableTable />);
+
+            pressRow(0);
+            const checkbox = screen.getAllByLabelText('common.select').at(3);
+            if (!checkbox) {
+                throw new Error('No selectable row at index 3');
+            }
+            fireEvent.press(checkbox, {nativeEvent: {shiftKey: true}});
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3,4$/);
+        });
+
+        it('should select from the first selectable row when shift+click is the first action', () => {
+            render(<ControlledSelectableTable />);
+
+            pressRow(2, true);
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3$/);
+        });
+
+        it('should collapse the selection when Select All is followed by a shift+click', () => {
+            render(<ControlledSelectableTable />);
+
+            fireEvent.press(screen.getByLabelText('workspace.common.selectAll'));
+            pressRow(2, true);
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3$/);
+        });
+
+        it('should exclude disabled rows from the range', () => {
+            const dataWithDisabledRow = mockData.map((item, index) => (index === 2 ? {...item, disabled: true} : item));
+            render(<ControlledSelectableTable data={dataWithDisabledRow} />);
+
+            pressRow(0);
+            pressRow(4, true);
+
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,4,5$/);
         });
     });
 });

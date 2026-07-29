@@ -52,6 +52,8 @@ type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentV
 
 type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
 
+type ViolationsInactiveVendorParams = {isSupplier?: boolean};
+
 type OptionalParam<T> = Partial<T>;
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
@@ -85,6 +87,14 @@ type ConnectionNameParams = {
     connectionName: AllConnectionName;
 };
 
+type ConnectionDisplayNameParams = {
+    connectionName: string;
+};
+
+type DefaultVendorHelperTextParams = {
+    isSet: boolean;
+};
+
 type ExportAgainModalDescriptionParams = {
     reportName: string;
     connectionName: ConnectionName;
@@ -101,6 +111,8 @@ type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
 type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
 
 type DelegateRoleParams = {role: DelegateRole};
+
+type RemoveCopilotAccessConfirmationParams = {delegatorName: string};
 
 type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
@@ -129,12 +141,17 @@ type ConciergeBrokenCardConnectionParams = {
     connectionLink?: string;
 };
 
+type EmptyViolationSnapshotResultsSubtitleParams = {
+    formattedDate: string;
+};
+
 export type {
     MissingPropertyParams,
     InvalidPropertyParams,
     InvalidValueParams,
     RemovedFromApprovalWorkflowParams,
     DelegateRoleParams,
+    RemoveCopilotAccessConfirmationParams,
     SyncStageNameConnectionsParams,
     IntacctMappingTitleParams,
     ExportIntegrationSelectedParams,
@@ -147,6 +164,7 @@ export type {
     ParentNavigationSummaryParams,
     PaidElsewhereParams,
     ConciergeBrokenCardConnectionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -156,6 +174,7 @@ export type {
     StepCounterParams,
     ViolationsModifiedAmountParams,
     ViolationsIncreasedDistanceParams,
+    ViolationsInactiveVendorParams,
     ChangeFieldParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,
@@ -164,6 +183,8 @@ export type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     ConnectionNameParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
     OptionalParam,

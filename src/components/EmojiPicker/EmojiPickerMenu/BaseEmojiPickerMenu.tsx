@@ -1,18 +1,23 @@
-import {FlashList} from '@shopify/flash-list';
-import type {FlashListRef, ListRenderItem} from '@shopify/flash-list';
-import React from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
+
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {EmojiPickerList, EmojiPickerListItem, HeaderIndices} from '@libs/EmojiUtils';
+
 import CONST from '@src/CONST';
+
+import type {FlashListRef, ListRenderItem} from '@shopify/flash-list';
+import type {ForwardedRef} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {FlashList} from '@shopify/flash-list';
+import React from 'react';
+import {View} from 'react-native';
 
 type BaseEmojiPickerMenuProps = {
     /** Indicates if the emoji list is filtered or not */

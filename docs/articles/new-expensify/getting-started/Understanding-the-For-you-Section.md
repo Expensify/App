@@ -1,7 +1,7 @@
 ---
 title: Understanding the For you Section
 description: Learn how the For you section on Home works, what counts as a to-do, which items can appear, and where each one takes you.
-keywords: [New Expensify, Home For you, For you section, submit report, approve report, pay reports, export reports, fix reports]
+keywords: [New Expensify, Home For you, For you section, review expenses, flagged expenses, submit report, approve report, pay reports, export reports, fix reports]
 internalScope: Audience is all Expensify members. Covers how the For you section on Home works, including what qualifies as a to-do, which items can appear, who sees them, and where each item routes. Does not cover how reports are submitted, approved, paid, exported, or fixed in detail.
 ---
 
@@ -37,6 +37,7 @@ Only actions that are required to move a report along will appear here.
 
 The **For you** section can show items like: 
 
+- **Review** – expenses on your draft reports that are flagged against your workspace’s rules and need to be reviewed before the report can be submitted
 - **Submit** – reports that are ready for you to submit
 - **Approve** – reports waiting for your approval
 - **Pay** – approved reports waiting to be paid
@@ -50,6 +51,7 @@ The **For you** section can show items like:
 The items you see in **For you** depend on what actions you’re responsible for.
 
 - **Submitters** may see:
+  - Review
   - Submit
 
 - **Approvers** may see:
@@ -64,9 +66,10 @@ The items you see in **For you** depend on what actions you’re responsible for
 
 ## Where each For you item takes you
 
-When you select an item in **For you**, you’re taken directly to **Spend**, filtered to show the items that need that action.
+When you select an item in **For you**, you’re taken directly to where you can take action.
 
 For example:
+- **Review** takes you to the first flagged expense so you can resolve the rule violation
 - **Submit** takes you to reports ready to submit
 - **Approve** takes you to reports waiting for approval
 - **Pay** takes you to approved reports waiting to be paid

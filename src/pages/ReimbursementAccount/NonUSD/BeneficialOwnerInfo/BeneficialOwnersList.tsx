@@ -1,20 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type BeneficialOwnersListProps = {
     /** Method called when user confirms data */

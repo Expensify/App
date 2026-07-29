@@ -1,35 +1,33 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+
 import useFilesValidation from '@hooks/useFilesValidation';
 import {precacheReceiptImage} from '@hooks/useLocalReceiptThumbnail';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import useSelfDMReport from '@hooks/useSelfDMReport';
-import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
-import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+
+import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
+import {getPickerCaptureSource} from '@libs/telemetry/ReceiptObservability';
+
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
-import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
-import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
-import {setTransactionReport} from '@userActions/Transaction';
-import CONST from '@src/CONST';
+
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import Camera from './Camera';
 import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
+import {NavigateGlobalCreateProvider, useNavigateGlobalCreate} from './NavigateGlobalCreateContext';
 
 type ScanGlobalCreateProps = WithCurrentUserPersonalDetailsProps & {
     iouType: IOUType;
@@ -42,59 +40,37 @@ type ScanGlobalCreateProps = WithCurrentUserPersonalDetailsProps & {
 /**
  * ScanGlobalCreate — initiated from the FAB (+) button (no specific report).
  * Uses default expense policy to auto-select workspace, or navigates to participant picker.
+ *
+ * Wrapper renders NavigateGlobalCreateProvider so post-capture Onyx reads stay
+ * off the camera-mount critical path. See NavigateGlobalCreateContext.tsx.
  */
-function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanGlobalCreateProps) {
-    const defaultExpensePolicy = useDefaultExpensePolicy();
-    const personalPolicy = usePersonalPolicy();
-    const selfDMReport = useSelfDMReport();
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+function ScanGlobalCreate({iouType, backToReport, ...innerProps}: ScanGlobalCreateProps) {
+    return (
+        <NavigateGlobalCreateProvider
+            iouType={iouType}
+            backToReport={backToReport}
+            {...innerProps}
+        >
+            <ScanGlobalCreateInner {...innerProps} />
+        </NavigateGlobalCreateProvider>
+    );
+}
+
+type ScanGlobalCreateInnerProps = Omit<ScanGlobalCreateProps, 'iouType' | 'backToReport'>;
+
+function ScanGlobalCreateInner({reportID, transactionID, transaction, currentUserPersonalDetails}: ScanGlobalCreateInnerProps) {
+    const navigateGlobalCreate = useNavigateGlobalCreate();
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
     const {isMultiScanEnabled} = useMultiScanState();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
-
     const [transactions] = useOptimisticDraftTransactions(transaction);
 
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
-    const navigateGlobalCreate = (transactionIDs: string[]) => {
-        startScanProcessSpan(isMultiScanEnabled);
-        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)) {
-            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
-            const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
-            const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
-
-            // If the user previously selected different participants in confirmation, preserve that choice
-            if (transaction?.participants && transaction.participants.at(0)?.reportID !== targetReport?.reportID) {
-                const isTrackExpense = transaction.participants.at(0)?.reportID === selfDMReport?.reportID;
-
-                const setParticipantsPromises = transactionIDs.map((tid) => setMoneyRequestParticipants(tid, transaction.participants));
-                Promise.all(setParticipantsPromises).then(() => {
-                    if (isTrackExpense) {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, selfDMReport?.reportID));
-                    } else {
-                        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, transaction.reportID);
-                    }
-                });
-                return;
-            }
-
-            const setParticipantsPromises = transactionIDs.map((tid) => {
-                setTransactionReport(tid, {reportID: transactionReportID}, true);
-                return setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
-            });
-            Promise.all(setParticipantsPromises).then(() =>
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID)),
-            );
-        } else {
-            navigateToParticipantPage(iouType, transactionID, reportID);
-        }
-    };
-
-    const processReceipts = (files: FileObject[]) => {
+    const processReceipts = (files: FileObject[], captureSource: ReceiptCaptureSource) => {
         const receiptFiles = buildReceiptFiles({
             files,
             getFileSource,
@@ -106,6 +82,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
             isMultiScanEnabled,
             transactions,
             draftTransactionIDsToCleanUp: draftTransactionIDs,
+            captureSource,
         });
 
         if (receiptFiles.length === 0) {
@@ -116,7 +93,10 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
             return;
         }
 
-        navigateGlobalCreate(receiptFiles.map((rf: ReceiptFile) => rf.transactionID));
+        navigateGlobalCreate(
+            receiptFiles.map((rf: ReceiptFile) => rf.transactionID),
+            isMultiScanEnabled,
+        );
     };
 
     const submitMultiScan = () => {
@@ -124,11 +104,11 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
         if (ids.length === 0) {
             return;
         }
-        navigateGlobalCreate(ids);
+        navigateGlobalCreate(ids, isMultiScanEnabled);
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files);
+        processReceipts(files, getPickerCaptureSource());
     });
 
     return (
@@ -137,12 +117,12 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
             <Camera
                 onCapture={(file, source) => {
                     if (isMultiScanEnabled) {
-                        processReceipts([file]);
+                        processReceipts([file], 'camera');
                         return;
                     }
                     // Pre-warm the thumbnail cache before navigating so the confirm page
                     // doesn't flash an un-thumbnail receipt.
-                    precacheReceiptImage(source).then(() => processReceipts([file]));
+                    precacheReceiptImage(source).then(() => processReceipts([file], 'camera'));
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}

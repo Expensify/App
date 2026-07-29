@@ -1,7 +1,8 @@
-import {Line, vec} from '@shopify/react-native-skia';
 import type {Color} from '@shopify/react-native-skia';
-import React from 'react';
 import type {ChartBounds, Scale} from 'victory-native';
+
+import {Line, vec} from '@shopify/react-native-skia';
+import React from 'react';
 
 type LeftFrameLineProps = {
     chartBounds: ChartBounds;

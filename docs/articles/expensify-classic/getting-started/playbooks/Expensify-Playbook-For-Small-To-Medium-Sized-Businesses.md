@@ -38,7 +38,7 @@ For small businesses, we recommend the **Control Plan** because:
 2. Select **Group** and click **New Workspace**.
 3. Click **Select** under **Control**.
 
-Control Plan users also receive a **Setup Specialist** to assist with onboarding. Find yours in *[new.expensify.com](https://new.expensify.com)* under your workspace’s **#admins** room.
+Control Plan users also receive an **Account Executive** to assist with onboarding. Find yours in *[new.expensify.com](https://new.expensify.com)* under your workspace’s **#admins** room.
 
 ---
 
@@ -152,5 +152,5 @@ More info on the Spending Insights feature can be found [here](https://help.expe
 
 ## You’re All Set!
 
-Congratulations! Your business is now fully optimized with Expensify. If you need assistance, contact your **Setup Specialist** via *[new.expensify.com](https://new.expensify.com)*.
+Congratulations! Your business is now fully optimized with Expensify. If you need assistance, contact your **Account Executive** via *[new.expensify.com](https://new.expensify.com)*.
 

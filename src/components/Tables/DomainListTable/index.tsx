@@ -1,20 +1,31 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import type {ValueOf} from 'type-fest';
-import DomainListEmptyState from '@components/Domain/DomainListEmptyState';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
+import type CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import DomainListTableRow from './DomainListTableRow';
 
 type DomainTableColumnKey = 'domains' | 'actions';
 
 type DomainRowData = {
+    keyForList: string;
     domainAccountID: number;
     title: string;
     disabled: boolean;
@@ -33,13 +44,24 @@ type DomainListTableProps = {
 export default function DomainListTable({domains}: DomainListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['EarthWithControls']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const domainTableColumns: Array<TableColumn<DomainTableColumnKey>> = [
-        {key: 'domains', label: translate('common.domains'), sortable: true},
-        {key: 'actions', width: variables.domainTableActionColumnWidth, label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
+        {
+            sortable: true,
+            key: 'domains',
+            label: translate('common.domains'),
+        },
+        {
+            sortable: false,
+            key: 'actions',
+            width: variables.domainTableActionColumnWidth,
+            label: '',
+            styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]},
+        },
     ];
 
     const compareTableItems: CompareItemsCallback<DomainRowData> = (item1, item2, activeSorting) => {
@@ -61,6 +83,14 @@ export default function DomainListTable({domains}: DomainListTableProps) {
         );
     };
 
+    const emptyStateButtons = [
+        {
+            success: true,
+            buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN)),
+            buttonText: translate('domain.addDomain.newDomain'),
+        },
+    ];
+
     return (
         <Table
             data={domains}
@@ -70,10 +100,20 @@ export default function DomainListTable({domains}: DomainListTableProps) {
             isItemInSearch={isTableItemInSearch}
             initialSortColumn="domains"
             title={translate('common.domains')}
-            ListEmptyComponent={DomainListEmptyState}
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
-            {domains.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findDomain')} />}
+            <Table.FilterBar label={translate('workspace.common.findDomain')} />
+            <Table.EmptyState
+                headerMedia={illustrations.EarthWithControls}
+                headerContentStyles={styles.emptyDomainListStaticIllustrationStyle}
+                title={translate('workspace.emptyDomain.title')}
+                subtitle={translate('workspace.emptyDomain.subtitle')}
+                titleStyles={styles.pt2}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                containerStyles={styles.mb10}
+                buttons={emptyStateButtons}
+            />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

@@ -1,9 +1,12 @@
-import Onyx from 'react-native-onyx';
-import {measureFunction} from 'reassure';
 import {getMemberAccountIDsForWorkspace, getSubmitToAccountID} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+import {measureFunction} from 'reassure';
+
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyEmployeeList from '../utils/collections/policyEmployeeList';
@@ -66,7 +69,7 @@ describe('PolicyUtils', () => {
                 100000,
             );
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
-            await measureFunction(() => getSubmitToAccountID(policy, expenseReport));
+            await measureFunction(() => getSubmitToAccountID(policy, expenseReport, ''));
         });
 
         describe('not a submit and close policy', () => {
@@ -98,7 +101,7 @@ describe('PolicyUtils', () => {
                     10000,
                 );
                 await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
-                await measureFunction(() => getSubmitToAccountID(policy, expenseReport));
+                await measureFunction(() => getSubmitToAccountID(policy, expenseReport, ''));
             });
 
             test('all transactions have category, but no category approval rules', async () => {
@@ -128,7 +131,7 @@ describe('PolicyUtils', () => {
                     10000,
                 );
                 await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
-                await measureFunction(() => getSubmitToAccountID(policy, expenseReport));
+                await measureFunction(() => getSubmitToAccountID(policy, expenseReport, ''));
             });
         });
     });

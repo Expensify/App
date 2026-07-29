@@ -1,7 +1,9 @@
 import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
+
 import CONFIG from '@src/CONFIG';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
+
 import {Pusher as MockedPusher} from '../../__mocks__/@pusher/pusher-websocket-react-native/index';
 
 /**

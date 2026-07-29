@@ -1,9 +1,13 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useTransactionThreadReportIDs from '@hooks/useTransactionThreadReportIDs';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomTransaction from '../../utils/collections/transaction';
 
 function makeIouAction(transactionID: string, reportActionID: string, childReportID?: string): ReportAction {

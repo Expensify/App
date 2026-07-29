@@ -1,8 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import {useListFilterHeightContext} from './ListFilterHeightContext';
 
 type ListFilterWrapperProps = {

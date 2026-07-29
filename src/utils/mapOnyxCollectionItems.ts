@@ -1,5 +1,6 @@
-import type {KeyValueMapping, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {OnyxCollectionKey} from '@src/ONYXKEYS';
+
+import type {KeyValueMapping, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 export default function mapOnyxCollectionItems<TKey extends OnyxCollectionKey, TReturn, TEntryData = KeyValueMapping[TKey]>(
     collection: OnyxCollection<TEntryData>,
