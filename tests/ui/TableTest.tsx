@@ -718,7 +718,7 @@ describe('Table', () => {
             expect(mockTextInputFocus).not.toHaveBeenCalled();
         });
 
-        it('should activate the sticky table header after the first list layout', () => {
+        it('should defer sticky table header activation until a remounted page-header list loads', () => {
             const props = createDefaultProps();
             const renderTable = (data: TestItem[]) => (
                 <Table<TestItem, TestColumnKey>
@@ -729,19 +729,18 @@ describe('Table', () => {
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
                     shouldUseStickyColumnHeader
                 >
+                    <Table.EmptyState title="No items yet" />
                     <Table.Body />
                 </Table>
             );
 
-            const {rerender} = render(renderTable([]));
-            expect(screen.getByTestId('flash-list')).toBeTruthy();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+            const {rerender} = render(renderTable(props.data));
+            activateStickyHeadersAfterListLoad();
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
 
-            act(() => {
-                mockFlashListProps.at(-1)?.onLoad?.({elapsedTimeInMs: 1});
-            });
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+            rerender(renderTable([]));
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(mockFlashListUnmount).toHaveBeenCalledTimes(1);
 
             let animationFrameCallback: FrameRequestCallback | undefined;
             const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
@@ -752,9 +751,14 @@ describe('Table', () => {
             rerender(renderTable(props.data));
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 2);
+            expect(animationFrameCallback).toBeUndefined();
+
+            act(() => {
+                mockFlashListProps.at(-1)?.onLoad?.({elapsedTimeInMs: 1});
+            });
 
             if (!animationFrameCallback) {
-                throw new Error('Expected sticky-header activation to be scheduled when rows appear');
+                throw new Error('Expected sticky-header activation to be scheduled after the remounted list loads');
             }
 
             act(() => {
@@ -869,10 +873,11 @@ describe('Table', () => {
             );
 
             const {rerender} = render(renderTable([]));
-            expect(screen.getByTestId('flash-list')).toBeTruthy();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(screen.getByTestId('table-empty-state-scroll-view')).toBeTruthy();
 
             rerender(renderTable(props.data));
+            expect(screen.getByTestId('flash-list')).toBeTruthy();
             const scrollToIndex = tableRef.current?.scrollToIndex;
             if (!scrollToIndex) {
                 throw new Error('Expected table ref methods to be restored after rows return');
@@ -1034,7 +1039,7 @@ describe('Table', () => {
             });
         });
 
-        it('should render a page-header empty state in the persistent FlashList footer', () => {
+        it('should render a page-header empty state in the centered standalone layout', () => {
             const props = createDefaultProps();
             const EmptyState = <Text testID="empty-state">No items found</Text>;
 
@@ -1051,11 +1056,11 @@ describe('Table', () => {
                 </Table>,
             );
 
-            const flashList = screen.getByTestId('flash-list');
-            expect(within(flashList).getByTestId('table-header-component')).toBeTruthy();
-            expect(within(flashList).getByTestId('empty-state')).toBeTruthy();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
-            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toBeUndefined();
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(screen.getByTestId('empty-state')).toBeTruthy();
+            expect(screen.getByTestId('table-empty-state-scroll-view')).toBeTruthy();
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(mockFlashListProps).toHaveLength(0);
         });
 
         it('should render ListEmptyComponent without mounting FlashList when only the sticky header keeps the body mounted', () => {
@@ -1080,7 +1085,7 @@ describe('Table', () => {
             expect(mockFlashListProps).toHaveLength(0);
         });
 
-        it('should render Table.EmptyState in the persistent list footer when a page header is present', () => {
+        it('should render Table.EmptyState below a page header in the centered standalone layout', () => {
             const props = createDefaultProps();
 
             render(
@@ -1097,18 +1102,42 @@ describe('Table', () => {
                 </Table>,
             );
 
-            // The empty state renders exactly once below the stable page-header row without
-            // becoming a recycled list cell.
-            const flashList = screen.getByTestId('flash-list');
             expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
-            expect(within(flashList).getByTestId('generic-empty-state')).toBeTruthy();
-            expect(within(flashList).getByTestId('table-header-component')).toBeTruthy();
-            expect(screen.queryByTestId('table-empty-state-scroll-view')).toBeNull();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
-            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toBeUndefined();
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(screen.getByTestId('table-empty-state-scroll-view')).toBeTruthy();
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(mockFlashListProps).toHaveLength(0);
         });
 
-        it('should keep an oversized page-header empty state naturally scrollable without flexing the footer over the header', () => {
+        it('should center a truly empty table when its composed FilterBar renders null', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={[]}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={composeTableHeaderComponent(undefined, <Table.FilterBar label="Search" />)}
+                >
+                    <Table.EmptyState title="No items yet" />
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.queryByTestId('search-input')).toBeNull();
+            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(screen.getByTestId('table-empty-state-scroll-view')).toBeTruthy();
+            const emptyStateAncestorStyles: unknown[] = [];
+            let emptyStateAncestor = screen.getByTestId('generic-empty-state').parent;
+            while (emptyStateAncestor) {
+                emptyStateAncestorStyles.push(StyleSheet.flatten(emptyStateAncestor.props.style));
+                emptyStateAncestor = emptyStateAncestor.parent;
+            }
+            expect(emptyStateAncestorStyles).toEqual(expect.arrayContaining([expect.objectContaining({justifyContent: 'center'})]));
+        });
+
+        it('should keep an oversized page-header empty state centered and scrollable', () => {
             const props = createDefaultProps();
             mockShouldUseNarrowLayout = true;
 
@@ -1121,21 +1150,35 @@ describe('Table', () => {
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
                     <Table.EmptyState title="No items yet" />
-                    <Table.Body />
+                    <Table.Body contentContainerStyle={{minHeight: 600, paddingBottom: 12}} />
                 </Table>,
             );
 
-            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.contentContainerStyle)).toEqual(
+            const emptyStateScrollView = screen.getByTestId('table-empty-state-scroll-view');
+            expect(StyleSheet.flatten(emptyStateScrollView.props.contentContainerStyle)).toEqual(
                 expect.objectContaining({
+                    flexGrow: 1,
                     paddingBottom: 80,
                 }),
             );
-            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.contentContainerStyle)).not.toEqual(expect.objectContaining({flexGrow: 1}));
-            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toBeUndefined();
-            const genericEmptyState = within(screen.getByTestId('flash-list')).getByTestId('generic-empty-state');
+            const genericEmptyState = screen.getByTestId('generic-empty-state');
             expect(StyleSheet.flatten(genericEmptyState.props.style)).toEqual(expect.objectContaining({minHeight: 400, flexGrow: 1, flexShrink: 0}));
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(1);
-            expect(screen.queryByTestId('table-empty-state-scroll-view')).toBeNull();
+            const emptyStateAncestorStyles: unknown[] = [];
+            let emptyStateAncestor = genericEmptyState.parent;
+            while (emptyStateAncestor) {
+                emptyStateAncestorStyles.push(StyleSheet.flatten(emptyStateAncestor.props.style));
+                emptyStateAncestor = emptyStateAncestor.parent;
+            }
+            expect(emptyStateAncestorStyles).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({justifyContent: 'center'}),
+                    expect.objectContaining({
+                        minHeight: undefined,
+                        paddingBottom: 12,
+                    }),
+                ]),
+            );
+            expect(screen.queryByTestId('flash-list')).toBeNull();
         });
 
         it('should keep the focused search input mounted when a page-header table changes to no results', () => {
@@ -1193,7 +1236,10 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.onEndReached).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.onStartReached).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.onViewableItemsChanged).toBeUndefined();
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
+            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({
+                offset: 0,
+                animated: false,
+            });
             expect(mockFlashListMount).toHaveBeenCalledTimes(1);
             expect(mockFlashListUnmount).not.toHaveBeenCalled();
             expect(mockTextInputMount).toHaveBeenCalledTimes(1);
@@ -1285,7 +1331,13 @@ describe('Table', () => {
                     shouldUseStickyColumnHeader
                 >
                     <Table.NoResultsState />
-                    <Table.Body contentContainerStyle={{flexGrow: 1, minHeight: 600, paddingBottom: 12}} />
+                    <Table.Body
+                        contentContainerStyle={{
+                            flexGrow: 1,
+                            minHeight: 600,
+                            paddingBottom: 12,
+                        }}
+                    />
                 </Table>,
             );
 

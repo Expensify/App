@@ -33,7 +33,7 @@ type TableBodyListProps = TableBodyProps & {
 };
 
 /**
- * Renders the table body using FlashList when data rows or a scrolling page header are present.
+ * Renders the table body using FlashList when data rows are present or a page-header search/filter has no results.
  *
  * This component consumes the Table context to access processed data and FlashList props.
  * It automatically handles empty states, including a special "no results found" message
@@ -99,21 +99,26 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         addOfflineIndicatorBottomSafeAreaPadding: true,
         style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
     });
+    const flattenedListContentContainerStyle = StyleSheet.flatten(listContentContainerStyle);
     const flattenedContentContainerStyle = StyleSheet.flatten(contentContainerStyle);
+    const listContentContainerStyleWithoutMinHeight = flattenedListContentContainerStyle ? {...flattenedListContentContainerStyle, minHeight: undefined} : undefined;
+    const contentContainerStyleWithoutMinHeight = flattenedContentContainerStyle ? {...flattenedContentContainerStyle, minHeight: undefined} : undefined;
     const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
     const shouldRenderStickyHeader = tableListMetadata.shouldRenderStickyHeader;
     const hasRows = filteredAndSortedData.length > 0;
+    const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && tableListMetadata.isEmptyResult);
     const [previousHasRows, setPreviousHasRows] = useState(hasRows);
     if (previousHasRows !== hasRows) {
         setPreviousHasRows(hasRows);
-        // A table with a page header keeps the same FlashList mounted while its rows change.
-        // Tables without one still replace the list with the standalone empty layout.
-        if (!tableListMetadata.hasPageHeader) {
-            setIsListLoaded(false);
-        }
         setHasActivatedStickyHeader(false);
+    }
+
+    const [previousShouldRenderFlashList, setPreviousShouldRenderFlashList] = useState(shouldRenderFlashList);
+    if (previousShouldRenderFlashList !== shouldRenderFlashList) {
+        setPreviousShouldRenderFlashList(shouldRenderFlashList);
+        setIsListLoaded(false);
     }
 
     const [previousShouldRenderStickyHeader, setPreviousShouldRenderStickyHeader] = useState(shouldRenderStickyHeader);
@@ -170,16 +175,17 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const emptyStateContainerStyle = [
         styles.flex1,
         styles.mnh0,
-        listContentContainerStyle,
-        contentContainerStyle,
-        shouldUseNarrowTableLayout &&
+        tableListMetadata.hasPageHeader ? listContentContainerStyleWithoutMinHeight : listContentContainerStyle,
+        tableListMetadata.hasPageHeader ? contentContainerStyleWithoutMinHeight : contentContainerStyle,
+        !tableListMetadata.hasPageHeader &&
+            shouldUseNarrowTableLayout &&
             typeof contentMinHeight === 'number' &&
             typeof tableBodyBottomPadding === 'number' && {
                 minHeight: contentMinHeight + tableBodyBottomPadding,
             },
     ];
 
-    if (!hasRows && !tableListMetadata.hasPageHeader) {
+    if (!shouldRenderFlashList) {
         return (
             <View
                 ref={listContainerRef}
@@ -187,6 +193,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 onLayout={onLayout}
                 {...props}
             >
+                {tableListMetadata.hasPageHeader && pageHeaderElement}
                 <View style={emptyStateContainerStyle}>
                     {/* Keep empty content centered when it fits, but let it scroll when the keyboard
                     or a short viewport leaves less space than the empty card needs. */}
@@ -206,9 +213,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     }
 
     // Keep the page-header row in one FlashList across rows -> no results -> rows transitions.
-    // Empty content follows it in the natural footer flow instead of becoming a recycled cell or
-    // remounting controls such as the search input. The footer must not flex-grow: FlashList lays
-    // footer cells independently, and growing one can visually cover the page-header row on native.
+    // Empty search results follow it in the natural footer flow instead of becoming a recycled cell
+    // or remounting controls such as the search input. A truly empty table uses the standalone
+    // centered layout above. The footer must not flex-grow: FlashList lays footer cells independently,
+    // and growing one can visually cover the page-header row on native.
     const renderedTableListMetadata = hasRows
         ? tableListMetadata
         : {
