@@ -63,7 +63,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const hasAccountError = !!account && !isEmptyObject(account?.errors);
     // The MFA registration challenge always uses VALIDATE_CODE_FORM, even when the account has 2FA enabled.
     const isValidateCodeFormSubmitting = !!account?.isLoading && account.loadingForm === CONST.FORMS.VALIDATE_CODE_FORM;
-    const shouldDisableResendCode = isOffline || !canResendValidateCode || !!validateActionCode?.isLoading;
+    const shouldDisableResendCode = isOffline || !canResendValidateCode;
     const validateCodeActionError = getLatestErrorField(validateActionCode, 'actionVerified');
     const hasValidateCodeActionError = !isEmptyObject(validateCodeActionError);
     const hasError = hasAccountError || showsInvalidCodeError || hasValidateCodeActionError;
