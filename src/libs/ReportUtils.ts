@@ -138,7 +138,7 @@ import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
-import {getDBTimeWithSkew} from './NetworkState';
+import {getDBTimeWithSkew, getServerAnchoredDBTime} from './NetworkState';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
@@ -356,6 +356,10 @@ type BuildOptimisticAddCommentReportActionParams = {
     attachmentID?: string;
     isHTML?: boolean;
     delegateAccountIDParam: number | undefined;
+    /** Anchor `created` to the server clock so it is comparable to Concierge's server-stamped replies. */
+    anchorCreatedToServer?: boolean;
+    /** Last action's `created` in the report; keeps the anchored `created` monotonic across successive sends. */
+    lastActionCreated?: string;
 };
 
 type OptimisticReportAction = {
@@ -3201,10 +3205,10 @@ function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transact
     return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
-function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
+function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions: ReportAction[], currentUserAccountID: number): boolean {
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
-    const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === deprecatedCurrentUserAccountID : false;
+    const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === currentUserAccountID : false;
     const isReportOpenOrProcessing = isOpenReport(report) || isProcessingReport(report);
     const isSingleTransaction = reportTransactions.length === 1;
 
@@ -3219,7 +3223,7 @@ function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactio
     }
 
     if (isInvoiceReport(report)) {
-        return report?.ownerAccountID === deprecatedCurrentUserAccountID && isReportOpenOrProcessing;
+        return report?.ownerAccountID === currentUserAccountID && isReportOpenOrProcessing;
     }
 
     // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
@@ -3233,7 +3237,7 @@ function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactio
             return false;
         }
 
-        const isReportSubmitter = isCurrentUserSubmitter(report);
+        const isReportSubmitter = isCurrentUserSubmitter(report, currentUserAccountID);
         return isReportSubmitter && (isOpenReport(report) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report)));
     }
 
@@ -3250,9 +3254,10 @@ function canDeleteReportAction(
     transaction: OnyxEntry<Transaction> | undefined,
     transactions: OnyxCollection<Transaction>,
     childReportActions: OnyxCollection<ReportAction>,
+    currentUserAccountID: number,
 ): boolean {
     const report = getReportOrDraftReport(reportID);
-    const isActionOwner = reportAction?.actorAccountID === deprecatedCurrentUserAccountID;
+    const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
 
     if (isDemoTransaction(transaction)) {
@@ -3284,6 +3289,7 @@ function canDeleteReportAction(
             report,
             Object.values(transactions ?? {}).filter((t): t is Transaction => !!t),
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
+            currentUserAccountID,
         );
     }
 
@@ -6638,6 +6644,8 @@ function buildOptimisticAddCommentReportAction({
     currentUserAccountID,
     isHTML = false,
     delegateAccountIDParam,
+    anchorCreatedToServer = false,
+    lastActionCreated,
 }: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
     const commentText = isHTML ? (text ?? '') : getParsedComment(text ?? '', {reportID});
     const attachmentHtml = getUploadingAttachmentHtml(file, attachmentID);
@@ -6668,7 +6676,7 @@ function buildOptimisticAddCommentReportAction({
             ],
             automatic: false,
             avatar: allPersonalDetails?.[accountID]?.avatar,
-            created: getDBTimeWithSkew(Date.now() + createdOffset),
+            created: anchorCreatedToServer ? getServerAnchoredDBTime(Date.now() + createdOffset, lastActionCreated) : getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
                     translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
@@ -12117,7 +12125,9 @@ function prepareOnboardingOnyxData({
         return;
     }
 
-    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] : '';
+    const integrationName = userReportedIntegration
+        ? (CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? userReportedIntegration)
+        : '';
     const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? CONST.EMAIL.QA_GUIDE;
     const assignedGuidePersonalDetail = getPersonalDetailByEmail(assignedGuideEmail);
     let assignedGuideAccountID: number;
@@ -13109,11 +13119,12 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
 }
 
 function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined, translate: LocalizedTranslate): string {
-    if (report && isInvoiceReport(report)) {
-        const properInvoiceReport = report;
-        properInvoiceReport.chatReportID = report.parentReportID;
-
-        return getInvoiceReportName(properInvoiceReport, translate);
+    const reportForHeader = getReportForHeader(report);
+    if (reportForHeader && isInvoiceReport(reportForHeader)) {
+        // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
+        // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
+        const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
+        return getInvoiceReportName(invoiceReport, translate);
     }
 
     if (action?.reportName) {

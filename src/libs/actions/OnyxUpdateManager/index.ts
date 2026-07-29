@@ -254,7 +254,7 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
         }
 
         console.debug(`[OnyxUpdateManager] Client is fetching missing updates from the server, from updates ${lastUpdateIDFromClient} to ${Number(previousUpdateIDFromServer)}`);
-        Log.info('Gap detected in update IDs from the server so fetching incremental updates', true, {
+        Log.info('Gap detected in update IDs from the server so fetching incremental updates', false, {
             lastUpdateIDFromClient,
             lastUpdateIDFromServer,
             previousUpdateIDFromServer,

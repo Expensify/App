@@ -169,6 +169,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             isTrackIntentUser,
             false,
             shouldDismissEmptyReportsConfirmation,
+            {managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined},
         );
         handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID, policyID: policyForNewReport?.id}, optimisticReport);
     };
