@@ -1,6 +1,7 @@
 import * as Repack from '@callstack/repack';
 import {ExpoModulesPlugin} from '@callstack/repack-plugin-expo-modules';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
+import {SwcJsMinimizerRspackPlugin} from '@rspack/core';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -100,6 +101,18 @@ export default Repack.defineRspackConfig((env) => {
                     test: /\.lottie$/,
                     use: '@callstack/repack/assets-loader',
                 },
+            ],
+        },
+        optimization: {
+            minimize: !isDev,
+            minimizer: [
+                new SwcJsMinimizerRspackPlugin({
+                    test: /\.(js)?bundle(\?.*)?$/i,
+                    extractComments: false,
+                    minimizerOptions: {
+                        format: {comments: false},
+                    },
+                }),
             ],
         },
         plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin(), process.env.RSDOCTOR && new RsdoctorRspackPlugin()].filter(Boolean),
