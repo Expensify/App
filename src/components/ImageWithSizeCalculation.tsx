@@ -12,8 +12,8 @@ import React, {useMemo} from 'react';
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import type {ImageObjectPosition} from './Image/types';
 
+import DeferredImageWithLoading from './DeferredImageWithLoading';
 import RESIZE_MODES from './Image/resizeModes';
-import ImageWithLoading from './ImageWithLoading';
 
 type OnMeasure = (args: {width: number; height: number}) => void;
 
@@ -95,7 +95,7 @@ function ImageWithSizeCalculation({
     };
 
     return (
-        <ImageWithLoading
+        <DeferredImageWithLoading
             containerStyles={[styles.w100, styles.h100, style]}
             style={[styles.w100, styles.h100]}
             source={source}
