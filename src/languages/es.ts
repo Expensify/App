@@ -9954,8 +9954,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         customUnitRateOutOfDateRange: ({startDate, endDate}: {startDate: string; endDate: string}) => `La tasa solo es válida desde ${startDate} hasta ${endDate}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tasa solo es válida desde ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tasa solo es válida hasta ${endDate}`,
-        cannotMergeDuplicates:
-            'Solo puedes combinar gastos en informes que estén abiertos o pendientes de primera aprobación. Es posible que tengas que retirar el informe, combinar los gastos y luego volver a enviarlo.',
+        cannotMergeDuplicates: 'Solo puedes combinar gastos en informes en borrador o pendientes. Retíralo e inténtalo de nuevo.',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName) => `${fieldName} es obligatorio`,
