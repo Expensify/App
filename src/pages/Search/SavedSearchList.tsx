@@ -35,6 +35,7 @@ import SearchTypeMenuItem from './SearchTypeMenuItem';
 
 type SavedSearchListProps = {
     hash: number | undefined;
+    name?: string;
 };
 
 type SavedSearchMenuItemBuilderParams = {
@@ -42,14 +43,15 @@ type SavedSearchMenuItemBuilderParams = {
     key: string;
     index: number;
     hash: number | undefined;
+    name?: string;
     title: string;
     getOverflowMenu: (itemName: string, itemHash: number, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
     itemStyle: SavedSearchMenuItem['style'];
     isCopied: boolean;
 };
 
-function buildSavedSearchMenuItem({item, key, index, hash, title, getOverflowMenu, itemStyle, isCopied}: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
-    const isItemFocused = Number(key) === hash;
+function buildSavedSearchMenuItem({item, key, index, hash, name, title, getOverflowMenu, itemStyle, isCopied}: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
+    const isItemFocused = !!name && Number(key) === hash && item.name === name;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
 
     return {
@@ -71,7 +73,7 @@ function buildSavedSearchMenuItem({item, key, index, hash, title, getOverflowMen
     };
 }
 
-function SavedSearchList({hash}: SavedSearchListProps) {
+function SavedSearchList({hash, name}: SavedSearchListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -128,6 +130,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
                       key,
                       index,
                       hash,
+                      name,
                       title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
                       getOverflowMenu,
                       itemStyle,

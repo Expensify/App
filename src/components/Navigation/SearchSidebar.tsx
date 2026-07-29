@@ -56,6 +56,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const toggleButtonAnimatedStyle = useSearchSidebarToggleButtonStyle();
 
     const route = state.routes.at(-1);
+    const searchRouteParams = route?.name === SCREENS.SEARCH.ROOT ? (route.params as {q?: string; name?: string} | undefined) : undefined;
     const {lastSearchType, currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const {setLastSearchType} = useSearchResultsActions();
@@ -122,7 +123,10 @@ function SearchSidebar({state}: SearchSidebarProps) {
                         </TopBar>
                         <Hoverable onHoverIn={startPeek}>
                             <View style={styles.flex1}>
-                                <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
+                                <SearchTypeMenuWide
+                                    queryJSON={currentSearchQueryJSON}
+                                    name={searchRouteParams?.name}
+                                />
                             </View>
                         </Hoverable>
                     </View>

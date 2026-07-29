@@ -55,6 +55,7 @@ type UseSearchTypeMenuSectionsParams = {
     sortBy?: string;
     sortOrder?: string;
     type?: string;
+    name?: string;
 };
 
 /**
@@ -66,7 +67,7 @@ type UseSearchTypeMenuSectionsParams = {
  * reliably, so this hook never depends on a navigation context itself.
  */
 const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams, isScreenFocused = true) => {
-    const {hash, similarSearchHash, sortBy, sortOrder, type} = queryParams ?? {};
+    const {hash, similarSearchHash, sortBy, sortOrder, type, name} = queryParams ?? {};
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
@@ -142,7 +143,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     );
 
     const activeItemIndex = useMemo(() => {
-        const isSavedSearchActive = hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
+        const isSavedSearchActive = !!name && hash !== undefined && savedSearches?.[hash]?.name === name;
 
         if (isSavedSearchActive) {
             return -1;
@@ -180,7 +181,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         }
 
         return -1;
-    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
+    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type, name]);
 
     const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
 

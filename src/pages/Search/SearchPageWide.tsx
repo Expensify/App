@@ -120,7 +120,10 @@ function SearchPageWide({
                 >
                     {!!queryJSON && (
                         <>
-                            <SearchPageHeaderWide queryJSON={queryJSON} />
+                            <SearchPageHeaderWide
+                                queryJSON={queryJSON}
+                                name={route.params.name}
+                            />
                             <SearchActionsBarWide
                                 queryJSON={queryJSON}
                                 searchResults={searchResults}

@@ -28,6 +28,7 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -166,7 +167,15 @@ function SearchSavePage() {
 
         const newName = name.trim() || currentSearchQueryJSON?.inputQuery;
         saveSearch({queryJSON: currentSearchQueryJSON, newName});
-        Navigation.goBack();
+        Navigation.dismissModal();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: currentSearchQueryJSON.inputQuery,
+                    name: newName,
+                }),
+            );
+        });
     };
 
     const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);

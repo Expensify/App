@@ -10,11 +10,12 @@ import React from 'react';
 
 type SearchPageHeaderWideProps = {
     queryJSON: SearchQueryJSON;
+    name?: string;
 };
 
-function SearchPageHeaderWide({queryJSON}: SearchPageHeaderWideProps) {
+function SearchPageHeaderWide({queryJSON, name}: SearchPageHeaderWideProps) {
     const {translate} = useLocalize();
-    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections(queryJSON);
+    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({...queryJSON, name});
     const selectedItem = typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex);
 
     let title = translate('common.spend');

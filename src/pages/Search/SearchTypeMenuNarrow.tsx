@@ -31,7 +31,7 @@ import {accountIDSelector} from '@src/selectors/Session';
 // NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
 // used for fast perceived performance. If you change the UI here, verify the
 // static version still looks visually identical.
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -79,6 +79,9 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
 function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
+    const route = useRoute();
+    const routeParams = route.params as {q?: string; name?: string} | undefined;
+    const searchName = routeParams?.name;
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -89,6 +92,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
             sortBy: queryJSON?.sortBy,
             sortOrder: queryJSON?.sortOrder,
             type: queryJSON?.type,
+            name: searchName,
         },
         isFocused,
     );
@@ -157,7 +161,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                       isCopied: copiedHash === itemHash,
                   });
 
-                  if (Number(key) === queryJSON?.hash) {
+                  if (!!searchName && Number(key) === queryJSON?.hash && item.name === searchName) {
                       activeKey = key;
                   }
 

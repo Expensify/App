@@ -35,18 +35,20 @@ import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON | undefined;
+    name?: string;
 };
 
 type SectionParams = {
     section: SearchTypeMenuSection;
     hash: number | undefined;
+    name?: string;
     activeItemIndex: number;
     sectionStartIndex: number;
     reportCounts: TodoCounts;
     onItemPress: (query: string) => void;
 };
 
-function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, onItemPress}: SectionParams) {
+function Section({section, hash, name, activeItemIndex, sectionStartIndex, reportCounts, onItemPress}: SectionParams) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(SEARCH_TYPE_MENU_ICON_NAMES);
 
@@ -63,7 +65,12 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
             title={translate(section.translationPath)}
             badgeText={getSectionBadgeText(section.translationPath, reportCounts)}
         >
-            {isSavedSearchesSection && <SavedSearchList hash={hash} />}
+            {isSavedSearchesSection && (
+                <SavedSearchList
+                    hash={hash}
+                    name={name}
+                />
+            )}
             {!isSavedSearchesSection &&
                 section.menuItems.map((item, itemIndex) => {
                     const flattenedIndex = sectionStartIndex + itemIndex;
@@ -85,14 +92,14 @@ function Section({section, hash, activeItemIndex, sectionStartIndex, reportCount
     );
 }
 
-function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
+function SearchTypeMenuWide({queryJSON, name}: SearchTypeMenuProps) {
     const {hash, similarSearchHash, sortBy, sortOrder, type} = queryJSON ?? {};
 
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type});
+    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type, name});
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     // Intentionally left enabled (no focus freeze): the wide menu renders in the search navigator's ExtraContent
@@ -142,6 +149,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                         section={expenseReportsSection}
                         onItemPress={handleTypeMenuItemPress}
                         hash={hash}
+                        name={name}
                         sectionStartIndex={0}
                         activeItemIndex={activeItemIndex}
                         reportCounts={reportCounts}
@@ -160,6 +168,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                             section={section}
                             onItemPress={handleTypeMenuItemPress}
                             hash={hash}
+                            name={name}
                             sectionStartIndex={sectionStartIndices.at(index + (expenseReportsSection ? 1 : 0)) ?? 0}
                             activeItemIndex={activeItemIndex}
                             reportCounts={reportCounts}
