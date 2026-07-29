@@ -212,6 +212,7 @@ function SettlementButton({
                 ),
                 confirmText: translate('bankAccount.unlockBankAccount'),
                 cancelText: translate('common.cancel'),
+                shouldDisableConfirmButtonWhenOffline: true,
             }).then(({action}) => {
                 if (action !== ModalActions.CONFIRM) {
                     return;
@@ -418,7 +419,9 @@ function SettlementButton({
                     return chatReport?.invoiceReceiver?.policyID;
                 }
 
-                if (canUseActivePolicy) {
+                // Currency only decides whether direct reimbursement is offered, so it must not gate reuse here:
+                // the setup flow we navigate to next is what brings the workspace to a supported currency.
+                if (hasActivePolicyAsAdmin) {
                     return activePolicy.id;
                 }
 
