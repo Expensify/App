@@ -4442,7 +4442,7 @@ const translations = {
         toLearnMore: ' to learn more.',
         termsAndConditions: {
             header: 'Before we continue...',
-            title: 'Terms & conditions',
+            title: 'Review terms & conditions',
             label: 'I agree to the terms & conditions',
             subtitle: `Please agree to the Expensify Travel <a href="${CONST.TRAVEL_TERMS_URL}">terms & conditions</a>.`,
             error: 'You must agree to the Expensify Travel terms & conditions to continue',
@@ -4516,11 +4516,16 @@ const translations = {
         errorMessage: 'Something went wrong. Please try again later.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</rbr>`,
         domainSelector: {
+            headline: 'Which domain do you want to set up?',
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
             recommended: 'Recommended',
         },
+        workspaceAddress: {
+            headline: "What's your business address?",
+        },
         taxID: {
+            headline: "What's your business tax ID?",
             title: 'Tax ID',
             subtitle: 'Enter your legal entity tax ID so we can set up travel billing in your local currency.',
             inputLabel: 'Legal entity tax ID',
@@ -5958,6 +5963,7 @@ const translations = {
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',
+            pleaseSelectACardholder: 'Please select a cardholder to continue',
             chooseCard: 'Choose a card',
             chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',
