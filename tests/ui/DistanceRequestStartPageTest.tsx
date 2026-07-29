@@ -12,8 +12,9 @@ import type {IOURequestType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, SelectedTabRequest} from '@src/types/onyx';
+import type {Policy, SelectedTabRequest, Transaction} from '@src/types/onyx';
 import type {DistanceExpenseType} from '@src/types/onyx/IOU';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -93,16 +94,20 @@ async function renderPage(defaultSelectedTab: SelectedTabRequest) {
     await waitForBatchedUpdatesWithAct();
 }
 
-function getDraftRequestType() {
-    return new Promise<OnyxEntry<IOURequestType>>((resolve) => {
+function getDraftTransaction() {
+    return new Promise<OnyxEntry<Transaction>>((resolve) => {
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
             callback: (value) => {
-                resolve(value?.iouRequestType);
+                resolve(value);
                 Onyx.disconnect(connection);
             },
         });
     });
+}
+
+async function getDraftRequestType(): Promise<OnyxEntry<IOURequestType>> {
+    return (await getDraftTransaction())?.iouRequestType;
 }
 
 describe('DistanceRequestStartPage', () => {
@@ -130,6 +135,22 @@ describe('DistanceRequestStartPage', () => {
 
         // Then the draft is rebuilt as a map expense, so it keeps the waypoints the Map tab needs
         await expect(getDraftRequestType()).resolves.toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+    });
+
+    it('should seed the waypoints that keep the waypoint editor reachable from the Map tab', async () => {
+        // Given a Map tab that is already selected and an Odometer expense created earlier
+        await setUpOnyx({
+            selectedTab: CONST.TAB_REQUEST.DISTANCE_MAP,
+            lastDistanceExpenseType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+        });
+
+        // When the page mounts on the Map tab with no draft request type yet
+        await renderPage(CONST.TAB_REQUEST.DISTANCE_MAP);
+
+        // Then both waypoints are present, so the waypoint page opens the editor instead of "Not here",
+        // which it shows whenever fewer than two waypoints are filled in
+        const waypoints = (await getDraftTransaction())?.comment?.waypoints ?? {};
+        expect(Object.values(waypoints).filter((waypoint) => !isEmptyObject(waypoint))).toHaveLength(2);
     });
 
     it('should fall back to the last created distance type when no tab has been selected yet', async () => {
