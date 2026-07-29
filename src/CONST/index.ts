@@ -5999,6 +5999,8 @@ const CONST = {
         TABLE: 'table',
         /** Use for table rows. */
         ROW: 'row',
+        /** Use to group table rows together (e.g. thead/tbody). */
+        ROWGROUP: 'rowgroup',
         /** Use for column header cells in a table. */
         COLUMNHEADER: 'columnheader',
         /** Use for data cells in a table row. */
@@ -8172,6 +8174,16 @@ const CONST = {
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
+        },
+        ENABLE_FLOW: {
+            PAGE_NAME: {
+                LEGAL_NAME: 'legal-name',
+                VERIFY_ACCOUNT: 'verify-account',
+                DOMAIN_SELECTOR: 'domain-selector',
+                WORKSPACE_ADDRESS: 'workspace-address',
+                LEGAL_ENTITY_TAX_ID: 'legal-entity-tax-id',
+                TERMS: 'terms',
+            },
         },
         UPDATE_OPERATION_TYPE: {
             BOOKING_TICKETED: 'BOOKING_TICKETED',

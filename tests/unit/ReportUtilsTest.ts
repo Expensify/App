@@ -20796,6 +20796,24 @@ describe('ReportUtils', () => {
             ]);
             expect(hasExportError(reportActions, report)).toBe(true);
         });
+
+        it('returns false when the only integration message action is reconciled', () => {
+            const report = createMock<Report>({hasExportError: false});
+            const reportActions = createMock<ReportAction[]>([
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                    reportActionID: '1',
+                    created: '2024-01-01',
+                    originalMessage: {
+                        result: {
+                            success: true,
+                            reconciled: true,
+                        },
+                    },
+                },
+            ]);
+            expect(hasExportError(reportActions, report)).toBe(false);
+        });
     });
 
     describe('getReportFieldsByPolicyID', () => {
