@@ -128,6 +128,10 @@ const DYNAMIC_ROUTES = {
             SCREENS.SEARCH.ROOT,
         ],
     },
+    BANK_ACCOUNT_VERIFY_ACCOUNT: {
+        path: 'verify-bank-account',
+        entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
+    },
     OWNER_SELECTOR: {
         path: 'owner-selector',
         entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT],
@@ -1370,11 +1374,6 @@ const ROUTES = {
     SIGN_IN_MODAL: 'sign-in-modal',
 
     BANK_ACCOUNT: 'bank-account',
-    BANK_ACCOUNT_VERIFY_ACCOUNT: {
-        route: `bank-account/${VERIFY_ACCOUNT}`,
-
-        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`bank-account/${VERIFY_ACCOUNT}?policyID=${policyID}`, backTo),
-    },
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     // TODO: rename the route as no longer accepts step
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
