@@ -1,5 +1,12 @@
 const oldRoutes: Record<string, string> = {
     /* eslint-disable @typescript-eslint/naming-convention */
+    // Per diem destination step migrated to dynamic routes (#83850). Dynamic suffixes are namespaced `per-diem-*` because
+    // dynamic route paths must be globally unique across DYNAMIC_ROUTES (react-navigation flattens them and a bare
+    // `destination` collides with Sage Intacct's existing `destination` suffix). Edit variant redirects to the
+    // confirmation-based suffix; the wizard variant to the start-based suffix. Query is not preserved (trailing wildcard
+    // would swallow it) - acceptable because callers no longer append `?backTo=`.
+    '/*/*/destination/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-destination-edit',
+    '/*/*/destination/*/*': '/$1/$2/start/$3/$4/per-diem-destination',
     '/settings/*/category/*/edit': '/settings/$1/categories/category-settings/$2/category-edit',
     '/settings/*/category/*': '/settings/$1/categories/category-settings/$2',
     '/settings/*/tags/*/edit': '/settings/$1/tags/settings-tags-edit/$2',

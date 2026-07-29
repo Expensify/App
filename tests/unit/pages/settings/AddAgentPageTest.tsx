@@ -28,14 +28,17 @@ const mockCreateAgent = jest.fn<{optimisticAccountID: number; avatarURI: string 
 }));
 const mockSetNewAgentAvatarPreset = jest.fn<void, unknown[]>();
 const mockClearNewAgentAvatarDraft = jest.fn<void, unknown[]>();
+const mockClearNewAgentTemplate = jest.fn<void, unknown[]>();
 let mockAvatarDraft: {customExpensifyAvatarID?: string; uploadedAvatar?: {uri: string; name: string; type: string}} | undefined;
 let mockAvatarDraftStatus: 'loading' | 'loaded' = 'loaded';
 let mockIsNarrowLayout = true;
+let mockTemplate: {name: string; prompt: string; avatarID: string} | undefined;
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: (...args: unknown[]) => mockCreateAgent(...args),
     setNewAgentAvatarPreset: (...args: unknown[]) => mockSetNewAgentAvatarPreset(...args),
     clearNewAgentAvatarDraft: (...args: unknown[]) => mockClearNewAgentAvatarDraft(...args),
+    clearNewAgentTemplate: (...args: unknown[]) => mockClearNewAgentTemplate(...args),
 }));
 
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: mockTranslate})));
@@ -68,6 +71,9 @@ jest.mock('@hooks/useOnyx', () => {
         default: jest.fn((key: string) => {
             if (key === onyxKeys.AGENT_NEW_AVATAR_DRAFT) {
                 return [mockAvatarDraft, {status: mockAvatarDraftStatus}] as const;
+            }
+            if (key === onyxKeys.NEW_AGENT_TEMPLATE) {
+                return [mockTemplate, {status: 'loaded'}] as const;
             }
             return [undefined, {status: 'loaded'}] as const;
         }),
@@ -179,6 +185,7 @@ describe('AddAgentPage', () => {
         mockAvatarDraft = undefined;
         mockAvatarDraftStatus = 'loaded';
         mockIsNarrowLayout = true;
+        mockTemplate = undefined;
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN});
         mockAvatarOnPress = undefined;
     });
@@ -259,6 +266,24 @@ describe('AddAgentPage', () => {
         expect(mockSetNewAgentAvatarPreset).not.toHaveBeenCalled();
     });
 
+    it('seeds the template avatar into the draft on mount when opened from a template', () => {
+        mockTemplate = {name: 'Cheapskate Charlie', prompt: 'Reject pricey expenses.', avatarID: 'bot-avatar--blue'};
+
+        renderAddAgentPage();
+
+        expect(mockSetNewAgentAvatarPreset).toHaveBeenCalledTimes(1);
+        expect(mockSetNewAgentAvatarPreset.mock.calls.at(0)?.at(0)).toBe('bot-avatar--blue');
+    });
+
+    it('pre-fills the name and prompt inputs from the template when opened from one', () => {
+        mockTemplate = {name: 'Cheapskate Charlie', prompt: 'Reject pricey expenses.', avatarID: 'bot-avatar--blue'};
+
+        const {toJSON} = renderAddAgentPage();
+
+        expect(JSON.stringify(toJSON())).toContain('firstName::Cheapskate Charlie');
+        expect(JSON.stringify(toJSON())).toContain('prompt::Reject pricey expenses.');
+    });
+
     it('resets the avatar draft when the flow is closed without saving', () => {
         mockAvatarDraft = {customExpensifyAvatarID: 'bot-avatar--blue'};
 
@@ -292,6 +317,7 @@ describe('AddAgentPage', () => {
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
             expect(mockCreateAgent).toHaveBeenCalledWith('Bot', 'Reject gambling.', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue', undefined, undefined, undefined);
+            expect(mockClearNewAgentTemplate).toHaveBeenCalledTimes(1);
             expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
             expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(OPTIMISTIC_REPORT_ID));
         });

@@ -210,7 +210,7 @@ function resendValidateCode(reasonParams: ResendValidateCodeParams, login: strin
 }
 
 /**
- * Requests a new validate code be sent for the passed contact method
+ * Requests a new validateCode be sent for the passed contact method
  *
  * @param contactMethod - the new contact method that the user is trying to verify
  */
@@ -513,7 +513,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
 }
 
 /**
- * Requests a magic code to verify current user
+ * Requests a validateCode to verify current user
  */
 function requestValidateCodeAction(params?: ResendValidateCodeParams) {
     const requestedAt = Date.now();
@@ -797,9 +797,9 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
     });
 }
 
-let pongHasBeenMissed = false;
 let lastPingSentTimestamp = Date.now();
 let lastPongReceivedTimestamp = Date.now();
+let shouldSkipCheckAfterReconnect = false;
 function subscribeToPusherPong(currentUserAccountID: number) {
     // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
     if (!currentUserAccountID) {
@@ -814,9 +814,6 @@ function subscribeToPusherPong(currentUserAccountID: number) {
         const pongEvent = pushJSON as PingPongEvent;
         const latency = Date.now() - Number(pongEvent.pingTimestamp);
         Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
-
-        // When any PONG event comes in, reset this flag so that checkForLatePongReplies will resume looking for missed PONGs
-        pongHasBeenMissed = false;
     });
 }
 
@@ -826,8 +823,8 @@ const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
 // Specify how long between each check for missing PONG events
 const CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
 
-// Specify how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
-const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
+// Specify how long before a PING event is considered to be missing a PONG event, at which point the socket is presumed dead
+const SOCKET_PRESUMED_DEAD_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
 
 function pingPusher() {
     if (getIsOffline()) {
@@ -858,23 +855,24 @@ function checkForLatePongReplies() {
         return;
     }
 
-    if (pongHasBeenMissed) {
-        Log.info(`[Pusher PINGPONG] Skipped checking for late PONG events because a PONG has already been missed`);
+    // A reconnect just happened, so give the fresh socket one full check interval to deliver a PONG
+    if (shouldSkipCheckAfterReconnect) {
+        shouldSkipCheckAfterReconnect = false;
         return;
     }
 
-    Log.info(`[Pusher PINGPONG] Checking for late PONG events`);
-    const timeSinceLastPongReceived = Date.now() - lastPongReceivedTimestamp;
+    const now = Date.now();
+    const timeSinceLastPongReceived = now - lastPongReceivedTimestamp;
 
-    // If the time since the last pong was received is more than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then record it in the logs
-    if (timeSinceLastPongReceived > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
-        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event in ${timeSinceLastPongReceived} ms so going offline`);
+    // A missing PONG while HTTP still works (the client is not offline) means the socket is presumed dead, so reconnect Pusher
+    if (timeSinceLastPongReceived > SOCKET_PRESUMED_DEAD_THRESHOLD_IN_SECONDS * 1000) {
+        Log.info(`[Pusher PINGPONG] The server has not sent a PONG in ${timeSinceLastPongReceived} ms so the socket is presumed dead and Pusher is being reconnected`);
 
-        // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
-        lastPingSentTimestamp = Date.now();
-        pongHasBeenMissed = true;
+        // Retries stay unbounded: one reconnect every second check tick (~2 minutes) while PONGs are missing
+        shouldSkipCheckAfterReconnect = true;
+        Pusher.reconnect();
     } else {
-        Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
+        Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so the socket is presumed alive`);
     }
 }
 
@@ -1681,7 +1679,7 @@ function respondToProactiveAppReview(
  *
  * This handles the complete flow for verifying a secondary login:
  * 1. Verifies the validation code entered by the user
- * 2. On success, stores the validate code to allow adding the new email
+ * 2. On success, stores the validateCode to allow adding the new email
  * 3. On failure, updates the state to reflect the failed verification
  *
  * @param validateCode - The validation code entered by the user
