@@ -16,9 +16,6 @@ type MenuItemState = {
 
     /** Whether the row responds to interactions */
     isInteractive: boolean;
-
-    /** Whether the row is rendered inside a compact popover menu */
-    isCompact: boolean;
 };
 
 const MenuItemContext = createContext<MenuItemState | undefined>(undefined);

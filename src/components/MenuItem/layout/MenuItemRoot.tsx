@@ -27,7 +27,7 @@ type MenuItemRootProps = PropsWithChildren &
         /** Function to fire when the row is pressed */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
-        /** Should we disable this row? */
+        /** Whether the menu item is disabled */
         isDisabled?: boolean;
     };
 
@@ -105,7 +105,6 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: Menu
                                         isPressed: pressed,
                                         isDisabled,
                                         isInteractive,
-                                        isCompact,
                                     }}
                                 >
                                     <View style={styles.flex1}>{children}</View>

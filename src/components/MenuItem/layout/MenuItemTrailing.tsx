@@ -1,5 +1,6 @@
-import {useMenuItemState} from '@components/MenuItem/MenuItemContext';
+import {useIsCompactMenu} from '@components/CompactMenuContext';
 
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -14,7 +15,9 @@ type MenuItemTrailingProps = PropsWithChildren;
 function MenuItemTrailing({children}: MenuItemTrailingProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isCompact} = useMenuItemState();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isCompactMenu = useIsCompactMenu();
+    const isCompact = isCompactMenu && !shouldUseNarrowLayout;
 
     return <View style={[styles.flexRow, styles.mlAuto, styles.alignItemsCenter, styles.gap2, StyleUtils.getMenuItemTextContainerStyle(isCompact)]}>{children}</View>;
 }

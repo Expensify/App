@@ -1,5 +1,6 @@
-import {useMenuItemState} from '@components/MenuItem/MenuItemContext';
+import {useIsCompactMenu} from '@components/CompactMenuContext';
 
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,7 +18,9 @@ type MenuItemContentProps = PropsWithChildren;
 function MenuItemContent({children}: MenuItemContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isCompact} = useMenuItemState();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isCompactMenu = useIsCompactMenu();
+    const isCompact = isCompactMenu && !shouldUseNarrowLayout;
 
     return <View style={[styles.justifyContentCenter, styles.flex1, styles.gap1, StyleUtils.getMenuItemTextContainerStyle(isCompact)]}>{children}</View>;
 }
