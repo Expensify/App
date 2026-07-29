@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
@@ -1731,8 +1733,9 @@ function assignReportToMe(
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     isTrackIntentUser: boolean | undefined,
+    translate: LocalizedTranslate,
 ) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, translate);
 
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = buildNextStepNew({
@@ -1838,19 +1841,34 @@ function assignReportToMe(
     API.write(WRITE_COMMANDS.ASSIGN_REPORT_TO_ME, params, onyxData);
 }
 
-function addReportApprover(
-    report: OnyxTypes.Report,
-    newApproverEmail: string,
-    newApproverAccountID: number,
-    accountID: number,
-    email: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    hasViolations: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
-    isTrackIntentUser: boolean | undefined,
-) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID);
+type AddReportApproverOptions = {
+    report: OnyxTypes.Report;
+    newApproverEmail: string;
+    newApproverAccountID: number;
+    accountID: number;
+    email: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    isTrackIntentUser: boolean | undefined;
+    translate: LocalizedTranslate;
+};
+
+function addReportApprover({
+    report,
+    newApproverEmail,
+    newApproverAccountID,
+    accountID,
+    email,
+    policy,
+    hasViolations,
+    isASAPSubmitBetaEnabled,
+    reportCurrentNextStepDeprecated,
+    isTrackIntentUser,
+    translate,
+}: AddReportApproverOptions) {
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, translate);
 
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = buildNextStepNew({

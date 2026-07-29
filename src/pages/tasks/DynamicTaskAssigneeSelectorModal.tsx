@@ -176,6 +176,7 @@ function DynamicTaskAssigneeSelectorModal() {
                     assigneeAccountID: option?.accountID,
                     assigneeChatReport,
                     isOptimisticReport,
+                    translate,
                 });
             }
             Navigation.goBack(backPath);
