@@ -15,6 +15,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -420,7 +422,7 @@ describe('Spend Search Router navigation source', () => {
         if (!isValidElement<{text: string; icon: IconAsset; iconSize: number; showTooltip: boolean}>(rightElement)) {
             throw new Error('Expected Spend navigation context to be a React element');
         }
-        expect(rightElement.props).toMatchObject({text: 'Spend', icon: spendContextIcon, iconSize: expect.any(Number), showTooltip: false});
+        expect(rightElement.props).toMatchObject({text: 'Spend', icon: spendContextIcon, iconSize: variables.fontSizeLabel, showTooltip: false});
 
         rerender({shouldWatchForApprovals: true});
         expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(undefined, true);
