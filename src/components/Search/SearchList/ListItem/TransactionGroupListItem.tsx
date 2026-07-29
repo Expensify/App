@@ -22,7 +22,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import genericMemo from '@libs/genericMemo';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -75,7 +74,11 @@ import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
 
-function TransactionGroupListItem<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function TransactionGroupListItemImpl({
     item,
     isFocused,
     showTooltip,
@@ -98,7 +101,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     onUndelete,
-}: TransactionGroupListItemProps<TItem>) {
+}: TransactionGroupListItemProps<ListItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
     const theme = useTheme();
@@ -116,10 +119,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
     const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`);
     const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(oneTransactionItem?.transactionID)}`);
-    const parentReportActionSelector = (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`];
-    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`, {selector: parentReportActionSelector}, [
-        oneTransactionItem,
-    ]);
+    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
+    });
     const transactionPreviewData: TransactionPreviewData = {
         hasParentReport: !!parentReport,
         hasTransaction: !!oneTransaction,
@@ -129,6 +131,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const selectedTransactionIDs = Object.keys(selectedTransactions);
     const selectedTransactionIDsSet = new Set(selectedTransactionIDs);
+    // A group selected before its children were fetched is stored under the group key, since no transaction IDs were known yet
+    const isGroupSelected = !!(item?.keyForList && selectedTransactions[item.keyForList]?.isSelected);
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
 
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -173,7 +177,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,
-            isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
+            // The whole group being selected implies every child is, even though only the group key is stored
+            isSelected: isGroupSelected || selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));
     }
 
@@ -181,9 +186,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const transactionsWithoutPendingDelete = transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    const isEmpty = transactions.length === 0;
+    // A group whose children are lazily loaded (it has a transactionsQueryJSON) is not empty, it just hasn't been fetched yet
+    const isEmpty = transactions.length === 0 && groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
 
-    const isEmptyReportSelected = isEmpty && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+    const isEmptyReportSelected = transactions.length === 0 && isGroupSelected;
 
     const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
@@ -316,10 +322,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const onExpandedRowLongPress = (transaction: TransactionListItemType) => {
-        onLongPressRow?.(transaction as unknown as TItem);
+        onLongPressRow?.(transaction as ListItem);
     };
 
-    const handleSelectionButtonPress = (val: TItem) => {
+    const handleSelectionButtonPress = (val: ListItem) => {
         onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions);
     };
 
@@ -625,4 +631,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     );
 }
 
-export default genericMemo(TransactionGroupListItem);
+function TransactionGroupListItem<TItem extends ListItem>(props: TransactionGroupListItemProps<TItem>) {
+    return <TransactionGroupListItemImpl {...(props as unknown as TransactionGroupListItemProps<ListItem>)} />;
+}
+
+export default TransactionGroupListItem;

@@ -281,7 +281,6 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             let allReports: OnyxCollection<Report>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
                 callback: (reports) => {
                     allReports = reports;
                 },
@@ -425,19 +424,21 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         let transaction: OnyxEntry<Transaction>;
         let iouReport: OnyxEntry<Report>;
 
+        const rejectViolations = [
+            {
+                name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                data: {comment: 'Test reject reason'},
+            },
+        ];
+
         beforeEach(async () => {
             transaction = createRandomTransaction(1);
             iouReport = createRandomReport(1, undefined);
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, transaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, iouReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, [
-                {
-                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-                    type: CONST.VIOLATION_TYPES.WARNING,
-                    data: {comment: 'Test reject reason'},
-                },
-            ]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, rejectViolations);
             await waitForBatchedUpdates();
         });
 
@@ -451,7 +452,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
@@ -470,7 +471,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markRejectViolationAsResolved(transaction.transactionID, true, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, true, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
@@ -493,7 +494,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved
-            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: API.write should be called with the correct command and transactionID
@@ -515,7 +516,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved while online
-            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: notifyNewAction should be called
@@ -533,7 +534,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved without reportID
-            markRejectViolationAsResolved(transaction.transactionID, false, undefined);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, undefined);
             await waitForBatchedUpdates();
 
             // Then: API.write should not be called
@@ -541,6 +542,46 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
             // Then: notifyNewAction should not be called
             expect(notifyNewAction).not.toHaveBeenCalled();
+
+            writeSpy.mockRestore();
+        });
+
+        it('uses the passed transactionViolations parameter instead of the global Onyx collection', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            // Given: Onyx holds an empty violation set, different from what is passed in,
+            // to prove the function relies on the parameter and not the global collection.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, []);
+            await waitForBatchedUpdates();
+
+            const passedViolations = [
+                {name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.WARNING, data: {comment: 'Test reject reason'}},
+                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
+            ];
+
+            // When: Mark violation as resolved with the passed violations
+            markRejectViolationAsResolved(transaction.transactionID, false, passedViolations, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: the optimistic update removes only AUTO_REPORTED_REJECTED_EXPENSE and keeps the other
+            // violation from the parameter — proving the parameter (not the empty Onyx value) was used.
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_TRANSACTION_VIOLATION_AS_RESOLVED,
+                expect.anything(),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                            value: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+                        }),
+                    ]),
+                }),
+            );
 
             writeSpy.mockRestore();
         });

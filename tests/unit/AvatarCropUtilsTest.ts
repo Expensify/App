@@ -1,4 +1,4 @@
-import {buildFileFromAvatarCropResult, serializeAvatarCropImage} from '@libs/AvatarCropUtils';
+import {buildAvatarCropResult, buildFileFromAvatarCropResult, serializeAvatarCropImage} from '@libs/AvatarCropUtils';
 import {base64ToFile, convertFileObjectOrUriToBase64DataURL} from '@libs/fileDownload/FileUtils';
 import getPlatform from '@libs/getPlatform';
 
@@ -66,6 +66,35 @@ describe('AvatarCropUtils', () => {
                     type: 'image/png',
                 }),
             ).resolves.toBe('blob:http://localhost/abc');
+        });
+    });
+
+    describe('buildAvatarCropResult', () => {
+        it('serializes the image and keeps dimensions for a manipulator result', async () => {
+            mockedGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);
+            const image = {uri: 'file:///tmp/cropped.png', name: 'cropped.png', type: 'image/png', size: 1234, width: 200, height: 200};
+
+            await expect(buildAvatarCropResult(image, 'tok')).resolves.toEqual({
+                token: 'tok',
+                uri: 'file:///tmp/cropped.png',
+                name: 'cropped.png',
+                type: 'image/png',
+                size: 1234,
+                width: 200,
+                height: 200,
+            });
+        });
+
+        it('omits dimensions for a File and defaults the token to empty', async () => {
+            mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+            mockedConvertToBase64.mockResolvedValue('data:image/png;base64,AAAA');
+            const file = Object.assign(new File(['data'], 'cropped.png', {type: 'image/png'}), {uri: 'blob:http://localhost/abc'});
+
+            const result = await buildAvatarCropResult(file);
+
+            expect(result).toEqual({token: '', uri: 'data:image/png;base64,AAAA', name: 'cropped.png', type: 'image/png', size: file.size});
+            expect(result).not.toHaveProperty('width');
+            expect(result).not.toHaveProperty('height');
         });
     });
 

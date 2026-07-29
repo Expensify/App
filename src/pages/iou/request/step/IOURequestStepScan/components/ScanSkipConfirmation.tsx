@@ -12,10 +12,10 @@ import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePreMountDestination from '@hooks/usePreMountDestination';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
-import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {startSplitBill} from '@libs/actions/IOU/Split';
@@ -33,6 +33,7 @@ import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import {getPickerCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
+import getSkipConfirmationPreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSkipConfirmationPreMountDestinationRoute';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
@@ -52,6 +53,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 
@@ -81,17 +83,15 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const selfDMReport = useSelfDMReport();
     const reportAttributesDerived = useReportAttributes();
     const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const delegateAccountID = useDelegateAccountID();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: (value: OnyxEntry<Record<string, unknown>>) => !!value?.hasSeenTour,
-    });
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
@@ -109,7 +109,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -136,7 +136,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
     const preInsertReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
-    useSkipConfirmationPreInsert(true, preInsertReportID);
+    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(true, preInsertReportID);
+    usePreMountDestination(skipConfirmationPreMountRoute);
 
     // Pre-fetch location if GPS is required and permission is already granted
     useEffect(() => {
@@ -227,6 +228,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 policyRecentlyUsedTags: undefined,
                 participantsPolicyTags,
+                delegateAccountID,
+                formatPhoneNumber,
             };
 
             submitWithDismissFirst({

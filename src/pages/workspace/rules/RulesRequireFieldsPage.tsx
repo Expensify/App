@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {hasDependentTags as hasDependentTagsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -49,6 +50,8 @@ function RulesRequireFieldsPage({
 
     const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const isTagToggleDisabled = !policy?.areTagsEnabled || !hasEnabledTags;
+    // For independent multi-level tags, Required is configured per level in each tag list's RHP, so the policy-wide toggle is hidden (same gate as WorkspaceTagsSettingsPage).
+    const shouldShowTagToggle = !isMultiLevelTagsUtil(policyTags) || hasDependentTagsUtil(policy, policyTags);
 
     const initialCategoryRequired = !!policy?.requiresCategory;
     const initialTagRequired = !!policy?.requiresTag;
@@ -128,31 +131,34 @@ function RulesRequireFieldsPage({
                         onToggle={setCategoryRequired}
                     />
 
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.rules.requireFields.tag')}
-                        switchAccessibilityLabel={translate('workspace.rules.requireFields.tag')}
-                        shouldPlaceSubtitleBelowSwitch
-                        wrapperStyle={styles.pv3}
-                        isActive={tagRequired}
-                        disabled={isTagToggleDisabled}
-                        showLockIcon={isTagToggleDisabled}
-                        pendingAction={policy?.pendingFields?.requiresTag}
-                        errors={policy?.errorFields?.requiresTag ?? undefined}
-                        onCloseError={() => clearPolicyErrorField(policyID, 'requiresTag')}
-                        onToggle={setTagRequired}
-                    />
+                    {shouldShowTagToggle && (
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.rules.requireFields.tag')}
+                            switchAccessibilityLabel={translate('workspace.rules.requireFields.tag')}
+                            shouldPlaceSubtitleBelowSwitch
+                            wrapperStyle={styles.pv3}
+                            isActive={tagRequired}
+                            disabled={isTagToggleDisabled}
+                            showLockIcon={isTagToggleDisabled}
+                            pendingAction={policy?.pendingFields?.requiresTag}
+                            errors={policy?.errorFields?.requiresTag ?? undefined}
+                            onCloseError={() => clearPolicyErrorField(policyID, 'requiresTag')}
+                            onToggle={setTagRequired}
+                        />
+                    )}
                 </ScrollView>
                 <FixedFooter
                     addBottomSafeAreaPadding
                     addOfflineIndicatorBottomSafeAreaPadding
                 >
                     <Button
-                        success
-                        large
-                        text={translate('workspace.rules.requireFields.save')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleSave}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_SAVE}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.rules.requireFields.save')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

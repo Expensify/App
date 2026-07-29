@@ -104,6 +104,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating a field other than tag
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -141,6 +142,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag field
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -180,6 +182,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag to tag2 while tag1 is already in recently used
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -221,6 +224,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag to tag1 which already exists in recently used
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -252,6 +256,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag with policyTagList: undefined
         const {onyxData: withUndefined} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -270,6 +275,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag with policyTagList: {} (empty)
         const {onyxData: withEmpty} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             transactionThreadReport,
             iouReport,
@@ -286,7 +292,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             isTrackIntentUser: false,
         });
 
-        // Then both should produce the same optimistic data (getPolicyTagsData returns {} when no Onyx data)
+        // Then both should produce the same optimistic data (an undefined policy tag list is treated the same as an empty one)
         const entryWithUndefined = withUndefined.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`);
         const entryWithEmpty = withEmpty.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`);
         expect(entryWithUndefined?.value).toEqual(entryWithEmpty?.value);
