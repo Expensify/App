@@ -11,6 +11,7 @@ import onyxLogFilter from './onyxLogFilter';
 
 type TelemetryBeforeSend = (event: TransactionEvent, hint: EventHint) => TransactionEvent | null | Promise<TransactionEvent | null>;
 type TelemetryBeforeSendLog = (log: Log) => Log | null;
+/** Synchronous on purpose, unlike `TelemetryBeforeSend`: `beforeSend` must never delay crash delivery. */
 type TelemetryBeforeSendError = (event: ErrorEvent, hint: EventHint) => ErrorEvent | null;
 
 const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, canceledTabNavigationFilter, minDurationFilter, maxDurationFilter, httpClientCancelledFilter, copyTagsToChildSpans];
