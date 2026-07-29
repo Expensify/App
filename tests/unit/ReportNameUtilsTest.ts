@@ -760,6 +760,113 @@ describe('ReportNameUtils', () => {
             expect(name).toBe('removed card feed "Amex Corporate"');
         });
 
+        test('ADD_AGENT_RULE parent action', () => {
+            const thread: Report = createWorkspaceThread(170);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    ruleID: '4242424242',
+                    ruleTitle: 'Receipts required',
+                    prompt: 'Reject expenses without receipts',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('added the agent rule "Receipts required": Reject expenses without receipts');
+        });
+
+        test('UPDATE_AGENT_RULE parent action', () => {
+            const thread: Report = createWorkspaceThread(171);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    ruleID: '4242424242',
+                    ruleTitle: 'Receipts required',
+                    prompt: 'Reject expenses over $25 without receipts',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('updated the agent rule "Receipts required" to: Reject expenses over $25 without receipts');
+        });
+
+        test('DELETE_AGENT_RULE parent action', () => {
+            const thread: Report = createWorkspaceThread(172);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    ruleID: '4242424242',
+                    ruleTitle: 'Receipts required',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('removed the agent rule "Receipts required"');
+        });
+
         test('RENAME_CARD_FEED parent action', () => {
             const thread: Report = createWorkspaceThread(102);
             const parentAction: ReportAction = {

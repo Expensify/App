@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import ActionContentRouter from '@pages/inbox/report/actionContents/ActionContentRouter';
 import ApplyAgentRuleContent from '@pages/inbox/report/actionContents/ApplyAgentRuleContent';
 
 import {resolveActionableApplyAgentRule} from '@userActions/Report';
@@ -128,6 +129,40 @@ describe('ApplyAgentRuleContent', () => {
         expect(screen.getByText(MESSAGE_TEXT)).toBeOnTheScreen();
         expect(screen.queryByText(APPLY_BUTTON_TEXT)).not.toBeOnTheScreen();
         expect(screen.queryByText(DISMISS_BUTTON_TEXT)).not.toBeOnTheScreen();
+    });
+
+    it('is routed to by ActionContentRouter for ACTIONABLE_APPLY_AGENT_RULE actions', async () => {
+        await setPolicyRole(CONST.POLICY.ROLE.ADMIN);
+        const action = createApplyAgentRuleAction();
+
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <ActionContentRouter
+                    action={action}
+                    report={undefined}
+                    chatReport={undefined}
+                    originalReportID={REPORT_ID}
+                    iouReport={undefined}
+                    reportID={REPORT_ID}
+                    displayAsGroup={false}
+                    draftMessage={undefined}
+                    isWhisper={false}
+                    hovered={false}
+                    isHidden={false}
+                    updateHiddenState={() => {}}
+                    isHarvestCreatedExpenseReport={false}
+                    isOnSearch={false}
+                    setIsPaymentMethodPopoverActive={() => {}}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(MESSAGE_TEXT)).toBeOnTheScreen();
+        expect(screen.getByText(APPLY_BUTTON_TEXT)).toBeOnTheScreen();
+
+        fireEvent.press(screen.getByText(APPLY_BUTTON_TEXT));
+        expect(mockResolveActionableApplyAgentRule).toHaveBeenCalledWith(REPORT_ID, action, CONST.REPORT.ACTIONABLE_APPLY_AGENT_RULE_RESOLUTION.APPLY);
     });
 
     it('renders the message without buttons for a non-admin of the policy', async () => {
