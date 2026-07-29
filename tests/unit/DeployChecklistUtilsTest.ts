@@ -1,5 +1,6 @@
 import CONST from '@github/libs/CONST';
 import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
+import type {InternalOctokit, ListForRepoMethod, OctokitIssueItem} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
 /**
@@ -10,20 +11,16 @@ import {RequestError} from '@octokit/request-error';
 
 import createMock from '../utils/createMock';
 
-type Octokit = typeof GithubUtils.octokit;
-type OctokitListForRepo = Octokit['issues']['listForRepo'];
-type ListForRepoResponse = Awaited<ReturnType<OctokitListForRepo>>;
-type OctokitIssue = ListForRepoResponse['data'][number];
+type ListForRepoResponse = Awaited<ReturnType<ListForRepoMethod>>;
 type PullRequest = Exclude<Awaited<ReturnType<typeof GithubUtils.fetchAllPullRequests>>, void>[number];
-type InternalOctokit = NonNullable<typeof GithubUtils.internalOctokit>;
 type OctokitPaginate = InternalOctokit['paginate'];
-type OctokitGetPullRequest = Octokit['pulls']['get'];
+type OctokitGetPullRequest = InternalOctokit['rest']['pulls']['get'];
 type GetPullRequestResponse = Awaited<ReturnType<OctokitGetPullRequest>>;
 
-const createListForRepoResponse = (data: OctokitIssue[]): ListForRepoResponse => createMock<ListForRepoResponse>({data});
+const createListForRepoResponse = (data: OctokitIssueItem[]): ListForRepoResponse => createMock<ListForRepoResponse>({data});
 
-const mockListIssues = jest.fn<ReturnType<OctokitListForRepo>, Parameters<OctokitListForRepo>>();
-let listForRepoSpy: jest.SpiedFunction<OctokitListForRepo>;
+const mockListIssues = jest.fn<ReturnType<ListForRepoMethod>, Parameters<ListForRepoMethod>>();
+let listForRepoSpy: jest.SpiedFunction<ListForRepoMethod>;
 let internalOctokit: InternalOctokit;
 
 beforeAll(() => {
@@ -44,7 +41,7 @@ afterEach(() => {
 
 describe('DeployChecklistUtils', () => {
     describe('getDeployChecklist', () => {
-        const baseIssue = createMock<OctokitIssue>({
+        const baseIssue = createMock<OctokitIssueItem>({
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             title: 'Andrew Test Issue',
             labels: [
@@ -127,7 +124,7 @@ describe('DeployChecklistUtils', () => {
         ];
 
         test('Test finding an open issue with no PRs successfully', () => {
-            const bareIssue = createMock<OctokitIssue>({
+            const bareIssue = createMock<OctokitIssueItem>({
                 ...baseIssue,
 
                 body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n`,
@@ -187,7 +184,7 @@ describe('DeployChecklistUtils', () => {
         });
 
         test('Test finding more than one issue', async () => {
-            mockListIssues.mockResolvedValue(createListForRepoResponse([createMock<OctokitIssue>({number: 1}), createMock<OctokitIssue>({number: 2})]));
+            mockListIssues.mockResolvedValue(createListForRepoResponse([createMock<OctokitIssueItem>({number: 1}), createMock<OctokitIssueItem>({number: 2})]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
@@ -197,7 +194,9 @@ describe('DeployChecklistUtils', () => {
         });
 
         test('state:open empty + state:all returns closed issue → NoOpenDeployChecklistError', async () => {
-            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssue>({number: 100, state: 'closed'})]));
+            mockListIssues
+                .mockResolvedValueOnce(createListForRepoResponse([]))
+                .mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssueItem>({number: 100, state: 'closed'})]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
@@ -211,7 +210,9 @@ describe('DeployChecklistUtils', () => {
         });
 
         test('state:open empty + state:all returns open issue → fails closed (inconsistency)', async () => {
-            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssue>({number: 500, state: 'open'})]));
+            mockListIssues
+                .mockResolvedValueOnce(createListForRepoResponse([]))
+                .mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssueItem>({number: 500, state: 'open'})]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
@@ -248,7 +249,7 @@ describe('DeployChecklistUtils', () => {
             mockListIssues
                 .mockRejectedValueOnce(err503)
                 .mockResolvedValueOnce(
-                    createListForRepoResponse([createMock<OctokitIssue>({number: 88, url: 'https://api.github.com/repos/o/i/issues/88', title: 't', labels: [], body: ''})]),
+                    createListForRepoResponse([createMock<OctokitIssueItem>({number: 88, url: 'https://api.github.com/repos/o/i/issues/88', title: 't', labels: [], body: ''})]),
                 );
 
             jest.useFakeTimers();
@@ -285,7 +286,9 @@ describe('DeployChecklistUtils', () => {
         });
 
         test('does not retry on empty result; falls through to state:all cross-check', async () => {
-            mockListIssues.mockResolvedValueOnce(createListForRepoResponse([])).mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssue>({number: 200, state: 'closed'})]));
+            mockListIssues
+                .mockResolvedValueOnce(createListForRepoResponse([]))
+                .mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssueItem>({number: 200, state: 'closed'})]));
             await expect(getDeployChecklist()).rejects.toBeInstanceOf(NoOpenDeployChecklistError);
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
@@ -307,7 +310,7 @@ describe('DeployChecklistUtils', () => {
             mockListIssues
                 .mockRejectedValueOnce(err403)
                 .mockResolvedValueOnce(
-                    createListForRepoResponse([createMock<OctokitIssue>({number: 77, url: 'https://api.github.com/repos/o/i/issues/77', title: 't', labels: [], body: ''})]),
+                    createListForRepoResponse([createMock<OctokitIssueItem>({number: 77, url: 'https://api.github.com/repos/o/i/issues/77', title: 't', labels: [], body: ''})]),
                 );
 
             jest.useFakeTimers();
@@ -328,9 +331,9 @@ describe('DeployChecklistUtils', () => {
                 .mockResolvedValueOnce(createListForRepoResponse([]))
                 .mockResolvedValueOnce(
                     createListForRepoResponse([
-                        createMock<OctokitIssue>({number: 900, state: 'closed'}),
-                        createMock<OctokitIssue>({number: 800, state: 'open'}),
-                        createMock<OctokitIssue>({number: 700, state: 'closed'}),
+                        createMock<OctokitIssueItem>({number: 900, state: 'closed'}),
+                        createMock<OctokitIssueItem>({number: 800, state: 'open'}),
+                        createMock<OctokitIssueItem>({number: 700, state: 'closed'}),
                     ]),
                 );
             try {
