@@ -13034,7 +13034,7 @@ describe('ReportUtils', () => {
             return waitForBatchedUpdates();
         });
         it("should return nothing when there's no actions required", () => {
-            expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, allTransactions)).toEqual({
+            expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, allTransactions, currentUserAccountID)).toEqual({
                 errors: {},
                 reportAction: undefined,
             });
@@ -13056,7 +13056,7 @@ describe('ReportUtils', () => {
                 [reportActionWithError.reportActionID]: reportActionWithError,
             });
             await waitForBatchedUpdates();
-            expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsWithError, allTransactions)).toEqual({
+            expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsWithError, allTransactions, currentUserAccountID)).toEqual({
                 errors: {
                     reportID: 'Error message',
                     accountID: 'Error in accountID',
@@ -13084,9 +13084,14 @@ describe('ReportUtils', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
-            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(parentReport, reportActions, {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
-            });
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                parentReport,
+                reportActions,
+                {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                },
+                currentUserAccountID,
+            );
             expect(Object.keys(errors)).toHaveLength(1);
             expect(Object.keys(errors).at(0)).toBe('smartscan');
             expect(Object.keys(errors.smartscan ?? {})).toHaveLength(1);
@@ -13116,6 +13121,7 @@ describe('ReportUtils', () => {
                 report,
                 reportActions,
                 {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                currentUserAccountID,
                 true,
             );
             expect(Object.keys(errors)).toHaveLength(0);
@@ -17445,7 +17451,7 @@ describe('ReportUtils', () => {
                 [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
-            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions);
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions, currentUserAccountID);
 
             expect(errors?.dewSubmitFailed).toBeDefined();
             expect(reportAction).toEqual(dewSubmitFailedAction);
@@ -17474,7 +17480,7 @@ describe('ReportUtils', () => {
                 [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions, currentUserAccountID);
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
         });
@@ -17509,7 +17515,7 @@ describe('ReportUtils', () => {
                 [submittedAction.reportActionID]: submittedAction,
             };
 
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions, currentUserAccountID);
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
         });
@@ -17562,7 +17568,7 @@ describe('ReportUtils', () => {
                 [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
-            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions);
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions, currentUserAccountID);
 
             expect(errors?.dewSubmitFailed).toBeDefined();
             expect(reportAction).toEqual(dewSubmitFailedAction);
@@ -17589,7 +17595,7 @@ describe('ReportUtils', () => {
                 [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions, currentUserAccountID);
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
         });
@@ -17615,7 +17621,7 @@ describe('ReportUtils', () => {
                 [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions, true);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions, currentUserAccountID, true);
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
         });
@@ -17686,7 +17692,7 @@ describe('ReportUtils', () => {
                 [secondSubmittedAction.reportActionID]: secondSubmittedAction,
             };
 
-            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions);
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, dewAllTransactions, currentUserAccountID);
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
             expect(reportAction).not.toEqual(dewSubmitFailedAction);
@@ -20406,9 +20412,9 @@ describe('ReportUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
             };
 
-            const result = getReportActionWithSmartscanError([reportPreviewAction], chatReport, allTransactions, reportsCollection, currentUserAccountID);
+            const result = getReportActionWithSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection);
             expect(result).toBeUndefined();
-            expect(hasSmartscanError([reportPreviewAction], chatReport, allTransactions, reportsCollection, currentUserAccountID)).toBe(false);
+            expect(hasSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection)).toBe(false);
         });
 
         it('should flag smartscan error when expense report has a missing merchant', async () => {
@@ -20428,7 +20434,7 @@ describe('ReportUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transactionMissingMerchant,
             };
 
-            expect(hasSmartscanError([reportPreviewAction], chatReport, allTransactions, reportsCollection, currentUserAccountID)).toBe(true);
+            expect(hasSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection)).toBe(true);
 
             // Restore original transaction for subsequent tests
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
@@ -20459,7 +20465,7 @@ describe('ReportUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transactionMissingMerchant,
             };
 
-            expect(hasSmartscanError([reportPreviewAction], chatReport, allTransactions, reportsCollection, currentUserAccountID)).toBe(false);
+            expect(hasSmartscanError([reportPreviewAction], chatReport, allTransactions, currentUserAccountID, reportsCollection)).toBe(false);
 
             // Restore
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
@@ -20495,8 +20501,8 @@ describe('ReportUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`]: splitTransaction,
             };
 
-            expect(hasSmartscanError([splitAction], chatReport, allTransactions, undefined, currentUserAccountID)).toBe(true);
-            expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions, undefined, currentUserAccountID)).toEqual(splitAction);
+            expect(hasSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBe(true);
+            expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toEqual(splitAction);
         });
 
         it('should NOT flag a split-bill action when its linked transaction has all required fields', () => {
@@ -20526,8 +20532,8 @@ describe('ReportUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`]: splitTransaction,
             };
 
-            expect(hasSmartscanError([splitAction], chatReport, allTransactions, undefined, currentUserAccountID)).toBe(false);
-            expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions, undefined, currentUserAccountID)).toBeUndefined();
+            expect(hasSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBe(false);
+            expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions, currentUserAccountID)).toBeUndefined();
         });
     });
 

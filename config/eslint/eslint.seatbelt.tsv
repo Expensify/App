@@ -1644,7 +1644,6 @@
 "../../tests/actions/IOU/SearchUpdateTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOU/SplitReportTotalsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/actions/IOU/SplitReportTotalsTest.ts"	"no-restricted-imports"	1
-"../../tests/actions/IOUTest/BulkEditTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	25
 "../../tests/actions/IOUTest/DeleteMoneyRequestTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/actions/IOUTest/GetUpdateMoneyRequestParamsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/actions/IOUTest/HoldTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -1826,7 +1825,6 @@
 "../../tests/unit/CountryUtils.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/DebugUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
 "../../tests/unit/DeeplinkRouteNormalizationTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
-"../../tests/unit/DeployChecklistUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	24
 "../../tests/unit/DistanceRateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/EmojiReactionsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/ErrorUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
@@ -1896,7 +1894,6 @@
 "../../tests/unit/ReportActionItemSingleTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ReportActionsFollowupUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/ReportActionsListPaddingViewTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../tests/unit/ReportActionsUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	36
 "../../tests/unit/ReportLayoutUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	3
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	23
