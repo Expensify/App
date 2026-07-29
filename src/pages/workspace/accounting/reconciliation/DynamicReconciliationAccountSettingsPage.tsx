@@ -88,7 +88,7 @@ function ReconciliationAccountSettingsLayout({
     }));
 
     const confirmButtonOptions = {
-        showButton: true,
+        showButton: options.length > 0,
         text: translate('common.save'),
         onConfirm: () => onSelectBankAccount(selectedID),
         isDisabled: selectedID === selectedBankAccountID,
