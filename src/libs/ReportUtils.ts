@@ -11703,7 +11703,6 @@ type CreateDraftTransactionParams = {
     reportID: string | undefined;
     actionName: IOUAction;
     reportActionID: string | undefined;
-    /** Report actions of the report identified by reportID, used to find the linked track-expense action */
     reportActions: OnyxEntry<ReportActions>;
     introSelected: OnyxEntry<IntroSelected>;
     draftTransactionIDs: string[] | undefined;

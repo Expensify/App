@@ -59,7 +59,6 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const {translate} = useLocalize();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const actionOwnerReportID = originalReportID ?? reportID;
-    // Used by createDraftTransactionAndNavigateToParticipantSelector to find the linked track-expense action
     const [actionOwnerReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(actionOwnerReportID)}`);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
