@@ -94,7 +94,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
                 style={[styles.flexGrow1, styles.ph5]}
                 validate={validate}
                 onSubmit={connectPolicy}
-                submitButtonText={translate('common.confirm')}
+                submitButtonText={translate(isOAuthFlow ? 'workspace.accounting.setup' : 'common.confirm')}
                 shouldValidateOnBlur
                 shouldValidateOnChange
                 addBottomSafeAreaPadding={!isMobileSafari()}

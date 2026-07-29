@@ -45,6 +45,7 @@ type MockFormProviderProps = {
     onSubmit: (values: NetSuiteTokenInputFormType) => void;
     keyboardSubmitBehavior?: string;
     shouldShowLoadingImmediatelyOnPress?: boolean;
+    submitButtonText?: string;
 };
 
 const mockFormProps: {current: Omit<MockFormProviderProps, 'children'> | undefined} = {
@@ -90,8 +91,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 jest.mock('@components/RenderHTML', () => () => null);
 jest.mock('@components/Form/FormProvider', () => {
-    function MockFormProvider({children, onSubmit, keyboardSubmitBehavior, shouldShowLoadingImmediatelyOnPress}: MockFormProviderProps) {
-        mockFormProps.current = {onSubmit, keyboardSubmitBehavior, shouldShowLoadingImmediatelyOnPress};
+    function MockFormProvider({children, onSubmit, keyboardSubmitBehavior, shouldShowLoadingImmediatelyOnPress, submitButtonText}: MockFormProviderProps) {
+        mockFormProps.current = {onSubmit, keyboardSubmitBehavior, shouldShowLoadingImmediatelyOnPress, submitButtonText};
         return children;
     }
     return MockFormProvider;
@@ -193,6 +194,12 @@ describe('NetSuiteTokenInputForm', () => {
             expect(mockFormProps.current?.keyboardSubmitBehavior).toBe(CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY);
             expect(mockFormProps.current?.shouldShowLoadingImmediatelyOnPress).toBe(false);
         });
+
+        it('labels the submit button "Connect" rather than "Confirm"', () => {
+            renderForm();
+
+            expect(mockFormProps.current?.submitButtonText).toBe('workspace.accounting.setup');
+        });
     });
 
     describe('when the netSuiteOAuth beta is enabled and 2FA is not enabled', () => {
@@ -259,6 +266,12 @@ describe('NetSuiteTokenInputForm', () => {
 
             expect(mockFormProps.current?.keyboardSubmitBehavior).toBeUndefined();
             expect(mockFormProps.current?.shouldShowLoadingImmediatelyOnPress).toBe(true);
+        });
+
+        it('keeps the "Confirm" submit label, since the token flow has more steps after this one', () => {
+            renderForm();
+
+            expect(mockFormProps.current?.submitButtonText).toBe('common.confirm');
         });
 
         it('updates the existing tokens when the connection is being re-authenticated', () => {
