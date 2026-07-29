@@ -1540,12 +1540,13 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     if (action === CONST.IOU.ACTION.SUBMIT && isDistanceRequest) {
-        const workspaceDistanceUnit = getDistanceRateCustomUnit(policy)?.attributes?.unit;
+        const workspaceDistanceCustomUnit = getDistanceRateCustomUnit(policy);
+        const workspaceDistanceUnit = workspaceDistanceCustomUnit?.attributes?.unit;
         optimisticTransaction.comment = {
             ...optimisticTransaction.comment,
             customUnit: {
                 ...optimisticTransaction.comment?.customUnit,
-                ...(getDistanceRateCustomUnit(policy)?.customUnitID && {customUnitID: getDistanceRateCustomUnit(policy)?.customUnitID}),
+                ...(workspaceDistanceCustomUnit?.customUnitID && {customUnitID: workspaceDistanceCustomUnit.customUnitID}),
                 ...(customUnitRateID && {customUnitRateID}),
                 ...(workspaceDistanceUnit && {distanceUnit: workspaceDistanceUnit}),
                 ...(distance !== undefined && {quantity: distance}),
