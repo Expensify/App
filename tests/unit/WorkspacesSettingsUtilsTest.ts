@@ -242,9 +242,8 @@ describe('WorkspacesSettingsUtils', () => {
     });
 
     describe('getLeaveWorkspaceConfirmationPrompt', () => {
-        const translate: LocaleContextProps['translate'] = (key, ...parameters) => {
+        const translate: LocaleContextProps['translate'] = (key) => {
             // Keep the production translation signature while intentionally returning only the key in this stub.
-            parameters.slice(0, 0);
             return String(key);
         };
         const userEmail = 'user@example.com';

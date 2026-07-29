@@ -143,24 +143,17 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            fetchMock.mockImplementationOnce(
-                async () =>
-                    new Response(
-                        JSON.stringify({
-                            jsonCode: 200,
-                            onyxData: [
-                                {
-                                    onyxMethod: Onyx.METHOD.MERGE,
-                                    key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
-                                    value: {
-                                        preexistingReportID: '5555',
-                                    },
-                                },
-                            ],
-                        }),
-                        {status: 200},
-                    ),
-            );
+            fetchMock.mockAPICommand('OpenReport', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                        value: {
+                            preexistingReportID: '5555',
+                        },
+                    },
+                ],
+            }));
 
             SequentialQueue.unpause();
             await SequentialQueue.waitForIdle();
@@ -204,24 +197,17 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            fetchMock.mockImplementationOnce(
-                async () =>
-                    new Response(
-                        JSON.stringify({
-                            jsonCode: 200,
-                            onyxData: [
-                                {
-                                    onyxMethod: Onyx.METHOD.MERGE,
-                                    key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
-                                    value: {
-                                        preexistingReportID: '5555',
-                                    },
-                                },
-                            ],
-                        }),
-                        {status: 200},
-                    ),
-            );
+            fetchMock.mockAPICommand('RequestMoney', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                        value: {
+                            preexistingReportID: '5555',
+                        },
+                    },
+                ],
+            }));
 
             SequentialQueue.unpause();
             await SequentialQueue.waitForIdle();
@@ -256,24 +242,17 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            fetchMock.mockImplementationOnce(
-                async () =>
-                    new Response(
-                        JSON.stringify({
-                            jsonCode: 200,
-                            onyxData: [
-                                {
-                                    onyxMethod: Onyx.METHOD.MERGE,
-                                    key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
-                                    value: {
-                                        preexistingReportID: '5555',
-                                    },
-                                },
-                            ],
-                        }),
-                        {status: 200},
-                    ),
-            );
+            fetchMock.mockAPICommand('MoveIOUReportToExistingPolicy', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                        value: {
+                            preexistingReportID: '5555',
+                        },
+                    },
+                ],
+            }));
 
             SequentialQueue.unpause();
             await SequentialQueue.waitForIdle();
@@ -326,53 +305,43 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            fetchMock
-                .mockImplementationOnce(
-                    async () =>
-                        new Response(
-                            JSON.stringify({
-                                jsonCode: 200,
-                                onyxData: [
-                                    {
-                                        onyxMethod: Onyx.METHOD.MERGE,
-                                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
-                                        value: {
-                                            preexistingReportID,
-                                        },
-                                    },
-                                ],
-                            }),
-                            {status: 200},
-                        ),
-                )
-                .mockImplementationOnce(
-                    async () =>
-                        new Response(
-                            JSON.stringify({
-                                jsonCode: 200,
-                                onyxData: [
-                                    {
-                                        onyxMethod: Onyx.METHOD.MERGE,
-                                        key: `${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`,
-                                        value: {
-                                            reportID: preexistingReportID,
-                                            participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
-                                        },
-                                    },
-                                    {
-                                        onyxMethod: Onyx.METHOD.MERGE,
-                                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                                        value: {
-                                            [preexistingAccountID]: {
-                                                accountID: preexistingAccountID,
-                                            },
-                                        },
-                                    },
-                                ],
-                            }),
-                            {status: 200},
-                        ),
-                );
+            fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+                if (reportID === optimisticReportID) {
+                    return {
+                        onyxData: [
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                                value: {
+                                    preexistingReportID,
+                                },
+                            },
+                        ],
+                    };
+                }
+
+                return {
+                    onyxData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`,
+                            value: {
+                                reportID: preexistingReportID,
+                                participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+                            },
+                        },
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {
+                                [preexistingAccountID]: {
+                                    accountID: preexistingAccountID,
+                                },
+                            },
+                        },
+                    ],
+                };
+            });
 
             SequentialQueue.unpause();
             await SequentialQueue.waitForIdle();
@@ -447,34 +416,27 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            fetchMock.mockImplementationOnce(
-                async () =>
-                    new Response(
-                        JSON.stringify({
-                            jsonCode: 200,
-                            onyxData: [
-                                {
-                                    onyxMethod: Onyx.METHOD.MERGE,
-                                    key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
-                                    value: {
-                                        reportID: optimisticReportID,
-                                        participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
-                                    },
-                                },
-                                {
-                                    onyxMethod: Onyx.METHOD.MERGE,
-                                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                                    value: {
-                                        [preexistingAccountID]: {
-                                            accountID: preexistingAccountID,
-                                        },
-                                    },
-                                },
-                            ],
-                        }),
-                        {status: 200},
-                    ),
-            );
+            fetchMock.mockAPICommand('OpenReport', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [preexistingAccountID]: {
+                                accountID: preexistingAccountID,
+                            },
+                        },
+                    },
+                ],
+            }));
 
             SequentialQueue.unpause();
             await SequentialQueue.waitForIdle();
