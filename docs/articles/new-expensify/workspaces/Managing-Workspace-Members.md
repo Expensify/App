@@ -66,6 +66,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 **Note:** Workspace admins and People admins can remove members. People admins can only remove **Members** and **Auditors** — they cannot remove admins or other scoped admin roles.
 
+**Note:** You can't remove a member while they have an active Expensify Card on the workspace. If you try, a **Remove member** message appears reading "You can't remove [member] from this workspace while they have an Expensify Card. Please deactivate their card in Workspace > Expensify Card, then try again," with a single **Got it** button, and the member is not removed. To remove them, first deactivate their card (see the *How to remove a member who has an Expensify Card* FAQ below).
+
 ## Remove a Single Member
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
@@ -147,6 +149,16 @@ You must be a **Workspace admin**, and the email or phone number of the individu
 ## Can I invite multiple members to a workspace at the same time?
 
 Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above.
+
+## How to remove a member who has an Expensify Card
+
+You can't remove a member while they hold an active Expensify Card on the workspace. To remove them:
+
+1. Go to **Workspaces > [Workspace Name] > Expensify Card**.
+2. Deactivate the member's Expensify Card.
+3. Return to **Workspaces > [Workspace Name] > Members** and remove the member as usual.
+
+Once the card is deactivated, the removal confirmation appears normally and the member can be removed. This applies whether you remove the member individually or as part of a bulk selection.
 
 ## Why am I prompted to upgrade when importing members from a spreadsheet?
 
