@@ -1,11 +1,12 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 
 import CopyPolicySettingsSelectFeaturesPage from '@pages/workspace/copyPolicySettings/CopyPolicySettingsSelectFeaturesPage';
 import WorkspaceDuplicateSelectFeaturesForm from '@pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
 
@@ -13,18 +14,27 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const POLICY_ID = '1';
+const TARGET_POLICY_ID = '2';
 
 // Captures the `data` prop handed to SelectionList on every render so the test can both
 // confirm the component reached its return (no crash in the body) and inspect the computed tag count.
 const mockSelectionListData: ListItem[][] = [];
+type CapturedSelectionListProps = {
+    data: ListItem[];
+    onSelectRow: (item: ListItem) => void;
+    confirmButtonOptions: ConfirmButtonOptions<ListItem>;
+};
+let mockSelectionListProps: CapturedSelectionListProps | undefined;
 
 jest.mock('@components/SelectionList', () => ({
     __esModule: true,
-    default: (props: {data: ListItem[]}) => {
+    default: (props: CapturedSelectionListProps) => {
         mockSelectionListData.push(props.data);
+        mockSelectionListProps = props;
         return null;
     },
 }));
@@ -44,6 +54,11 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({
     __esModule: true,
     default: ({children}: {children: React.ReactNode}) => children,
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
 }));
 
 // ScreenWrapper pulls in navigator-only hooks (usePreventRemove) that need a real navigation container.
@@ -99,6 +114,7 @@ describe('Select features pages with an empty tag group', () => {
 
     beforeEach(async () => {
         mockSelectionListData.length = 0;
+        mockSelectionListProps = undefined;
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createRandomPolicy(Number(POLICY_ID)));
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, POLICY_TAGS_WITH_EMPTY_GROUP);
         await waitForBatchedUpdates();
@@ -136,5 +152,45 @@ describe('Select features pages with an empty tag group', () => {
 
         // The empty "Project" group must contribute 0, so only the two "Region" tags are counted.
         expect(tagsItem?.alternateText).toMatch(/^2\b/);
+    });
+
+    it('does not save hidden currency when selected workspaces already share the same currency', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            ...createRandomPolicy(Number(POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
+            description: 'Copy me',
+            outputCurrency: CONST.CURRENCY.USD,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_ID}`, {
+            ...createRandomPolicy(Number(TARGET_POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
+            outputCurrency: CONST.CURRENCY.USD,
+        });
+        await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {targetPolicyIDs: [TARGET_POLICY_ID], parts: []});
+        await waitForBatchedUpdates();
+
+        render(
+            <OnyxListItemProvider>
+                <CopyPolicySettingsSelectFeaturesPage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        const overviewItem = mockSelectionListProps?.data.find((item) => item.keyForList === CONST.POLICY.POLICY_FEATURE.OVERVIEW);
+        expect(overviewItem).toBeDefined();
+        if (!overviewItem) {
+            return;
+        }
+
+        act(() => {
+            mockSelectionListProps?.onSelectRow(overviewItem);
+        });
+        await waitForBatchedUpdates();
+
+        act(() => {
+            mockSelectionListProps?.confirmButtonOptions.onConfirm?.();
+        });
+        await waitForBatchedUpdates();
+
+        const copySettings = await getOnyxValue(ONYXKEYS.COPY_POLICY_SETTINGS);
+        expect(copySettings?.parts).toEqual(['overview']);
     });
 });

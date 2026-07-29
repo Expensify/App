@@ -109,9 +109,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [canDowngrade] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
-    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)}, [
-        currentUserPersonalDetails.accountID,
-    ]);
+    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)});
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 

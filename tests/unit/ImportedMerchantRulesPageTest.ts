@@ -1,4 +1,7 @@
-import {normalizeImportedTag} from '@pages/workspace/rules/MerchantRules/ImportedMerchantRulesPage';
+import {buildImportedCategoryLookup, normalizeImportedTag} from '@pages/workspace/rules/MerchantRules/ImportedMerchantRulesPage';
+
+import CONST from '@src/CONST';
+import type {PolicyCategories} from '@src/types/onyx';
 
 describe('ImportedMerchantRulesPage', () => {
     describe('normalizeImportedTag', () => {
@@ -52,6 +55,45 @@ describe('ImportedMerchantRulesPage', () => {
             it('returns an empty string for an empty cell', () => {
                 expect(normalizeImportedTag('', false)).toBe('');
             });
+        });
+    });
+
+    describe('buildImportedCategoryLookup', () => {
+        // Policy category names are stored HTML-encoded, so the collection key contains the encoded name
+        const encodedFoodAndDrink = 'Food &amp; Drink';
+        const policyCategories: PolicyCategories = {
+            Travel: {name: 'Travel', enabled: true},
+            [encodedFoodAndDrink]: {name: encodedFoodAndDrink, enabled: true},
+            Disabled: {name: 'Disabled', enabled: false},
+            Deleted: {name: 'Deleted', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+        };
+
+        it('resolves an exact category name to its stored name', () => {
+            expect(buildImportedCategoryLookup(policyCategories).get('travel')).toBe('Travel');
+        });
+
+        it('resolves a cell case-insensitively', () => {
+            expect(buildImportedCategoryLookup(policyCategories).get('TRAVEL'.toLowerCase())).toBe('Travel');
+        });
+
+        it('resolves a plain-text cell against an HTML-encoded stored name', () => {
+            expect(buildImportedCategoryLookup(policyCategories).get('food & drink')).toBe('Food &amp; Drink');
+        });
+
+        it('excludes a disabled category', () => {
+            expect(buildImportedCategoryLookup(policyCategories).get('disabled')).toBeUndefined();
+        });
+
+        it('excludes a category pending deletion', () => {
+            expect(buildImportedCategoryLookup(policyCategories).get('deleted')).toBeUndefined();
+        });
+
+        it('returns undefined for a category that does not exist on the policy', () => {
+            expect(buildImportedCategoryLookup(policyCategories).get('nonexistent')).toBeUndefined();
+        });
+
+        it('returns an empty lookup when the policy has no categories', () => {
+            expect(buildImportedCategoryLookup(undefined).size).toBe(0);
         });
     });
 });

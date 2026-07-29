@@ -87,6 +87,14 @@ type ConnectionNameParams = {
     connectionName: AllConnectionName;
 };
 
+type ConnectionDisplayNameParams = {
+    connectionName: string;
+};
+
+type DefaultVendorHelperTextParams = {
+    isSet: boolean;
+};
+
 type ExportAgainModalDescriptionParams = {
     reportName: string;
     connectionName: ConnectionName;
@@ -133,6 +141,10 @@ type ConciergeBrokenCardConnectionParams = {
     connectionLink?: string;
 };
 
+type EmptyViolationSnapshotResultsSubtitleParams = {
+    formattedDate: string;
+};
+
 export type {
     MissingPropertyParams,
     InvalidPropertyParams,
@@ -152,6 +164,7 @@ export type {
     ParentNavigationSummaryParams,
     PaidElsewhereParams,
     ConciergeBrokenCardConnectionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -170,6 +183,8 @@ export type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     ConnectionNameParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
     OptionalParam,
