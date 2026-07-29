@@ -3160,6 +3160,40 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
     );
 }
 
+/**
+ * Returns a transaction's amount expressed in the report's currency. When the transaction currency differs from the
+ * report currency we rely on the pre-computed `convertedAmount`, otherwise the raw transaction amount already matches.
+ */
+function getTransactionAmountInReportCurrency(transaction: Transaction, report: OnyxEntry<Report>): number {
+    const isFromExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
+    if (getCurrency(transaction) !== report?.currency && transaction.convertedAmount !== undefined) {
+        return isFromExpenseReport ? -transaction.convertedAmount : Math.abs(transaction.convertedAmount);
+    }
+    return getAmount(transaction, isFromExpenseReport);
+}
+
+/**
+ * Sums, in the report's currency, the amounts of the scan-failed transactions that get moved to a new report on
+ * pay/approve. `includeHeld` should be false for partial flows, where held transactions are already excluded from the
+ * report total via the unheld* totals and must not be subtracted twice.
+ */
+function getScanFailedTransactionsMovedTotals(transactions: Transaction[], report: OnyxEntry<Report>, includeHeld: boolean): {reimbursable: number; nonReimbursable: number} {
+    let reimbursable = 0;
+    let nonReimbursable = 0;
+    for (const transaction of transactions) {
+        if (!hasSmartScanFailedWithMissingFields([transaction], report) || (!includeHeld && isOnHold(transaction))) {
+            continue;
+        }
+        const amount = getTransactionAmountInReportCurrency(transaction, report);
+        if (transaction.reimbursable === false) {
+            nonReimbursable += amount;
+        } else {
+            reimbursable += amount;
+        }
+    }
+    return {reimbursable, nonReimbursable};
+}
+
 function getDistanceRequestType(transaction: OnyxEntry<Transaction>): string | undefined {
     const requestType = getRequestType(transaction);
     return isDistanceExpenseType(requestType) ? requestType : undefined;
@@ -3329,6 +3363,8 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    getScanFailedTransactionsMovedTotals,
+    getTransactionAmountInReportCurrency,
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,

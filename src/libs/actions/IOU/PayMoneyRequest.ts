@@ -26,7 +26,7 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasSmartScanFailedWithMissingFields} from '@libs/TransactionUtils';
+import {getScanFailedTransactionsMovedTotals, hasSmartScanFailedWithMissingFields} from '@libs/TransactionUtils';
 
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
@@ -276,6 +276,11 @@ function getPayMoneyRequestParams({
         total = unheldReimbursableTotal;
     }
 
+    const shouldMoveScanFailedTransactions = hasSmartScanFailedWithMissingFields(reportTransactions, iouReport);
+    if (shouldMoveScanFailedTransactions) {
+        total -= getScanFailedTransactionsMovedTotals(reportTransactions, iouReport, full).reimbursable;
+    }
+
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount: isExpenseReport(iouReport) ? -total : total,
@@ -508,7 +513,6 @@ function getPayMoneyRequestParams({
     let optimisticHoldReportID;
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
-    const shouldMoveScanFailedTransactions = reportTransactions.some((transaction) => hasSmartScanFailedWithMissingFields([transaction], iouReport));
     if (!full || shouldMoveScanFailedTransactions) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport,

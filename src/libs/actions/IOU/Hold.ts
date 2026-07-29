@@ -28,7 +28,7 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isProcessingReport,
 } from '@libs/ReportUtils';
-import {getAmount, hasSmartScanFailedWithMissingFields} from '@libs/TransactionUtils';
+import {getAmount, getTransactionAmountInReportCurrency, hasSmartScanFailedWithMissingFields} from '@libs/TransactionUtils';
 
 import {notifyNewAction} from '@userActions/Report';
 
@@ -763,7 +763,7 @@ function getReportFromHoldRequestsOnyxData({
     let movedReimbursableAmount = 0;
     let movedNonReimbursableAmount = 0;
     for (const movedTransaction of holdTransactions) {
-        const transactionAmount = getAmount(movedTransaction, isExpenseReport(iouReport));
+        const transactionAmount = getTransactionAmountInReportCurrency(movedTransaction, iouReport);
         if (movedTransaction.reimbursable === false) {
             movedNonReimbursableAmount += transactionAmount;
         } else {
