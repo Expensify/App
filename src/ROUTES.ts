@@ -162,7 +162,7 @@ const DYNAMIC_ROUTES = {
     },
     IMPORTED_MEMBERS_ROLE: {
         path: 'imported-members-role',
-        entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION],
+        entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION, SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION],
     },
     REPORT_SETTINGS: {
         path: 'report-settings',
@@ -225,8 +225,8 @@ const DYNAMIC_ROUTES = {
             return `missing-personal-details/${cardID}/${subPage}${action ? `/${action}` : ''}` as const;
         },
     },
-    MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: {
-        path: 'missing-personal-details/:cardID/confirm-magic-code',
+    MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE: {
+        path: 'missing-personal-details/:cardID/confirm-validate-code',
         entryScreens: [
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
@@ -237,7 +237,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.WALLET.DOMAIN_CARD,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
         ],
-        getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-magic-code` as const,
+        getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-validate-code` as const,
     },
     MONEY_REQUEST_STEP_DESTINATION: {
         path: 'per-diem-destination',
@@ -556,7 +556,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
-            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
         ],
         getRoute: (country = '') => `country?country=${country}`,
@@ -842,8 +842,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER,
         ],
     },
-    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: {
-        path: 'confirm-magic-code',
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE: {
+        path: 'confirm-validate-code',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION: {
@@ -1014,27 +1014,11 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
         getRoute: (policyID?: string) => getUrlWithParams('public-domain-error', {policyID}),
     },
-    TRAVEL_TCS: {
-        path: 'terms/:domain/accept/:policyID?',
-        entryScreens: [
-            SCREENS.TRAVEL.MY_TRIPS,
-            SCREENS.WORKSPACE.TRAVEL,
-            SCREENS.SEARCH.ROOT,
-            SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR,
-            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
-            SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID,
-            SCREENS.TRAVEL.VERIFY_ACCOUNT,
-        ],
-        getRoute: (domain: string, policyID?: string) => `terms/${domain}/accept${policyID ? `/${policyID}` : ''}`,
-    },
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         path: 'domain-permission-info',
-        entryScreens: [SCREENS.TRAVEL.DYNAMIC_TCS],
-    },
-    TRAVEL_DOMAIN_SELECTOR: {
-        path: 'domain-selector',
-        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
-        getRoute: (policyID?: string) => getUrlWithParams('domain-selector', {policyID}),
+        entryScreens: [SCREENS.TRAVEL.ENABLE],
+        getRoute: (domain: string) => getUrlWithParams('domain-permission-info', {domain}),
+        queryParams: ['domain'],
     },
     TRAVEL_UPGRADE: {
         path: 'travel-upgrade',
@@ -1150,6 +1134,174 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
         path: 'initial-list-value',
         entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
+    },
+    TRANSACTION_DUPLICATE_REVIEW: {
+        // `reportID` is carried as the dynamic route's own path param (not inherited from the entry
+        // screen) because this modal can be opened from within another already-open RHP (e.g. the
+        // Expense Report screen). In that case react-navigation pushes this route as a sibling inside
+        // the same shared RightModalNavigator stack instead of replacing the underlying full-screen
+        // route, so deriving reportID from "whatever screen is underneath" would pick up the wrong
+        // report (the Expense Report's reportID, not this transaction thread's).
+        path: 'duplicates/review/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `duplicates/review/${reportID}` as const,
+    },
+    // These 7 sibling routes (and TRANSACTION_DUPLICATE_CONFIRMATION below) each carry their own
+    // `:reportID` path param for the same reason as TRANSACTION_DUPLICATE_REVIEW above: this wizard
+    // can be entered directly (skipping the review list) from a "Keep this one" quick-action on a
+    // duplicate preview, which is itself an already-open RHP. Deriving reportID from "whatever's
+    // beneath" would pick up that preview screen's own reportID instead of this transaction's.
+    TRANSACTION_DUPLICATE_CONFIRMATION: {
+        path: 'confirm/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `confirm/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_BILLABLE: {
+        path: 'billable/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `billable/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE: {
+        path: 'reimbursable/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+        ],
+        getRoute: (reportID: string) => `reimbursable/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION: {
+        path: 'transaction-duplicate-description/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `transaction-duplicate-description/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAX_CODE: {
+        path: 'tax-code/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `tax-code/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAG: {
+        path: 'transaction-duplicate-tag/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `transaction-duplicate-tag/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_CATEGORY: {
+        // 'category/:reportID' would collide with WORKSPACE_CATEGORY_SETTINGS's 'category/:categoryName'
+        // (same segment shape) — the suffix matcher picks whichever is declared first, so this must use
+        // a disambiguated name, same as TAG/DESCRIPTION below.
+        path: 'transaction-duplicate-category/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `transaction-duplicate-category/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_MERCHANT: {
+        path: 'merchant/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `merchant/${reportID}` as const,
     },
     MERGE_TRANSACTION_LIST: {
         path: 'merge/:transactionID',
@@ -1477,9 +1629,9 @@ const ROUTES = {
         route: 'settings/security/merge-accounts',
         getRoute: (email?: string) => `settings/security/merge-accounts${email ? `?email=${encodeURIComponent(email)}` : ''}` as const,
     },
-    SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE: {
-        route: 'settings/security/merge-accounts/:login/magic-code',
-        getRoute: (login: string) => `settings/security/merge-accounts/${encodeURIComponent(login)}/magic-code` as const,
+    SETTINGS_MERGE_ACCOUNTS_VALIDATE_CODE: {
+        route: 'settings/security/merge-accounts/:login/validate-code',
+        getRoute: (login: string) => `settings/security/merge-accounts/${encodeURIComponent(login)}/validate-code` as const,
     },
     SETTINGS_MERGE_ACCOUNTS_RESULT: {
         route: 'settings/security/merge-accounts/:login/result/:result',
@@ -1500,7 +1652,7 @@ const ROUTES = {
         route: 'settings/security/delegate/:login/update-role/:currentRole',
         getRoute: (login: string, currentRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${currentRole}` as const,
     },
-    SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE: {
+    SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE: {
         route: 'settings/security/delegate/:login/confirm-role/:newRole',
         getRoute: (login: string, newRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/confirm-role/${newRole}` as const,
     },
@@ -1508,9 +1660,9 @@ const ROUTES = {
         route: 'settings/security/delegate/:login/role/:role/confirm',
         getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
     },
-    SETTINGS_DELEGATE_CONFIRM_MAGIC_CODE: {
-        route: 'settings/security/delegate/:login/role/:role/confirm/magic-code',
-        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm/magic-code` as const,
+    SETTINGS_DELEGATE_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/security/delegate/:login/role/:role/confirm/validate-code',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm/validate-code` as const,
     },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
@@ -1540,9 +1692,9 @@ const ROUTES = {
         route: 'settings/wallet/personal-card/:cardID/edit/transaction-start-date',
         getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/edit/transaction-start-date` as const,
     },
-    SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE: {
-        route: 'settings/wallet/card/:cardID/confirm-magic-code',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-magic-code` as const,
+    SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/wallet/card/:cardID/confirm-validate-code',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-validate-code` as const,
     },
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
@@ -1552,9 +1704,9 @@ const ROUTES = {
         route: 'settings/card/:cardID/update-address',
         getRoute: (cardID: string) => `settings/card/${cardID}/update-address` as const,
     },
-    SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE: {
-        route: 'settings/card/:cardID/confirm-magic-code',
-        getRoute: (cardID: string) => `settings/card/${cardID}/confirm-magic-code` as const,
+    SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/card/:cardID/confirm-validate-code',
+        getRoute: (cardID: string) => `settings/card/${cardID}/confirm-validate-code` as const,
     },
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',
@@ -1667,10 +1819,10 @@ const ROUTES = {
         getRoute: (cardID: string, isFromDomainCardDetail?: boolean) =>
             `settings/wallet/card/${cardID}/report-card-lost-or-damaged${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
     },
-    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: {
-        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-magic-code',
+    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-validate-code',
         getRoute: (cardID: string, reason: ReplacementReason, isFromDomainCardDetail?: boolean) =>
-            `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-magic-code${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
+            `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-validate-code${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
     },
     SETTINGS_WALLET_CARD_CHANGE_PIN: {
         route: 'settings/wallet/card/:cardID/change-pin',
@@ -1744,7 +1896,7 @@ const ROUTES = {
         route: 'settings/profile/private-personal-details',
         getRoute: (fieldToFocus?: string) => `settings/profile/private-personal-details${fieldToFocus ? `?fieldToFocus=${encodeURIComponent(fieldToFocus)}` : ''}` as const,
     },
-    SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'settings/profile/private-personal-details/confirm',
+    SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE: 'settings/profile/private-personal-details/confirm',
     SETTINGS_ADDRESS_STATE: {
         route: 'settings/profile/address/state',
 
@@ -1773,13 +1925,13 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
     },
-    SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
-        route: 'settings/profile/contact-methods/new/confirm-magic-code',
+    SETTINGS_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/profile/contact-methods/new/confirm-validate-code',
         getRoute: (backTo?: string) => {
             // TODO this backTo comes from drilling it through settings screens
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
 
-            return getUrlWithBackToParam(`settings/profile/contact-methods/new/confirm-magic-code`, backTo);
+            return getUrlWithBackToParam(`settings/profile/contact-methods/new/confirm-validate-code`, backTo);
         },
     },
     SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM: {
@@ -2325,6 +2477,11 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, imageType: OdometerImageType, isEditingConfirmation?: boolean, backToReport?: string) =>
             `${action as string}/${iouType as string}/odometer-image/${transactionID}/${reportID}/${imageType}${backToReport ? `/${backToReport}` : ''}${isEditingConfirmation ? '?isEditingConfirmation=true' : ''}` as const,
     },
+    GPS_TRIP_EDIT: {
+        route: ':action/:iouType/gps-trip-edit/:transactionID/:reportID/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/gps-trip-edit/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}` as const,
+    },
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
 
@@ -2572,6 +2729,18 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/workflows` as const;
         },
+    },
+    WORKSPACE_WORKFLOWS_IMPORT: {
+        route: 'workspaces/:policyID/workflows/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/import` as const,
+    },
+    WORKSPACE_WORKFLOWS_IMPORTED: {
+        route: 'workspaces/:policyID/workflows/imported',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/imported` as const,
+    },
+    WORKSPACE_WORKFLOWS_IMPORTED_CONFIRMATION: {
+        route: 'workspaces/:policyID/workflows/imported/confirmation',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/imported/confirmation` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
         route: 'workspaces/:policyID/workflows/approvals/new',
@@ -3522,20 +3691,19 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
     },
-    TRAVEL_WORKSPACE_ADDRESS: {
-        route: 'travel/:domain/workspace-address',
-
-        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address?${policyID ? `policyID=${policyID}` : ''}`, backTo),
-    },
-    TRAVEL_LEGAL_ENTITY_TAX_ID: {
-        route: 'travel/:domain/legal-entity-tax-id',
-
-        getRoute: (domain: string, policyID?: string) => `travel/${domain}/legal-entity-tax-id${policyID ? `?policyID=${policyID}` : ''}` as const,
-    },
     TRAVEL_VERIFY_ACCOUNT: {
         route: `travel/${VERIFY_ACCOUNT}`,
 
         getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
+    },
+    TRAVEL_ENABLE: {
+        route: 'travel/enable/:policyID/:subPage?/:action?',
+        getRoute: (policyID: string, subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return `travel/enable/${policyID}` as const;
+            }
+            return `travel/enable/${policyID}/${subPage}${action ? `/${action}` : ''}` as const;
+        },
     },
     ONBOARDING_ROOT: {
         route: 'onboarding',
@@ -3608,52 +3776,6 @@ const ROUTES = {
             }
             return `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}` as const;
         },
-    },
-
-    TRANSACTION_DUPLICATE_REVIEW_PAGE: {
-        route: 'r/:threadReportID/duplicates/review',
-
-        getRoute: (threadReportID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/merchant',
-
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/merchant` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/category',
-
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/category` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/tag',
-
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/tag` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/tax-code',
-
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/tax-code` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/description',
-
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/description` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/reimbursable',
-
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/reimbursable` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/billable',
-
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/billable` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_CONFIRMATION_PAGE: {
-        route: 'r/:threadReportID/duplicates/confirm',
-
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
     },
     POLICY_ACCOUNTING_XERO_SETUP: {
         route: 'workspaces/:policyID/accounting/xero/setup',
