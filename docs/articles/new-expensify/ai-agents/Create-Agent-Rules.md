@@ -105,6 +105,24 @@ Deleting an Agent rule stops RuleBot from enforcing that rule on future report a
 
 ---
 
+## How to remove RuleBot from a workspace
+
+RuleBot enforces your Agent rules, so while a workspace still has Agent rules, RuleBot can't be removed, have its role changed, or be deleted. If you attempt any of these actions while Agent rules exist, Expensify blocks the action and shows a message prompting you to delete the Agent rules first.
+
+The following actions are blocked while the workspace still has Agent rules:
+
+ - Removing RuleBot from the workspace using **Remove from workspace** (from the **Members** list or RuleBot's member details page).
+ - Changing RuleBot's role to **Member** or **Auditor**. Promoting RuleBot to a workspace admin is still allowed.
+ - Deleting the RuleBot agent using **Delete agent** on the **Agents** page.
+ - Closing the RuleBot account.
+
+To remove, demote, or delete RuleBot:
+
+1. Delete every Agent rule in the workspace using the steps in **How to delete an Agent rule** above.
+2. Once no Agent rules remain, remove RuleBot from the workspace, change its role, or delete the agent as needed.
+
+---
+
 # FAQ
 
 ## Can Agent rules make mistakes?
@@ -124,3 +142,7 @@ When evaluating a report, RuleBot can review the 50 most recent report actions, 
 ## Do I need to create or manage RuleBot?
 
 No. RuleBot is created automatically when you add your first Agent rule and is managed by Expensify.
+
+## Why can't I remove RuleBot from the workspace?
+
+RuleBot enforces your Agent rules, so it can't be removed, demoted, or deleted while the workspace still has Agent rules. Delete every Agent rule in the workspace first, and then you can remove RuleBot, change its role, or delete the agent.
