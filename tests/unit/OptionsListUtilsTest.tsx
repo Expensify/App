@@ -8823,7 +8823,7 @@ describe('OptionsListUtils', () => {
         it('returns the most recent reports when maxRecentReports is less than the input size', () => {
             const reports = [createChatReport('101', '2022-01-01 00:00:00'), createChatReport('102', '2024-01-01 00:00:00'), createChatReport('103', '2023-01-01 00:00:00')];
 
-            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {maxRecentReports: 2, includeP2P: false});
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {conciergeReportID: undefined, maxRecentReports: 2, includeP2P: false});
 
             expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102', '103']);
         });
@@ -8831,7 +8831,7 @@ describe('OptionsListUtils', () => {
         it('prioritizes self-DM over newer non-self-DM reports', () => {
             const reports = [createChatReport('101', '2024-01-01 00:00:00'), createChatReport('102', '2020-01-01 00:00:00', CONST.REPORT.CHAT_TYPE.SELF_DM)];
 
-            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {maxRecentReports: 1, includeP2P: false});
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {conciergeReportID: undefined, maxRecentReports: 1, includeP2P: false});
 
             expect(result.reports.map((option) => option.item?.reportID)).toEqual(['102']);
         });
@@ -8842,7 +8842,11 @@ describe('OptionsListUtils', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}102`]: true,
             };
 
-            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, privateIsArchivedMap, undefined, {maxRecentReports: 1, includeP2P: false});
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, privateIsArchivedMap, undefined, {
+                conciergeReportID: undefined,
+                maxRecentReports: 1,
+                includeP2P: false,
+            });
 
             expect(result.reports.map((option) => option.item?.reportID)).toEqual(['101']);
         });
@@ -8850,7 +8854,12 @@ describe('OptionsListUtils', () => {
         it('returns all reports when isSearching is true', () => {
             const reports = [createChatReport('101', '2022-01-01 00:00:00'), createChatReport('102', '2024-01-01 00:00:00'), createChatReport('103', '2023-01-01 00:00:00')];
 
-            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {maxRecentReports: 1, isSearching: true, includeP2P: false});
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {
+                conciergeReportID: undefined,
+                maxRecentReports: 1,
+                isSearching: true,
+                includeP2P: false,
+            });
 
             expect(result.reports.map((option) => option.item?.reportID)).toEqual(['101', '102', '103']);
         });
@@ -8858,7 +8867,7 @@ describe('OptionsListUtils', () => {
         it('returns an empty array when maxRecentReports is zero', () => {
             const reports = [createChatReport('101', '2024-01-01 00:00:00')];
 
-            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {maxRecentReports: 0, includeP2P: false});
+            const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {conciergeReportID: undefined, maxRecentReports: 0, includeP2P: false});
 
             expect(result.reports).toEqual([]);
         });

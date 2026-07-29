@@ -1396,7 +1396,7 @@ function getPolicyExpenseReportOption(
         report: !isEmptyObject(expenseReport) ? expenseReport : null,
         policy,
         privateIsArchived,
-        // Safe: a policy expense chat is never the Concierge chat.
+        // Passing conciergeReportID as undefined is intentional, a policy expense chat is never the Concierge chat.
         conciergeReportID: undefined,
         config: {
             showChatPreviewLine: false,
@@ -2243,7 +2243,7 @@ function getUserToInviteOption({
         personalDetails: personalDetailsExtended,
         report: null,
         privateIsArchived: undefined,
-        // Safe: the invite option is built without a report, so it can never be the Concierge chat.
+        // Passing conciergeReportID as undefined is intentional, the invite option is built without a report, so it can never be the Concierge chat.
         conciergeReportID: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
