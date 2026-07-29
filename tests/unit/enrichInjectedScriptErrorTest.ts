@@ -1,8 +1,84 @@
-import {getStackScriptHosts, hasOnlyOpaqueFrames} from '@libs/telemetry/middlewares/enrichInjectedScriptError';
+import enrichInjectedScriptError, {
+    describeInlineScripts,
+    describeRawStack,
+    FRAME_SOURCE,
+    getFrameSource,
+    getOpaqueFrameLocation,
+    getStackScriptHosts,
+    hasOnlyOpaqueFrames,
+    hashScriptContent,
+} from '@libs/telemetry/middlewares/enrichInjectedScriptError';
 
-import type {ErrorEvent} from '@sentry/core';
+import CONST from '@src/CONST';
+
+import type {ErrorEvent, EventHint} from '@sentry/core';
+
+const TARGET_MESSAGE = 'Cannot call a class as a function';
+
+/**
+ * Every string we send has to be a hostname, a fixed enum value, a marker key, or a base-36 digest.
+ * None of those can contain a space, a slash, a `?`, or an `=`, so this pattern fails the moment a
+ * future field starts carrying free text, script content, or a URL with a query string.
+ */
+const SAFE_STRING_REGEX = /^[a-z0-9.:-]*$/i;
+
+function buildEvent(filenames: Array<string | undefined>, message = TARGET_MESSAGE, location?: {lineno: number; colno: number}): ErrorEvent {
+    return {
+        type: undefined,
+        exception: {
+            values: [
+                {
+                    value: message,
+                    stacktrace: {frames: filenames.map((filename) => ({filename, lineno: location?.lineno, colno: location?.colno}))},
+                },
+            ],
+        },
+    };
+}
+
+function buildHint(stack?: string): EventHint {
+    if (stack === undefined) {
+        return {};
+    }
+    const error = new Error(TARGET_MESSAGE);
+    error.stack = stack;
+    return {originalException: error};
+}
+
+function addScript({content, src}: {content?: string; src?: string}): void {
+    const script = document.createElement('script');
+    // A non-JavaScript type keeps jsdom from executing or fetching the fixture; `document.scripts` still lists it
+    script.type = 'text/plain';
+    if (src) {
+        script.src = src;
+    }
+    if (content) {
+        script.textContent = content;
+    }
+    document.head.appendChild(script);
+}
+
+/** Collects every string found anywhere in the enrichment payload, however deeply nested. */
+function collectStrings(value: unknown, found: string[] = []): string[] {
+    if (typeof value === 'string') {
+        found.push(value);
+    } else if (Array.isArray(value)) {
+        for (const item of value) {
+            collectStrings(item, found);
+        }
+    } else if (value !== null && typeof value === 'object') {
+        for (const item of Object.values(value)) {
+            collectStrings(item, found);
+        }
+    }
+    return found;
+}
 
 describe('enrichInjectedScriptError', () => {
+    afterEach(() => {
+        document.head.innerHTML = '';
+    });
+
     describe('getStackScriptHosts', () => {
         it('returns only hostnames, never paths, query strings, or credentials', () => {
             const stack = [
@@ -19,8 +95,21 @@ describe('enrichInjectedScriptError', () => {
             expect(getStackScriptHosts('    at fn (https://host.example.com:8082/app.js:3:4)')).toEqual(['host.example.com:8082']);
         });
 
-        it('extracts extension scheme hosts', () => {
+        it('keeps Chrome extension ids, which name the extension rather than the user', () => {
             expect(getStackScriptHosts('    at inj (chrome-extension://abcdefghijklmnop/content.js:3:4)')).toEqual(['abcdefghijklmnop']);
+        });
+
+        it('reduces per-installation extension uuids to their scheme', () => {
+            const stack = [
+                '    at a (moz-extension://3f2b1c8e-0000-4a1d-9f00-aaaabbbbcccc/inject.js:1:2)',
+                '    at b (safari-web-extension://11112222-3333-4444-5555-666677778888/inject.js:1:2)',
+            ].join('\n');
+            expect(getStackScriptHosts(stack)).toEqual(['moz-extension', 'safari-web-extension']);
+            expect(getStackScriptHosts(stack).join()).not.toContain('3f2b1c8e');
+        });
+
+        it('drops URLs that have no host at all', () => {
+            expect(getStackScriptHosts('    at f (file:///Users/someone/Desktop/notes.js:1:2)')).toEqual([]);
         });
 
         it('ignores data: URLs and unparsable tokens', () => {
@@ -38,25 +127,194 @@ describe('enrichInjectedScriptError', () => {
     });
 
     describe('hasOnlyOpaqueFrames', () => {
-        function eventWithFilenames(filenames: Array<string | undefined>): ErrorEvent {
-            return {
+        it('returns true when every frame lost its origin to the rewrite-frames integration', () => {
+            expect(hasOnlyOpaqueFrames(buildEvent(['app:///', 'app:///<anonymous>', 'app:///[native code]', undefined]))).toBe(true);
+        });
+
+        it('returns false when any frame still names a file, including our own bundles', () => {
+            expect(hasOnlyOpaqueFrames(buildEvent(['app:///', 'app:///main-33e5c3ee04228117.bundle.js']))).toBe(false);
+            expect(hasOnlyOpaqueFrames(buildEvent(['app:///', 'app:///tag.js']))).toBe(false);
+            expect(hasOnlyOpaqueFrames(buildEvent(['app:///', 'app:///search']))).toBe(false);
+        });
+
+        it('returns true when the event carries no frames at all', () => {
+            expect(hasOnlyOpaqueFrames({type: undefined})).toBe(true);
+        });
+    });
+
+    describe('getOpaqueFrameLocation', () => {
+        it('returns the innermost frame that reports both a line and a column', () => {
+            const event: ErrorEvent = {
                 type: undefined,
                 exception: {
-                    values: [{stacktrace: {frames: filenames.map((filename) => ({filename}))}}],
+                    values: [
+                        {
+                            stacktrace: {
+                                frames: [
+                                    {filename: 'app:///', lineno: 101, colno: 96537},
+                                    {filename: 'app:///', lineno: 101, colno: 98890},
+                                    {filename: 'app:///', lineno: undefined, colno: undefined},
+                                ],
+                            },
+                        },
+                    ],
                 },
             };
-        }
-
-        it('returns true when every frame is app:///, <anonymous>, or empty', () => {
-            expect(hasOnlyOpaqueFrames(eventWithFilenames(['app:///', '<anonymous>', undefined]))).toBe(true);
+            expect(getOpaqueFrameLocation(event)).toEqual({lineno: 101, colno: 98890});
         });
 
-        it('returns false when any frame resolves to a real file', () => {
-            expect(hasOnlyOpaqueFrames(eventWithFilenames(['app:///', 'app:///src/App.tsx']))).toBe(false);
+        it('returns undefined when no frame is positioned', () => {
+            expect(getOpaqueFrameLocation(buildEvent(['app:///']))).toBeUndefined();
+        });
+    });
+
+    describe('describeInlineScripts', () => {
+        it('reports numbers only and never the script content', () => {
+            const secret = 'SECRET_TOKEN_abc123';
+            const content = `line one\nvar userEmail = "bob@corp.com"; var token = "${secret}";`;
+            const {shapes} = describeInlineScripts([{src: '', textContent: content, nonce: 'abc'}], {lineno: 2, colno: 10});
+
+            expect(shapes).toHaveLength(1);
+            const shape = shapes.at(0);
+            expect(shape?.len).toBe(content.length);
+            expect(shape?.lines).toBe(2);
+            expect(shape?.lenAtFrameLine).toBe(content.split('\n').at(1)?.length);
+            expect(shape?.bracketsFrameCol).toBe(true);
+            expect(shape?.hasNonce).toBe(true);
+            expect(JSON.stringify(shapes)).not.toContain(secret);
+            expect(JSON.stringify(shapes)).not.toContain('bob@corp.com');
         });
 
-        it('returns false when there are no frames at all', () => {
-            expect(hasOnlyOpaqueFrames({type: undefined})).toBe(false);
+        it('marks a frame as outside a script whose matching line is too short', () => {
+            const {shapes} = describeInlineScripts([{src: '', textContent: 'short', nonce: undefined}], {lineno: 1, colno: 98890});
+            expect(shapes.at(0)?.bracketsFrameCol).toBe(false);
+        });
+
+        it('marks a frame as inside a script whose matching line is long enough', () => {
+            const wideLine = 'x'.repeat(99000);
+            const {shapes} = describeInlineScripts([{src: '', textContent: `${'\n'.repeat(100)}${wideLine}`, nonce: undefined}], {lineno: 101, colno: 98890});
+            expect(shapes.at(0)?.bracketsFrameCol).toBe(true);
+            expect(shapes.at(0)?.lenAtFrameLine).toBe(99000);
+        });
+
+        it('reports -1 for a line the script does not have', () => {
+            const {shapes} = describeInlineScripts([{src: '', textContent: 'one line', nonce: undefined}], {lineno: 101, colno: 1});
+            expect(shapes.at(0)?.lenAtFrameLine).toBe(-1);
+            expect(shapes.at(0)?.bracketsFrameCol).toBe(false);
+        });
+
+        it('emits only allowlisted vendor marker keys', () => {
+            const {shapes} = describeInlineScripts([{src: '', textContent: 'window.dataLayer.push({});function _classCallCheck(){}', nonce: undefined}], undefined);
+            expect(shapes.at(0)?.markers).toEqual(['babel-class-helper', 'gtm']);
+        });
+
+        it('does not digest a script short enough for its digest to be brute-forced', () => {
+            const {shapes} = describeInlineScripts([{src: '', textContent: 'var t = "123456";', nonce: undefined}], undefined);
+            expect(shapes.at(0)?.hash).toBe('');
+        });
+
+        it('digests a script long enough to be the blob we are hunting', () => {
+            const {shapes} = describeInlineScripts([{src: '', textContent: 'x'.repeat(512), nonce: undefined}], undefined);
+            expect(shapes.at(0)?.hash).toMatch(/^[0-9a-z]+$/);
+        });
+
+        it('skips scripts that have a src, since those are covered by loadedScriptHosts', () => {
+            const {shapes} = describeInlineScripts([{src: 'https://cdn.example.com/a.js', textContent: '', nonce: undefined}], undefined);
+            expect(shapes).toHaveLength(0);
+        });
+
+        it('flags truncation once the inline script cap is reached', () => {
+            const scripts = Array.from({length: 30}, () => ({src: '', textContent: 'x', nonce: undefined}));
+            const {shapes, truncated} = describeInlineScripts(scripts, undefined);
+            expect(shapes).toHaveLength(25);
+            expect(truncated).toBe(true);
+        });
+    });
+
+    describe('hashScriptContent', () => {
+        it('is stable for identical content and differs for different content', () => {
+            expect(hashScriptContent('abc')).toBe(hashScriptContent('abc'));
+            expect(hashScriptContent('abc')).not.toBe(hashScriptContent('abd'));
+        });
+
+        it('emits base 36 characters only', () => {
+            expect(hashScriptContent('window.dataLayer.push({user: "bob@corp.com"})')).toMatch(/^[0-9a-z]+$/);
+        });
+    });
+
+    describe('getFrameSource', () => {
+        const shape = {len: 1, lines: 1, lenAtFrameLine: 1, hasNonce: false, markers: [], hash: 'a'};
+
+        it('reports no-inline-scripts when the page has none', () => {
+            expect(getFrameSource([], {lineno: 1, colno: 1})).toBe(FRAME_SOURCE.NO_INLINE_SCRIPTS);
+        });
+
+        it('reports inline-script when one brackets the frame', () => {
+            expect(getFrameSource([{...shape, bracketsFrameCol: true}], {lineno: 1, colno: 1})).toBe(FRAME_SOURCE.INLINE_SCRIPT);
+        });
+
+        it('reports no-inline-script-match when none brackets the frame', () => {
+            expect(getFrameSource([{...shape, bracketsFrameCol: false}], {lineno: 1, colno: 1})).toBe(FRAME_SOURCE.NO_INLINE_MATCH);
+        });
+
+        it('reports unknown-frame-location when the frame has no coordinates', () => {
+            expect(getFrameSource([{...shape, bracketsFrameCol: false}], undefined)).toBe(FRAME_SOURCE.UNKNOWN);
+        });
+    });
+
+    describe('describeRawStack', () => {
+        it('detects our own bundle frames', () => {
+            const stack = 'TypeError: x\n    at f (https://new.expensify.com/main-33e5c3ee04228117.bundle.js:1:2)';
+            expect(describeRawStack(stack, 'https://new.expensify.com')).toEqual({lineCount: 2, referencesOwnBundle: true, referencesOwnOrigin: true});
+        });
+
+        it('reports no own bundle frame when only foreign code is on the stack', () => {
+            const stack = 'TypeError: x\n    at a (https://cdn.example.com/tag.js:1:2)';
+            expect(describeRawStack(stack, 'https://new.expensify.com')).toEqual({lineCount: 2, referencesOwnBundle: false, referencesOwnOrigin: false});
+        });
+    });
+
+    describe('middleware', () => {
+        it('passes through an error whose message is not one we are diagnosing', () => {
+            addScript({content: 'window.x = 1;'});
+            const event = buildEvent(['app:///'], 'Some other error');
+            expect(enrichInjectedScriptError(event, buildHint())).toBe(event);
+        });
+
+        it('passes through a targeted error that still has a real frame', () => {
+            const event = buildEvent(['app:///main-33e5c3ee04228117.bundle.js']);
+            expect(enrichInjectedScriptError(event, buildHint())).toBe(event);
+        });
+
+        it('tags and enriches a targeted error with only opaque frames', () => {
+            addScript({src: 'https://cdn-4.convertexperiments.com/v1/js/10042537-100413459.js?token=SECRET'});
+            addScript({content: `${'\n'.repeat(100)}${'x'.repeat(99000)}window.dataLayer.push({});`});
+
+            const event = buildEvent(['app:///'], TARGET_MESSAGE, {lineno: 101, colno: 98890});
+            const enriched = enrichInjectedScriptError(event, buildHint(`TypeError: Cannot call a class as a function\na@${window.location.origin}/:101:98890`));
+
+            expect(enriched?.tags?.[CONST.TELEMETRY.TAGS.INJECTED_SCRIPT_ERROR]).toBe(true);
+            expect(enriched?.tags?.[CONST.TELEMETRY.TAGS.INJECTED_SCRIPT_FRAME_SOURCE]).toBe(FRAME_SOURCE.INLINE_SCRIPT);
+            expect(enriched?.tags?.[CONST.TELEMETRY.TAGS.INJECTED_SCRIPT_OWN_BUNDLE_ON_STACK]).toBe(false);
+            expect(enriched?.extra?.injectedScriptFrame).toEqual({lineno: 101, colno: 98890, frameCount: 1, source: FRAME_SOURCE.INLINE_SCRIPT});
+            expect(enriched?.extra?.loadedScriptHosts).toEqual(['cdn-4.convertexperiments.com']);
+            expect(enriched?.extra?.injectedScriptRawStack).toEqual({lineCount: 2, referencesOwnBundle: false, referencesOwnOrigin: true});
+        });
+
+        it('never emits a string that could carry content, a path, or a query string', () => {
+            addScript({src: 'https://cdn.example.com/tag.js?token=SECRET123&email=bob@corp.com'});
+            addScript({content: 'var token = "SECRET_TOKEN_abc123"; var email = "bob@corp.com";'});
+
+            const event = buildEvent(['app:///'], TARGET_MESSAGE, {lineno: 1, colno: 5});
+            const enriched = enrichInjectedScriptError(event, buildHint('TypeError: Cannot call a class as a function\na@https://new.expensify.com/?email=bob@corp.com:1:5'));
+            const payload = JSON.stringify(enriched?.extra);
+
+            expect(payload).not.toContain('SECRET123');
+            expect(payload).not.toContain('SECRET_TOKEN_abc123');
+            expect(payload).not.toContain('bob@corp.com');
+            for (const value of collectStrings(enriched?.extra)) {
+                expect(value).toMatch(SAFE_STRING_REGEX);
+            }
         });
     });
 });
