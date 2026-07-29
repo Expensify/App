@@ -98,6 +98,8 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
                 shouldValidateOnBlur
                 shouldValidateOnChange
                 addBottomSafeAreaPadding={!isMobileSafari()}
+                keyboardSubmitBehavior={isOAuthFlow ? CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY : undefined}
+                shouldShowLoadingImmediatelyOnPress={!isOAuthFlow}
             >
                 {formInputs.map((formInput, index) => (
                     <View

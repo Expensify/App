@@ -40,7 +40,14 @@ type Require2FAProps = {
 const MockView = View;
 
 // Capture the props of the mocked children so the tests can drive submission and the modal.
-const mockFormProps: {current: {onSubmit: (values: NetSuiteTokenInputFormType) => void} | undefined} = {
+type MockFormProviderProps = {
+    children: React.ReactNode;
+    onSubmit: (values: NetSuiteTokenInputFormType) => void;
+    keyboardSubmitBehavior?: string;
+    shouldShowLoadingImmediatelyOnPress?: boolean;
+};
+
+const mockFormProps: {current: Omit<MockFormProviderProps, 'children'> | undefined} = {
     current: undefined,
 };
 const mockRequire2FAProps: {current: Require2FAProps | undefined} = {
@@ -83,8 +90,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 jest.mock('@components/RenderHTML', () => () => null);
 jest.mock('@components/Form/FormProvider', () => {
-    function MockFormProvider({children, onSubmit}: {children: React.ReactNode; onSubmit: (values: NetSuiteTokenInputFormType) => void}) {
-        mockFormProps.current = {onSubmit};
+    function MockFormProvider({children, onSubmit, keyboardSubmitBehavior, shouldShowLoadingImmediatelyOnPress}: MockFormProviderProps) {
+        mockFormProps.current = {onSubmit, keyboardSubmitBehavior, shouldShowLoadingImmediatelyOnPress};
         return children;
     }
     return MockFormProvider;
@@ -177,6 +184,15 @@ describe('NetSuiteTokenInputForm', () => {
 
             expect(screen.queryByTestId('require-2fa-modal')).toBeNull();
         });
+
+        it('submits synchronously so the setup link opens inside the tap gesture and is not popup-blocked', () => {
+            renderForm();
+
+            // Both FormProvider defaults defer onSubmit off the gesture: DISMISS_THEN_SUBMIT awaits a promise, and
+            // the press-loading spinner defers by a macrotask. Either one lets mobile Safari block the OAuth tab.
+            expect(mockFormProps.current?.keyboardSubmitBehavior).toBe(CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY);
+            expect(mockFormProps.current?.shouldShowLoadingImmediatelyOnPress).toBe(false);
+        });
     });
 
     describe('when the netSuiteOAuth beta is enabled and 2FA is not enabled', () => {
@@ -236,6 +252,13 @@ describe('NetSuiteTokenInputForm', () => {
             submitForm();
 
             expect(mockedOnNext).toHaveBeenCalled();
+        });
+
+        it('keeps the default submit behaviour, since the token flow never opens a popup', () => {
+            renderForm();
+
+            expect(mockFormProps.current?.keyboardSubmitBehavior).toBeUndefined();
+            expect(mockFormProps.current?.shouldShowLoadingImmediatelyOnPress).toBe(true);
         });
 
         it('updates the existing tokens when the connection is being re-authenticated', () => {
