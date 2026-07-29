@@ -218,15 +218,23 @@ describe('enrichInjectedScriptError', () => {
             expect(shapes.at(0)?.bracketsFrameCol).toBe(false);
         });
 
-        it('skips a script over the character budget but keeps describing the ones after it', () => {
+        it('reports no bracket for a frame that reports column 0, which any existing line would satisfy vacuously', () => {
+            const {shapes} = describeInlineScripts([{src: '', textContent: 'short\nx', nonce: undefined}], {lineno: 1, colno: 0});
+            expect(shapes.at(0)?.lenAtFrameLine).toBe(5);
+            expect(shapes.at(0)?.bracketsFrameCol).toBe(false);
+        });
+
+        it('keeps an over-budget script visible as a metadata-only shape and keeps describing the ones after it', () => {
             const scripts = [
-                {src: '', textContent: 'x'.repeat(600 * 1024), nonce: undefined},
+                {src: '', textContent: 'x'.repeat(600 * 1024), nonce: 'abc'},
                 {src: '', textContent: 'window.dataLayer.push({});', nonce: undefined},
             ];
             const {shapes, truncated} = describeInlineScripts(scripts, undefined);
             expect(truncated).toBe(true);
-            expect(shapes).toHaveLength(1);
-            expect(shapes.at(0)?.markers).toEqual(['gtm']);
+            expect(shapes).toHaveLength(2);
+            expect(shapes.at(0)).toEqual({len: 600 * 1024, lines: -1, lenAtFrameLine: -1, bracketsFrameCol: false, hasNonce: true, markers: [], hash: '', skipped: true});
+            expect(shapes.at(1)?.markers).toEqual(['gtm']);
+            expect(shapes.at(1)?.skipped).toBe(false);
         });
 
         it('emits only allowlisted vendor marker keys', () => {
@@ -269,7 +277,7 @@ describe('enrichInjectedScriptError', () => {
     });
 
     describe('getFrameSource', () => {
-        const shape = {len: 1, lines: 1, lenAtFrameLine: 1, hasNonce: false, markers: [], hash: 'a'};
+        const shape = {len: 1, lines: 1, lenAtFrameLine: 1, hasNonce: false, markers: [], hash: 'a', skipped: false};
 
         it('reports no-inline-scripts when the page has none', () => {
             expect(getFrameSource([], {lineno: 1, colno: 1})).toBe(FRAME_SOURCE.NO_INLINE_SCRIPTS);
@@ -349,6 +357,7 @@ describe('enrichInjectedScriptError', () => {
             const enriched = enrichInjectedScriptError(event, buildHint());
 
             expect(enriched?.tags?.[CONST.TELEMETRY.TAGS.INJECTED_SCRIPT_ERROR]).toBe('true');
+            expect(enriched?.tags?.[CONST.TELEMETRY.TAGS.INJECTED_SCRIPT_OWN_BUNDLE_ON_STACK]).toBe('unknown');
             expect(enriched?.extra?.injectedScriptFrame).toEqual({lineno: -1, colno: -1, frameCount: 0, source: FRAME_SOURCE.UNKNOWN});
         });
 

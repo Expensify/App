@@ -111,6 +111,12 @@ type InlineScriptShape = {
      * reversed. Empty for scripts shorter than `MIN_HASHED_CHARS`.
      */
     hash: string;
+    /**
+     * True when the script exceeded the scan budget and only its metadata was recorded: `len` and
+     * `hasNonce` are real, while `lines`, `lenAtFrameLine`, `bracketsFrameCol`, `markers`, and `hash`
+     * carry their sentinel values.
+     */
+    skipped: boolean;
 };
 
 /** The minimum shape of a script element we need, so this stays testable without a DOM. */
@@ -237,10 +243,13 @@ function describeInlineScripts(scripts: ScriptLike[], location: FrameLocation | 
             break;
         }
         const content = script.textContent ?? '';
-        // A script over the remaining budget is skipped rather than ending the scan: the blob we are
-        // hunting can sit anywhere in `document.scripts`, so one oversized script must not hide it
+        // A script over the remaining budget is not content-scanned, but it must stay visible: a giant
+        // inline blob is the prime suspect, so a metadata-only shape is pushed (`len` and `hasNonce`
+        // cost nothing) and the scan continues, since the blob we are hunting can sit anywhere in
+        // `document.scripts` and one oversized script must not hide it
         if (scannedChars + content.length > MAX_SCANNED_CHARS) {
             truncated = true;
+            shapes.push({len: content.length, lines: -1, lenAtFrameLine: -1, bracketsFrameCol: false, hasNonce: !!script.nonce, markers: [], hash: '', skipped: true});
             continue;
         }
         scannedChars += content.length;
@@ -254,10 +263,13 @@ function describeInlineScripts(scripts: ScriptLike[], location: FrameLocation | 
             len: content.length,
             lines: lines.length,
             lenAtFrameLine,
-            bracketsFrameCol: !!location && lenAtFrameLine >= location.colno,
+            // `colno: 0` occurs on minified and injected frames the same way `lineno: 0` does, and any
+            // existing line satisfies `length >= 0`, so a non-positive column must not bracket vacuously
+            bracketsFrameCol: !!location && location.colno >= 1 && lenAtFrameLine >= location.colno,
             hasNonce: !!script.nonce,
             markers: VENDOR_MARKERS.filter((marker) => marker.pattern.test(content)).map((marker) => marker.key),
             hash: content.length >= MIN_HASHED_CHARS ? hashScriptContent(content) : '',
+            skipped: false,
         });
     }
 
