@@ -121,13 +121,53 @@ type UpdateSplitTransactionsParams = {
     isTrackIntentUser: boolean | undefined;
 };
 
-function resetSnapshotGroupAmount<T extends OnyxTypes.Transaction>(transaction: T): T {
+/**
+ * Picks the transaction in `snapshotData` whose conversion can be reused for `transaction`: candidates are
+ * tried in order and the first one holding a conversion for the same currency wins.
+ */
+function findSnapshotGroupSourceTransaction(
+    snapshotData: OnyxTypes.SearchResults['data'] | undefined,
+    transaction: OnyxTypes.Transaction,
+    candidateTransactionIDs: Array<string | undefined>,
+): OnyxTypes.Transaction | undefined {
+    if (!snapshotData) {
+        return undefined;
+    }
+
+    return candidateTransactionIDs.reduce<OnyxTypes.Transaction | undefined>((foundTransaction, candidateTransactionID) => {
+        if (foundTransaction || !candidateTransactionID) {
+            return foundTransaction;
+        }
+
+        const candidateTransaction = snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransactionID}`];
+        const hasConversion = !!candidateTransaction?.groupCurrency && candidateTransaction.groupAmount !== undefined;
+        return hasConversion && candidateTransaction.currency === transaction.currency ? candidateTransaction : undefined;
+    }, undefined);
+}
+
+/**
+ * Returns `transaction` with its group fields expressed in `groupSourceTransaction`'s grouping currency,
+ * scaled by the two amounts. Every snapshot has its own grouping currency, so the source must come from the
+ * snapshot being written to. Falls back to the transaction's own currency when the source has no conversion.
+ */
+function rescaleSnapshotGroupAmount<T extends OnyxTypes.Transaction>(transaction: T, groupSourceTransaction: OnyxTypes.Transaction | undefined): T {
     const splitAmount = hasValidModifiedAmount(transaction) ? Number(transaction.modifiedAmount) : (transaction.amount ?? 0);
+    const sourceAmount = hasValidModifiedAmount(groupSourceTransaction) ? Number(groupSourceTransaction?.modifiedAmount) : (groupSourceTransaction?.amount ?? 0);
+
+    if (!groupSourceTransaction?.groupCurrency || groupSourceTransaction.groupAmount === undefined || !sourceAmount) {
+        return {
+            ...transaction,
+            groupAmount: splitAmount,
+            groupCurrency: transaction.currency,
+            groupExchangeRate: undefined,
+        };
+    }
+
     return {
         ...transaction,
-        groupAmount: splitAmount,
-        groupCurrency: transaction.currency,
-        groupExchangeRate: undefined,
+        groupAmount: Math.round(groupSourceTransaction.groupAmount * (splitAmount / sourceAmount)),
+        groupCurrency: groupSourceTransaction.groupCurrency,
+        groupExchangeRate: groupSourceTransaction.groupExchangeRate,
     };
 }
 
@@ -237,6 +277,13 @@ function updateSplitTransactions({
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
+
+    // Transactions whose snapshot conversion can be reused for this expense's splits, best source first
+    const groupSourceCandidateTransactionIDs = [
+        ...allChildTransactions.map((childTransaction) => childTransaction?.transactionID),
+        ...splitExpenses.map((splitExpense) => splitExpense.transactionID),
+        originalTransactionID,
+    ];
 
     const isCreationOfSplits = allChildTransactions.length === 0;
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
@@ -1235,14 +1282,12 @@ function updateSplitTransactions({
                 isDistanceRequestTransactionUtils(optimisticTransactionFromGetMoneyRequest) && !!optimisticTransactionFromGetMoneyRequest.modifiedMerchant
                     ? optimisticTransactionFromGetMoneyRequest.merchant
                     : optimisticTransactionFromGetMoneyRequest.modifiedMerchant;
-            newSelfDMSplitTransactions.push(
-                resetSnapshotGroupAmount({
-                    ...optimisticTransactionFromGetMoneyRequest,
-                    transactionID: snapshotTransactionID,
-                    modifiedMerchant: snapshotModifiedMerchant,
-                    ...(!isCreationOfSplits && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-                }),
-            );
+            newSelfDMSplitTransactions.push({
+                ...optimisticTransactionFromGetMoneyRequest,
+                transactionID: snapshotTransactionID,
+                modifiedMerchant: snapshotModifiedMerchant,
+                ...(!isCreationOfSplits && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+            });
 
             const reportActionsTargetReportID = selfDMReportID ?? originalSelfDMReportID;
             const targetReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsTargetReportID}` as const;
@@ -1273,7 +1318,7 @@ function updateSplitTransactions({
                 transactionUpdate && 'value' in transactionUpdate && typeof transactionUpdate.value === 'object' && transactionUpdate.value !== null
                     ? (transactionUpdate.value as OnyxTypes.Transaction)
                     : optimisticTransactionFromGetMoneyRequest;
-            optimisticChildSnapshotEntries[transactionKey] = resetSnapshotGroupAmount(snapshotTransaction);
+            optimisticChildSnapshotEntries[transactionKey] = snapshotTransaction;
             optimisticChildSnapshotKeys.push(transactionKey);
         }
 
@@ -1463,15 +1508,26 @@ function updateSplitTransactions({
                     }
 
                     if (revertedOriginalTransaction) {
-                        optimisticSnapshotData[originalSnapshotTransactionKey] = revertedOriginalTransaction;
+                        const groupSourceTransaction = findSnapshotGroupSourceTransaction(previousSnapshotData, revertedOriginalTransaction, groupSourceCandidateTransactionIDs);
+
+                        optimisticSnapshotData[originalSnapshotTransactionKey] = groupSourceTransaction
+                            ? rescaleSnapshotGroupAmount(revertedOriginalTransaction, groupSourceTransaction)
+                            : revertedOriginalTransaction;
                         failureSnapshotData[originalSnapshotTransactionKey] = previousSnapshotData[originalSnapshotTransactionKey] ?? null;
                     }
                 } else if (snapshotKeysToUpdate.has(typedSnapshotKey)) {
                     // Snapshot doesn't contain the split children but is an active search snapshot —
                     // inject the restored original transaction so it appears in Reports > Expenses.
-                    for (const tx of newSelfDMSplitTransactions) {
-                        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = tx;
-                        failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = null;
+                    for (const newSelfDMSplitTransaction of newSelfDMSplitTransactions) {
+                        const groupSourceTransaction = findSnapshotGroupSourceTransaction(previousSnapshotData, newSelfDMSplitTransaction, [
+                            newSelfDMSplitTransaction.transactionID,
+                            ...groupSourceCandidateTransactionIDs,
+                        ]);
+                        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${newSelfDMSplitTransaction.transactionID}`] = rescaleSnapshotGroupAmount(
+                            newSelfDMSplitTransaction,
+                            groupSourceTransaction,
+                        );
+                        failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${newSelfDMSplitTransaction.transactionID}`] = null;
                     }
                 }
 
@@ -1649,18 +1705,27 @@ function updateSplitTransactions({
 
                 // When creating splits: replace the original transaction with the new split transactions.
                 if (isCreationOfSplits && Object.hasOwn(snapshot.data, originalTransactionSnapshotKey)) {
+                    const previousOriginalTransaction = snapshot.data[originalTransactionSnapshotKey] as OnyxTypes.Transaction | undefined;
                     optimisticSnapshotData[originalTransactionSnapshotKey] = null;
-                    failureSnapshotData[originalTransactionSnapshotKey] = snapshot.data[originalTransactionSnapshotKey] ?? originalTransaction ?? null;
-                    for (const tx of newSelfDMSplitTransactions) {
-                        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = tx;
-                        failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = null;
+                    failureSnapshotData[originalTransactionSnapshotKey] = previousOriginalTransaction ?? originalTransaction ?? null;
+                    for (const newSelfDMSplitTransaction of newSelfDMSplitTransactions) {
+                        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${newSelfDMSplitTransaction.transactionID}`] = rescaleSnapshotGroupAmount(
+                            newSelfDMSplitTransaction,
+                            previousOriginalTransaction,
+                        );
+                        failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${newSelfDMSplitTransaction.transactionID}`] = null;
                     }
                 } else if (!isCreationOfSplits && splitTransactionKeys.some((k) => Object.hasOwn(snapshot.data, k))) {
                     // When editing splits: update the existing split transactions in place.
-                    for (const tx of newSelfDMSplitTransactions) {
-                        const txKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}` as const;
-                        optimisticSnapshotData[txKey] = tx;
-                        failureSnapshotData[txKey] = snapshot.data[txKey] ?? null;
+                    for (const newSelfDMSplitTransaction of newSelfDMSplitTransactions) {
+                        const splitTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${newSelfDMSplitTransaction.transactionID}` as const;
+                        const previousSplitTransaction = snapshot.data[splitTransactionKey] as OnyxTypes.Transaction | undefined;
+                        const groupSourceTransaction = findSnapshotGroupSourceTransaction(snapshot.data, newSelfDMSplitTransaction, [
+                            newSelfDMSplitTransaction.transactionID,
+                            ...groupSourceCandidateTransactionIDs,
+                        ]);
+                        optimisticSnapshotData[splitTransactionKey] = rescaleSnapshotGroupAmount(newSelfDMSplitTransaction, groupSourceTransaction);
+                        failureSnapshotData[splitTransactionKey] = previousSplitTransaction ?? null;
                     }
                 }
 
@@ -1698,9 +1763,20 @@ function updateSplitTransactions({
             }
         }
         // Build the snapshot data update: remove original transaction and add child transactions
+        const currentSnapshotData = allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`]?.data;
+        const rescaledChildSnapshotEntries: SearchResultDataType = {};
+        for (const childKey of optimisticChildSnapshotKeys) {
+            const childTransaction = optimisticChildSnapshotEntries[childKey];
+            if (!childTransaction) {
+                continue;
+            }
+            const groupSourceTransaction = findSnapshotGroupSourceTransaction(currentSnapshotData, childTransaction, [childTransaction.transactionID, ...groupSourceCandidateTransactionIDs]);
+            rescaledChildSnapshotEntries[childKey] = rescaleSnapshotGroupAmount(childTransaction, groupSourceTransaction);
+        }
+
         const optimisticSnapshotData: SearchResultDataType = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
-            ...optimisticChildSnapshotEntries,
+            ...rescaledChildSnapshotEntries,
         };
 
         // On failure, restore the original transaction and remove the child transactions

@@ -3058,6 +3058,570 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         expect(snapshotDataAfter[originalTransactionSnapshotKey]).toBeTruthy();
     });
 
+    it('should keep the snapshot grouping currency when creating splits of a foreign-currency expense', async () => {
+        // Given an EUR expense that a search snapshot has already converted into its USD grouping currency
+        const expenseReport: Report = {
+            ...createRandomReport(31, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const transaction: Transaction = {
+            amount: 10000,
+            currency: 'EUR',
+            transactionID: 'group-currency-split-original',
+            reportID: expenseReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+        };
+        const transactionThread: Report = {...createRandomReport(32, undefined)};
+        const iouAction: ReportAction = {
+            ...buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                comment: '',
+                participants: [],
+                transactionID: transaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            }),
+            childReportID: transactionThread.reportID,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {[iouAction.reportActionID]: iouAction});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
+        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+        const snapshotData: SearchResults['data'] = {};
+        snapshotData[originalTransactionSnapshotKey] = {
+            ...transaction,
+            groupAmount: 11000,
+            groupCurrency: 'USD',
+            groupExchangeRate: 1.1,
+        };
+        await Onyx.merge(snapshotKey, {
+            data: snapshotData,
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
+        });
+        await waitForBatchedUpdates();
+
+        const splitTransactionID1 = 'group-currency-split-child-1';
+        const splitTransactionID2 = 'group-currency-split-child-2';
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allSnapshots: OnyxCollection<SearchResults>;
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
+
+        const transactionReportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const reports = getTransactionAndExpenseReports(transactionReportID);
+
+        // When the expense is split in half
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: undefined,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
+            transactionData: {
+                reportID: transactionReportID,
+                originalTransactionID: transaction.transactionID,
+                splitExpenses: [
+                    {amount: transaction.amount / 2, transactionID: splitTransactionID1, created: ''},
+                    {amount: transaction.amount / 2, transactionID: splitTransactionID2, created: ''},
+                ],
+                splitExpensesTotal: undefined,
+            },
+            searchContext: {currentSearchHash: unapprovedCashHash},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            allPolicyTags: await getAllPolicyTags(),
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+        });
+        await waitForBatchedUpdates();
+
+        // Then each split keeps the snapshot's USD grouping instead of switching to the expense's own EUR,
+        // so the Search selection total stays in a single currency while the request is pending.
+        const snapshotAfter = await getOnyxValue(snapshotKey);
+        const snapshotDataAfter = snapshotAfter?.data ?? {};
+        const split1 = snapshotDataAfter[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`];
+        const split2 = snapshotDataAfter[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`];
+
+        expect(split1?.groupCurrency).toBe('USD');
+        expect(split2?.groupCurrency).toBe('USD');
+        expect(split1?.groupExchangeRate).toBe(1.1);
+        expect(split2?.groupExchangeRate).toBe(1.1);
+        expect(Math.abs(split1?.groupAmount ?? 0) + Math.abs(split2?.groupAmount ?? 0)).toBe(11000);
+    });
+
+    it('should keep the snapshot grouping currency for the reverted transaction when reverting a foreign-currency split', async () => {
+        // Given a selfDM EUR expense split into two children that the snapshot converted into USD
+        const selfDMReport = createSelfDM(33, RORY_ACCOUNT_ID);
+        const originalTransactionID = 'group-currency-revert-original';
+        const childTransactionID1 = 'group-currency-revert-child-1';
+        const childTransactionID2 = 'group-currency-revert-child-2';
+
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -10000,
+            currency: 'EUR',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Original expense'},
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        };
+        const childTransaction1: Transaction = {
+            transactionID: childTransactionID1,
+            amount: -5000,
+            currency: 'EUR',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+        };
+        const childTransaction2: Transaction = {...childTransaction1, transactionID: childTransactionID2};
+
+        const child1IOUAction: ReportAction = {
+            ...buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                amount: 5000,
+                currency: 'EUR',
+                comment: '',
+                participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
+                transactionID: childTransactionID1,
+                isPersonalTrackingExpense: true,
+            }),
+        };
+        const child2IOUAction: ReportAction = {
+            ...buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                amount: 5000,
+                currency: 'EUR',
+                comment: '',
+                participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
+                transactionID: childTransactionID2,
+                isPersonalTrackingExpense: true,
+            }),
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID1}`, childTransaction1);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID2}`, childTransaction2);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {
+            [child1IOUAction.reportActionID]: child1IOUAction,
+            [child2IOUAction.reportActionID]: child2IOUAction,
+        });
+
+        const child1SnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID1}` as const;
+        const child2SnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID2}` as const;
+        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
+        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+        const snapshotData: SearchResults['data'] = {};
+        snapshotData[child1SnapshotKey] = {...childTransaction1, groupAmount: -5500, groupCurrency: 'USD', groupExchangeRate: 1.1};
+        snapshotData[child2SnapshotKey] = {...childTransaction2, groupAmount: -5500, groupCurrency: 'USD', groupExchangeRate: 1.1};
+        await Onyx.merge(snapshotKey, {
+            data: snapshotData,
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
+        });
+        await waitForBatchedUpdates();
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allReportActions: OnyxCollection<ReportActions>;
+        let allSnapshots: OnyxCollection<SearchResults>;
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
+
+        // When one of the two splits is removed, reverting the split back into a single expense
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: allReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
+            transactionData: {
+                reportID: selfDMReport.reportID,
+                originalTransactionID,
+                splitExpenses: [{transactionID: childTransactionID1, amount: 10000, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID}],
+                splitExpensesTotal: undefined,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: undefined,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            allPolicyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: selfDMReport,
+            expenseReport: undefined,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the restored expense is converted from the removed children's rate against the amount it was
+        // actually reverted to (10000 EUR-cents), not left in EUR and not scaled from a single child's amount.
+        const snapshotAfter = await getOnyxValue(snapshotKey);
+        const revertedTransaction = snapshotAfter?.data?.[originalTransactionSnapshotKey];
+
+        expect(revertedTransaction?.groupCurrency).toBe('USD');
+        expect(revertedTransaction?.groupExchangeRate).toBe(1.1);
+        expect(Math.abs(revertedTransaction?.groupAmount ?? 0)).toBe(11000);
+    });
+
+    it('should keep the snapshot grouping currency when editing existing foreign-currency splits', async () => {
+        // Given a selfDM EUR expense already split into two children that the snapshot converted into USD.
+        // The original is no longer in the snapshot — creating the splits removed it.
+        const selfDMReport = createSelfDM(34, RORY_ACCOUNT_ID);
+        const originalTransactionID = 'group-currency-edit-original';
+        const childTransactionID1 = 'group-currency-edit-child-1';
+        const childTransactionID2 = 'group-currency-edit-child-2';
+
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -10000,
+            currency: 'EUR',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Original expense'},
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        };
+        const childTransaction1: Transaction = {
+            transactionID: childTransactionID1,
+            amount: -5000,
+            currency: 'EUR',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+        };
+        const childTransaction2: Transaction = {...childTransaction1, transactionID: childTransactionID2};
+
+        const child1IOUAction: ReportAction = {
+            ...buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                amount: 5000,
+                currency: 'EUR',
+                comment: '',
+                participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
+                transactionID: childTransactionID1,
+                isPersonalTrackingExpense: true,
+            }),
+        };
+        const child2IOUAction: ReportAction = {
+            ...buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                amount: 5000,
+                currency: 'EUR',
+                comment: '',
+                participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
+                transactionID: childTransactionID2,
+                isPersonalTrackingExpense: true,
+            }),
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID1}`, childTransaction1);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID2}`, childTransaction2);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {
+            [child1IOUAction.reportActionID]: child1IOUAction,
+            [child2IOUAction.reportActionID]: child2IOUAction,
+        });
+
+        const child1SnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID1}` as const;
+        const child2SnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID2}` as const;
+        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+        const snapshotData: SearchResults['data'] = {};
+        snapshotData[child1SnapshotKey] = {...childTransaction1, groupAmount: -5500, groupCurrency: 'USD', groupExchangeRate: 1.1};
+        snapshotData[child2SnapshotKey] = {...childTransaction2, groupAmount: -5500, groupCurrency: 'USD', groupExchangeRate: 1.1};
+        await Onyx.merge(snapshotKey, {
+            data: snapshotData,
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
+        });
+        await waitForBatchedUpdates();
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allReportActions: OnyxCollection<ReportActions>;
+        let allSnapshots: OnyxCollection<SearchResults>;
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
+
+        // When the amounts of both splits are edited
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: allReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
+            transactionData: {
+                reportID: selfDMReport.reportID,
+                originalTransactionID,
+                splitExpenses: [
+                    {transactionID: childTransactionID1, amount: 7000, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                    {transactionID: childTransactionID2, amount: 3000, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                ],
+                splitExpensesTotal: undefined,
+            },
+            searchContext: {currentSearchHash: unapprovedCashHash},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: undefined,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            allPolicyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: selfDMReport,
+            expenseReport: undefined,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the edited splits stay converted into the snapshot's USD grouping
+        const snapshotAfter = await getOnyxValue(snapshotKey);
+        const editedSplit1 = snapshotAfter?.data?.[child1SnapshotKey];
+        const editedSplit2 = snapshotAfter?.data?.[child2SnapshotKey];
+
+        expect(editedSplit1?.groupCurrency).toBe('USD');
+        expect(editedSplit2?.groupCurrency).toBe('USD');
+        expect(editedSplit1?.groupExchangeRate).toBe(1.1);
+        expect(editedSplit2?.groupExchangeRate).toBe(1.1);
+        expect(Math.abs(editedSplit1?.groupAmount ?? 0)).toBe(7700);
+        expect(Math.abs(editedSplit2?.groupAmount ?? 0)).toBe(3300);
+    });
+
+    /**
+     * Sets up a selfDM EUR expense already split into `childTransactionIDs`, each worth 5000 EUR-cents, plus a
+     * search snapshot holding those children. With `shouldConvertInSnapshot` the snapshot converts them to USD.
+     */
+    async function setUpConvertedSelfDMSplits(selfDMReportNumber: number, originalTransactionID: string, childTransactionIDs: string[], shouldConvertInSnapshot: boolean) {
+        const selfDMReport = createSelfDM(selfDMReportNumber, RORY_ACCOUNT_ID);
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -5000 * childTransactionIDs.length,
+            currency: 'EUR',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Original expense'},
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+
+        const snapshotData: SearchResults['data'] = {};
+        const childIOUActions: Record<string, ReportAction> = {};
+        for (const childTransactionID of childTransactionIDs) {
+            const childTransaction: Transaction = {
+                transactionID: childTransactionID,
+                amount: -5000,
+                currency: 'EUR',
+                merchant: 'Test Merchant',
+                comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+                created: DateUtils.getDBTime(),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID}`, childTransaction);
+
+            const childIOUAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    amount: 5000,
+                    currency: 'EUR',
+                    comment: '',
+                    participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
+                    transactionID: childTransactionID,
+                    isPersonalTrackingExpense: true,
+                }),
+            };
+            childIOUActions[childIOUAction.reportActionID] = childIOUAction;
+            snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID}`] = shouldConvertInSnapshot
+                ? {...childTransaction, groupAmount: -5500, groupCurrency: 'USD', groupExchangeRate: 1.1}
+                : childTransaction;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, childIOUActions);
+
+        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+        await Onyx.merge(snapshotKey, {
+            data: snapshotData,
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
+        });
+        await waitForBatchedUpdates();
+
+        return {selfDMReport, snapshotKey};
+    }
+
+    /** Runs the split-expenses flow against the scenario built by `setUpConvertedSelfDMSplits`. */
+    async function runSelfDMSplitExpensesFlow(selfDMReport: Report, originalTransactionID: string, splitExpenses: SplitExpense[]) {
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allReportActions: OnyxCollection<ReportActions>;
+        let allSnapshots: OnyxCollection<SearchResults>;
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
+
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: allReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
+            transactionData: {
+                reportID: selfDMReport.reportID,
+                originalTransactionID,
+                splitExpenses,
+                splitExpensesTotal: undefined,
+            },
+            searchContext: {currentSearchHash: unapprovedCashHash},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: undefined,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            allPolicyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: selfDMReport,
+            expenseReport: undefined,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+        });
+        await waitForBatchedUpdates();
+    }
+
+    it('should keep the snapshot grouping currency for a split added to an existing foreign-currency split set', async () => {
+        // Given two existing EUR splits that the snapshot converted into USD
+        const originalTransactionID = 'group-currency-add-original';
+        const childTransactionID1 = 'group-currency-add-child-1';
+        const childTransactionID2 = 'group-currency-add-child-2';
+        const addedTransactionID = 'group-currency-add-child-3';
+        const {selfDMReport, snapshotKey} = await setUpConvertedSelfDMSplits(35, originalTransactionID, [childTransactionID1, childTransactionID2], true);
+
+        // When a third split is added, so the new split has no entry of its own in the snapshot yet
+        await runSelfDMSplitExpensesFlow(selfDMReport, originalTransactionID, [
+            {transactionID: childTransactionID1, amount: 4000, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+            {transactionID: childTransactionID2, amount: 3000, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+            {transactionID: addedTransactionID, amount: 3000, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+        ]);
+
+        // Then it borrows the conversion of its siblings instead of falling back to the expense's own EUR
+        const snapshotAfter = await getOnyxValue(snapshotKey);
+        const addedSplit = snapshotAfter?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${addedTransactionID}`];
+
+        expect(addedSplit?.groupCurrency).toBe('USD');
+        expect(addedSplit?.groupExchangeRate).toBe(1.1);
+        expect(Math.abs(addedSplit?.groupAmount ?? 0)).toBe(3300);
+    });
+
+    it('should keep the snapshot grouping currency for the splits left after deleting one of them', async () => {
+        // Given three existing EUR splits that the snapshot converted into USD
+        const originalTransactionID = 'group-currency-delete-original';
+        const childTransactionID1 = 'group-currency-delete-child-1';
+        const childTransactionID2 = 'group-currency-delete-child-2';
+        const childTransactionID3 = 'group-currency-delete-child-3';
+        const {selfDMReport, snapshotKey} = await setUpConvertedSelfDMSplits(36, originalTransactionID, [childTransactionID1, childTransactionID2, childTransactionID3], true);
+
+        // When one of them is deleted and the remaining two absorb its amount
+        await runSelfDMSplitExpensesFlow(selfDMReport, originalTransactionID, [
+            {transactionID: childTransactionID1, amount: 10000, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+            {transactionID: childTransactionID2, amount: 5000, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+        ]);
+
+        // Then the surviving splits stay converted and the deleted one is gone from the snapshot
+        const snapshotAfter = await getOnyxValue(snapshotKey);
+        const survivingSplit1 = snapshotAfter?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID1}`];
+        const survivingSplit2 = snapshotAfter?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID2}`];
+
+        expect(survivingSplit1?.groupCurrency).toBe('USD');
+        expect(survivingSplit2?.groupCurrency).toBe('USD');
+        expect(Math.abs(survivingSplit1?.groupAmount ?? 0)).toBe(11000);
+        expect(Math.abs(survivingSplit2?.groupAmount ?? 0)).toBe(5500);
+        expect(snapshotAfter?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID3}`]).toBeFalsy();
+    });
+
+    it('should fall back to the expense currency when the snapshot holds no conversion', async () => {
+        // Given two existing EUR splits that the snapshot stores without any grouping conversion
+        const originalTransactionID = 'no-conversion-original';
+        const childTransactionID1 = 'no-conversion-child-1';
+        const childTransactionID2 = 'no-conversion-child-2';
+        const {selfDMReport, snapshotKey} = await setUpConvertedSelfDMSplits(37, originalTransactionID, [childTransactionID1, childTransactionID2], false);
+
+        // When the splits are edited
+        await runSelfDMSplitExpensesFlow(selfDMReport, originalTransactionID, [
+            {transactionID: childTransactionID1, amount: 7000, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+            {transactionID: childTransactionID2, amount: 3000, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+        ]);
+
+        // Then each split is grouped by its own currency, with no invented exchange rate
+        const snapshotAfter = await getOnyxValue(snapshotKey);
+        const editedSplit1 = snapshotAfter?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID1}`];
+        const editedSplit2 = snapshotAfter?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID2}`];
+
+        expect(editedSplit1?.groupCurrency).toBe('EUR');
+        expect(editedSplit2?.groupCurrency).toBe('EUR');
+        expect(editedSplit1?.groupExchangeRate).toBeUndefined();
+        expect(editedSplit2?.groupExchangeRate).toBeUndefined();
+        expect(Math.abs(editedSplit1?.groupAmount ?? 0)).toBe(7000);
+        expect(Math.abs(editedSplit2?.groupAmount ?? 0)).toBe(3000);
+    });
+
     it('should migrate split thread comments to the original transaction thread when reverting a split', async () => {
         const amount = 10000;
         let expenseReport: OnyxEntry<Report>;
