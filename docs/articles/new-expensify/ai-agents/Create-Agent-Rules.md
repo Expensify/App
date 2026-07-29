@@ -112,13 +112,13 @@ RuleBot enforces your Agent rules, so while a workspace still has Agent rules, R
 The following actions are blocked while the workspace still has Agent rules:
 
  - Removing RuleBot from the workspace using **Remove from workspace** (from the **Members** list or RuleBot's member details page).
- - Changing RuleBot's role to **Member** or **Auditor**. Promoting RuleBot to a workspace admin is still allowed.
+ - Changing RuleBot's role to **Member** or **Auditor**. Promoting RuleBot to a **Workspace Admin** is still allowed.
  - Deleting the RuleBot agent using **Delete agent** on the **Agents** page.
  - Closing the RuleBot account.
 
 To remove, demote, or delete RuleBot:
 
-1. Delete every Agent rule in the workspace using the steps in **How to delete an Agent rule** above.
+1. Delete every Agent rule in the workspace by following the steps to [delete an Agent rule](#how-to-delete-an-agent-rule) above.
 2. Once no Agent rules remain, remove RuleBot from the workspace, change its role, or delete the agent as needed.
 
 ---
