@@ -202,7 +202,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (
         <View style={[styles.w100, styles.flexColumn]}>
-            <MenuItem
+            <MenuItem.Standard
                 title={translate(issueCardFundID !== undefined ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
                 icon={expensifyIcons.Plus}
                 onPress={issueCardFundID !== undefined ? handleAddCardPress : handleSetUpNewProgramPress}

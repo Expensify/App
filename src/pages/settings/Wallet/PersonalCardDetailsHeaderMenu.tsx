@@ -123,7 +123,7 @@ function PersonalCardDetailsHeaderMenu({
                     />
                 )}
                 {shouldShowBreakConnection && (
-                    <MenuItem
+                    <MenuItem.Standard
                         icon={icons.Trashcan}
                         disabled={isOffline || card?.isLoadingLastUpdated}
                         title="Break connection (Testing)"

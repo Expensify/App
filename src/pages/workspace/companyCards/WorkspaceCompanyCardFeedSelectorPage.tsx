@@ -175,7 +175,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const otherMenuItemFeeds = canWriteCompanyCards ? (
         <View style={[styles.w100, styles.flexColumn]}>
-            <MenuItem
+            <MenuItem.Standard
                 title={translate('workspace.companyCards.addCards')}
                 icon={icons.Plus}
                 onPress={onAddCardsPress}

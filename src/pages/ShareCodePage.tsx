@@ -218,13 +218,13 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         />
                     )}
 
-                    <MenuItem
+                    <MenuItem.Standard
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
                         icon={icons.Cash}
                         onPress={() => {
                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE)));
                         }}
-                        shouldShowRightIcon
+                        shouldShowChevron
                     />
                 </View>
             </ScrollView>

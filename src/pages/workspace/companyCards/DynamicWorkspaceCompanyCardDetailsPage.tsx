@@ -272,7 +272,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         />
                     </OfflineWithFeedback>
                     {canWriteCompanyCards && shouldShowBreakConnection && (
-                        <MenuItem
+                        <MenuItem.Standard
                             icon={expensifyIcons.Trashcan}
                             disabled={isOffline || card?.isLoadingLastUpdated}
                             title="Break connection (Testing)"

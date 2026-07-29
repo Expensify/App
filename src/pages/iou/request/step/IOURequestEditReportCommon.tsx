@@ -278,7 +278,7 @@ function IOURequestEditReportCommon({
         }
 
         return (
-            <MenuItem
+            <MenuItem.Standard
                 onPress={handleCreateReport}
                 title={translate('report.newReport.createReport')}
                 description={policyForMovingExpenses?.name}
@@ -336,8 +336,8 @@ function IOURequestEditReportCommon({
                 ListItem={InviteMemberListItem}
                 customListHeaderContent={createReportOption}
                 listFooterContent={
-                    shouldShowRemoveFromReport ? (
-                        <MenuItem
+                    shouldShowRemoveFromReport && removeFromReport ? (
+                        <MenuItem.Standard
                             onPress={removeFromReport}
                             title={translate('iou.removeFromReport')}
                             description={translate('iou.moveToPersonalSpace')}

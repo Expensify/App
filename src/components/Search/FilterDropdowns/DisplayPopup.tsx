@@ -125,7 +125,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 )}
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
-                        <MenuItem
+                        <MenuItem.Standard
                             icon={expensifyIcons.Columns}
                             title={translate('search.editColumns')}
                             onPress={() => {

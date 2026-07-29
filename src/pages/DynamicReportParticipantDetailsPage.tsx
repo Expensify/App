@@ -141,11 +141,11 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                             />
                         </OfflineWithFeedback>
                     )}
-                    <MenuItem
+                    <MenuItem.Standard
                         title={translate('common.profile')}
                         icon={icons.Info}
                         onPress={navigateToProfile}
-                        shouldShowRightIcon
+                        shouldShowChevron
                     />
                 </View>
             </ScrollView>

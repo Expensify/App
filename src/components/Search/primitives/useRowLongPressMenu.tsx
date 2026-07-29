@@ -100,7 +100,7 @@ function useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isM
             onClose={() => setIsModalVisible(false)}
             shouldPreventScrollOnFocus
         >
-            <MenuItem
+            <MenuItem.Standard
                 title={translate('common.select')}
                 icon={expensifyIcons.CheckSquare}
                 onPress={turnOnSelectionMode}

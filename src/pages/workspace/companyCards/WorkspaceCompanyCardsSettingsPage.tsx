@@ -179,7 +179,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
                         {isDirectFeedType && (
-                            <MenuItem
+                            <MenuItem.Standard
                                 icon={icons.Sync}
                                 title={translate('workspace.companyCards.assignNewCards.title')}
                                 description={translate('workspace.companyCards.assignNewCards.description')}

@@ -588,10 +588,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         {(shouldShowChangePINRow || shouldShowActionRows) && (
                             <View style={styles.mt4}>
                                 {shouldShowChangePINRow && (
-                                    <MenuItem
+                                    <MenuItem.Standard
                                         title={translate('cardPage.changePin')}
                                         icon={expensifyIcons.Key}
-                                        shouldShowRightIcon
+                                        shouldShowChevron
                                         onPress={() => {
                                             const physicalCardID = String(currentPhysicalCard?.cardID);
                                             if (isOfflinePINMarket(countryByIp)) {
@@ -637,10 +637,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 />
                                             ))}
                                         {shouldShowReportLostCardButton && (
-                                            <MenuItem
+                                            <MenuItem.Standard
                                                 title={translate('reportCardLostOrDamaged.screenTitle')}
                                                 icon={expensifyIcons.Flag}
-                                                shouldShowRightIcon
+                                                shouldShowChevron
                                                 onPress={() => {
                                                     if (isAccountLocked) {
                                                         showLockedAccountModal();

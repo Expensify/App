@@ -122,11 +122,11 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
                     </>
                 </View>
                 <View style={styles.w100}>
-                    <MenuItem
+                    <MenuItem.Standard
                         title={translate('common.profile')}
                         icon={icons.Info}
                         onPress={navigateToProfile}
-                        shouldShowRightIcon
+                        shouldShowChevron
                     />
                 </View>
             </View>

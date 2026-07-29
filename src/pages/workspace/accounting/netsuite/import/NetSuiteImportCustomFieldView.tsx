@@ -142,7 +142,7 @@ function NetSuiteImportCustomFieldView({
                             />
                         );
                     })}
-                    <MenuItem
+                    <MenuItem.Standard
                         icon={icons.Trashcan}
                         title={translate('common.remove')}
                         disabled={!!config?.pendingFields?.[importCustomField]}

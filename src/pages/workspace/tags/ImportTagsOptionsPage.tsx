@@ -245,10 +245,10 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 <FullPageOfflineBlockingView>
                     <Text style={[styles.ph5, styles.pv3, styles.textSupporting, styles.textNormal]}>{translate('workspace.tags.importTagsSupportingText')}</Text>
 
-                    <MenuItem
+                    <MenuItem.Standard
                         title={translate('workspace.tags.tagLevel.singleLevel')}
                         icon={expensifyIcons.Tag}
-                        shouldShowRightIcon
+                        shouldShowChevron
                         onPress={async () => {
                             setImportedSpreadsheetIsImportingMultiLevelTags(false);
                             if (hasVisibleTags && isMultiLevelTags) {
@@ -278,11 +278,11 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                             }
                         }}
                     />
-                    <MenuItem
+                    <MenuItem.Standard
                         title={translate('workspace.tags.tagLevel.multiLevel')}
                         // TODO: Update icon to multi-level tag icon once it's provided by design team
                         icon={expensifyIcons.MultiTag}
-                        shouldShowRightIcon
+                        shouldShowChevron
                         onPress={() => {
                             if (!isControlPolicy(policy)) {
                                 setShouldRunPostUpgradeFlow(true);

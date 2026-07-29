@@ -493,11 +493,11 @@ function ParticipantSearchResults({
 
     const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
     const importContactsButtonComponent = shouldShowImportContactsButton ? (
-        <MenuItem
+        <MenuItem.Standard
             title={translate('contact.importContacts')}
             icon={icons.UserPlus}
             onPress={goToSettings}
-            shouldShowRightIcon
+            shouldShowChevron
             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_IMPORT_CONTACTS_ITEM}
         />
     ) : null;

@@ -102,11 +102,11 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                                 copyable
                             />
                             {children}
-                            <MenuItem
+                            <MenuItem.Standard
                                 title={translate('common.profile')}
                                 icon={icons.Info}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)))}
-                                shouldShowRightIcon
+                                shouldShowChevron
                             />
                         </View>
                     </View>

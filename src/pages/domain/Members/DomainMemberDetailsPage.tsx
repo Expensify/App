@@ -207,7 +207,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 )}
 
                 {isAccountLocked ? (
-                    <MenuItem
+                    <MenuItem.Standard
                         key="UnlockAccount"
                         title={translate('lockAccountPage.unlockAccount')}
                         icon={icons.Unlock}
