@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useCategoryRuleCreateBackPath from '@hooks/useCategoryRuleCreateBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -43,7 +44,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES, getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
@@ -74,6 +75,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     const isEditing = !!categoryName;
     const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
     const canEditCategory = canWriteRules && !isCategoryLocked;
+    const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_NEW.path);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -365,7 +367,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         if (!isEditing && isRulesRevampEnabled) {
             const savedCategoryName = savedCategory ?? initialCategoryName;
             if (initialCategoryName && savedCategoryName) {
-                Navigation.goBack(getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
+                Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
                 return;
             }
 

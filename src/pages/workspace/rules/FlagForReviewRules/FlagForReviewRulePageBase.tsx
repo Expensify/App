@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useCategoryRuleCreateBackPath from '@hooks/useCategoryRuleCreateBackPath';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -79,6 +80,7 @@ function FlagForReviewRulePageBase({
     const isEditing = !!categoryName;
     const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
     const canEditCategory = canWriteRules && !isCategoryLocked;
+    const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_NEW.path);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
@@ -147,7 +149,7 @@ function FlagForReviewRulePageBase({
         if (!isEditing && isRulesRevampEnabled) {
             const savedCategoryName = form[INPUT_IDS.CATEGORY] ?? initialCategoryName;
             if (initialCategoryName && savedCategoryName) {
-                Navigation.goBack(getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
+                Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
                 return;
             }
 

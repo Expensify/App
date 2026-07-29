@@ -4534,9 +4534,12 @@ function getFlagForReviewRuleAmountRoute(policyID: string, categoryName?: string
 }
 
 /**
- * Category Settings destination after creating a Rules Revamp rule from the category RHP.
+ * Workspace Category Settings destination after creating a Rules Revamp rule from the category RHP.
  * Built as a concrete path (not createDynamicRoute) so it can be used from ROUTES helpers
  * without circular imports.
+ *
+ * Only a fallback for entry points outside the category dynamic route stack — prefer
+ * `useCategoryRuleCreateBackPath`, which keeps the Settings > Categories flow intact.
  */
 function getWorkspaceCategorySettingsRoute(policyID: string, categoryName: string) {
     return `workspaces/${policyID}/categories/category/${encodeURIComponent(categoryName)}` as const;
