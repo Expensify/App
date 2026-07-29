@@ -7048,7 +7048,7 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>规则仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
                 onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>无限使用规则功能仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>仅在 Control 方案中可享受无限制规则访问，起价为<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             perDiem: {
                 title: '每日津贴',
@@ -7295,6 +7295,12 @@ ${reportName}`,
                 requireCompanyCard: '所有消费均需使用公司卡',
                 requireCompanyCardDescription: '标记所有现金支出，包括里程和每日津贴报销。',
                 requireCompanyCardDisabledTooltip: '启用“公司卡”（位于“更多功能”下）以解锁。',
+                enableTagsToUnlockTitle: '启用标签？',
+                enableTagsToUnlockPrompt: '启用“标签”（位于“更多功能”下）以解锁。',
+                enableTagsAndRequirePrompt: '确定要启用标签，并将其设为所有报销的必填项吗？',
+                enableCategoriesToUnlockTitle: '启用类别？',
+                enableCategoriesToUnlockPrompt: '启用“类别”（位于“更多功能”下）以解锁。',
+                enableCategoriesAndRequirePrompt: '确定要启用类别，并要求所有报销都必须选择类别吗？',
             },
             expenseReportRules: {
                 title: '高级',
