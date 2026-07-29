@@ -1,23 +1,26 @@
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useOnyx from '@hooks/useOnyx';
+
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
+
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
-import {useComposerActions, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 import useAttachmentPicker from './useAttachmentPicker';
 
-type ComposerActionMenuProps = {
-    reportID: string;
-};
-
-function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
+function ComposerActionMenu() {
+    const {reportID} = useComposerState();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {isMenuVisible, isFullComposerAvailable, draftComment} = useComposerState();
+    const {isMenuVisible, isFullComposerAvailable} = useComposerState();
+    const {draftComment} = useComposerEditState();
     const {exceededMaxLength} = useComposerSendState();
     const {setMenuVisibility, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker} = useComposerActions();
     const {actionButtonRef, composerRef} = useComposerMeta();

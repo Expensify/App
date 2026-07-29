@@ -1,26 +1,34 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getDraftValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getDraftValuesForSignerInfo';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
+
 import {askForCorpaySignerInformation, clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import EnterEmail from './EnterEmail';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {EmailSubmitParams} from './EnterEmail';
+
+import EnterEmail from './EnterEmail';
 import HangTight from './HangTight';
 import SignerDetailsFormPages from './SignerDetailsFormPages';
 
@@ -188,12 +196,12 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                     submitFlexEnabled={!showNoPolicyError}
                 >
                     {showNoPolicyError && (
-                        <View style={[styles.flex1, styles.justifyContentEnd]}>
+                        <View style={[styles.flex1, styles.justifyContentEnd, styles.ph5]}>
                             <FormHelpMessage
                                 style={styles.mt3}
                                 isError
                                 shouldRenderMessageAsHTML
-                                message={translate('signerInfoStep.error.connectToWorkspace', `${environmentURL}/${ROUTES.WORKSPACES_LIST.getRoute()}`)}
+                                message={translate('countryStep.error.connectToWorkspace', `${environmentURL}/${ROUTES.WORKSPACES_LIST.getRoute()}`)}
                             />
                         </View>
                     )}

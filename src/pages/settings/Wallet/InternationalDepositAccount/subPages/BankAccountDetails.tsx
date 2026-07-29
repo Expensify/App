@@ -1,5 +1,3 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import CurrencyPicker from '@components/CurrencyPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -8,18 +6,27 @@ import Icon from '@components/Icon';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import ValuePicker from '@components/ValuePicker';
+
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
+
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
+
 import {fetchCorpayFields} from '@userActions/BankAccounts';
+
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
@@ -30,7 +37,7 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {}),
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const onCurrencySelected = useCallback(
@@ -81,22 +88,26 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
                         shouldShowFullPageOfflineView
                     />
                 </View>
-                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {}).map((field) => (
-                    <View
-                        style={(field.valueSet ?? []).length > 0 ? [styles.mhn5, styles.pv1] : [styles.pv2]}
-                        key={field.id}
-                    >
-                        <InputWrapper
-                            InputComponent={(field.valueSet ?? []).length > 0 ? ValuePicker : TextInput}
-                            inputID={field.id}
-                            defaultValue={formValues[field.id]}
-                            label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
-                            items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
-                            shouldSaveDraft={!isEditing}
-                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                        />
-                    </View>
-                ))}
+                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {}).map((field) => {
+                    const isValuePicker = (field.valueSet ?? []).length > 0;
+                    return (
+                        <View
+                            style={isValuePicker ? [styles.mhn5, styles.pv1] : [styles.pv2]}
+                            key={field.id}
+                        >
+                            <InputWrapper
+                                InputComponent={isValuePicker ? ValuePicker : TextInput}
+                                inputID={field.id}
+                                defaultValue={formValues[field.id]}
+                                label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
+                                items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
+                                shouldSaveDraft={!isEditing}
+                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                                {...(isValuePicker ? {} : getTextInputAutocorrectProps())}
+                            />
+                        </View>
+                    );
+                })}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
                     <Icon
                         src={icons.QuestionMark}

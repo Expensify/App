@@ -1,14 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ActionButtonsProps = {
     containerStyle: React.ComponentProps<typeof View>['style'];
     resetSentryLabel?: string;
     applySentryLabel?: string;
-    onReset: () => void;
+    onReset?: () => void;
     onApply: () => void;
 };
 
@@ -18,13 +20,15 @@ function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, onRe
 
     return (
         <View style={containerStyle}>
-            <Button
-                medium
-                style={[styles.flex1]}
-                text={translate('common.reset')}
-                onPress={onReset}
-                sentryLabel={resetSentryLabel}
-            />
+            {!!onReset && (
+                <Button
+                    medium
+                    style={[styles.flex1]}
+                    text={translate('common.reset')}
+                    onPress={onReset}
+                    sentryLabel={resetSentryLabel}
+                />
+            )}
             <Button
                 success
                 medium
@@ -37,5 +41,4 @@ function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, onRe
     );
 }
 
-export type {ActionButtonsProps};
 export default ActionButtons;

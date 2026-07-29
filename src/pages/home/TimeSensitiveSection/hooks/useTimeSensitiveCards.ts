@@ -1,23 +1,38 @@
 import useOnyx from '@hooks/useOnyx';
-import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithCustomZeroLimit, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
+
+import {
+    isActionableVirtualExpensifyCard,
+    isCard,
+    isCardPendingActivate,
+    isCardPendingIssue,
+    isCardPendingReplace,
+    isCardWithCustomZeroLimit,
+    isCardWithPotentialFraud,
+    isExpensifyCard,
+} from '@libs/CardUtils';
+import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
+
+import {isActingAsDelegateSelector} from '@selectors/Account';
 
 function useTimeSensitiveCards() {
     const [cards] = useOnyx(ONYXKEYS.CARD_LIST);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
+    const personalDetailsMissing = areAddressAndPersonalDetailsMissing(privatePersonalDetails);
 
     const cardsNeedingShippingAddress: Card[] = [];
     const cardsNeedingActivation: Card[] = [];
     const cardsWithFraud: Card[] = [];
+    const virtualCardsNeedingPersonalDetails: Card[] = [];
 
     for (const card of Object.values(cards ?? {})) {
-        if (!isCard(card)) {
-            continue;
-        }
-
-        if (!isExpensifyCard(card)) {
+        if (!isCard(card) || !isExpensifyCard(card) || !CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state)) {
             continue;
         }
 
@@ -33,8 +48,15 @@ function useTimeSensitiveCards() {
             continue;
         }
 
-        const isPhysicalCard = !card.nameValuePairs?.isVirtual;
-        if (!isPhysicalCard) {
+        if (isCardPendingReplace(card)) {
+            continue;
+        }
+
+        const isVirtualCard = !!card.nameValuePairs?.isVirtual;
+        if (isVirtualCard) {
+            if (personalDetailsMissing && !isActingAsDelegate && isActionableVirtualExpensifyCard(card)) {
+                virtualCardsNeedingPersonalDetails.push(card);
+            }
             continue;
         }
 
@@ -50,14 +72,17 @@ function useTimeSensitiveCards() {
     const shouldShowAddShippingAddress = cardsNeedingShippingAddress.length > 0;
     const shouldShowActivateCard = cardsNeedingActivation.length > 0;
     const shouldShowReviewCardFraud = cardsWithFraud.length > 0;
+    const shouldShowAddVirtualCardPersonalDetails = virtualCardsNeedingPersonalDetails.length > 0;
 
     return {
         shouldShowAddShippingAddress,
         shouldShowActivateCard,
         shouldShowReviewCardFraud,
+        shouldShowAddVirtualCardPersonalDetails,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
         cardsWithFraud,
+        virtualCardsNeedingPersonalDetails,
     };
 }
 

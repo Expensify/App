@@ -1,3 +1,5 @@
+import {getCommandURL} from '@libs/ApiUtils';
+
 import {
     getDBTimeWithSkew,
     getIsOffline,
@@ -11,10 +13,47 @@ import {
     simulatePoorConnection,
     subscribe,
 } from '@src/libs/NetworkState';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import NetInfo from '@react-native-community/netinfo';
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Log triggers a circular dep chain (NetworkState → Log → Network → SequentialQueue → NetworkState.subscribe())
 // that causes the listeners Set to be undefined during module init. Mock Log to break the cycle.
 jest.mock('@src/libs/Log');
+
+// IS_USING_LOCAL_WEB short-circuits NetInfo.configure() — disable it so the reachability path runs.
+jest.mock('@src/CONFIG', () => ({__esModule: true, default: {IS_USING_LOCAL_WEB: false}}));
+
+jest.mock('@react-native-community/netinfo', () => ({
+    __esModule: true,
+    default: {
+        configure: jest.fn(),
+        refresh: jest.fn(),
+        addEventListener: jest.fn(() => () => {}),
+        fetch: jest.fn(() => Promise.resolve({})),
+    },
+}));
+
+const mockPingUrl = 'https://test-api.expensify.com/api/Ping?';
+const mockStagingPingUrl = 'https://staging-test-api.expensify.com/api/Ping?';
+jest.mock('@libs/ApiUtils', () => ({
+    __esModule: true,
+    getApiRoot: jest.fn(() => 'https://test-api.expensify.com/'),
+    getCommandURL: jest.fn(() => mockPingUrl),
+    isUsingStagingApi: jest.fn(() => false),
+}));
+
+// NetworkState awaits getEnvironment() so configureAndSubscribe runs after ApiUtils settles its
+// own env-aware Onyx subscription. Mock a resolved promise so the .then() callback fires deterministically.
+jest.mock('@src/libs/Environment/getEnvironment', () => ({
+    __esModule: true,
+    default: () => Promise.resolve('adhoc'),
+}));
+
+Onyx.init({keys: ONYXKEYS});
 
 describe('NetworkState', () => {
     beforeEach(() => {
@@ -79,15 +118,15 @@ describe('NetworkState', () => {
         test('multiple listeners all get called', () => {
             const listener1 = jest.fn();
             const listener2 = jest.fn();
-            const unsub1 = subscribe(listener1);
-            const unsub2 = subscribe(listener2);
+            const unsubscribe1 = subscribe(listener1);
+            const unsubscribe2 = subscribe(listener2);
 
             setHasRadio(false);
             expect(listener1).toHaveBeenCalledTimes(1);
             expect(listener2).toHaveBeenCalledTimes(1);
 
-            unsub1();
-            unsub2();
+            unsubscribe1();
+            unsubscribe2();
         });
 
         test('unsubscribe removes the listener', () => {
@@ -495,6 +534,79 @@ describe('NetworkState', () => {
             expect(listener).not.toHaveBeenCalled();
 
             unsubscribe();
+        });
+    });
+
+    describe('configureAndSubscribe — env-aware reachability URL', () => {
+        const configureMock = NetInfo.configure as jest.Mock<void, [{reachabilityUrl: string}]>;
+
+        beforeEach(async () => {
+            jest.mocked(getCommandURL).mockReturnValue(mockPingUrl);
+            configureMock.mockClear();
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        test('NetInfo.configure receives a URL derived from getCommandURL with the current accountID', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234});
+            await waitForBatchedUpdates();
+
+            expect(configureMock).toHaveBeenCalled();
+            expect(configureMock.mock.calls.at(-1)?.[0].reachabilityUrl).toBe(`${mockPingUrl}accountID=1234`);
+        });
+
+        test('SESSION accountID change triggers a reconfigure with the new accountID', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
+            await waitForBatchedUpdates();
+            const callsAfterFirstAccount = configureMock.mock.calls.length;
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 2});
+            await waitForBatchedUpdates();
+
+            expect(configureMock.mock.calls.length).toBeGreaterThan(callsAfterFirstAccount);
+            expect(configureMock.mock.calls.at(-1)?.[0].reachabilityUrl).toBe(`${mockPingUrl}accountID=2`);
+        });
+
+        test('SHOULD_USE_STAGING_SERVER change triggers a reconfigure when the reachability URL changes', async () => {
+            const callsBefore = configureMock.mock.calls.length;
+            jest.mocked(getCommandURL).mockReturnValue(mockStagingPingUrl);
+
+            await Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, true);
+            await waitForBatchedUpdates();
+
+            expect(configureMock.mock.calls.length).toBeGreaterThan(callsBefore);
+            expect(configureMock.mock.calls.at(-1)?.[0].reachabilityUrl).toBe(`${mockStagingPingUrl}accountID=unknown`);
+        });
+
+        test('SHOULD_USE_STAGING_SERVER same-value rewrite does NOT reconfigure', async () => {
+            jest.mocked(getCommandURL).mockReturnValue(mockStagingPingUrl);
+            await Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, true);
+            await waitForBatchedUpdates();
+            const callsAfterFlip = configureMock.mock.calls.length;
+
+            await Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, true);
+            await waitForBatchedUpdates();
+
+            expect(configureMock.mock.calls.length).toBe(callsAfterFlip);
+        });
+
+        test('SHOULD_USE_STAGING_SERVER flip that does not change the reachability URL does NOT reconfigure', async () => {
+            // e.g. production, where ApiUtils forces the effective flag off regardless of the toggle
+            const callsBefore = configureMock.mock.calls.length;
+
+            await Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, true);
+            await waitForBatchedUpdates();
+
+            expect(configureMock.mock.calls.length).toBe(callsBefore);
+        });
+
+        test('reachability URL falls back to accountID=unknown when SESSION has no accountID', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 123});
+            await waitForBatchedUpdates();
+            await Onyx.set(ONYXKEYS.SESSION, null);
+            await waitForBatchedUpdates();
+
+            expect(configureMock.mock.calls.at(-1)?.[0].reachabilityUrl).toBe(`${mockPingUrl}accountID=unknown`);
         });
     });
 });

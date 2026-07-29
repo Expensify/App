@@ -1,22 +1,21 @@
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useRef} from 'react';
-import type {BlurEvent, KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+
 import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
-import NumberWithSymbolForm from './NumberWithSymbolForm';
+
+import type {ForwardedRef} from 'react';
+import type {BlurEvent, KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useCallback, useEffect, useRef} from 'react';
+
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
-import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
-type MoneyRequestAmountInputRef = {
-    changeSelection: (newSelection: Selection) => void;
-    changeAmount: (newAmount: string) => void;
-    getAmount: () => string;
-    getSelection: () => Selection;
-};
+import NumberWithSymbolForm from './NumberWithSymbolForm';
+import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 
 type MoneyRequestAmountInputProps = {
     /** IOU amount saved in Onyx */
@@ -99,6 +98,9 @@ type MoneyRequestAmountInputProps = {
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
 
+    /** Style for the negative symbol */
+    negativeSymbolStyle?: StyleProp<TextStyle>;
+
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 
@@ -124,6 +126,15 @@ type MoneyRequestAmountInputProps = {
      */
     shouldWrapInputInContainer?: boolean;
 
+    /** Style applied to the outer ScrollView inside NumberWithSymbolForm */
+    scrollViewStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Whether to refocus the input when clicking on the ScrollView empty space.
+     * Prevents focus loss when clicking empty space left of the right-aligned input.
+     */
+    shouldRefocusOnScrollViewClick?: boolean;
+
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
@@ -132,12 +143,7 @@ type MoneyRequestAmountInputProps = {
 
     /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
-} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
-
-type Selection = {
-    start: number;
-    end: number;
-};
+} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'symbolTextStyle'>;
 
 /**
  * Specialized money amount input with currency and money amount formatting.
@@ -167,9 +173,12 @@ function MoneyRequestAmountInput({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
+    scrollViewStyle,
+    shouldRefocusOnScrollViewClick = false,
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
+    negativeSymbolStyle,
     toggleNegative,
     clearNegative,
     ref,
@@ -245,6 +254,7 @@ function MoneyRequestAmountInput({
             currency={currency}
             hideSymbol={hideCurrencySymbol}
             isSymbolPressable={isCurrencyPressable}
+            symbolTextStyle={props.symbolTextStyle}
             shouldShowBigNumberPad={shouldShowBigNumberPad}
             style={inputStyle}
             autoGrow={autoGrow}
@@ -254,12 +264,15 @@ function MoneyRequestAmountInput({
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
             shouldWrapInputInContainer={shouldWrapInputInContainer}
+            scrollViewStyle={scrollViewStyle}
+            shouldRefocusOnScrollViewClick={shouldRefocusOnScrollViewClick}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             contentWidth={contentWidth}
             isNegative={isNegative}
+            negativeSymbolStyle={negativeSymbolStyle}
             testID={testID}
             errorText={props.errorText}
             footer={props.footer}
@@ -278,4 +291,4 @@ function MoneyRequestAmountInput({
 }
 
 export default MoneyRequestAmountInput;
-export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};
+export type {MoneyRequestAmountInputProps};

@@ -1,11 +1,20 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import GettingStartedSection from '@src/pages/home/GettingStartedSection';
+import useGettingStartedItems from '@src/pages/home/GettingStartedSection/hooks/useGettingStartedItems';
 import ROUTES from '@src/ROUTES';
+import type {PolicyCategories, Report} from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 const TEST_POLICY_ID = 'ABC123';
@@ -18,6 +27,8 @@ const RECENT_TRIAL_START = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOS
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
 }));
 
@@ -41,6 +52,8 @@ const renderGettingStartedSection = () =>
         </OnyxListItemProvider>,
     );
 
+const gettingStartedItemsWrapper = ({children}: {children: React.ReactNode}) => <OnyxListItemProvider>{children}</OnyxListItemProvider>;
+
 /**
  * Sets up Onyx state for a manage-team user with an active trial
  * so the section is visible by default.
@@ -56,6 +69,8 @@ async function setManageTeamUserState(overrides?: {
     hasCompanyCardConnection?: boolean;
     hasConfiguredRules?: boolean;
     trialStartDate?: string;
+    policyType?: ValueOf<typeof CONST.POLICY.TYPE>;
+    policyCategories?: PolicyCategories;
 }) {
     const trialStart = overrides?.trialStartDate ?? RECENT_TRIAL_START;
 
@@ -69,13 +84,18 @@ async function setManageTeamUserState(overrides?: {
     const policyData: Record<string, unknown> = {
         id: TEST_POLICY_ID,
         name: 'Test Workspace',
-        type: CONST.POLICY.TYPE.TEAM,
+        type: overrides?.policyType ?? CONST.POLICY.TYPE.TEAM,
         role: CONST.POLICY.ROLE.ADMIN,
         areCompanyCardsEnabled: overrides?.areCompanyCardsEnabled ?? true,
-        areRulesEnabled: overrides?.areRulesEnabled ?? true,
         areConnectionsEnabled: overrides?.areAccountingEnabled,
         areCategoriesEnabled: overrides?.areCategoriesEnabled,
     };
+
+    if (overrides && 'areRulesEnabled' in overrides) {
+        policyData.areRulesEnabled = overrides.areRulesEnabled;
+    } else {
+        policyData.areRulesEnabled = true;
+    }
 
     if (overrides?.hasAccountingConnection) {
         policyData.connections = {
@@ -87,6 +107,11 @@ async function setManageTeamUserState(overrides?: {
     }
 
     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never, policyData as never);
+
+    if (overrides?.policyCategories) {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}`, overrides.policyCategories);
+    }
+
     await waitForBatchedUpdates();
 }
 
@@ -237,7 +262,7 @@ describe('GettingStartedSection', () => {
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
-            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting/)).toBeTruthy();
+            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/)).toBeTruthy();
         });
 
         it('shows "Connect to [system]" row for Xero integration', async () => {
@@ -246,7 +271,7 @@ describe('GettingStartedSection', () => {
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
-            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting/)).toBeTruthy();
+            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/)).toBeTruthy();
         });
 
         it('shows "Customize accounting categories" for non-direct-connect integrations', async () => {
@@ -277,17 +302,17 @@ describe('GettingStartedSection', () => {
             expect(screen.getByText('homePage.gettingStartedSection.linkCompanyCards')).toBeTruthy();
         });
 
-        it('always shows "Link company cards" row even when company cards feature is disabled', async () => {
+        it('does not show "Link company cards" row when company cards feature is disabled', async () => {
             await setManageTeamUserState({areCompanyCardsEnabled: false});
 
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
-            expect(screen.getByText('homePage.gettingStartedSection.linkCompanyCards')).toBeTruthy();
+            expect(screen.queryByText('homePage.gettingStartedSection.linkCompanyCards')).toBeNull();
         });
 
         it('shows "Set up spend rules" row when rules feature is enabled', async () => {
-            await setManageTeamUserState({areRulesEnabled: true});
+            await setManageTeamUserState({areRulesEnabled: true, policyType: CONST.POLICY.TYPE.CORPORATE});
 
             renderGettingStartedSection();
             await waitForBatchedUpdates();
@@ -310,6 +335,7 @@ describe('GettingStartedSection', () => {
                 areAccountingEnabled: true,
                 areCompanyCardsEnabled: true,
                 areRulesEnabled: true,
+                policyType: CONST.POLICY.TYPE.CORPORATE,
             });
 
             renderGettingStartedSection();
@@ -325,6 +351,53 @@ describe('GettingStartedSection', () => {
             expect(createIdx).toBeLessThan(accountingIdx);
             expect(accountingIdx).toBeLessThan(cardsIdx);
             expect(cardsIdx).toBeLessThan(rulesIdx);
+        });
+    });
+
+    describe('sub-text', () => {
+        it('renders the sub-text under the "Create a workspace" step', async () => {
+            await setManageTeamUserState();
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.createWorkspaceSubText')).toBeTruthy();
+        });
+
+        it('renders the sub-text under the "Link company cards" step', async () => {
+            await setManageTeamUserState({areCompanyCardsEnabled: true});
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.linkCompanyCardsSubText')).toBeTruthy();
+        });
+
+        it('renders the sub-text under the "Set up spend rules" step', async () => {
+            await setManageTeamUserState({areRulesEnabled: true, policyType: CONST.POLICY.TYPE.CORPORATE});
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.setupRulesSubText')).toBeTruthy();
+        });
+
+        it('renders the sub-text under the "Connect to [system]" step', async () => {
+            await setManageTeamUserState({integration: 'quickbooksOnline', areAccountingEnabled: true});
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.connectAccountingSubText')).toBeTruthy();
+        });
+
+        it('renders the sub-text under the "Customize accounting categories" step', async () => {
+            await setManageTeamUserState({integration: 'other', areCategoriesEnabled: true});
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.customizeCategoriesSubText')).toBeTruthy();
         });
     });
 
@@ -350,7 +423,90 @@ describe('GettingStartedSection', () => {
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
-            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting/)).toBeTruthy();
+            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/)).toBeTruthy();
+        });
+    });
+
+    describe('footer help', () => {
+        const ADMINS_ROOM_REPORT_ID = 'adminsRoom1';
+
+        async function setAdminsRoom() {
+            const adminsRoom: Report = {
+                reportID: ADMINS_ROOM_REPORT_ID,
+                policyID: TEST_POLICY_ID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${ADMINS_ROOM_REPORT_ID}`, adminsRoom);
+            await waitForBatchedUpdates();
+        }
+
+        it('renders the Concierge help footer copy', async () => {
+            await setManageTeamUserState();
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText(/homePage\.gettingStartedSection\.needHelp/)).toBeTruthy();
+            expect(screen.getByText('homePage.gettingStartedSection.talkToConcierge')).toBeTruthy();
+        });
+
+        it('renders "Talk to Concierge" footer copy when the user has no assigned Guide', async () => {
+            await setManageTeamUserState();
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.talkToConcierge')).toBeTruthy();
+            expect(screen.queryByText('homePage.gettingStartedSection.talkToAccountExecutive')).toBeNull();
+        });
+
+        it('renders "Talk to your account executive" footer copy when the user has an assigned Guide', async () => {
+            await setManageTeamUserState();
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {guideDetails: {email: 'guide@expensify.com'}});
+            await waitForBatchedUpdates();
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.talkToAccountExecutive')).toBeTruthy();
+            expect(screen.queryByText('homePage.gettingStartedSection.talkToConcierge')).toBeNull();
+        });
+
+        it('opens the #admins room in the RHP when the footer link is pressed on wide layout', async () => {
+            await setManageTeamUserState();
+            await setAdminsRoom();
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            const link = screen.getByText('homePage.gettingStartedSection.talkToConcierge');
+            fireEvent.press(link, {preventDefault: () => {}});
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ADMINS_ROOM_REPORT_ID, backTo: ROUTES.HOME}));
+            // It must not navigate fully into the Inbox.
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ADMINS_ROOM_REPORT_ID, undefined, undefined, ROUTES.HOME));
+        });
+
+        it('shows and completes setup rules when Classic category rules exist on a migrated corporate policy', async () => {
+            await setManageTeamUserState({
+                integration: 'other',
+                policyType: CONST.POLICY.TYPE.CORPORATE,
+                areRulesEnabled: undefined,
+                policyCategories: {
+                    Travel: {
+                        name: 'Travel',
+                        enabled: true,
+                        maxAmountNoReceipt: 0,
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems(), {wrapper: gettingStartedItemsWrapper});
+            await waitForBatchedUpdates();
+
+            const setupRulesItem = result.current.items.find((item) => item.key === 'setupRules');
+            expect(setupRulesItem).toBeDefined();
+            expect(setupRulesItem?.isComplete).toBe(true);
         });
     });
 
@@ -373,7 +529,7 @@ describe('GettingStartedSection', () => {
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
-            const row = screen.getByText(/homePage\.gettingStartedSection\.connectAccounting/);
+            const row = screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/);
             fireEvent.press(row);
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_ACCOUNTING.getRoute(TEST_POLICY_ID));
@@ -404,7 +560,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('navigates to workspace rules when "Set up spend rules" row is pressed', async () => {
-            await setManageTeamUserState({areRulesEnabled: true});
+            await setManageTeamUserState({areRulesEnabled: true, policyType: CONST.POLICY.TYPE.CORPORATE});
 
             renderGettingStartedSection();
             await waitForBatchedUpdates();

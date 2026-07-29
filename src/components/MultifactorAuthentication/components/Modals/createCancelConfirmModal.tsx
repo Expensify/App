@@ -1,7 +1,9 @@
-import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import type {MultifactorAuthenticationCancelConfirm} from '@components/MultifactorAuthentication/config/types';
+
 import useLocalize from '@hooks/useLocalize';
+
+import React from 'react';
 
 type BaseProps = Required<MultifactorAuthenticationCancelConfirm>;
 
@@ -37,12 +39,7 @@ function createCancelConfirmModal(displayName: string, baseProps: BaseProps): (p
     function CancelConfirmModal(mutableProps: CancelConfirmModalProps) {
         const props = {...baseProps, ...mutableProps};
 
-        return (
-            <CancelConfirmModalBase
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
-        );
+        return <CancelConfirmModalBase {...props} />;
     }
 
     CancelConfirmModal.displayName = displayName;

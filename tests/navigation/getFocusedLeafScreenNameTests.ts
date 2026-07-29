@@ -1,15 +1,21 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 describe('getFocusedLeafScreenName', () => {
     it('returns undefined for undefined state', () => {
         expect(getFocusedLeafScreenName(undefined)).toBeUndefined();
     });
 
-    it('returns undefined when state.index is undefined', () => {
+    it('falls back to the last route when state.index is undefined', () => {
         const state: PartialState<NavigationState> = {
-            routes: [{name: 'Home'}],
+            routes: [{name: 'Home'}, {name: 'Settings'}],
         };
+        expect(getFocusedLeafScreenName(state)).toBe('Settings');
+    });
+
+    it('returns undefined when state has no routes', () => {
+        const state = {routes: []} as unknown as PartialState<NavigationState>;
         expect(getFocusedLeafScreenName(state)).toBeUndefined();
     });
 
@@ -61,19 +67,39 @@ describe('getFocusedLeafScreenName', () => {
         expect(getFocusedLeafScreenName(state)).toBe('Settings_Profile');
     });
 
-    it('returns the focused route name when nested state has no index', () => {
+    it('falls back to the last nested route when nested state has no index', () => {
         const state: PartialState<NavigationState> = {
             index: 0,
             routes: [
                 {
                     name: 'TabNavigator',
                     state: {
-                        routes: [{name: 'Child'}],
+                        routes: [{name: 'Inbox'}, {name: 'Report'}],
                     },
                 },
             ],
         };
-        // Inner state has no index => recursion returns undefined
-        expect(getFocusedLeafScreenName(state)).toBeUndefined();
+        expect(getFocusedLeafScreenName(state)).toBe('Report');
+    });
+
+    it('resolves the deep leaf on cold-start when the state is incomplete (no index at any level)', () => {
+        const state: PartialState<NavigationState> = {
+            routes: [
+                {
+                    name: 'TabNavigator',
+                    state: {
+                        routes: [
+                            {
+                                name: 'ReportsSplitNavigator',
+                                state: {
+                                    routes: [{name: 'Report'}],
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+        };
+        expect(getFocusedLeafScreenName(state)).toBe('Report');
     });
 });

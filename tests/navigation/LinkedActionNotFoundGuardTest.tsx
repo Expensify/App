@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
+
 import CONST from '@src/CONST';
 import LinkedActionNotFoundGuard from '@src/pages/inbox/LinkedActionNotFoundGuard';
 import type {ReportAction} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const REPORT_ID = '12345';
 const REPORT_ACTION_ID = '67890';
@@ -19,6 +21,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         setParams: (...args: unknown[]) => mockSetParams(...args),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
         isNavigationReady: () => mockIsNavigationReady(),
     },
 }));

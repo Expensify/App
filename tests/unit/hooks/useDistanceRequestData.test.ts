@@ -1,12 +1,14 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useDistanceRequestData from '@pages/iou/request/step/IOURequestStepDistance/hooks/useDistanceRequestData';
+
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
 const mockSetMoneyRequestAmount = jest.fn();
 const mockSetSplitShares = jest.fn();
 
-jest.mock('@libs/actions/IOU', () => ({
+jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     setMoneyRequestAmount: (...args: unknown[]) => {
         mockSetMoneyRequestAmount(...args);
     },
@@ -42,6 +44,7 @@ const baseParams: Params = {
     customUnitRateID: 'rate1',
     transactionID: 'txn1',
     isSplitRequest: false,
+    currentUserAccountID: 1,
 };
 
 const personalParticipant: Participant = {accountID: 1, isPolicyExpenseChat: false};
@@ -74,7 +77,7 @@ describe('useDistanceRequestData', () => {
         result.current([personalParticipant, otherParticipant]);
 
         expect(mockSetSplitShares).toHaveBeenCalledTimes(1);
-        expect(mockSetSplitShares).toHaveBeenCalledWith(baseParams.transaction, 300, 'USD', [1, 2]);
+        expect(mockSetSplitShares).toHaveBeenCalledWith(baseParams.transaction, 300, 'USD', [1, 2], 1);
     });
 
     it('skips setSplitShares for split requests against a policy expense chat', () => {

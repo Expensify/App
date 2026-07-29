@@ -1,8 +1,10 @@
-import {useImperativeHandle} from 'react';
+import type {FlatListInnerRefType} from '@components/FlatList/types';
+
 import type {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {FlatList as RNFlatList, ScrollView} from 'react-native';
-import type {FlatListInnerRefType} from '@components/FlatList/types';
+
+import {useImperativeHandle} from 'react';
 
 type UseFlatListHandleProps<T> = {
     ref?: ForwardedRef<RNFlatList<T>>;

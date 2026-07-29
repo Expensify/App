@@ -1,13 +1,19 @@
-import agentZeroProcessingIndicatorSelector from '@selectors/ReportNameValuePairs';
-import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {clearAgentZeroProcessingIndicator, getNewerActions, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
+import {clearAgentZeroProcessingIndicator, getNewerActions} from '@libs/actions/Report';
 import AgentZeroOptimisticStore, {MAX_AGE_MS as OPTIMISTIC_MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
-import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
+import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
+import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
+import type {ReportNameValuePairs} from '@src/types/onyx';
+
+import type {NewestReportAction} from '@selectors/ReportAction';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {getNewestReportActionSelector} from '@selectors/ReportAction';
+import {getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
+import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
+
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -16,12 +22,6 @@ type AgentZeroStatusState = {
     isProcessing: boolean;
     reasoningHistory: ReasoningEntry[];
     statusLabel: string;
-    kickoffWaitingIndicator: () => void;
-};
-
-type NewestReportAction = {
-    reportActionID: string;
-    actorAccountID?: number;
 };
 
 /**
@@ -43,50 +43,27 @@ const MIN_DISPLAY_TIME = 300; // ms
 const DEBOUNCE_DELAY = 150; // ms
 
 /**
- * Selector that extracts the newest report action ID and actor from the report actions collection.
- *
- * Sorts by `created` timestamp (ISO strings compare chronologically), with reportActionID as a
- * tiebreaker. reportActionID alone is unreliable because optimistic actions use random IDs, so
- * a purely numeric comparison can rank them ahead of real server actions.
- */
-function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): NewestReportAction | undefined {
-    if (!reportActions) {
-        return undefined;
-    }
-    const actions = Object.values(reportActions).filter(Boolean);
-    if (actions.length === 0) {
-        return undefined;
-    }
-    const newest = actions.reduce((a, b) => {
-        const createdA = a.created ?? '';
-        const createdB = b.created ?? '';
-        if (createdA !== createdB) {
-            return createdA > createdB ? a : b;
-        }
-        return a.reportActionID > b.reportActionID ? a : b;
-    });
-    return {
-        reportActionID: newest.reportActionID,
-        actorAccountID: newest.actorAccountID,
-    };
-}
-
-/**
- * Hook to manage AgentZero status indicator for chats where AgentZero responds.
- *
- * Callers must gate this hook at the mount level (only mount for AgentZero-enabled chats:
- * Concierge DMs or policy #admins rooms). The outer `AgentZeroStatusProvider` already
- * enforces this, so the hook assumes it's always running for an AgentZero chat.
+ * Hook to manage the AgentZero status indicator for a single agent in a chat where AgentZero
+ * responds. One instance runs per actively-thinking agent (a room can hold several), so all
+ * its state — server label, optimistic store, reasoning store — is keyed by `(reportID,
+ * agentAccountID)`. The reasoning Pusher subscription is owned by `AgentZeroStatusProvider`
+ * (one per report), not here.
  *
  * @param reportID - The report ID to monitor
+ * @param agentAccountID - The agent this indicator tracks (Concierge for Concierge/admin chats;
+ *   the custom agent's accountID otherwise). Used to read this agent's server label and to
+ *   decide when its final reply has landed: the indicator only clears once the newest
+ *   reportAction's actorAccountID matches this agent AND the server NVP signals done.
  */
-function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
-    // Server-driven processing label from report name-value pairs (e.g. "Looking up categories...")
-    // Uses selector to only re-render when the specific field changes, not on any NVP change.
-    const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingIndicatorSelector});
+function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = CONST.ACCOUNT_ID.CONCIERGE): AgentZeroStatusState {
+    // Server-driven processing label for this agent, from report name-value pairs (e.g. "Looking
+    // up categories..."). The selector narrows to this agent's slot so the hook only re-renders
+    // when its own label changes.
+    const serverLabelSelector = useCallback((reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => getAgentZeroProcessingLabel(reportNameValuePairs, agentAccountID), [agentAccountID]);
+    const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: serverLabelSelector});
 
     // Track the newest report action so we can fetch missed actions and detect actual Concierge replies.
-    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: selectNewestReportAction});
+    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: getNewestReportActionSelector});
     const newestReportActionRef = useRef<NewestReportAction | undefined>(newestReportAction);
     useEffect(() => {
         newestReportActionRef.current = newestReportAction;
@@ -99,13 +76,13 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
     // signal that a response arrived resolves all pending requests (optimistic state is
     // a display signal, not a queue).
     const subscribeToOptimisticStore = (onStoreChange: () => void) =>
-        AgentZeroOptimisticStore.subscribe((updatedReportID) => {
-            if (updatedReportID !== reportID) {
+        AgentZeroOptimisticStore.subscribe((updatedReportID, updatedAgentAccountID) => {
+            if (updatedReportID !== reportID || updatedAgentAccountID !== agentAccountID) {
                 return;
             }
             onStoreChange();
         });
-    const getOptimisticSnapshot = () => AgentZeroOptimisticStore.getEntry(reportID);
+    const getOptimisticSnapshot = () => AgentZeroOptimisticStore.getEntry(reportID, agentAccountID);
     const optimisticEntry = useSyncExternalStore(subscribeToOptimisticStore, getOptimisticSnapshot, getOptimisticSnapshot);
     const pendingOptimisticRequests = optimisticEntry?.count ?? 0;
     // Debounced label shown to the user — smooths rapid server label changes.
@@ -130,7 +107,7 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
     // that landed while the provider was unmounted would be adopted as the baseline and go
     // undetected. `initialRestoredEntry` is read on every render (cheap Map lookup), but the
     // refs only consume the first-render value.
-    const initialRestoredEntry = AgentZeroOptimisticStore.getEntry(reportID);
+    const initialRestoredEntry = AgentZeroOptimisticStore.getEntry(reportID, agentAccountID);
     const restoredOptimisticOnMountRef = useRef<ReturnType<typeof AgentZeroOptimisticStore.getEntry>>(initialRestoredEntry);
     const indicatorBaselineActionIDRef = useRef<string | null>(initialRestoredEntry?.baselineActionID ?? null);
     const wasIndicatorActiveRef = useRef<boolean>(!!initialRestoredEntry);
@@ -161,12 +138,12 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
             return;
         }
         clearSafetyTimer();
-        AgentZeroOptimisticStore.clear(reportID);
+        AgentZeroOptimisticStore.clear(reportID, agentAccountID);
         displayedLabelRef.current = '';
         setDisplayedLabel('');
-        clearAgentZeroProcessingIndicator(reportID);
+        clearAgentZeroProcessingIndicator(reportID, agentAccountID);
         getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
-    }, [clearSafetyTimer, reportID]);
+    }, [clearSafetyTimer, reportID, agentAccountID]);
 
     /**
      * (Re)arm the safety timer. Called when processing becomes active or the server label
@@ -207,7 +184,7 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
             const wasOptimistic = pendingOptimisticRequests > 0;
 
             if (wasOptimistic) {
-                clearAgentZeroProcessingIndicator(reportID);
+                clearAgentZeroProcessingIndicator(reportID, agentAccountID);
             }
 
             // Fetch missed actions so the Onyx-driven Concierge-reply detection can fire.
@@ -219,30 +196,20 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
         },
     });
 
-    // Subscribe to ConciergeReasoningStore using useSyncExternalStore for correct
+    // Subscribe to AgentZeroReasoningStore using useSyncExternalStore for correct
     // synchronization with React's render cycle. React Compiler memoizes these closures
     // based on reportID, so useSyncExternalStore doesn't unsubscribe/resubscribe on every render.
     const subscribeToReasoningStore = (onStoreChange: () => void) => {
-        const unsubscribe = ConciergeReasoningStore.subscribe((updatedReportID) => {
-            if (updatedReportID !== reportID) {
+        const unsubscribe = AgentZeroReasoningStore.subscribe((updatedReportID, updatedAgentAccountID) => {
+            if (updatedReportID !== reportID || updatedAgentAccountID !== agentAccountID) {
                 return;
             }
             onStoreChange();
         });
         return unsubscribe;
     };
-    const getReasoningSnapshot = () => ConciergeReasoningStore.getReasoningHistory(reportID);
+    const getReasoningSnapshot = () => AgentZeroReasoningStore.getReasoningHistory(reportID, agentAccountID);
     const reasoningHistory = useSyncExternalStore(subscribeToReasoningStore, getReasoningSnapshot, getReasoningSnapshot);
-
-    useEffect(() => {
-        subscribeToReportReasoningEvents(reportID);
-
-        // Cleanup: unsubscribeFromReportReasoningChannel handles Pusher unsubscribing,
-        // clearing reasoning history from ConciergeReasoningStore, and subscription tracking
-        return () => {
-            unsubscribeFromReportReasoningChannel(reportID);
-        };
-    }, [reportID]);
 
     // Synchronize the displayed label with debounce and minimum display time.
     // displayedLabelRef mirrors state so the effect can check the current value without depending on displayedLabel.
@@ -251,27 +218,29 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
         const hasServerLabel = !!serverLabel;
 
         let targetLabel = '';
+        const thinkingLabel = translate(agentAccountID === CONST.ACCOUNT_ID.CONCIERGE ? 'common.thinking' : 'common.agentThinking');
         if (hasServerLabel) {
             targetLabel = serverLabel ?? '';
         } else if (pendingOptimisticRequests > 0) {
-            targetLabel = translate('common.thinking');
+            targetLabel = thinkingLabel;
         }
 
-        // Rearm the safety timer when server label arrives (acts as a lease renewal). Keep
-        // the optimistic store entry alive — the server NVP can briefly go truthy→falsy→truthy
-        // between processing phases (e.g., "thinking..." → (gap) → "searching documentation..."),
-        // and clearing the optimistic floor here means a chat-switch during the gap lands on
-        // "no optimistic, no serverLabel → no indicator." The optimistic entry is cleared by
-        // authoritative signals only: the reply-detection effect (new Concierge action newer
-        // than baseline), the 120s safety timeout, or the onReconnect handler.
-        if (hasServerLabel) {
+        // (Re)arm the safety timer whenever this agent is active — a server label arrived (lease
+        // renewal) or an optimistic kickoff is pending. Keep the optimistic store entry alive —
+        // the server NVP can briefly go truthy→falsy→truthy between processing phases (e.g.,
+        // "thinking..." → (gap) → "searching documentation..."), and clearing the optimistic
+        // floor here means a chat-switch during the gap lands on "no optimistic, no serverLabel
+        // → no indicator." The optimistic entry is cleared by authoritative signals only: the
+        // reply-detection effect (new agent action newer than baseline), the 120s safety
+        // timeout, or the onReconnect handler.
+        if (hasServerLabel || pendingOptimisticRequests > 0) {
             startSafetyTimer();
         }
         // Clear the safety timer when processing ends
-        else if (pendingOptimisticRequests === 0) {
+        else {
             clearSafetyTimer();
             if (hadServerLabel && reasoningHistory.length > 0) {
-                ConciergeReasoningStore.clearReasoning(reportID);
+                AgentZeroReasoningStore.clearReasoning(reportID, agentAccountID);
             }
         }
 
@@ -314,7 +283,7 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
             }
             clearTimeout(updateTimerRef.current);
         };
-    }, [serverLabel, reasoningHistory.length, reportID, pendingOptimisticRequests, translate, startSafetyTimer, clearSafetyTimer]);
+    }, [serverLabel, reasoningHistory.length, reportID, agentAccountID, pendingOptimisticRequests, translate, startSafetyTimer, clearSafetyTimer]);
 
     useEffect(() => {
         isOfflineRef.current = isOffline;
@@ -347,14 +316,9 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
         startSafetyTimer(remaining);
     }, [startSafetyTimer]);
 
-    const kickoffWaitingIndicator = () => {
-        AgentZeroOptimisticStore.increment(reportID, newestReportActionRef.current?.reportActionID ?? null);
-        startSafetyTimer();
-    };
-
     // Capture the newest reportActionID as a baseline whenever the indicator transitions
     // from inactive to active (serverLabel or optimistic). The baseline survives offline
-    // cycles (it tracks raw active state, not UI-visible isProcessing) so a new Concierge
+    // cycles (it tracks raw active state, not UI-visible isProcessing) so a new agent
     // reply that arrives during offline → online is still detected as "new" on reconnect.
     const isIndicatorActive = !!serverLabel || pendingOptimisticRequests > 0;
     useEffect(() => {
@@ -366,18 +330,18 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
         wasIndicatorActiveRef.current = isIndicatorActive;
     }, [isIndicatorActive]);
 
-    // Clear the indicator when Concierge has *actually completed* processing. A newer
-    // Concierge action alone isn't enough: during processing, Concierge can post
+    // Clear the indicator when this agent has *actually completed* processing. A newer
+    // action from the agent alone isn't enough: during processing, the agent can post
     // intermediate actions (reasoning dumps, status updates) that aren't the final reply,
     // and clearing on those makes the indicator flicker away mid-stream. Only treat the
-    // combination as the real "done" signal: a new Concierge action *and* the server has
-    // cleared its NVP (serverLabel falsy). Safety nets for server-side misses:
+    // combination as the real "done" signal: a new action from this agent *and* the server
+    // has cleared its NVP slot (serverLabel falsy). Safety nets for server-side misses:
     //   - 120s safety timeout (hardClearIndicator) catches a stuck optimistic entry.
     //   - onReconnect defensively clears the NVP when optimistic-only.
     const newestActorAccountID = newestReportAction?.actorAccountID;
     const newestActionID = newestReportAction?.reportActionID;
     useEffect(() => {
-        if (newestActorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
+        if (newestActorAccountID !== agentAccountID) {
             return;
         }
         if (pendingOptimisticRequests === 0 && !serverLabel) {
@@ -386,15 +350,15 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
         if (!newestActionID || newestActionID === indicatorBaselineActionIDRef.current) {
             return;
         }
-        // Server hasn't signaled done yet — this is an intermediate Concierge action, not
+        // Server hasn't signaled done yet — this is an intermediate agent action, not
         // the final reply. Wait for the NVP to clear before tearing everything down.
         if (serverLabel) {
             return;
         }
-        clearAgentZeroProcessingIndicator(reportID);
+        clearAgentZeroProcessingIndicator(reportID, agentAccountID);
         clearSafetyTimer();
-        AgentZeroOptimisticStore.clear(reportID);
-    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer]);
+        AgentZeroOptimisticStore.clear(reportID, agentAccountID);
+    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, agentAccountID]);
 
     const isProcessing = !isOffline && isIndicatorActive;
 
@@ -402,9 +366,7 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
         isProcessing,
         reasoningHistory,
         statusLabel: displayedLabel,
-        kickoffWaitingIndicator,
     };
 }
 
 export default useAgentZeroStatusIndicator;
-export type {AgentZeroStatusState};

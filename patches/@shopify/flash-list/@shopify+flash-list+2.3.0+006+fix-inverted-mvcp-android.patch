@@ -101,10 +101,10 @@ index 70f856a..52546f7 100644
                  const { data } = recyclerViewManager.props;
                  if (data && data.length > 0) {
                      const lastIndex = data.length - 1;
-@@ -235,6 +277,10 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
-              * Returns a Promise that resolves when the scroll is complete.
-              */
-             scrollToIndex: ({ index, animated, viewPosition, viewOffset, }) => {
+@@ -238,6 +280,10 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                 if (!recyclerViewManager.hasLayout()) {
+                     return Promise.resolve();
+                 }
 +                if (pendingAndroidInvertedRafId.current !== null) {
 +                    cancelAnimationFrame(pendingAndroidInvertedRafId.current);
 +                    pendingAndroidInvertedRafId.current = null;

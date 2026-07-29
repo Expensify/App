@@ -1,23 +1,28 @@
-import React, {useRef, useState} from 'react';
-import {PanResponder, PixelRatio, Platform, View} from 'react-native';
-import RNFetchBlob from 'react-native-blob-util';
-import type {TupleToUnion} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
 import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {TupleToUnion} from 'type-fest';
+
+import React, {useRef, useState} from 'react';
+import {PanResponder, PixelRatio, Platform, View} from 'react-native';
+import RNFetchBlob from 'react-native-blob-util';
+
 import Button from './Button';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
 import DragAndDropProvider from './DragAndDrop/Provider';
@@ -191,7 +196,6 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
             </View>
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>

@@ -1,8 +1,11 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {setMoneyRequestCategory} from '@userActions/IOU';
+import {setMoneyRequestCategory} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 type CategoryDefaultsSetterProps = {
     transactions: Transaction[];

@@ -1,12 +1,15 @@
+import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
+
+import Log from '@libs/Log';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
+
+import type {ValueOf} from 'type-fest';
+
 /**
  * Hook that derives the current device's biometric registration status by combining the local credential ID with
  * the server-known credential list.
  */
 import {useEffect, useState} from 'react';
-import type {ValueOf} from 'type-fest';
-import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
-import Log from '@libs/Log';
-import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 
@@ -75,5 +78,4 @@ function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
 }
 
 export {REGISTRATION_STATUS};
-export type {RegistrationStatus};
 export default useBiometricRegistrationStatus;

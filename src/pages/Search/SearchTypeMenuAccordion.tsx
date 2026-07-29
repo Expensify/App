@@ -1,19 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
-import Animated, {useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
+import {useSearchSidebarCollapse, useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {SharedValue} from 'react-native-reanimated';
+
+import React, {useLayoutEffect} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type SearchTypeMenuAccordionProps = ChildrenProps & {
     title: string;
@@ -59,10 +65,10 @@ function AnimatedBadge({text, isExpanded}: AnimatedBadgeProps) {
     }));
 
     return (
-        <Animated.View style={[badgeAnimatedStyle]}>
+        <Animated.View style={badgeAnimatedStyle}>
             <Badge
                 text={text}
-                badgeStyles={styles.searchSectionBadge}
+                badgeStyles={[styles.searchSectionBadge, styles.ml0]}
                 success
                 isCondensed
             />
@@ -75,6 +81,12 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isExpanded);
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
+    const headerFadeAnimatedStyle = useSearchSidebarCollapseFadeStyle();
+
+    useLayoutEffect(() => {
+        isAccordionExpanded.set(isExpanded);
+    }, [isAccordionExpanded, isExpanded, isVisuallyCollapsed]);
 
     const arrowRotation = useSharedValue(getArrowRotation(isExpanded));
 
@@ -90,35 +102,58 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
 
     return (
         <View>
-            <PressableWithoutFeedback
-                onPress={onSectionHeaderPress}
-                style={[styles.flexRow, styles.p2, styles.gap2, styles.alignItemsCenter, styles.br2]}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel={title}
-                sentryLabel={CONST.SENTRY_LABEL.ACCORDION_SECTION.TOGGLE}
-                hoverStyle={styles.hoveredComponentBG}
-            >
-                <Text
-                    style={[styles.flex1, styles.mutedNormalTextLabel]}
-                    accessibilityRole={CONST.ROLE.HEADER}
+            {isVisuallyCollapsed ? (
+                <View
+                    style={[styles.flexRow, styles.searchTypeMenuAccordionPadding, styles.gap2, styles.alignItemsCenter, styles.br2]}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
                 >
-                    {title}
-                </Text>
-                {!!badgeText && (
-                    <AnimatedBadge
-                        text={badgeText}
-                        isExpanded={isAccordionExpanded}
-                    />
-                )}
-                <Animated.View style={[arrowAnimatedStyle]}>
-                    <Icon
-                        fill={theme.icon}
-                        src={icons.UpArrow}
-                        width={variables.iconSizeSmall}
-                        height={variables.iconSizeSmall}
-                    />
-                </Animated.View>
-            </PressableWithoutFeedback>
+                    <View style={styles.searchTypeMenuAccordionCollapsedDividerContainer}>
+                        <View style={styles.searchTypeMenuAccordionCollapsedDivider} />
+                    </View>
+                </View>
+            ) : (
+                <PressableWithoutFeedback
+                    onPress={onSectionHeaderPress}
+                    style={[styles.flexRow, styles.searchTypeMenuAccordionPadding, styles.gap2, styles.alignItemsCenter, styles.br2]}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={title}
+                    sentryLabel={CONST.SENTRY_LABEL.ACCORDION_SECTION.TOGGLE}
+                    hoverStyle={styles.hoveredComponentBG}
+                >
+                    <Animated.View style={[styles.flex1, headerFadeAnimatedStyle]}>
+                        <Text
+                            style={[styles.mutedNormalTextLabel]}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                            numberOfLines={1}
+                        >
+                            {title}
+                        </Text>
+                    </Animated.View>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                        {!!badgeText && (
+                            <Animated.View style={headerFadeAnimatedStyle}>
+                                <AnimatedBadge
+                                    text={badgeText}
+                                    isExpanded={isAccordionExpanded}
+                                />
+                            </Animated.View>
+                        )}
+                        <Animated.View style={headerFadeAnimatedStyle}>
+                            <View style={styles.searchTypeMenuAccessoryBox}>
+                                <Animated.View style={arrowAnimatedStyle}>
+                                    <Icon
+                                        fill={theme.icon}
+                                        src={icons.UpArrow}
+                                        width={variables.iconSizeSmall}
+                                        height={variables.iconSizeSmall}
+                                    />
+                                </Animated.View>
+                            </View>
+                        </Animated.View>
+                    </View>
+                </PressableWithoutFeedback>
+            )}
             <Accordion
                 isExpanded={isAccordionExpanded}
                 isToggleTriggered={shouldAnimateAccordionSection}

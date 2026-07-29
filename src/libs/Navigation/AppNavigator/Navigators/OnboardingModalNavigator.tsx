@@ -1,40 +1,44 @@
-import {CardStyleInterpolators} from '@react-navigation/stack';
-import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
+
 import OnboardingAccounting from '@pages/OnboardingAccounting';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
+import OnboardingPersonalTrackGoal from '@pages/OnboardingPersonalTrackGoal';
 import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
-import OnboardingWorkspaceConfirmation from '@pages/OnboardingWorkspaceConfirmation';
-import OnboardingWorkspaceCurrency from '@pages/OnboardingWorkspaceCurrency';
-import OnboardingWorkspaceInvite from '@pages/OnboardingWorkspaceInvite';
-import OnboardingWorkspaceOptional from '@pages/OnboardingWorkspaceOptional';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ValueOf} from 'type-fest';
+
+import {CardStyleInterpolators} from '@react-navigation/stack';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 import OnboardingModalNavigatorContentWrapper from './OnboardingModalNavigatorContentWrapper';
 import Overlay from './Overlay';
 
@@ -44,11 +48,9 @@ let signUpEventPublishedForAccountID: number | undefined;
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
@@ -61,24 +63,23 @@ function OnboardingModalNavigator() {
         initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
     }
 
-    if (isTrackOnboardingChoice(onboardingPurposeSelected) && !!onboardingPolicyID) {
-        initialRouteName = SCREENS.ONBOARDING.WORKSPACE_INVITE;
-    }
-
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: accountIDSelector,
+    });
+    const [email] = useOnyx(ONYXKEYS.SESSION, {
+        selector: emailSelector,
     });
 
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
     useEffect(() => {
-        if (!accountID || signUpEventPublishedForAccountID === accountID) {
+        if (!accountID || !email || signUpEventPublishedForAccountID === accountID) {
             return;
         }
 
         signUpEventPublishedForAccountID = accountID;
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
-    }, [accountID]);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP.NAME, accountID, email);
+    }, [accountID, email]);
 
     const handleOuterClick = useCallback(() => {
         OnboardingRefManager.handleOuterClick();
@@ -95,14 +96,15 @@ function OnboardingModalNavigator() {
             gestureDirection: 'horizontal',
             web: {
                 // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props}) : CardStyleInterpolators.forHorizontalIOS,
+                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}}) : CardStyleInterpolators.forHorizontalIOS,
                 gestureDirection: 'horizontal',
                 cardStyle: {
                     height: '100%',
                 },
+                transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
             },
         };
-    }, [customInterpolator]);
+    }, [customInterpolator, shouldUseNarrowLayout]);
 
     // If the account data is not loaded yet, we don't want to show the onboarding modal
     if (isLoadingOnyxValue(accountMetadata)) {
@@ -162,20 +164,8 @@ function OnboardingModalNavigator() {
                                 component={OnboardingInterestedFeatures}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_OPTIONAL}
-                                component={OnboardingWorkspaceOptional}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION}
-                                component={OnboardingWorkspaceConfirmation}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_CURRENCY}
-                                component={OnboardingWorkspaceCurrency}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_INVITE}
-                                component={OnboardingWorkspaceInvite}
+                                name={SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL}
+                                component={OnboardingPersonalTrackGoal}
                             />
                         </Stack.Navigator>
                     </OnboardingModalNavigatorContentWrapper>

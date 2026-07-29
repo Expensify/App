@@ -1,5 +1,6 @@
-import {useNavigation, useRoute} from '@react-navigation/native';
 import type {ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
+
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 type ScanRouteParams = ScanRoute['params'];
 
@@ -27,4 +28,3 @@ function useScanRouteParams(): ScanRouteInfo {
 }
 
 export default useScanRouteParams;
-export type {ScanRouteParams, ScanRouteInfo};

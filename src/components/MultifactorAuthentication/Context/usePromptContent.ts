@@ -1,14 +1,19 @@
-import {useEffect, useRef, useState} from 'react';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import {getDeviceBiometricsOnyxKey} from '@libs/actions/MultifactorAuthentication';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {useMultifactorAuthenticationState} from './State';
+
+import {useEffect, useRef, useState} from 'react';
+
+import {useMultifactorAuthenticationState} from './MultifactorAuthenticationStateContext';
 
 type PromptContent = {
     illustration: DotLottieAnimation | IconAsset;

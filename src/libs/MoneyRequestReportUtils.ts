@@ -1,9 +1,13 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import {hasDeferredWriteForReport} from './deferredLayoutWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
@@ -19,7 +23,7 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {getReimbursable, isTransactionPendingDelete} from './TransactionUtils';
+import {getReimbursable, getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
@@ -86,7 +90,7 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType, IOU
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
 function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
-    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
+    const nonDeletedTransactions = Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
         }
@@ -104,6 +108,14 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         }
         return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
+
+    // Hide a pending Expensify Card auth once its posted counterpart from the same auth chain is present, so a stale
+    // pending row left in local Onyx after settlement does not render as a duplicate alongside the posted row.
+    const supersededPendingCardTransactionIDs = getSupersededPendingCardTransactionIDs(nonDeletedTransactions);
+    if (supersededPendingCardTransactionIDs.size === 0) {
+        return nonDeletedTransactions;
+    }
+    return nonDeletedTransactions.filter((transaction) => !supersededPendingCardTransactionIDs.has(transaction.transactionID));
 }
 
 /**
@@ -168,8 +180,8 @@ const getTotalAmountForIOUReportPreviewButton = (
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
-    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(report?.reportID);
+    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 
     // Split the total spend into different categories as needed.
@@ -187,7 +199,7 @@ const getTotalAmountForIOUReportPreviewButton = (
         }
 
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
-        if (hasHeldExpensesReportUtils(report?.reportID) && canAllowSettlement && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
+        if (hasHeldExpensesReportUtils(transactions) && canAllowSettlement && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
             return nonHeldAmount;
         }
 

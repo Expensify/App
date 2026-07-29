@@ -1,17 +1,23 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import type Navigation from '@libs/Navigation/Navigation';
 import {setHasRadio} from '@libs/NetworkState';
+
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -60,10 +66,7 @@ const renderWorkspacePageWithSections = (props = {}) => {
 
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <WorkspacePageWithSections
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-            >
+            <WorkspacePageWithSections {...defaultProps}>
                 <View />
             </WorkspacePageWithSections>
         </ComposeProviders>,

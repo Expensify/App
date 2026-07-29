@@ -1,9 +1,15 @@
-import React, {useEffect, useRef} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import usePressResponderProps from '@components/Pressable/PressResponder/usePressResponderProps';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+
 import type PressableWithSecondaryInteractionProps from './types';
 
 /** This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked. */
@@ -16,7 +22,7 @@ function PressableWithSecondaryInteraction({
     withoutFocusOnSecondaryInteraction = false,
     needsOffscreenAlphaCompositing = false,
     preventDefaultContextMenu = true,
-    onSecondaryInteraction,
+    onSecondaryInteraction: rawOnSecondaryInteraction,
     activeOpacity = 1,
     opacityAnimationDuration,
     ref,
@@ -25,6 +31,14 @@ function PressableWithSecondaryInteraction({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<HTMLDivElement | null>(null);
+    // Forward the a11y slot so it reaches the underlying pressable even when the descendant isn't `<PressableWithFeedback>`.
+    const {onSecondaryInteraction, accessibilityState, accessibilityHasPopup, nativeID, accessibilityControls} = usePressResponderProps({
+        onSecondaryInteraction: rawOnSecondaryInteraction,
+        accessibilityState: rest.accessibilityState,
+        accessibilityHasPopup: rest.accessibilityHasPopup,
+        nativeID: rest.nativeID,
+        accessibilityControls: rest.accessibilityControls,
+    });
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         if (hasHoverSupport() && !enableLongPressWithHover) {
@@ -92,9 +106,11 @@ function PressableWithSecondaryInteraction({
     // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
     return (
         <PressableWithFeedback
-            // ESLint is disabled here to propagate all the props, enhancing PressableWithSecondaryInteraction's versatility across different use cases.
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
+            accessibilityState={accessibilityState}
+            accessibilityHasPopup={accessibilityHasPopup}
+            nativeID={nativeID}
+            accessibilityControls={accessibilityControls}
             wrapperStyle={[StyleUtils.combineStyles(canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle), wrapperStyle]}
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}

@@ -1,7 +1,9 @@
-import type {NavigationState} from '@react-navigation/native';
 import getIsScreenBlurred from '@libs/Navigation/AppNavigator/FreezeWrapper/getIsScreenBlurred';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState} from '@react-navigation/native';
 
 function makeState(routes: Array<{name: string; key: string}>): NavigationState {
     return {

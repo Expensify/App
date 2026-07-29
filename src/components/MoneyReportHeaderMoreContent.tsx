@@ -1,26 +1,30 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import useMoneyReportHeaderStatusBar from '@hooks/useMoneyReportHeaderStatusBar';
-import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
+
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
+
 import MoneyReportHeaderNextStep from './MoneyReportHeaderNextStep';
 import MoneyReportHeaderStatusBarSection from './MoneyReportHeaderStatusBarSection';
+import {useMoneyReportTransactionThread} from './MoneyReportTransactionThreadContext';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 
 type MoneyReportHeaderMoreContentProps = {
@@ -42,12 +46,10 @@ function MoneyReportHeaderMoreContent({reportID}: MoneyReportHeaderMoreContentPr
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportID);
+    const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportID, moneyRequestReport?.chatReportID);
 
-    const policyType = policy?.type;
-    const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
+    const shouldShowNextStep = isGroupPolicy(policy) && !isInvoiceReport && !shouldShowStatusBar;
 
     const shouldShowMoreContent = shouldShowNextStep || !!statusBarType || isReportInSearch;
 
@@ -80,14 +82,7 @@ function MoneyReportHeaderMoreContentBody({moneyRequestReport, statusBarType, is
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
     const reportID = moneyRequestReport?.reportID;
-
-    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(reportID);
-    const {transactionThreadReport} = useTransactionThreadReport(reportID, reportActions ?? []);
-
-    const requestParentReportAction =
-        reportActions && transactionThreadReport?.parentReportActionID ? reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID) : null;
-
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
+    const {iouTransactionID} = useMoneyReportTransactionThread();
 
     return (
         <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>

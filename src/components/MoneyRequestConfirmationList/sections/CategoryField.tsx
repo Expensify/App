@@ -1,17 +1,24 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
+
+import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCategory, willFieldBeAutomaticallyFilled} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
+import {categoryStateSelector} from './selectors';
+import useTransactionSelector from './useTransactionSelector';
 
 type CategoryFieldProps = {
     isCategoryRequired: boolean;
@@ -23,7 +30,6 @@ type CategoryFieldProps = {
     reportID: string;
     reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
     formError: string;
     shouldNavigateToUpgradePath: boolean;
     shouldSelectPolicy: boolean;
@@ -39,7 +45,6 @@ function CategoryField({
     reportID,
     reportActionID,
     policy,
-    transaction,
     formError,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
@@ -48,13 +53,16 @@ function CategoryField({
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
 
-    const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
-    const iouCategory = getCategory(transaction);
-    const decodedCategoryName = getDecodedCategoryName(iouCategory);
+    const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
 
-    const getCategoryRightLabelIcon = () => (willFieldBeAutomaticallyFilled(transaction, 'category') ? icons.Sparkles : undefined);
+    const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
+    const iouCategory = categoryState?.category ?? '';
+    const willAutoFill = categoryState?.willAutoFill ?? false;
+    const decodedCategoryName = getDecodedLeafCategoryName(iouCategory);
+
+    const getCategoryRightLabelIcon = () => (willAutoFill ? icons.Sparkles : undefined);
     const getCategoryRightLabel = () => {
-        if (willFieldBeAutomaticallyFilled(transaction, 'category')) {
+        if (willAutoFill) {
             return translate('common.automatic');
         }
         if (isCategoryRequired) {

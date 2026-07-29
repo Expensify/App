@@ -1,6 +1,8 @@
+import type {OnyxCollectionKey} from '@src/ONYXKEYS';
+
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import type OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import type {OnyxCollectionKey} from '@src/ONYXKEYS';
+
 import type Response from './Response';
 
 /** Expands an Onyx key, allowing template patterns for collections or enforcing literals otherwise. */
@@ -97,8 +99,8 @@ type RequestDataBase<TKey extends OnyxKey> = {
      */
     initiatedOffline?: boolean;
 
-    /** The unique ID of the request */
-    requestID?: number;
+    /** The client-side monotonically-increasing index of this request (seeded with Date.now() at module load). Not to be confused with the server's response.requestID. */
+    requestIndex?: number;
 };
 
 /** Model of overall requests sent to the API */

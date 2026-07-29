@@ -1,9 +1,11 @@
+import type {FocusTrapOptions} from '@components/Modal/types';
+
+import type CONST from '@src/CONST';
+
 import type {ReactNode} from 'react';
 import type {NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import type {FocusTrapOptions} from '@components/Modal/types';
-import type CONST from '@src/CONST';
 
 type GestureProps = {
     /** Height of the device (used for positioning) */
@@ -26,8 +28,8 @@ type GestureHandlerProps = {
     swipeDirection?: SwipeDirection | SwipeDirection[];
 };
 
-type AnimationIn = 'fadeIn' | 'slideInUp' | 'slideInRight';
-type AnimationOut = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
+type AnimationIn = 'fadeIn' | 'slideInUp' | 'slideInRight' | 'slideAndFadeInRight';
+type AnimationOut = 'fadeOut' | 'slideOutDown' | 'slideOutRight' | 'slideAndFadeOutRight';
 
 type ReanimatedModalProps = ViewProps &
     GestureProps &

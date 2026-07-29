@@ -102,4 +102,65 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
 
         expect(result).toBe('workspace:policyA,policyB,policyC');
     });
+
+    test('when "me" is pasted on a user-based filter and the substitution map is empty, it resolves to currentUserAccountID', () => {
+        const userTypedQuery = 'type:expense-report action:submit from:me';
+        const substitutionsMock = {};
+        const currentUserAccountID = 1234;
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, currentUserAccountID);
+
+        expect(result).toBe('type:expense-report action:submit from:1234');
+    });
+
+    test('when "me" is used on every user-based filter key, each occurrence resolves to currentUserAccountID', () => {
+        const userTypedQuery = 'from:me to:me assignee:me payer:me exporter:me attendee:me';
+        const substitutionsMock = {};
+        const currentUserAccountID = 9876;
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, currentUserAccountID);
+
+        expect(result).toBe('from:9876 to:9876 assignee:9876 payer:9876 exporter:9876 attendee:9876');
+    });
+
+    test('when an existing substitution exists for "me", it takes precedence over currentUserAccountID', () => {
+        const userTypedQuery = 'from:me';
+        const substitutionsMock = {
+            'from:me': '5555',
+        };
+        const currentUserAccountID = 1234;
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, currentUserAccountID);
+
+        expect(result).toBe('from:5555');
+    });
+
+    test('when "me" is used on a non-user-based filter, it is not resolved to currentUserAccountID', () => {
+        const userTypedQuery = 'category:me';
+        const substitutionsMock = {};
+        const currentUserAccountID = 1234;
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, currentUserAccountID);
+
+        expect(result).toBe('category:me');
+    });
+
+    test('when currentUserAccountID is undefined, "me" is left unresolved', () => {
+        const userTypedQuery = 'from:me';
+        const substitutionsMock = {};
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock);
+
+        expect(result).toBe('from:me');
+    });
+
+    test('when currentUserAccountID is -1 (not signed in), "me" is left unresolved', () => {
+        const userTypedQuery = 'from:me';
+        const substitutionsMock = {};
+        const currentUserAccountID = -1;
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock, currentUserAccountID);
+
+        expect(result).toBe('from:me');
+    });
 });

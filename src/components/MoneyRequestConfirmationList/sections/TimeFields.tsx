@@ -1,18 +1,21 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import {getCurrency} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
+
+import React from 'react';
+
+import {timeStateSelector} from './selectors';
+import useTransactionSelector from './useTransactionSelector';
 
 type TimeFieldsProps = {
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
     isReadOnly: boolean;
     didConfirm: boolean;
     transactionID: string | undefined;
@@ -22,14 +25,16 @@ type TimeFieldsProps = {
     reportActionID: string | undefined;
 };
 
-function TimeFields({transaction, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID}: TimeFieldsProps) {
+function TimeFields({isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID}: TimeFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const iouTimeCount = transaction?.comment?.units?.count;
-    const iouTimeRate = transaction?.comment?.units?.rate;
-    const iouCurrencyCode = getCurrency(transaction);
+    const timeState = useTransactionSelector(transactionID, timeStateSelector);
+
+    const iouTimeCount = timeState?.count;
+    const iouTimeRate = timeState?.rate;
+    const iouCurrencyCode = timeState?.currency ?? CONST.CURRENCY.USD;
 
     return (
         <>

@@ -1,13 +1,19 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import Text from './Text';
 
 type ViolationMessagesProps = {
@@ -37,6 +43,7 @@ export default function ViolationMessages({
 }: ViolationMessagesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const filteredViolations = useMemo(() => filterReceiptViolations(violations), [violations]);
@@ -51,6 +58,7 @@ export default function ViolationMessages({
                     ViolationsUtils.getViolationTranslation({
                         violation,
                         translate,
+                        convertToDisplayString,
                         canEdit,
                         companyCardPageURL,
                         connectionLink,
@@ -61,7 +69,7 @@ export default function ViolationMessages({
                     }),
                 ];
             }),
-        [canEdit, translate, filteredViolations, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit],
+        [canEdit, translate, convertToDisplayString, filteredViolations, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit],
     );
 
     return (

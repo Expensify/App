@@ -1,12 +1,16 @@
+import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+
+import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
+import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
+import withAgentAccessDenied from '@libs/Navigation/AppNavigator/withAgentAccessDenied';
+import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+
+import SCREENS from '@src/SCREENS';
+import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
-import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
-import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import SCREENS from '@src/SCREENS';
-import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadInitialSettingsPage = () => require<ReactComponentModule>('../../../../pages/settings/InitialSettingsPage').default;
 
@@ -15,9 +19,10 @@ type Screens = Partial<Record<keyof SettingsSplitNavigatorParamList, () => React
 const CENTRAL_PANE_SETTINGS_SCREENS = {
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PreferencesPage').default,
     [SCREENS.SETTINGS.SECURITY]: () => require<ReactComponentModule>('../../../../pages/settings/Security/SecuritySettingsPage').default,
+    [SCREENS.SETTINGS.COPILOT]: () => require<ReactComponentModule>('../../../../pages/settings/Copilot/CopilotPage').default,
     [SCREENS.SETTINGS.PROFILE.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/ProfilePage').default,
     [SCREENS.SETTINGS.WALLET.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/WalletPage').default,
-    [SCREENS.SETTINGS.AGENTS.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Agents/AgentsPage').default,
+    [SCREENS.SETTINGS.AGENTS.ROOT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Agents/AgentsPage').default),
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
     [SCREENS.SETTINGS.HELP]: () => require<ReactComponentModule>('../../../../pages/settings/HelpPage/HelpPage').default,
     [SCREENS.SETTINGS.ABOUT]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/AboutPage').default,

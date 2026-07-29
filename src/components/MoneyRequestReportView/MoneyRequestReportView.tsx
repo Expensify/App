@@ -1,11 +1,3 @@
-import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useEffect, useMemo} from 'react';
-// We use Animated for all functionality related to wide RHP to make it easier
-// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
-// eslint-disable-next-line no-restricted-imports
-import {Animated, InteractionManager, ScrollView, View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
@@ -13,25 +5,33 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
-import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
+
+import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
+import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
+
 import {removeFailedReport} from '@libs/actions/Report';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import Navigation from '@navigation/Navigation';
-import ReportActionsView from '@pages/inbox/report/ReportActionsView';
+
+import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
+import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +39,17 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {PortalHost} from '@gorhom/portal';
+import React, {useCallback, useEffect, useMemo} from 'react';
+// We use Animated for all functionality related to wide RHP to make it easier
+// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
+// eslint-disable-next-line no-restricted-imports
+import {Animated, ScrollView, View} from 'react-native';
+
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
 
 const loadingAppReasonAttributes: SkeletonSpanReasonAttributes = {context: 'MoneyRequestReportView.isLoadingApp'};
@@ -60,7 +71,7 @@ type MoneyRequestReportViewProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function goBackFromSearchMoneyRequest() {
+function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) {
     const rootState = navigationRef.getRootState();
     const lastRoute = rootState.routes.at(-1);
 
@@ -70,7 +81,7 @@ function goBackFromSearchMoneyRequest() {
     }
 
     if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-        Navigation.goBack();
+        Navigation.goBack(undefined, options);
         return;
     }
 
@@ -80,11 +91,11 @@ function goBackFromSearchMoneyRequest() {
     }
 
     if (rootState.routes.length > 1) {
-        Navigation.goBack();
+        Navigation.goBack(undefined, options);
         return;
     }
 
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}), options);
 }
 
 function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void; reasonAttributes: SkeletonSpanReasonAttributes}) {
@@ -112,10 +123,16 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const reportID = report?.reportID;
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
+    const isAppLoadPending = useIsAppLoadPending();
+    const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
-    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(reportID);
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
+
+    const reportActions = useMemo(() => {
+        return getFilteredReportActionsForReportView(unfilteredReportActions);
+    }, [unfilteredReportActions]);
+
     const reportTransactions = useReportTransactionsCollection(reportID);
     const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true), [reportTransactions, reportActions, isOffline]);
 
@@ -132,16 +149,17 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
 
         return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [transactions, isOffline]);
-    const {transactionThreadReportID, transactionThreadReport} = useTransactionThreadReport(reportID, reportActions ?? []);
+    const reportErrors = visibleTransactions.length === 1 && visibleTransactions.at(0)?.errors ? undefined : allReportErrors;
+    const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
     const dismissReportCreationError = useCallback(() => {
-        goBackFromSearchMoneyRequest();
-        InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
+        goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
     }, [reportID]);
 
     // Special case handling a report that is a transaction thread
-    // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
+    // If true we will use the standard `ReportActionsList` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
     const isTransactionThreadView = isReportTransactionThread(report);
 
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
@@ -153,6 +171,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const isEmptyTransactionReport = visibleTransactions?.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const shouldShowWideRHPReceipt = visibleTransactions.length === 1 && !isSmallScreenWidth && !!transactionThreadReport;
 
     const reportHeaderView = useMemo(
@@ -191,12 +210,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         };
     }, [reportID]);
 
-    useEffect(() => {
-        if (!shouldShowOpenReportLoadingSkeleton || !report) {
-            return;
-        }
-        markOpenReportEnd(report, {warm: false});
-    }, [report, shouldShowOpenReportLoadingSkeleton]);
+    useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
 
     if (shouldShowOpenReportLoadingSkeleton) {
         const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
@@ -220,7 +234,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         return;
     }
 
-    if (isLoadingApp) {
+    if (isAppLoadPending) {
         return (
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView reasonAttributes={loadingAppReasonAttributes} />
@@ -266,10 +280,13 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                         {shouldDisplayMoneyRequestActionsList ? (
                             <MoneyRequestReportActionsList onLayout={onLayout} />
                         ) : (
-                            <ReportActionsView
-                                reportID={reportID}
-                                onLayout={onLayout}
-                            />
+                            <>
+                                <ReportActionsList
+                                    reportID={report.reportID}
+                                    onLayout={onLayout}
+                                />
+                                <UserTypingEventListener report={report} />
+                            </>
                         )}
                         {shouldDisplayReportFooter ? (
                             <>

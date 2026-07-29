@@ -1,9 +1,11 @@
+import type {SharedValue} from 'react-native-reanimated';
+
 import {useCallback} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
-import type {SharedValue} from 'react-native-reanimated';
 import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import {useChartInteractionState} from './useChartInteractionState';
+
+import useChartInteractionState from './useChartInteractionState';
 
 /** Gap between bar top and tooltip bottom */
 const TOOLTIP_BAR_GAP = 8;

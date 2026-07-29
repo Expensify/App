@@ -1,56 +1,47 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import ImageSVG from '@components/ImageSVG';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
+
+import type {MapMarkerType} from '@hooks/useMapMarkers/types';
+
 import {getGPSWaypoints, isTripStopped as isTripStoppedUtil} from '@libs/GPSDraftDetailsUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type IconAsset from '@src/types/utils/IconAsset';
 
-function useGPSWaypointMarkers(): WayPoint[] {
-    const theme = useTheme();
-    const {DotIndicatorUnfilled, Location, DotIndicator} = useMemoizedLazyExpensifyIcons(['DotIndicatorUnfilled', 'Location', 'DotIndicator']);
+import type {GpsDraftDetails} from '@src/types/onyx';
+import type {TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+type UseGPSWaypointMarkersProps = {
+    gpsDraftDetails: GpsDraftDetails | undefined;
+    trimmedEndPoint?: TrimmedGPSPoint;
+};
+
+function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPointProp}: UseGPSWaypointMarkersProps) {
+    const trimmedEndPoint = trimmedEndPointProp ?? gpsDraftDetails?.trimmedEndPoint;
 
     const isTripStopped = isTripStoppedUtil(gpsDraftDetails);
 
-    const getMarkerComponent = (icon: IconAsset): ReactNode => (
-        <ImageSVG
-            src={icon}
-            width={CONST.MAP_MARKER_SIZE}
-            height={CONST.MAP_MARKER_SIZE}
-            fill={theme.icon}
-        />
-    );
-
-    const gpsWaypoints = getGPSWaypoints(gpsDraftDetails);
+    const gpsWaypoints = getGPSWaypoints(gpsDraftDetails, trimmedEndPoint);
     const waypointEntries = Object.entries(gpsWaypoints);
     const lastIndex = waypointEntries.length - 1;
 
     return waypointEntries.flatMap(([key, waypoint], index): WayPoint[] => {
         const isStart = index === 0;
-        const isEnd = index === lastIndex;
+        // End waypoint can only have odd index, as even indexes are start waypoints of trip segments
+        const isEnd = index === lastIndex && index % 2 === 1;
 
         if (isEnd && !isTripStopped) {
             return [];
         }
 
-        let icon = DotIndicator;
+        let markerType: MapMarkerType = 'WAYPOINT';
         if (isStart) {
-            icon = DotIndicatorUnfilled;
+            markerType = 'START_WAYPOINT';
         } else if (isEnd) {
-            icon = Location;
+            markerType = 'STOP_WAYPOINT';
         }
 
         return [
             {
                 id: key,
                 coordinate: [waypoint.lng, waypoint.lat],
-                markerComponent: (): ReactNode => getMarkerComponent(icon),
+                markerType,
             },
         ];
     });

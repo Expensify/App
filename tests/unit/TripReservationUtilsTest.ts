@@ -1,7 +1,9 @@
 /* cspell:disable */
-import {getAirReservations, getPNRReservationDataFromTripReport, getReservationsFromTripReport, isPnrCancelled} from '@libs/TripReservationUtils';
+import {formatTransitLocationLabel, getAirReservations, getPNRReservationDataFromTripReport, getReservationsFromTripReport, isPnrCancelled} from '@libs/TripReservationUtils';
+
 import CONST from '@src/CONST';
 import type {Pnr, TripData} from '@src/types/onyx/TripData';
+
 import {airReservationPnrData, airReservationTravelers} from '../data/TripAirReservationData';
 import {createRandomReport} from '../utils/collections/reports';
 
@@ -2689,6 +2691,61 @@ describe('TripReservationUtils', () => {
             const trainReservation = result.find((r) => r.reservation.type === CONST.RESERVATION_TYPE.TRAIN);
             expect(trainReservation?.reservation.start?.cityName).toEqual('City X');
             expect(trainReservation?.reservation.end?.cityName).toEqual('City Y');
+        });
+    });
+
+    describe('rail shortName sanitization', () => {
+        it('should drop a URN-formatted code from rail shortName', () => {
+            const railPnrWithUrnCodes = JSON.parse(JSON.stringify(railPnr)) as typeof railPnr;
+            const leg = railPnrWithUrnCodes.data.railPnr?.legInfos.at(0);
+            if (leg) {
+                leg.originInfo.code = 'urn:trainline:public:nloc:at000408';
+                leg.destinationInfo.code = 'urn:trainline:public:nloc:at001685';
+            }
+
+            const report = createRandomReport(1, undefined);
+            report.tripData = {
+                tripID: 'trip123',
+                payload: {
+                    ...basicTripData,
+                    pnrs: [railPnrWithUrnCodes],
+                },
+            };
+
+            const result = getReservationsFromTripReport(report, []);
+            expect(result).toHaveLength(1);
+
+            const trainReservation = result.at(0)?.reservation;
+            expect(trainReservation?.type).toEqual(CONST.RESERVATION_TYPE.TRAIN);
+            expect(trainReservation?.start?.shortName).toEqual('');
+            expect(trainReservation?.end?.shortName).toEqual('');
+        });
+
+        it('should render only longName when shortName is empty (no trailing space, no empty parens)', () => {
+            expect(formatTransitLocationLabel({date: '', longName: 'Brockenhurst', shortName: '', cityName: ''})).toEqual('Brockenhurst');
+        });
+
+        it('should render longName with parenthesized shortName when both are present', () => {
+            expect(formatTransitLocationLabel({date: '', longName: 'Solana Beach station', shortName: 'SOL', cityName: ''})).toEqual('Solana Beach station (SOL)');
+        });
+
+        it('should preserve a clean station code in rail shortName', () => {
+            const report = createRandomReport(1, undefined);
+            report.tripData = {
+                tripID: 'trip123',
+                payload: {
+                    ...basicTripData,
+                    pnrs: [railPnr],
+                },
+            };
+
+            const result = getReservationsFromTripReport(report, []);
+            expect(result).toHaveLength(1);
+
+            const trainReservation = result.at(0)?.reservation;
+            expect(trainReservation?.type).toEqual(CONST.RESERVATION_TYPE.TRAIN);
+            expect(trainReservation?.start?.shortName).toEqual('STX');
+            expect(trainReservation?.end?.shortName).toEqual('STY');
         });
     });
 

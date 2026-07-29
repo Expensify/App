@@ -1,52 +1,60 @@
-import {Str} from 'expensify-common';
-import {useContext} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
-import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
 import useOnyx from '@hooks/useOnyx';
-import useShortMentionsList from '@hooks/useShortMentionsList';
-import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
-import {addAttachmentWithComment, addComment} from '@libs/actions/Report';
+import useReportIsArchived from '@hooks/useReportIsArchived';
+
+import {addAttachmentWithComment, addComment, clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
+import {getAllPersonalDetailLogins, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getAllReportActions} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction, isConciergeChatReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import getSendMessageListWeight from '@libs/telemetry/getSendMessageListWeight';
+import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
 import {generateAccountID} from '@libs/UserUtils';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+
+import {useActionListContext} from '@pages/inbox/ActionListContext';
+
 import {setIsComposerFullSize} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import {Str} from 'expensify-common';
+
+import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState} from './ComposerContext';
+import useComposerReportData from './useComposerReportData';
 import useSidePanelContext from './useSidePanelContext';
 
 function useComposerSubmit(reportID: string) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
-    const {availableLoginsList} = useShortMentionsList();
     const isInSidePanel = useIsInSidePanel();
     const sidePanelContext = useSidePanelContext(reportID);
+    const route = useRoute();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
 
-    const {composerRef, attachmentFileRef} = useComposerMeta();
-    const {draftComment} = useComposerState();
+    const {composerRef, attachmentFileRef, textRef} = useComposerMeta();
     const {clearComposer} = useComposerActions();
     const {isSendDisabled, debouncedCommentMaxLengthValidation} = useComposerSendState();
-    const {isEditingInComposer, editingMessage, effectiveDraft, didResetComposerHeightWhileEditing} = useComposerEditState();
+    const {isEditingInComposer, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
     const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {scrollOffsetRef} = useActionListContext();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(reportID);
-    const {effectiveTransactionThreadReportID} = useTransactionThreadReport(reportID, reportActions);
+    const {report, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
+    const isReportArchived = useReportIsArchived(reportID);
 
     const reportAncestors = useAncestors(report);
     const targetReportAncestors = useAncestors(targetReport);
@@ -69,6 +77,14 @@ function useComposerSubmit(reportID: string) {
             return;
         }
 
+        // A new user message supersedes any Concierge processing indicator from a prior turn (e.g. a persisted
+        // "...is working on your chat" while a human is handling it). Clear it optimistically so it disappears
+        // the instant the user sends, instead of lingering until the ProcessAgentZeroRequest job runs; the
+        // backend re-establishes the correct status afterward.
+        if (isConciergeChatReport(report, conciergeReportID)) {
+            clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
+        }
+
         if (attachmentFileRef.current) {
             addAttachmentWithComment({
                 report: targetReport,
@@ -82,6 +98,7 @@ function useComposerSubmit(reportID: string) {
                 isInSidePanel,
                 delegateAccountID,
                 sidePanelContext,
+                conciergeReportID,
             });
             attachmentFileRef.current = null;
             return;
@@ -93,15 +110,15 @@ function useComposerSubmit(reportID: string) {
             if (taskTitle) {
                 const mention = taskMatch[1] ? taskMatch[1].trim() : '';
                 const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail) ? '' : Str.extractEmailDomain(currentUserEmail);
-                const mentionWithDomain = addDomainToShortMention(mention, availableLoginsList, currentUserPrivateDomain) ?? mention;
+                const mentionWithDomain = addDomainToShortMention(mention, getAllPersonalDetailLogins(), currentUserPrivateDomain) ?? mention;
                 const isValidMention = Str.isValidEmail(mentionWithDomain);
 
                 let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
                 let assigneeChatReport;
                 if (mentionWithDomain) {
                     if (isValidMention) {
-                        assignee = Object.values(personalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
-                        if (!Object.keys(assignee ?? {}).length) {
+                        assignee = getPersonalDetailByEmail(mentionWithDomain);
+                        if (!assignee) {
                             const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
                                 accountID: generateAccountID(mentionWithDomain),
                                 login: mentionWithDomain,
@@ -113,6 +130,12 @@ function useComposerSubmit(reportID: string) {
                         taskTitle = `@${mentionWithDomain} ${taskTitle}`;
                     }
                 }
+
+                const taskCreatorAndAssigneeDetails = {[currentUserPersonalDetails.accountID]: currentUserPersonalDetails};
+                if (assignee) {
+                    taskCreatorAndAssigneeDetails[assignee.accountID] = assignee;
+                }
+
                 createTaskAndNavigate({
                     parentReport: report,
                     title: taskTitle,
@@ -120,12 +143,15 @@ function useComposerSubmit(reportID: string) {
                     assigneeEmail: assignee?.login ?? '',
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail,
+                    currentUserDisplayName: currentUserPersonalDetails.displayName,
+                    currentUserAvatar: currentUserPersonalDetails.avatar,
                     assigneeAccountID: assignee?.accountID,
                     assigneeChatReport,
                     policyID: report?.policyID,
                     isCreatedUsingMarkdown: true,
                     quickAction,
                     ancestors: reportAncestors,
+                    taskCreatorAndAssigneeDetails,
                 });
                 return;
             }
@@ -134,12 +160,17 @@ function useComposerSubmit(reportID: string) {
         const optimisticReportActionID = rand64();
         const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         if (isScrolledToBottom) {
-            startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`, {
+            const spanID = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`;
+            const {reportActionCount, moneyRequestPreviewCount} = getSendMessageListWeight(getAllReportActions(reportID), reportID, canUserPerformWriteAction(report, isReportArchived));
+            startSpan(spanID, {
                 name: 'send-message',
                 op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
                 attributes: {
                     [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
                     [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
+                    [CONST.TELEMETRY.ATTRIBUTE_SEND_MESSAGE_SOURCE]: getSendMessageSource({report, conciergeReportID, isInSidePanel, routeName: route.name}),
+                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActionCount,
+                    [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
                 },
             });
         }
@@ -155,11 +186,12 @@ function useComposerSubmit(reportID: string) {
             sidePanelContext,
             reportActionID: optimisticReportActionID,
             delegateAccountID,
+            conciergeReportID,
         });
     };
 
     const submitDraftAndClearComposer = () => {
-        if (isSendDisabled || !debouncedCommentMaxLengthValidation?.flush()) {
+        if (isSendDisabled || debouncedCommentMaxLengthValidation?.flush() === false) {
             return;
         }
 
@@ -167,10 +199,16 @@ function useComposerSubmit(reportID: string) {
             setIsComposerFullSize(reportID, false);
         }
 
-        // If there is a draft comment and we are submitting an edit, we don't want to clear the composer height and the draft comment.
-        // Therefore, we directly trigger the validation and submission of the draft comment.
-        if (isEditingInComposer && editingMessage !== null && draftComment) {
-            validateAndSubmitDraft(editingMessage);
+        const isFinishingComposerEdit =
+            editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && (isEditingInComposer || didResetComposerHeightWhileEditing) && !attachmentFileRef.current;
+
+        if (isFinishingComposerEdit) {
+            // We need to schedule the submission on the next tick to wait for
+            // potential autocorrection to update the text
+            setTimeout(() => {
+                validateAndSubmitDraft(textRef.current ?? '');
+            }, 0);
+
             return;
         }
 

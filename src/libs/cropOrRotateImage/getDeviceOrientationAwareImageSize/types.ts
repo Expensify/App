@@ -17,4 +17,5 @@ type GetDeviceOrientationAwareImageSizeParams = {
 
 type GetDeviceOrientationAwareImageSize = (params: GetDeviceOrientationAwareImageSizeParams) => DeviceOrientationAwareImageSize;
 
-export type {GetDeviceOrientationAwareImageSize, DeviceOrientationAwareImageSize};
+// eslint-disable-next-line import/prefer-default-export
+export type {GetDeviceOrientationAwareImageSize};

@@ -1,7 +1,10 @@
-import React, {useRef} from 'react';
 import type {View} from 'react-native';
-import GenericPressable from './GenericPressable';
+
+import React, {useRef} from 'react';
+
 import type PressableProps from './GenericPressable/types';
+
+import GenericPressable from './GenericPressable';
 
 /**
  * This component prevents the tapped element from capturing focus.
@@ -23,7 +26,6 @@ function PressableWithoutFocus({children, onPress, onLongPress, ...rest}: Pressa
             onPress={pressAndBlur}
             onLongPress={onLongPress}
             ref={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
             {children}

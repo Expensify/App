@@ -1,12 +1,18 @@
-import React from 'react';
-import type {TextInputSelectionChangeEvent} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
 import SymbolButton from '@components/SymbolButton';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addLeadingZero, replaceAllDigits} from '@libs/MoneyRequestUtils';
+
 import CONST from '@src/CONST';
+
+import type {TextInputSelectionChangeEvent} from 'react-native';
+
+import React from 'react';
+
 import type BaseTextInputWithSymbolProps from './types';
 
 function BaseTextInputWithSymbol({
@@ -24,6 +30,7 @@ function BaseTextInputWithSymbol({
     style,
     symbolTextStyle,
     isNegative = false,
+    negativeSymbolStyle,
     rightHandSideComponent,
     ref,
     disabled,
@@ -42,7 +49,7 @@ function BaseTextInputWithSymbol({
         onChangeAmount(newAmount);
     };
 
-    const negativeSymbol = <Text style={[styles.iouAmountText]}>-</Text>;
+    const negativeSymbol = <Text style={[styles.iouAmountText, negativeSymbolStyle]}>-</Text>;
 
     return (
         <>
@@ -68,7 +75,6 @@ function BaseTextInputWithSymbol({
                 onKeyPress={onKeyPress}
                 style={[styles.pr1, style]}
                 rightHandSideComponent={rightHandSideComponent}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
             {!hideSymbol && symbolPosition === CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX && (

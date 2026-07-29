@@ -1,19 +1,26 @@
-import React from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/constants';
+import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import SearchChartView from '@components/Search/SearchChartView';
 import WidgetContainer from '@components/WidgetContainer';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
+import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import useSpendOverTimeData, {SPEND_OVER_TIME_STATE} from './useSpendOverTimeData';
 
 function SpendOverTimeSectionContent() {
@@ -24,7 +31,7 @@ function SpendOverTimeSectionContent() {
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {query, queryJSON, groupBy, view, sortedData, state} = useSpendOverTimeData();
+    const {query, queryJSON, groupBy, view, sortedData, state, retry} = useSpendOverTimeData();
 
     if (!queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE || state === SPEND_OVER_TIME_STATE.HIDDEN) {
         return null;
@@ -35,15 +42,17 @@ function SpendOverTimeSectionContent() {
             title={translate('search.spendOverTime')}
             titleRightContent={
                 state === SPEND_OVER_TIME_STATE.READY ? (
-                    <Button
-                        small
-                        text={translate('common.view')}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}))}
-                        iconRight={icons.Expand}
-                        shouldShowRightIcon
-                        textStyles={styles.pb0}
-                        style={styles.widgetItemButton}
-                        iconWrapperStyles={styles.justifyContentCenter}
+                    <WidgetHeaderMenu
+                        testID="spendOverTimeOverflowMenu"
+                        sentryLabel="SpendOverTimeOverflowMenu"
+                        menuItems={[
+                            {
+                                text: translate('common.view'),
+                                icon: icons.Expand,
+                                onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query})),
+                                shouldCallAfterModalHide: true,
+                            },
+                        ]}
                     />
                 ) : null
             }
@@ -70,8 +79,10 @@ function SpendOverTimeSectionContent() {
                     titleStyles={[styles.mt0, styles.mb2]}
                     subtitle={translate('errorPage.subtitle')}
                     subtitleStyle={styles.textSupporting}
-                    containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
+                    containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5, styles.pb5]}
                     contentFitImage="contain"
+                    buttonTranslationKey="common.tryAgain"
+                    onButtonPress={retry}
                 />
             )}
             {(state === SPEND_OVER_TIME_STATE.LOADING || state === SPEND_OVER_TIME_STATE.READY) && (

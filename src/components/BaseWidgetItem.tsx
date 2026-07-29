@@ -1,13 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import Button from './Button';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ButtonProps} from './Button';
+
+import Button from './Button';
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
@@ -72,7 +77,7 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
                         small
                         style={styles.widgetItemButton}
                         // Prop spreading allows parent components to pass additional button styling props (e.g., danger: true, success: true)
-                        // eslint-disable-next-line react/jsx-props-no-spreading
+
                         {...buttonProps}
                     />
                 </View>
@@ -82,4 +87,3 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
 }
 
 export default BaseWidgetItem;
-export type {BaseWidgetItemProps};

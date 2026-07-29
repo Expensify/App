@@ -1,5 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -8,18 +6,24 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {createDomain, resetCreateDomainForm} from '@libs/actions/Domain';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isUserValidatedSelector} from '@src/selectors/Account';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useRef} from 'react';
 
 function AddDomainPage() {
     const styles = useThemeStyles();
@@ -58,12 +62,9 @@ function AddDomainPage() {
         const accountID = Object.values(allDomains ?? {})?.find(
             (domain) => domain && submittedDomainName.current && Str.caseInsensitiveEquals(Str.extractEmailDomain(domain.email), submittedDomainName.current),
         )?.accountID;
+
         if (accountID) {
-            Navigation.dismissModal({
-                afterTransition: () => {
-                    Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true});
-                },
-            });
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true}));
         }
     }, [form?.hasCreationSucceeded, allDomains]);
 
@@ -76,7 +77,7 @@ function AddDomainPage() {
         <ScreenWrapper testID="AddDomainPage">
             <HeaderWithBackButton
                 title={translate('domain.addDomain.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.getRoute())}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.getRoute())}
             />
             <ScrollView
                 contentContainerStyle={[styles.ph5, styles.pt3, styles.flexGrow1, styles.gap5]}

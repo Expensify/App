@@ -1,11 +1,14 @@
-import {useEffect, useRef} from 'react';
-import ReactNativeBlobUtil from 'react-native-blob-util';
-import {RESULTS} from 'react-native-permissions';
-import type {CameraDevice} from 'react-native-vision-camera';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
+
+import type {CameraDevice} from 'react-native-vision-camera';
+
+import {useEffect, useRef} from 'react';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import {RESULTS} from 'react-native-permissions';
 
 type UseCameraInitTelemetryParams = {
     /** Current camera permission status from react-native-permissions */

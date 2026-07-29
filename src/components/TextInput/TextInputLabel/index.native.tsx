@@ -1,10 +1,13 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import React from 'react';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import type TextInputLabelProps from './types';
 
-function TextInputLabel({label, labelScale, labelTranslateY, isMultiline}: TextInputLabelProps) {
+function TextInputLabel({label, labelScale, labelTranslateY, isMultiline, shouldLabelStayOnSingleLine}: TextInputLabelProps) {
     const styles = useThemeStyles();
+    const shouldClipToSingleLine = !isMultiline || shouldLabelStayOnSingleLine;
 
     const animatedStyle = useAnimatedStyle(() => styles.textInputLabelTransformation(labelTranslateY, labelScale));
     const animatedStyleForText = useAnimatedStyle(() => styles.textInputLabelTransformation(labelTranslateY, labelScale, true));
@@ -15,8 +18,8 @@ function TextInputLabel({label, labelScale, labelTranslateY, isMultiline}: TextI
                 accessible={false}
                 accessibilityElementsHidden
                 importantForAccessibility="no"
-                numberOfLines={!isMultiline ? 1 : undefined}
-                ellipsizeMode={!isMultiline ? 'tail' : undefined}
+                numberOfLines={shouldClipToSingleLine ? 1 : undefined}
+                ellipsizeMode={shouldClipToSingleLine ? 'tail' : undefined}
                 allowFontScaling={false}
                 style={[styles.textInputLabel, animatedStyleForText]}
             >

@@ -1,10 +1,14 @@
-import {DomUtils, parseDocument} from 'htmlparser2';
-import type {ReactElement, ReactNode} from 'react';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getEnvironment from '@libs/Environment/getEnvironment';
-import {defaultEnvironmentActionsContextValue, defaultEnvironmentStateContextValue} from './default';
+
+import type {ReactElement, ReactNode} from 'react';
+
+import {DomUtils, parseDocument} from 'htmlparser2';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+
 import type {EnvironmentActionsContextType, EnvironmentStateContextType, EnvironmentValue} from './types';
+
+import {defaultEnvironmentActionsContextValue, defaultEnvironmentStateContextValue} from './default';
 
 type EnvironmentProviderProps = {
     /** Actual content wrapped by this component */
@@ -92,4 +96,4 @@ function useEnvironmentActions() {
 
 export default EnvironmentProvider;
 export {EnvironmentActionsContext, useEnvironmentState, useEnvironmentActions};
-export type {EnvironmentStateContextType, EnvironmentActionsContextType};
+export type {EnvironmentStateContextType};

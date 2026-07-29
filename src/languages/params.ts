@@ -52,9 +52,9 @@ type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentV
 
 type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
 
-type OptionalParam<T> = Partial<T>;
+type ViolationsInactiveVendorParams = {isSupplier?: boolean};
 
-type LogSizeAndDateParams = {size: number; date: string};
+type OptionalParam<T> = Partial<T>;
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
@@ -87,22 +87,20 @@ type ConnectionNameParams = {
     connectionName: AllConnectionName;
 };
 
+type ConnectionDisplayNameParams = {
+    connectionName: string;
+};
+
+type DefaultVendorHelperTextParams = {
+    isSet: boolean;
+};
+
 type ExportAgainModalDescriptionParams = {
     reportName: string;
     connectionName: ConnectionName;
 };
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
-
-type RemoveMemberParams = {email: string; role: string};
-
-type StatementPageTitleParams = {year: string | number; monthName: string};
-
-type DisconnectPromptParams = {currentIntegration?: ConnectionName} | undefined;
-
-type DisconnectTitleParams = {integration?: ConnectionName} | undefined;
-
-type LowerUpperParams = {lower: string; upper: string};
 
 type YourPlanPriceParams = {lower: string; upper: string};
 
@@ -113,6 +111,8 @@ type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
 type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
 
 type DelegateRoleParams = {role: DelegateRole};
+
+type RemoveCopilotAccessConfirmationParams = {delegatorName: string};
 
 type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
@@ -141,18 +141,21 @@ type ConciergeBrokenCardConnectionParams = {
     connectionLink?: string;
 };
 
+type EmptyViolationSnapshotResultsSubtitleParams = {
+    formattedDate: string;
+};
+
 export type {
     MissingPropertyParams,
     InvalidPropertyParams,
     InvalidValueParams,
     RemovedFromApprovalWorkflowParams,
     DelegateRoleParams,
+    RemoveCopilotAccessConfirmationParams,
     SyncStageNameConnectionsParams,
     IntacctMappingTitleParams,
     ExportIntegrationSelectedParams,
     YourPlanPriceParams,
-    LowerUpperParams,
-    LogSizeAndDateParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
@@ -161,6 +164,7 @@ export type {
     ParentNavigationSummaryParams,
     PaidElsewhereParams,
     ConciergeBrokenCardConnectionParams,
+    EmptyViolationSnapshotResultsSubtitleParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
@@ -170,6 +174,7 @@ export type {
     StepCounterParams,
     ViolationsModifiedAmountParams,
     ViolationsIncreasedDistanceParams,
+    ViolationsInactiveVendorParams,
     ChangeFieldParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,
@@ -178,12 +183,10 @@ export type {
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
     ConnectionNameParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
-    RemoveMemberParams,
-    StatementPageTitleParams,
-    DisconnectPromptParams,
-    DisconnectTitleParams,
     OptionalParam,
     WorkspaceLockedPlanTypeParams,
 };

@@ -1,7 +1,10 @@
-import React from 'react';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import React from 'react';
 
 type CopyTextRendererProps = CustomRendererProps<TText | TPhrasing>;
 

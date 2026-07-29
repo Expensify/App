@@ -1,12 +1,14 @@
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {getBillable, getReimbursable} from '@libs/TransactionUtils';
-import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import type * as OnyxTypes from '@src/types/onyx';
+
+import {toggleStateSelector} from './selectors';
+import useTransactionSelector from './useTransactionSelector';
 
 type ToggleFieldsProps = {
     isReadOnly: boolean;
@@ -14,15 +16,17 @@ type ToggleFieldsProps = {
     shouldShowBillable: boolean;
     onToggleReimbursable?: (isOn: boolean) => void;
     onToggleBillable?: (isOn: boolean) => void;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transactionID: string | undefined;
 };
 
-function ToggleFields({isReadOnly, shouldShowReimbursable, shouldShowBillable, onToggleReimbursable, onToggleBillable, transaction}: ToggleFieldsProps) {
+function ToggleFields({isReadOnly, shouldShowReimbursable, shouldShowBillable, onToggleReimbursable, onToggleBillable, transactionID}: ToggleFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const iouIsBillable = getBillable(transaction);
-    const iouIsReimbursable = getReimbursable(transaction);
+    const toggleState = useTransactionSelector(transactionID, toggleStateSelector);
+
+    const iouIsBillable = toggleState?.billable ?? false;
+    const iouIsReimbursable = toggleState?.reimbursable ?? true;
 
     return (
         <>

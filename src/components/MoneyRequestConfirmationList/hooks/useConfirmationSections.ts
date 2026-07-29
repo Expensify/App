@@ -1,12 +1,16 @@
-import type {ReactElement} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {getIOUConfirmationOptionsFromPayeePersonalDetail} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {ReactElement} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 
 type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
 
@@ -14,8 +18,19 @@ type UseConfirmationSectionsParams = {
     /** Whether the current IOU type is split */
     isTypeSplit: boolean;
 
+    /** Whether the current IOU type is invoice (keeps the "To" header, which pairs with the invoice "Send from" field) */
+    isTypeInvoice?: boolean;
+
     /** Whether the "to" section should be hidden (used when adding directly to a report) */
     shouldHideToSection: boolean;
+
+    /**
+     * When true with `shouldHideToSection`, still render the "To" section (e.g. new manual flow so the user can open the participant picker).
+     */
+    shouldForceTopEmptySections?: boolean;
+
+    /** Row-level errors for the participant section (e.g. missing recipient / attendees), shown on the list row */
+    participantRowErrors?: Record<string, string>;
 
     /** Whether participant rows should be interactive (allow editing the recipient) */
     canEditParticipant: boolean;
@@ -43,21 +58,24 @@ type UseConfirmationSectionsParams = {
  */
 function useConfirmationSections({
     isTypeSplit,
+    isTypeInvoice = false,
     shouldHideToSection,
+    shouldForceTopEmptySections = false,
+    participantRowErrors,
     canEditParticipant,
     payeePersonalDetails,
     splitParticipants,
     selectedParticipants,
     getSplitSectionHeader,
 }: UseConfirmationSectionsParams) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const options: Array<Section<MoneyRequestConfirmationListItem>> = [];
     if (isTypeSplit) {
         options.push(
             {
                 title: translate('moneyRequestConfirmationList.paidBy'),
-                data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
+                data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails, translate, formatPhoneNumber)],
                 sectionIndex: 0,
             },
             {
@@ -67,18 +85,31 @@ function useConfirmationSections({
             },
         );
         // When adding an expense from within a report, hide the "To:" section since the destination is already the current report
-    } else if (!shouldHideToSection) {
-        const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
-            ...participant,
-            isSelected: false,
-            keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
-            isInteractive: canEditParticipant,
-            shouldShowRightCaret: canEditParticipant,
-        }));
+    } else if (!shouldHideToSection || shouldForceTopEmptySections) {
+        const participantRows =
+            selectedParticipants.length > 0
+                ? selectedParticipants.map((participant) => ({
+                      ...participant,
+                      isSelected: false,
+                      keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
+                      isInteractive: canEditParticipant,
+                      shouldShowRightCaret: canEditParticipant,
+                      ...(participantRowErrors ? {errors: participantRowErrors} : {}),
+                  }))
+                : [
+                      {
+                          keyForList: 'empty-participant-option',
+                          text: translate('iou.chooseRecipient'),
+                          isInteractive: canEditParticipant,
+                          shouldShowRightCaret: canEditParticipant,
+                          isBold: false,
+                          ...(participantRowErrors ? {errors: participantRowErrors} : {}),
+                      },
+                  ];
 
         options.push({
-            title: translate('common.to'),
-            data: formattedSelectedParticipants,
+            title: isTypeInvoice && selectedParticipants.length > 0 ? translate('common.to') : undefined,
+            data: participantRows,
             sectionIndex: 0,
         });
     }

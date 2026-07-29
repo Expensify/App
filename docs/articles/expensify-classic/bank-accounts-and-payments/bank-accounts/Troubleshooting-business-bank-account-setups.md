@@ -1,7 +1,7 @@
 ---
 title: Troubleshooting business bank account setup
 description: Fix common errors when adding or verifying a verified business bank account in Expensify.
-keywords: [bank account troubleshooting, verified business account, Onfido error, missing test transactions, ACH whitelisting, ID upload issues, missing verification amounts, missing micro deposits]
+keywords: [bank account troubleshooting, verified business account, Onfido error, missing test transactions, ACH whitelisting, ID upload issues, missing verification amounts, missing micro deposits, validation failed, test deposits wrong, Fix button missing, Unlock button missing, bank account pending, verification stuck, documentation review]
 ---
 <div id="expensify-classic" markdown="1">
 
@@ -98,5 +98,47 @@ Yes. Expensify cannot process payments for:
 - NFT-related businesses
 
 If your business operates in one of these industries, you may not be able to use Expensify for payments.
+
+---
+
+# Troubleshooting Test Transaction Validation
+
+## I entered the correct test transaction amounts but validation failed
+
+If you can see the test transactions in your bank account but the amounts are being rejected:
+
+- **Wait for transactions to fully post.** Pending transactions may display slightly different amounts than the final posted values. Only enter amounts after they have fully posted.
+- **Double-check for rounding.** Enter the exact amounts including cents. Even a one-cent difference will cause validation to fail.
+- **Verify you have the right transactions.** Look for transactions labeled "Expensify, Inc. Validation" or similar. If you have multiple bank accounts connected, make sure you are not mixing up transactions from different accounts.
+
+If you have confirmed all of the above and validation still fails, contact Concierge for assistance.
+
+## Validation is temporarily locked after multiple failed attempts
+
+Entering incorrect amounts multiple times will temporarily lock the validation process. The lock typically lasts a few hours. After the lock period, retry by navigating to your bank account in **Settings > Account > Payments** and clicking the pending bank account.
+
+If you are unable to validate after the lock period has passed, contact Concierge.
+
+## Test transactions expired or validation window closed
+
+Test transactions and the validation window are active for a limited time. If you did not complete validation before the window expired, contact Concierge to request a new set of test transactions.
+
+---
+
+# Troubleshooting Additional Documentation Review
+
+## Concierge says my account requires additional documentation
+
+If automatic verification cannot be completed, Expensify may request a manual review of your supporting documents. This can happen when:
+
+- Business information does not match public records
+- The business is newly formed or has limited public data
+- Additional verification is required for compliance reasons
+
+Concierge will send you a message with specific instructions on what to provide. Common documents include a bank statement, business license, articles of incorporation, or EIN confirmation letter.
+
+## How long does the documentation review take?
+
+Reviews are typically completed within **1-3 business days** after all requested documents are submitted. You will receive a message from Concierge when the review is complete. If your review is taking longer than expected, contact Concierge for a status update.
 
 </div>

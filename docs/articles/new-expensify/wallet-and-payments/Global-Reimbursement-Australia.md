@@ -25,6 +25,8 @@ If your company’s business bank account is located in Australia, you can enabl
 * ✅ Certified ID & Proof of Address for all signatories
 * ✅ Entity ownership chart signed by a CPA, lawyer, or notary
 
+Accepted file types: PDF, PNG, JPEG. Each file must be 2 MB or less.
+
 ---
 
 # Step 1: Connect Your Australian Bank Account
@@ -65,6 +67,8 @@ If your company’s business bank account is located in Australia, you can enabl
    * Once the Director has entered their info and uploaded ID and proof of address, the submission can proceed.
 
 **Note:** For global reimbursements, Expensify requires information from at least two Directors or Senior Officers for Australian companies.
+
+**Note:** Each designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
 
 ---
 

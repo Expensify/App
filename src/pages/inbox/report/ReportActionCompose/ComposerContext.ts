@@ -1,11 +1,19 @@
-import type {RefObject} from 'react';
-import {createContext, useContext} from 'react';
-import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+
 import type {TextSelection} from '@components/Composer/types';
 import type {Mention} from '@components/MentionSuggestions';
+
+import type {ReportActionEditMessageState} from '@pages/inbox/report/ReportActionEditMessageContext';
+
+import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {RefObject} from 'react';
+import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
+
+import {createContext, useContext} from 'react';
+
 import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 import type useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 
@@ -24,19 +32,20 @@ type ComposerText = string;
 
 // Warm — changes on interaction
 type ComposerState = {
+    reportID: string;
     isFocused: boolean;
     isMenuVisible: boolean;
     isFullComposerAvailable: boolean;
-    draftComment: string | undefined;
 };
 
 type ComposerEditState = {
-    editingState: 'off' | 'editing' | 'submitted';
+    editingState: ReportActionEditMessageState;
     isEditingInComposer: boolean;
     editingReportID: string | null;
     editingReportActionID: string | null;
     editingReportAction: ReportAction | null;
     editingMessage: string | null;
+    draftComment: string | undefined;
     effectiveDraft: string | null | undefined;
     currentEditMessageSelection: TextSelection | null;
     didResetComposerHeightWhileEditing: boolean;
@@ -80,6 +89,7 @@ type ComposerMeta = {
     actionButtonRef: RefObject<View | HTMLDivElement | null>;
     isNextModalWillOpenRef: RefObject<boolean>;
     attachmentFileRef: RefObject<FileObject | FileObject[] | null>;
+    textRef: RefObject<string>;
 };
 
 const noop = () => {};
@@ -87,10 +97,10 @@ const noop = () => {};
 const ComposerTextContext = createContext<ComposerText>('');
 
 const defaultState: ComposerState = {
+    reportID: '',
     isFocused: false,
     isMenuVisible: false,
     isFullComposerAvailable: false,
-    draftComment: undefined,
 };
 const ComposerStateContext = createContext<ComposerState>(defaultState);
 
@@ -104,12 +114,13 @@ const defaultSendState: ComposerSendState = {
 };
 
 const defaultEditState: ComposerEditState = {
-    editingState: 'off',
+    editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF,
     isEditingInComposer: false,
     editingReportID: null,
     editingReportActionID: null,
     editingReportAction: null,
     editingMessage: null,
+    draftComment: undefined,
     effectiveDraft: undefined,
     currentEditMessageSelection: null,
     didResetComposerHeightWhileEditing: false,
@@ -189,4 +200,4 @@ export {
     useComposerEditActions,
     useComposerMeta,
 };
-export type {SuggestionsRef, ComposerText, ComposerState, ComposerEditState, ComposerSendState, ComposerActions, ComposerEditActions, ComposerMeta};
+export type {SuggestionsRef, ComposerEditState, ComposerActions};

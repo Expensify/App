@@ -1,14 +1,18 @@
-import {Parser as HtmlParser} from 'htmlparser2';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
+
 import {getFileName, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import {getHtmlWithAttachmentID, getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import CONST from '@src/CONST';
 import type {Report, ReportAction, ReportActions, VisibleReportActionsDerivedValue} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Parser as HtmlParser} from 'htmlparser2';
 
 /**
  * Constructs the initial component state from report actions

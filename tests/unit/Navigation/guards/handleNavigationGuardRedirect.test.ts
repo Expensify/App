@@ -1,10 +1,31 @@
-import type {StackNavigationState} from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/routers';
 import RootStackRouter from '@libs/Navigation/AppNavigator/createRootStackNavigator/RootStackRouter';
 import {evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+        shouldUseStaging: jest.fn(),
+        closeReactNativeApp: jest.fn(),
+        completeOnboarding: jest.fn(),
+        switchAccount: jest.fn(),
+        sendAuthToken: jest.fn(),
+        getHybridAppSettings: jest.fn(() => Promise.resolve(null)),
+        getInitialURL: jest.fn(() => Promise.resolve(null)),
+        onURLListenerAdded: jest.fn(),
+        signInToOldDot: jest.fn(),
+        signOutFromOldDot: jest.fn(),
+        startSignOut: jest.fn(),
+        cancelSignOut: jest.fn(),
+        clearOldDotAfterSignOut: jest.fn(),
+    },
+}));
 
 jest.mock('@libs/Navigation/guards', () => ({
     __esModule: true,
@@ -24,161 +45,155 @@ jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => ({
     default: jest.fn(),
 }));
 
-const mockedEvaluateGuards = evaluateGuards as jest.Mock;
-const mockedGetAdaptedStateFromPath = getAdaptedStateFromPath as jest.Mock;
+const mockedEvaluateGuards = jest.mocked(evaluateGuards);
+const mockedGetAdaptedStateFromPath = jest.mocked(getAdaptedStateFromPath);
 
-const routeNames = [SCREENS.HOME, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR];
+const routeNames = [
+    NAVIGATORS.TAB_NAVIGATOR,
+    NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+    NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+    NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+    NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+    SCREENS.CONCIERGE,
+    SCREENS.HOME,
+    SCREENS.REPORT,
+];
 
-describe('handleNavigationGuards - REDIRECT stack preservation', () => {
+type StackRoute = StackNavigationState<ParamListBase>['routes'][number];
+
+function createState(routes: StackRoute[], index = routes.length - 1): StackNavigationState<ParamListBase> {
+    return {
+        key: 'root',
+        index,
+        routeNames,
+        routes,
+        stale: false,
+        type: 'stack',
+        preloadedRoutes: [],
+    };
+}
+
+describe('handleNavigationGuards REDIRECT stack preservation', () => {
     const router = RootStackRouter({});
-
     const configOptions = {
         routeNames,
         routeParamList: {} as ParamListBase,
         routeGetIdList: {} as Record<string, ((params: Record<string, unknown>) => string) | undefined>,
     };
-
-    const mockAction = {
-        type: 'NAVIGATE' as const,
-        payload: {name: SCREENS.HOME},
+    const action = {type: 'NAVIGATE' as const, payload: {name: NAVIGATORS.TAB_NAVIGATOR}};
+    const onboardingRedirectState = {
+        routes: [
+            {key: 'home', name: NAVIGATORS.TAB_NAVIGATOR},
+            {key: 'onboarding', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+        ],
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockedEvaluateGuards.mockReturnValue({type: 'ALLOW'});
+        mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: 'onboarding/work-email'});
+        mockedGetAdaptedStateFromPath.mockReturnValue(onboardingRedirectState);
     });
 
-    it('should preserve existing fullscreen routes and append redirect target on top', () => {
-        // Given the current stack has a deep-linked report (a fullscreen route)
-        const state: StackNavigationState<ParamListBase> = {
-            key: 'root',
-            index: 0,
-            routeNames,
-            routes: [{key: 'report-1', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, params: undefined}],
-            stale: false,
-            type: 'stack',
-            preloadedRoutes: [],
-        };
+    it('drops the SignIn right modal before preserving a deep-linked report under onboarding', () => {
+        const state = createState([
+            {key: 'report', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+            {key: 'sign-in-rhp', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
+        ]);
 
-        // When the guard returns REDIRECT to onboarding and getAdaptedStateFromPath returns a state with Home + OnboardingModalNavigator
-        mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: 'onboarding/purpose'});
-        mockedGetAdaptedStateFromPath.mockReturnValue({
-            routes: [
-                {name: SCREENS.HOME, key: 'home-1'},
-                {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, key: 'onboarding-1'},
-            ],
-        });
+        const result = router.getStateForAction(state, action, configOptions);
 
-        const result = router.getStateForAction(state, mockAction, configOptions);
-
-        // Then the deep-linked report should be preserved and onboarding should be appended on top
-        expect(result).not.toBeNull();
-        expect(result?.routes).toHaveLength(2);
-        expect(result?.routes[0].name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-        expect(result?.routes[1].name).toBe(NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
+        expect(result?.routes.map((route) => route.name)).toEqual([NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]);
         expect(result?.index).toBe(1);
     });
 
-    it('should use the full redirect state when no existing fullscreen route is present', () => {
-        // Given a fresh app state with no fullscreen routes (e.g., only a non-fullscreen route)
-        const state: StackNavigationState<ParamListBase> = {
-            key: 'root',
-            index: 0,
-            routeNames: [...routeNames, 'SomeNonFullScreenRoute'],
-            routes: [{key: 'other-1', name: 'SomeNonFullScreenRoute', params: undefined}],
-            stale: false,
-            type: 'stack',
-            preloadedRoutes: [],
-        };
+    it('falls back to the default onboarding redirect state when no fullscreen route survives', () => {
+        const state = createState([{key: 'concierge', name: SCREENS.CONCIERGE}]);
 
-        // When the guard returns REDIRECT to onboarding
-        mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: 'onboarding/purpose'});
-        mockedGetAdaptedStateFromPath.mockReturnValue({
-            routes: [
-                {name: SCREENS.HOME, key: 'home-1'},
-                {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, key: 'onboarding-1'},
-            ],
-        });
+        const result = router.getStateForAction(state, action, configOptions);
 
-        const result = router.getStateForAction(state, mockAction, configOptions);
-
-        // Then the full redirect state (Home + Onboarding) should be used since there's no fullscreen route to preserve
-        expect(result).not.toBeNull();
-        expect(result?.routes).toHaveLength(2);
-        expect(result?.routes[0].name).toBe(SCREENS.HOME);
-        expect(result?.routes[1].name).toBe(NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
+        expect(result?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]);
         expect(result?.index).toBe(1);
     });
 
-    it('should use the full redirect state for non-modal redirects even when fullscreen routes exist', () => {
-        // Given the current stack has a deep-linked report (a fullscreen route)
-        const state: StackNavigationState<ParamListBase> = {
-            key: 'root',
-            index: 0,
-            routeNames,
-            routes: [{key: 'report-1', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, params: undefined}],
-            stale: false,
-            type: 'stack',
-            preloadedRoutes: [],
-        };
-
-        // When the guard returns a non-modal REDIRECT (e.g., to SettingsSplitNavigator)
+    it('keeps non-onboarding redirects as full state replacements', () => {
+        const state = createState([{key: 'report', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]);
         mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: 'settings'});
         mockedGetAdaptedStateFromPath.mockReturnValue({
-            routes: [{name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, key: 'settings-1'}],
+            routes: [{key: 'settings', name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}],
         });
 
-        const result = router.getStateForAction(state, mockAction, configOptions);
+        const result = router.getStateForAction(state, action, configOptions);
 
-        // Then the full redirect state should be used (no route preservation for non-modal redirects)
-        expect(result).not.toBeNull();
-        expect(result?.routes).toHaveLength(1);
-        expect(result?.routes[0].name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+        expect(result?.routes.map((route) => route.name)).toEqual([NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]);
         expect(result?.index).toBe(0);
     });
 
-    it('should not process redirect when guard allows navigation', () => {
-        // Given the guard allows navigation
-        const state: StackNavigationState<ParamListBase> = {
-            key: 'root',
-            index: 0,
-            routeNames,
-            routes: [{key: 'home-1', name: SCREENS.HOME, params: undefined}],
-            stale: false,
-            type: 'stack',
-            preloadedRoutes: [],
-        };
+    it('does not suppress HOME redirects when TabNavigator is already focused on another tab', () => {
+        const state = createState([
+            {
+                key: 'tabs',
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    key: 'tabs-state',
+                    index: 1,
+                    routeNames: [SCREENS.HOME, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR],
+                    routes: [
+                        {key: 'home', name: SCREENS.HOME},
+                        {
+                            key: 'reports',
+                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                            state: {
+                                key: 'reports-state',
+                                index: 0,
+                                routeNames: [SCREENS.REPORT],
+                                routes: [{key: 'report', name: SCREENS.REPORT, params: {reportID: '7075912447943023'}}],
+                                stale: false,
+                                type: 'stack',
+                            },
+                        },
+                    ],
+                    stale: false,
+                    type: 'tab',
+                },
+            },
+        ]);
+        mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: 'home'});
+        mockedGetAdaptedStateFromPath.mockReturnValue({
+            routes: [
+                {
+                    key: 'tabs-home',
+                    name: NAVIGATORS.TAB_NAVIGATOR,
+                    state: {
+                        key: 'tabs-home-state',
+                        index: 0,
+                        routeNames: [SCREENS.HOME, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR],
+                        routes: [{key: 'home', name: SCREENS.HOME}],
+                        type: 'tab',
+                    },
+                },
+            ],
+        });
 
-        mockedEvaluateGuards.mockReturnValue({type: 'ALLOW'});
+        const result = router.getStateForAction(state, action, configOptions);
 
-        // Normal routing may error with minimal config — we only care that redirect logic was not triggered
-        try {
-            router.getStateForAction(state, mockAction, configOptions);
-        } catch {
-            // Expected: StackRouter needs full config for normal routing
-        }
-
-        // Then getAdaptedStateFromPath should NOT have been called (no redirect processing)
-        expect(mockedGetAdaptedStateFromPath).not.toHaveBeenCalled();
+        expect(result).not.toBe(state);
+        expect(result?.routes).toHaveLength(1);
+        expect(result?.routes.at(0)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+        expect(result?.routes.at(0)?.state?.index).toBe(0);
+        expect(result?.routes.at(0)?.state?.routes.at(0)?.name).toBe(SCREENS.HOME);
     });
 
-    it('should return unchanged state when guard blocks navigation', () => {
-        // Given the guard blocks navigation
-        const state: StackNavigationState<ParamListBase> = {
-            key: 'root',
-            index: 0,
-            routeNames,
-            routes: [{key: 'home-1', name: SCREENS.HOME, params: undefined}],
-            stale: false,
-            type: 'stack',
-            preloadedRoutes: [],
-        };
+    it('returns the current state when the redirect target is already focused', () => {
+        const state = createState(
+            [
+                {key: 'home', name: NAVIGATORS.TAB_NAVIGATOR},
+                {key: 'onboarding', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+            ],
+            1,
+        );
 
-        mockedEvaluateGuards.mockReturnValue({type: 'BLOCK', reason: 'Test block'});
+        const result = router.getStateForAction(state, action, configOptions);
 
-        const result = router.getStateForAction(state, mockAction, configOptions);
-
-        // Then the state should be returned unchanged
-        expect(result).toEqual(state);
+        expect(result).toBe(state);
     });
 });

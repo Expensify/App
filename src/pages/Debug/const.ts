@@ -1,9 +1,10 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ACTION_FORM_INPUT_IDS from '@src/types/form/DebugReportActionForm';
 import REPORT_FORM_INPUT_IDS from '@src/types/form/DebugReportForm';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import TRANSACTION_VIOLATION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionViolationForm';
+
+import type {ValueOf} from 'type-fest';
 
 type DebugForms = ValueOf<typeof CONST.DEBUG.FORMS>;
 

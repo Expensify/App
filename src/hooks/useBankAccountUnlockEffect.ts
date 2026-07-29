@@ -1,9 +1,14 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {isConciergeChatReport} from '@libs/ReportUtils';
+
 import {initiateBankAccountUnlock} from '@userActions/BankAccounts';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
+
 import useOnyx from './useOnyx';
 
 function useBankAccountUnlockEffect(report: OnyxEntry<Report> | undefined) {
@@ -11,7 +16,7 @@ function useBankAccountUnlockEffect(report: OnyxEntry<Report> | undefined) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     useEffect(() => {
-        if (!isConciergeChatReport(report) || !initiatingBankAccountUnlock?.bankAccountIDToUnlock) {
+        if (!isConciergeChatReport(report, conciergeReportID) || !initiatingBankAccountUnlock?.bankAccountIDToUnlock) {
             return;
         }
         initiateBankAccountUnlock(initiatingBankAccountUnlock.bankAccountIDToUnlock, conciergeReportID ?? undefined, initiatingBankAccountUnlock.optimisticReportActionID);

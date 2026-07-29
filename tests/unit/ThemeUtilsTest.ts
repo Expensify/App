@@ -1,4 +1,5 @@
 import {getBaseTheme, getContrastTheme, isHighContrastTheme} from '@styles/theme/utils';
+
 import CONST from '@src/CONST';
 
 describe('ThemeUtils', () => {

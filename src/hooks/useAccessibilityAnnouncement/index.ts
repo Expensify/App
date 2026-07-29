@@ -1,5 +1,7 @@
 import type {ReactNode} from 'react';
+
 import {useEffect, useRef} from 'react';
+
 import type UseAccessibilityAnnouncementOptions from './types';
 
 const VISUALLY_HIDDEN_STYLE: Partial<CSSStyleDeclaration> = {
@@ -73,13 +75,13 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
 
         prevShouldAnnounceRef.current = true;
 
-        const container = getWrapper();
-
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
-        }
-
         const timer = setTimeout(() => {
+            const container = getWrapper();
+
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
             const node = document.createElement('div');
             node.setAttribute('role', 'alert');
             node.textContent = message;

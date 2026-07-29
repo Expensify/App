@@ -1,26 +1,29 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import {AttachmentContext} from '@components/AttachmentContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
-import {goBackToDetailsPage} from '@libs/ReportUtils';
+
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo} from 'react';
 
 type PrivateNotesListPageProps = WithReportAndPrivateNotesOrNotFoundProps & {
     /** The report currently being looked at */
@@ -38,8 +41,7 @@ type NoteListItem = {
 };
 
 function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNotesListPageProps) {
-    const route = useRoute<PlatformStackRouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>>();
-    const backTo = route.params.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PRIVATE_NOTES_LIST.path);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -79,20 +81,20 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
                 reportID: report.reportID,
                 accountID: privateNoteAccountID,
                 title: Number(sessionAccountID) === accountID ? translate('privateNotes.myNote') : (personalDetailsList?.[privateNoteAccountID]?.login ?? ''),
-                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID, backTo)),
+                action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PRIVATE_NOTES_EDIT.getRoute(accountID))),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
                 note: privateNote?.note ?? '',
                 disabled: Number(sessionAccountID) !== accountID,
             };
         });
-    }, [report, personalDetailsList, sessionAccountID, translate, backTo]);
+    }, [report, personalDetailsList, sessionAccountID, translate]);
 
     return (
         <ScreenWrapper testID="PrivateNotesListPage">
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
                 shouldShowBackButton
-                onBackButtonPress={() => goBackToDetailsPage(report, route.params.backTo, true)}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <ScrollView

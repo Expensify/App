@@ -1,5 +1,6 @@
 import CONFIG from '@src/CONFIG';
 import ROUTES from '@src/ROUTES';
+
 import type GetPlaidLinkTokenParameters from './types';
 
 const getPlaidLinkTokenParameters: GetPlaidLinkTokenParameters = () => {

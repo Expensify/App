@@ -1,6 +1,9 @@
-import type {ImageSourcePropType} from 'react-native';
 import Config from '@src/CONFIG';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
+
+import type {ImageSourcePropType} from 'react-native';
+
+import proxyConfig from '../../config/proxyConfig';
 import {getApiRoot} from './ApiUtils';
 
 // Absolute URLs (`/` or `//`) should be resolved from API ROOT
@@ -29,6 +32,13 @@ function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType | ReceiptSou
         return url;
     }
     const apiRoot = getApiRoot({shouldUseSecure: false});
+
+    // When using the staging web proxy, the URL might already include the `/staging/` proxy path.
+    // In that case, do not replace the leading `/` again, as it would create `/staging/staging/...`.
+    if (apiRoot === proxyConfig.STAGING && url.startsWith(apiRoot)) {
+        return url;
+    }
+
     return url.replace(ORIGIN_PATTERN, apiRoot);
 }
 

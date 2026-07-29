@@ -1,8 +1,11 @@
-import React from 'react';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+
 import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
 
 /**
@@ -24,9 +27,7 @@ function MultiScanEducationalModal() {
         <FeatureTrainingModal
             title={translate('iou.scanMultipleReceipts')}
             image={lazyIllustrations.MultiScan}
-            shouldRenderSVG
-            imageHeight="auto"
-            imageWidth="auto"
+            imageHeight={220}
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
             onConfirm={dismissEducationalPopup}
@@ -34,7 +35,6 @@ function MultiScanEducationalModal() {
             confirmText={translate('common.buttonConfirm')}
             description={translate('iou.scanMultipleReceiptsDescription')}
             contentInnerContainerStyles={styles.mb6}
-            shouldGoBack={false}
         />
     );
 }

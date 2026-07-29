@@ -1,28 +1,34 @@
-import {getArchiveReason} from '@selectors/Report';
-import type {ValueOf} from 'type-fest';
 import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
-import {hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
+import {hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
     hasDuplicateTransactions,
     hasReceipt,
-    isExpensifyCardTransaction,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {getArchiveReason} from '@selectors/Report';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useMoneyRequestReportPaginatedFilteredActions from './useMoneyRequestReportPaginatedFilteredActions';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePaginatedReportActions from './usePaginatedReportActions';
 import useReportIsArchived from './useReportIsArchived';
+import useReportTransactionsCollection from './useReportTransactionsCollection';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
-import useTransactionThreadReport from './useTransactionThreadReport';
 import useTransactionViolations from './useTransactionViolations';
 
 type StatusBarType = ValueOf<typeof CONST.REPORT.STATUS_BAR_TYPE>;
@@ -32,16 +38,26 @@ type StatusBarResult = {
     statusBarType: StatusBarType | undefined;
 };
 
-function useMoneyReportHeaderStatusBar(reportID: string | undefined): StatusBarResult {
+function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportID: string | undefined): StatusBarResult {
+    const {isOffline} = useNetwork();
     const {accountID, email} = useCurrentUserPersonalDetails();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(moneyRequestReport?.reportID);
-    const {transactionThreadReport} = useTransactionThreadReport(reportID, reportActions ?? []);
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+
+    const allReportTransactions = useReportTransactionsCollection(reportID);
+    const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
+    const visibleTransactions = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
+    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
     const requestParentReportAction = (() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -60,12 +76,21 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined): StatusBarR
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
     const hasScanningReceipt = transactions.filter((t) => hasReceipt(t)).some(isScanning);
-    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, policy);
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID, transactions);
+    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, ownerLogin, policy);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+        transactions,
+        moneyRequestReport,
+        ownerLogin,
+        policy,
+        violations,
+        email ?? '',
+        accountID,
+    );
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
-    const hasDuplicates = hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, policy, allTransactionViolations);
+    const isReportSettled = isSettledReportUtils(moneyRequestReport);
+    const hasDuplicates = !isReportSettled && hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, ownerLogin, policy, allTransactionViolations);
     const shouldShowMarkAsResolved = isMarkAsResolvedAction(moneyRequestReport, transactionViolations);
 
     const shouldShowStatusBar =
@@ -126,4 +151,3 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined): StatusBarR
 }
 
 export default useMoneyReportHeaderStatusBar;
-export type {StatusBarType};

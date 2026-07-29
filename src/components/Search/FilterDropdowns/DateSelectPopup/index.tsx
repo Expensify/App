@@ -1,6 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import ScrollView from '@components/ScrollView';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
@@ -8,14 +5,23 @@ import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterCo
 import ActionButtons from '@components/Search/FilterDropdowns/ActionButtons';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import SelectedDateModifierHeader from './SelectedDateModifierHeader';
 
 type DateSelectPopupProps = {
@@ -109,27 +115,6 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
         closeOverlay();
     }, [closeOverlay, onChange, selectedDateModifier]);
 
-    const resetChanges = useCallback(() => {
-        if (!searchDatePresetFilterBaseRef.current) {
-            return;
-        }
-
-        if (selectedDateModifier) {
-            searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
-            const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
-            clearSelection();
-            onChange(dateValues);
-            closeOverlay();
-            return;
-        }
-
-        searchDatePresetFilterBaseRef.current.clearDateValues();
-        setRangeText('');
-        setShouldShowRangeError(false);
-        onChange(searchDatePresetFilterBaseRef.current.getDateValues());
-        closeOverlay();
-    }, [clearSelection, closeOverlay, onChange, selectedDateModifier]);
-
     const maxPopupHeight = Math.round(windowHeight * 0.875);
 
     // For non-Range modes, use original simple styles. For Range, use custom layout
@@ -177,7 +162,6 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                     <View style={[styles.flex1, useRangeLayout && styles.ml2]}>
                         <ActionButtons
                             containerStyle={[styles.flexRow, styles.gap2]}
-                            onReset={resetChanges}
                             onApply={applyChanges}
                         />
                     </View>
@@ -232,14 +216,11 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
             )}
             <ActionButtons
                 containerStyle={mobileButtonRowStyle}
-                resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_DATE}
                 applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_DATE}
-                onReset={resetChanges}
                 onApply={applyChanges}
             />
         </View>
     );
 }
 
-export type {DateSelectPopupProps};
 export default DateSelectPopup;

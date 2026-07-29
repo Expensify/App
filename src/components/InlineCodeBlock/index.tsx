@@ -1,11 +1,16 @@
-import React from 'react';
-import {StyleSheet} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
-import type {TDefaultRendererProps} from 'react-native-render-html';
 import EmojiWithTooltip from '@components/EmojiWithTooltip';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ThemeStyles} from '@styles/index';
+
+import type {StyleProp, TextStyle} from 'react-native';
+import type {TDefaultRendererProps} from 'react-native-render-html';
+
+import React from 'react';
+import {StyleSheet} from 'react-native';
+
 import type {TTextOrTPhrasing} from './types';
 import type InlineCodeBlockProps from './types';
 
@@ -62,10 +67,7 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
     const elements = renderElements(defaultRendererProps, textStyles, styles);
 
     return (
-        <TDefaultRenderer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...defaultRendererProps}
-        >
+        <TDefaultRenderer {...defaultRendererProps}>
             <Text style={[boxModelStyle, textStyles]}>{elements}</Text>
         </TDefaultRenderer>
     );

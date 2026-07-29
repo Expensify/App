@@ -1,17 +1,20 @@
-import React from 'react';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+
+import {SafeString} from 'expensify-common';
+import React from 'react';
 
 const DOB = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.DOB;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
 
-type DateOfBirthUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: string};
+type DateOfBirthUBOProps = SubPageProps & {beneficialOwnerBeingModifiedID: string};
 
 function DateOfBirthUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: DateOfBirthUBOProps) {
     const {translate} = useLocalize();

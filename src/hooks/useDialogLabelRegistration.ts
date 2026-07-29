@@ -1,13 +1,18 @@
-import type {ReactNode} from 'react';
-import {useContext, useEffect} from 'react';
 import {useDialogLabelActions, useDialogLabelData} from '@components/DialogLabelContext';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+
+import type {ReactNode} from 'react';
+
+import {useContext, useEffect} from 'react';
+
+import useIsScreenFocused from './useIsScreenFocused';
 
 /** Registers and manages a dialog label in the DialogLabelContext for the lifetime of the calling component. */
 function useDialogLabelRegistration(title: ReactNode) {
     const {isInsideDialog, containerRef} = useDialogLabelData();
     const {pushLabel, popLabel, claimInitialFocus} = useDialogLabelActions();
     const screenWrapperStatus = useContext(ScreenWrapperStatusContext);
+    const isFocused = useIsScreenFocused();
 
     useEffect(() => {
         if (!isInsideDialog || typeof title !== 'string' || !title) {
@@ -17,7 +22,7 @@ function useDialogLabelRegistration(title: ReactNode) {
         return () => popLabel(id);
     }, [isInsideDialog, title, pushLabel, popLabel]);
 
-    const isTransitionReady = !!isInsideDialog && !!screenWrapperStatus?.didScreenTransitionEnd;
+    const isTransitionReady = !!isInsideDialog && !!screenWrapperStatus?.didScreenTransitionEnd && isFocused;
 
     return {isTransitionReady, claimInitialFocus, containerRef};
 }

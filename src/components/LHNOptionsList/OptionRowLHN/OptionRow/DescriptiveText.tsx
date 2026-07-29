@@ -1,11 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import FS from '@libs/Fullstory';
 import type {OptionData} from '@libs/ReportUtils';
 
+import React from 'react';
+import {View} from 'react-native';
+
 type DescriptiveTextProps = {
+    /** Option data for the row. Renders `optionItem.descriptiveText` when present; component returns null otherwise. */
     optionItem: OptionData;
 };
 

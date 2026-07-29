@@ -1,11 +1,13 @@
-import type {OnyxInputValue} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, isMoneyRequestReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxInputValue} from 'react-native-onyx';
 
 function getReportActionsToDisplay(
     allReportActions: OnyxTypes.ReportAction[],
@@ -52,6 +54,8 @@ function getReportActionsToDisplay(
             transactionID: rand64(),
             iouReportID: report?.reportID,
             created: DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
+            // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            delegateAccountIDParam: undefined,
         }) as OnyxTypes.ReportAction;
         moneyRequestActions.push(optimisticIOUAction);
         actions.splice(actions.length - 1, 0, optimisticIOUAction);

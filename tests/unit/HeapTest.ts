@@ -1,4 +1,4 @@
-import {Heap} from '../../src/libs/Heap';
+import Heap from '../../src/libs/Heap';
 
 describe('Heap', () => {
     let heap: Heap<number>;

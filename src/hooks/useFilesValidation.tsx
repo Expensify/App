@@ -1,19 +1,21 @@
-import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {getFileValidationErrorText, hasHeicOrHeifExtension, resizeImageIfNeeded, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import type {FileValidationError} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
 import validateAttachmentFile from '@libs/validateAttachmentFile';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef, useState} from 'react';
+
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
@@ -46,6 +48,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [fileError, setFileError] = useState<FileValidationError | null>(null);
     const [pdfFilesToRender, setPdfFilesToRender] = useState<FileObject[]>([]);
+    // Index of the PDF currently being validated — thumbnails are rendered one at a time (see
+    // PDFValidationComponent below), and this advances to the next PDF when the current one settles.
+    const [validatedPDFCount, setValidatedPDFCount] = useState(0);
     const [validFilesToUpload, setValidFilesToUpload] = useState([] as FileObject[]);
     const [errorQueue, setErrorQueue] = useState<FileValidationError[]>([]);
     const [currentErrorIndex, setCurrentErrorIndex] = useState(0);
@@ -57,6 +62,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const dataTransferItemList = useRef<DataTransferItem[]>([]);
     const collectedErrors = useRef<FileValidationError[]>([]);
     const originalFileOrder = useRef<Map<string, number>>(new Map());
+    const pendingAfterHide = useRef<() => void>(() => {});
     const loaderTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const updateFileOrderMapping = (oldFile: FileObject | undefined, newFile: FileObject) => {
@@ -93,6 +99,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         setIsValidatingReceipts(undefined);
         setIsErrorModalVisible(false);
         setPdfFilesToRender([]);
+        setValidatedPDFCount(0);
         setIsLoaderVisible(false);
         setValidFilesToUpload([]);
         setFileError(null);
@@ -106,11 +113,15 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         originalFileOrder.current.clear();
     };
 
+    const runPendingAfterHide = () => {
+        const action = pendingAfterHide.current;
+        pendingAfterHide.current = () => {};
+        action();
+    };
+
     const hideModalAndReset = () => {
+        pendingAfterHide.current = reset;
         setIsErrorModalVisible(false);
-        InteractionManager.runAfterInteractions(() => {
-            reset();
-        });
     };
 
     const checkIfAllValidatedAndProceed = () => {
@@ -167,37 +178,40 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
         const filesToResize: FileObject[] = [];
         const filesToConvert: FileObject[] = [];
-        await Promise.all(
-            files.map(async (file, index) => {
-                const result = await validateAttachmentFile(file, items.at(index), validationState.isValidatingReceipts);
+        // Validate sequentially so only one image is decoded and held in memory at a time. Validating the
+        // whole batch with Promise.all multiplies peak memory by the number of selected files (each pass
+        // decodes the full-resolution image), which can kill the WebContent process on memory-constrained
+        // mobile Safari when 3+ photos are selected — the tab reloads and the attachments are lost.
+        for (const [index, file] of files.entries()) {
+            // eslint-disable-next-line no-await-in-loop
+            const result = await validateAttachmentFile(file, items.at(index), validationState.isValidatingReceipts);
 
-                if (result.isValid) {
-                    if (Str.isPDF(result.file.name ?? '')) {
-                        pdfsToLoad.push(result.file);
-                    } else {
-                        validNonPdfFiles.push(result.file);
-                    }
-                    return;
+            if (result.isValid) {
+                if (Str.isPDF(result.file.name ?? '')) {
+                    pdfsToLoad.push(result.file);
+                } else {
+                    validNonPdfFiles.push(result.file);
                 }
+                continue;
+            }
 
-                if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE && isImageFile(file)) {
-                    filesToResize.push(file);
-                    return;
-                }
+            if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE && isImageFile(file)) {
+                filesToResize.push(file);
+                continue;
+            }
 
-                if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE) {
-                    filesToConvert.push(file);
-                    return;
-                }
+            if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE) {
+                filesToConvert.push(file);
+                continue;
+            }
 
-                const errorData = {
-                    error: result.error,
-                    isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
-                    fileType: result.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE ? splitExtensionFromFileName(file.name ?? '').fileExtension : undefined,
-                } satisfies FileValidationError;
-                collectedErrors.current.push(errorData);
-            }),
-        );
+            const errorData = {
+                error: result.error,
+                isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+                fileType: result.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE ? splitExtensionFromFileName(file.name ?? '').fileExtension : undefined,
+            } satisfies FileValidationError;
+            collectedErrors.current.push(errorData);
+        }
 
         if (filesToConvert.length > 0) {
             showLoader();
@@ -270,6 +284,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         const handleNext = () => {
             if (pdfsToLoad.length) {
                 validFiles.current = validNonPdfFiles;
+                setValidatedPDFCount(0);
                 setPdfFilesToRender(pdfsToLoad);
                 return;
             }
@@ -373,16 +388,16 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         }
 
         const sortedFiles = sortFilesByOriginalOrder(validFilesToUpload, originalFileOrder.current);
-        // If we're validating attachments we need to use InteractionManager to ensure
-        // the error modal is dismissed before opening the attachment modal
+        // If we're validating attachments we need to wait for the error modal close
+        // transition to finish before opening the attachment modal
         if (isValidatingReceipts === false && fileError) {
-            setIsErrorModalVisible(false);
-            InteractionManager.runAfterInteractions(() => {
+            pendingAfterHide.current = () => {
                 if (sortedFiles.length !== 0) {
                     onFilesValidated(sortedFiles, dataTransferItemList.current);
                 }
                 reset();
-            });
+            };
+            setIsErrorModalVisible(false);
         } else {
             if (sortedFiles.length !== 0) {
                 onFilesValidated(sortedFiles, dataTransferItemList.current);
@@ -391,34 +406,41 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         }
     };
 
-    const PDFValidationComponent = pdfFilesToRender.length
-        ? pdfFilesToRender.map((file) => (
-              <PDFThumbnail
-                  key={file.uri}
-                  style={styles.invisiblePDF}
-                  previewSourceURL={file.uri ?? ''}
-                  onLoadSuccess={() => {
-                      validatedPDFs.current.push(file);
-                      validFiles.current.push(file);
-                      checkIfAllValidatedAndProceed();
-                  }}
-                  onPassword={() => {
-                      validatedPDFs.current.push(file);
-                      if (isValidatingReceipts === true) {
-                          collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
-                      } else {
-                          validFiles.current.push(file);
-                      }
-                      checkIfAllValidatedAndProceed();
-                  }}
-                  onLoadError={() => {
-                      validatedPDFs.current.push(file);
-                      collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
-                      checkIfAllValidatedAndProceed();
-                  }}
-              />
-          ))
-        : undefined;
+    // Validate the PDFs one at a time: every mounted PDFThumbnail is a full PDF.js document parse (its own
+    // worker + parsed document), so rendering the whole batch at once multiplies peak memory by the number of
+    // selected PDFs — the same batch-decode problem the sequential image validation above avoids — which can
+    // kill the WebContent process on memory-constrained mobile Safari and reload the tab. Each thumbnail
+    // advances validatedPDFCount when it settles (success/password/error), mounting the next one.
+    const pdfFileToValidate = pdfFilesToRender.at(validatedPDFCount);
+    const PDFValidationComponent = pdfFileToValidate ? (
+        <PDFThumbnail
+            key={pdfFileToValidate.uri}
+            style={styles.invisiblePDF}
+            previewSourceURL={pdfFileToValidate.uri ?? ''}
+            onLoadSuccess={() => {
+                validatedPDFs.current.push(pdfFileToValidate);
+                validFiles.current.push(pdfFileToValidate);
+                setValidatedPDFCount((count) => count + 1);
+                checkIfAllValidatedAndProceed();
+            }}
+            onPassword={() => {
+                validatedPDFs.current.push(pdfFileToValidate);
+                if (isValidatingReceipts === true) {
+                    collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
+                } else {
+                    validFiles.current.push(pdfFileToValidate);
+                }
+                setValidatedPDFCount((count) => count + 1);
+                checkIfAllValidatedAndProceed();
+            }}
+            onLoadError={() => {
+                validatedPDFs.current.push(pdfFileToValidate);
+                collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
+                setValidatedPDFCount((count) => count + 1);
+                checkIfAllValidatedAndProceed();
+            }}
+        />
+    ) : undefined;
 
     const fileValidationErrorText = getFileValidationErrorText(translate, fileError, {isValidatingReceipt: isValidatingReceipts});
 
@@ -443,6 +465,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             title={fileValidationErrorText.title}
             onConfirm={onConfirmError}
             onCancel={hideModalAndReset}
+            onModalHide={runPendingAfterHide}
             isVisible={isErrorModalVisible}
             prompt={getModalPrompt()}
             confirmText={translate(isValidatingMultipleFiles ? 'common.continue' : 'common.close')}

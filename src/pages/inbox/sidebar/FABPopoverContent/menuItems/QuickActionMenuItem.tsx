@@ -1,6 +1,5 @@
-import React from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -9,25 +8,31 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {getDisplayNameForParticipant, getIcons, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.QUICK_ACTION;
 
@@ -38,20 +43,19 @@ type QuickActionMenuItemProps = {
 function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'ReceiptScan', 'Car', 'Task', 'Clock', 'MoneyCircle', 'Coins', 'Receipt', 'Cash', 'Transfer']);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const workspaceChatsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports);
+    const workspaceChatsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [currentUserPersonalDetails.accountID], reports);
     const [policyChats = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
@@ -83,17 +87,17 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {
-        const avatars = getIcons(quickActionReport, formatPhoneNumber, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
-        quickActionAvatars = avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
+        const avatars = getIcons(quickActionReport, formatPhoneNumber, translate, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
+        quickActionAvatars = avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== currentUserPersonalDetails.accountID);
     } else if (!isEmptyObject(policyChatForActivePolicy)) {
-        quickActionAvatars = getIcons(policyChatForActivePolicy, formatPhoneNumber, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
+        quickActionAvatars = getIcons(policyChatForActivePolicy, formatPhoneNumber, translate, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
     }
 
     let quickActionTitle = '';
     if (!isEmptyObject(quickActionReport)) {
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
             const accountID = quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID;
-            const name = getDisplayNameForParticipant({accountID: Number(accountID), shouldUseShortForm: true, formatPhoneNumber}) ?? '';
+            const name = getDisplayNameForParticipant({accountID: Number(accountID), shouldUseShortForm: true, formatPhoneNumber, translate}) ?? '';
             quickActionTitle = translate('quickAction.paySomeone', name);
         } else {
             const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
@@ -111,14 +115,14 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
         }
     }
 
-    const quickActionSubtitle = !hideQABSubtitle ? getReportName(quickActionReport, reportAttributes) || translate('quickAction.updateDestination') : '';
+    const quickActionSubtitle = !hideQABSubtitle ? deprecatedGetReportName(quickActionReport, reportAttributes) || translate('quickAction.updateDestination') : '';
 
     const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
         if (
             shouldRestrictAction &&
             quickActionReportPolicyID &&
             quickActionReportPolicy &&
-            shouldRestrictUserBillableActions(quickActionReportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)
+            shouldRestrictUserBillableActions(quickActionReportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
         ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReportPolicyID));
             return;
@@ -190,14 +194,20 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             shouldTeleportPortalToModalLayer
             icon={icons.ReceiptScan}
             title={translate('quickAction.scanReceipt')}
-            description={getReportName(policyChatForActivePolicy, reportAttributes)}
+            description={deprecatedGetReportName(policyChatForActivePolicy, reportAttributes)}
             rightIconReportID={policyChatForActivePolicy?.reportID}
             onPress={() =>
                 interceptAnonymousUser(() => {
                     if (
                         policyChatForActivePolicyPolicyID &&
                         policyChatForActivePolicyPolicy &&
-                        shouldRestrictUserBillableActions(policyChatForActivePolicyPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)
+                        shouldRestrictUserBillableActions(
+                            policyChatForActivePolicyPolicy,
+                            ownerBillingGracePeriodEnd,
+                            userBillingGracePeriodEnds,
+                            amountOwed,
+                            currentUserPersonalDetails.accountID,
+                        )
                     ) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicyPolicyID));
                         return;

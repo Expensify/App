@@ -1,21 +1,29 @@
-import React from 'react';
-import type {RefObject} from 'react';
-import type {ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import type {GestureType} from 'react-native-gesture-handler';
-import {GestureDetector} from 'react-native-gesture-handler';
-import type {AnimatedStyle} from 'react-native-reanimated';
-import Animated from 'react-native-reanimated';
-import type {Camera, CameraDevice, CameraDeviceFormat} from 'react-native-vision-camera';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
+import type {ViewStyle} from 'react-native';
+import type {GestureType} from 'react-native-gesture-handler';
+import type {PermissionStatus} from 'react-native-permissions';
+import type {AnimatedStyle} from 'react-native-reanimated';
+import type {Camera, CameraDevice, CameraDeviceFormat} from 'react-native-vision-camera';
+
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+import {GestureDetector} from 'react-native-gesture-handler';
+import {RESULTS} from 'react-native-permissions';
+import Animated from 'react-native-reanimated';
+
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 
 type CameraViewportProps = {
@@ -58,6 +66,9 @@ type CameraViewportProps = {
     /** Whether the multi-scan feature is available */
     canUseMultiScan: boolean;
 
+    /** Current camera permission status; used to disable the flash button until granted */
+    cameraPermissionStatus: PermissionStatus | null;
+
     /** Whether the camera flash is currently on */
     flash: boolean;
 
@@ -82,6 +93,7 @@ function CameraViewport({
     didCapturePhoto,
     onInitialized,
     canUseMultiScan,
+    cameraPermissionStatus,
     flash,
     hasFlash,
     setFlash,
@@ -107,6 +119,8 @@ function CameraViewport({
                         cameraTabIndex={1}
                         forceInactive={isAttachmentPickerActive || didCapturePhoto}
                         onInitialized={onInitialized}
+                        // Use TextureView on Android to fix partially blank images for takeSnapshot()
+                        androidPreviewViewType="texture-view"
                     />
                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                     <Animated.View
@@ -121,7 +135,7 @@ function CameraViewport({
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.flash')}
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
-                        disabled={!hasFlash}
+                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                         onPress={() => setFlash((prevFlash) => !prevFlash)}
                     >
                         <Icon

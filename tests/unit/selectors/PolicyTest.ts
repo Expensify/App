@@ -1,57 +1,68 @@
+import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
-    hasMultipleOutputCurrenciesSelector,
+    createHasWorkspaceToSubmitToSelector,
+    createOwnedPaidPoliciesCountsSelector,
     hasOnlyPersonalPoliciesSelector,
-    hasPoliciesConnectedToQBDSelector,
     hasReusablePoliciesConnectedToSelector,
     reusablePoliciesConnectedToSelector,
 } from '@selectors/Policy';
-import type {OnyxCollection} from 'react-native-onyx';
-import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 
-describe('hasMultipleOutputCurrenciesSelector', () => {
-    it('returns false when paid group policies have the same output currency', () => {
-        const policies: OnyxCollection<Policy> = {
-            policy1: {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), outputCurrency: 'USD'},
-            policy2: {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), outputCurrency: 'USD'},
-        };
+const OWNER_ACCOUNT_ID = 1;
 
-        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
+describe('createOwnedPaidPoliciesCountsSelector', () => {
+    it('returns zero counts when there are no policies', () => {
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+        expect(selector({})).toEqual({total: 0, active: 0});
     });
 
-    it('returns true when paid group policies have different output currencies', () => {
-        const policies: OnyxCollection<Policy> = {
-            policy1: {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), outputCurrency: 'USD'},
-            policy2: {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), outputCurrency: 'EUR'},
-        };
-
-        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(true);
+    it('returns zero counts when policies are undefined', () => {
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+        expect(selector(undefined)).toEqual({total: 0, active: 0});
     });
 
-    it('returns false when policies object is empty', () => {
-        const policies: OnyxCollection<Policy> = {};
-
-        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
+    it('returns zero counts when currentUserAccountID is undefined', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM)},
+        };
+        const selector = createOwnedPaidPoliciesCountsSelector(undefined);
+        expect(selector(policies)).toEqual({total: 0, active: 0});
     });
 
-    it('returns false when there are only personal policies', () => {
+    it('counts only paid policies owned by the user', () => {
         const policies: OnyxCollection<Policy> = {
-            policy1: {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), outputCurrency: 'USD'},
-            policy2: {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), outputCurrency: 'EUR'},
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: null},
+            policy3: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.PERSONAL), pendingAction: null},
+            policy4: {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: null},
         };
-
-        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+        expect(selector(policies)).toEqual({total: 2, active: 2});
     });
 
-    it('returns false when there is only a single paid group policy', () => {
+    it('excludes policies pending deletion from active count but includes them in total', () => {
         const policies: OnyxCollection<Policy> = {
-            policy1: {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), outputCurrency: 'USD'},
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         };
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+        expect(selector(policies)).toEqual({total: 2, active: 1});
+    });
 
-        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
+    it('returns zero active when all owned paid policies are pending deletion', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+        };
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+        expect(selector(policies)).toEqual({total: 2, active: 0});
     });
 });
 
@@ -169,28 +180,6 @@ describe('adminPoliciesConnectedToQBDSelector', () => {
 
     it('returns empty array for undefined collection', () => {
         expect(adminPoliciesConnectedToQBDSelector(undefined)).toEqual([]);
-    });
-});
-
-describe('hasPoliciesConnectedToQBDSelector', () => {
-    it('returns true when admin policies with QBD connections exist', () => {
-        const policies: OnyxCollection<Policy> = {
-            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN, connections: {quickbooksDesktop: {}} as Policy['connections']}),
-        };
-
-        expect(hasPoliciesConnectedToQBDSelector(policies)).toBe(true);
-    });
-
-    it('returns false when no QBD connections exist', () => {
-        const policies: OnyxCollection<Policy> = {
-            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN}),
-        };
-
-        expect(hasPoliciesConnectedToQBDSelector(policies)).toBe(false);
-    });
-
-    it('returns false for empty collection', () => {
-        expect(hasPoliciesConnectedToQBDSelector({})).toBe(false);
     });
 });
 
@@ -428,5 +417,91 @@ describe('hasOnlyPersonalPoliciesSelector', () => {
         };
 
         expect(hasOnlyPersonalPoliciesSelector(policies)).toBe(false);
+    });
+});
+
+describe('createHasWorkspaceToSubmitToSelector', () => {
+    const USER_LOGIN = 'user@test.com';
+
+    it('returns false when there are no policies', () => {
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)({})).toBe(false);
+    });
+
+    it('returns false when policies are undefined', () => {
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(undefined)).toBe(false);
+    });
+
+    it('returns true when there is an active paid group policy the user has a role in', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
+    });
+
+    it('returns false when the only policy is personal (not a paid group)', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.PERSONAL, role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
+    });
+
+    it('returns false when the only paid group policy is pending deletion', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.ADMIN, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
+    });
+
+    it('returns false when the user has no role in the paid group policy', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.TEAM, role: undefined, employeeList: {}}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
+    });
+
+    it("resolves the user's access from the policy employeeList when no global role is set", () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                type: CONST.POLICY.TYPE.TEAM,
+                role: undefined,
+                employeeList: {[USER_LOGIN]: {email: USER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: ''}},
+            }),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
+        expect(createHasWorkspaceToSubmitToSelector('other@test.com')(policies)).toBe(false);
+    });
+
+    it('returns false when login is undefined and policies rely on the employeeList', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                type: CONST.POLICY.TYPE.TEAM,
+                role: undefined,
+                employeeList: {[USER_LOGIN]: {email: USER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: ''}},
+            }),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(undefined)(policies)).toBe(false);
+    });
+
+    it('returns false for a Submit (submit2026) workspace when the SUBMIT_2026 beta is disabled', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.SUBMIT, role: CONST.POLICY.ROLE.USER}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN, false)(policies)).toBe(false);
+    });
+
+    it('returns true for a Submit (submit2026) workspace when the SUBMIT_2026 beta is enabled', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.SUBMIT, role: CONST.POLICY.ROLE.USER}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN, true)(policies)).toBe(true);
     });
 });

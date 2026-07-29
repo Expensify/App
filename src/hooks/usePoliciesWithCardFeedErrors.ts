@@ -1,6 +1,8 @@
 import {isPolicyAdmin} from '@libs/PolicyUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
 import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
 
@@ -19,7 +21,7 @@ function usePoliciesWithCardFeedErrors() {
             continue;
         }
 
-        const policyWithCardFeedErrors = cleanPolicies.find((policy) => policy?.workspaceAccountID === Number(workspaceAccountID));
+        const policyWithCardFeedErrors = cleanPolicies.find((policy) => policy?.policyAccountID === Number(workspaceAccountID));
         if (!policyWithCardFeedErrors) {
             continue;
         }

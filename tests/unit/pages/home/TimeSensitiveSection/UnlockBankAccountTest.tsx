@@ -1,12 +1,23 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import {pressLockedBankAccount} from '@libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '@libs/actions/Report';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TimeSensitiveSection from '@src/pages/home/TimeSensitiveSection';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useFocusEffect: jest.fn(),
+}));
 
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: string) => key)})));
 

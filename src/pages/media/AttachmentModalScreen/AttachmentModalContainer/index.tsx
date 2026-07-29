@@ -1,11 +1,16 @@
-import React, {useCallback, useContext, useEffect, useState} from 'react';
 import Modal from '@components/Modal';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentStateContextProvider from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
+
 import CONST from '@src/CONST';
+
+import React, {useCallback, useContext, useEffect, useState} from 'react';
+
 import type AttachmentModalContainerProps from './types';
 
 function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({
@@ -55,7 +60,6 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({
             >
                 <AttachmentStateContextProvider>
                     <AttachmentModalBaseContent
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...contentProps}
                         shouldDisplayHelpButton={false}
                         onClose={closeModal}

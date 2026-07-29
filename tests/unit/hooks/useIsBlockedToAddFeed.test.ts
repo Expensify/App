@@ -1,9 +1,13 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 
 const mockPolicyID = '123456';
@@ -13,7 +17,7 @@ const delay = (ms: number) =>
         setTimeout(resolve, ms);
     });
 
-const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, workspaceAccountID: Number(mockPolicyID)};
+const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, policyAccountID: Number(mockPolicyID)};
 
 const mockCardFeeds = {
     // eslint-disable-next-line @typescript-eslint/naming-convention

@@ -46,7 +46,7 @@ To comply with financial regulations, the following documents are needed:
    * Account name
 2. **Upload a Recent Bank Statement**
    * The file must match the entered bank details
-   * Accepted formats: PDF, PNG, JPEG
+   * Accepted formats: PDF, PNG, JPEG (2 MB max per file)
 3. **Enter Company Information**
    * Address (auto-filled based on country), phone number
    * Company registration number
@@ -64,13 +64,15 @@ To comply with financial regulations, the following documents are needed:
    * Otherwise, manually enter the director’s personal info.
    * Upload ID and Address Proof for Director
 
+**Note:** The designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
+
 Once you agree to the terms, Expensify’s Compliance Team will review your submission. If any additional documentation is needed, our support team will message you.
 
 ## Acceptable Documents
 
 * Government-issued photo ID
 * Utility bill or bank statement (for proof of address)
-* File types: PDF, PNG, JPEG
+* File types: PDF, PNG, JPEG (each file must be 2 MB or less)
 
 ---
 

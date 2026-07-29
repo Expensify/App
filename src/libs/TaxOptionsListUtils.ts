@@ -1,9 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import tokenizedSearch from './tokenizedSearch';
 import {transformedTaxRates} from './TransactionUtils';
 
@@ -73,15 +76,19 @@ function getTaxRatesSection({
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
     const enabledTaxRatesNames = new Set(enabledTaxRates.map((tax) => tax.modifiedName));
     const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.has(tax.modifiedName));
-    const selectedTaxRateWithDisabledState: Tax[] = [];
+    const taxRatesByModifiedName = new Map(sortedTaxRates.map((taxRate) => [taxRate.modifiedName, taxRate]));
+    const selectedTaxRateWithDisabledState: Array<Partial<TaxRate>> = [];
     const numberOfTaxRates = enabledTaxRates.length;
 
     for (const tax of selectedOptions) {
+        // Forward the underlying rate's pendingAction (already available from transformedTaxRates) so a selected rate that is
+        // pending deletion still renders struck-through and non-selectable via getTaxRatesOptions instead of a selectable row.
+        const pendingAction = taxRatesByModifiedName.get(tax.modifiedName)?.pendingAction;
         if (enabledTaxRatesNames.has(tax.modifiedName)) {
-            selectedTaxRateWithDisabledState.push({...tax, isDisabled: false, isSelected: true});
+            selectedTaxRateWithDisabledState.push({...tax, pendingAction, isDisabled: false, isSelected: true});
             continue;
         }
-        selectedTaxRateWithDisabledState.push({...tax, isDisabled: true, isSelected: true});
+        selectedTaxRateWithDisabledState.push({...tax, pendingAction, isDisabled: true, isSelected: true});
     }
 
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
@@ -143,4 +150,4 @@ function getTaxRatesSection({
 }
 
 export {getTaxRatesSection};
-export type {TaxRatesOption, Tax};
+export type {TaxRatesOption};

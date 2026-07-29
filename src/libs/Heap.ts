@@ -163,5 +163,4 @@ class Heap<T = number> {
     }
 }
 
-export type {CompareFn};
-export {Heap};
+export default Heap;

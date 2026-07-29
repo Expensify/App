@@ -6,7 +6,7 @@ description: You've been automatically upgraded to a Collect plan
 All customers on a Free plan have been automatically upgraded to a Collect plan!
 
 The Collect plan is an enhanced version of the Free Plan and unlocks several new features: 
-- A dedicated Setup Specialist
+- A dedicated Account Executive
 - Expense approvals
 - Invoicing and bill pay
 - Custom expense categories and tags
@@ -18,7 +18,7 @@ The Collect plan is an enhanced version of the Free Plan and unlocks several new
 
 To give you time to try the upgraded plan, you won't be charged for another 30 days. Additionally, if you add a payment card by June 1st, you’ll qualify for a discount over the next year. The discount will be applied to your Expensify bill on a sliding scale for the first 12 months on the Collect plan.  
 
-If you have questions, contact your dedicated Setup Specialist using the #admins room, or email Expensify Support at concierge@expensify.com.
+If you have questions, contact your dedicated Account Executive using the #admins room, or email Expensify Support at concierge@expensify.com.
 
 {% include faq-begin.md %}
 
@@ -43,8 +43,8 @@ You’ll receive a discount on your Expensify bill that gradually decreases each
 
 The discount will be reflected on your monthly Expensify bill as a “Workspace upgrade discount” and can be combined with any other Expensify discounts—- the annual subscription discount, the Expensify Card discount, and Expensify Card cash back.
 
-**How do I get in touch with my Setup Specialist?** 
+**How do I get in touch with my Account Executive?** 
 
-You can reach your Setup Specialist by opening your workspace’s #admins room in your chat inbox and sending a message.
+You can reach your Account Executive by opening your workspace’s #admins room in your chat inbox and sending a message.
 
 {% include faq-end.md %}

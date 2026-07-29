@@ -1,6 +1,7 @@
+import type {ValueOf} from 'type-fest';
+
 import fs from 'fs';
 import yaml from 'js-yaml';
-import type {ValueOf} from 'type-fest';
 
 type Article = {
     href: string;
@@ -11,6 +12,7 @@ type Article = {
 type Section = {
     href: string;
     title: string;
+    order?: number;
     articles?: Article[];
     sections?: Section[];
 };
@@ -22,6 +24,7 @@ type Hub = {
     icon: string;
     articles?: Article[];
     sections?: Section[];
+    flatSections?: Section[];
 };
 
 type Platform = {
@@ -35,6 +38,18 @@ type DocsRoutes = {
 
 type HubEntriesKey = 'sections' | 'articles';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getOptionalString(value: unknown): string | undefined {
+    return typeof value === 'string' ? value : undefined;
+}
+
+function getOptionalNumber(value: unknown): number | undefined {
+    return typeof value === 'number' ? value : undefined;
+}
+
 const warnMessage = (platform: string): string => `Number of hubs in _routes.yml does not match number of hubs in docs/${platform}/articles. Please update _routes.yml with hub info.`;
 const disclaimer = '# This file is auto-generated. Do not edit it directly. Use npm run createDocsRoutes instead.\n';
 const docsDir = `${process.cwd()}/docs`;
@@ -45,6 +60,9 @@ const platformNames = {
     travel: 'travel',
 } as const;
 
+// Words that should be fully uppercased in auto-generated titles (e.g. "ai" -> "AI")
+const ACRONYMS = new Set(['ai']);
+
 /**
  * @param str - The string to convert to title case
  */
@@ -52,8 +70,12 @@ function toTitleCase(str: string): string {
     return str
         .split(' ')
         .map((word, index) => {
-            if (index !== 0 && (word.toLowerCase() === 'a' || word.toLowerCase() === 'the' || word.toLowerCase() === 'and')) {
-                return word.toLowerCase();
+            const lowerWord = word.toLowerCase();
+            if (ACRONYMS.has(lowerWord)) {
+                return word.toUpperCase();
+            }
+            if (index !== 0 && (lowerWord === 'a' || lowerWord === 'the' || lowerWord === 'and')) {
+                return lowerWord;
             }
             return word.charAt(0).toUpperCase() + word.substring(1);
         })
@@ -101,11 +123,37 @@ function getOrderFromArticleFrontMatter(path: string): number | undefined {
         if (!frontmatter) {
             return undefined;
         }
-        const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
-        return frontmatterObject.order as number | undefined;
+        const frontmatterObject = yaml.load(frontmatter);
+        if (!isRecord(frontmatterObject)) {
+            return undefined;
+        }
+        return getOptionalNumber(frontmatterObject.order);
     } catch {
         return undefined;
     }
+}
+
+function getSectionMeta(sectionPath: string): {title?: string; order?: number} {
+    try {
+        const metaPath = `${sectionPath}/_meta.yml`;
+        if (!fs.existsSync(metaPath)) {
+            return {};
+        }
+        const meta = yaml.load(fs.readFileSync(metaPath, 'utf8'));
+        if (!isRecord(meta)) {
+            return {};
+        }
+        return {
+            title: getOptionalString(meta.title),
+            order: getOptionalNumber(meta.order),
+        };
+    } catch {
+        return {};
+    }
+}
+
+function sortSectionsByOrder(sections: Section[]) {
+    sections.sort((a, b) => (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY));
 }
 
 /**
@@ -114,11 +162,16 @@ function getOrderFromArticleFrontMatter(path: string): number | undefined {
 function buildSection(platformName: string, hub: string, sectionPath: string, parentHref: string): Section {
     const sectionName = sectionPath.split('/').pop() ?? sectionPath;
     const fullPath = `${docsDir}/articles/${platformName}/${hub}/${sectionPath}`;
+    const meta = getSectionMeta(fullPath);
     const articles: Article[] = [];
     const childSections: Section[] = [];
     const href = parentHref ? `${parentHref}/${sectionName}` : sectionName;
 
     for (const entry of fs.readdirSync(fullPath)) {
+        if (entry === '_meta.yml') {
+            continue;
+        }
+
         const entryPath = `${fullPath}/${entry}`;
         if (entry.endsWith('.md')) {
             const order = getOrderFromArticleFrontMatter(entryPath);
@@ -128,9 +181,16 @@ function buildSection(platformName: string, hub: string, sectionPath: string, pa
         }
     }
 
+    // Articles are displayed in the order stored here, so sort by the optional `order` front matter.
+    // The sort is stable, so articles without an `order` keep their relative position and fall after ordered ones.
+    articles.sort((a, b) => (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY));
+
+    sortSectionsByOrder(childSections);
+
     const section: Section = {
         href,
-        title: toTitleCase(sectionName.replaceAll('-', ' ')),
+        title: meta.title ?? toTitleCase(sectionName.replaceAll('-', ' ')),
+        ...(meta.order !== undefined && {order: meta.order}),
         ...(articles.length > 0 && {articles}),
         ...(childSections.length > 0 && {sections: childSections}),
     };
@@ -163,7 +223,9 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
 
         for (const fileOrFolder of fs.readdirSync(basePath)) {
             if (fileOrFolder.endsWith('.md')) {
-                const articleObj = getArticleObj(fileOrFolder);
+                const entryPath = `${basePath}/${fileOrFolder}`;
+                const order = getOrderFromArticleFrontMatter(entryPath);
+                const articleObj = getArticleObj(fileOrFolder, order);
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
                 continue;
             }
@@ -176,7 +238,8 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
         // Add flat section list for nested section page lookup
         const hubObj = routeHubs.find((obj) => obj.href === hub);
         if (hubObj?.sections?.length) {
-            (hubObj as Hub & {flatSections?: Section[]}).flatSections = flattenSections(hubObj.sections);
+            sortSectionsByOrder(hubObj.sections);
+            hubObj.flatSections = flattenSections(hubObj.sections);
         }
     }
 }

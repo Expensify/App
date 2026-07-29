@@ -1,8 +1,11 @@
-import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
-import MenuItem from './MenuItem';
+
+import React from 'react';
+
 import type {MenuItemProps} from './MenuItem';
+
+import MenuItem from './MenuItem';
 
 type MenuItemWithTopDescriptionProps = MenuItemProps & {
     /** Should the menu item be highlighted? */
@@ -19,7 +22,6 @@ function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ref, ...pro
 
     return (
         <MenuItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
             shouldShowBasicTitle

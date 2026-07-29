@@ -1,8 +1,14 @@
-import Onyx from 'react-native-onyx';
+import type {RenderAPI} from '@testing-library/react-native';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import * as CurrencyUtils from '@src/libs/CurrencyUtils';
+import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
+import initCurrencyListContext from '../utils/initCurrencyListContext';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // This file can get outdated. In that case, you can follow these steps to update it:
 // - open your browser console and navigate to the Network tab
@@ -16,26 +22,26 @@ const currencyCodeList = Object.keys(currencyList);
 const AVAILABLE_LOCALES = [CONST.LOCALES.EN, CONST.LOCALES.ES];
 
 describe('CurrencyUtils', () => {
-    beforeAll(() => {
-        Onyx.init({
+    let currencyListProvider: RenderAPI;
+
+    beforeEach(async () => {
+        currencyListProvider = await initCurrencyListContext({
             keys: {
                 NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE,
                 CURRENCY_LIST: ONYXKEYS.CURRENCY_LIST,
             },
             initialKeyStates: {
                 [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.DEFAULT,
-                [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
-        return waitForBatchedUpdates();
-    });
-
-    beforeEach(() => {
         IntlStore.load(CONST.LOCALES.DEFAULT);
-        return waitForBatchedUpdates();
+        await waitForBatchedUpdates();
     });
 
-    afterEach(() => Onyx.clear());
+    afterEach(async () => {
+        currencyListProvider.unmount();
+        await Onyx.clear();
+    });
 
     describe('getLocalizedCurrencySymbol', () => {
         test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', (preferredLocale) =>
@@ -188,5 +194,159 @@ describe('CurrencyUtils', () => {
         ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) =>
             IntlStore.load(CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToShortDisplayString(amount, currency)).toBe(expectedResult)),
         );
+    });
+
+    describe('isValidCurrencyCode', () => {
+        test.each([
+            ['USD', true],
+            ['EUR', true],
+            ['JPY', true],
+            ['', false],
+            ['eur', false],
+            [' USD', false],
+            ['US', false],
+            ['USDD', false],
+            ['US1', false],
+            [undefined, false],
+            [null, false],
+            [42, false],
+            [{}, false],
+            [[], false],
+            [true, false],
+        ])('isValidCurrencyCode(%p) → %p', (input, expected) => {
+            expect(CurrencyUtils.isValidCurrencyCode(input)).toBe(expected);
+        });
+    });
+
+    describe('sanitizeCurrencyCode', () => {
+        beforeEach(() => {
+            CurrencyUtils.resetInvalidCurrencyWarningsForTesting();
+        });
+
+        test('returns the input unchanged for a valid ISO 4217 code', () => {
+            expect(CurrencyUtils.sanitizeCurrencyCode('EUR')).toBe('EUR');
+        });
+
+        test.each([
+            [' usd ', 'USD'],
+            ['eur', 'EUR'],
+            ['UsD', 'USD'],
+            ['\tEUR', 'EUR'],
+            ['JPY\n', 'JPY'],
+            ['  GBP  ', 'GBP'],
+        ])('normalizes whitespace and case: %p → %p', (input, expected) => {
+            expect(CurrencyUtils.sanitizeCurrencyCode(input)).toBe(expected);
+        });
+
+        test.each(['', 'XX', 'USDD', 'US1', '???', 'us-d', 'U S D'])('falls back to USD for malformed string %p', (input) => {
+            expect(CurrencyUtils.sanitizeCurrencyCode(input)).toBe(CONST.CURRENCY.USD);
+        });
+
+        test.each([undefined, null, 42, true, {}, []])('falls back to USD for non-string input %p', (input) => {
+            expect(CurrencyUtils.sanitizeCurrencyCode(input)).toBe(CONST.CURRENCY.USD);
+        });
+
+        test('logs a warning at most once per unique malformed value', () => {
+            const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined);
+            try {
+                CurrencyUtils.sanitizeCurrencyCode('XX');
+                CurrencyUtils.sanitizeCurrencyCode('XX');
+                CurrencyUtils.sanitizeCurrencyCode('XX');
+                expect(warnSpy).toHaveBeenCalledTimes(1);
+
+                CurrencyUtils.sanitizeCurrencyCode('???');
+                expect(warnSpy).toHaveBeenCalledTimes(2);
+            } finally {
+                warnSpy.mockRestore();
+            }
+        });
+
+        test('does not log a warning when normalization recovers a valid code', () => {
+            const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined);
+            try {
+                expect(CurrencyUtils.sanitizeCurrencyCode(' eur ')).toBe('EUR');
+                expect(warnSpy).not.toHaveBeenCalled();
+            } finally {
+                warnSpy.mockRestore();
+            }
+        });
+
+        test('shares the throttle across helpers that go through sanitizeCurrencyCode', () => {
+            const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined);
+            try {
+                CurrencyUtils.convertToDisplayString(2500, 'XX');
+                CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, 'XX');
+                CurrencyUtils.convertToShortDisplayString(2500, 'XX');
+                expect(warnSpy).toHaveBeenCalledTimes(1);
+            } finally {
+                warnSpy.mockRestore();
+            }
+        });
+    });
+
+    describe('convertToDisplayString with malformed currency', () => {
+        test.each(['', 'XX', 'USDD', '???'])('does not throw and falls back to USD formatting for %p', (input) => {
+            expect(() => CurrencyUtils.convertToDisplayString(2500, input)).not.toThrow();
+            expect(CurrencyUtils.convertToDisplayString(2500, input)).toBe('$25.00');
+        });
+
+        test('normalizes case-only variations to the intended currency instead of USD', () => {
+            expect(CurrencyUtils.convertToDisplayString(2500, 'eur')).toBe(CurrencyUtils.convertToDisplayString(2500, 'EUR'));
+        });
+
+        test('falls back to USD when shouldUseLocalCurrencySymbol is true and currency is malformed', () => {
+            expect(() => CurrencyUtils.convertToDisplayString(2500, 'invalid', true)).not.toThrow();
+            // USD has a known local symbol in the currencyList, so the local-symbol branch should produce a $-prefixed result.
+            expect(CurrencyUtils.convertToDisplayString(2500, 'invalid', true)).toMatch(/\$/);
+        });
+
+        test('handles undefined currency via the default parameter', () => {
+            expect(CurrencyUtils.convertToDisplayString(2500, undefined)).toBe('$25.00');
+        });
+    });
+
+    describe('convertToShortDisplayString with malformed currency', () => {
+        test.each(['', 'XX', 'USDD', '???'])('does not throw and falls back to USD formatting for %p', (input) => {
+            expect(() => CurrencyUtils.convertToShortDisplayString(2500, input)).not.toThrow();
+            expect(CurrencyUtils.convertToShortDisplayString(2500, input)).toBe('$25');
+        });
+    });
+
+    describe('convertAmountToDisplayString with malformed currency', () => {
+        test.each(['', 'XX', 'USDD', '???'])('does not throw and falls back to USD formatting for %p', (input) => {
+            expect(() => CurrencyUtils.convertAmountToDisplayString(2500, input)).not.toThrow();
+            // The result should at least include a $ symbol from the USD fallback.
+            expect(CurrencyUtils.convertAmountToDisplayString(2500, input)).toMatch(/\$/);
+        });
+    });
+
+    describe('convertToDisplayStringWithoutCurrency with malformed currency', () => {
+        test.each(['', 'XX', 'USDD', '???'])('does not throw and produces a numeric output for %p', (input) => {
+            expect(() => CurrencyUtils.convertToDisplayStringWithoutCurrency(2500, input)).not.toThrow();
+            // Output should not contain a currency symbol but should contain the numeric portion.
+            const result = CurrencyUtils.convertToDisplayStringWithoutCurrency(2500, input);
+            expect(result).not.toMatch(/\$/);
+            expect(result).toContain('25');
+        });
+    });
+
+    describe('convertToDisplayStringWithExplicitCurrency with malformed currency', () => {
+        test.each(['XX', 'USDD', '???'])('does not throw and falls back to USD formatting for truthy malformed %p', (input) => {
+            expect(() => CurrencyUtils.convertToDisplayStringWithExplicitCurrency(2500, input)).not.toThrow();
+            expect(CurrencyUtils.convertToDisplayStringWithExplicitCurrency(2500, input)).toBe('$25.00');
+        });
+
+        test.each([undefined, ''])('returns the symbol-less form for falsy currency %p (delegates to convertToDisplayStringWithoutCurrency)', (input) => {
+            const result = CurrencyUtils.convertToDisplayStringWithExplicitCurrency(2500, input);
+            expect(result).not.toMatch(/\$/);
+            expect(result).toContain('25');
+        });
+    });
+
+    describe('getLocalizedCurrencySymbol with malformed currency', () => {
+        test.each(['', 'XX', 'USDD'])('returns the USD symbol without throwing for %p', (input) => {
+            expect(() => CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, input)).not.toThrow();
+            expect(CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, input)).toBe(CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, CONST.CURRENCY.USD));
+        });
     });
 });

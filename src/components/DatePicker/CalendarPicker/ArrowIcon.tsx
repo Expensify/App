@@ -1,12 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ArrowIconProps = {
     /** Specifies if the arrow icon should be disabled or not. */

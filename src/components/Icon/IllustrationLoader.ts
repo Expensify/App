@@ -1,4 +1,5 @@
 import type IconAsset from '@src/types/utils/IconAsset';
+
 import type {IllustrationName} from './chunks/illustrations.chunk';
 
 type IllustrationsChunk = {
@@ -79,4 +80,4 @@ function getIllustrationsChunk(): IllustrationsChunk | null {
 
 export {loadIllustration, loadIllustrationsChunk, getIllustrationsChunk};
 
-export type {IllustrationName, IllustrationsChunk};
+export type {IllustrationName};

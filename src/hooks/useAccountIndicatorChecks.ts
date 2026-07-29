@@ -2,10 +2,12 @@ import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
-import {hasDeviceManagementError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
+import {expensifyLoginsSelector, hasDeviceManagementError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
+
 import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
@@ -20,7 +22,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
     const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);

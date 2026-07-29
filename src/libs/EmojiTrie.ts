@@ -1,8 +1,10 @@
 import emojis, {importEmojiLocale, localeEmojis} from '@assets/emojis';
 import type {Emoji, HeaderEmoji} from '@assets/emojis/types';
+
 import CONST from '@src/CONST';
 import {FULLY_SUPPORTED_LOCALES} from '@src/CONST/LOCALES';
 import type {FullySupportedLocale} from '@src/CONST/LOCALES';
+
 import StringUtils from './StringUtils';
 import {endSpan, startSpan} from './telemetry/activeSpans';
 import Trie from './Trie';
@@ -12,6 +14,7 @@ type EmojiMetaData = {
     code?: string;
     types?: string[];
     name?: string;
+    hexcode?: string;
 };
 
 type EmojiTrieForLocale = Partial<Record<FullySupportedLocale, Trie<EmojiMetaData>>>;
@@ -25,7 +28,7 @@ type EmojiTrieForLocale = Partial<Record<FullySupportedLocale, Trie<EmojiMetaDat
  * @param shouldPrependKeyword Prepend the keyword (instead of append) to the suggestions
  */
 function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: Emoji, name: string, shouldPrependKeyword = false) {
-    const suggestion = {code: item.code, types: item.types, name};
+    const suggestion = {code: item.code, types: item.types, name, hexcode: item.hexcode};
     for (const keyword of keywords) {
         const {node, isNew} = trie.getOrCreate(keyword);
         if (isNew) {
@@ -79,9 +82,9 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
 
         const {node, isNew} = trie.getOrCreate(localeName);
         if (isNew) {
-            node.metaData = {code: emoji.code, types: emoji.types, name: localeName, suggestions: []};
+            node.metaData = {code: emoji.code, types: emoji.types, name: localeName, hexcode: emoji.hexcode, suggestions: []};
         } else {
-            node.metaData = {suggestions: [...((node.metaData.suggestions as Emoji[] | undefined) ?? [])], code: emoji.code, types: emoji.types, name: localeName};
+            node.metaData = {suggestions: [...((node.metaData.suggestions as Emoji[] | undefined) ?? [])], code: emoji.code, types: emoji.types, name: localeName, hexcode: emoji.hexcode};
         }
         if (normalizedName !== localeName) {
             const {node: normNode} = trie.getOrCreate(normalizedName);
@@ -90,6 +93,24 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
 
         const nameParts = getNameParts(localeName).slice(1); // We remove the first part because we already index the full name.
         addKeywordsToTrie(trie, nameParts, emoji, localeName);
+
+        for (const alias of emoji.aliases ?? []) {
+            const {node: aliasNode, isNew: aliasIsNew} = trie.getOrCreate(alias);
+            if (aliasIsNew) {
+                aliasNode.metaData = {code: emoji.code, types: emoji.types, name: localeName, hexcode: emoji.hexcode, suggestions: []};
+            } else {
+                aliasNode.metaData = {
+                    suggestions: [...((aliasNode.metaData.suggestions as Emoji[] | undefined) ?? [])],
+                    code: emoji.code,
+                    types: emoji.types,
+                    name: localeName,
+                    hexcode: emoji.hexcode,
+                };
+            }
+
+            const aliasNameParts = getNameParts(alias).slice(1);
+            addKeywordsToTrie(trie, aliasNameParts, emoji, localeName);
+        }
 
         // Add keywords for both the locale language and English to enable users to search using either language.
         const keywords = (langEmojis?.[emoji.code]?.keywords ?? []).concat(isDefaultLocale ? [] : (defaultLangEmojis?.[emoji.code]?.keywords ?? []));

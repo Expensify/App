@@ -1,22 +1,27 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
 import Navigation from '@navigation/Navigation';
+
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+import {View} from 'react-native';
 
 function Finish() {
     const styles = useThemeStyles();
@@ -26,12 +31,11 @@ function Finish() {
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow']);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const policyID = reimbursementAccount?.achData?.policyID;
+    const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const handleBackButtonPress = () => {
         Navigation.dismissModal();
@@ -74,7 +78,7 @@ function Finish() {
                         {
                             title: translate('finishStep.secure'),
                             onPress: () => {
-                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID})));
+                                Navigation.navigate(getTwoFactorAuthRoute());
                             },
                             icon: icons.Shield,
                             shouldShowRightIcon: true,

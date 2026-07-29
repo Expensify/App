@@ -1,6 +1,8 @@
 import type {ReactNode} from 'react';
+
 import {useEffect, useRef} from 'react';
 import {AccessibilityInfo} from 'react-native';
+
 import type UseAccessibilityAnnouncementOptions from './types';
 
 const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;
