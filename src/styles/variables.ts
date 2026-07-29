@@ -311,6 +311,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     dimAnimationDuration: 50,
+    noDimAnimationDuration: 0,
     qrShareHorizontalPadding: 32,
     menuIconSize: 48,
 

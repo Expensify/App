@@ -1,0 +1,36 @@
+import {createContext, useContext} from 'react';
+
+/**
+ * Interaction state of the menu item row, provided by `MenuItem.Root` and consumed by leaf
+ * sub-components (e.g. `MenuItem.Icon` derives its fill color, `MenuItem.Chevron` dims itself until hover).
+ */
+type MenuItemState = {
+    /** Whether the row is currently hovered */
+    isHovered: boolean;
+
+    /** Whether the row is currently pressed */
+    isPressed: boolean;
+
+    /** Whether the row is disabled */
+    isDisabled: boolean;
+
+    /** Whether the row responds to interactions */
+    isInteractive: boolean;
+
+    /** Whether the row is rendered inside a compact popover menu */
+    isCompact: boolean;
+};
+
+const MenuItemContext = createContext<MenuItemState | undefined>(undefined);
+
+function useMenuItemState(): MenuItemState {
+    const state = useContext(MenuItemContext);
+    if (!state) {
+        throw new Error('MenuItem sub-components must be rendered inside <MenuItem.Root>');
+    }
+    return state;
+}
+
+export default MenuItemContext;
+export {useMenuItemState};
+export type {MenuItemState};
