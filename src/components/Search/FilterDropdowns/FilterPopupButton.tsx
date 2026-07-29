@@ -11,6 +11,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ReactNode, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -18,7 +19,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {useIsFocused} from '@react-navigation/core';
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import React, {useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 
 type PopoverComponentProps = {
     isExpanded: boolean;
@@ -92,18 +93,21 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     };
 
     const calculatePopoverPositionAndToggleOverlay = () => {
-        // Dismiss the soft keyboard first. If the filter is opened while a table search input is still focused,
-        // the bottom-docked popover's KeyboardAvoidingView reserves keyboard-height padding and the sheet renders
-        // in the middle of the screen instead of docking to the bottom (Android).
-        Keyboard.dismiss();
-        calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
-            setPopoverTriggerPosition({...position, vertical: position.vertical});
-            // Latch in the same batch as the open (and only when it will actually open, mirroring toggleOverlay's
-            // alert-modal guard) so the deferred subtree mounts together with the popover becoming visible.
-            if (!isOverlayVisible && !willAlertModalBecomeVisible) {
-                setHasEverExpanded(true);
-            }
-            toggleOverlay();
+        // Dismiss the soft keyboard and wait for it to finish hiding before opening the popover. If the filter is
+        // opened while a table search input is still focused, the bottom-docked popover's KeyboardAvoidingView
+        // reserves keyboard-height padding and the sheet renders in the middle of the screen instead of docking to
+        // the bottom (Android). dismissKeyboardAndExecute defers the callback until keyboardDidHide on Android, so
+        // the popover mounts after the keyboard is fully gone; on other platforms it runs immediately.
+        KeyboardUtils.dismissKeyboardAndExecute(() => {
+            calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
+                setPopoverTriggerPosition({...position, vertical: position.vertical});
+                // Latch in the same batch as the open (and only when it will actually open, mirroring toggleOverlay's
+                // alert-modal guard) so the deferred subtree mounts together with the popover becoming visible.
+                if (!isOverlayVisible && !willAlertModalBecomeVisible) {
+                    setHasEverExpanded(true);
+                }
+                toggleOverlay();
+            });
         });
     };
 
