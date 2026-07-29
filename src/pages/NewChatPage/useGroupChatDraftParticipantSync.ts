@@ -2,10 +2,10 @@ import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useOnyx from '@hooks/useOnyx';
 
 import {getUserToInviteOption, hydrateLazyPersonalDetailOption} from '@libs/OptionsListUtils';
-import type {SearchOption} from '@libs/OptionsListUtils';
+import type {LazyPersonalDetailOption} from '@libs/OptionsListUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Login, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {Login, PersonalDetailsList} from '@src/types/onyx';
 import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -25,7 +25,7 @@ import type SelectedOption from './types';
  *   consistent when the user returns.
  */
 function useGroupChatDraftParticipantSync(
-    allPersonalDetailOptions: Array<SearchOption<PersonalDetails>>,
+    allPersonalDetailOptions: LazyPersonalDetailOption[],
     areAllPersonalDetailOptionsLoaded: boolean,
     allPersonalDetails: OnyxEntry<PersonalDetailsList>,
     loginList: OnyxEntry<Login>,

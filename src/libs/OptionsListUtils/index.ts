@@ -209,6 +209,7 @@ import type {
     GetValidReportsConfig,
     IsValidReportsConfig,
     LazyHydrationContext,
+    LazyPersonalDetailOption,
     MemberForList,
     OptionList,
     Options,
@@ -1680,7 +1681,7 @@ registerSessionCleanupCallback(() => filteredOptionListCache.clear());
  * Step 5 of createFilteredOptionList: one lightweight SearchOption per personal detail.
  * Only filter/rank fields are computed here; getValidOptions hydrates survivors via hydrateLazyPersonalDetailOption.
  */
-function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Report>, context: LazyHydrationContext): Array<SearchOption<PersonalDetails | null>> {
+function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Report>, context: LazyHydrationContext): LazyPersonalDetailOption[] {
     const {personalDetails} = context;
     return Object.values(personalDetails ?? {}).map((personalDetail) => {
         const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -1723,7 +1724,7 @@ function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Repo
 // shallow copy, exactly like the per-call objects the eager build produced. Only the createOption work is shared.
 // The copies share nested objects (icons, participantsList, item) with the cached entry, matching the
 // cloneOptionList invariant: a consumer that mutates those must clone them first.
-const hydratedPersonalDetailOptions = new WeakMap<SearchOption<PersonalDetails>, SearchOption<PersonalDetails>>();
+const hydratedPersonalDetailOptions = new WeakMap<LazyPersonalDetailOption, SearchOption<PersonalDetails | null>>();
 
 /**
  * Builds the full display option for a lightweight personal detail option produced by createFilteredOptionList.
@@ -1731,7 +1732,7 @@ const hydratedPersonalDetailOptions = new WeakMap<SearchOption<PersonalDetails>,
  * build would have produced. Options without lazy hydration data are returned unchanged, so fully-built options
  * (e.g. device contacts) can be passed safely. Results are memoized per shell.
  */
-function hydrateLazyPersonalDetailOption(option: SearchOption<PersonalDetails>): SearchOption<PersonalDetails> {
+function hydrateLazyPersonalDetailOption(option: LazyPersonalDetailOption): SearchOption<PersonalDetails | null> {
     if (!option.lazyHydrationData) {
         return option;
     }
@@ -1748,7 +1749,7 @@ function hydrateLazyPersonalDetailOption(option: SearchOption<PersonalDetails>):
     const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
-    const hydrated: SearchOption<PersonalDetails> = {
+    const hydrated: SearchOption<PersonalDetails | null> = {
         item: option.item,
         ...createOption({
             accountIDs: [accountID],
@@ -1915,7 +1916,7 @@ function createFilteredOptionList(
 
     const result: OptionList = {
         reports: reportOptions,
-        personalDetails: personalDetailsOptions as Array<SearchOption<PersonalDetails>>,
+        personalDetails: personalDetailsOptions,
     };
 
     if (!shouldUseCache) {
@@ -3619,4 +3620,4 @@ export {
     processSearchString,
 };
 
-export type {GetOptionsConfig, MemberForList, Option, OptionList, OptionTree, Options, SearchOption, SearchOptionData} from './types';
+export type {GetOptionsConfig, LazyPersonalDetailOption, MemberForList, Option, OptionList, OptionTree, Options, SearchOption, SearchOptionData} from './types';

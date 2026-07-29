@@ -1702,7 +1702,7 @@ describe('OptionsListUtils', () => {
             // Then every contact option is a lightweight one: it carries lazyHydrationData and skips expensive fields like icons
             expect(lazyList.personalDetails.length).toBeGreaterThan(0);
             expect(lazyList.personalDetails.every((option) => option.lazyHydrationData !== undefined)).toBe(true);
-            expect(lazyList.personalDetails.every((option) => option.icons === undefined)).toBe(true);
+            expect(lazyList.personalDetails.every((option) => !('icons' in option))).toBe(true);
         });
 
         it('should produce results identical to eagerly built options after hydration', () => {
@@ -3998,8 +3998,8 @@ describe('OptionsListUtils', () => {
             // When we call createFilteredOptionList with an empty privateIsArchivedMap
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, emptyMap, undefined, {isSearching: true});
 
-            // Then no personal details options should have private_isArchived set
-            const optionsWithArchived = result.personalDetails.filter((pd) => pd.private_isArchived);
+            // Then no personal details options should have private_isArchived set once hydrated
+            const optionsWithArchived = result.personalDetails.map(hydrateLazyPersonalDetailOption).filter((pd) => pd.private_isArchived);
             expect(optionsWithArchived.length).toBe(0);
         });
 

@@ -133,9 +133,42 @@ type SearchOption<T> = SearchOptionData & {
     lazyHydrationData?: PersonalDetailLazyHydrationData;
 };
 
+/**
+ * A contact option as createFilteredOptionList produces it: the fields that filtering, ranking and de-duping
+ * read, and nothing else. The display fields (icons, subtitle, lastMessageText, the display alternateText, …)
+ * are deliberately absent from this type, so reading one off `OptionList.personalDetails` is a compile error
+ * instead of an `undefined` or a placeholder value found by code review. Call
+ * hydrateLazyPersonalDetailOption to turn one into a full SearchOption before rendering it. Fully built
+ * options (e.g. device contacts) are assignable and hydration passes them through unchanged.
+ */
+type LazyPersonalDetailOption = Pick<
+    SearchOptionData,
+    // Identity
+    | 'reportID'
+    | 'keyForList'
+    | 'login'
+    | 'accountID'
+
+    // Read by the contact filter (see doesPersonalDetailMatchSearchTerm) and the ranking comparator
+    | 'text'
+    | 'alternateText'
+    | 'displayName'
+    | 'participantsList'
+    | 'isOptimisticPersonalDetail'
+
+    // Written in place by getValidOptions once the visible options are selected
+    | 'isSelected'
+    | 'selected'
+    | 'isBold'
+    | 'brickRoadIndicator'
+> & {
+    item: PersonalDetails | null;
+    lazyHydrationData?: PersonalDetailLazyHydrationData;
+};
+
 type OptionList = {
     reports: Array<SearchOption<Report>>;
-    personalDetails: Array<SearchOption<PersonalDetails>>;
+    personalDetails: LazyPersonalDetailOption[];
 };
 
 type Option = Partial<OptionData>;
@@ -347,6 +380,7 @@ export type {
     GetUserToInviteConfig,
     GetValidReportsConfig,
     LazyHydrationContext,
+    LazyPersonalDetailOption,
     MemberForList,
     Option,
     OptionWithKey,
