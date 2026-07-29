@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 
 type PriorityModeItem = {
     value: ValueOf<typeof CONST.PRIORITY_MODE>;
@@ -30,23 +30,39 @@ function PriorityModePage() {
     const {translate} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const styles = useThemeStyles();
+
+    // Keep the selection in local draft state so picking a mode no longer persists and re-sorts the LHN on input.
+    // The change is only applied when the user taps Save (WCAG 3.2.2 On Input).
+    const [selectedPriorityMode, setSelectedPriorityMode] = useState(priorityMode);
+
     const priorityModes = Object.values(CONST.PRIORITY_MODE).map<PriorityModeItem>((mode) => ({
         value: mode,
         text: translate(`priorityModePage.priorityModes.${mode}.label`),
         alternateText: translate(`priorityModePage.priorityModes.${mode}.description`),
         keyForList: mode,
-        isSelected: priorityMode === mode,
+        isSelected: selectedPriorityMode === mode,
     }));
 
-    const updateMode = useCallback(
-        (mode: PriorityModeItem) => {
-            if (mode.value === priorityMode) {
-                Navigation.goBack();
-                return;
-            }
-            updateChatPriorityMode(mode.value);
-        },
-        [priorityMode],
+    const updateMode = (mode: PriorityModeItem) => {
+        setSelectedPriorityMode(mode.value);
+    };
+
+    const savePriorityMode = useCallback(() => {
+        // Nothing changed, so just close the page without an unnecessary write (matches the original same-mode behavior).
+        if (selectedPriorityMode === priorityMode) {
+            Navigation.goBack();
+            return;
+        }
+        updateChatPriorityMode(selectedPriorityMode);
+    }, [selectedPriorityMode, priorityMode]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: savePriorityMode,
+        }),
+        [translate, savePriorityMode],
     );
 
     return (
@@ -64,6 +80,7 @@ function PriorityModePage() {
                 ListItem={SingleSelectListItem}
                 onSelectRow={updateMode}
                 shouldSingleExecuteRowSelect
+                confirmButtonOptions={confirmButtonOptions}
                 initiallyFocusedItemKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}
             />
         </ScreenWrapper>

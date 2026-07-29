@@ -48,9 +48,33 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
-    const saveSelectedTimezone = ({text}: {text: string}) => {
-        updateSelectedTimezone(text as SelectedTimezone, currentUserPersonalDetails.accountID);
+    // Keep the selection in local draft state so picking a timezone no longer persists and closes the page on input.
+    // The change is only applied when the user taps Save (WCAG 3.2.2 On Input).
+    const [selectedTimezone, setSelectedTimezone] = useState(timezone.selected);
+
+    const timezoneData = useMemo(() => timezoneOptions.map((tz) => ({...tz, isSelected: tz.text === selectedTimezone})), [timezoneOptions, selectedTimezone]);
+
+    const selectTimezone = ({text}: {text: string}) => {
+        setSelectedTimezone(text as SelectedTimezone);
     };
+
+    const saveSelectedTimezone = useCallback(() => {
+        if (!selectedTimezone) {
+            Navigation.goBack(ROUTES.SETTINGS_TIMEZONE);
+            return;
+        }
+        updateSelectedTimezone(selectedTimezone, currentUserPersonalDetails.accountID);
+    }, [selectedTimezone, currentUserPersonalDetails.accountID]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveSelectedTimezone,
+            isDisabled: !!timezone.automatic,
+        }),
+        [translate, saveSelectedTimezone, timezone.automatic],
+    );
 
     const filterShownTimezones = useCallback(
         (searchText: string) => {
@@ -90,10 +114,11 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
             <SelectionList
-                data={timezoneOptions}
+                data={timezoneData}
                 ListItem={SingleSelectListItem}
-                onSelectRow={saveSelectedTimezone}
+                onSelectRow={selectTimezone}
                 textInputOptions={textInputOptions}
+                confirmButtonOptions={confirmButtonOptions}
                 initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
                 isDisabled={!!timezone.automatic}
                 shouldShowTooltips={false}

@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useRef} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type ThemeEntry = ListItem & {
@@ -34,32 +34,42 @@ function ThemePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
-    const isOptionSelected = useRef(false);
 
     const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
-    const isHighContrast = isHighContrastTheme(currentTheme);
-    const currentBaseTheme = getBaseTheme(currentTheme);
+
+    // Keep the selection in local draft state so picking a theme (or toggling high contrast) no longer persists and
+    // closes the page on input. The change is only applied when the user taps Save (WCAG 3.2.2 On Input).
+    const [selectedBaseTheme, setSelectedBaseTheme] = useState<ValueOf<typeof CONST.THEME>>(getBaseTheme(currentTheme));
+    const [isHighContrast, setIsHighContrast] = useState(isHighContrastTheme(currentTheme));
 
     const localesToThemes = BASE_THEMES.map((theme) => ({
         value: theme,
         text: translate(`themePage.themes.${theme}.label`),
         keyForList: theme,
-        isSelected: currentBaseTheme === theme,
+        isSelected: selectedBaseTheme === theme,
     }));
 
     const updateTheme = (selectedTheme: ThemeEntry) => {
-        if (isOptionSelected.current) {
-            return;
-        }
-        isOptionSelected.current = true;
-        const themeToStore = isHighContrast ? getContrastTheme(selectedTheme.value) : selectedTheme.value;
-        updateThemeUserAction(themeToStore);
+        setSelectedBaseTheme(selectedTheme.value);
     };
 
     const onToggleHighContrast = (enabled: boolean) => {
-        const newTheme = enabled ? getContrastTheme(currentBaseTheme) : currentBaseTheme;
-        updateThemeUserAction(newTheme, false);
+        setIsHighContrast(enabled);
     };
+
+    const saveTheme = useCallback(() => {
+        const themeToStore = isHighContrast ? getContrastTheme(selectedBaseTheme) : selectedBaseTheme;
+        updateThemeUserAction(themeToStore);
+    }, [isHighContrast, selectedBaseTheme]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveTheme,
+        }),
+        [translate, saveTheme],
+    );
 
     return (
         <ScreenWrapper
@@ -77,6 +87,7 @@ function ThemePage() {
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateTheme}
                     shouldSingleExecuteRowSelect
+                    confirmButtonOptions={confirmButtonOptions}
                     initiallyFocusedItemKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
                     listFooterContent={
                         <>
