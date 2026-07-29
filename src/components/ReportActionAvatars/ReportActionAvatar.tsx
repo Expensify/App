@@ -330,7 +330,7 @@ function ReportActionAvatarMultipleHorizontal({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {localeCompare, formatPhoneNumber} = useLocalize();
+    const {localeCompare, formatPhoneNumber, translate} = useLocalize();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
@@ -370,8 +370,8 @@ function ReportActionAvatarMultipleHorizontal({
     }, [icons, maxAvatarsInRow, shouldDisplayAvatarsInRows]);
 
     const tooltipTexts = useMemo(
-        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
-        [shouldShowTooltip, icons, formatPhoneNumber],
+        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : ['']),
+        [shouldShowTooltip, icons, formatPhoneNumber, translate],
     );
 
     return avatarRows.map((avatars, rowIndex) => (
@@ -482,11 +482,11 @@ function ReportActionAvatarMultipleDiagonal({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const tooltipTexts = useMemo(
-        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
-        [shouldShowTooltip, icons, formatPhoneNumber],
+        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name)) : ['']),
+        [shouldShowTooltip, icons, formatPhoneNumber, translate],
     );
     const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
