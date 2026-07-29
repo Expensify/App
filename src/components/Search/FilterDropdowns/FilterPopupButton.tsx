@@ -93,11 +93,10 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     };
 
     const calculatePopoverPositionAndToggleOverlay = () => {
-        // Dismiss the soft keyboard and wait for it to finish hiding before opening the popover. If the filter is
-        // opened while a table search input is still focused, the bottom-docked popover's KeyboardAvoidingView
-        // reserves keyboard-height padding and the sheet renders in the middle of the screen instead of docking to
-        // the bottom (Android). dismissKeyboardAndExecute defers the callback until keyboardDidHide on Android, so
-        // the popover mounts after the keyboard is fully gone; on other platforms it runs immediately.
+        // Dismiss the keyboard before opening the popover. On Android, if a search input is still focused, the
+        // keyboard stays up. The bottom-docked popover's KeyboardAvoidingView then reserves keyboard-height
+        // padding, so the sheet renders mid-screen instead of at the bottom. dismissKeyboardAndExecute waits for
+        // keyboardDidHide on Android before running the callback; on other platforms it runs immediately.
         KeyboardUtils.dismissKeyboardAndExecute(() => {
             calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
                 setPopoverTriggerPosition({...position, vertical: position.vertical});
