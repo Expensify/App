@@ -8,7 +8,6 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import genericMemo from '@libs/genericMemo';
 import {getCountryZipRegexDetails, getFieldRequiredErrors, getInvalidAddressErrorTranslationPath, isValidZipCode, isValidZipCodeForCountry} from '@libs/ValidationUtils';
 
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
@@ -108,7 +107,13 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
         shouldShowPatriotActLink?: boolean;
     };
 
-function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
+type AddressStepPropsWidened = Omit<AddressStepProps<keyof OnyxFormValuesMapping>, never>;
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function AddressStepImpl({
     formID,
     formTitle,
     formPOBoxDisclaimer,
@@ -130,7 +135,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldValidateZipCodeFormat = true,
     shouldShowPatriotActLink = false,
     forwardedFSClass,
-}: AddressStepProps<TFormID>) {
+}: AddressStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -151,7 +156,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     }, [defaultValues.country, formID, inputFieldsIDs.country, shouldAllowCountryChange]);
 
     const validate = useCallback(
-        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
+        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
             const errors = getFieldRequiredErrors(values, stepFields, translate);
 
             const street = getStringFormValue(values, inputFieldsIDs.street);
@@ -217,4 +222,8 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-export default genericMemo(AddressStep);
+function AddressStep<TFormID extends keyof OnyxFormValuesMapping>(props: AddressStepProps<TFormID>) {
+    return <AddressStepImpl {...(props as unknown as AddressStepPropsWidened)} />;
+}
+
+export default AddressStep;

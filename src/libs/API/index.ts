@@ -1,7 +1,18 @@
 import {readUpdateIDFrom, resolveDuplicationConflictAction, resolveEnableFeatureConflicts, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
-import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, LoadTest, Logging, Pagination, Reauthentication, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
+import {
+    FailureTracking,
+    handleDeletedAccount,
+    HandleUnusedOptimisticID,
+    LoadTest,
+    Logging,
+    Pagination,
+    Reauthentication,
+    RecordFullReconnectTime,
+    SaveResponseInOnyx,
+    SupportalPermission,
+} from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import SentryServerTiming from '@libs/Middleware/SentryServerTiming';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
@@ -56,8 +67,11 @@ addMiddleware(Pagination);
 // SentryServerTiming - Tracks server round-trip time for configured command groups via Sentry spans.
 addMiddleware(SentryServerTiming);
 
-// SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
-// middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
+// RecordFullReconnectTime - Records the full-reconnect time into an OpenApp/full-ReconnectApp response. Must run before SaveResponseInOnyx applies the response.
+addMiddleware(RecordFullReconnectTime);
+
+// SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
+// (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 addMiddleware(SaveResponseInOnyx);
 
 // FraudMonitoring - Tags the request with the appropriate Fraud Protection event.

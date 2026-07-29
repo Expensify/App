@@ -1,6 +1,7 @@
 import LocationPermissionModal from '@components/LocationPermissionModal';
 
 import useOnyx from '@hooks/useOnyx';
+import type {AfterTransition} from '@hooks/usePreMountDestination';
 
 import DateUtils from '@libs/DateUtils';
 import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
@@ -24,13 +25,13 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 import React, {useEffect, useRef, useState} from 'react';
 
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
 
+import getSubmitExpenseSearchType from './getSubmitExpenseSearchType';
 import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
 import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from './submitDismissStrategies';
 
@@ -100,20 +101,10 @@ type SubmitExpenseOrchestratorProps = {
 
     /** Render prop receiving onConfirm and isConfirming. */
     children: (props: SubmitExpenseOrchestratorRenderProps) => React.ReactNode;
+
+    /** Reveals the pre-mounted destination behind the confirmation RHP and dismisses the modal. */
+    revealPreMountDestination: (afterTransition?: AfterTransition) => void;
 };
-
-function getFocusedReportsSplitReportID(rootState: ReturnType<typeof navigationRef.getRootState>): string | undefined {
-    const topmostTabNavigatorRoute = rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-    const tabState = topmostTabNavigatorRoute?.state;
-    const activeTabRoute = tabState?.routes.at(tabState.index ?? 0);
-    if (activeTabRoute?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || !activeTabRoute.state) {
-        return undefined;
-    }
-
-    const focusedRoute = activeTabRoute.state.routes.at(activeTabRoute.state.index ?? 0);
-    const reportID = focusedRoute?.name === SCREENS.REPORT && focusedRoute.params && 'reportID' in focusedRoute.params ? focusedRoute.params.reportID : undefined;
-    return typeof reportID === 'string' ? reportID : undefined;
-}
 
 /**
  * Encapsulates the submit-expense navigation orchestration: telemetry lifecycle,
@@ -150,6 +141,7 @@ function SubmitExpenseOrchestrator({
     receiptFiles,
     isFromGlobalCreateOnTransaction,
     isFromFloatingActionButtonOnTransaction,
+    revealPreMountDestination,
     children,
 }: SubmitExpenseOrchestratorProps) {
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
@@ -224,39 +216,18 @@ function SubmitExpenseOrchestrator({
     const handleSearchPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
-        Navigation.clearFullscreenPreInsertedFlag();
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        Navigation.dismissModal({
-            afterTransition: () => {
-                // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
-                // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
-                // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
-                createTransaction(locationPermissionGranted);
-                setIsConfirming(false);
-            },
+        revealPreMountDestination(() => {
+            // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
+            // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
+            // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
+            createTransaction(locationPermissionGranted);
+            setIsConfirming(false);
         });
-    };
-
-    const dismissAfterEnsuringDestinationReportIsPreInserted = (reportID: string | undefined, afterTransition: () => void) => {
-        if (!reportID) {
-            Navigation.dismissModal({afterTransition});
-            return;
-        }
-
-        // Only trust the pre-inserted report if it is the focused child of the Reports tab.
-        // A stale report route can still exist behind Inbox in the Reports stack.
-        if (getFocusedReportsSplitReportID(navigationRef.getRootState()) === reportID) {
-            Navigation.dismissModal({afterTransition});
-            return;
-        }
-
-        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(reportID), {afterTransition});
     };
 
     const handleReportPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-        const wasPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
-        Navigation.clearFullscreenPreInsertedFlag();
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
 
@@ -265,12 +236,10 @@ function SubmitExpenseOrchestrator({
             setIsConfirming(false);
         };
 
-        if (wasPreInserted) {
-            Navigation.dismissModal({afterTransition});
-            return;
-        }
-
-        dismissAfterEnsuringDestinationReportIsPreInserted(destinationReportID, afterTransition);
+        // No duplicate-route guard is needed here: getSubmitExpensePreMountDestinationRoute only yields a report route (and thus
+        // getSubmitHandler only selects REPORT_PRE_INSERT) when the report is NOT already the topmost fullscreen, so reveal()
+        // dismisses over this hook's own pre-inserted route rather than pushing a second copy.
+        revealPreMountDestination(afterTransition);
     };
 
     const handleDismissModalFastPath = (locationPermissionGranted = false) => {
@@ -299,7 +268,7 @@ function SubmitExpenseOrchestrator({
     // elapsed - SEARCH_PRE_INSERT is the primary narrow handler.
     const handleSearchDismiss = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-        const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const searchType = getSubmitExpenseSearchType(iouType);
         const isSameType = getCurrentSearchQueryJSON()?.type === searchType;
         const isNarrow = getIsNarrowLayout();
         // When the query type matches AND Search is already visible, a simple dismiss suffices.

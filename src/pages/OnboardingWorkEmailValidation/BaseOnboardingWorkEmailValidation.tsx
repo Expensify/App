@@ -75,7 +75,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         if (!credentials?.login) {
             return;
         }
-        resendValidateCode(credentials.login);
+        resendValidateCode({reasonCode: null}, credentials.login);
     };
 
     const validateAccountAndMerge = (validateCode: string) => {
@@ -113,7 +113,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                     >
                         {translate('onboarding.workEmailValidation.title')}
                     </Text>
-                    <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', workEmail)}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.securityCodeSent', workEmail)}</Text>
                     <ValidateCodeForm
                         handleSubmitForm={validateAccountAndMerge}
                         sendValidateCode={sendValidateCode}

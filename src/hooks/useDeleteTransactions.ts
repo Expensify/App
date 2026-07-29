@@ -30,6 +30,7 @@ import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useEnvironment from './useEnvironment';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -81,6 +82,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -245,7 +247,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     continue;
                 }
                 const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
+                const originalTransactionIouActions = getIOUActionForTransactions([transactionID], allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
                 const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? originalTransactionIouActions.at(0)?.reportID : undefined;
                 const candidateIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.
@@ -322,6 +324,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionReport: report,
                     expenseReport,
                     isOffline,
+                    delegateAccountID,
                     isTrackIntentUser,
                 });
             }
@@ -397,6 +400,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             isOffline,
             isProduction,
             personalPolicy?.outputCurrency,
+            delegateAccountID,
             isTrackIntentUser,
         ],
     );

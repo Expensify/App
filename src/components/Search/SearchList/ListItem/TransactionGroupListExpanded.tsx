@@ -19,7 +19,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import genericMemo from '@libs/genericMemo';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -48,7 +47,11 @@ import {View} from 'react-native';
 
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
 
-function TransactionGroupListExpanded<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function TransactionGroupListExpandedImpl({
     transactionsQueryJSON,
     showTooltip,
     canSelectMultiple,
@@ -72,7 +75,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     hideSearchTableHeader,
-}: TransactionGroupListExpandedProps<TItem>) {
+}: TransactionGroupListExpandedProps<ListItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
@@ -167,7 +170,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const isActionColumnWide = transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
 
     const {markReportRHPWidth} = useWideRHPActions();
-    const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    const selectRow = onSelectRow as (item: ListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
         const parentReport = getReportOrDraftReport(transactionItem?.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]);
@@ -235,7 +238,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         // The arrow navigation in RHP is only allowed for group-by:reports
         if (!isExpenseReportType) {
-            selectRow(transactionItem as unknown as TItem, getTransactionPreviewData(transactionItem), event);
+            selectRow(transactionItem as ListItem, getTransactionPreviewData(transactionItem), event);
             return;
         }
 
@@ -283,7 +286,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
         // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
         if (isMobileSelectionModeEnabled || isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction)) {
-            onSelectionButtonPress?.(transaction as unknown as TItem);
+            onSelectionButtonPress?.(transaction as ListItem);
             return;
         }
         openReportInRHP(transaction, event);
@@ -366,7 +369,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     shouldUseNarrowLayout={!isLargeScreenWidth}
                                     shouldShowCheckbox={!!canSelectMultiple}
                                     checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
-                                    onCheckboxPress={() => onSelectionButtonPress?.(transaction as unknown as TItem)}
+                                    onCheckboxPress={() => onSelectionButtonPress?.(transaction as ListItem)}
                                     columns={currentColumns}
                                     onButtonPress={(event) => handleButtonPress(transaction, event)}
                                     style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.tableRowHeight] : styles.p4, styles.flex1]}
@@ -426,4 +429,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     );
 }
 
-export default genericMemo(TransactionGroupListExpanded);
+function TransactionGroupListExpanded<TItem extends ListItem>(props: TransactionGroupListExpandedProps<TItem>) {
+    return <TransactionGroupListExpandedImpl {...(props as TransactionGroupListExpandedProps<ListItem>)} />;
+}
+
+export default TransactionGroupListExpanded;

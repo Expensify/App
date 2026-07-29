@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrentUser} from '@userActions/Policy/Policy';
 
 import type {IOUAction} from '@src/CONST';
@@ -12,6 +14,9 @@ import type {TrackExpenseTransactionParams} from './TrackExpenseTransactionParam
 
 type TrackExpenseAccountantParams = {
     accountant?: Accountant;
+    newAccountIDs: number[] | undefined;
+    newLogins: string[] | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CreateTrackExpenseParams = {
@@ -33,6 +38,8 @@ type CreateTrackExpenseParams = {
     currentUser: CurrentUser;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
+    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -44,8 +51,6 @@ type CreateTrackExpenseParams = {
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     isDraftChatReport?: boolean;
-    // Personal details list is optional here because we only use/pass it for SHARE case
-    personalDetailsList?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};
