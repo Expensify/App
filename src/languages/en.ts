@@ -5837,6 +5837,7 @@ const translations = {
             company: 'Company',
             companySelectDescription: "Choose the company in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
+            noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
         },
         type: {
             free: 'Free',

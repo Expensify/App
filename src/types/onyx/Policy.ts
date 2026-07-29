@@ -3261,4 +3261,5 @@ export type {
     RilletSync,
     RilletSubsidiary,
     DualEntryConnectionsConfig,
+    DualEntryCompany,
 };
