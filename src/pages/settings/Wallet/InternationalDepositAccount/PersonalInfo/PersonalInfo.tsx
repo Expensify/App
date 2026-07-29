@@ -12,6 +12,8 @@ import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import {hasValidInternationalBankAccountDetails} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
+
 import {addPersonalBankAccount} from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
@@ -89,9 +91,9 @@ function PersonalInfoPage() {
         addPersonalBankAccount(accountData, personalPolicyID);
     };
 
-    // Skip when the details are already available: the account number is an IBAN and a SWIFT/BIC code is set.
-    const isAccountNumberIBAN = CONST.BANK_ACCOUNT.REGEX.IBAN.test((personalBankAccount?.accountNumber ?? '').trim());
-    const shouldSkipInternationalBankAccountDetails = !shouldCollectInternationalDepositDetails || (isAccountNumberIBAN && !!personalBankAccount?.swiftCode);
+    // Skip when the details are already available: the IBAN and SWIFT/BIC code are both valid.
+    const shouldSkipInternationalBankAccountDetails =
+        !shouldCollectInternationalDepositDetails || hasValidInternationalBankAccountDetails(personalBankAccount?.iban, personalBankAccount?.swiftCode);
 
     const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails, shouldSkipInternationalBankAccountDetails);
 

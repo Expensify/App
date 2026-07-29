@@ -42,7 +42,7 @@ import Confirmation from './subPages/Confirmation';
 import CountrySelection from './subPages/CountrySelection';
 import InternationalBankAccountDetails from './subPages/InternationalBankAccountDetails';
 import Success from './subPages/Success';
-import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
+import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, hasValidInternationalBankAccountDetails, testValidation} from './utils';
 
 type InternationalDepositAccountContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
@@ -104,8 +104,8 @@ function InternationalDepositAccountContent({
 
     // Skip the international bank account details step when no collecting policy needs international details for the
     // selected bank country, or when we already have them: the account number is an IBAN and a SWIFT/BIC code is set.
-    const isAccountNumberIBAN = CONST.BANK_ACCOUNT.REGEX.IBAN.test((values.accountNumber ?? '').trim());
-    const skipInternationalBankAccountDetailsStep = !shouldCollectInternationalDepositDetails || (isAccountNumberIBAN && (!!values.swiftCode || !!values.swiftBicCode));
+    const skipInternationalBankAccountDetailsStep =
+        !shouldCollectInternationalDepositDetails || hasValidInternationalBankAccountDetails(values.iban, values.swiftCode, values.accountNumber, values.swiftBicCode);
 
     const startFrom = getInitialSubstep(values, fieldsMap, skipInternationalBankAccountDetailsStep);
 

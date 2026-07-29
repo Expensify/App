@@ -31,6 +31,7 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
     const [isAccountLoading, isLoadingMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: isLoadingPersonalBankAccountSelector});
     const backTo = route.params?.backTo;
 
+    console.log('InternationalDepositAccount');
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, isLoadingMetadata);
 
     if (isLoading) {

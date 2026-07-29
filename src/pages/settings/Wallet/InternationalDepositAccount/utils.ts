@@ -114,8 +114,28 @@ function testValidation(values: InternationalBankAccountForm, fieldsMap: CorpayF
     return true;
 }
 
-function hasValidInternationalBankAccountDetails(values: InternationalBankAccountForm) {
-    return !!values.iban && CONST.BANK_ACCOUNT.REGEX.IBAN.test(values.iban.trim()) && !!values.swiftCode && CONST.BANK_ACCOUNT.REGEX.INTERNATIONAL_SWIFT_CODE.test(values.swiftCode.trim());
+/**
+ * IBAN/SWIFT/BIC can come from either the dedicated `iban`/`swiftCode` fields filled in on the international bank
+ * account details step, or from `accountNumber`/`swiftBicCode`, which the Corpay bank-details step already collects
+ * for some countries. Either pairing satisfies the requirement, so both are checked.
+ */
+function hasValidInternationalBankAccountDetails(iban: string | undefined, swiftCode: string | undefined, accountNumber?: string, swiftBicCode?: string) {
+    const isIBANValid = CONST.BANK_ACCOUNT.REGEX.IBAN.test((iban ?? '').trim()) || CONST.BANK_ACCOUNT.REGEX.IBAN.test((accountNumber ?? '').trim());
+    const isSwiftCodeValid = (!!swiftCode && CONST.BANK_ACCOUNT.REGEX.INTERNATIONAL_SWIFT_CODE.test(swiftCode.trim())) || !!swiftBicCode;
+    return isIBANValid && isSwiftCodeValid;
+}
+
+/**
+ * Resolves the IBAN/SWIFT values to display or submit, falling back to `accountNumber`/`swiftBicCode` when the
+ * dedicated `iban`/`swiftCode` fields weren't collected (e.g. the international bank account details step was
+ * skipped because the Corpay bank-details step already gathered equivalent values).
+ */
+function getInternationalBankAccountDetailsValues(iban: string | undefined, swiftCode: string | undefined, accountNumber?: string, swiftBicCode?: string): {iban: string; swiftCode: string} {
+    const resolvedIBAN = iban || (accountNumber && CONST.BANK_ACCOUNT.REGEX.IBAN.test(accountNumber.trim()) ? accountNumber : '');
+    return {
+        iban: resolvedIBAN,
+        swiftCode: swiftCode || swiftBicCode || '',
+    };
 }
 
 function getInitialSubstep(
@@ -131,7 +151,7 @@ function getInitialSubstep(
     }
     // When the international bank account details step is required but not yet satisfied, start there so a resumed or
     // deep-linked flow can't land past it and submit without the IBAN/SWIFT.
-    if (!skipInternationalBankAccountDetailsStep && !hasValidInternationalBankAccountDetails(values)) {
+    if (!skipInternationalBankAccountDetailsStep && !hasValidInternationalBankAccountDetails(values.iban, values.swiftCode, values.accountNumber, values.swiftBicCode)) {
         return CONST.CORPAY_FIELDS.INDEXES.MAPPING.INTERNATIONAL_BANK_ACCOUNT_DETAILS;
     }
     if (!testValidation(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE])) {
@@ -174,12 +194,22 @@ function getInternationalBankAccountDetailsErrors(
 ): Partial<Record<'iban' | 'swiftCode', string>> {
     const errors: Partial<Record<'iban' | 'swiftCode', string>> = {};
     if (iban && !CONST.BANK_ACCOUNT.REGEX.IBAN.test(iban.trim())) {
-        errors.iban = translate('bankAccount.error.swiftCodeOrIban');
+        errors.iban = translate('bankAccount.error.iban');
     }
     if (swiftCode && !CONST.BANK_ACCOUNT.REGEX.INTERNATIONAL_SWIFT_CODE.test(swiftCode.trim())) {
-        errors.swiftCode = translate('bankAccount.error.swiftCodeOrIban');
+        errors.swiftCode = translate('bankAccount.error.swiftCode');
     }
     return errors;
 }
 
-export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors, getInternationalBankAccountDetailsErrors};
+export {
+    getFieldsMap,
+    getSubstepValues,
+    getInitialPersonalDetailsValues,
+    getInitialSubstep,
+    testValidation,
+    getValidationErrors,
+    getInternationalBankAccountDetailsErrors,
+    hasValidInternationalBankAccountDetails,
+    getInternationalBankAccountDetailsValues,
+};

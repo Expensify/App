@@ -3,8 +3,6 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useCallback} from 'react';
-
 import useOnyx from './useOnyx';
 
 /**
@@ -13,19 +11,16 @@ import useOnyx from './useOnyx';
  * the bank account is being added in.
  */
 function useShouldCollectInternationalDepositDetails(bankCountry: string): boolean {
-    const selector = useCallback(
-        (policies: OnyxCollection<Policy>) =>
-            Object.values(policies ?? {}).some((policy) => {
-                if (!policy?.reimbursement?.enabled) {
-                    return false;
-                }
-                const countries = Object.keys(policy.reimbursement.countries ?? {});
-                return countries.length > 0 && !countries.includes(bankCountry);
-            }),
-        [bankCountry],
-    );
+    const selector = (policies: OnyxCollection<Policy>) =>
+        Object.values(policies ?? {}).some((policy) => {
+            if (!policy?.reimbursement?.enabled) {
+                return false;
+            }
+            const countries = Object.keys(policy.reimbursement.countries ?? {});
+            return countries.length > 0 && !countries.includes(bankCountry);
+        });
     const [shouldCollectInternationalDepositDetails] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
-    return shouldCollectInternationalDepositDetails ?? false;
+    return !!shouldCollectInternationalDepositDetails;
 }
 
 export default useShouldCollectInternationalDepositDetails;

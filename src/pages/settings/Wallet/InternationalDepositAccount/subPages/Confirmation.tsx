@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import {getInternationalBankAccountDetailsValues, hasValidInternationalBankAccountDetails} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
 import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow, hideBankAccountErrors} from '@userActions/BankAccounts';
 
@@ -65,7 +66,13 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
     };
 
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
-        createCorpayBankAccountForWalletFlow({...formValues, ...values}, corpayFields?.classification ?? '', corpayFields?.destinationCountry ?? '', corpayFields?.preferredMethod ?? '');
+        const dataToSubmit = {...formValues, ...values};
+        // The international bank account details step may have been skipped, in which case iban/swiftCode are only
+        // available via accountNumber/swiftBicCode. Resolve them explicitly so the request always includes them.
+        const {iban, swiftCode} = getInternationalBankAccountDetailsValues(dataToSubmit.iban, dataToSubmit.swiftCode, dataToSubmit.accountNumber, dataToSubmit.swiftBicCode);
+        dataToSubmit.iban = iban;
+        dataToSubmit.swiftCode = swiftCode;
+        createCorpayBankAccountForWalletFlow(dataToSubmit, corpayFields?.classification ?? '', corpayFields?.destinationCountry ?? '', corpayFields?.preferredMethod ?? '');
     };
 
     useEffect(() => {
@@ -125,11 +132,12 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         });
     }
 
-    if (formValues.iban && formValues.swiftCode) {
+    if (hasValidInternationalBankAccountDetails(formValues.iban, formValues.swiftCode, formValues.accountNumber, formValues.swiftBicCode)) {
+        const {iban, swiftCode} = getInternationalBankAccountDetailsValues(formValues.iban, formValues.swiftCode, formValues.accountNumber, formValues.swiftBicCode);
         summaryItems.push({
-            id: 'international-bank-account-details',
+            id: CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS,
             description: `${translate('bankAccount.iban')} / ${translate('bankAccount.swiftBicCode')}`,
-            title: `${formValues.iban} / ${formValues.swiftCode}`,
+            title: `${iban} / ${swiftCode}`,
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.INTERNATIONAL_BANK_ACCOUNT_DETAILS);

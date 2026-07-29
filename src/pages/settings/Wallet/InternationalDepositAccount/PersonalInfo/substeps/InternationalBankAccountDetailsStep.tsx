@@ -2,10 +2,8 @@
  * Personal-info substep for collecting international bank account details (IBAN + SWIFT/BIC) when adding a personal bank account.
  */
 import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
-import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -16,9 +14,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
+import InternationalBankAccountFields from '@pages/settings/Wallet/InternationalDepositAccount/InternationalBankAccountFields';
 import {getInternationalBankAccountDetailsErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 
@@ -55,26 +53,13 @@ function InternationalBankAccountDetailsStep({onNext, isEditing}: InternationalB
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             style={[styles.mh5, styles.flexGrow1]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('bankAccount.internationalBankAccountDetails')}</Text>
-            <InputWrapper
-                InputComponent={TextInput}
-                ref={inputCallbackRef}
-                inputID={BANK_INFO_STEP_KEYS.IBAN}
-                label={translate('bankAccount.iban')}
-                aria-label={translate('bankAccount.iban')}
-                role={CONST.ROLE.PRESENTATION}
-                value={bankAccountPersonalDetails?.iban ?? ''}
-                shouldSaveDraft
-            />
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={BANK_INFO_STEP_KEYS.SWIFT_CODE}
-                containerStyles={[styles.mt6]}
-                label={translate('bankAccount.swiftBicCode')}
-                aria-label={translate('bankAccount.swiftBicCode')}
-                role={CONST.ROLE.PRESENTATION}
-                value={bankAccountPersonalDetails?.swiftCode ?? ''}
-                shouldSaveDraft
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('bankAccount.internationalBankAccountDetailsTitle')}</Text>
+            <Text style={[styles.mb5, styles.textSupporting]}>{translate('bankAccount.internationalBankAccountDetailsSubtitle')}</Text>
+            <InternationalBankAccountFields
+                ibanDefaultValue={bankAccountPersonalDetails?.iban}
+                swiftCodeDefaultValue={bankAccountPersonalDetails?.swiftCode}
+                shouldSaveDraft={!isEditing}
+                inputCallbackRef={inputCallbackRef}
             />
         </FormProvider>
     );
