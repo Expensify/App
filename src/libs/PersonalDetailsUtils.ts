@@ -26,20 +26,6 @@ type FirstAndLastName = {
     lastName: string;
 };
 
-/**
- * Two personal details can share a login when a closed account (e.g. merged away) is served with
- * the MERGED_ prefix stripped from its login. On such a collision, prefer the live (not closed)
- * entry, then the validated one, so email lookups resolve to the live account.
- */
-function ranksBelowExistingLoginEntry(detail: PersonalDetails, existing: PersonalDetails): boolean {
-    const detailIsClosed = !!detail.isClosed;
-    const existingIsClosed = !!existing.isClosed;
-    if (detailIsClosed !== existingIsClosed) {
-        return detailIsClosed;
-    }
-    return !detail.validated && !!existing.validated;
-}
-
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
 let allPersonalDetailLogins: string[] = [];
@@ -53,7 +39,7 @@ Onyx.connect({
             if (detail?.login) {
                 const key = detail.login.toLowerCase();
                 const existing = acc[key];
-                if (!existing || !ranksBelowExistingLoginEntry(detail, existing)) {
+                if (!existing || existing.isClosed) {
                     acc[key] = detail;
                 }
             }
