@@ -4935,6 +4935,7 @@ const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAMES = [
     CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
     CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
     CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+    CONST.VIOLATIONS.FIELD_REQUIRED,
     CONST.VIOLATIONS.FUTURE_DATE,
     CONST.VIOLATIONS.HOLD,
     CONST.VIOLATIONS.INACTIVE_VENDOR,
@@ -4985,12 +4986,8 @@ function getSubmittedViolationDisplayName(violationName: string, translate: Loca
         return violationName;
     }
 
-    if (violationName === CONST.VIOLATIONS.FIELD_REQUIRED) {
-        return translate('reportOrFieldViolations.fieldRequired');
-    }
-
     if (isSubmittedTransactionViolationShortName(violationName)) {
-        return translate(`transactionViolations.${violationName}`);
+        return translate(`violations.shortName.${violationName}`);
     }
 
     return violationName;

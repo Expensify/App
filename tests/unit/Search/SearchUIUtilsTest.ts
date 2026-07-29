@@ -11475,7 +11475,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('transactionViolations.missingCategory')}, ${translateLocal('transactionViolations.missingComment')}`,
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
             );
         });
 
@@ -11487,7 +11487,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations, translateLocal)).toBe(
-                translateLocal('transactionViolations.receiptRequired'),
+                translateLocal('violations.shortName.receiptRequired'),
             );
         });
 
@@ -11512,20 +11512,18 @@ describe('SearchUIUtils', () => {
             );
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('transactionViolations.missingCategory')}, ${translateLocal('transactionViolations.missingTag')}, ${translateLocal('transactionViolations.receiptRequired')}`,
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.receiptRequired')}`,
             );
         });
 
-        test('translates fieldRequired via reportOrFieldViolations', () => {
+        test('translates fieldRequired via violations.shortName', () => {
             const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
                 transactions: {
                     [transactionIDForViolations]: [{name: CONST.VIOLATIONS.FIELD_REQUIRED}],
                 },
             });
 
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                translateLocal('reportOrFieldViolations.fieldRequired'),
-            );
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.fieldRequired'));
         });
 
         test('falls back to the raw identifier when no short-name translation exists', () => {
