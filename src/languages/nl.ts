@@ -26,6 +26,8 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
+    ConnectionDisplayNameParams,
+    DefaultVendorHelperTextParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -440,6 +442,7 @@ const translations: TranslationDeepObject<typeof en> = {
         print: 'Afdrukken',
         help: 'Help',
         collapsed: 'Ingeklapt',
+        expand: 'Uitklappen',
         expanded: 'Uitgeklapt',
         expenseReport: 'Declaratie',
         rateOutOfPolicy: 'Tarief buiten beleid',
@@ -528,6 +531,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unableToDisplayChart: 'Grafiek kan niet worden weergegeven',
         webGLNotSupported: 'Je browser ondersteunt WebGL niet. Schakel het in of gebruik een andere browser.',
         apiKey: 'API-sleutel',
+        exportsTo: 'Exporteert naar',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -1101,11 +1105,13 @@ const translations: TranslationDeepObject<typeof en> = {
             talkToAccountExecutive: 'Praat met je accountmanager',
             forGuidedSetup: 'voor begeleide installatie.',
             configureApprovalsSubText: 'Definieer rapportgoedkeuringen',
+            setupTravel: 'Reizen instellen',
+            setupTravelSubText: 'Reisspecifieke regels instellen',
         },
         yourSpend: {
             title: 'Je uitgaven',
             awaitingApproval: 'In afwachting van goedkeuring',
-            repaidLast30Days: 'Terugbetaald in de afgelopen 30 dagen',
+            repaidLast30Days: 'Terugbetaald afgelopen 30 dagen',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recente transacties • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Bekijk nog ${count}`,
@@ -2597,6 +2603,27 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Gebruik deze kaart voor je Expensify Travel-boekingen. Hij wordt weergegeven als “Travel Card” bij het afrekenen.',
         },
         chaseAccountNumberDifferent: 'Waarom is mijn rekeningnummer anders?',
+        cardLastSynced: (relativeDate: string) => `Gesynchroniseerd op ${relativeDate}`,
+        cardNeverSynced: 'Nooit gesynchroniseerd',
+        cardStatus: {
+            active: 'Actief',
+            inactive: 'Inactief',
+            fixConnection: 'Repareer deze verbinding alsjeblieft',
+            fixConnectionIn: (companyCardsRoute: string) => `Repareer deze verbinding in <a href="${companyCardsRoute}">bedrijfskaarten</a>`,
+            askAdminToFixConnection: 'Vraag een/beheerder om deze verbinding te herstellen',
+        },
+        bankAccountStatus: {
+            active: 'Actief',
+            incomplete: 'Onvolledig',
+            pending: 'In behandeling',
+            verifying: 'Bevestigen',
+            reviewingDocumentation: 'We beoordelen je documentatie',
+            finishAddingBankAccount: 'Bankrekening toevoegen afronden',
+            finish: 'Afronden',
+            confirmTestTransactions: 'Bevestig testtransacties alsjeblieft',
+            accountRequiresAttention: 'Deze account vereist aandacht',
+            unlock: 'Ontgrendelen',
+        },
     },
     cardPage: {
         expensifyCard: 'Expensify Kaart',
@@ -2930,8 +2957,16 @@ ${amount} voor ${merchant} - ${date}`,
             updateAvatar: 'Er is een probleem opgetreden bij het bijwerken van de avatar van deze agent',
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nieuwe agent',
+        buildCustomAgent: 'Eigen agent bouwen',
+        orStartWithTemplate: 'Of begin met een sjabloon:',
+        role: 'Agent',
+        emptyTemplatesTitle: 'Nog geen sjablonen',
+        emptyTemplatesSubtitle: 'Maak een aangepaste agent om te beginnen.',
+    },
+    addAgentPage: {
+        title: 'Eigen agent bouwen',
         agentName: 'Naam medewerker',
         instructions: 'Schrijf aangepaste instructies',
         createAgent: 'Agent aanmaken',
@@ -4436,21 +4471,21 @@ ${amount} voor ${merchant} - ${date}`,
         },
         nudge: {
             airfareManual:
-                'Hoi! Wist je dat je vluchten direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van handmatig een uitgave aanmaken en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             airfareCard:
-                'Hoi! Wist je dat je vluchten rechtstreeks in Expensify kunt boeken en beheren? En dat bonnetjes automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
+                'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
             hotelManual:
-                'Hoi! Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wist je dat je hotelovernachtingen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             hotelCard:
-                'Hoi! Wist je dat je hotelverblijven rechtstreeks in Expensify kunt boeken en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
+                'Wist je dat je hotelverblijven direct in Expensify kunt boeken en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🏨',
             carManual:
-                'Hoi! Wist je dat je autoverhuur direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             carCard:
-                'Hoi! Wist je dat je rechtstreeks in Expensify auto\'s kunt huren en beheren? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
+                'Wist je dat je autoverhuur rechtstreeks in Expensify kunt boeken en beheren? Boek de volgende keer eenvoudig via <a href="https://travel.expensify.com">Expensify Travel</a> 🚗',
             railManual:
-                'Hoi! Wist je dat je treinreizen gewoon in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van je uitgave handmatig aanmaken en boek simpelweg via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wist je dat je treinreizen direct in Expensify kunt boeken en beheren? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
-                'Hoi! Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat de bonnetjes automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+                'Wist je dat je treinreizen rechtstreeks in Expensify kunt boeken en beheren? En dat bonnen automatisch voor je worden geüpload? Boek de volgende keer gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
     },
     workspace: {
@@ -5041,7 +5076,9 @@ ${amount} voor ${merchant} - ${date}`,
             creditCardAccount: 'Creditcardrekening',
             defaultVendor: 'Standaardleverancier',
             defaultVendorDescription: (isReimbursable: boolean) =>
-                `Stel een standaardleverancier in die wordt toegepast op ${isReimbursable ? '' : 'niet-'}declarabele uitgaven zonder overeenkomende leverancier in Sage Intacct.`,
+                isReimbursable
+                    ? `Stel een standaardleverancier in die wordt toegepast op vergoedbare uitgaven waarvoor geen overeenkomende leverancier in Sage Intacct is.`
+                    : `Declaraties die niet overeenkomen met je Sage Intacct-leveranciers worden standaard aan deze leverancier toegewezen.`,
             exportDescription: 'Configureer hoe Expensify-gegevens worden geëxporteerd naar Sage Intacct.',
             exportPreferredExporterNote:
                 'De voorkeurs-exporteur kan elke werkruimtebeheerder zijn, maar moet ook een domeinbeheerder zijn als je in Domeininstellingen verschillende exportrekeningen instelt voor individuele bedrijfskaarten.',
@@ -5799,7 +5836,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             assign: 'Toewijzen',
             assignCard: 'Kaart toewijzen',
-            findCard: 'Kaart zoeken',
+            findCompanyCard: 'Bedrijfskaart zoeken',
             cardNumber: 'Kaartnummer',
             commercialFeed: 'Commerciële feed',
             feedName: (feedName: string) => `${feedName}-kaarten`,
@@ -6045,6 +6082,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             currentTravelSpendLabel: 'Huidige reiskosten',
                             currentTravelSpendPaymentQueued: (amount: string) => `Betaling van ${amount} staat in de wachtrij en wordt binnenkort verwerkt.`,
                             currentTravelSpendCta: 'Saldo betalen',
+                            viewOnSpend: 'Bekijken in Uitgaven',
                             currentTravelLimitLabel: 'Huidige reisl imiet',
                             settlementAccountLabel: 'Verrekeningsrekening',
                             settlementFrequencyLabel: 'Uitbetalingsfrequentie',
@@ -6131,8 +6169,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 transactionStartDate: 'Begindatum transactie',
                 updateCard: 'Kaart bijwerken',
                 unassignCard: 'Kaart loskoppelen',
+                unassignCards: 'Kaarten loskoppelen',
                 unassign: 'Toewijzen ongedaan maken',
                 unassignCardDescription: 'Het loskoppelen van deze kaart verwijdert alle niet-ingediende transacties.',
+                unassignCardsDescription: 'Loskoppelen verwijdert alle niet-ingediende transacties van de geselecteerde kaarten.',
                 removeCard: 'Kaart verwijderen',
                 remove: 'Verwijderen',
                 removeCardDescription: 'Als je deze kaart verwijdert, worden alle niet-ingediende transacties verwijderd.',
@@ -6237,6 +6277,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 defaultHourlyRate: 'Standaard uurtarief',
             },
             hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
+            vendors: {title: 'Leveranciers', subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -6592,6 +6633,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             peopleAdmins: 'People-beheerders',
             paymentsAdmins: 'Betalingsbeheerders',
             members: 'Leden',
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `Je kunt ${memberName} niet uit deze werkruimte verwijderen zolang diegene een Expensify Kaart heeft. Deactiveer eerst hun kaart in Werkruimte > Expensify Kaart en probeer het daarna opnieuw.`,
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -6930,6 +6973,12 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             exportCompanyCard: 'Bedrijfspaskosten exporteren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standaardleverancier',
+            defaultVendorHelperText: ({isSet}: DefaultVendorHelperTextParams) =>
+                isSet
+                    ? `Declaraties die niet automatisch worden gematcht, worden standaard aan deze leverancier gekoppeld.`
+                    : `Bonnetjes die niet automatisch worden gekoppeld, worden standaard aan deze leverancier toegewezen. Anders worden ze geëxporteerd als Credit Card Misc.`,
+            defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
+                `Kies een standaard ${connectionName}-leverancier voor uitgaven die niet automatisch worden gematcht.`,
             defaultAccount: 'Standaardrekening',
             autoSync: 'Automatisch synchroniseren',
             autoSyncDescription: 'Synchroniseer NetSuite en Expensify automatisch, elke dag. Exporteer een afgerond rapport in realtime',
@@ -7759,6 +7808,18 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 editRuleTitle: 'Regel bewerken',
                 deleteRule: 'Regel verwijderen',
                 deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
+                unableToRemoveTitle: 'Verwijderen niet mogelijk',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `De <a href="${rulesRoute}">agentregels</a> die door RuleBot worden afgedwongen, moeten eerst uit je werkruimte worden verwijderd voordat je deze agent kunt verwijderen.`,
+                unableToCloseAccountTitle: 'Account kan niet worden gesloten',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `De <a href="${rulesRoute}">agentregels</a> die door RuleBot worden afgedwongen, moeten eerst uit je werkruimte worden verwijderd voordat je dit account kunt sluiten.`,
+                unableToDeleteAgentTitle: 'Agent kan niet worden verwijderd',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `De <a href="${rulesRoute}">agentregels</a> die door RuleBot worden afgedwongen, moeten eerst uit je werkruimte worden verwijderd voordat je deze agent kunt verwijderen.`,
+                unableToChangeRoleTitle: 'Rol kan niet worden gewijzigd',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `De <a href="${rulesRoute}">agentregels</a> die door RuleBot worden afgedwongen, moeten eerst uit je werkruimte worden verwijderd voordat je de rol van deze agent kunt wijzigen.`,
                 describeRuleTitle: 'Beschrijf de regel die je AI-agent moet volgen',
                 describeRuleHeadline: 'Beschrijf je regel',
                 disclaimer: 'AI-agents kunnen fouten maken.',
@@ -8918,6 +8979,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Betalen',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporteren',
             },
+            filterType: {label: 'Filtertype', has: {positive: 'heeft', negative: 'heeft niet'}, is: {positive: 'is', negative: 'is niet'}},
         },
         display: {
             label: 'Weergave',
@@ -9397,6 +9459,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         save: 'Opslaan',
         resume: 'Hervatten',
         discard: 'Weggooien',
+        edit: 'Bewerken',
+        editStop: 'Stop bewerken',
+        totalDistance: 'Totale afstand',
         discardDistanceTrackingModal: {
             title: 'Afstandsregistratie negeren',
             prompt: 'Weet je het zeker? Hiermee wordt je huidige proces afgebroken en dit kan niet ongedaan worden gemaakt.',

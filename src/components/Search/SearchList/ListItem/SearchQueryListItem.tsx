@@ -65,6 +65,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             showTooltip={showTooltip}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem
+            rightHandSideComponent={item.rightElement}
         >
             <>
                 {!!item.singleIcon && (
