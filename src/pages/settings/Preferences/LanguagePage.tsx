@@ -23,8 +23,6 @@ type LanguageEntry = ListItem & {
 function LanguagePage() {
     const {translate, preferredLocale} = useLocalize();
 
-    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
-    // persisted locale, so the change of context (persist + navigate) only happens when the user taps Save.
     const [draftLocale, setDraftLocale] = useState<Locale>();
     const selectedLocale = draftLocale ?? preferredLocale;
 
@@ -52,7 +50,6 @@ function LanguagePage() {
         showButton: true,
         text: translate('common.save'),
         onConfirm: saveAndGoBack,
-        // Nothing to save while the selection still matches the persisted locale.
         isDisabled: selectedLocale === preferredLocale,
     };
 

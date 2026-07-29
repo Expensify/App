@@ -191,12 +191,10 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
             capturedOnSelectRow?.(aud!);
         });
 
-        // Selecting a row is not an automatic change of context: nothing is persisted and we stay on the page.
         expect(mockSetDraftValues).not.toHaveBeenCalled();
         expect(mockSetPaymentMethodCurrency).not.toHaveBeenCalled();
         expect(mockGoBack).not.toHaveBeenCalled();
 
-        // The checkmark follows the in-page draft selection.
         const selected = capturedData.filter((option) => option.isSelected);
         expect(selected).toHaveLength(1);
         expect(selected.at(0)?.value).toBe('AUD');
@@ -227,7 +225,6 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        // Nothing has changed yet, so there is nothing to save.
         expect(capturedConfirmButtonOptions?.isDisabled).toBe(true);
 
         const aud = capturedData.find((option) => option.value === 'AUD');
@@ -237,7 +234,6 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
             capturedOnSelectRow?.(aud!);
         });
 
-        // A different currency is now selected, so Save becomes actionable.
         expect(capturedConfirmButtonOptions?.isDisabled).toBe(false);
     });
 

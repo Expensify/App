@@ -44,8 +44,6 @@ function DynamicPaymentCardCurrencySelectorPage() {
     );
     const currentCurrency = (formDraft?.[INPUT_IDS.CURRENCY] ?? addCardForm?.currency ?? fallbackCurrency) as Currency;
 
-    // The draft holds the user's in-page selection. Until they pick a row it stays undefined and we fall back to the
-    // persisted currency, so the change of context (persist + navigate) only happens when the user taps Save.
     const [draftCurrency, setDraftCurrency] = useState<Currency>();
     const selectedCurrency = draftCurrency ?? currentCurrency;
 
@@ -71,7 +69,6 @@ function DynamicPaymentCardCurrencySelectorPage() {
         showButton: true,
         text: translate('common.save'),
         onConfirm: saveAndGoBack,
-        // Nothing to save while the selection still matches the persisted currency.
         isDisabled: selectedCurrency === currentCurrency,
     };
 
