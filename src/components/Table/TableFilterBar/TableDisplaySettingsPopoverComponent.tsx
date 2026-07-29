@@ -65,6 +65,7 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
         >
             <ListFilterWrapper
                 itemCount={columns.length}
+                itemHeight={variables.optionRowHeight}
                 hasHeader
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
