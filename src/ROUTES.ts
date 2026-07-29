@@ -162,7 +162,7 @@ const DYNAMIC_ROUTES = {
     },
     IMPORTED_MEMBERS_ROLE: {
         path: 'imported-members-role',
-        entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION],
+        entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION, SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION],
     },
     REPORT_SETTINGS: {
         path: 'report-settings',
@@ -1759,6 +1759,10 @@ const ROUTES = {
             return `${base}${pagePart}${subPagePart}${actionPart}` as const;
         },
     },
+    SETTINGS_ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE: {
+        route: 'settings/wallet/enable-payments/confirm-magic-code',
+        getRoute: () => 'settings/wallet/enable-payments/confirm-magic-code' as const,
+    },
     SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/unshare-bank-account',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/unshare-bank-account` as const,
@@ -2729,6 +2733,18 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/workflows` as const;
         },
+    },
+    WORKSPACE_WORKFLOWS_IMPORT: {
+        route: 'workspaces/:policyID/workflows/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/import` as const,
+    },
+    WORKSPACE_WORKFLOWS_IMPORTED: {
+        route: 'workspaces/:policyID/workflows/imported',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/imported` as const,
+    },
+    WORKSPACE_WORKFLOWS_IMPORTED_CONFIRMATION: {
+        route: 'workspaces/:policyID/workflows/imported/confirmation',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/imported/confirmation` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
         route: 'workspaces/:policyID/workflows/approvals/new',
