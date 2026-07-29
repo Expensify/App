@@ -58,7 +58,19 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [selectedAssignee, setSelectedAssignee] = useState<ListItem | undefined>();
+    // Seed the selection from the already-assigned cardholder (e.g. when returning to this step in edit mode) so
+    // Next continues with the saved cardholder instead of demanding a fresh selection. Matches CardSelectionStep.
+    const [selectedAssignee, setSelectedAssignee] = useState<ListItem | undefined>(() => {
+        const assignedEmail = assignCard?.cardToAssign?.email;
+        if (!assignedEmail) {
+            return undefined;
+        }
+        return {
+            login: assignedEmail,
+            accountID: getPersonalDetailByEmail(assignedEmail)?.accountID,
+            keyForList: assignedEmail,
+        };
+    });
     const [shouldShowError, setShouldShowError] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
@@ -156,12 +168,12 @@ function AssigneeStep({route}: AssigneeStepProps) {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
     };
 
-    const handleSelectRow = (assignee: ListItem) => {
+    const selectAssignee = (assignee: ListItem) => {
         setSelectedAssignee(assignee);
         setShouldShowError(false);
     };
 
-    const handleSubmit = () => {
+    const assignSelectedCardholder = () => {
         if (!selectedAssignee) {
             setShouldShowError(true);
             return;
@@ -280,7 +292,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseTheCardholder')}</Text>
                 <SelectionList
                     data={assignees}
-                    onSelectRow={handleSelectRow}
+                    onSelectRow={selectAssignee}
                     ListItem={UserListItem}
                     textInputOptions={textInputOptions}
                     initiallyFocusedItemKey={selectedAssignee?.keyForList}
@@ -292,7 +304,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                     footerContent={
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.next')}
-                            onSubmit={handleSubmit}
+                            onSubmit={assignSelectedCardholder}
                             isAlertVisible={shouldShowError}
                             containerStyles={[!shouldShowError && styles.mt5]}
                             message={translate('workspace.companyCards.pleaseSelectACardholder')}

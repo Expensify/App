@@ -423,6 +423,54 @@ describe('AssignCardFeed', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
+        it('should keep the already-assigned cardholder selected so Next continues without requiring a fresh selection', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const navigateSpy = jest.spyOn(Navigation, 'navigate');
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
+                },
+            };
+
+            // Returning to this step in edit mode with a cardholder already saved on cardToAssign.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+                    cardToAssign: {email: 'testaccount+1@gmail.com'},
+                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: true,
+                });
+            });
+
+            const {unmount} = renderAssigneeStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Pressing Next without re-tapping should continue with the saved cardholder, not error out.
+            await waitFor(() => {
+                expect(screen.getByText('Next')).toBeOnTheScreen();
+            });
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Please select a cardholder to continue')).not.toBeOnTheScreen();
+            expect(navigateSpy).toHaveBeenCalled();
+
+            unmount();
+            navigateSpy.mockRestore();
+            await waitForBatchedUpdatesWithAct();
+        });
+
         it('should navigate back to the confirmation step (not dismiss the flow) when back is pressed while editing the cardholder', async () => {
             await TestHelper.signInWithTestUser();
 
