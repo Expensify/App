@@ -81,6 +81,19 @@ describe('AddPersonalBankAccountPage', () => {
         expect(mockedClearPersonalBankAccount.mock.calls.at(-1)?.at(0)).toBeUndefined();
     });
 
+    it('drops the report to return to once the user has been sent back to it', () => {
+        mockPersonalBankAccount = {exitReportID: '1234', shouldShowSuccess: true};
+        const {rerender, unmount} = render(<AddPersonalBankAccountPage />);
+
+        act(() => {
+            jest.mocked(HeaderWithBackButton).mock.calls.at(-1)?.at(0)?.onBackButtonPress?.();
+        });
+        rerender(<AddPersonalBankAccountPage />);
+        unmount();
+
+        expect(mockedClearPersonalBankAccount.mock.calls.at(-1)?.at(0)).toBeUndefined();
+    });
+
     it('clears everything when there is no flow to continue', () => {
         mockPersonalBankAccount = {bankAccountID: 1234};
         const {unmount} = render(<AddPersonalBankAccountPage />);

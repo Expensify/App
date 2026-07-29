@@ -52,13 +52,15 @@ function AddPersonalBankAccountPage() {
         const exitReportID = personalBankAccount?.exitReportID;
         const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
+        // Reaching this handler always means leaving on purpose, so the next flow must not inherit where this one was headed.
+        hasExitedFlowRef.current = true;
+        flowRoutingDataRef.current = undefined;
+
         if (exitReportID) {
             Navigation.dismissModalWithReport({reportID: exitReportID});
         } else if (shouldContinue && onSuccessFallbackRoute) {
             continueSetup(kycWallRef, onSuccessFallbackRoute);
         } else {
-            hasExitedFlowRef.current = true;
-            flowRoutingDataRef.current = undefined;
             goBack();
             clearPersonalBankAccount();
         }
@@ -70,7 +72,7 @@ function AddPersonalBankAccountPage() {
         }
         const {onSuccessFallbackRoute, exitReportID} = personalBankAccount ?? {};
         flowRoutingDataRef.current = !onSuccessFallbackRoute && !exitReportID ? undefined : {onSuccessFallbackRoute, exitReportID};
-    });
+    }, [personalBankAccount]);
 
     // Where the flow continues once an account is added is seeded by its entry point (e.g. Pay > KYC), not by this form,
     // so tearing the form down when the user leaves mid-setup must keep it for when they come back and finish.
