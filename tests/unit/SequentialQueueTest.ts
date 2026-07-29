@@ -751,6 +751,72 @@ describe('SequentialQueue - offline read reconciliation', () => {
         }
     });
 
+    it('does not defer the read past a queued same-report MarkAsUnread, so the explicit unread still wins on the server', async () => {
+        // MarkAsUnread is the only command the server lets move lastReadTime backward. Deferring the read
+        // behind it would make the read run last and win, wiping the user's explicit unread (offline flow:
+        // open report → comment → mark older message as unread). The defer must be skipped in that case —
+        // the read keeps its original position and stale time, and MarkAsUnread runs last.
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const commentServerTime = '2026-01-01 10:00:00.000';
+        const markAsUnread: AnyRequest = {command: WRITE_COMMANDS.MARK_AS_UNREAD, data: {reportID, lastReadTime: '2026-01-01 08:00:00.000'}, initiatedOffline: true};
+        const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildRead(staleReadTime));
+            await SequentialQueue.push(buildComment());
+            await SequentialQueue.push(markAsUnread);
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            expect(capture.readLastReadTime).toBe(staleReadTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
+    it('skips the bump when a same-report MarkAsUnread is queued behind an already-tail read, so the local mirror never overwrites the explicit unread', async () => {
+        // Ordering [comment, read, markUnread]: no defer is involved, but the bump (and its Onyx mirror)
+        // must also stand down — the user explicitly marked the report unread after the read was queued.
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const commentServerTime = '2026-01-01 10:00:00.000';
+        const markAsUnread: AnyRequest = {command: WRITE_COMMANDS.MARK_AS_UNREAD, data: {reportID, lastReadTime: '2026-01-01 08:00:00.000'}, initiatedOffline: true};
+        const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildComment());
+            await SequentialQueue.push(buildRead(staleReadTime));
+            await SequentialQueue.push(markAsUnread);
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            expect(capture.readLastReadTime).toBe(staleReadTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
+    it('still defers and bumps when the queued MarkAsUnread belongs to a different report', async () => {
+        const staleReadTime = '2026-01-01 09:00:00.000';
+        const commentServerTime = '2026-01-01 10:00:00.000';
+        const otherReportMarkAsUnread: AnyRequest = {command: WRITE_COMMANDS.MARK_AS_UNREAD, data: {reportID: '999999', lastReadTime: '2026-01-01 08:00:00.000'}, initiatedOffline: true};
+        const {spy: processSpy, capture} = mockProcessWithMiddleware(commentServerTime);
+        try {
+            SequentialQueue.pause();
+            await SequentialQueue.push(buildRead(staleReadTime));
+            await SequentialQueue.push(buildComment());
+            await SequentialQueue.push(otherReportMarkAsUnread);
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            expect(capture.readLastReadTime).toBe(commentServerTime);
+        } finally {
+            processSpy.mockRestore();
+        }
+    });
+
     it('does not defer an offline read when the only queued comments belong to a different report', async () => {
         const staleReadTime = '2026-01-01 09:00:00.000';
         const commentServerTime = '2026-01-01 10:00:00.000';

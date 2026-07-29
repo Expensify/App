@@ -170,6 +170,16 @@ function deferOfflineReadBehindSameReportComments(persistedRequests: AnyRequest[
         return null;
     }
 
+    // MarkAsUnread is the only command the server allows to move lastReadTime BACKWARD — stale reads are
+    // simply ignored, which is what makes this reorder safe in general. But deferring the read past a queued
+    // same-report MarkAsUnread would make the read run last and win, wiping the unread state the user
+    // explicitly asked for (offline flow: open report → comment → mark older message as unread). Keep the
+    // original order in that case so MarkAsUnread still runs last; the read's stale time is then harmless.
+    const hasLaterSameReportMarkAsUnread = persistedRequests.slice(1).some((request) => request.command === WRITE_COMMANDS.MARK_AS_UNREAD && request.data?.reportID === reportID);
+    if (hasLaterSameReportMarkAsUnread) {
+        return null;
+    }
+
     Log.info('[SequentialQueue] Deferring offline ReadNewestAction behind a same-report offline comment still in queue', false, {reportID});
     // Both calls mutate the in-memory queue synchronously before returning, so the reorder is visible to
     // the very next process() call regardless of how long the disk write takes. We still await the writes
@@ -234,7 +244,14 @@ function process(): Promise<void> {
     // Only bump when the same report had offline comments processed earlier in this queue flush.
     if (requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION && requestToProcess.initiatedOffline) {
         const reportID = requestToProcess.data?.reportID;
-        if (typeof reportID === 'string' && reportsWithProcessedOfflineComments.has(reportID)) {
+        // MarkAsUnread is the only command the server lets move lastReadTime backward, and the user's explicit
+        // unread must always win over this reconciliation. When a same-report MarkAsUnread is still queued
+        // behind this read, skip the bump entirely: the read goes out with its stale time (which the server
+        // ignores as a no-op), MarkAsUnread runs after it, and — just as importantly — the local Onyx mirror
+        // below never overwrites the backward lastReadTime the user's mark-as-unread already set optimistically.
+        const hasPendingSameReportMarkAsUnread =
+            typeof reportID === 'string' && getAllPersistedRequests().some((request) => request.command === WRITE_COMMANDS.MARK_AS_UNREAD && request.data?.reportID === reportID);
+        if (typeof reportID === 'string' && !hasPendingSameReportMarkAsUnread && reportsWithProcessedOfflineComments.has(reportID)) {
             const recordedTime = reportsWithProcessedOfflineComments.get(reportID);
             const currentLastReadTime = typeof requestToProcess.data?.lastReadTime === 'string' ? requestToProcess.data.lastReadTime : '';
             // Only ever move the read forward. A stale/older recorded time must never pull lastReadTime
