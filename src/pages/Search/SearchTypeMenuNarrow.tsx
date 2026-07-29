@@ -21,11 +21,14 @@ import useTodoCounts from '@hooks/useTodoCounts';
 
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getItemBadgeText, getOverflowMenu, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import {accountIDSelector} from '@src/selectors/Session';
 
 // NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
@@ -79,9 +82,8 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
 function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
-    const route = useRoute();
-    const routeParams = route.params as {q?: string; name?: string} | undefined;
-    const searchName = routeParams?.name;
+    const route = useRoute<PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>>();
+    const searchName = route.params?.name;
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();

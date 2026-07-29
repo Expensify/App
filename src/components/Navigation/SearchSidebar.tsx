@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 
@@ -42,6 +43,8 @@ type SearchSidebarProps = {
     state: PlatformStackNavigationState<ParamListBase>;
 };
 
+type SearchRootParams = SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+
 function SearchSidebar({state}: SearchSidebarProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -56,7 +59,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const toggleButtonAnimatedStyle = useSearchSidebarToggleButtonStyle();
 
     const route = state.routes.at(-1);
-    const searchRouteParams = route?.name === SCREENS.SEARCH.ROOT ? (route.params as {q?: string; name?: string} | undefined) : undefined;
+    const searchRouteParams = route?.name === SCREENS.SEARCH.ROOT ? (route.params as SearchRootParams | undefined) : undefined;
     const {lastSearchType, currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const {setLastSearchType} = useSearchResultsActions();
