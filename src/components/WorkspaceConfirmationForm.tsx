@@ -13,6 +13,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getDefaultWorkspacePlanType, getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
@@ -20,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
+import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -37,13 +39,10 @@ import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import PlanTypeSelector from './PlanTypeSelector';
 import ScrollView from './ScrollView';
 import Switch from './Switch';
 import Text from './Text';
 import TextInput from './TextInput';
-
-type PolicyType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
 
 type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
@@ -137,15 +136,7 @@ function WorkspaceConfirmationForm({
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
-    const isMemberOfControlWorkspace = useMemo(() => {
-        if (!policies) {
-            return false;
-        }
-        return Object.values(policies).some((policy) => policy?.type === CONST.POLICY.TYPE.CORPORATE);
-    }, [policies]);
-
-    const defaultPlanType = isMemberOfControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
-    const userPlanType = draftValues?.planType ?? defaultPlanType;
+    const userPlanType = draftValues?.planType ?? getDefaultWorkspacePlanType(policies);
     const defaultOwner = (policyOwnerEmail || session?.email) ?? '';
 
     const userOwner = draftValues?.owner ?? defaultOwner;
@@ -229,7 +220,7 @@ function WorkspaceConfirmationForm({
                         onSubmit({
                             name: val[INPUT_IDS.NAME],
                             currency: val[INPUT_IDS.CURRENCY],
-                            planType: isApprovedAccountant ? (val[INPUT_IDS.PLAN_TYPE] as PolicyType) : undefined,
+                            planType: isApprovedAccountant ? val[INPUT_IDS.PLAN_TYPE] : undefined,
                             owner: isApprovedAccountant ? val[INPUT_IDS.OWNER] : '',
                             makeMeAdmin: isApprovedAccountant && isOwnerDifferentFromCurrentUser ? makeMeAdmin : false,
                             avatarFile,
@@ -272,16 +263,22 @@ function WorkspaceConfirmationForm({
                         </View>
                         {isApprovedAccountant && (
                             <>
-                                <View style={[styles.mhn5]}>
+                                <View style={styles.mhn5}>
                                     <InputWrapper
-                                        InputComponent={PlanTypeSelector}
+                                        InputComponent={MenuItemWithTopDescription}
                                         inputID={INPUT_IDS.PLAN_TYPE}
-                                        label={translate('workspace.common.planType')}
-                                        defaultValue={userPlanType}
+                                        description={translate('workspace.common.planType')}
+                                        title={getUserFriendlyWorkspaceType(userPlanType, translate)}
+                                        interactive
+                                        shouldShowRightIcon
+                                        onPress={() => {
+                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION_PLAN_TYPE.path));
+                                        }}
+                                        value={userPlanType}
                                     />
                                 </View>
 
-                                <View style={[styles.mhn5]}>
+                                <View style={styles.mhn5}>
                                     <InputWrapper
                                         InputComponent={MenuItemWithTopDescription}
                                         inputID={INPUT_IDS.OWNER}
@@ -297,7 +294,7 @@ function WorkspaceConfirmationForm({
                                 </View>
 
                                 {isOwnerDifferentFromCurrentUser && (
-                                    <View style={[styles.mhn5]}>
+                                    <View style={styles.mhn5}>
                                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph5, styles.pv3]}>
                                             <View style={styles.flex1}>
                                                 <Text style={[styles.textNormal]}>{translate('workspace.common.keepMeAsAdmin')}</Text>
