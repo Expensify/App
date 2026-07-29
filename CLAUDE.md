@@ -204,7 +204,7 @@ The skill provides guidance on:
 
 ### Memoization
 
-React Compiler (`babel-plugin-react-compiler`) runs in the build pipeline (see `babel.config.js`) and auto-memoizes object literals, callbacks, JSX, and derived values inside components and hooks, excluding `tests/`.
+React Compiler auto-memoizes object literals, callbacks, JSX, and derived values inside components and hooks (excluding `tests/`). Two different compilers run it: `babel-plugin-react-compiler` on native/Jest (see `babel.config.js`) and `oxc-transform` on web (see `config/rsbuild/`). They do not always agree, so a file can be memoized on one platform but not the other. The compliance check and the ESLint processor both run BOTH compilers via the shared helpers in `config/reactCompiler/` and only relax manual-memoization rules when both compilers memoize the file.
 
 ### Code Quality
 
@@ -220,7 +220,7 @@ React Compiler (`babel-plugin-react-compiler`) runs in the build pipeline (see `
 1. **Oxfmt**: Run `npm run fmt` on every file you modified. This is mandatory - CI will reject unformatted code.
 2. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
 3. **TypeScript**: Run `npm run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `npm run typecheck` (tsc), which remains the required merge gate.
-4. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI: new components/hooks must compile, and existing compiled files must not regress. See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
+4. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI, evaluated against BOTH the Babel and OXC compilers: new components/hooks must compile, existing compiled files must not regress, and changes must not introduce new memoization divergence (one compiler memoizing a file while the other does not). See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
 
 ### Testing
 

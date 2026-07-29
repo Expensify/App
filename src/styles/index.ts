@@ -11,7 +11,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 
 /* eslint-disable max-lines */
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
+import type {LineLayerStyle as LineLayerStyleProps} from '@rnmapbox/maps';
 import type {LineLayerSpecification} from 'react-map-gl/mapbox';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, DimensionValue, ImageStyle, TextStyle, ViewStyle} from 'react-native';
@@ -144,20 +144,24 @@ const picker = (theme: ThemeColors) =>
 const link = (theme: ThemeColors) =>
     ({
         color: theme.link,
-        textDecorationColor: theme.link,
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
-        // We do not want to have underline on links
-        textDecorationLine: 'none',
+        // In high-contrast themes, underline links so they are distinguishable by more than color (WCAG 1.4.1).
+        // Otherwise we do not want an underline on links. We deliberately omit textDecorationColor so the
+        // underline inherits the link's text color, keeping the two in sync in every context.
+        textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const emailLink = (theme: ThemeColors) =>
     ({
         color: theme.link,
-        textDecorationColor: theme.link,
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
         fontWeight: FontUtils.fontWeight.bold,
+        // In high-contrast themes, underline links so they are distinguishable by more than color (WCAG 1.4.1).
+        // Otherwise we do not want an underline on links. We deliberately omit textDecorationColor so the
+        // underline inherits the link's text color, keeping the two in sync in every context.
+        textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const baseCodeTagStyles = (theme: ThemeColors) =>
@@ -2737,7 +2741,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingLeft: 20,
             height: variables.contentHeaderHeight,
             width: '100%',
-            backgroundColor: theme.appBG,
         },
 
         reportSearchHeaderBar: {
@@ -2866,6 +2869,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         overlayCenteringTransform: {
             transform: 'translateX(-50%)',
+        },
+
+        trialReminderIllustrationContainer: {
+            // Fixed brand navy used as the illustration backdrop; intentionally not theme-dependent.
+            backgroundColor: colors.blue800,
+            height: CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT,
         },
 
         reportActionContextMenuMiniButton: {
@@ -3014,6 +3023,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         avatarSectionWrapperSkeleton: {
             width: '100%',
+        },
+
+        conciergeAnimatedAvatar: {
+            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeNormal,
         },
 
         accountSettingsSectionContainer: {
@@ -3237,26 +3251,26 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.checkBox,
         },
 
-        magicCodeInputContainer: {
+        validateCodeInputContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
             height: variables.inputHeight,
         },
 
-        magicCodeInput: {
+        validateCodeInput: {
             fontSize: variables.fontSizeXLarge,
             color: theme.heading,
             lineHeight: variables.lineHeightXXXLarge,
         },
 
-        magicCodeInputValueContainer: {
+        validateCodeInputValueContainer: {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative',
         },
 
-        magicCodeInputCursorContainer: {
+        validateCodeInputCursorContainer: {
             position: 'absolute',
             textAlign: 'center',
             flexDirection: 'row',
@@ -3265,7 +3279,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        magicCodeInputCursor: {
+        validateCodeInputCursor: {
             fontSize: 24,
             color: theme.heading,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
@@ -3782,6 +3796,27 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.sliderKnobSize / 2,
             left: -(variables.sliderKnobSize / 2),
             ...cursor.cursorPointer,
+        },
+
+        editedStopSliderKnob: {
+            position: 'absolute',
+            height: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.height,
+            width: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width,
+            left: -(CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width / 2),
+            top: -CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.xAxisLineHeight,
+            ...cursor.cursorPointer,
+        },
+
+        editStopSliderFilled: {
+            backgroundColor: colors.green400,
+            height: '100%',
+            borderRadius: variables.sliderBarHeight / 2,
+        },
+
+        editStopSliderBarContainer: {
+            height: 64,
+            paddingHorizontal: 20,
+            justifyContent: 'center',
         },
 
         sliderBar: {
@@ -4628,7 +4663,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 20,
         },
 
-        inboxTabBadge: {
+        tabSelectorBadge: {
             minWidth: 18,
             height: 16,
             marginLeft: 8,
@@ -4954,6 +4989,11 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
+        pdfErrorPlaceholderFullWidth: {
+            width: '100%',
+            maxWidth: '100%',
+        },
+
         moneyRequestAttachReceipt: {
             backgroundColor: theme.highlightBG,
             borderColor: theme.border,
@@ -4967,6 +5007,14 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
+
+        receiptEmptyStateCompact: {
+            ...spacing.mh4,
+            overflow: 'hidden',
+            borderRadius: variables.componentBorderRadiusNormal,
+            height: 52,
+            maxWidth: '100%',
+        },
 
         moneyRequestAttachReceiptThumbnailIcon: {
             position: 'absolute',
@@ -5203,6 +5251,12 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: CONST.ADVANCED_FILTERS_CONTENT_WIDTH,
         },
 
+        negatableFilterButtons: {
+            flexDirection: 'row',
+            minWidth: 180,
+            borderRadius: variables.buttonBorderRadius,
+        },
+
         searchActionsBarContainer: {
             marginTop: 12,
             marginBottom: 16,
@@ -5230,6 +5284,11 @@ const staticStyles = (theme: ThemeColors) =>
         // Extra 2 to account for the borders
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
         searchPageInputNarrowTouchableWrapper: {height: 46},
+
+        // Compact search inputs that appear above lists/popovers. Matches the smaller
+        // "above the table" search input heights (34 on web/desktop, 46 on mobile).
+        listSearchInputWideWrapper: {height: 34},
+        listSearchInputNarrowWrapper: {height: 46},
 
         walletStaticIllustration: {
             width: 262,
@@ -5628,6 +5687,20 @@ const staticStyles = (theme: ThemeColors) =>
         sortingMachineRulesEmptyStateIllustration: {
             width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
             height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
+        },
+
+        agentsRulesEmptyStateIllustration: {
+            width: variables.agentsRulesEmptyStateIllustrationWidth,
+            height: variables.agentsRulesEmptyStateIllustrationHeight,
+        },
+
+        agentRulesErrorRow: {
+            ...spacing.pt2,
+            ...spacing.pb3,
+        },
+
+        agentRulePromptInput: {
+            maxHeight: variables.agentRulePromptInputHeight,
         },
 
         emptyStateSamlIllustration: {
@@ -6358,6 +6431,9 @@ const staticStyles = (theme: ThemeColors) =>
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
+        chartExpandedContent: {
+            transformOrigin: 'top left',
+        },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,
         },
@@ -6815,6 +6891,12 @@ const dynamicStyles = (theme: ThemeColors) =>
             backgroundColor: shouldUseNarrowLayout ? undefined : theme.buttonDefaultBG,
             borderRadius: 999,
         }),
+
+        // The 40px bulk-actions button swaps in for the table filter bar row (32px search bar on wide layouts, 44px on narrow),
+        // so offset its vertical margin to keep the row height identical and prevent the table from shifting (see searchBulkActionsButton).
+        tableBulkActionsButton: (shouldUseNarrowTableLayout: boolean) => ({
+            marginVertical: shouldUseNarrowTableLayout ? 2 : -4,
+        }),
     }) satisfies DynamicStyles;
 
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects
@@ -6936,13 +7018,13 @@ const plainStyles = (theme: ThemeColors) =>
             lineColor: colors.green400,
             lineWidth: 6,
             lineCap: 'round',
-        },
+        } satisfies MapDirectionStyle,
 
         mapDirectionBorder: {
             lineColor: colors.green600,
             lineWidth: 8,
             lineCap: 'round',
-        },
+        } satisfies MapDirectionStyle,
 
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},

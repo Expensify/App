@@ -71,11 +71,8 @@ type SettlementButtonProps = WithSentryLabel & {
     /** Total money amount in form <currency><amount> */
     formattedAmount?: string;
 
-    /** The size of button size */
-    buttonSize?: ValueOf<typeof CONST.BUTTON_SIZE>;
-
-    /** Render button in extra-small size */
-    extraSmall?: boolean;
+    /** The size of the button */
+    size?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
@@ -84,7 +81,7 @@ type SettlementButtonProps = WithSentryLabel & {
     isDisabled?: boolean;
 
     /** Whether the button should stay visually normal even when disabled. */
-    shouldStayNormalOnDisable?: boolean;
+    stayNormalOnDisable?: boolean;
 
     /** Whether we should show a loading state for the main button */
     isLoading?: boolean;

@@ -1,4 +1,4 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env bun
 import GitHubUtils from '@github/libs/GithubUtils';
 
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
@@ -545,7 +545,7 @@ class TranslationGenerator {
             if (!this.isIncremental) {
                 const scriptPath = path.relative(process.cwd(), path.resolve(__dirname, 'generateTranslations.ts'));
                 console.log(
-                    `Note: You are currently running a full retranslation of the entire \`en.ts\` file. To incrementally translate only what you changed on your branch, run: ${COLORS.BLUE}\`npx ts-node ${scriptPath} --compare-ref main\`${COLORS.RESET}\n`,
+                    `Note: You are currently running a full retranslation of the entire \`en.ts\` file. To incrementally translate only what you changed on your branch, run: ${COLORS.BLUE}\`bun ${scriptPath} --compare-ref main\`${COLORS.RESET}\n`,
                 );
             }
 

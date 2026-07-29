@@ -40,6 +40,7 @@ import TableEmptyState from './TableEmptyStates/TableEmptyState';
 import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
 import TableFilterBar from './TableFilterBar';
 import TableHeader from './TableHeader';
+import TableLoadingState from './TableLoadingState';
 import TableRow from './TableRow';
 
 /**
@@ -50,6 +51,10 @@ import TableRow from './TableRow';
  * - `Table.Header` - Sortable column headers
  * - `Table.Body` - Data rows using FlashList
  * - `Table.FilterBar` - Search input & filter bar
+ * - `Table.Row` - A single row in the table
+ * - `Table.EmptyState` - Renders when the table has no rows
+ * - `Table.NoResultsState` - Renders when the table has rows, but the user has filtered all of them out
+ * - `Table.LoadingState` - Renders a loading indicator when the table is loading its data
  */
 const Table = Object.assign(TableComponent, {
     /** The React context for accessing table state directly. */
@@ -72,6 +77,9 @@ const Table = Object.assign(TableComponent, {
 
     /** Renders when the table has rows, but the user has filtered all of them out */
     NoResultsState: TableNoResultsState,
+
+    /** Renders a loading indicator when the table is loading its data */
+    LoadingState: TableLoadingState,
 });
 
 export default Table;

@@ -71,6 +71,7 @@ import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
+import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
 
 type ReportActionsListProps = {
     /** The ID of the report to display actions for */
@@ -170,7 +171,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {getScrollOffset} = useActionListContext();
     const listRef = useActionListRef();
 
-    const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
+    const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
@@ -318,6 +319,16 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
 
+    useFollowActionBadgeTarget({
+        isProduction,
+        reportID,
+        actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
+        actionBadgeTargetIndex,
+        actionBadge: reportAttributes?.actionBadge,
+        renderedVisibleReportActions,
+        scrollToActionBadgeTarget,
+    });
+
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
@@ -343,7 +354,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     })();
 
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-        const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
+        const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
         return (
             <ReportActionIndexContext.Provider value={index}>
@@ -382,12 +393,18 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportActionID, draftMessageHTML];
+    const extraData = [
+        shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined,
+        isArchivedNonExpenseReport(report, isReportArchived),
+        draftReportActionID,
+        draftMessageHTML,
+        isDraftPendingCompletion,
+    ];
 
     const listHeaderComponent = (
         <ReportActionsListHeader
             reportID={reportID}
-            hasActiveDraft={hasActiveDraft}
+            isDraftPendingCompletion={isDraftPendingCompletion}
         />
     );
 

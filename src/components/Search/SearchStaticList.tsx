@@ -90,7 +90,7 @@ function SearchStaticList({
         () => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
     );
 
-    const {type, status, sortBy, sortOrder, groupBy} = queryJSON;
+    const {type, sortBy, sortOrder, groupBy} = queryJSON;
     const validGroupBy = getValidGroupBy(groupBy);
     const searchData = searchResults?.data;
 
@@ -112,7 +112,7 @@ function SearchStaticList({
             reportAttributesDerivedValue: undefined,
         });
 
-        return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
+        return getSortedSections(type, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
             .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .slice(0, STATIC_LIST_MAX_ITEMS);
     })();
