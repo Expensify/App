@@ -4013,3 +4013,20 @@ describe('getSelectedRouteDistance', () => {
         expect(TransactionUtils.getSelectedRouteDistance(undefined)).toBeUndefined();
     });
 });
+
+describe('getDistanceInMeters', () => {
+    const routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString' as const, coordinates: [[1, 1] as [number, number]]}},
+    };
+
+    it('returns the selected route distance', () => {
+        const transaction = generateTransaction({comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(1500);
+    });
+
+    it('falls back to route0 when the selected route is no longer available', () => {
+        const transaction = generateTransaction({comment: {selectedRouteKey: 'route1'}, routes: {route0: routes.route0}});
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(1000);
+    });
+});

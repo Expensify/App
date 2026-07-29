@@ -1096,6 +1096,8 @@ function updateMoneyRequestDistance({
                     customUnit: {
                         quantity: transactionBackup?.comment?.customUnit?.quantity,
                     },
+                    // The routes are cleared below, so restore the backed up selection instead of keeping a key that points at a route that no longer exists
+                    selectedRouteKey: transactionBackup?.comment?.selectedRouteKey ?? null,
                 },
                 modifiedWaypoints: onyxModifiedWaypoints,
                 routes: null,

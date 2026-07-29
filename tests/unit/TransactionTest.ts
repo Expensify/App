@@ -2,7 +2,14 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import useOnyx from '@hooks/useOnyx';
 
-import {changeTransactionsReport as changeTransactionsReportAction, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
+import {
+    changeTransactionsReport as changeTransactionsReportAction,
+    dismissDuplicateTransactionViolation,
+    markAsCash,
+    removeWaypoint,
+    sanitizeWaypointsForAPI,
+    saveWaypoint,
+} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -2138,6 +2145,56 @@ describe('Transaction', () => {
             expect(transaction?.errorFields?.route ?? null).toBeNull();
             expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
             expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
+        });
+
+        it('should clear the selected route key so it does not point at a route that no longer exists', async () => {
+            const transactionID = 'txn6';
+            const index = '0';
+            const waypoint: RecentWaypoint = {
+                address: 'Clear Selected Route',
+                lat: 9,
+                lng: 10,
+            };
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.comment = {...existingTransaction.comment, selectedRouteKey: 'route1'};
+            existingTransaction.routes = {
+                route0: {distance: 100, geometry: {coordinates: [[0, 0]]}},
+                route1: {distance: 200, geometry: {coordinates: [[1, 1]]}},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList: []});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
+        });
+    });
+
+    describe('removeWaypoint', () => {
+        it('should clear the selected route key when the removed waypoint invalidates the route', async () => {
+            const transactionID = 'txn7';
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.comment = {
+                ...existingTransaction.comment,
+                selectedRouteKey: 'route1',
+                waypoints: {
+                    waypoint0: {address: 'A', lat: 1, lng: 1},
+                    waypoint1: {address: 'B', lat: 2, lng: 2},
+                    waypoint2: {address: 'C', lat: 3, lng: 3},
+                },
+            };
+            existingTransaction.routes = {
+                route0: {distance: 100, geometry: {coordinates: [[0, 0]]}},
+                route1: {distance: 200, geometry: {coordinates: [[1, 1]]}},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await removeWaypoint(existingTransaction, '1');
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
         });
     });
 

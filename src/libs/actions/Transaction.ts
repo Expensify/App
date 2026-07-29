@@ -143,6 +143,8 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
             customUnit: {
                 quantity: null,
             },
+            // The routes are cleared below, so the previously selected alternate route no longer exists
+            selectedRouteKey: null,
         },
         // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
@@ -226,6 +228,11 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     if (!isRemovedWaypointEmpty) {
         newTransaction = {
             ...newTransaction,
+            comment: {
+                ...newTransaction.comment,
+                // The route is cleared below, so the previously selected alternate route no longer exists
+                selectedRouteKey: undefined,
+            },
             // Clear any errors that may be present, which apply to the old route
             errorFields: {
                 route: null,
@@ -446,6 +453,8 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
             customUnit: {
                 quantity: null,
             },
+            // The routes are cleared below, so the previously selected alternate route no longer exists
+            selectedRouteKey: null,
         },
         // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
