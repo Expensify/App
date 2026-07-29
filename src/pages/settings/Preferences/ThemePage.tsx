@@ -39,8 +39,8 @@ function ThemePage() {
 
     // Keep the selection in local draft state so picking a theme (or toggling high contrast) no longer persists and
     // closes the page on input. The change is only applied when the user taps Save (WCAG 3.2.2 On Input).
-    const [selectedBaseTheme, setSelectedBaseTheme] = useState<ValueOf<typeof CONST.THEME>>(getBaseTheme(currentTheme));
-    const [isHighContrast, setIsHighContrast] = useState(isHighContrastTheme(currentTheme));
+    const [selectedBaseTheme, setSelectedBaseTheme] = useState<ValueOf<typeof CONST.THEME>>(() => getBaseTheme(currentTheme));
+    const [isHighContrast, setIsHighContrast] = useState(() => isHighContrastTheme(currentTheme));
 
     const localesToThemes = BASE_THEMES.map((theme) => ({
         value: theme,
