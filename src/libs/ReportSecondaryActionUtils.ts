@@ -586,6 +586,7 @@ function isHoldAction(
     reportActions: ReportAction[] | undefined,
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
+    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean,
 ): boolean {
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, isOffline);
@@ -840,6 +841,7 @@ function isRemoveHoldAction(
     reportActions?: ReportAction[],
     policy?: Policy,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
+    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean,
 ): boolean {
     const isClosedReport = isClosedReportUtils(report);
@@ -954,7 +956,7 @@ function getSecondaryReportActions({
     isChatReportArchived?: boolean;
     parentReport?: OnyxEntry<Report>;
     isProduction: boolean;
-    /** Whether the client is currently offline. Will become required once #66407 lands. */
+    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];

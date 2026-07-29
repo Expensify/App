@@ -82,7 +82,7 @@ type GetReportPrimaryActionParams = {
     isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
     ownerLogin: string | undefined;
-    /** Whether the client is currently offline. Will become required once #66407 lands. */
+    /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 };
 
@@ -320,6 +320,7 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
     return false;
 }
 
+/** TODO: isOffline should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
 function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[], isOffline?: boolean) {
     const isClosedReport = isClosedReportUtils(report);
     if (isClosedReport) {
