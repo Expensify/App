@@ -45,17 +45,10 @@ type DistanceRequestFooterProps = {
     mapContainerStyle?: StyleProp<ViewStyle>;
 
     /** The state of the transaction (draft, current, etc.) used to persist route selection to the correct Onyx key */
-    transactionState?: TransactionState;
+    transactionState: TransactionState;
 };
 
-function DistanceRequestFooter({
-    waypoints,
-    transaction,
-    navigateToWaypointEditPage,
-    policy,
-    mapContainerStyle,
-    transactionState = CONST.TRANSACTION.STATE.DRAFT,
-}: DistanceRequestFooterProps) {
+function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy, mapContainerStyle, transactionState}: DistanceRequestFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);

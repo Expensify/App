@@ -738,16 +738,31 @@ function IOURequestStepDistance({
                     scrollViewRef={scrollViewRef}
                     renderItem={renderItem}
                     navigateToWaypointEditPage={navigateToWaypointEditPage}
-                    transaction={transaction}
+                    transaction={currentTransaction}
                     policy={policy}
                     submitWaypoints={submitWaypoints}
                     buttonText={buttonText}
                     errorState={errorState}
                     loadingState={loadingState}
+                    transactionState={transactionState}
                 />
             </TabScreenWithFocusTrapWrapper>
         ),
-        [waypointItems, waypoints, extractKey, updateWaypoints, renderItem, navigateToWaypointEditPage, transaction, policy, submitWaypoints, buttonText, errorState, loadingState],
+        [
+            waypointItems,
+            waypoints,
+            extractKey,
+            updateWaypoints,
+            renderItem,
+            navigateToWaypointEditPage,
+            currentTransaction,
+            policy,
+            submitWaypoints,
+            buttonText,
+            errorState,
+            loadingState,
+            transactionState,
+        ],
     );
 
     const renderManualTab = useCallback(
@@ -804,12 +819,13 @@ function IOURequestStepDistance({
                 scrollViewRef={scrollViewRef}
                 renderItem={renderItem}
                 navigateToWaypointEditPage={navigateToWaypointEditPage}
-                transaction={transaction}
+                transaction={currentTransaction}
                 policy={policy}
                 submitWaypoints={submitWaypoints}
                 buttonText={buttonText}
                 errorState={errorState}
                 loadingState={loadingState}
+                transactionState={transactionState}
             />
         </StepScreenWrapper>
     );
