@@ -77,8 +77,8 @@ const enrichInjectedScriptError: TelemetryBeforeSendError = (event: ErrorEvent, 
 
         const scriptHosts = new Set<string>();
         for (const script of Array.from(document.scripts)) {
+            // Inline scripts have no hostname, so they are skipped to keep `loadedScriptHosts` host-only
             if (!script.src) {
-                scriptHosts.add('<inline>');
                 continue;
             }
             try {
