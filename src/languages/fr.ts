@@ -7905,8 +7905,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 applyOffer: {
                     message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
                         `a proposé d’appliquer la règle d’agent « ${ruleTitle} » à ${count} ${count === 1 ? 'dépense ouverte' : 'dépenses ouvertes'}. Voulez-vous l’appliquer rétroactivement ?`,
-                    applyButtonText: 'Oui, appliquer',
-                    dismissButtonText: 'Non merci',
+                    applyButtonText: 'Appliquer rétroactivement',
+                    dismissButtonText: 'Ne pas appliquer',
                 },
             },
             tabs: {

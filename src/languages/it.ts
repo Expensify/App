@@ -7855,8 +7855,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 applyOffer: {
                     message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
                         `ha proposto di applicare la regola agente "${ruleTitle}" a ${count} ${count === 1 ? 'spesa aperta' : 'spese aperte'}. Vuoi applicarla retroattivamente?`,
-                    applyButtonText: 'Sì, applicala',
-                    dismissButtonText: 'No, grazie',
+                    applyButtonText: 'Applica retroattivamente',
+                    dismissButtonText: 'Non applicare',
                 },
             },
             tabs: {

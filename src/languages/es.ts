@@ -7789,8 +7789,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 applyOffer: {
                     message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
                         `ofreció aplicar la regla de agente "${ruleTitle}" a ${count} ${count === 1 ? 'gasto abierto' : 'gastos abiertos'}. ¿Quieres aplicarla retroactivamente?`,
-                    applyButtonText: 'Sí, aplícala',
-                    dismissButtonText: 'No, gracias',
+                    applyButtonText: 'Aplicar retroactivamente',
+                    dismissButtonText: 'No aplicar',
                 },
             },
             tabs: {

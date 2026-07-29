@@ -7759,8 +7759,8 @@ ${reportName}`,
                 applyOffer: {
                     message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
                         `エージェントルール「${ruleTitle}」を${count}件の未処理の経費に適用することを提案しました。遡って適用しますか？`,
-                    applyButtonText: 'はい、適用します',
-                    dismissButtonText: 'いいえ、結構です',
+                    applyButtonText: '遡って適用',
+                    dismissButtonText: '適用しない',
                 },
             },
             tabs: {

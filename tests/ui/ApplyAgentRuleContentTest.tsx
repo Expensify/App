@@ -33,8 +33,8 @@ const CURRENT_USER_ACCOUNT_ID = 1;
 const RULE_BOT_ACCOUNT_ID = 2;
 
 const MESSAGE_TEXT = 'offered to apply the agent rule "Receipts required" to 12 open expenses. Want it applied retroactively?';
-const APPLY_BUTTON_TEXT = 'Yes, apply it';
-const DISMISS_BUTTON_TEXT = 'No thanks';
+const APPLY_BUTTON_TEXT = 'Apply retroactively';
+const DISMISS_BUTTON_TEXT = "Don't apply";
 
 type ApplyAgentRuleAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_APPLY_AGENT_RULE>;
 

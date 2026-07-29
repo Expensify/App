@@ -8196,8 +8196,8 @@ const translations = {
                 applyOffer: {
                     message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
                         `offered to apply the agent rule "${ruleTitle}" to ${count} open ${count === 1 ? 'expense' : 'expenses'}. Want it applied retroactively?`,
-                    applyButtonText: 'Yes, apply it',
-                    dismissButtonText: 'No thanks',
+                    applyButtonText: 'Apply retroactively',
+                    dismissButtonText: "Don't apply",
                 },
             },
         },

@@ -7836,8 +7836,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 applyOffer: {
                     message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
                         `bood aan de agentregel "${ruleTitle}" toe te passen op ${count} openstaande ${count === 1 ? 'uitgave' : 'uitgaven'}. Wil je deze met terugwerkende kracht toepassen?`,
-                    applyButtonText: 'Ja, toepassen',
-                    dismissButtonText: 'Nee, bedankt',
+                    applyButtonText: 'Met terugwerkende kracht toepassen',
+                    dismissButtonText: 'Niet toepassen',
                 },
             },
             tabs: {
