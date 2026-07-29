@@ -185,7 +185,7 @@ function Search({
 
     // Retrying a failed page always resets pagination to the first page, so totals eligibility
     // must be evaluated as if we're on the first page rather than the (possibly paginated) offset.
-    const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, hash, true, areAllMatchingItemsSelected);
+    const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
 
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
