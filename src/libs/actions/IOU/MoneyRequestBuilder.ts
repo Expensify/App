@@ -1539,7 +1539,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         }
     }
 
-    if (isDistanceRequest) {
+    if (action === CONST.IOU.ACTION.SUBMIT && isDistanceRequest) {
         const workspaceDistanceUnit = getDistanceRateCustomUnit(policy)?.attributes?.unit;
         optimisticTransaction.comment = {
             ...optimisticTransaction.comment,
