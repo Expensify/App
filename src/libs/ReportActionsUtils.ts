@@ -2802,6 +2802,11 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                 case CONST.EXPORT_LABELS.RILLET:
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
+                case CONST.EXPORT_LABELS.DUALENTRY:
+                    // s77rt Test in R2
+                    // https://github.com/Expensify/App/issues/97238
+                    url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
+                    break;
                 default:
                     url = QBO_EXPENSES_URL;
             }
