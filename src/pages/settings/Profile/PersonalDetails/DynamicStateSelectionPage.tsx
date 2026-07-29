@@ -38,18 +38,13 @@ function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
     const currentState = route.params?.state;
     const label = route.params?.label;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADDRESS_STATE.path);
-    const initialSelectedValue = useInitialSelection(currentState ?? undefined, {
-        resetOnFocus: true,
-    });
+    const initialSelectedValue = useInitialSelection(currentState ?? undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const countryStates = useMemo(
         () =>
             Object.keys(COMMON_CONST.STATES).map((state) => {
-                // The state codes come from COMMON_CONST.STATES itself, so they are guaranteed to be valid translation keys.
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const stateName = translate(`allStates.${state}.stateName` as TranslationPaths);
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const stateISO = translate(`allStates.${state}.stateISO` as TranslationPaths);
                 return {
                     value: stateISO,
@@ -69,9 +64,7 @@ function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
 
     const selectCountryState = useCallback(
         (option: Option) => {
-            Navigation.goBack(appendParam(backPath, 'state', option.value), {
-                compareParams: false,
-            });
+            Navigation.goBack(appendParam(backPath, 'state', option.value), {compareParams: false});
         },
         [backPath],
     );

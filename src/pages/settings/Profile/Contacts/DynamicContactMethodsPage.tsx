@@ -29,17 +29,13 @@ import {View} from 'react-native';
 function DynamicContactMethodsPage() {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
-        selector: expensifyLoginsSelector,
-    });
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const navigateBackTo = useDynamicBackPath(DYNAMIC_ROUTES.CONTACT_METHODS.path);
 
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: isUserValidatedSelector,
-    });
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -73,11 +69,7 @@ function DynamicContactMethodsPage() {
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
-                    <RenderHTML
-                        html={translate('contacts.helpText', {
-                            email: CONST.EMAIL.RECEIPTS,
-                        })}
-                    />
+                    <RenderHTML html={translate('contacts.helpText', {email: CONST.EMAIL.RECEIPTS})} />
                 </View>
                 {options.map(
                     (option) =>
