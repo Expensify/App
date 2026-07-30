@@ -1,7 +1,7 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
 
-import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,7 +23,6 @@ import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
@@ -40,14 +39,8 @@ function ForYouSection() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const isAppLoadPending = useIsAppLoadPending();
-    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    // HAS_LOADED_APP flips to true once the first OpenApp completes and persists across reconnects.
-    // Gating the skeleton on it prevents the section from flashing skeleton on every foreground/reconnect
-    // when IS_LOADING_REPORT_DATA is optimistically set to true by ReconnectApp.
-    const [hasLoadedApp = false, hasLoadedAppMetadata] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const isLoadingHasLoadedApp = isLoadingOnyxValue(hasLoadedAppMetadata);
+    const {shouldShowSkeleton: isInitialLoad, isAppLoadPending, hasLoadedApp, isLoadingHasLoadedApp, isColdRestartRecoveryFallback} = useAppLoadSkeletonState({isLoadingReportData});
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -184,10 +177,6 @@ function ForYouSection() {
             ))}
         </View>
     );
-
-    // Keep the request queue as the primary app-load signal. The legacy flag only recovers interrupted cold starts after HAS_LOADED_APP hydrates false.
-    const isColdRestartRecoveryFallback = !hasLoadedApp && isLoadingApp;
-    const isInitialLoad = (!hasLoadedApp && (isAppLoadPending || isLoadingHasLoadedApp || isLoadingReportData)) || isColdRestartRecoveryFallback;
 
     // Persist a one-time flag the first time a to-do appears so the section stays visible even when later empty.
     useEffect(() => {
