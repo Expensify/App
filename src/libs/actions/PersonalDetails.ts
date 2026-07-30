@@ -20,7 +20,6 @@ import type {LetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {translateLocal} from '@libs/Localize';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -31,7 +30,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails} from '@src/types/onyx';
-import type Card from '@src/types/onyx/Card';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {CurrentUserPersonalDetails, SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -700,95 +698,65 @@ function setPersonalDetailsAndRevealExpensifyCard(
     });
 }
 
-function updatePersonalDetailsAndShipExpensifyCards(
-    values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>,
-    validateCode: string,
-    countryCode: number,
-    targetCardID: number,
-): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
-            ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
-            validateCode,
-        };
+function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number, targetCardID: number) {
+    const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
+        ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
+        validateCode,
+    };
 
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                    value: {
-                        isLoading: true,
+    API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                },
+            },
+            {
+                // Clear any RBR left on this card by a previous failed attempt so a successful retry doesn't keep showing a
+                // stale "Unable to ship Expensify Card" error; the backend re-writes it to Onyx only if it fails again.
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [targetCardID]: {
+                        errors: null,
                     },
                 },
-                {
-                    // Clear any RBR left on this card by a previous failed attempt so a successful retry doesn't keep
-                    // showing a stale "Unable to ship Expensify Card" error; the .then re-sets it only if it fails again.
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.CARD_LIST,
-                    value: {
-                        [targetCardID]: {
-                            errors: null,
-                        },
+            },
+            {
+                // Clear any incorrect-magic-code error from a previous attempt so the form doesn't show a stale message.
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                value: {
+                    errorFields: {
+                        [CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD]: null,
                     },
                 },
-            ],
-            finallyData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                    value: {
-                        isLoading: false,
+            },
+        ],
+        failureData: [
+            {
+                // An incorrect magic code comes back as a command-level failure; surface it on the validate-code form the
+                // same way the rest of the flow reads its errors from Onyx.
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                value: {
+                    errorFields: {
+                        [CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('validateCodeForm.error.incorrectSecurityCode'),
                     },
                 },
-            ],
-        })
-            .then((response) => {
-                // makeRequestWithSideEffects resolves API-level failures as responses instead of throwing, so a non-success
-                // jsonCode (e.g. an incorrect magic code) must be rejected here; otherwise the flow would fall through and
-                // resolve as if it succeeded. A successful command returns 200 even when individual cards fail to ship.
-                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_VALIDATE_CODE) {
-                        // eslint-disable-next-line prefer-promise-reject-errors
-                        reject({isIncorrectMagicCode: true});
-                        return;
-                    }
-                    // eslint-disable-next-line prefer-promise-reject-errors
-                    reject({isRequestError: true});
-                    return;
-                }
-
-                // The command returns 200 and still saves the personal details even when a card fails to ship. The per-card
-                // failures come back in cardShipmentErrors, so show each failed card's reason on its own wallet card (RBR).
-                const cardShipmentErrors = response?.cardShipmentErrors ?? [];
-
-                // Drop the generic backend reason so the client shows a bare "Unable to ship Expensify Card" without a ": <reason>" tail
-                const getShipmentErrorReason = (error: string) => (error === CONST.EXPENSIFY_CARD.GENERIC_SHIPMENT_ERROR ? '' : error);
-
-                if (cardShipmentErrors.length > 0) {
-                    const cardListErrors: Record<number, Pick<Card, 'errors'>> = {};
-                    for (const {cardID, error} of cardShipmentErrors) {
-                        // The shipment error is a pre-formatted, human-readable message rather than a translation key, so we
-                        // deliberately use the deprecated raw-message error helper here; this is a permanent suppression.
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        cardListErrors[cardID] = {errors: ErrorUtils.getMicroSecondOnyxErrorWithMessage(translateLocal('cardPage.shipCardError', {reason: getShipmentErrorReason(error)}))};
-                    }
-                    Onyx.merge(ONYXKEYS.CARD_LIST, cardListErrors);
-                }
-
-                // Only block this flow when the card the user is completing details for failed to ship; other cards'
-                // failures are surfaced as an RBR on those cards above. Reject with that card's reason so the modal shows it.
-                const targetCardError = cardShipmentErrors.find(({cardID}) => cardID === targetCardID);
-                if (targetCardError) {
-                    // eslint-disable-next-line prefer-promise-reject-errors
-                    reject({reason: getShipmentErrorReason(targetCardError.error)});
-                    return;
-                }
-                resolve();
-            })
-            // eslint-disable-next-line prefer-promise-reject-errors
-            .catch(() => reject({isRequestError: true}));
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
     });
 }
 

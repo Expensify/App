@@ -2675,7 +2675,6 @@ const translations: TranslationDeepObject<typeof en> = {
         enterSecurityCode: (contactMethod: string) =>
             `Voer de beveiligingscode in die naar ${contactMethod} is gestuurd om je kaartgegevens te bekijken. Deze zou binnen één à twee minuten moeten aankomen.`,
         unexpectedError: 'Er is een fout opgetreden bij het ophalen van de gegevens van je Expensify-kaart. Probeer het opnieuw.',
-        shipCardError: ({reason}: {reason?: string}) => (reason ? `Kan Expensify-kaart niet verzenden: ${reason}` : 'Kan Expensify-kaart niet verzenden'),
         cardFraudAlert: {
             confirmButtonText: 'Ja, dat doe ik',
             reportFraudButtonText: 'Nee, ik was het niet',

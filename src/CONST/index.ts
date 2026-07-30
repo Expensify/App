@@ -215,6 +215,9 @@ const CONST = {
         '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
     ],
     RECENT_WAYPOINTS_NUMBER: 20,
+    // Validate-code action errorFields key the missing-personal-details ship-card flow writes its incorrect-magic-code
+    // error under, and the ValidateCodeForm reads it back from, so the action and the page stay in sync.
+    MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD: 'personalDetails',
     DEFAULT_DB_NAME: 'OnyxDB',
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
@@ -4575,7 +4578,6 @@ const CONST = {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         ROUTE: 'expensify-card',
-        GENERIC_SHIPMENT_ERROR: 'Card could not be shipped',
         // Countries where the most terminals are "offline," so users must
         // change their PIN at an ATM rather than via the in-app online flow.
         // - Offline-only: GB, IE
