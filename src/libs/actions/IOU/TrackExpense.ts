@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
@@ -1484,8 +1483,7 @@ function hasManualDistanceOverride(transaction: OnyxEntry<OnyxTypes.Transaction>
  * Whether the transaction already has its receipt stored server-side, so a move command must not re-send the file.
  */
 function hasUploadedReceipt(transaction: OnyxEntry<OnyxTypes.Transaction>): boolean {
-    const receipt = transaction?.receipt;
-    return !!receipt?.receiptID || (!!receipt?.source && !isLocalFile(receipt.source));
+    return !!transaction?.receipt?.receiptID;
 }
 
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
