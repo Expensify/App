@@ -50,7 +50,6 @@ type CopyPolicySettingsSourceFeatureContext = {
     connectedIntegrationCount: number;
     hasWorkflowRules: boolean;
     hasWorkspaceRules: boolean;
-    hasCategoryRules: boolean;
     codingRulesCount: number;
     hasInvoiceConfiguration: boolean;
     isCollectPolicy: boolean;
@@ -281,7 +280,7 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
         case 'workflows':
             return context.hasWorkflowRules;
         case 'rules':
-            return (context.hasWorkspaceRules || context.hasCategoryRules) && !context.isCollectPolicy;
+            return context.hasWorkspaceRules && !context.isCollectPolicy;
         case 'codingRules':
             return context.codingRulesCount > 0 && !context.isCollectPolicy;
         case 'distanceRates':

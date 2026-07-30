@@ -113,14 +113,6 @@ function categoryHasAnyRequireFieldsRule(category: PolicyCategory): boolean {
     );
 }
 
-function countCategoriesWithRequireFieldsRules(policyCategories: PolicyCategories | undefined): number {
-    if (!policyCategories) {
-        return 0;
-    }
-
-    return Object.values(policyCategories).filter((category) => category?.enabled && categoryHasAnyRequireFieldsRule(category)).length;
-}
-
 function getDescriptionSettingFromCategory(category: PolicyCategory | undefined): FieldRequirementsDirection {
     if (!category) {
         return CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
@@ -948,7 +940,6 @@ function getRequireFieldsFieldCouplingTooltipKey(
 
 export {
     categoryHasAnyRequireFieldsRule,
-    countCategoriesWithRequireFieldsRules,
     deleteRequireFieldsRule,
     formatRequireFieldsRuleDescriptions,
     getActiveFieldRequirementsDirection,

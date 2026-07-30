@@ -157,21 +157,5 @@ function getFlagForReviewTableData({
     return rules;
 }
 
-function countCategoriesWithFlagForReviewRules(policyCategories: PolicyCategories | undefined): number {
-    if (!policyCategories) {
-        return 0;
-    }
-
-    return Object.values(policyCategories).filter((category) => category?.enabled && hasExplicitFlagAmount(category.maxExpenseAmount)).length;
-}
-
-export {
-    countCategoriesWithFlagForReviewRules,
-    deleteFlagForReviewRule,
-    getFlagForReviewFormFromCategory,
-    getFlagForReviewRuleAmountError,
-    getFlagForReviewTableData,
-    hasExplicitFlagAmount,
-    saveFlagForReviewRule,
-};
+export {deleteFlagForReviewRule, getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, getFlagForReviewTableData, hasExplicitFlagAmount, saveFlagForReviewRule};
 export type {FlagForReviewTableItem};
