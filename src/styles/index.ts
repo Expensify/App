@@ -1221,6 +1221,11 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        editableCellColumn: {
+            alignSelf: 'stretch',
+            justifyContent: 'center',
+        },
+
         editableCellEditButtonContainer: {
             position: 'absolute',
             top: 0,
@@ -3781,6 +3786,27 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.sliderKnobSize / 2,
             left: -(variables.sliderKnobSize / 2),
             ...cursor.cursorPointer,
+        },
+
+        editedStopSliderKnob: {
+            position: 'absolute',
+            height: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.height,
+            width: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width,
+            left: -(CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width / 2),
+            top: -CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.xAxisLineHeight,
+            ...cursor.cursorPointer,
+        },
+
+        editStopSliderFilled: {
+            backgroundColor: colors.green400,
+            height: '100%',
+            borderRadius: variables.sliderBarHeight / 2,
+        },
+
+        editStopSliderBarContainer: {
+            height: 64,
+            paddingHorizontal: 20,
+            justifyContent: 'center',
         },
 
         sliderBar: {
@@ -6854,6 +6880,12 @@ const dynamicStyles = (theme: ThemeColors) =>
             width: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
             backgroundColor: shouldUseNarrowLayout ? undefined : theme.buttonDefaultBG,
             borderRadius: 999,
+        }),
+
+        // The 40px bulk-actions button swaps in for the table filter bar row (32px search bar on wide layouts, 44px on narrow),
+        // so offset its vertical margin to keep the row height identical and prevent the table from shifting (see searchBulkActionsButton).
+        tableBulkActionsButton: (shouldUseNarrowTableLayout: boolean) => ({
+            marginVertical: shouldUseNarrowTableLayout ? 2 : -4,
         }),
     }) satisfies DynamicStyles;
 
