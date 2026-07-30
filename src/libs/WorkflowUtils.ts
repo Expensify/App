@@ -681,7 +681,7 @@ function getEligibleExistingBusinessBankAccounts(
             account.bankCurrency === policyCurrency &&
             (account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN || (shouldIncludePartiallySetup && isBankAccountPartiallySetup(account.accountData?.state))) &&
             account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-            account.methodID !== excludeBankAccountID
+            (excludeBankAccountID === undefined || account.methodID !== excludeBankAccountID)
         );
     });
 }

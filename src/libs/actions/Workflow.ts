@@ -298,11 +298,6 @@ type SetApprovalWorkflowRulesParams = {
 
 /**
  * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow Auth command.
- *
- * Each rule lives under its own `ONYXKEYS.COLLECTION.RULE` key (`rules_<ruleID>`). Upserts use SET so
- * a structurally different replacement doesn't deep-merge stale filters; removals mark the rule as
- * pending-delete optimistically and clear it on success (or restore the previous rule on failure).
- * Only the rule bodies (no `scope`/`scopeID`) are sent over the wire — the backend derives those.
  */
 function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
     if (!policyID || isEmptyObject(rulesDiff)) {
