@@ -137,4 +137,40 @@ describe('useMarkAsRead', () => {
         expect(readNewestAction).toHaveBeenCalledTimes(1);
         expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
     });
+
+    it('does not auto-read on report change when the manually-marked action was previously optimistic (offline mark → reconnect)', () => {
+        const markedActionID = '100';
+        const reportWithMark = {...REPORT, manuallyMarkedUnreadReportActionID: markedActionID} as OnyxEntry<OnyxTypes.Report>;
+        // The user marked their just-sent (optimistic, offline) message unread.
+        const optimisticAction = {reportActionID: markedActionID, created: '2023-01-01 11:00:00.000', isOptimisticAction: true} as OnyxTypes.ReportAction;
+
+        const {rerender} = renderHook((props: Parameters<typeof useMarkAsRead>[0]) => useMarkAsRead(props), {
+            initialProps: {
+                reportID: REPORT_ID,
+                report: reportWithMark,
+                transactionThreadReport: undefined,
+                sortedVisibleReportActions: [optimisticAction],
+                isScrolledToEnd: true,
+                hasNewerActions: false,
+            },
+        });
+
+        readNewestAction.mockClear();
+
+        // Reconnect: the action confirms — isOptimisticAction is cleared and its created shifts to server time,
+        // which changes lastVisibleActionCreated and re-fires the report-change read effect.
+        const confirmedAction = {reportActionID: markedActionID, created: '2023-01-01 10:59:59.000'} as OnyxTypes.ReportAction;
+        rerender({
+            reportID: REPORT_ID,
+            report: {...reportWithMark, lastVisibleActionCreated: '2023-01-01 10:59:59.000'} as OnyxEntry<OnyxTypes.Report>,
+            transactionThreadReport: undefined,
+            sortedVisibleReportActions: [confirmedAction],
+            isScrolledToEnd: true,
+            hasNewerActions: false,
+        });
+
+        // The marker must survive: the confirm must not trigger readNewestAction, which would clear
+        // manuallyMarkedUnreadReportActionID and drop the "New" marker.
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
 });

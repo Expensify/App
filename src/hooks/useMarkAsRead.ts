@@ -66,6 +66,22 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     const lastMessageTime = useRef<string | null>(null);
     const didMarkReportAsReadInitially = useRef(false);
 
+    // Latches whether the action the user manually marked unread was ever seen in an optimistic (just-sent, offline)
+    // state. The optimistic→confirmed merge clears isOptimisticAction/pendingAction on the same key, and that confirm
+    // is what re-fires the read effect below on reconnect — so we must record it beforehand, while still offline.
+    const markedActionWasOptimisticRef = useRef(false);
+    useEffect(() => {
+        const markedID = report?.manuallyMarkedUnreadReportActionID;
+        if (!markedID) {
+            markedActionWasOptimisticRef.current = false;
+            return;
+        }
+        const markedAction = sortedVisibleReportActions.find((action) => action.reportActionID === markedID);
+        if (markedAction?.isOptimisticAction || markedAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            markedActionWasOptimisticRef.current = true;
+        }
+    }, [report?.manuallyMarkedUnreadReportActionID, sortedVisibleReportActions]);
+
     const lastAction = sortedVisibleReportActions.at(0);
     const isReportUnreadValue = isUnread(report, transactionThreadReport, isReportArchived) || (!!lastAction && isCurrentActionUnread(report, lastAction));
 
@@ -101,6 +117,13 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     const handleReportChangeMarkAsRead = useEffectEvent(() => {
         didMarkOnReportChangeRef.current = false;
         if (reportID !== prevReportID) {
+            return;
+        }
+
+        // The user marked an optimistic self-message unread while offline; when it confirms on reconnect its `created`
+        // shifts, re-running this effect. Don't auto-read it away — that would clear manuallyMarkedUnreadReportActionID
+        // and drop the "New" marker (native always hits this, since Visibility.hasFocus() is hard-coded true there).
+        if (report?.manuallyMarkedUnreadReportActionID && markedActionWasOptimisticRef.current) {
             return;
         }
 
