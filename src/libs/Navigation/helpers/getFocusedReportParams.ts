@@ -31,18 +31,16 @@ function getReportParamsFromRoute(route: {params?: unknown} | undefined): Focuse
 }
 
 /**
- * Finds a navigator by name in the navigation state, including when it is nested inside TAB_NAVIGATOR.
- * This mirrors the TAB_NAVIGATOR fallback used by getTopmostReportParams.
+ * Returns the focused child route of TAB_NAVIGATOR based on its index.
+ * Unlike findLast-based lookups, this respects which tab the user is actually viewing.
  */
-function findNavigatorInState(state: State, navigatorName: string) {
-    let navigator = state.routes?.findLast((route) => route.name === navigatorName);
-
-    if (!navigator) {
-        const rootTab = state.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-        navigator = rootTab?.state?.routes?.findLast((route) => route.name === navigatorName);
+function getActiveTabRoute(state: State) {
+    const rootTab = state.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    if (!rootTab?.state?.routes) {
+        return;
     }
 
-    return navigator;
+    return rootTab.state.routes.at(rootTab.state.index ?? 0);
 }
 
 function getRHPFocusedReportParams(state: State): FocusedReportParams | undefined {
@@ -59,17 +57,13 @@ function getRHPFocusedReportParams(state: State): FocusedReportParams | undefine
     return getReportParamsFromRoute(topmostRHPReport);
 }
 
-function getSearchFullscreenMoneyRequestReportParams(state: State): FocusedReportParams | undefined {
-    const searchFullscreenNavigator = findNavigatorInState(state, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    if (!searchFullscreenNavigator) {
-        return;
-    }
+function getReportsSplitFocusedReportParams(reportsSplitRoute: {state?: State}): FocusedReportParams | undefined {
+    const topmostReport = reportsSplitRoute.state?.routes?.findLast((route) => route.name === SCREENS.REPORT);
+    return getReportParamsFromRoute(topmostReport);
+}
 
-    const topmostReport = searchFullscreenNavigator.state?.routes?.findLast((route) => route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT);
-    if (!topmostReport) {
-        return;
-    }
-
+function getSearchFullscreenMoneyRequestReportParams(searchFullscreenRoute: {state?: State}): FocusedReportParams | undefined {
+    const topmostReport = searchFullscreenRoute.state?.routes?.findLast((route) => route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT);
     return getReportParamsFromRoute(topmostReport);
 }
 
@@ -79,8 +73,10 @@ function getSearchFullscreenMoneyRequestReportParams(state: State): FocusedRepor
  * RHP is checked first. On wide layouts the central-pane chat report usually remains mounted behind the RHP,
  * so checking the central pane first would return the wrong report ID.
  *
- * For central-pane inbox reports, this delegates to getTopmostReportParams, which resolves
- * REPORTS_SPLIT_NAVIGATOR inside TAB_NAVIGATOR when it is not mounted at the root.
+ * When TAB_NAVIGATOR is present, only the *active* tab is consulted. A preserved REPORTS_SPLIT_NAVIGATOR
+ * on an inactive Inbox tab must not win over a Search fullscreen money-request report the user is viewing.
+ *
+ * Without TAB_NAVIGATOR (root-level navigators), falls back to getTopmostReportParams then Search.
  */
 function getFocusedReportParams(state: State): FocusedReportParams | undefined {
     if (!state) {
@@ -92,17 +88,33 @@ function getFocusedReportParams(state: State): FocusedReportParams | undefined {
         return rhpReportParams;
     }
 
-    const centralPaneReportParams = getTopmostReportParams(state);
-    if (centralPaneReportParams?.reportID) {
-        return centralPaneReportParams;
+    const activeTab = getActiveTabRoute(state);
+    if (activeTab) {
+        if (activeTab.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+            return getSearchFullscreenMoneyRequestReportParams(activeTab);
+        }
+
+        if (activeTab.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+            return getReportsSplitFocusedReportParams(activeTab);
+        }
+
+        return;
     }
 
-    return getSearchFullscreenMoneyRequestReportParams(state);
-}
+    const centralPaneReportParams = getTopmostReportParams(state);
+    if (centralPaneReportParams?.reportID) {
+        return {
+            reportID: centralPaneReportParams.reportID,
+            reportActionID: centralPaneReportParams.reportActionID,
+        };
+    }
 
-function getFocusedReportId(state: State): string | undefined {
-    return getFocusedReportParams(state)?.reportID;
+    const searchFullscreenNavigator = state.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    if (!searchFullscreenNavigator) {
+        return;
+    }
+
+    return getSearchFullscreenMoneyRequestReportParams(searchFullscreenNavigator);
 }
 
 export default getFocusedReportParams;
-export {getFocusedReportId};
