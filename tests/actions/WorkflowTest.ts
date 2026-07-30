@@ -63,7 +63,6 @@ async function getRulesCollection(): Promise<OnyxCollection<Rule>> {
     let collection: OnyxCollection<Rule> = {};
     await getOnyxData({
         key: ONYXKEYS.COLLECTION.RULE,
-        waitForCollectionCallback: true,
         callback: (value) => {
             collection = value ?? {};
         },
