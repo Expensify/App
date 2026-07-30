@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrentUser} from '@userActions/Policy/Policy';
 
 import type {IOUAction} from '@src/CONST';
@@ -14,6 +16,7 @@ type TrackExpenseAccountantParams = {
     accountant?: Accountant;
     newAccountIDs: number[] | undefined;
     newLogins: string[] | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CreateTrackExpenseParams = {
@@ -35,8 +38,7 @@ type CreateTrackExpenseParams = {
     currentUser: CurrentUser;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
-    // TODO: Make conciergeChat required once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeChat?: OnyxEntry<OnyxTypes.Report>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
