@@ -97,4 +97,46 @@ describe('TableSemanticContainer', () => {
         expect(table.props.role).toBe(CONST.ROLE.TABLE);
         expect(within(table).getByTestId('stub-body')).toBeTruthy();
     });
+
+    it('does not remount surrounding children when crossing the empty/non-empty boundary', () => {
+        // Guards the regression where the empty branch returned raw `children` (implicit keys) while the wrapped branch
+        // returns `React.Children.toArray(children)` (`.0`, `.1`, …). The key mismatch remounts surrounding children like
+        // `Table.FilterBar`, whose unmount cleanup wipes the active search string the moment a query stops matching.
+        let mountCount = 0;
+        let unmountCount = 0;
+        function TrackedFilterBar() {
+            React.useEffect(() => {
+                mountCount++;
+                return () => {
+                    unmountCount++;
+                };
+            }, []);
+            return <View testID="tracked-filter-bar" />;
+        }
+
+        // No explicit keys — mirrors how tables pass `Table.FilterBar`/`Table.Header`/`Table.Body` as JSX siblings.
+        const buildChildren = () => [<TrackedFilterBar />, <TableHeader />, <TableBody />];
+        const element = (rowCount: number) => (
+            <TableSemanticContainer
+                isEnabled
+                title="Members"
+                rowCount={rowCount}
+                columnCount={4}
+                rendersBodyWhenEmpty={false}
+            >
+                {buildChildren()}
+            </TableSemanticContainer>
+        );
+
+        const {rerender} = render(element(3));
+        expect(mountCount).toBe(1);
+
+        // Query stops matching -> table empties (wrapper skipped) -> then data returns (wrapper restored).
+        rerender(element(0));
+        rerender(element(3));
+
+        // The filter bar instance survived both transitions, so its search-clearing cleanup never fired.
+        expect(unmountCount).toBe(0);
+        expect(mountCount).toBe(1);
+    });
 });

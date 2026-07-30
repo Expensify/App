@@ -23,6 +23,7 @@ import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import {shouldUseTableSemantics} from './tableAccessibility';
+import {doesBodyRenderWhenEmpty} from './TableBody';
 import TableContext from './TableContext';
 import TableSemanticContainer from './TableSemanticContainer';
 
@@ -295,8 +296,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
 
     // When empty, `TableBody` still renders (and keeps its role="rowgroup") if an empty-state or header list slot is
-    // supplied, so the semantic wrapper must be preserved in that case to avoid orphaned table semantics.
-    const rendersBodyWhenEmpty = !!listProps.ListEmptyComponent || !!listProps.ListHeaderComponent;
+    // supplied, so the semantic wrapper must be preserved in that case to avoid orphaned table semantics. Derived from
+    // the shared `doesBodyRenderWhenEmpty` predicate so this stays in lockstep with `TableBody`'s own empty-render check.
+    const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps);
 
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
