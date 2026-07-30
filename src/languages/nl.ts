@@ -6653,7 +6653,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 smartLimit: 'Slimme limiet',
                 smartLimitDescription: 'Tot een bepaald bedrag uitgeven voordat goedkeuring vereist is',
                 smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text>Tot een bepaald bedrag uitgeven voordat goedkeuring vereist is. <a href="${workspaceWorkflowsLink}">Schakel goedkeuringen in</a> om deze optie te selecteren.</muted-text>`,
+                    `<muted-text-label>Tot een bepaald bedrag uitgeven voordat goedkeuring vereist is. <a href="${workspaceWorkflowsLink}">Schakel goedkeuringen in</a> om deze optie te selecteren.</muted-text-label>`,
                 monthly: 'Maandelijks',
                 monthlyDescription: 'Geef per maand tot een bepaald bedrag uit',
                 fixedAmount: 'Vast bedrag',

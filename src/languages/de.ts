@@ -6691,7 +6691,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 smartLimit: 'Intelligentes Limit',
                 smartLimitDescription: 'Bis zu einem bestimmten Betrag ausgeben, bevor eine Genehmigung erforderlich ist',
                 smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text>Bis zu einem bestimmten Betrag ausgeben, bevor eine Genehmigung erforderlich ist. <a href="${workspaceWorkflowsLink}">Aktiviere Genehmigungen</a>, um diese Option auszuwählen.</muted-text>`,
+                    `<muted-text-label>Bis zu einem bestimmten Betrag ausgeben, bevor eine Genehmigung erforderlich ist. <a href="${workspaceWorkflowsLink}">Aktiviere Genehmigungen</a>, um diese Option auszuwählen.</muted-text-label>`,
                 monthly: 'Monatlich',
                 monthlyDescription: 'Bis zu einem bestimmten Betrag pro Monat ausgeben',
                 fixedAmount: 'Fester Betrag',

@@ -6438,7 +6438,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 smartLimit: '智能限额',
                 smartLimitDescription: '在需要审批前可支出至指定金额上限',
                 smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text>在需要审批前可支出至指定金额上限。<a href="${workspaceWorkflowsLink}">启用审批</a>后即可选择此选项。</muted-text>`,
+                    `<muted-text-label>在需要审批前可支出至指定金额上限。<a href="${workspaceWorkflowsLink}">启用审批</a>后即可选择此选项。</muted-text-label>`,
                 monthly: '每月',
                 monthlyDescription: '每月消费上限为特定金额',
                 fixedAmount: '固定金额',

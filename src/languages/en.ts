@@ -6795,7 +6795,7 @@ const translations = {
                 smartLimit: 'Smart Limit',
                 smartLimitDescription: 'Spend up to a certain amount before requiring approval',
                 smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text>Spend up to a certain amount before requiring approval. <a href="${workspaceWorkflowsLink}">Enable approvals</a> to select this option.</muted-text>`,
+                    `<muted-text-label>Spend up to a certain amount before requiring approval. <a href="${workspaceWorkflowsLink}">Enable approvals</a> to select this option.</muted-text-label>`,
                 monthly: 'Monthly',
                 monthlyDescription: 'Limit renews monthly',
                 fixedAmount: 'Fixed amount',

@@ -6667,7 +6667,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 smartLimit: 'Limite intelligente',
                 smartLimitDescription: 'Spendi fino a un certo importo prima di richiedere l’approvazione',
                 smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text>Spendi fino a un certo importo prima di richiedere l’approvazione. <a href="${workspaceWorkflowsLink}">Abilita le approvazioni</a> per selezionare questa opzione.</muted-text>`,
+                    `<muted-text-label>Spendi fino a un certo importo prima di richiedere l’approvazione. <a href="${workspaceWorkflowsLink}">Abilita le approvazioni</a> per selezionare questa opzione.</muted-text-label>`,
                 monthly: 'Mensile',
                 monthlyDescription: 'Spendi fino a un certo importo al mese',
                 fixedAmount: 'Importo fisso',

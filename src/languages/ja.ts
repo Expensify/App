@@ -6587,7 +6587,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 smartLimit: 'スマート制限',
                 smartLimitDescription: '承認が必要になる前に、一定額まで支出できる',
                 smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text>承認が必要になる前に、一定額まで支出できます。このオプションを選択するには<a href="${workspaceWorkflowsLink}">承認を有効化</a>してください。</muted-text>`,
+                    `<muted-text-label>承認が必要になる前に、一定額まで支出できます。このオプションを選択するには<a href="${workspaceWorkflowsLink}">承認を有効化</a>してください。</muted-text-label>`,
                 monthly: '毎月',
                 monthlyDescription: '毎月、一定額まで利用する',
                 fixedAmount: '固定額',

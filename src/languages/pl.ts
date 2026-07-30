@@ -6634,7 +6634,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 smartLimit: 'Inteligentny limit',
                 smartLimitDescription: 'Wydawaj do określonej kwoty przed wymaganiem zatwierdzenia',
                 smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text>Wydawaj do określonej kwoty przed wymaganiem zatwierdzenia. <a href="${workspaceWorkflowsLink}">Włącz zatwierdzanie</a>, aby wybrać tę opcję.</muted-text>`,
+                    `<muted-text-label>Wydawaj do określonej kwoty przed wymaganiem zatwierdzenia. <a href="${workspaceWorkflowsLink}">Włącz zatwierdzanie</a>, aby wybrać tę opcję.</muted-text-label>`,
                 monthly: 'Miesięcznie',
                 monthlyDescription: 'Wydawaj do określonej kwoty miesięcznie',
                 fixedAmount: 'Stała kwota',
