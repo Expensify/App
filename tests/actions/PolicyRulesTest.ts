@@ -112,8 +112,8 @@ describe('actions/PolicyRules', () => {
         // restart" while that request is still on the wire, clearOnyxAndResetApp replays it from its queue
         // snapshot — rollbackOngoingRequest can move the request back into the queue but cannot cancel the HTTP
         // call already in flight. The replay therefore sends AddPolicyAgentRule a second time with the same
-        // client-generated agentRuleID, and Auth reports the rule as already created. That response must resolve
-        // as a success so no error is painted on a rule that does exist, while genuine failures still surface.
+        // client-generated agentRuleID. Auth is idempotent for that pair and answers with a success, which must
+        // leave the already-created rule clean instead of painting an error on it. Genuine failures still surface.
         describe('replaying an ambiguous in-flight AddPolicyAgentRule', () => {
             /**
              * Creates the rule with the response held so the AddPolicyAgentRule request is captured while it is
@@ -150,7 +150,7 @@ describe('actions/PolicyRules', () => {
                 await waitForBatchedUpdates();
             }
 
-            it('applies successData and drains the queue when the replay reports the rule already exists', async () => {
+            it('leaves the rule clean and drains the queue when the replay is answered idempotently', async () => {
                 const fakePolicy = createRandomPolicy(0);
                 const agentRuleID = 'agentRuleReplay';
                 const prompt = 'Flag anything from a blocked merchant';
@@ -162,10 +162,7 @@ describe('actions/PolicyRules', () => {
                 // The first attempt created the rule server-side, so the rule is clean before the replay.
                 expect((await getPolicy(fakePolicy.id))?.rules?.agentRules?.[agentRuleID]?.errors).toBeFalsy();
 
-                mockFetch?.mockAPICommand?.(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, () => ({
-                    jsonCode: CONST.JSON_CODE.EXP_ERROR,
-                    message: CONST.ERROR_TITLE.ALREADY_CREATED_AGENT_RULE,
-                }));
+                // Auth answers the duplicate with a success, so the replay takes the normal successData path.
                 await replay(snapshot);
 
                 const rule = (await getPolicy(fakePolicy.id))?.rules?.agentRules?.[agentRuleID];
