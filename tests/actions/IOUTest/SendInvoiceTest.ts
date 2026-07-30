@@ -27,7 +27,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {formatPhoneNumber, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -176,6 +176,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: existingRecentlyUsedCategories,
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -202,6 +203,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: undefined,
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -254,6 +256,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: 'https://testcompany.com',
                 policyRecentlyUsedCategories: ['Services', 'Consulting'],
                 senderPolicyTags: mockPolicyTagList as PolicyTagLists,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -285,6 +288,34 @@ describe('actions/SendInvoice', () => {
             expect(result.onyxData.failureData).toBeDefined();
         });
 
+        it('stamps hasOnceLoadedReportActions for the invoice report and the new invoice room', () => {
+            // Given: a brand new invoice (no existing chat report), which creates both an invoice report and an invoice room
+            const result = getSendInvoiceInformation({
+                transaction: baseTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID: 123,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: undefined,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+            });
+
+            // Then: both reports are stamped as "actions already loaded" so they never hang on an infinite skeleton once online
+            const optimisticData = result.onyxData.optimisticData ?? [];
+            const invoiceReportLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceReportID}`);
+            const invoiceRoomLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`);
+
+            expect(invoiceReportLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
+            expect(invoiceRoomLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
+        });
+
         describe('delegateAccountID forwarding', () => {
             it('sets delegateAccountID on the IOU action when delegateAccountID is provided', () => {
                 const DELEGATE_ACCOUNT_ID = 999;
@@ -304,6 +335,7 @@ describe('actions/SendInvoice', () => {
                     companyWebsite: 'https://testcompany.com',
                     policyRecentlyUsedCategories: [],
                     senderPolicyTags: baseSenderPolicyTags,
+                    formatPhoneNumber,
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                 });
 
@@ -369,6 +401,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: 'https://clientcompany.com',
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -406,6 +439,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -456,6 +490,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -487,6 +522,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -540,6 +576,7 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -594,6 +631,7 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderPolicyTags ?? {},
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -642,6 +680,7 @@ describe('actions/SendInvoice', () => {
                 currentUserAccountID: 123,
                 policyRecentlyUsedCurrencies: [],
                 senderPolicyTags: senderPolicyTags ?? {},
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -675,6 +714,7 @@ describe('actions/SendInvoice', () => {
                 companyName,
                 companyWebsite,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -704,6 +744,7 @@ describe('actions/SendInvoice', () => {
                 transaction,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -744,6 +785,7 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedCategories,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
@@ -786,6 +828,7 @@ describe('actions/SendInvoice', () => {
                         orderWeight: 0,
                     },
                 },
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
@@ -822,6 +865,7 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReportID: preGeneratedReportID,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             });
 
