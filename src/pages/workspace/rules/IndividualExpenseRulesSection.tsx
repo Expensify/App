@@ -265,7 +265,6 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
                     shouldParseSubtitle
                     wrapperStyle={[styles.mt3]}
-                    shouldPlaceSubtitleBelowSwitch
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
                     isActive={areEReceiptsEnabled}
@@ -280,7 +279,6 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
                     subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
                     wrapperStyle={[styles.mt3]}
-                    shouldPlaceSubtitleBelowSwitch
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
                     isActive={isAttendeeTrackingEnabledForPolicy}

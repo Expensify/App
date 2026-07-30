@@ -29,9 +29,6 @@ type PublicReceiptVisibilityToggleProps = {
     /** Wraps disabled actions for read-only Rules users (classic Rules page) */
     withReadOnlyFallback?: (disabledAction?: () => void | Promise<void>) => (() => void | Promise<void>) | undefined;
 
-    /** Compact subtitle spacing used by Rules Revamp rows */
-    shouldUseCompactSubtitleSpacing?: boolean;
-
     /** Optional leading row icon (Rules Revamp) */
     rowIcon?: IconAsset;
 
@@ -42,15 +39,7 @@ type PublicReceiptVisibilityToggleProps = {
     subtitleStyle?: StyleProp<TextStyle>;
 };
 
-function PublicReceiptVisibilityToggle({
-    policyID,
-    canWriteRules,
-    withReadOnlyFallback,
-    shouldUseCompactSubtitleSpacing,
-    rowIcon,
-    titleStyle,
-    subtitleStyle,
-}: PublicReceiptVisibilityToggleProps) {
+function PublicReceiptVisibilityToggle({policyID, canWriteRules, withReadOnlyFallback, rowIcon, titleStyle, subtitleStyle}: PublicReceiptVisibilityToggleProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -78,8 +67,6 @@ function PublicReceiptVisibilityToggle({
             )}
             switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.publicReceiptVisibility')}
             wrapperStyle={[styles.mt3]}
-            shouldPlaceSubtitleBelowSwitch
-            shouldUseCompactSubtitleSpacing={shouldUseCompactSubtitleSpacing}
             titleStyle={titleStyle}
             subtitleStyle={subtitleStyle}
             isActive={isEnabled}
