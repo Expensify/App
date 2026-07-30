@@ -1082,7 +1082,7 @@ const translations = {
         yourSpend: {
             title: 'Your spend',
             awaitingApproval: 'Awaiting approval',
-            repaidLast30Days: 'Repaid in the last 30 days',
+            repaidLast30Days: 'Repaid last 30 days',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `See ${count} more`,
@@ -1272,6 +1272,7 @@ const translations = {
             'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
         importSpreadsheetLibraryError: 'Failed to load spreadsheet module. Please check your internet connection and try again.',
         importSpreadsheet: 'Import spreadsheet',
+        importWorkflows: 'Import workflows',
         downloadCSV: 'Download CSV',
         importMemberConfirmation: () => ({
             one: `Please confirm the details below for a new workspace member that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
@@ -4442,7 +4443,7 @@ const translations = {
         toLearnMore: ' to learn more.',
         termsAndConditions: {
             header: 'Before we continue...',
-            title: 'Terms & conditions',
+            title: 'Review terms & conditions',
             label: 'I agree to the terms & conditions',
             subtitle: `Please agree to the Expensify Travel <a href="${CONST.TRAVEL_TERMS_URL}">terms & conditions</a>.`,
             error: 'You must agree to the Expensify Travel terms & conditions to continue',
@@ -4516,11 +4517,16 @@ const translations = {
         errorMessage: 'Something went wrong. Please try again later.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</rbr>`,
         domainSelector: {
+            headline: 'Which domain do you want to set up?',
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
             recommended: 'Recommended',
         },
+        workspaceAddress: {
+            headline: "What's your business address?",
+        },
         taxID: {
+            headline: "What's your business tax ID?",
             title: 'Tax ID',
             subtitle: 'Enter your legal entity tax ID so we can set up travel billing in your local currency.',
             inputLabel: 'Legal entity tax ID',
@@ -5949,7 +5955,7 @@ const translations = {
             },
             assign: 'Assign',
             assignCard: 'Assign card',
-            findCard: 'Find card',
+            findCompanyCard: 'Find company card',
             cardNumber: 'Card number',
             commercialFeed: 'Commercial feed',
             feedName: (feedName: string) => `${feedName} cards`,
@@ -5958,6 +5964,7 @@ const translations = {
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',
+            pleaseSelectACardholder: 'Please select a cardholder to continue',
             chooseCard: 'Choose a card',
             chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',
@@ -6278,15 +6285,16 @@ const translations = {
                 assignedCards: 'Assigned',
                 unassignedCards: 'Unassigned',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
-                integrationExportTitleXero: (integration: string) => `Choose the ${integration} account where transactions should be exported.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Choose the ${integration} account where transactions should be exported. Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,
                 lastUpdated: 'Last updated',
                 transactionStartDate: 'Transaction start date',
                 updateCard: 'Update card',
                 unassignCard: 'Unassign card',
+                unassignCards: 'Unassign cards',
                 unassign: 'Unassign',
                 unassignCardDescription: 'Unassigning this card will delete all unsubmitted transactions.',
+                unassignCardsDescription: 'Unassigning will delete all unsubmitted transactions from the selected cards.',
                 assignCard: 'Assign card',
                 removeCard: 'Remove card',
                 remove: 'Remove',
@@ -8014,6 +8022,9 @@ const translations = {
                 },
                 defaultTaxRate: 'Default tax rate',
                 enableWorkflows: (moreFeaturesLink: string) => `Go to [More features](${moreFeaturesLink}) and enable workflows, then add approvals to unlock this feature.`,
+                createNewRule: 'Create new rule',
+                contextualFlagForReview: (amount: string) => `If amount is above ${amount}, flag for review`,
+                contextualFlagForReviewDaily: (amount: string) => `If daily category total is above ${amount}, flag for review`,
             },
             customRules: {
                 title: 'Expense policy',
@@ -8458,6 +8469,11 @@ const translations = {
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} cardholders to delete card transactions for card feed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `added the agent rule "${title}": ${prompt}` : `added an agent rule: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `updated the agent rule "${title}" to: ${prompt}` : `updated an agent rule to: ${prompt}`),
+            deleted: ({title}: {title: string}) => (title ? `removed the agent rule "${title}"` : 'removed an agent rule'),
+        },
         expensifyCardRule: {
             actionVerb: {
                 block: 'blocked',
@@ -9066,6 +9082,10 @@ const translations = {
             duplicateReport: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'report' : 'reports'}`,
             undelete: 'Undelete',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
+        },
+        expensifyCardStatementPDF: {
+            title: 'Download statement',
+            oneFeedAtATime: 'Please select settlements from one Expensify Card feed at a time.',
         },
         filtersHeader: 'Filters',
         filters: {
@@ -10417,7 +10437,7 @@ const translations = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
-        accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
+        accountSwitcher: '<tooltip>You can now copilot into another account!</tooltip>',
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
@@ -10466,6 +10486,7 @@ const translations = {
             `# ${name} invited you to test drive Expensify\nHey! I just got us *3 months free* to test drive Expensify, the fastest way to do expenses.\n\nHere’s a *test receipt* to show you how it works:`,
     },
     export: {
+        downloadStatementPDF: 'Download statement',
         basicExport: 'Basic export',
         currentView: 'Current view',
         reportLevelExport: 'All Data - report level',
