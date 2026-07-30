@@ -6,6 +6,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {isActingAsDelegateSelector} from '@selectors/Account';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
@@ -59,7 +59,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     const isUserPolicyEmployee = useMemo(() => {
         if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
@@ -198,8 +198,8 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const shouldRenderTooltip = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
-            // If the user is acting as a copilot, don't show any tooltips
-            if (isActingAsDelegate) {
+            // Supportal agents and copilots should not see product-training tooltips on behalf of another account.
+            if (shouldSuppressPromotionalUI) {
                 return false;
             }
             // First check base conditions
@@ -216,7 +216,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
             return false;
         },
-        [isActingAsDelegate, shouldTooltipBeVisible, determineVisibleTooltip],
+        [shouldSuppressPromotionalUI, shouldTooltipBeVisible, determineVisibleTooltip],
     );
 
     const contextValue = useMemo(

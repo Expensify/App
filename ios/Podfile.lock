@@ -233,7 +233,7 @@ PODS:
   - fmt (12.1.0)
   - ForkInputMask (7.3.3)
   - FullStory (1.70.1)
-  - fullstory_react-native (1.10.1):
+  - fullstory_react-native (1.9.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -410,7 +410,37 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroModules (0.35.0):
+  - NitroFetch (1.5.4):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - NitroModules
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
+  - NitroModules (0.36.3):
     - boost
     - DoubleConversion
     - fast_float
@@ -2598,7 +2628,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-keyboard-controller (1.21.0-beta.1):
+  - react-native-keyboard-controller (1.22.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -2616,7 +2646,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.21.0-beta.1)
+    - react-native-keyboard-controller/common (= 1.22.2)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -2627,7 +2657,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-keyboard-controller/common (1.21.0-beta.1):
+  - react-native-keyboard-controller/common (1.22.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -4069,7 +4099,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNSentry (8.2.0):
+  - RNSentry (8.7.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -4096,7 +4126,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Sentry (= 9.5.1)
+    - Sentry (= 9.8.0)
     - SocketRocket
     - Yoga
   - RNShare (11.0.2):
@@ -4284,9 +4314,9 @@ PODS:
   - SDWebImageWebPCoder (0.14.6):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
-  - Sentry (9.5.1):
-    - Sentry/Core (= 9.5.1)
-  - Sentry/Core (9.5.1)
+  - Sentry (9.8.0):
+    - Sentry/Core (= 9.8.0)
+  - Sentry/Core (9.8.0)
   - SocketRocket (0.7.1)
   - SwiftUIIntrospect (1.3.0)
   - TrustKit (3.0.7)
@@ -4336,6 +4366,7 @@ DEPENDENCIES:
   - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - NitroFetch (from `../node_modules/react-native-nitro-fetch`)
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - "pusher-websocket-react-native (from `../node_modules/@pusher/pusher-websocket-react-native`)"
@@ -4566,6 +4597,8 @@ EXTERNAL SOURCES:
     :tag: hermes-v250829098.0.10
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
+  NitroFetch:
+    :path: "../node_modules/react-native-nitro-fetch"
   NitroModules:
     :path: "../node_modules/react-native-nitro-modules"
   onfido-react-native-sdk:
@@ -4817,7 +4850,7 @@ SPEC CHECKSUMS:
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: 1c400bb9969f4c9e5ab324553138b74ae47b9efe
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
-  ExpensifyNitroUtils: 86109fe1ab88351ed63ffe11b760d537c70019d7
+  ExpensifyNitroUtils: b7225649e39a31eab926dc8551c9c64e15b98d47
   Expo: 844d649bc6228d8fa118f29984565b58745bc1d8
   ExpoAsset: c2e7b5ba1fe75be683282d6264e38fd7cd8defbb
   ExpoAudio: 7774082d316ceecc2b26efeb10480bea2fa4d67e
@@ -4845,7 +4878,7 @@ SPEC CHECKSUMS:
   fmt: 530618a01105dae0fa3a2f27c81ae11fa8f67eac
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: 8f87790ed749aa66497e739b065932852e57077d
-  fullstory_react-native: 45bd1fa6012e665a1b1671b9e8c196ae47c4e96e
+  fullstory_react-native: 1374480e8734b0b9ad7a5565cd94aa1215416368
   glog: e56ede4028c4b7418e6b1195a36b1656bb35e225
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -4854,7 +4887,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: 66e17042249a724425f316ac5cac01aca1359781
+  hermes-engine: a042a38ee8fd790f69526e722127b3d187cfbc52
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -4864,7 +4897,8 @@ SPEC CHECKSUMS:
   MapboxCoreMaps: de1a4461d0ab5d65d907f06e8d82fdbe06bb3213
   MapboxMaps: 22340ae0e0d47b2e4761019b1d6c569ab04e088d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroModules: f8c2cc3025e4550aee15ff77c525622bf98e774a
+  NitroFetch: 4941ca1e41fc72ebdad33c50c85fee59a3dd6871
+  NitroModules: 1961fff19baf1f4a5221dd2fea7d4de95941f9e4
   NWWebSocket: b4741420f1976e1dff4da3edad00c401e4f1d769
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
   onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
@@ -4918,7 +4952,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: 18a9d68e6117d37ac5facd87619cbc3ff17575a7
   react-native-image-picker: 1722f5d3dc5de5039d423e290dc31a717ba9605e
   react-native-key-command: 7538df85ed26502b2a929c0584235459b26c7a91
-  react-native-keyboard-controller: 0619a578e4d79a38dc4b1bef3b89cee6525bc1c7
+  react-native-keyboard-controller: f2b654475ffee6ba61b159d33a26465a94a441a0
   react-native-netinfo: f94b3a0fc305e812f3f615989d99299d7110c2ae
   react-native-pager-view: c62ab82db28e2d11e7809c59085e2984a45979c5
   react-native-pdf: 6a09a9be0e7ee954ea671437483316f9a28f8572
@@ -4980,7 +5014,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 5f1542065f0b24c9252bd8cf3e83bc9c548182e4
   RNReanimated: 9cd44a8f50a434161e16d4e51eb06c8c71a6d892
   RNScreens: 2b6107925ee4e14a9b2eb0dfb52fe25223aa64d7
-  RNSentry: f73f4da92e4c20841ab16e1fa22fc289bc2f9f4e
+  RNSentry: 67d50593363789905dde212b2fcab30a4f8b1846
   RNShare: 1c1fde2c4134b9cf220ffebbd6df9c414036d382
   RNSVG: 0b9792eb17fbbc8e6d186581cb2cf712998dcc2a
   RNWorklets: 25b8ee140def8e1561209a825b005ee70f3e26f5
@@ -4988,7 +5022,7 @@ SPEC CHECKSUMS:
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
-  Sentry: 7475eb7bf6a41d7505f46341706015ad2d1766b9
+  Sentry: 88746bf877eff714bc45315a39ad1d1efea2cdda
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   TrustKit: 1050f3ce0595f8ed775f1237b7f590e3a4f93e91
