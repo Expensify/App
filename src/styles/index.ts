@@ -6785,8 +6785,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             const HEADER_HEIGHT = hasHeader ? 48 : 0;
             const TITLE_HEIGHT = hasTitle ? 34 : 0;
             const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
-            // The negation toggle sits above the list (small buttons with a border, plus the gap to the list below).
-            const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + 2 + 12 : 0;
+            const NEGATION_TOGGLE_BORDER_WIDTH = 1;
+            const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + NEGATION_TOGGLE_BORDER_WIDTH * 2 + spacing.gap3.gap : 0;
 
             const ESTIMATED_LIST_HEIGHT = itemCount * itemHeight + SEARCHBAR_HEIGHT + extraHeight;
             const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING + NEGATION_TOGGLE_HEIGHT;
