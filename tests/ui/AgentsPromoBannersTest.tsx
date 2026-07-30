@@ -12,6 +12,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
+import type * as ReactIs from 'react-is';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -55,9 +57,12 @@ jest.mock('@libs/actions/Policy/Rules', () => {
 jest.mock('@components/RenderHTML', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
 
-    // Keep the requireActual boundary's full module shape; this type-only import syntax is the repository-approved exception to the import-style lint rule.
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-    const {Text} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {isValidElementType} = jest.requireActual<typeof ReactIs>('react-is');
+    const reactNativeActual: unknown = jest.requireActual('react-native');
+    if (typeof reactNativeActual !== 'object' || reactNativeActual === null || !('Text' in reactNativeActual) || !isValidElementType(reactNativeActual.Text)) {
+        throw new Error('Expected react-native to expose a valid Text element type');
+    }
+    const {Text} = reactNativeActual;
 
     return ({html}: {html: string}) => {
         const plainText = html.replaceAll(/<[^>]*>/g, '');

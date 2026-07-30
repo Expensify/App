@@ -1,5 +1,3 @@
-/// <reference types="bun-types" />
-
 import type {TNode} from 'react-native-render-html';
 
 import {describe, expect, test} from 'bun:test';

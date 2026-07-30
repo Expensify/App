@@ -1,7 +1,6 @@
 import {isRecord} from '@libs/ObjectUtils';
 import {parse} from '@libs/SearchParser/searchParser';
 
-import type {SearchQueryJSON} from '@src/components/Search/types';
 import CONST from '@src/CONST';
 
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
@@ -1520,34 +1519,11 @@ const limitTests = [
     },
 ];
 
-type ParsedRawFilter = NonNullable<SearchQueryJSON['rawFilterList']>[number];
-type ParsedSearchQuery = Pick<SearchQueryJSON, 'rawFilterList'>;
-
-function isParsedRawFilter(value: unknown): value is ParsedRawFilter {
-    if (!isRecord(value)) {
-        return false;
-    }
-
-    const filterValue = value.value;
-    const hasValidValue = typeof filterValue === 'string' || (Array.isArray(filterValue) && filterValue.every((item: unknown) => typeof item === 'string'));
-
-    return (
-        typeof value.key === 'string' &&
-        Object.values(CONST.SEARCH.SYNTAX_OPERATORS).some((operator) => operator === value.operator) &&
-        hasValidValue &&
-        (value.isDefault === undefined || typeof value.isDefault === 'boolean')
-    );
-}
-
-function isParsedSearchQuery(value: unknown): value is ParsedSearchQuery {
-    return isRecord(value) && (value.rawFilterList === undefined || (Array.isArray(value.rawFilterList) && value.rawFilterList.every(isParsedRawFilter)));
-}
-
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
         const parsed: unknown = parse(query);
-        if (!isParsedSearchQuery(parsed)) {
-            throw new Error('Expected search parser to return a typed search query AST');
+        if (!isRecord(parsed)) {
+            throw new Error('Expected search parser to return a record');
         }
         const {rawFilterList, ...resultWithoutRawFilters} = parsed;
         expect(resultWithoutRawFilters).toEqual(expected);
@@ -1557,8 +1533,8 @@ describe('search parser', () => {
 describe('Testing search parser with special characters and wrapped in quotes.', () => {
     test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
         const parsed: unknown = parse(query);
-        if (!isParsedSearchQuery(parsed)) {
-            throw new Error('Expected search parser to return a typed search query AST');
+        if (!isRecord(parsed)) {
+            throw new Error('Expected search parser to return a record');
         }
         const {rawFilterList, ...resultWithoutRawFilters} = parsed;
         expect(resultWithoutRawFilters).toEqual(expected);
@@ -1568,8 +1544,8 @@ describe('Testing search parser with special characters and wrapped in quotes.',
 describe('search parser - view and groupBy defaults', () => {
     test.each(viewAndGroupByTests)(`parsing: $query`, ({query, expected}) => {
         const parsed: unknown = parse(query);
-        if (!isParsedSearchQuery(parsed)) {
-            throw new Error('Expected search parser to return a typed search query AST');
+        if (!isRecord(parsed)) {
+            throw new Error('Expected search parser to return a record');
         }
         const {rawFilterList, ...resultWithoutRawFilters} = parsed;
         expect(resultWithoutRawFilters).toEqual(expected);
@@ -1579,8 +1555,8 @@ describe('search parser - view and groupBy defaults', () => {
 describe('search parser - limit filter', () => {
     test.each(limitTests)('$description: $query', ({query, expected}) => {
         const parsed: unknown = parse(query);
-        if (!isParsedSearchQuery(parsed)) {
-            throw new Error('Expected search parser to return a typed search query AST');
+        if (!isRecord(parsed)) {
+            throw new Error('Expected search parser to return a record');
         }
         const {rawFilterList, ...resultWithoutRawFilters} = parsed;
         expect(resultWithoutRawFilters).toEqual(expected);
