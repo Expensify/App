@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -35,6 +36,7 @@ import {getCurrency, getDistanceInMeters, getDistanceRateTaxUpdates, getRateID, 
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -52,19 +54,20 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepDistanceRateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE> & {
+type DynamicIOURequestStepDistanceRateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_RATE> & {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
-function IOURequestStepDistanceRate({
+function DynamicIOURequestStepDistanceRate({
     report,
     reportDraft,
     route: {
-        params: {action, backTo, transactionID, iouType, reportActionID},
+        params: {action, transactionID, iouType, reportActionID},
     },
     transaction,
-}: IOURequestStepDistanceRateProps) {
+}: DynamicIOURequestStepDistanceRateProps) {
+    const backTo = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.path);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`);
     const [reportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {
         selector: policyTypeSelector,
@@ -266,7 +269,7 @@ function IOURequestStepDistanceRate({
             headerTitle={translate('common.rate')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID="IOURequestStepDistanceRate"
+            testID="DynamicIOURequestStepDistanceRate"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
@@ -288,8 +291,8 @@ function IOURequestStepDistanceRate({
     );
 }
 
-const IOURequestStepDistanceRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceRate);
+const DynamicIOURequestStepDistanceRateWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepDistanceRate);
 
-const IOURequestStepDistanceRateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceRateWithWritableReportOrNotFound);
+const DynamicIOURequestStepDistanceRateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepDistanceRateWithWritableReportOrNotFound);
 
-export default IOURequestStepDistanceRateWithFullTransactionOrNotFound;
+export default DynamicIOURequestStepDistanceRateWithFullTransactionOrNotFound;
