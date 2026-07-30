@@ -278,8 +278,8 @@ function SubmitDetailsPage({
         participantReportID: participant?.reportID,
     });
 
-    // Empty draft skips REPORT_DRAFT fallback — report must be in COLLECTION.REPORT to render behind the share modal.
     const hasNavigationDestination = !!transaction && !!postSubmitNavigationReportID;
+    // Empty draft skips REPORT_DRAFT fallback — report must be in COLLECTION.REPORT to render behind the share modal.
     const destinationReportInCollection = hasNavigationDestination ? getReportOrDraftReport(postSubmitNavigationReportID, undefined, undefined, {}) : undefined;
     // Destination report isn't in COLLECTION.REPORT yet (e.g. a recipient with no existing chat) — it will only
     // exist after the expense create writes it optimistically, so pre-mounting is impossible.
