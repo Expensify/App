@@ -255,14 +255,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
                 } else {
                     // Navigate within the existing TAB_NAVIGATOR (tab switch) rather than pushing a new one.
                     const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-                    const additionalAction = CommonActions.navigate({
-                        name: NAVIGATORS.TAB_NAVIGATOR,
-                        params: {
-                            screen: matchingFullScreenRoute.name,
-                            params: lastRouteInMatchingFullScreen
-                                ? {screen: lastRouteInMatchingFullScreen.name, params: lastRouteInMatchingFullScreen.params}
-                                : matchingFullScreenRoute.params,
-                        },
+                    // RN8: CommonActions.navigate no longer accepts the object form — use positional arguments
+                    const additionalAction = CommonActions.navigate(NAVIGATORS.TAB_NAVIGATOR, {
+                        screen: matchingFullScreenRoute.name,
+                        params: lastRouteInMatchingFullScreen ? {screen: lastRouteInMatchingFullScreen.name, params: lastRouteInMatchingFullScreen.params} : matchingFullScreenRoute.params,
                     });
                     navigation.dispatch(additionalAction);
                 }

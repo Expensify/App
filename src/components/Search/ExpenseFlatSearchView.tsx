@@ -95,11 +95,17 @@ function ExpenseFlatSearchView({
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         const isDisabled = isRowDeleted(item);
         // Only expense row exits animate; invoice and trip transaction lists do not (matches the legacy per-type gate).
-        const shouldApplyAnimation = type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < data.length - 1;
+        // RN8 PoC stopgap: animation hard-disabled. SEARCH.ROOT uses pauseWhenCovered, and Reanimated's web
+        // exiting/layout animations measure DOM rects in getSnapshotBeforeUpdate/componentDidUpdate — during
+        // the Activity pause display:none/keep-visible rewrite cycle those reads return 0-rects, so every
+        // animated row visibly flickered ~500ms after an RHP covered this screen (bisect-confirmed; the
+        // Reports listing, with no animated rows, was unaffected)
+
+        // const shouldApplyAnimation = type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < data.length - 1;
 
         return (
             <AnimatedExitRow
-                shouldApplyAnimation={shouldApplyAnimation}
+                shouldApplyAnimation={false}
                 hasItemsBeingRemoved={hasItemsBeingRemoved}
             >
                 <TransactionListItem

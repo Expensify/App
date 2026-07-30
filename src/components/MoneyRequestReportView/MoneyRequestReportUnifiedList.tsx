@@ -211,7 +211,15 @@ function MoneyRequestReportUnifiedList({
 
     // Reset the offset to the top whenever the report changes. A report view opens at the top, but the store only
     // updates from onScroll — so without this a stale offset
+    // Compare against the previous reportID instead of relying on effect deps: when the screen is paused by
+    // Activity (e.g. under an RHP) its effects are unmounted and re-run on resume with unchanged deps, and an
+    // unconditional reset would re-zero the offset the nested table windows against, losing the scroll position.
+    const lastResetReportIDRef = useRef(report.reportID);
     useEffect(() => {
+        if (lastResetReportIDRef.current === report.reportID) {
+            return;
+        }
+        lastResetReportIDRef.current = report.reportID;
         scrollOffsetStore.setOffset(0);
     }, [report.reportID, scrollOffsetStore]);
 

@@ -1,0 +1,1625 @@
+diff --git a/node_modules/@react-navigation/core/lib/module/useDescriptors.js b/node_modules/@react-navigation/core/lib/module/useDescriptors.js
+index ba26e81..3fa9998 100644
+--- a/node_modules/@react-navigation/core/lib/module/useDescriptors.js
++++ b/node_modules/@react-navigation/core/lib/module/useDescriptors.js
+@@ -1,13 +1,14 @@
+-"use strict";
++'use strict';
+ 
+ import * as React from 'react';
+-import { NavigationBuilderContext } from "./NavigationBuilderContext.js";
+-import { NavigationProvider } from "./NavigationProvider.js";
+-import { SceneView } from "./SceneView.js";
+-import { ThemeContext } from "./theming/ThemeContext.js";
+-import { useNavigationCache } from "./useNavigationCache.js";
+-import { useRouteCache } from "./useRouteCache.js";
+-import { jsx as _jsx } from "react/jsx-runtime";
++import {jsx as _jsx} from 'react/jsx-runtime';
++
++import {NavigationBuilderContext} from './NavigationBuilderContext.js';
++import {NavigationProvider} from './NavigationProvider.js';
++import {SceneView} from './SceneView.js';
++import {ThemeContext} from './theming/ThemeContext.js';
++import {useNavigationCache} from './useNavigationCache.js';
++import {useRouteCache} from './useRouteCache.js';
+ /**
+  * Hook to create descriptor objects for the child routes.
+  *
+@@ -16,147 +17,155 @@ import { jsx as _jsx } from "react/jsx-runtime";
+  * - Options specified by the screen for the navigator
+  * - Navigation object intended for the route
+  */
+-export function useDescriptors({
+-  routes,
+-  screens,
+-  navigation,
+-  screenOptions,
+-  screenLayout,
+-  onAction,
+-  getState,
+-  setState,
+-  subscribe,
+-  addListener,
+-  addKeyedListener,
+-  onRouteFocus,
+-  router,
+-  emitter
+-}) {
+-  const theme = React.use(ThemeContext);
+-  const [options, setOptions] = React.useState({});
+-  const {
+-    onDispatchAction,
+-    onEmitEvent,
+-    onOptionsChange,
+-    scheduleUpdate,
+-    flushUpdates,
+-    stackRef,
+-    getIsStateEmitted
+-  } = React.use(NavigationBuilderContext);
+-  const context = React.useMemo(() => ({
+-    navigation,
+-    onAction,
+-    addListener,
+-    addKeyedListener,
+-    onRouteFocus,
+-    onDispatchAction,
+-    onEmitEvent,
+-    onOptionsChange,
+-    getIsStateEmitted,
+-    scheduleUpdate,
+-    flushUpdates,
+-    stackRef
+-  }), [navigation, onAction, addListener, addKeyedListener, onRouteFocus, onDispatchAction, onEmitEvent, onOptionsChange, getIsStateEmitted, scheduleUpdate, flushUpdates, stackRef]);
+-  const navigations = useNavigationCache({
+-    routes,
+-    getState,
+-    navigation,
+-    setOptions,
+-    router,
+-    emitter
+-  });
+-  const cachedRoutes = useRouteCache(routes);
+-  const getOptions = (route, navigation, overrides) => {
+-    const config = screens[route.name];
+-    const screen = config?.props;
+-    const optionsList = [
+-    // The default `screenOptions` passed to the navigator
+-    screenOptions,
+-    // The `screenOptions` props passed to `Group` elements
+-    ...(config?.options ? config.options.filter(Boolean) : []),
+-    // The `options` prop passed to `Screen` elements,
+-    screen?.options,
+-    // The options set via `navigation.setOptions`
+-    overrides];
+-    return optionsList.reduce((acc, curr) => Object.assign(acc,
+-    // @ts-expect-error: we check for function but TS still complains
+-    typeof curr !== 'function' ? curr : curr({
+-      route,
+-      navigation,
+-      theme
+-    })), {});
+-  };
+-  const render = (route, navigation, customOptions, routeState) => {
+-    const config = screens[route.name];
+-    const screen = config?.props;
+-    if (screen == null) {
+-      throw new Error(`Couldn't find a screen named '${route.name}'.`);
+-    }
+-    const clearOptions = () => setOptions(o => {
+-      if (route.key in o) {
+-        const {
+-          [route.key]: _,
+-          ...rest
+-        } = o;
+-        return rest;
+-      }
+-      return o;
+-    });
+-    const layout =
+-    // The `layout` prop passed to `Screen` elements,
+-    screen.layout ??
+-    // The `screenLayout` props passed to `Group` elements
+-    config?.layout ??
+-    // The default `screenLayout` passed to the navigator
+-    screenLayout;
+-    let element = /*#__PURE__*/_jsx(SceneView, {
+-      navigation: navigation,
+-      route: route,
+-      screen: screen,
+-      routeState: routeState,
+-      getState: getState,
+-      setState: setState,
+-      subscribe: subscribe,
+-      options: customOptions,
+-      clearOptions: clearOptions
+-    });
+-    if (layout != null) {
+-      element = layout({
+-        route,
++export function useDescriptors(
++    {routes, screens, navigation, screenOptions, screenLayout, onAction, getState, setState, subscribe, addListener, addKeyedListener, onRouteFocus, router, emitter},
++    convertCustomScreenOptions,
++) {
++    const theme = React.use(ThemeContext);
++    const [options, setOptions] = React.useState({});
++    const {onDispatchAction, onEmitEvent, onOptionsChange, scheduleUpdate, flushUpdates, stackRef, getIsStateEmitted} = React.use(NavigationBuilderContext);
++    const context = React.useMemo(
++        () => ({
++            navigation,
++            onAction,
++            addListener,
++            addKeyedListener,
++            onRouteFocus,
++            onDispatchAction,
++            onEmitEvent,
++            onOptionsChange,
++            getIsStateEmitted,
++            scheduleUpdate,
++            flushUpdates,
++            stackRef,
++        }),
++        [navigation, onAction, addListener, addKeyedListener, onRouteFocus, onDispatchAction, onEmitEvent, onOptionsChange, getIsStateEmitted, scheduleUpdate, flushUpdates, stackRef],
++    );
++    const navigations = useNavigationCache({
++        routes,
++        getState,
+         navigation,
+-        options: customOptions,
+-        // @ts-expect-error: in practice `theme` will be defined
+-        theme,
+-        children: element
+-      });
+-    }
+-    return /*#__PURE__*/_jsx(NavigationBuilderContext.Provider, {
+-      value: context,
+-      children: /*#__PURE__*/_jsx(NavigationProvider, {
+-        navigation: navigation,
+-        route: route,
+-        children: element
+-      })
+-    }, route.key);
+-  };
+-  const descriptors = cachedRoutes.reduce((acc, route, i) => {
+-    const navigation = navigations[route.key];
+-    const overrides = options[route.key];
+-    if (navigation == null) {
+-      throw new Error(`Couldn't find a navigation object for route '${route.key}'.`);
+-    }
+-    const customOptions = getOptions(route, navigation, overrides);
+-    const element = render(route, navigation, customOptions, routes[i]?.state);
+-    acc[route.key] = {
+-      route,
+-      navigation,
+-      render() {
+-        return element;
+-      },
+-      options: customOptions
++        setOptions,
++        router,
++        emitter,
++    });
++    const cachedRoutes = useRouteCache(routes);
++    const getOptions = (route, navigation, overrides) => {
++        const config = screens[route.name];
++        const screen = config?.props;
++        // Expensify patch (ported from v7): when a converter is provided, flatten each custom
++        // options layer ({web: {...}, native: {...}}) into real stack options BEFORE merging,
++        // so a screen-level `web` object merges key-by-key on top of the navigator-level one.
++        const optionsList = convertCustomScreenOptions
++            ? [
++                  // The default `screenOptions` passed to the navigator
++                  convertCustomScreenOptions(screenOptions),
++                  // The `screenOptions` props passed to `Group` elements
++                  ...(config?.options ? config.options.filter(Boolean).map(convertCustomScreenOptions) : []),
++                  // The `options` prop passed to `Screen` elements,
++                  convertCustomScreenOptions(screen?.options),
++                  // The options set via `navigation.setOptions`
++                  convertCustomScreenOptions(overrides),
++              ]
++            : [
++                  // The default `screenOptions` passed to the navigator
++                  screenOptions,
++                  // The `screenOptions` props passed to `Group` elements
++                  ...(config?.options ? config.options.filter(Boolean) : []),
++                  // The `options` prop passed to `Screen` elements,
++                  screen?.options,
++                  // The options set via `navigation.setOptions`
++                  overrides,
++              ];
++        return optionsList.reduce(
++            (acc, curr) =>
++                Object.assign(
++                    acc,
++                    // @ts-expect-error: we check for function but TS still complains
++                    typeof curr !== 'function'
++                        ? curr
++                        : curr({
++                              route,
++                              navigation,
++                              theme,
++                          }),
++                ),
++            {},
++        );
++    };
++    const render = (route, navigation, customOptions, routeState) => {
++        const config = screens[route.name];
++        const screen = config?.props;
++        if (screen == null) {
++            throw new Error(`Couldn't find a screen named '${route.name}'.`);
++        }
++        const clearOptions = () =>
++            setOptions((o) => {
++                if (route.key in o) {
++                    const {[route.key]: _, ...rest} = o;
++                    return rest;
++                }
++                return o;
++            });
++        const layout =
++            // The `layout` prop passed to `Screen` elements,
++            screen.layout ??
++            // The `screenLayout` props passed to `Group` elements
++            config?.layout ??
++            // The default `screenLayout` passed to the navigator
++            screenLayout;
++        let element = /*#__PURE__*/ _jsx(SceneView, {
++            navigation: navigation,
++            route: route,
++            screen: screen,
++            routeState: routeState,
++            getState: getState,
++            setState: setState,
++            subscribe: subscribe,
++            options: customOptions,
++            clearOptions: clearOptions,
++        });
++        if (layout != null) {
++            element = layout({
++                route,
++                navigation,
++                options: customOptions,
++                // @ts-expect-error: in practice `theme` will be defined
++                theme,
++                children: element,
++            });
++        }
++        return /*#__PURE__*/ _jsx(
++            NavigationBuilderContext.Provider,
++            {
++                value: context,
++                children: /*#__PURE__*/ _jsx(NavigationProvider, {
++                    navigation: navigation,
++                    route: route,
++                    children: element,
++                }),
++            },
++            route.key,
++        );
+     };
+-    return acc;
+-  }, {});
+-  return descriptors;
++    const descriptors = cachedRoutes.reduce((acc, route, i) => {
++        const navigation = navigations[route.key];
++        const overrides = options[route.key];
++        if (navigation == null) {
++            throw new Error(`Couldn't find a navigation object for route '${route.key}'.`);
++        }
++        const customOptions = getOptions(route, navigation, overrides);
++        const element = render(route, navigation, customOptions, routes[i]?.state);
++        acc[route.key] = {
++            route,
++            navigation,
++            render() {
++                return element;
++            },
++            options: customOptions,
++        };
++        return acc;
++    }, {});
++    return descriptors;
+ }
+ //# sourceMappingURL=useDescriptors.js.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+index d65dc14..db72f77 100644
+--- a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
++++ b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+@@ -1,52 +1,52 @@
+-"use strict";
++'use strict';
+ 
+-import { CommonActions } from '@react-navigation/routers';
++import {CommonActions} from '@react-navigation/routers';
+ import deepEqual from 'fast-deep-equal';
+ import * as React from 'react';
+-import { isValidElementType } from 'react-is';
+-import useLatestCallback from 'use-latest-callback';
+-import { ConsumedParamsContext } from "./ConsumedParamsContext.js";
+-import { deepFreeze } from "./deepFreeze.js";
+-import { Group } from "./Group.js";
+-import { isArrayEqual } from "./isArrayEqual.js";
+-import { NavigationBuilderContext } from "./NavigationBuilderContext.js";
+-import { NavigationHelpersContext } from "./NavigationHelpersContext.js";
+-import { NavigationMetaContext } from "./NavigationMetaContext.js";
+-import { NavigationRouteContext } from "./NavigationProvider.js";
+-import { NavigationStateContext } from "./NavigationStateContext.js";
+-import { PreventRemoveProvider } from "./PreventRemoveProvider.js";
+-import { Screen } from "./Screen.js";
+-import { PrivateValueStore } from "./types.js";
+-import { UnhandledActionContext } from "./UnhandledActionContext.js";
+-import { useChildListeners } from "./useChildListeners.js";
+-import { useComponent } from "./useComponent.js";
+-import { useDescriptors } from "./useDescriptors.js";
+-import { useEventEmitter } from "./useEventEmitter.js";
+-import { useFocusedListenersChildrenAdapter } from "./useFocusedListenersChildrenAdapter.js";
+-import { useFocusEvents } from "./useFocusEvents.js";
+-import { FocusedRouteKeyContext } from "./useIsFocused.js";
+-import { useKeyedChildListeners } from "./useKeyedChildListeners.js";
+-import { useLazyValue } from "./useLazyValue.js";
+-import { useNavigationHelpers } from "./useNavigationHelpers.js";
+-import { NavigationStateListenerProvider } from "./useNavigationState.js";
+-import { useOnAction } from "./useOnAction.js";
+-import { useOnGetState } from "./useOnGetState.js";
+-import { useOnRouteFocus } from "./useOnRouteFocus.js";
+-import { useRegisterNavigator } from "./useRegisterNavigator.js";
+-import { useScheduleUpdate } from "./useScheduleUpdate.js";
+-
++import {isValidElementType} from 'react-is';
+ // This is to make TypeScript compiler happy
+ // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+-import { jsx as _jsx } from "react/jsx-runtime";
++import {jsx as _jsx} from 'react/jsx-runtime';
++import useLatestCallback from 'use-latest-callback';
++
++import {ConsumedParamsContext} from './ConsumedParamsContext.js';
++import {deepFreeze} from './deepFreeze.js';
++import {Group} from './Group.js';
++import {isArrayEqual} from './isArrayEqual.js';
++import {NavigationBuilderContext} from './NavigationBuilderContext.js';
++import {NavigationHelpersContext} from './NavigationHelpersContext.js';
++import {NavigationMetaContext} from './NavigationMetaContext.js';
++import {NavigationRouteContext} from './NavigationProvider.js';
++import {NavigationStateContext} from './NavigationStateContext.js';
++import {PreventRemoveProvider} from './PreventRemoveProvider.js';
++import {Screen} from './Screen.js';
++import {PrivateValueStore} from './types.js';
++import {UnhandledActionContext} from './UnhandledActionContext.js';
++import {useChildListeners} from './useChildListeners.js';
++import {useComponent} from './useComponent.js';
++import {useDescriptors} from './useDescriptors.js';
++import {useEventEmitter} from './useEventEmitter.js';
++import {useFocusedListenersChildrenAdapter} from './useFocusedListenersChildrenAdapter.js';
++import {useFocusEvents} from './useFocusEvents.js';
++import {FocusedRouteKeyContext} from './useIsFocused.js';
++import {useKeyedChildListeners} from './useKeyedChildListeners.js';
++import {useLazyValue} from './useLazyValue.js';
++import {useNavigationHelpers} from './useNavigationHelpers.js';
++import {NavigationStateListenerProvider} from './useNavigationState.js';
++import {useOnAction} from './useOnAction.js';
++import {useOnGetState} from './useOnGetState.js';
++import {useOnRouteFocus} from './useOnRouteFocus.js';
++import {useRegisterNavigator} from './useRegisterNavigator.js';
++import {useScheduleUpdate} from './useScheduleUpdate.js';
+ PrivateValueStore;
+-const isNavigationState = state => state != null && typeof state === 'object' && 'routes' in state && Array.isArray(state.routes);
+-const isScreen = child => {
+-  return child.type === Screen;
++const isNavigationState = (state) => state != null && typeof state === 'object' && 'routes' in state && Array.isArray(state.routes);
++const isScreen = (child) => {
++    return child.type === Screen;
+ };
+-const isGroup = child => {
+-  return child.type === React.Fragment || child.type === Group;
++const isGroup = (child) => {
++    return child.type === React.Fragment || child.type === Group;
+ };
+-const isValidKey = key => key === undefined || typeof key === 'string' && key !== '';
++const isValidKey = (key) => key === undefined || (typeof key === 'string' && key !== '');
+ 
+ /**
+  * Extract route config object from React children elements.
+@@ -54,109 +54,124 @@ const isValidKey = key => key === undefined || typeof key === 'string' && key !=
+  * @param children React Elements to extract the config from.
+  */
+ const getRouteConfigsFromChildren = (children, groupKeys = [], groupOptions, groupLayout) => {
+-  const configs = React.Children.toArray(children).reduce((acc, child) => {
+-    if (/*#__PURE__*/React.isValidElement(child)) {
+-      if (isScreen(child)) {
+-        // We can only extract the config from `Screen` elements
+-        // If something else was rendered, it's probably a bug
++    const configs = React.Children.toArray(children).reduce((acc, child) => {
++        if (/*#__PURE__*/ React.isValidElement(child)) {
++            if (isScreen(child)) {
++                // We can only extract the config from `Screen` elements
++                // If something else was rendered, it's probably a bug
+ 
+-        if (typeof child.props !== 'object' || child.props === null) {
+-          throw new Error(`Got an invalid element for screen.`);
+-        }
+-        if (typeof child.props.name !== 'string' || child.props.name === '') {
+-          throw new Error(`Got an invalid name (${JSON.stringify(child.props.name)}) for the screen. It must be a non-empty string.`);
+-        }
+-        if (child.props.navigationKey !== undefined && (typeof child.props.navigationKey !== 'string' || child.props.navigationKey === '')) {
+-          throw new Error(`Got an invalid 'navigationKey' prop (${JSON.stringify(child.props.navigationKey)}) for the screen '${child.props.name}'. It must be a non-empty string or 'undefined'.`);
++                if (typeof child.props !== 'object' || child.props === null) {
++                    throw new Error(`Got an invalid element for screen.`);
++                }
++                if (typeof child.props.name !== 'string' || child.props.name === '') {
++                    throw new Error(`Got an invalid name (${JSON.stringify(child.props.name)}) for the screen. It must be a non-empty string.`);
++                }
++                if (child.props.navigationKey !== undefined && (typeof child.props.navigationKey !== 'string' || child.props.navigationKey === '')) {
++                    throw new Error(
++                        `Got an invalid 'navigationKey' prop (${JSON.stringify(child.props.navigationKey)}) for the screen '${child.props.name}'. It must be a non-empty string or 'undefined'.`,
++                    );
++                }
++                acc.push({
++                    keys: [...groupKeys, child.props.navigationKey],
++                    options: groupOptions,
++                    layout: groupLayout,
++                    props: child.props,
++                });
++                return acc;
++            }
++            if (isGroup(child)) {
++                if (!isValidKey(child.props.navigationKey)) {
++                    throw new Error(`Got an invalid 'navigationKey' prop (${JSON.stringify(child.props.navigationKey)}) for the group. It must be a non-empty string or 'undefined'.`);
++                }
++
++                // When we encounter a fragment or group, we need to dive into its children to extract the configs
++                // This is handy to conditionally define a group of screens
++                acc.push(
++                    ...getRouteConfigsFromChildren(
++                        child.props.children,
++                        child.props.navigationKey != null ? [...groupKeys, child.props.navigationKey] : groupKeys,
++                        // FIXME
++                        // @ts-expect-error: add validation
++                        child.type !== Group ? groupOptions : groupOptions != null ? [...groupOptions, child.props.screenOptions] : [child.props.screenOptions],
++                        typeof child.props.screenLayout === 'function' ? child.props.screenLayout : groupLayout,
++                    ),
++                );
++                return acc;
++            }
+         }
+-        acc.push({
+-          keys: [...groupKeys, child.props.navigationKey],
+-          options: groupOptions,
+-          layout: groupLayout,
+-          props: child.props
++        throw new Error(
++            `A navigator can only contain 'Screen', 'Group' or 'React.Fragment' as its direct children (found ${/*#__PURE__*/ React.isValidElement(child) ? `'${typeof child.type === 'string' ? child.type : child.type?.name}'${child.props != null && typeof child.props === 'object' && 'name' in child.props && child.props?.name ? ` for the screen '${child.props.name}'` : ''}` : typeof child === 'object' ? JSON.stringify(child) : `'${String(child)}'`}). To render this component in the navigator, pass it in the 'component' prop to 'Screen'.`,
++        );
++    }, []);
++    if (process.env.NODE_ENV !== 'production') {
++        configs.forEach((config) => {
++            const {name, children, component, getComponent} = config.props;
++            if (children != null || component !== undefined || getComponent !== undefined) {
++                if (children != null && component !== undefined) {
++                    throw new Error(`Got both 'component' and 'children' props for the screen '${name}'. You must pass only one of them.`);
++                }
++                if (children != null && getComponent !== undefined) {
++                    throw new Error(`Got both 'getComponent' and 'children' props for the screen '${name}'. You must pass only one of them.`);
++                }
++                if (component !== undefined && getComponent !== undefined) {
++                    throw new Error(`Got both 'component' and 'getComponent' props for the screen '${name}'. You must pass only one of them.`);
++                }
++                if (children != null && typeof children !== 'function') {
++                    throw new Error(`Got an invalid value for 'children' prop for the screen '${name}'. It must be a function returning a React Element.`);
++                }
++                if (component !== undefined && !isValidElementType(component)) {
++                    throw new Error(`Got an invalid value for 'component' prop for the screen '${name}'. It must be a valid React Component.`);
++                }
++                if (getComponent !== undefined && typeof getComponent !== 'function') {
++                    throw new Error(`Got an invalid value for 'getComponent' prop for the screen '${name}'. It must be a function returning a React Component.`);
++                }
++                if (typeof component === 'function') {
++                    if (component.name === 'component') {
++                        // Inline anonymous functions passed in the `component` prop will have the name of the prop
++                        // It's relatively safe to assume that it's not a component since it should also have PascalCase name
++                        // We won't catch all scenarios here, but this should catch a good chunk of incorrect use.
++                        console.warn(
++                            `Looks like you're passing an inline function for 'component' prop for the screen '${name}' (e.g. component={() => <SomeComponent />}). Passing an inline function will cause the component state to be lost on re-render and cause perf issues since it's re-created every render. You can pass the function as children to 'Screen' instead to achieve the desired behaviour.`,
++                        );
++                    } else if (/^[a-z]/.test(component.name)) {
++                        console.warn(
++                            `Got a component with the name '${component.name}' for the screen '${name}'. React Components must start with an uppercase letter. If you're passing a regular function and not a component, pass it as children to 'Screen' instead. Otherwise capitalize your component's name.`,
++                        );
++                    }
++                }
++            } else {
++                throw new Error(
++                    `Couldn't find a 'component', 'getComponent' or 'children' prop for the screen '${name}'. This can happen if you passed 'undefined'. You likely forgot to export your component from the file it's defined in, or mixed up default import and named import when importing.`,
++                );
++            }
+         });
+-        return acc;
+-      }
+-      if (isGroup(child)) {
+-        if (!isValidKey(child.props.navigationKey)) {
+-          throw new Error(`Got an invalid 'navigationKey' prop (${JSON.stringify(child.props.navigationKey)}) for the group. It must be a non-empty string or 'undefined'.`);
+-        }
+-
+-        // When we encounter a fragment or group, we need to dive into its children to extract the configs
+-        // This is handy to conditionally define a group of screens
+-        acc.push(...getRouteConfigsFromChildren(child.props.children, child.props.navigationKey != null ? [...groupKeys, child.props.navigationKey] : groupKeys,
+-        // FIXME
+-        // @ts-expect-error: add validation
+-        child.type !== Group ? groupOptions : groupOptions != null ? [...groupOptions, child.props.screenOptions] : [child.props.screenOptions], typeof child.props.screenLayout === 'function' ? child.props.screenLayout : groupLayout));
+-        return acc;
+-      }
+     }
+-    throw new Error(`A navigator can only contain 'Screen', 'Group' or 'React.Fragment' as its direct children (found ${ /*#__PURE__*/React.isValidElement(child) ? `'${typeof child.type === 'string' ? child.type : child.type?.name}'${child.props != null && typeof child.props === 'object' && 'name' in child.props && child.props?.name ? ` for the screen '${child.props.name}'` : ''}` : typeof child === 'object' ? JSON.stringify(child) : `'${String(child)}'`}). To render this component in the navigator, pass it in the 'component' prop to 'Screen'.`);
+-  }, []);
+-  if (process.env.NODE_ENV !== 'production') {
+-    configs.forEach(config => {
+-      const {
+-        name,
+-        children,
+-        component,
+-        getComponent
+-      } = config.props;
+-      if (children != null || component !== undefined || getComponent !== undefined) {
+-        if (children != null && component !== undefined) {
+-          throw new Error(`Got both 'component' and 'children' props for the screen '${name}'. You must pass only one of them.`);
+-        }
+-        if (children != null && getComponent !== undefined) {
+-          throw new Error(`Got both 'getComponent' and 'children' props for the screen '${name}'. You must pass only one of them.`);
+-        }
+-        if (component !== undefined && getComponent !== undefined) {
+-          throw new Error(`Got both 'component' and 'getComponent' props for the screen '${name}'. You must pass only one of them.`);
+-        }
+-        if (children != null && typeof children !== 'function') {
+-          throw new Error(`Got an invalid value for 'children' prop for the screen '${name}'. It must be a function returning a React Element.`);
+-        }
+-        if (component !== undefined && !isValidElementType(component)) {
+-          throw new Error(`Got an invalid value for 'component' prop for the screen '${name}'. It must be a valid React Component.`);
+-        }
+-        if (getComponent !== undefined && typeof getComponent !== 'function') {
+-          throw new Error(`Got an invalid value for 'getComponent' prop for the screen '${name}'. It must be a function returning a React Component.`);
+-        }
+-        if (typeof component === 'function') {
+-          if (component.name === 'component') {
+-            // Inline anonymous functions passed in the `component` prop will have the name of the prop
+-            // It's relatively safe to assume that it's not a component since it should also have PascalCase name
+-            // We won't catch all scenarios here, but this should catch a good chunk of incorrect use.
+-            console.warn(`Looks like you're passing an inline function for 'component' prop for the screen '${name}' (e.g. component={() => <SomeComponent />}). Passing an inline function will cause the component state to be lost on re-render and cause perf issues since it's re-created every render. You can pass the function as children to 'Screen' instead to achieve the desired behaviour.`);
+-          } else if (/^[a-z]/.test(component.name)) {
+-            console.warn(`Got a component with the name '${component.name}' for the screen '${name}'. React Components must start with an uppercase letter. If you're passing a regular function and not a component, pass it as children to 'Screen' instead. Otherwise capitalize your component's name.`);
+-          }
+-        }
+-      } else {
+-        throw new Error(`Couldn't find a 'component', 'getComponent' or 'children' prop for the screen '${name}'. This can happen if you passed 'undefined'. You likely forgot to export your component from the file it's defined in, or mixed up default import and named import when importing.`);
+-      }
+-    });
+-  }
+-  return configs;
++    return configs;
+ };
+ const getStateFromParams = (params, type) => {
+-  const state = params?.state;
+-  if (isNavigationState(state)) {
+-    if (state.type != null && state.type !== type) {
+-      if (process.env.NODE_ENV !== 'production') {
+-        console.error(`The state passed in the params is for a navigator of type '${state.type}', but it was passed to a navigator of type '${type}'. This can happen if the state was meant for a different navigator. The state will be discarded.`);
+-      }
+-      return undefined;
++    const state = params?.state;
++    if (isNavigationState(state)) {
++        if (state.type != null && state.type !== type) {
++            if (process.env.NODE_ENV !== 'production') {
++                console.error(
++                    `The state passed in the params is for a navigator of type '${state.type}', but it was passed to a navigator of type '${type}'. This can happen if the state was meant for a different navigator. The state will be discarded.`,
++                );
++            }
++            return undefined;
++        }
++        return state;
++    } else if (typeof params?.screen === 'string' && params?.initial !== false) {
++        return {
++            routes: [
++                {
++                    name: params.screen,
++                    params: params.params,
++                    path: params.path,
++                },
++            ],
++        };
+     }
+-    return state;
+-  } else if (typeof params?.screen === 'string' && params?.initial !== false) {
+-    return {
+-      routes: [{
+-        name: params.screen,
+-        params: params.params,
+-        path: params.path
+-      }]
+-    };
+-  }
+-  return undefined;
++    return undefined;
+ };
+ 
+ /**
+@@ -166,484 +181,518 @@ const getStateFromParams = (params, type) => {
+  * @param options Options object containing `children` and additional options for the router.
+  * @returns An object containing `state`, `navigation`, `descriptors` objects.
+  */
+-export function useNavigationBuilder(createRouter, options) {
+-  const navigatorKey = useRegisterNavigator();
+-  const route = React.use(NavigationRouteContext);
+-  const consumedParams = React.use(ConsumedParamsContext);
+-  const isNestedParamsConsumed = typeof route?.params === 'object' && route.params != null ? consumedParams?.has(route.params) : false;
+-  const {
+-    children,
+-    layout,
+-    screenOptions,
+-    screenLayout,
+-    screenListeners,
+-    router: routerOverrides,
+-    ...rest
+-  } = options;
+-  const routeConfigs = getRouteConfigsFromChildren(children);
+-  const router = useLazyValue(() => {
+-    if (rest.initialRouteName != null && routeConfigs.every(config => config.props.name !== rest.initialRouteName)) {
+-      throw new Error(`Couldn't find a screen named '${rest.initialRouteName}' to use as 'initialRouteName'.`);
+-    }
+-    const original = createRouter(rest);
+-    if (routerOverrides != null) {
+-      const overrides = routerOverrides(original);
+-      return {
+-        ...original,
+-        ...overrides
+-      };
++export function useNavigationBuilder(createRouter, options, convertCustomScreenOptions) {
++    const navigatorKey = useRegisterNavigator();
++    const route = React.use(NavigationRouteContext);
++    const consumedParams = React.use(ConsumedParamsContext);
++    const isNestedParamsConsumed = typeof route?.params === 'object' && route.params != null ? consumedParams?.has(route.params) : false;
++    const {children, layout, screenOptions, screenLayout, screenListeners, router: routerOverrides, ...rest} = options;
++    const routeConfigs = getRouteConfigsFromChildren(children);
++    const router = useLazyValue(() => {
++        if (rest.initialRouteName != null && routeConfigs.every((config) => config.props.name !== rest.initialRouteName)) {
++            throw new Error(`Couldn't find a screen named '${rest.initialRouteName}' to use as 'initialRouteName'.`);
++        }
++        const original = createRouter(rest);
++        if (routerOverrides != null) {
++            const overrides = routerOverrides(original);
++            return {
++                ...original,
++                ...overrides,
++            };
++        }
++        return original;
++    });
++    const routeNames = routeConfigs.map((config) => config.props.name);
++    if (!routeNames.length) {
++        throw new Error("Couldn't find any screens for the navigator. Have you defined any screens as its children?");
+     }
+-    return original;
+-  });
+-  const routeNames = routeConfigs.map(config => config.props.name);
+-  if (!routeNames.length) {
+-    throw new Error("Couldn't find any screens for the navigator. Have you defined any screens as its children?");
+-  }
+-  const screens = {};
+-  const routeKeyList = {};
+-  const routeParamList = {};
+-  const routeGetIdList = {};
+-  for (const config of routeConfigs) {
+-    const name = config.props.name;
+-    if (name in screens) {
+-      throw new Error(`A navigator cannot contain multiple 'Screen' components with the same name (found duplicate screen named '${name}')`);
++    const screens = {};
++    const routeKeyList = {};
++    const routeParamList = {};
++    const routeGetIdList = {};
++    for (const config of routeConfigs) {
++        const name = config.props.name;
++        if (name in screens) {
++            throw new Error(`A navigator cannot contain multiple 'Screen' components with the same name (found duplicate screen named '${name}')`);
++        }
++        screens[name] = config;
++        routeKeyList[name] = config.keys;
++        routeParamList[name] = config.props.initialParams;
++        Object.assign(routeGetIdList, {
++            [name]: config.props.getId,
++        });
+     }
+-    screens[name] = config;
+-    routeKeyList[name] = config.keys;
+-    routeParamList[name] = config.props.initialParams;
+-    Object.assign(routeGetIdList, {
+-      [name]: config.props.getId
++    const isStateValid = React.useCallback((state) => state.type === undefined || state.type === router.type, [router.type]);
++    const isStateInitialized = React.useCallback((state) => state !== undefined && state.stale === false && isStateValid(state), [isStateValid]);
++    const doesStateHaveOnlyInvalidRoutes = React.useCallback((state) => state.routes.every((r) => !routeNames.includes(r.name)), [routeNames]);
++    const {state: currentState, getState: getCurrentState, setState: setCurrentState, subscribe, setKey, getKey, getIsInitial} = React.use(NavigationStateContext);
++    const {onEmitEvent, getIsStateEmitted} = React.use(NavigationBuilderContext);
++    const stateCleanupRef = React.useRef(false);
++    const lastStateRef = React.useRef(undefined);
++    const setState = useLatestCallback((state) => {
++        if (stateCleanupRef.current) {
++            // Store the state locally in case the current navigator is in `Activity`
++            lastStateRef.current = state;
++
++            // State might have been already cleaned up due to unmount
++            // We don't want to update `route.state` in parent
++            // Otherwise it will be reused if a new navigator gets mounted
++            return;
++        }
++        setCurrentState(state);
+     });
+-  }
+-  const isStateValid = React.useCallback(state => state.type === undefined || state.type === router.type, [router.type]);
+-  const isStateInitialized = React.useCallback(state => state !== undefined && state.stale === false && isStateValid(state), [isStateValid]);
+-  const doesStateHaveOnlyInvalidRoutes = React.useCallback(state => state.routes.every(r => !routeNames.includes(r.name)), [routeNames]);
+-  const {
+-    state: currentState,
+-    getState: getCurrentState,
+-    setState: setCurrentState,
+-    subscribe,
+-    setKey,
+-    getKey,
+-    getIsInitial
+-  } = React.use(NavigationStateContext);
+-  const {
+-    onEmitEvent,
+-    getIsStateEmitted
+-  } = React.use(NavigationBuilderContext);
+-  const stateCleanupRef = React.useRef(false);
+-  const lastStateRef = React.useRef(undefined);
+-  const setState = useLatestCallback(state => {
+-    if (stateCleanupRef.current) {
+-      // Store the state locally in case the current navigator is in `Activity`
+-      lastStateRef.current = state;
++    const [stateBeforeInitialization, initializedState, isFirstStateInitialization, paramsUsedForInitialization] = React.useMemo(() => {
++        // If the state was already cleaned up, but we have it stored in ref,
++        // It likely got cleaned up due to `<Activity mode="hidden">`
++        // We should reuse this state to avoid remounting screens
++        if (stateCleanupRef.current && lastStateRef.current && isStateValid(lastStateRef.current)) {
++            const state = isStateInitialized(lastStateRef.current)
++                ? lastStateRef.current
++                : router.getRehydratedState(lastStateRef.current, {
++                      routeNames,
++                      routeParamList,
++                      routeGetIdList,
++                  });
++            return [undefined, state, false, undefined];
++        }
++        const initialRouteParamList = routeNames.reduce((acc, curr) => {
++            const {initialParams} = screens[curr]?.props ?? {};
++            const initialParamsFromParams = route?.params?.state == null && route?.params?.initial !== false && route?.params?.screen === curr ? route.params.params : undefined;
++            acc[curr] =
++                initialParams !== undefined || initialParamsFromParams !== undefined
++                    ? {
++                          ...initialParams,
++                          ...initialParamsFromParams,
++                      }
++                    : undefined;
++            return acc;
++        }, {});
+ 
+-      // State might have been already cleaned up due to unmount
+-      // We don't want to update `route.state` in parent
+-      // Otherwise it will be reused if a new navigator gets mounted
+-      return;
++        // If the current state isn't initialized on first render, we initialize it
++        // We also need to re-initialize it if the state passed from parent was changed (maybe due to reset)
++        // Otherwise assume that the state was provided as initial state
++        // So we need to rehydrate it to make it usable
++        if (
++            (currentState === undefined || !isStateValid(currentState)) &&
++            route?.params?.state == null &&
++            !(typeof route?.params?.screen === 'string' && route?.params?.initial !== false) &&
++            !isNestedParamsConsumed
++        ) {
++            return [
++                undefined,
++                router.getInitialState({
++                    routeNames,
++                    routeParamList: initialRouteParamList,
++                    routeGetIdList,
++                }),
++                true,
++                undefined,
++            ];
++        } else {
++            const paramsForState = isNestedParamsConsumed ? undefined : route?.params;
++            const stateFromParams = paramsForState ? getStateFromParams(paramsForState, router.type) : undefined;
++            const stateBeforeInitialization = stateFromParams ?? currentState;
++            const hydratedState =
++                stateBeforeInitialization == null
++                    ? router.getInitialState({
++                          routeNames,
++                          routeParamList: initialRouteParamList,
++                          routeGetIdList,
++                      })
++                    : router.getRehydratedState(stateBeforeInitialization, {
++                          routeNames,
++                          routeParamList: initialRouteParamList,
++                          routeGetIdList,
++                      });
++            if (
++                stateBeforeInitialization != null &&
++                isStateValid(stateBeforeInitialization) &&
++                options.routeNamesChangeBehavior === 'lastUnhandled' &&
++                doesStateHaveOnlyInvalidRoutes(stateBeforeInitialization)
++            ) {
++                return [stateBeforeInitialization, hydratedState, true, paramsForState];
++            }
++            return [
++                undefined,
++                hydratedState,
++                false,
++                // Current state is already initialized
++                // So params weren't used, and need to be handled later
++                isStateInitialized(currentState) ? undefined : paramsForState,
++            ];
++        }
++        // We explicitly don't include routeNames, route.params etc. in the dep list
++        // below. We want to avoid forcing a new state to be calculated in those cases
++        // Instead, we handle changes to these in the nextState code below. Note
++        // that some changes to routeConfigs are explicitly ignored, such as changes
++        // to initialParams
++        // eslint-disable-next-line react-hooks/exhaustive-deps
++    }, [currentState, router, isStateValid]);
++    const previousRouteKeyListRef = React.useRef(routeKeyList);
++    React.useInsertionEffect(() => {
++        previousRouteKeyListRef.current = routeKeyList;
++    });
++    const previousRouteKeyList = previousRouteKeyListRef.current;
++
++    // Names of the screens whose navigation key changed since the last render
++    const routeKeyChanges = Object.keys(routeKeyList).filter((name) => {
++        const current = routeKeyList[name];
++        const previous = previousRouteKeyList[name];
++        return current != null && previous != null && !isArrayEqual(current, previous);
++    });
++    const [unhandledState, setUnhandledState] = React.useState(stateBeforeInitialization);
++
++    // An unhandled state is state that didn't have any valid routes
++    // So it was unhandled, i.e. not used for initializing the state
++    // It's possible that they were absent due to conditional render
++    // Store this state so we can reuse it if the routes change later
++    if (options.routeNamesChangeBehavior === 'lastUnhandled' && stateBeforeInitialization && unhandledState !== stateBeforeInitialization) {
++        setUnhandledState(stateBeforeInitialization);
+     }
+-    setCurrentState(state);
+-  });
+-  const [stateBeforeInitialization, initializedState, isFirstStateInitialization, paramsUsedForInitialization] = React.useMemo(() => {
+-    // If the state was already cleaned up, but we have it stored in ref,
+-    // It likely got cleaned up due to `<Activity mode="hidden">`
+-    // We should reuse this state to avoid remounting screens
+-    if (stateCleanupRef.current && lastStateRef.current && isStateValid(lastStateRef.current)) {
+-      const state = isStateInitialized(lastStateRef.current) ? lastStateRef.current : router.getRehydratedState(lastStateRef.current, {
+-        routeNames,
+-        routeParamList,
+-        routeGetIdList
+-      });
+-      return [undefined, state, false, undefined];
++    let state =
++        // If the state isn't initialized, or stale, use the state we initialized instead
++        // The state won't update until there's a change needed in the state we have initialized locally
++        // So it'll be `undefined` or stale until the first navigation event happens
++        isStateInitialized(currentState) ? currentState : initializedState;
++    let nextState = state;
++    let shouldClearUnhandledState = false;
++    if (unhandledState != null && !isStateValid(unhandledState)) {
++        // The stored unhandled state is for a different type of navigator
++        // It can't be used with this navigator, so we discard it
++        setUnhandledState(undefined);
++    } else if (
++        // Previously unhandled state is now valid again
++        // And current state no longer has any valid routes
++        // We should reuse the unhandled state instead of re-calculating the state
++        unhandledState?.routes.every((r) => routeNames.includes(r.name)) &&
++        state?.routes.every((r) => !routeNames.includes(r.name))
++    ) {
++        shouldClearUnhandledState = true;
++        nextState = router.getRehydratedState(unhandledState, {
++            routeNames,
++            routeParamList,
++            routeGetIdList,
++        });
++    } else if (!isArrayEqual(state.routeNames, routeNames) || routeKeyChanges.length !== 0) {
++        // When the list of route names change, the router should handle it to remove invalid routes
++        nextState = router.getStateForRouteNamesChange(state, {
++            routeNames,
++            routeParamList,
++            routeGetIdList,
++            routeKeyChanges,
++        });
+     }
+-    const initialRouteParamList = routeNames.reduce((acc, curr) => {
+-      const {
+-        initialParams
+-      } = screens[curr]?.props ?? {};
+-      const initialParamsFromParams = route?.params?.state == null && route?.params?.initial !== false && route?.params?.screen === curr ? route.params.params : undefined;
+-      acc[curr] = initialParams !== undefined || initialParamsFromParams !== undefined ? {
+-        ...initialParams,
+-        ...initialParamsFromParams
+-      } : undefined;
+-      return acc;
+-    }, {});
++    let didConsumeNestedParams = route?.params === paramsUsedForInitialization;
++    if (route?.params && !didConsumeNestedParams) {
++        let action;
++        if (isNavigationState(route.params.state) && !isNestedParamsConsumed) {
++            didConsumeNestedParams = true;
++            const stateFromParams = getStateFromParams(route.params, router.type);
++            if (stateFromParams != null) {
++                if (options.routeNamesChangeBehavior === 'lastUnhandled' && doesStateHaveOnlyInvalidRoutes(stateFromParams)) {
++                    if (stateFromParams !== unhandledState) {
++                        setUnhandledState(stateFromParams);
++                    }
++                } else {
++                    // If the route was updated with new state, we should reset to it
++                    action = CommonActions.reset(stateFromParams);
++                }
++            }
++        } else if (typeof route.params.screen === 'string' && ((route.params.initial === false && isFirstStateInitialization) || !isNestedParamsConsumed)) {
++            didConsumeNestedParams = true;
++            if (options.routeNamesChangeBehavior === 'lastUnhandled' && !routeNames.includes(route.params.screen)) {
++                const state = getStateFromParams(route.params, router.type);
++                if (state != null && !deepEqual(state, unhandledState)) {
++                    setUnhandledState(state);
++                }
++            } else {
++                // If the route was updated with new screen name and/or params, we should navigate there
++                action = {
++                    type: 'NAVIGATE',
++                    payload: {
++                        name: route.params.screen,
++                        params: route.params.params,
++                        path: route.params.path,
++                        merge: route.params.merge,
++                        pop: route.params.pop,
++                    },
++                };
++            }
++        }
+ 
+-    // If the current state isn't initialized on first render, we initialize it
+-    // We also need to re-initialize it if the state passed from parent was changed (maybe due to reset)
+-    // Otherwise assume that the state was provided as initial state
+-    // So we need to rehydrate it to make it usable
+-    if ((currentState === undefined || !isStateValid(currentState)) && route?.params?.state == null && !(typeof route?.params?.screen === 'string' && route?.params?.initial !== false) && !isNestedParamsConsumed) {
+-      return [undefined, router.getInitialState({
+-        routeNames,
+-        routeParamList: initialRouteParamList,
+-        routeGetIdList
+-      }), true, undefined];
+-    } else {
+-      const paramsForState = isNestedParamsConsumed ? undefined : route?.params;
+-      const stateFromParams = paramsForState ? getStateFromParams(paramsForState, router.type) : undefined;
+-      const stateBeforeInitialization = stateFromParams ?? currentState;
+-      const hydratedState = stateBeforeInitialization == null ? router.getInitialState({
+-        routeNames,
+-        routeParamList: initialRouteParamList,
+-        routeGetIdList
+-      }) : router.getRehydratedState(stateBeforeInitialization, {
+-        routeNames,
+-        routeParamList: initialRouteParamList,
+-        routeGetIdList
+-      });
+-      if (stateBeforeInitialization != null && isStateValid(stateBeforeInitialization) && options.routeNamesChangeBehavior === 'lastUnhandled' && doesStateHaveOnlyInvalidRoutes(stateBeforeInitialization)) {
+-        return [stateBeforeInitialization, hydratedState, true, paramsForState];
+-      }
+-      return [undefined, hydratedState, false,
+-      // Current state is already initialized
+-      // So params weren't used, and need to be handled later
+-      isStateInitialized(currentState) ? undefined : paramsForState];
++        // The update should be limited to current navigator only, so we call the router manually
++        const updatedState = action
++            ? router.getStateForAction(nextState, action, {
++                  routeNames,
++                  routeParamList,
++                  routeGetIdList,
++              })
++            : null;
++        if (process.env.NODE_ENV !== 'production' && action != null && updatedState === null) {
++            const names = routeNames.map((name) => `'${name}'`).join(', ');
++            console.error(
++                `The 'state' or 'screen' passed in the params couldn't be applied to the navigator with the screens: ${names}. This can happen if the params contain names of screens that don't exist in the navigator. The navigation specified in the params will be ignored.`,
++            );
++        }
++        nextState =
++            updatedState !== null
++                ? router.getRehydratedState(updatedState, {
++                      routeNames,
++                      routeParamList,
++                      routeGetIdList,
++                  })
++                : nextState;
+     }
+-    // We explicitly don't include routeNames, route.params etc. in the dep list
+-    // below. We want to avoid forcing a new state to be calculated in those cases
+-    // Instead, we handle changes to these in the nextState code below. Note
+-    // that some changes to routeConfigs are explicitly ignored, such as changes
+-    // to initialParams
+-    // eslint-disable-next-line react-hooks/exhaustive-deps
+-  }, [currentState, router, isStateValid]);
+-  const previousRouteKeyListRef = React.useRef(routeKeyList);
+-  React.useInsertionEffect(() => {
+-    previousRouteKeyListRef.current = routeKeyList;
+-  });
+-  const previousRouteKeyList = previousRouteKeyListRef.current;
++    React.useEffect(() => {
++        if (consumedParams && didConsumeNestedParams && typeof route?.params === 'object' && route.params != null) {
++            consumedParams.set(route.params, true);
++        }
++    }, [consumedParams, didConsumeNestedParams, route?.params]);
++    const shouldUpdate = state !== nextState;
++    useScheduleUpdate(() => {
++        if (shouldUpdate) {
++            // Schedule an update if the state needs to be updated
++            setState(nextState);
++            if (shouldClearUnhandledState) {
++                setUnhandledState(undefined);
++            }
++        }
++    });
+ 
+-  // Names of the screens whose navigation key changed since the last render
+-  const routeKeyChanges = Object.keys(routeKeyList).filter(name => {
+-    const current = routeKeyList[name];
+-    const previous = previousRouteKeyList[name];
+-    return current != null && previous != null && !isArrayEqual(current, previous);
+-  });
+-  const [unhandledState, setUnhandledState] = React.useState(stateBeforeInitialization);
++    // The up-to-date state will come in next render, but we don't need to wait for it
++    // We can't use the outdated state since the screens have changed, which will cause error due to mismatched config
++    // So we override the state object we return to use the latest state as soon as possible
++    state = nextState;
+ 
+-  // An unhandled state is state that didn't have any valid routes
+-  // So it was unhandled, i.e. not used for initializing the state
+-  // It's possible that they were absent due to conditional render
+-  // Store this state so we can reuse it if the routes change later
+-  if (options.routeNamesChangeBehavior === 'lastUnhandled' && stateBeforeInitialization && unhandledState !== stateBeforeInitialization) {
+-    setUnhandledState(stateBeforeInitialization);
+-  }
+-  let state =
+-  // If the state isn't initialized, or stale, use the state we initialized instead
+-  // The state won't update until there's a change needed in the state we have initialized locally
+-  // So it'll be `undefined` or stale until the first navigation event happens
+-  isStateInitialized(currentState) ? currentState : initializedState;
+-  let nextState = state;
+-  let shouldClearUnhandledState = false;
+-  if (unhandledState != null && !isStateValid(unhandledState)) {
+-    // The stored unhandled state is for a different type of navigator
+-    // It can't be used with this navigator, so we discard it
+-    setUnhandledState(undefined);
+-  } else if (
+-  // Previously unhandled state is now valid again
+-  // And current state no longer has any valid routes
+-  // We should reuse the unhandled state instead of re-calculating the state
+-  unhandledState?.routes.every(r => routeNames.includes(r.name)) && state?.routes.every(r => !routeNames.includes(r.name))) {
+-    shouldClearUnhandledState = true;
+-    nextState = router.getRehydratedState(unhandledState, {
+-      routeNames,
+-      routeParamList,
+-      routeGetIdList
++    // Last state to reuse if component gets cleaned up due to `<Activity mode="hidden">`
++    React.useEffect(() => {
++        lastStateRef.current = state;
+     });
+-  } else if (!isArrayEqual(state.routeNames, routeNames) || routeKeyChanges.length !== 0) {
+-    // When the list of route names change, the router should handle it to remove invalid routes
+-    nextState = router.getStateForRouteNamesChange(state, {
+-      routeNames,
+-      routeParamList,
+-      routeGetIdList,
+-      routeKeyChanges
++    const lastNotifiedStateRef = React.useRef(null);
++    React.useEffect(() => {
++        // In strict mode, React will double-invoke effects.
++        // So we need to reset the flag if component was not unmounted
++        stateCleanupRef.current = false;
++        setKey(navigatorKey);
++        if ((!getIsInitial() || getIsStateEmitted()) && lastNotifiedStateRef.current !== state) {
++            // We need to notify the state update in these scenarios:
++            // 1. If it's not the initial render of the component containing the navigator
++            // 2. If the container has already emitted state before the navigator mounted
++            //
++            // This will make sure that the container gets notified of state changes due to new mounts
++            // This is necessary for proper screen tracking, URL updates etc.
++            //
++            // During hydration, a nested navigator may mount after the container's initial state event.
++            // Or mount could be delayed due to conditional rendering, suspense etc.
++            // So only checking for the initial render is not enough.
++            // We also need to propagate the navigator's initial state when it mounts later,
++            // so the container is notified that the nested state is now available.
++            //
++            // We only notify if the state is different from what we already notified
++            // Otherwise, this goes into a loop when inside `<Activity mode="hidden">`
++            setState(state);
++            lastNotifiedStateRef.current = state;
++        }
++        return () => {
++            // We need to clean up state for this navigator on unmount
++            if (getCurrentState() !== undefined && getKey() === navigatorKey) {
++                setCurrentState(undefined);
++                stateCleanupRef.current = true;
++            }
++
++            // Reset so that StrictMode's second mount re-propagates state correctly.
++            // Without this, the guard above sees the same reference and skips setState,
++            // causing the initial state to be lost after cleanup wipes the container state.
++            lastNotifiedStateRef.current = null;
++        };
++        // eslint-disable-next-line react-hooks/exhaustive-deps
++    }, []);
++    const getState = useLatestCallback(() => {
++        const currentState = getCurrentState();
++        return deepFreeze(isStateInitialized(currentState) ? currentState : initializedState);
+     });
+-  }
+-  let didConsumeNestedParams = route?.params === paramsUsedForInitialization;
+-  if (route?.params && !didConsumeNestedParams) {
+-    let action;
+-    if (isNavigationState(route.params.state) && !isNestedParamsConsumed) {
+-      didConsumeNestedParams = true;
+-      const stateFromParams = getStateFromParams(route.params, router.type);
+-      if (stateFromParams != null) {
+-        if (options.routeNamesChangeBehavior === 'lastUnhandled' && doesStateHaveOnlyInvalidRoutes(stateFromParams)) {
+-          if (stateFromParams !== unhandledState) {
+-            setUnhandledState(stateFromParams);
+-          }
++    const emitter = useEventEmitter((e) => {
++        const routeNames = [];
++        let route;
++        if (e.target) {
++            route = state.routes.find((route) => route.key === e.target);
++            if (route?.name) {
++                routeNames.push(route.name);
++            }
+         } else {
+-          // If the route was updated with new state, we should reset to it
+-          action = CommonActions.reset(stateFromParams);
++            route = state.routes[state.index];
++            routeNames.push(...Object.keys(screens).filter((name) => route?.name === name));
+         }
+-      }
+-    } else if (typeof route.params.screen === 'string' && (route.params.initial === false && isFirstStateInitialization || !isNestedParamsConsumed)) {
+-      didConsumeNestedParams = true;
+-      if (options.routeNamesChangeBehavior === 'lastUnhandled' && !routeNames.includes(route.params.screen)) {
+-        const state = getStateFromParams(route.params, router.type);
+-        if (state != null && !deepEqual(state, unhandledState)) {
+-          setUnhandledState(state);
++        if (route == null) {
++            return;
+         }
+-      } else {
+-        // If the route was updated with new screen name and/or params, we should navigate there
+-        action = {
+-          type: 'NAVIGATE',
+-          payload: {
+-            name: route.params.screen,
+-            params: route.params.params,
+-            path: route.params.path,
+-            merge: route.params.merge,
+-            pop: route.params.pop
+-          }
+-        };
+-      }
+-    }
+-
+-    // The update should be limited to current navigator only, so we call the router manually
+-    const updatedState = action ? router.getStateForAction(nextState, action, {
+-      routeNames,
+-      routeParamList,
+-      routeGetIdList
+-    }) : null;
+-    if (process.env.NODE_ENV !== 'production' && action != null && updatedState === null) {
+-      const names = routeNames.map(name => `'${name}'`).join(', ');
+-      console.error(`The 'state' or 'screen' passed in the params couldn't be applied to the navigator with the screens: ${names}. This can happen if the params contain names of screens that don't exist in the navigator. The navigation specified in the params will be ignored.`);
+-    }
+-    nextState = updatedState !== null ? router.getRehydratedState(updatedState, {
+-      routeNames,
+-      routeParamList,
+-      routeGetIdList
+-    }) : nextState;
+-  }
+-  React.useEffect(() => {
+-    if (consumedParams && didConsumeNestedParams && typeof route?.params === 'object' && route.params != null) {
+-      consumedParams.set(route.params, true);
+-    }
+-  }, [consumedParams, didConsumeNestedParams, route?.params]);
+-  const shouldUpdate = state !== nextState;
+-  useScheduleUpdate(() => {
+-    if (shouldUpdate) {
+-      // Schedule an update if the state needs to be updated
+-      setState(nextState);
+-      if (shouldClearUnhandledState) {
+-        setUnhandledState(undefined);
+-      }
+-    }
+-  });
+-
+-  // The up-to-date state will come in next render, but we don't need to wait for it
+-  // We can't use the outdated state since the screens have changed, which will cause error due to mismatched config
+-  // So we override the state object we return to use the latest state as soon as possible
+-  state = nextState;
+-
+-  // Last state to reuse if component gets cleaned up due to `<Activity mode="hidden">`
+-  React.useEffect(() => {
+-    lastStateRef.current = state;
+-  });
+-  const lastNotifiedStateRef = React.useRef(null);
+-  React.useEffect(() => {
+-    // In strict mode, React will double-invoke effects.
+-    // So we need to reset the flag if component was not unmounted
+-    stateCleanupRef.current = false;
+-    setKey(navigatorKey);
+-    if ((!getIsInitial() || getIsStateEmitted()) && lastNotifiedStateRef.current !== state) {
+-      // We need to notify the state update in these scenarios:
+-      // 1. If it's not the initial render of the component containing the navigator
+-      // 2. If the container has already emitted state before the navigator mounted
+-      //
+-      // This will make sure that the container gets notified of state changes due to new mounts
+-      // This is necessary for proper screen tracking, URL updates etc.
+-      //
+-      // During hydration, a nested navigator may mount after the container's initial state event.
+-      // Or mount could be delayed due to conditional rendering, suspense etc.
+-      // So only checking for the initial render is not enough.
+-      // We also need to propagate the navigator's initial state when it mounts later,
+-      // so the container is notified that the nested state is now available.
+-      //
+-      // We only notify if the state is different from what we already notified
+-      // Otherwise, this goes into a loop when inside `<Activity mode="hidden">`
+-      setState(state);
+-      lastNotifiedStateRef.current = state;
+-    }
+-    return () => {
+-      // We need to clean up state for this navigator on unmount
+-      if (getCurrentState() !== undefined && getKey() === navigatorKey) {
+-        setCurrentState(undefined);
+-        stateCleanupRef.current = true;
+-      }
+-
+-      // Reset so that StrictMode's second mount re-propagates state correctly.
+-      // Without this, the guard above sees the same reference and skips setState,
+-      // causing the initial state to be lost after cleanup wipes the container state.
+-      lastNotifiedStateRef.current = null;
+-    };
+-    // eslint-disable-next-line react-hooks/exhaustive-deps
+-  }, []);
+-  const getState = useLatestCallback(() => {
+-    const currentState = getCurrentState();
+-    return deepFreeze(isStateInitialized(currentState) ? currentState : initializedState);
+-  });
+-  const emitter = useEventEmitter(e => {
+-    const routeNames = [];
+-    let route;
+-    if (e.target) {
+-      route = state.routes.find(route => route.key === e.target);
+-      if (route?.name) {
+-        routeNames.push(route.name);
+-      }
+-    } else {
+-      route = state.routes[state.index];
+-      routeNames.push(...Object.keys(screens).filter(name => route?.name === name));
+-    }
+-    if (route == null) {
+-      return;
+-    }
+-    const hasPerScreenListeners = routeNames.some(name => screens[name]?.props.listeners != null);
+-    if (screenListeners != null || hasPerScreenListeners) {
+-      const descriptor = descriptors[route.key];
+-      if (descriptor == null) {
+-        throw new Error(`Couldn't find a descriptor for route '${route.key}'.`);
+-      }
+-      const navigation = descriptor.navigation;
+-      const listeners = [].concat(
+-      // Get an array of listeners for all screens + common listeners on navigator
+-      ...[screenListeners, ...routeNames.map(name => {
+-        const {
+-          listeners
+-        } = screens[name]?.props ?? {};
+-        return listeners;
+-      })].map(listeners => {
+-        const map = typeof listeners === 'function' ? listeners({
+-          route: route,
+-          navigation
+-        }) : listeners;
+-        return map ? Object.keys(map).filter(type => type === e.type).map(type => map?.[type]) : undefined;
+-      }))
+-      // We don't want same listener to be called multiple times for same event
+-      // So we remove any duplicate functions from the array
+-      .filter((cb, i, self) => cb && self.lastIndexOf(cb) === i);
+-      listeners.forEach(listener => listener?.(e));
+-    }
+-  }, onEmitEvent);
+-  useFocusEvents({
+-    state,
+-    emitter
+-  });
+-  React.useEffect(() => {
+-    emitter.emit({
+-      type: 'state',
+-      data: {
+-        state
+-      }
++        const hasPerScreenListeners = routeNames.some((name) => screens[name]?.props.listeners != null);
++        if (screenListeners != null || hasPerScreenListeners) {
++            const descriptor = descriptors[route.key];
++            if (descriptor == null) {
++                throw new Error(`Couldn't find a descriptor for route '${route.key}'.`);
++            }
++            const navigation = descriptor.navigation;
++            const listeners = []
++                .concat(
++                    // Get an array of listeners for all screens + common listeners on navigator
++                    ...[
++                        screenListeners,
++                        ...routeNames.map((name) => {
++                            const {listeners} = screens[name]?.props ?? {};
++                            return listeners;
++                        }),
++                    ].map((listeners) => {
++                        const map =
++                            typeof listeners === 'function'
++                                ? listeners({
++                                      route: route,
++                                      navigation,
++                                  })
++                                : listeners;
++                        return map
++                            ? Object.keys(map)
++                                  .filter((type) => type === e.type)
++                                  .map((type) => map?.[type])
++                            : undefined;
++                    }),
++                )
++                // We don't want same listener to be called multiple times for same event
++                // So we remove any duplicate functions from the array
++                .filter((cb, i, self) => cb && self.lastIndexOf(cb) === i);
++            listeners.forEach((listener) => listener?.(e));
++        }
++    }, onEmitEvent);
++    useFocusEvents({
++        state,
++        emitter,
+     });
+-  }, [emitter, state]);
+-  const {
+-    listeners: childListeners,
+-    addListener
+-  } = useChildListeners();
+-  const {
+-    keyedListeners,
+-    addKeyedListener
+-  } = useKeyedChildListeners();
+-  const onAction = useOnAction({
+-    router,
+-    getState,
+-    setState,
+-    key: route?.key,
+-    actionListeners: childListeners.action,
+-    beforeRemoveListeners: keyedListeners.beforeRemove,
+-    routerConfigOptions: {
+-      routeNames,
+-      routeParamList,
+-      routeGetIdList
+-    },
+-    emitter
+-  });
+-  const onRouteFocus = useOnRouteFocus({
+-    router,
+-    key: route?.key,
+-    getState,
+-    setState
+-  });
+-  const onUnhandledActionParent = React.use(UnhandledActionContext);
+-  const onUnhandledAction = useLatestCallback(action => {
+-    if (options.routeNamesChangeBehavior === 'lastUnhandled' && action.type === 'NAVIGATE' && action.payload != null && 'name' in action.payload && typeof action.payload.name === 'string' && !routeNames.includes(action.payload.name)) {
+-      const state = {
+-        routes: [{
+-          name: action.payload.name,
+-          params: 'params' in action.payload && typeof action.payload.params === 'object' && action.payload.params !== null ? action.payload.params : undefined,
+-          path: 'path' in action.payload && typeof action.payload.path === 'string' ? action.payload.path : undefined
+-        }]
+-      };
+-      setUnhandledState(state);
+-    }
+-    onUnhandledActionParent?.(action);
+-  });
+-  const navigation = useNavigationHelpers({
+-    onAction,
+-    onUnhandledAction,
+-    getState,
+-    state,
+-    emitter,
+-    router
+-  });
+-  useFocusedListenersChildrenAdapter({
+-    navigation,
+-    focusedListeners: childListeners.focus
+-  });
+-  useOnGetState({
+-    getState,
+-    getStateListeners: keyedListeners.getState
+-  });
+-  const descriptors = useDescriptors({
+-    routes: state.routes,
+-    screens,
+-    navigation,
+-    screenOptions,
+-    screenLayout,
+-    onAction,
+-    getState,
+-    setState,
+-    subscribe,
+-    onRouteFocus,
+-    addListener,
+-    addKeyedListener,
+-    router,
+-    // @ts-expect-error: this should have both core and custom events, but too much work right now
+-    emitter
+-  });
+-  const NavigationContent = useComponent(children => {
+-    const focusedRoute = state.routes[state.index];
+-    if (focusedRoute == null) {
+-      throw new Error(`Couldn't find a route at index ${state.index}.`);
+-    }
+-    const element = layout != null ? layout({
+-      state,
+-      descriptors,
+-      navigation,
+-      children
+-    }) : children;
+-    return /*#__PURE__*/_jsx(NavigationMetaContext.Provider, {
+-      value: undefined,
+-      children: /*#__PURE__*/_jsx(NavigationHelpersContext.Provider, {
+-        value: navigation,
+-        children: /*#__PURE__*/_jsx(NavigationStateListenerProvider, {
+-          state: state,
+-          getState: navigation.getState,
+-          subscribe: subscribe,
+-          children: /*#__PURE__*/_jsx(FocusedRouteKeyContext.Provider, {
+-            value: focusedRoute.key,
+-            children: /*#__PURE__*/_jsx(PreventRemoveProvider, {
+-              children: element
+-            })
+-          })
+-        })
+-      })
++    React.useEffect(() => {
++        emitter.emit({
++            type: 'state',
++            data: {
++                state,
++            },
++        });
++    }, [emitter, state]);
++    const {listeners: childListeners, addListener} = useChildListeners();
++    const {keyedListeners, addKeyedListener} = useKeyedChildListeners();
++    const onAction = useOnAction({
++        router,
++        getState,
++        setState,
++        key: route?.key,
++        actionListeners: childListeners.action,
++        beforeRemoveListeners: keyedListeners.beforeRemove,
++        routerConfigOptions: {
++            routeNames,
++            routeParamList,
++            routeGetIdList,
++        },
++        emitter,
+     });
+-  });
+-  return {
+-    state,
+-    navigation,
+-    descriptors,
+-    NavigationContent
+-  };
++    const onRouteFocus = useOnRouteFocus({
++        router,
++        key: route?.key,
++        getState,
++        setState,
++    });
++    const onUnhandledActionParent = React.use(UnhandledActionContext);
++    const onUnhandledAction = useLatestCallback((action) => {
++        if (
++            options.routeNamesChangeBehavior === 'lastUnhandled' &&
++            action.type === 'NAVIGATE' &&
++            action.payload != null &&
++            'name' in action.payload &&
++            typeof action.payload.name === 'string' &&
++            !routeNames.includes(action.payload.name)
++        ) {
++            const state = {
++                routes: [
++                    {
++                        name: action.payload.name,
++                        params: 'params' in action.payload && typeof action.payload.params === 'object' && action.payload.params !== null ? action.payload.params : undefined,
++                        path: 'path' in action.payload && typeof action.payload.path === 'string' ? action.payload.path : undefined,
++                    },
++                ],
++            };
++            setUnhandledState(state);
++        }
++        onUnhandledActionParent?.(action);
++    });
++    const navigation = useNavigationHelpers({
++        onAction,
++        onUnhandledAction,
++        getState,
++        state,
++        emitter,
++        router,
++    });
++    useFocusedListenersChildrenAdapter({
++        navigation,
++        focusedListeners: childListeners.focus,
++    });
++    useOnGetState({
++        getState,
++        getStateListeners: keyedListeners.getState,
++    });
++    const descriptors = useDescriptors(
++        {
++            routes: state.routes,
++            screens,
++            navigation,
++            screenOptions,
++            screenLayout,
++            onAction,
++            getState,
++            setState,
++            subscribe,
++            onRouteFocus,
++            addListener,
++            addKeyedListener,
++            router,
++            // @ts-expect-error: this should have both core and custom events, but too much work right now
++            emitter,
++        },
++        convertCustomScreenOptions,
++    );
++    const NavigationContent = useComponent((children) => {
++        const focusedRoute = state.routes[state.index];
++        if (focusedRoute == null) {
++            throw new Error(`Couldn't find a route at index ${state.index}.`);
++        }
++        const element =
++            layout != null
++                ? layout({
++                      state,
++                      descriptors,
++                      navigation,
++                      children,
++                  })
++                : children;
++        return /*#__PURE__*/ _jsx(NavigationMetaContext.Provider, {
++            value: undefined,
++            children: /*#__PURE__*/ _jsx(NavigationHelpersContext.Provider, {
++                value: navigation,
++                children: /*#__PURE__*/ _jsx(NavigationStateListenerProvider, {
++                    state: state,
++                    getState: navigation.getState,
++                    subscribe: subscribe,
++                    children: /*#__PURE__*/ _jsx(FocusedRouteKeyContext.Provider, {
++                        value: focusedRoute.key,
++                        children: /*#__PURE__*/ _jsx(PreventRemoveProvider, {
++                            children: element,
++                        }),
++                    }),
++                }),
++            }),
++        });
++    });
++    return {
++        state,
++        navigation,
++        descriptors,
++        NavigationContent,
++    };
+ }
+ //# sourceMappingURL=useNavigationBuilder.js.map
+\ No newline at end of file

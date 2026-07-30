@@ -56,7 +56,6 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         navigation,
         state: originalState,
         descriptors,
-        describe,
         NavigationContent,
     } = useNavigationBuilder<
         PlatformStackNavigationState<ParamListBase>,
@@ -82,6 +81,11 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         convertToWebNavigationOptions,
     );
 
+    // The `convertToWebNavigationOptions` argument above relies on the Expensify core patch
+    // (ported from v7 to v8) threading it through useNavigationBuilder/useDescriptors, which
+    // flattens each custom {web: {...}} options layer BEFORE merging - so descriptors arrive
+    // here already converted and screen-level `web` objects merge key-by-key on top of
+    // navigator-level ones. See patches/react-navigation for the core patch.
     const customCodeProps: CustomCodeProps<StackNavigationOptions, StackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>> = {
         state: originalState,
         navigation,
@@ -115,7 +119,6 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
                 state={mappedState}
                 descriptors={wrappedDescriptors}
                 navigation={navigation}
-                describe={describe}
             />
 
             {!!ExtraContent && <ExtraContent {...customCodePropsWithCustomState} />}

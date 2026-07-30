@@ -1004,7 +1004,9 @@ function isValidateLoginFlow() {
 }
 
 function clearPreloadedRoutes() {
-    const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
+    // In react-navigation 8, preloaded routes live in `routes` after `index` instead of a separate `preloadedRoutes` array.
+    const rootState = navigationRef.getRootState();
+    const rootStateWithoutPreloadedRoutes = {...rootState, routes: rootState.routes.slice(0, rootState.index + 1)} as NavigationState;
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
 }
 

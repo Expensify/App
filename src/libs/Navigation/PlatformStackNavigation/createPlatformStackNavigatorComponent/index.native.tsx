@@ -55,7 +55,6 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         navigation,
         state: originalState,
         descriptors,
-        describe,
         NavigationContent,
     } = useNavigationBuilder<
         PlatformStackNavigationState<ParamListBase>,
@@ -80,6 +79,10 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         convertToNativeNavigationOptions,
     );
 
+    // The `convertToNativeNavigationOptions` argument above relies on the Expensify core patch
+    // (ported from v7 to v8) threading it through useNavigationBuilder/useDescriptors, which
+    // flattens each custom {native: {...}} options layer BEFORE merging - descriptors arrive
+    // here already converted. See patches/react-navigation for the core patch.
     const customCodeProps: CustomCodeProps<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>> = {
         state: originalState,
         navigation,
@@ -103,7 +106,6 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
                 state={state}
                 descriptors={wrappedDescriptors}
                 navigation={navigation}
-                describe={describe}
             />
             {!!ExtraContent && <ExtraContent {...customCodePropsWithCustomState} />}
         </NavigationContent>

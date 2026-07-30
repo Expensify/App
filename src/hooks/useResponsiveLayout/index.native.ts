@@ -3,14 +3,13 @@ import ModalContext from '@components/Modal/ModalContext';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 
-import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
-import {useContext, useMemo} from 'react';
+import {useContext} from 'react';
 
 import type ResponsiveLayoutResult from './types';
 
@@ -48,15 +47,12 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     // This means it will only be defined if the component calling this hook is a child of a modal component. See BaseModal for the provider.
     const {activeModalType} = useContext(ModalContext);
 
-    // We are using these contexts directly instead of useNavigation/useNavigationState, because those will throw an error if used outside a navigator.
-    // This hook can be used within or outside a navigator, so using useNavigationState does not work.
-    // Furthermore, wrapping useNavigationState in a try/catch does not work either, because that breaks the rules of hooks.
-    // Note that these three lines are copied closely from the internal implementation of useNavigation: https://github.com/react-navigation/react-navigation/blob/52a3234b7aaf4d4fcc9c0155f44f3ea2233f0f40/packages/core/src/useNavigation.tsx#L18-L28
-    const navigationContainerRef = useContext(NavigationContainerRefContext);
-    const navigator = useContext(NavigationContext);
-    const currentNavigator = navigator ?? navigationContainerRef;
-
-    const isDisplayedInNarrowModalNavigator = useMemo(() => !!currentNavigator?.getParent?.(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined), [currentNavigator]);
+    // RN8: v7 detected "inside the RHP" via getParent(navigator id), but v8 removed navigator ids -
+    // getParent(name) matches by route name and self-matches on the RightModalNavigator's own route.
+    // Instead of relying on that alpha semantic, use NarrowPaneContext: RightModalNavigator provides
+    // it around its screens (ScreenWrapper/BaseModal already consume it), and since the provider is
+    // rendered below the navigator component itself, the navigator is naturally excluded.
+    const {isInNarrowPane: isDisplayedInNarrowModalNavigator} = useContext(NarrowPaneContext);
 
     // The component calling this hook is in a "narrow pane modal" if:
     const isInNarrowPaneModal =

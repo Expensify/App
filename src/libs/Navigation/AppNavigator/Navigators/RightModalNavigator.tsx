@@ -443,12 +443,22 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 name={SCREENS.RIGHT_MODAL.SCHEDULE_CALL}
                                 component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                             />
+                            {/* RN8 PoC: the three report screens below opt into pauseWhenCovered per-screen — they
+                                render heavy report/transaction lists that would otherwise re-render synchronously
+                                ('inert') on every Onyx write while covered by the next RHP screen (e.g. sending a
+                                message in a transaction thread opened from a wide report). Deliberately NOT set for
+                                the light form/step RHP screens: pausing buys them nothing and every paused screen
+                                re-runs all effects on resume (see RN8_POC_SUMMARY.md, failure classes). */}
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
                                 getComponent={loadRHPReportScreen}
                                 options={(props) => {
                                     const options = modalStackScreenOptions(props);
-                                    return {...options, animation: animationEnabledOnSearchReport ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                                    return {
+                                        ...options,
+                                        animation: animationEnabledOnSearchReport ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+                                        web: {...options.web, pauseWhenCovered: true},
+                                    };
                                 }}
                             />
                             <Stack.Screen
@@ -456,7 +466,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 getComponent={loadSearchMoneyRequestReportPage}
                                 options={(props) => {
                                     const options = modalStackScreenOptions(props);
-                                    return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                                    return {
+                                        ...options,
+                                        animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+                                        web: {...options.web, pauseWhenCovered: true},
+                                    };
                                 }}
                             />
                             <Stack.Screen
@@ -464,7 +478,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 getComponent={loadSearchMoneyRequestReportPage}
                                 options={(props) => {
                                     const options = modalStackScreenOptions(props);
-                                    return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                                    return {
+                                        ...options,
+                                        animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+                                        web: {...options.web, pauseWhenCovered: true},
+                                    };
                                 }}
                             />
                             <Stack.Screen

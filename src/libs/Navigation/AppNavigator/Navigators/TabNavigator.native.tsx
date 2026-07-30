@@ -40,7 +40,7 @@ const TAB_SCREEN_OPTIONS_BASE = {
     headerShown: false,
     lazy: true,
     animation: 'none' as const,
-    freezeOnBlur: true,
+    // RN8: freezeOnBlur was removed; blurred tabs are paused via inactiveBehavior: 'pause' (default)
     tabBarPosition: 'bottom' as const,
 } as const;
 
@@ -93,6 +93,7 @@ function TabNavigator() {
     return (
         <Tab.Navigator
             backBehavior="fullHistory"
+            implementation="custom"
             tabBar={renderTabBar}
             screenOptions={screenOptions}
             UNSTABLE_router={tabRouterOverride}

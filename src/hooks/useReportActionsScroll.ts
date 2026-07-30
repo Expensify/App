@@ -25,7 +25,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-nat
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -286,7 +286,15 @@ function useReportActionsScroll({
     });
 
     // The initial scroll-to-bottom must be scheduled exactly once, on mount; re-running it as deps change would yank the user back down while they read history.
+    // RN8 PoC: with <Activity> pausing (pauseWhenCovered), empty-deps effects re-run on unpause - effects
+    // unmount on pause but the component instance (state/refs) survives. Guard with a ref so resuming a
+    // paused chat (e.g. going back from a screen pushed on top) doesn't re-trigger the initial scroll.
+    const didScheduleInitialScrollRef = useRef(false);
     useEffect(() => {
+        if (didScheduleInitialScrollRef.current) {
+            return;
+        }
+        didScheduleInitialScrollRef.current = true;
         const handle = scheduleInitialScrollToBottom();
         return () => handle?.cancel();
     }, []);

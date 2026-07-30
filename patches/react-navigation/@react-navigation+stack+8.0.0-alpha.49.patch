@@ -1,0 +1,1123 @@
+diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
+index 1de10b4..03061fc 100644
+--- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
++++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
+@@ -1,543 +1,618 @@
+-"use strict";
++'use strict';
+ 
+-import { getDefaultHeaderHeight } from '@react-navigation/elements';
+-import { ActivityView, SafeAreaProviderCompat } from '@react-navigation/elements/internal';
++import {getDefaultHeaderHeight} from '@react-navigation/elements';
++import {IsFocusedContext} from '@react-navigation/core';
++import {ActivityView, SafeAreaProviderCompat} from '@react-navigation/elements/internal';
+ import * as React from 'react';
+-import { Animated, Platform, StyleSheet, View } from 'react-native';
+-import { forModalPresentationIOS, forNoAnimation as forNoAnimationCard } from "../../TransitionConfigs/CardStyleInterpolators.js";
+-import { BottomSheetAndroid, DefaultTransition, FadeFromBottomAndroid, FadeFromRightAndroid, ModalFadeTransition, ModalSlideFromBottomIOS, ModalTransition, RevealFromBottomAndroid, ScaleFromCenterAndroid, SlideFromLeftIOS, SlideFromRightIOS } from "../../TransitionConfigs/TransitionPresets.js";
+-import { getDistanceForDirection } from "../../utils/getDistanceForDirection.js";
+-import { getModalRouteKeys } from "../../utils/getModalRoutesKeys.js";
+-import { CardContainer } from "./CardContainer.js";
+-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
++import {Animated, Platform, StyleSheet, View} from 'react-native';
++import {jsx as _jsx, jsxs as _jsxs} from 'react/jsx-runtime';
++
++import {forModalPresentationIOS, forNoAnimation as forNoAnimationCard} from '../../TransitionConfigs/CardStyleInterpolators.js';
++import {
++    BottomSheetAndroid,
++    DefaultTransition,
++    FadeFromBottomAndroid,
++    FadeFromRightAndroid,
++    ModalFadeTransition,
++    ModalSlideFromBottomIOS,
++    ModalTransition,
++    RevealFromBottomAndroid,
++    ScaleFromCenterAndroid,
++    SlideFromLeftIOS,
++    SlideFromRightIOS,
++} from '../../TransitionConfigs/TransitionPresets.js';
++import {getDistanceForDirection} from '../../utils/getDistanceForDirection.js';
++import {getModalRouteKeys} from '../../utils/getModalRoutesKeys.js';
++import {CardContainer} from './CardContainer.js';
+ const NAMED_TRANSITIONS_PRESETS = {
+-  default: DefaultTransition,
+-  fade: ModalFadeTransition,
+-  fade_from_bottom: FadeFromBottomAndroid,
+-  fade_from_right: FadeFromRightAndroid,
+-  none: DefaultTransition,
+-  reveal_from_bottom: RevealFromBottomAndroid,
+-  scale_from_center: ScaleFromCenterAndroid,
+-  slide_from_left: SlideFromLeftIOS,
+-  slide_from_right: SlideFromRightIOS,
+-  slide_from_bottom: Platform.select({
+-    ios: ModalSlideFromBottomIOS,
+-    default: BottomSheetAndroid
+-  })
++    default: DefaultTransition,
++    fade: ModalFadeTransition,
++    fade_from_bottom: FadeFromBottomAndroid,
++    fade_from_right: FadeFromRightAndroid,
++    none: DefaultTransition,
++    reveal_from_bottom: RevealFromBottomAndroid,
++    scale_from_center: ScaleFromCenterAndroid,
++    slide_from_left: SlideFromLeftIOS,
++    slide_from_right: SlideFromRightIOS,
++    slide_from_bottom: Platform.select({
++        ios: ModalSlideFromBottomIOS,
++        default: BottomSheetAndroid,
++    }),
+ };
+ const HIDDEN_HEADER_HEIGHT = {
+-  measured: false,
+-  value: 0
++    measured: false,
++    value: 0,
+ };
+ const getInterpolationIndex = (scenes, index) => {
+-  const scene = scenes[index];
+-  if (scene == null) {
+-    throw new Error(`Couldn't find a scene at index ${index}.`);
+-  }
+-  const {
+-    cardStyleInterpolator
+-  } = scene.descriptor.options;
++    const scene = scenes[index];
++    if (scene == null) {
++        throw new Error(`Couldn't find a scene at index ${index}.`);
++    }
++    const {cardStyleInterpolator} = scene.descriptor.options;
+ 
+-  // Start from current card and count backwards the number of cards with same interpolation
+-  let interpolationIndex = 0;
+-  for (let i = index - 1; i >= 0; i--) {
+-    const cardStyleInterpolatorCurrent = scenes[i]?.descriptor.options.cardStyleInterpolator;
+-    if (cardStyleInterpolatorCurrent !== cardStyleInterpolator) {
+-      break;
++    // Start from current card and count backwards the number of cards with same interpolation
++    let interpolationIndex = 0;
++    for (let i = index - 1; i >= 0; i--) {
++        const cardStyleInterpolatorCurrent = scenes[i]?.descriptor.options.cardStyleInterpolator;
++        if (cardStyleInterpolatorCurrent !== cardStyleInterpolator) {
++            break;
++        }
++        interpolationIndex++;
+     }
+-    interpolationIndex++;
+-  }
+-  return interpolationIndex;
++    return interpolationIndex;
+ };
+-const getIsModalPresentation = cardStyleInterpolator => {
+-  return cardStyleInterpolator === forModalPresentationIOS ||
+-  // Handle custom modal presentation interpolators as well
+-  cardStyleInterpolator.name === 'forModalPresentationIOS';
++const getIsModalPresentation = (cardStyleInterpolator) => {
++    return (
++        cardStyleInterpolator === forModalPresentationIOS ||
++        // Handle custom modal presentation interpolators as well
++        cardStyleInterpolator.name === 'forModalPresentationIOS'
++    );
+ };
+ const getIsInModalPresentation = (scene, interpolationIndex, isParentModal) => {
+-  if (isParentModal) {
+-    return true;
+-  }
+-  const {
+-    cardStyleInterpolator
+-  } = scene.descriptor.options;
+-  const isModalPresentation = getIsModalPresentation(cardStyleInterpolator);
+-  const isModal = isModalPresentation && interpolationIndex !== 0;
+-  return isModal;
++    if (isParentModal) {
++        return true;
++    }
++    const {cardStyleInterpolator} = scene.descriptor.options;
++    const isModalPresentation = getIsModalPresentation(cardStyleInterpolator);
++    const isModal = isModalPresentation && interpolationIndex !== 0;
++    return isModal;
+ };
+ const getHeaderHeights = (scenes, insets, isParentHeaderShown, isParentModal, layout, previous) => {
+-  return scenes.reduce((acc, curr, index) => {
+-    const {
+-      headerStatusBarHeight = isParentHeaderShown ? 0 : insets.top,
+-      headerStyle
+-    } = curr.descriptor.options;
+-    const style = StyleSheet.flatten(headerStyle || {});
+-    const height = 'height' in style && typeof style.height === 'number' ? style.height : undefined;
+-    const interpolationIndex = getInterpolationIndex(scenes, index);
+-    const isModal = getIsInModalPresentation(curr, interpolationIndex, isParentModal);
+-    if (typeof height === 'number') {
+-      acc[curr.route.key] = {
+-        measured: true,
+-        value: height
+-      };
+-    } else {
+-      const previousHeight = previous[curr.route.key];
+-      const defaultHeight = getDefaultHeaderHeight({
+-        landscape: layout.width > layout.height,
+-        modalPresentation: isModal,
+-        topInset: headerStatusBarHeight
+-      });
++    return scenes.reduce((acc, curr, index) => {
++        const {headerStatusBarHeight = isParentHeaderShown ? 0 : insets.top, headerStyle} = curr.descriptor.options;
++        const style = StyleSheet.flatten(headerStyle || {});
++        const height = 'height' in style && typeof style.height === 'number' ? style.height : undefined;
++        const interpolationIndex = getInterpolationIndex(scenes, index);
++        const isModal = getIsInModalPresentation(curr, interpolationIndex, isParentModal);
++        if (typeof height === 'number') {
++            acc[curr.route.key] = {
++                measured: true,
++                value: height,
++            };
++        } else {
++            const previousHeight = previous[curr.route.key];
++            const defaultHeight = getDefaultHeaderHeight({
++                landscape: layout.width > layout.height,
++                modalPresentation: isModal,
++                topInset: headerStatusBarHeight,
++            });
+ 
+-      // If we hadn't measured before, use re-computed default height
+-      if (!previousHeight?.measured && defaultHeight !== previousHeight?.value) {
+-        acc[curr.route.key] = {
+-          measured: false,
+-          value: defaultHeight
+-        };
+-      } else if (previousHeight) {
+-        acc[curr.route.key] = previousHeight;
+-      }
+-    }
+-    return acc;
+-  }, {});
++            // If we hadn't measured before, use re-computed default height
++            if (!previousHeight?.measured && defaultHeight !== previousHeight?.value) {
++                acc[curr.route.key] = {
++                    measured: false,
++                    value: defaultHeight,
++                };
++            } else if (previousHeight) {
++                acc[curr.route.key] = previousHeight;
++            }
++        }
++        return acc;
++    }, {});
+ };
+ const getDistanceFromOptions = (layout, options, isRTL) => {
+-  if (options?.gestureDirection) {
+-    return getDistanceForDirection(layout, options.gestureDirection, isRTL);
+-  }
+-  const defaultGestureDirection = options?.presentation === 'modal' ? ModalTransition.gestureDirection : DefaultTransition.gestureDirection;
+-  const gestureDirection = options?.animation ? NAMED_TRANSITIONS_PRESETS[options?.animation]?.gestureDirection : defaultGestureDirection;
+-  return getDistanceForDirection(layout, gestureDirection, isRTL);
++    if (options?.gestureDirection) {
++        return getDistanceForDirection(layout, options.gestureDirection, isRTL);
++    }
++    const defaultGestureDirection = options?.presentation === 'modal' ? ModalTransition.gestureDirection : DefaultTransition.gestureDirection;
++    const gestureDirection = options?.animation ? NAMED_TRANSITIONS_PRESETS[options?.animation]?.gestureDirection : defaultGestureDirection;
++    return getDistanceForDirection(layout, gestureDirection, isRTL);
+ };
+ const getProgressFromGesture = (gesture, layout, options, isRTL) => {
+-  const distance = getDistanceFromOptions({
+-    // Make sure that we have a non-zero distance, otherwise there will be incorrect progress
+-    // This causes blank screen on web if it was previously inside container with display: none
+-    width: Math.max(1, layout.width),
+-    height: Math.max(1, layout.height)
+-  }, options, isRTL);
+-  if (distance > 0) {
++    const distance = getDistanceFromOptions(
++        {
++            // Make sure that we have a non-zero distance, otherwise there will be incorrect progress
++            // This causes blank screen on web if it was previously inside container with display: none
++            width: Math.max(1, layout.width),
++            height: Math.max(1, layout.height),
++        },
++        options,
++        isRTL,
++    );
++    if (distance > 0) {
++        return gesture.interpolate({
++            inputRange: [0, distance],
++            outputRange: [1, 0],
++        });
++    }
+     return gesture.interpolate({
+-      inputRange: [0, distance],
+-      outputRange: [1, 0]
++        inputRange: [distance, 0],
++        outputRange: [0, 1],
+     });
+-  }
+-  return gesture.interpolate({
+-    inputRange: [distance, 0],
+-    outputRange: [0, 1]
+-  });
+ };
+ function getDefaultAnimation(animation) {
+-  // Disable screen transition animation by default on web, windows and macos to match the native behavior
+-  const excludedPlatforms = Platform.OS !== 'web' && Platform.OS !== 'windows' && Platform.OS !== 'macos';
+-  return animation ?? (excludedPlatforms ? 'default' : 'none');
++    // Disable screen transition animation by default on web, windows and macos to match the native behavior
++    const excludedPlatforms = Platform.OS !== 'web' && Platform.OS !== 'windows' && Platform.OS !== 'macos';
++    return animation ?? (excludedPlatforms ? 'default' : 'none');
+ }
+ export function getAnimationEnabled(animation) {
+-  return getDefaultAnimation(animation) !== 'none';
++    return getDefaultAnimation(animation) !== 'none';
+ }
+ const getAllRoutes = (routes, state) => {
+-  const routeKeys = new Set(routes.map(route => route.key));
+-  const inactiveRoutes = state.routes.slice(state.index + 1);
++    const routeKeys = new Set(routes.map((route) => route.key));
++    const inactiveRoutes = state.routes.slice(state.index + 1);
+ 
+-  // If a route is moved from active routes to inactive routes,
+-  // It can still be in the local copy of `routes` until the animation ends
+-  // So we need to deduplicate the routes to avoid rendering the same route twice
+-  return [...routes, ...inactiveRoutes.filter(route => !routeKeys.has(route.key))];
++    // If a route is moved from active routes to inactive routes,
++    // It can still be in the local copy of `routes` until the animation ends
++    // So we need to deduplicate the routes to avoid rendering the same route twice
++    return [...routes, ...inactiveRoutes.filter((route) => !routeKeys.has(route.key))];
+ };
+ const isInactiveRoute = (route, routes) =>
+-// `routes` contains active routes and routes animating during transitions.
+-// Any route added by `getAllRoutes` that's missing from this list is inactive.
+-!routes.some(currentRoute => currentRoute.key === route.key);
+-export class CardStack extends React.Component {
+-  static getDerivedStateFromProps(props, state) {
+-    if (props.routes === state.routes && props.descriptors === state.descriptors) {
+-      return null;
+-    }
+-    const allRoutes = getAllRoutes(props.routes, props.state);
+-    const gestures = allRoutes.reduce((acc, curr) => {
+-      const descriptor = props.descriptors[curr.key];
+-      const {
+-        animation
+-      } = descriptor?.options || {};
+-      acc[curr.key] = state.gestures[curr.key] || new Animated.Value(props.openingRouteKeys.includes(curr.key) && getAnimationEnabled(animation) || isInactiveRoute(curr, props.routes) ? getDistanceFromOptions(state.layout, descriptor?.options, props.direction === 'rtl') : 0);
+-      return acc;
+-    }, {});
+-    const modalRouteKeys = getModalRouteKeys(allRoutes, props.descriptors);
+-    const scenes = allRoutes.map((route, index, self) => {
+-      // For preloaded or retained screens, we don't care about the previous and the next screen
+-      const isInactive = isInactiveRoute(route, props.routes);
+-      const previousRoute = isInactive ? undefined : self[index - 1];
+-      const nextRoute = isInactive ? undefined : self[index + 1];
+-      const oldScene = state.scenes[index];
+-      const currentGesture = gestures[route.key];
+-      if (currentGesture == null) {
+-        throw new Error(`Couldn't find a gesture for route '${route.key}'.`);
+-      }
+-      const previousGesture = previousRoute ? gestures[previousRoute.key] : undefined;
+-      const nextGesture = nextRoute ? gestures[nextRoute.key] : undefined;
+-      const descriptor = props.descriptors[route.key] ?? state.descriptors[route.key] ?? oldScene?.descriptor;
+-      if (descriptor == null) {
+-        throw new Error(`Couldn't find a descriptor for route '${route.key}'.`);
+-      }
+-      const nextOptions = nextRoute ? (props.descriptors[nextRoute.key] ?? state.descriptors[nextRoute.key])?.options : undefined;
+-      const previousOptions = previousRoute ? (props.descriptors[previousRoute.key] ?? state.descriptors[previousRoute.key])?.options : undefined;
++    // `routes` contains active routes and routes animating during transitions.
++    // Any route added by `getAllRoutes` that's missing from this list is inactive.
++    !routes.some((currentRoute) => currentRoute.key === route.key);
++// PATCHED (Expensify RN8 PoC): wrapper feeding ancestor-composed focus into the class component.
++// IsFocusedContext is provided per screen by NavigationProvider and composes the parent chain, so it
++// is false whenever ANY ancestor route is covered (e.g. a root-level RHP over the TabNavigator) —
++// per-stack route positions alone cannot see covers from outside this navigator.
++export function CardStack(props) {
++    const isParentFocused = React.use(IsFocusedContext);
++    return /*#__PURE__*/ _jsx(CardStackInternal, {...props, isParentFocused});
++}
++class CardStackInternal extends React.Component {
++    static getDerivedStateFromProps(props, state) {
++        if (props.routes === state.routes && props.descriptors === state.descriptors) {
++            return null;
++        }
++        const allRoutes = getAllRoutes(props.routes, props.state);
++        const gestures = allRoutes.reduce((acc, curr) => {
++            const descriptor = props.descriptors[curr.key];
++            const {animation} = descriptor?.options || {};
++            acc[curr.key] =
++                state.gestures[curr.key] ||
++                new Animated.Value(
++                    (props.openingRouteKeys.includes(curr.key) && getAnimationEnabled(animation)) || isInactiveRoute(curr, props.routes)
++                        ? getDistanceFromOptions(state.layout, descriptor?.options, props.direction === 'rtl')
++                        : 0,
++                );
++            return acc;
++        }, {});
++        const modalRouteKeys = getModalRouteKeys(allRoutes, props.descriptors);
++        const scenes = allRoutes.map((route, index, self) => {
++            // For preloaded or retained screens, we don't care about the previous and the next screen
++            const isInactive = isInactiveRoute(route, props.routes);
++            const previousRoute = isInactive ? undefined : self[index - 1];
++            const nextRoute = isInactive ? undefined : self[index + 1];
++            const oldScene = state.scenes[index];
++            const currentGesture = gestures[route.key];
++            if (currentGesture == null) {
++                throw new Error(`Couldn't find a gesture for route '${route.key}'.`);
++            }
++            const previousGesture = previousRoute ? gestures[previousRoute.key] : undefined;
++            const nextGesture = nextRoute ? gestures[nextRoute.key] : undefined;
++            const descriptor = props.descriptors[route.key] ?? state.descriptors[route.key] ?? oldScene?.descriptor;
++            if (descriptor == null) {
++                throw new Error(`Couldn't find a descriptor for route '${route.key}'.`);
++            }
++            const nextOptions = nextRoute ? (props.descriptors[nextRoute.key] ?? state.descriptors[nextRoute.key])?.options : undefined;
++            const previousOptions = previousRoute ? (props.descriptors[previousRoute.key] ?? state.descriptors[previousRoute.key])?.options : undefined;
+ 
+-      // When a screen is not the last, it should use next screen's transition config
+-      // Many transitions also animate the previous screen, so using 2 different transitions doesn't look right
+-      // For example combining a slide and a modal transition would look wrong otherwise
+-      // With this approach, combining different transition styles in the same navigator mostly looks right
+-      // This will still be broken when 2 transitions have different idle state (e.g. modal presentation),
+-      // but the majority of the transitions look alright
+-      const optionsForTransitionConfig = index !== self.length - 1 && nextOptions && nextOptions?.presentation !== 'transparentModal' ? nextOptions : descriptor.options;
++            // When a screen is not the last, it should use next screen's transition config
++            // Many transitions also animate the previous screen, so using 2 different transitions doesn't look right
++            // For example combining a slide and a modal transition would look wrong otherwise
++            // With this approach, combining different transition styles in the same navigator mostly looks right
++            // This will still be broken when 2 transitions have different idle state (e.g. modal presentation),
++            // but the majority of the transitions look alright
++            const optionsForTransitionConfig = index !== self.length - 1 && nextOptions && nextOptions?.presentation !== 'transparentModal' ? nextOptions : descriptor.options;
+ 
+-      // Assume modal if there are already modal screens in the stack
+-      // or current screen is a modal when no presentation is specified
+-      const isModal = modalRouteKeys.includes(route.key);
+-      const animation = getDefaultAnimation(optionsForTransitionConfig.animation);
+-      const isAnimationEnabled = getAnimationEnabled(animation);
+-      const transitionPreset = animation !== 'default' ? NAMED_TRANSITIONS_PRESETS[animation] : optionsForTransitionConfig.presentation === 'transparentModal' ? ModalFadeTransition : optionsForTransitionConfig.presentation === 'modal' || isModal ? ModalTransition : DefaultTransition;
+-      const {
+-        gestureEnabled = Platform.OS === 'ios' && isAnimationEnabled,
+-        gestureDirection = transitionPreset.gestureDirection,
+-        transitionSpec = transitionPreset.transitionSpec,
+-        cardStyleInterpolator = isAnimationEnabled ? transitionPreset.cardStyleInterpolator : forNoAnimationCard,
+-        headerStyleInterpolator = transitionPreset.headerStyleInterpolator,
+-        cardOverlayEnabled = Platform.OS !== 'ios' && optionsForTransitionConfig.presentation !== 'transparentModal' || getIsModalPresentation(cardStyleInterpolator)
+-      } = optionsForTransitionConfig;
+-      const headerMode = descriptor.options.headerMode ?? (!(optionsForTransitionConfig.presentation === 'modal' || optionsForTransitionConfig.presentation === 'transparentModal' || nextOptions?.presentation === 'modal' || nextOptions?.presentation === 'transparentModal' || getIsModalPresentation(cardStyleInterpolator)) && Platform.OS === 'ios' && descriptor.options.header === undefined ? 'float' : 'screen');
+-      const isRTL = props.direction === 'rtl';
+-      const scene = {
+-        route,
+-        descriptor: {
+-          ...descriptor,
+-          options: {
+-            ...descriptor.options,
+-            animation,
+-            cardOverlayEnabled,
+-            cardStyleInterpolator,
+-            gestureDirection,
+-            gestureEnabled,
+-            headerStyleInterpolator,
+-            transitionSpec,
+-            headerMode
+-          }
+-        },
+-        progress: {
+-          current: getProgressFromGesture(currentGesture, state.layout, descriptor.options, isRTL),
+-          next: nextGesture && nextOptions?.presentation !== 'transparentModal' ? getProgressFromGesture(nextGesture, state.layout, nextOptions, isRTL) : undefined,
+-          previous: previousGesture ? getProgressFromGesture(previousGesture, state.layout, previousOptions, isRTL) : undefined
+-        },
+-        __memo: [state.layout, descriptor, nextOptions, previousOptions, currentGesture, nextGesture, previousGesture]
+-      };
+-      if (oldScene && scene.__memo.every((it, i) => {
+-        return oldScene.__memo[i] === it;
+-      })) {
+-        return oldScene;
+-      }
+-      return scene;
+-    });
+-    return {
+-      routes: props.routes,
+-      scenes,
+-      gestures,
+-      descriptors: props.descriptors,
+-      headerHeights: getHeaderHeights(scenes, props.insets, props.isParentHeaderShown, props.isParentModal, state.layout, state.headerHeights)
++            // Assume modal if there are already modal screens in the stack
++            // or current screen is a modal when no presentation is specified
++            const isModal = modalRouteKeys.includes(route.key);
++            const animation = getDefaultAnimation(optionsForTransitionConfig.animation);
++            const isAnimationEnabled = getAnimationEnabled(animation);
++            const transitionPreset =
++                animation !== 'default'
++                    ? NAMED_TRANSITIONS_PRESETS[animation]
++                    : optionsForTransitionConfig.presentation === 'transparentModal'
++                      ? ModalFadeTransition
++                      : optionsForTransitionConfig.presentation === 'modal' || isModal
++                        ? ModalTransition
++                        : DefaultTransition;
++            const {
++                gestureEnabled = Platform.OS === 'ios' && isAnimationEnabled,
++                gestureDirection = transitionPreset.gestureDirection,
++                transitionSpec = transitionPreset.transitionSpec,
++                cardStyleInterpolator = isAnimationEnabled ? transitionPreset.cardStyleInterpolator : forNoAnimationCard,
++                headerStyleInterpolator = transitionPreset.headerStyleInterpolator,
++                cardOverlayEnabled = (Platform.OS !== 'ios' && optionsForTransitionConfig.presentation !== 'transparentModal') || getIsModalPresentation(cardStyleInterpolator),
++            } = optionsForTransitionConfig;
++            const headerMode =
++                descriptor.options.headerMode ??
++                (!(
++                    optionsForTransitionConfig.presentation === 'modal' ||
++                    optionsForTransitionConfig.presentation === 'transparentModal' ||
++                    nextOptions?.presentation === 'modal' ||
++                    nextOptions?.presentation === 'transparentModal' ||
++                    getIsModalPresentation(cardStyleInterpolator)
++                ) &&
++                Platform.OS === 'ios' &&
++                descriptor.options.header === undefined
++                    ? 'float'
++                    : 'screen');
++            const isRTL = props.direction === 'rtl';
++            const scene = {
++                route,
++                descriptor: {
++                    ...descriptor,
++                    options: {
++                        ...descriptor.options,
++                        animation,
++                        cardOverlayEnabled,
++                        cardStyleInterpolator,
++                        gestureDirection,
++                        gestureEnabled,
++                        headerStyleInterpolator,
++                        transitionSpec,
++                        headerMode,
++                    },
++                },
++                progress: {
++                    current: getProgressFromGesture(currentGesture, state.layout, descriptor.options, isRTL),
++                    next: nextGesture && nextOptions?.presentation !== 'transparentModal' ? getProgressFromGesture(nextGesture, state.layout, nextOptions, isRTL) : undefined,
++                    previous: previousGesture ? getProgressFromGesture(previousGesture, state.layout, previousOptions, isRTL) : undefined,
++                },
++                __memo: [state.layout, descriptor, nextOptions, previousOptions, currentGesture, nextGesture, previousGesture],
++            };
++            if (
++                oldScene &&
++                scene.__memo.every((it, i) => {
++                    return oldScene.__memo[i] === it;
++                })
++            ) {
++                return oldScene;
++            }
++            return scene;
++        });
++        return {
++            routes: props.routes,
++            scenes,
++            gestures,
++            descriptors: props.descriptors,
++            headerHeights: getHeaderHeights(scenes, props.insets, props.isParentHeaderShown, props.isParentModal, state.layout, state.headerHeights),
++        };
++    }
++    constructor(props) {
++        super(props);
++        this.state = {
++            routes: [],
++            scenes: [],
++            gestures: {},
++            layout: SafeAreaProviderCompat.initialMetrics.frame,
++            descriptors: this.props.descriptors,
++            // Used when card's header is null and mode is float to make transition
++            // between screens with headers and those without headers smooth.
++            // This is not a great heuristic here. We don't know synchronously
++            // on mount what the header height is so we have just used the most
++            // common cases here.
++            headerHeights: {},
++        };
++    }
++    handleLayout = (e) => {
++        const {height, width} = e.nativeEvent.layout;
++        const layout = {
++            width,
++            height,
++        };
++        this.setState((state, props) => {
++            if (height === state.layout.height && width === state.layout.width) {
++                return null;
++            }
++            return {
++                layout,
++                headerHeights: getHeaderHeights(state.scenes, props.insets, props.isParentHeaderShown, props.isParentModal, layout, state.headerHeights),
++            };
++        });
+     };
+-  }
+-  constructor(props) {
+-    super(props);
+-    this.state = {
+-      routes: [],
+-      scenes: [],
+-      gestures: {},
+-      layout: SafeAreaProviderCompat.initialMetrics.frame,
+-      descriptors: this.props.descriptors,
+-      // Used when card's header is null and mode is float to make transition
+-      // between screens with headers and those without headers smooth.
+-      // This is not a great heuristic here. We don't know synchronously
+-      // on mount what the header height is so we have just used the most
+-      // common cases here.
+-      headerHeights: {}
++    handleHeaderLayout = ({route, height}) => {
++        this.setState(({headerHeights}) => {
++            const previousHeight = headerHeights[route.key];
++            if (previousHeight?.value === height) {
++                return null;
++            }
++            return {
++                headerHeights: {
++                    ...headerHeights,
++                    [route.key]: {
++                        measured: true,
++                        value: height,
++                    },
++                },
++            };
++        });
+     };
+-  }
+-  handleLayout = e => {
+-    const {
+-      height,
+-      width
+-    } = e.nativeEvent.layout;
+-    const layout = {
+-      width,
+-      height
++    getFocusedRoute = () => {
++        const {state} = this.props;
++        const route = state.routes[state.index];
++        if (route == null) {
++            throw new Error(`Couldn't find a route at index ${state.index}.`);
++        }
++        return route;
+     };
+-    this.setState((state, props) => {
+-      if (height === state.layout.height && width === state.layout.width) {
+-        return null;
+-      }
+-      return {
+-        layout,
+-        headerHeights: getHeaderHeights(state.scenes, props.insets, props.isParentHeaderShown, props.isParentModal, layout, state.headerHeights)
+-      };
+-    });
+-  };
+-  handleHeaderLayout = ({
+-    route,
+-    height
+-  }) => {
+-    this.setState(({
+-      headerHeights
+-    }) => {
+-      const previousHeight = headerHeights[route.key];
+-      if (previousHeight?.value === height) {
+-        return null;
+-      }
+-      return {
+-        headerHeights: {
+-          ...headerHeights,
+-          [route.key]: {
+-            measured: true,
+-            value: height
+-          }
++    getPreviousScene = ({route}) => {
++        const {getPreviousRoute} = this.props;
++        const {scenes} = this.state;
++        const previousRoute = getPreviousRoute({
++            route,
++        });
++        if (previousRoute) {
++            const previousScene = scenes.find((scene) => scene.descriptor.route.key === previousRoute.key);
++            return previousScene;
++        }
++        return undefined;
++    };
++    render() {
++        const {
++            insets,
++            state,
++            routes,
++            openingRouteKeys,
++            closingRouteKeys,
++            replacingRouteKeys,
++            onOpenRoute,
++            onCloseRoute,
++            onGestureStart,
++            onGestureEnd,
++            onGestureCancel,
++            renderHeader,
++            isParentHeaderShown,
++            isParentModal,
++            onTransitionStart,
++            onTransitionEnd,
++        } = this.props;
++        const {scenes, layout, gestures, headerHeights} = this.state;
++        const allRoutes = getAllRoutes(routes, state);
++        const focusedRoute = state.routes[state.index];
++        if (focusedRoute == null) {
++            throw new Error(`Couldn't find a route at index ${state.index}.`);
+         }
+-      };
+-    });
+-  };
+-  getFocusedRoute = () => {
+-    const {
+-      state
+-    } = this.props;
+-    const route = state.routes[state.index];
+-    if (route == null) {
+-      throw new Error(`Couldn't find a route at index ${state.index}.`);
+-    }
+-    return route;
+-  };
+-  getPreviousScene = ({
+-    route
+-  }) => {
+-    const {
+-      getPreviousRoute
+-    } = this.props;
+-    const {
+-      scenes
+-    } = this.state;
+-    const previousRoute = getPreviousRoute({
+-      route
+-    });
+-    if (previousRoute) {
+-      const previousScene = scenes.find(scene => scene.descriptor.route.key === previousRoute.key);
+-      return previousScene;
+-    }
+-    return undefined;
+-  };
+-  render() {
+-    const {
+-      insets,
+-      state,
+-      routes,
+-      openingRouteKeys,
+-      closingRouteKeys,
+-      replacingRouteKeys,
+-      onOpenRoute,
+-      onCloseRoute,
+-      onGestureStart,
+-      onGestureEnd,
+-      onGestureCancel,
+-      renderHeader,
+-      isParentHeaderShown,
+-      isParentModal,
+-      onTransitionStart,
+-      onTransitionEnd
+-    } = this.props;
+-    const {
+-      scenes,
+-      layout,
+-      gestures,
+-      headerHeights
+-    } = this.state;
+-    const allRoutes = getAllRoutes(routes, state);
+-    const focusedRoute = state.routes[state.index];
+-    if (focusedRoute == null) {
+-      throw new Error(`Couldn't find a route at index ${state.index}.`);
+-    }
+ 
+-    // Render only two top-most active headers as a workaround for
+-    // https://github.com/react-navigation/react-navigation/issues/12456.
+-    // If the header is persisted, it might be placed incorrectly when navigating back
+-    const activeHeaderScenes = scenes.filter(scene => !isInactiveRoute(scene.route, routes)).slice(-2);
+-    const isFloatHeaderAbsolute = activeHeaderScenes.some(scene => {
+-      const options = scene.descriptor.options ?? {};
+-      const {
+-        headerMode,
+-        headerTransparent,
+-        headerShown = true
+-      } = options;
+-      if (headerTransparent || headerShown === false || headerMode === 'screen') {
+-        return true;
+-      }
+-      return false;
+-    });
+-    const isFloatHeaderFocused = scenes.findLast(scene => scene.route.key === focusedRoute.key)?.descriptor.options.headerMode === 'float';
+-    const focusedHeaderHeight = headerHeights[focusedRoute.key];
+-    return /*#__PURE__*/_jsxs(View, {
+-      style: styles.container,
+-      children: [renderHeader({
+-        mode: 'float',
+-        scenes: activeHeaderScenes,
+-        getPreviousScene: this.getPreviousScene,
+-        getFocusedRoute: this.getFocusedRoute,
+-        contentHeight: headerHeights[focusedRoute.key],
+-        onContentHeightChange: this.handleHeaderLayout,
+-        style: [isFloatHeaderAbsolute && [styles.absolute,
+-        // The header title can't be found with maestro without this
+-        // In some cases, header buttons may not be touchable as well
+-        isFloatHeaderFocused && {
+-          height: focusedHeaderHeight?.value
+-        }]]
+-      }), /*#__PURE__*/_jsx(View, {
+-        style: styles.container,
+-        onLayout: this.handleLayout,
+-        children: allRoutes.map((route, index, self) => {
+-          const focused = focusedRoute.key === route.key;
+-          const gesture = gestures[route.key];
+-          const scene = scenes[index];
+-          if (gesture == null) {
+-            throw new Error(`Couldn't find a gesture for route '${route.key}'.`);
+-          }
+-          if (scene == null) {
+-            throw new Error(`Couldn't find a scene at index ${index}.`);
+-          }
+-          const nextScene = scenes[index + 1];
+-          const nextRoute = self[index + 1];
+-          const {
+-            inactiveBehavior = 'pause',
+-            animation,
+-            headerShown = true,
+-            headerMode,
+-            headerTransparent
+-          } = scene.descriptor.options;
+-          const safeAreaInsetTop = insets.top;
+-          const safeAreaInsetRight = insets.right;
+-          const safeAreaInsetBottom = insets.bottom;
+-          const safeAreaInsetLeft = insets.left;
+-          const headerHeight = headerShown !== false ? headerHeights[route.key] : HIDDEN_HEADER_HEIGHT;
++        // Render only two top-most active headers as a workaround for
++        // https://github.com/react-navigation/react-navigation/issues/12456.
++        // If the header is persisted, it might be placed incorrectly when navigating back
++        const activeHeaderScenes = scenes.filter((scene) => !isInactiveRoute(scene.route, routes)).slice(-2);
++        const isFloatHeaderAbsolute = activeHeaderScenes.some((scene) => {
++            const options = scene.descriptor.options ?? {};
++            const {headerMode, headerTransparent, headerShown = true} = options;
++            if (headerTransparent || headerShown === false || headerMode === 'screen') {
++                return true;
++            }
++            return false;
++        });
++        const isFloatHeaderFocused = scenes.findLast((scene) => scene.route.key === focusedRoute.key)?.descriptor.options.headerMode === 'float';
++        const focusedHeaderHeight = headerHeights[focusedRoute.key];
++        return /*#__PURE__*/ _jsxs(View, {
++            style: styles.container,
++            children: [
++                renderHeader({
++                    mode: 'float',
++                    scenes: activeHeaderScenes,
++                    getPreviousScene: this.getPreviousScene,
++                    getFocusedRoute: this.getFocusedRoute,
++                    contentHeight: headerHeights[focusedRoute.key],
++                    onContentHeightChange: this.handleHeaderLayout,
++                    style: [
++                        isFloatHeaderAbsolute && [
++                            styles.absolute,
++                            // The header title can't be found with maestro without this
++                            // In some cases, header buttons may not be touchable as well
++                            isFloatHeaderFocused && {
++                                height: focusedHeaderHeight?.value,
++                            },
++                        ],
++                    ],
++                }),
++                /*#__PURE__*/ _jsx(View, {
++                    style: styles.container,
++                    onLayout: this.handleLayout,
++                    children: allRoutes.map((route, index, self) => {
++                        const focused = focusedRoute.key === route.key;
++                        const gesture = gestures[route.key];
++                        const scene = scenes[index];
++                        if (gesture == null) {
++                            throw new Error(`Couldn't find a gesture for route '${route.key}'.`);
++                        }
++                        if (scene == null) {
++                            throw new Error(`Couldn't find a scene at index ${index}.`);
++                        }
++                        const nextScene = scenes[index + 1];
++                        const nextRoute = self[index + 1];
++                        const {inactiveBehavior = 'pause', animation, headerShown = true, headerMode, headerTransparent} = scene.descriptor.options;
++                        const safeAreaInsetTop = insets.top;
++                        const safeAreaInsetRight = insets.right;
++                        const safeAreaInsetBottom = insets.bottom;
++                        const safeAreaInsetLeft = insets.left;
++                        const headerHeight = headerShown !== false ? headerHeights[route.key] : HIDDEN_HEADER_HEIGHT;
+ 
+-          // Start from current card and count backwards the number of cards with same interpolation
+-          const interpolationIndex = getInterpolationIndex(scenes, index);
+-          const isInModalPresentation = getIsInModalPresentation(scene, interpolationIndex, isParentModal);
+-          const isModal = scene.descriptor.options.presentation === 'modal' || getIsModalPresentation(scene.descriptor.options.cardStyleInterpolator);
+-          const isNextScreenModal = nextScene != null && (nextScene.descriptor.options.presentation === 'modal' || getIsModalPresentation(nextScene.descriptor.options.cardStyleInterpolator));
+-          const isNextScreenTransparent = nextScene?.descriptor.options.presentation === 'transparentModal';
+-          const isAnimationEnabled = getAnimationEnabled(animation) || (
+-          // Also check next screen's animation,
+-          // As it will result in both screens being visible
+-          nextScene ? getAnimationEnabled(nextScene.descriptor.options.animation) : false);
+-          const isRemoving = replacingRouteKeys.includes(route.key) || closingRouteKeys.includes(route.key);
+-          const isFocusing = openingRouteKeys.includes(route.key) || nextRoute != null && [...closingRouteKeys, ...replacingRouteKeys].includes(nextRoute.key);
+-          const isInactive = isInactiveRoute(route, this.props.routes);
+-          const isRetained = state.retainedRouteKeys?.includes(route.key);
+-          const isPreloaded = isInactive && !isRetained;
+-          const isTopmost = index === routes.length - 1;
+-          const isBeforeLast = index === routes.length - 2;
++                        // Start from current card and count backwards the number of cards with same interpolation
++                        const interpolationIndex = getInterpolationIndex(scenes, index);
++                        const isInModalPresentation = getIsInModalPresentation(scene, interpolationIndex, isParentModal);
++                        const isModal = scene.descriptor.options.presentation === 'modal' || getIsModalPresentation(scene.descriptor.options.cardStyleInterpolator);
++                        const isNextScreenModal =
++                            nextScene != null && (nextScene.descriptor.options.presentation === 'modal' || getIsModalPresentation(nextScene.descriptor.options.cardStyleInterpolator));
++                        const isNextScreenTransparent = nextScene?.descriptor.options.presentation === 'transparentModal';
++                        const isAnimationEnabled =
++                            getAnimationEnabled(animation) ||
++                            // Also check next screen's animation,
++                            // As it will result in both screens being visible
++                            (nextScene ? getAnimationEnabled(nextScene.descriptor.options.animation) : false);
++                        const isRemoving = replacingRouteKeys.includes(route.key) || closingRouteKeys.includes(route.key);
++                        const isFocusing = openingRouteKeys.includes(route.key) || (nextRoute != null && [...closingRouteKeys, ...replacingRouteKeys].includes(nextRoute.key));
++                        const isInactive = isInactiveRoute(route, this.props.routes);
++                        const isRetained = state.retainedRouteKeys?.includes(route.key);
++                        const isPreloaded = isInactive && !isRetained;
++                        const isTopmost = index === routes.length - 1;
++                        const isBeforeLast = index === routes.length - 2;
+ 
+-          // Keep animating and the last two rendered routes visible for smoother transitions
+-          const isVisible = focused ||
+-          // React native destroys the view when hidden
+-          // So we keep retained screens visible
+-          // This makes sure any videos being played don't stop etc.
+-          isRetained || isNextScreenTransparent ||
+-          // Modal presentation on iOS has multiple screens visible at the same time
+-          // The base screen before the modals renders the dim, which is always persistent
+-          // On iPadOS, the base screen is visible while modal is in a smaller area on top
+-          // The top edge of the last 3 screens can be seen animating behind the modal
+-          isNextScreenModal && (!isModal || index >= routes.length - 3) ||
+-          // We only need to keep other screens visible when animation is enabled
+-          isAnimationEnabled && (isFocusing || isRemoving ||
+-          // Preloaded screens should stay mounted, but remain hidden until focused
+-          !isPreloaded && index >= routes.length - 2);
+-          const activityMode =
+-          // Render focused and animating screens normally
+-          focused || isFocusing ? 'normal' : inactiveBehavior === 'none' ||
+-          // Unpause preloaded or retained screens so updates are visible
+-          // Handle retained explicitly as isInactive won't be updated until animation end
+-          isInactive || isRetained ||
+-          // Keep the screen before transparent screen active
+-          // This lets the screen under the transparent screen update and animate
+-          isNextScreenTransparent ||
+-          // Keep the screen before last screen active
+-          // Otherwise it breaks animation when going back
+-          isBeforeLast ? 'inert' : inactiveBehavior === 'unmount' &&
+-          // Don't unmount screens that needs to stay visible
+-          !isVisible &&
+-          // Don't unmount screens with nested navigators
+-          // So we don't lose their state
+-          !('state' in route && route.state) ? 'unmounted' : 'paused';
+-          if (activityMode === 'unmounted') {
+-            return null;
+-          }
+-          return /*#__PURE__*/_jsx(ActivityView, {
+-            mode: activityMode,
+-            visible: isVisible,
+-            style: {
+-              ...StyleSheet.absoluteFill,
+-              // Avoid unfocused larger pages increasing scroll area
+-              // e.g. when a smaller screen is pushed over a larger one on web
+-              overflow: isTopmost ? undefined : 'hidden',
+-              marginTop: headerTransparent || headerMode === 'screen' ? 0 :
+-              // Add offset for non-transparent floating header
+-              isFloatHeaderAbsolute ?
+-              // If header is absolute, offset the card by the header height
+-              headerHeight?.value :
+-              // Otherwise, the in-flow float header already takes the
+-              // focused header's space, so offset by the difference
+-              headerHeight && focusedHeaderHeight ? headerHeight.value - focusedHeaderHeight.value : 0
+-            },
+-            children: /*#__PURE__*/_jsx(CardContainer, {
+-              index: index,
+-              interpolationIndex: interpolationIndex,
+-              modal: isInModalPresentation,
+-              active: isTopmost,
+-              focused: focused,
+-              opening: openingRouteKeys.includes(route.key),
+-              closing: closingRouteKeys.includes(route.key),
+-              layout: layout,
+-              gesture: gesture,
+-              scene: scene,
+-              safeAreaInsetTop: safeAreaInsetTop,
+-              safeAreaInsetRight: safeAreaInsetRight,
+-              safeAreaInsetBottom: safeAreaInsetBottom,
+-              safeAreaInsetLeft: safeAreaInsetLeft,
+-              onGestureStart: onGestureStart,
+-              onGestureCancel: onGestureCancel,
+-              onGestureEnd: onGestureEnd,
+-              headerHeight: headerHeight,
+-              isParentHeaderShown: isParentHeaderShown,
+-              onHeaderHeightChange: this.handleHeaderLayout,
+-              getPreviousScene: this.getPreviousScene,
+-              getFocusedRoute: this.getFocusedRoute,
+-              renderHeader: renderHeader,
+-              onOpenRoute: onOpenRoute,
+-              onCloseRoute: onCloseRoute,
+-              onTransitionStart: onTransitionStart,
+-              onTransitionEnd: onTransitionEnd,
+-              preloaded: isInactive,
+-              children: scene.descriptor.render()
+-            })
+-          }, route.key);
+-        })
+-      })]
+-    });
+-  }
++                        // PATCHED (Expensify RN8 PoC):
++                        // - `dontDetachScreen` (route flag set for persistentScreens, e.g. split navigator sidebars):
++                        //   v7 kept these screens attached via a patch; v8 hides covered cards. Force normal+visible
++                        //   so the LHN / settings sidebar stays rendered and interactive under central screens.
++                        // - `pauseWhenCovered` (screen option): opt-in to pause (defer re-renders via <Activity>)
++                        //   the screen under a transparentModal / before-last screen instead of keeping it 'inert'.
++                        //   ActivityView keeps paused content visible on web (display hack), so the screen stays
++                        //   on screen while its subtree updates are deferred — the actual PoC experiment.
++                        const dontDetachScreen = route.dontDetachScreen === true;
++                        const pauseWhenCovered = scene.descriptor.options.pauseWhenCovered === true;
++
++                        // Keep animating and the last two rendered routes visible for smoother transitions
++                        const isVisible =
++                            dontDetachScreen ||
++                            (pauseWhenCovered && (isNextScreenTransparent || isBeforeLast)) ||
++                            focused ||
++                            // React native destroys the view when hidden
++                            // So we keep retained screens visible
++                            // This makes sure any videos being played don't stop etc.
++                            isRetained ||
++                            isNextScreenTransparent ||
++                            // Modal presentation on iOS has multiple screens visible at the same time
++                            // The base screen before the modals renders the dim, which is always persistent
++                            // On iPadOS, the base screen is visible while modal is in a smaller area on top
++                            // The top edge of the last 3 screens can be seen animating behind the modal
++                            (isNextScreenModal && (!isModal || index >= routes.length - 3)) ||
++                            // We only need to keep other screens visible when animation is enabled
++                            (isAnimationEnabled &&
++                                (isFocusing ||
++                                    isRemoving ||
++                                    // Preloaded screens should stay mounted, but remain hidden until focused
++                                    (!isPreloaded && index >= routes.length - 2)));
++                        // PATCHED (Expensify RN8 PoC): external cover — this navigator itself is not focused
++                        // in the ancestor chain (undefined = root navigator, treated as focused). Makes
++                        // pauseWhenCovered fire for the stack-focused screen when the cover lives in an
++                        // ancestor stack (e.g. RHP in the root stack over a report inside the TabNavigator).
++                        const isCoveredExternally = this.props.isParentFocused === false;
++                        const activityMode =
++                            // PATCHED (Expensify RN8 PoC):
++                            // 1. pauseWhenCovered screens pause (deferred re-renders, kept visible via
++                            //    isVisible above) when covered by a transparentModal, before-last, or —
++                            //    for the stack-focused screen — covered externally via an ancestor stack.
++                            //    Takes precedence over dontDetachScreen.
++                            // 2. dontDetachScreen screens (persistentScreens) render normally and stay
++                            //    visible — replaces the v7 dontDetachScreen patch.
++                            pauseWhenCovered && focused && isCoveredExternally && !isFocusing
++                                ? 'paused'
++                                : // Render focused and animating screens normally
++                                  focused || isFocusing
++                                    ? 'normal'
++                                    : pauseWhenCovered && (isNextScreenTransparent || isBeforeLast)
++                                      ? 'paused'
++                                  : dontDetachScreen
++                                    ? 'normal'
++                                    : inactiveBehavior === 'none' ||
++                                        // Unpause preloaded or retained screens so updates are visible
++                                        // Handle retained explicitly as isInactive won't be updated until animation end
++                                        isInactive ||
++                                        isRetained ||
++                                        // Keep the screen before transparent screen active
++                                        // This lets the screen under the transparent screen update and animate
++                                        isNextScreenTransparent ||
++                                        // Keep the screen before last screen active
++                                        // Otherwise it breaks animation when going back
++                                        isBeforeLast
++                                      ? 'inert'
++                                      : inactiveBehavior === 'unmount' &&
++                                          // Don't unmount screens that needs to stay visible
++                                          !isVisible &&
++                                          // Don't unmount screens with nested navigators
++                                          // So we don't lose their state
++                                          !('state' in route && route.state)
++                                        ? 'unmounted'
++                                        : 'paused';
++                        if (activityMode === 'unmounted') {
++                            return null;
++                        }
++                        return /*#__PURE__*/ _jsx(
++                            ActivityView,
++                            {
++                                mode: activityMode,
++                                visible: isVisible,
++                                style: {
++                                    ...StyleSheet.absoluteFill,
++                                    // Avoid unfocused larger pages increasing scroll area
++                                    // e.g. when a smaller screen is pushed over a larger one on web
++                                    overflow: isTopmost ? undefined : 'hidden',
++                                    marginTop:
++                                        headerTransparent || headerMode === 'screen'
++                                            ? 0
++                                            : // Add offset for non-transparent floating header
++                                              isFloatHeaderAbsolute
++                                              ? // If header is absolute, offset the card by the header height
++                                                headerHeight?.value
++                                              : // Otherwise, the in-flow float header already takes the
++                                                // focused header's space, so offset by the difference
++                                                headerHeight && focusedHeaderHeight
++                                                ? headerHeight.value - focusedHeaderHeight.value
++                                                : 0,
++                                },
++                                children: /*#__PURE__*/ _jsx(CardContainer, {
++                                    index: index,
++                                    interpolationIndex: interpolationIndex,
++                                    modal: isInModalPresentation,
++                                    active: isTopmost,
++                                    focused: focused,
++                                    opening: openingRouteKeys.includes(route.key),
++                                    closing: closingRouteKeys.includes(route.key),
++                                    layout: layout,
++                                    gesture: gesture,
++                                    scene: scene,
++                                    safeAreaInsetTop: safeAreaInsetTop,
++                                    safeAreaInsetRight: safeAreaInsetRight,
++                                    safeAreaInsetBottom: safeAreaInsetBottom,
++                                    safeAreaInsetLeft: safeAreaInsetLeft,
++                                    onGestureStart: onGestureStart,
++                                    onGestureCancel: onGestureCancel,
++                                    onGestureEnd: onGestureEnd,
++                                    headerHeight: headerHeight,
++                                    isParentHeaderShown: isParentHeaderShown,
++                                    onHeaderHeightChange: this.handleHeaderLayout,
++                                    getPreviousScene: this.getPreviousScene,
++                                    getFocusedRoute: this.getFocusedRoute,
++                                    renderHeader: renderHeader,
++                                    onOpenRoute: onOpenRoute,
++                                    onCloseRoute: onCloseRoute,
++                                    onTransitionStart: onTransitionStart,
++                                    onTransitionEnd: onTransitionEnd,
++                                    preloaded: isInactive,
++                                    children: scene.descriptor.render(),
++                                }),
++                            },
++                            route.key,
++                        );
++                    }),
++                }),
++            ],
++        });
++    }
+ }
+ const styles = StyleSheet.create({
+-  container: {
+-    flex: 1
+-  },
+-  absolute: {
+-    position: 'absolute',
+-    top: 0,
+-    start: 0,
+-    end: 0,
+-    zIndex: 1
+-  }
++    container: {
++        flex: 1,
++    },
++    absolute: {
++        position: 'absolute',
++        top: 0,
++        start: 0,
++        end: 0,
++        zIndex: 1,
++    },
+ });
+ //# sourceMappingURL=CardStack.js.map

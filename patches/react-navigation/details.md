@@ -1,5 +1,28 @@
 # `@react-navigation` patches
 
+> **RN8 PoC (poc/rn-8-alpha):** all v7 patches below were removed for the react-navigation 8 alpha PoC.
+> The descriptions are kept as the checklist of what must be re-evaluated/ported for a real v8 upgrade:
+> Jest-ESM shims (regenerate), core types patch (port — typecheck is skipped in the PoC), InteractionManager
+> (drop, migrate consumers to `transitionEnd`, see #71913), `initial.patch` (adopt upstream `pushParams`),
+> popstate timeout (port), edge-drag-gesture (port), beforeremove propagation (re-test on v8, upstream
+> PR #13153).
+>
+> **The PoC carries exactly two v8 patches** (full design + empirical evidence in `RN8_POC_SUMMARY.md` at
+> the repo root):
+>
+> - **`@react-navigation+stack+8.0.0-alpha.49.patch`** — CardStack: (a) `pauseWhenCovered` screen option —
+>   pause a flagged screen via React `<Activity>` (subscriptions unmounted, renders deferred to idle) while
+>   keeping it painted, whenever it is covered in its own stack (transparentModal / before-last) **or by an
+>   ancestor stack's cover** (external-cover extension via `IsFocusedContext`, e.g. RHP over a tab screen);
+>   (b) `dontDetachScreen` route flag (from `persistentScreens`) — forces normal+visible so split sidebars
+>   (LHN/Settings) exist at all on wide layout (v8 hides covered opaque cards; successor of the v7
+>   dontDetachScreen patch below).
+> - **`@react-navigation+core+8.0.0-alpha.31.patch`** — per-layer `{web: {...}, native: {...}}` custom
+>   options conversion (`convertCustomScreenOptions`, 3rd arg to `useNavigationBuilder`), flattened per
+>   options layer BEFORE merging exactly like v7. Without it every web-nested option (presentation,
+>   cardStyle, interpolators, transitionSpec) is silently dropped. Runtime successor of the v7
+>   `platform-navigation-stack-types` patch below.
+
 ### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
 #### [@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch)
@@ -64,7 +87,7 @@
 - E/App issue: [#22372](https://github.com/Expensify/App/issues/22372)
 - PR Introducing Patch: [#22437](https://github.com/Expensify/App/pull/22437)
 - PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155) [#65119](https://github.com/Expensify/App/issues/65119)
-- Note: Not fully covered by the public `detachPreviousScreen` option (this also forces `activityState`). v8 replaces `detachInactiveScreens`/`detachPreviousScreen`/`freezeOnBlur` with a single `inactiveBehavior` option — re-evaluate this patch then.
+- Note: Not fully covered by the public `detachPreviousScreen` option (this also forces `activityState`). v8 replaces `detachInactiveScreens`/`detachPreviousScreen`/`freezeOnBlur` with a single `inactiveBehavior` option — **re-evaluated in the RN8 PoC: `inactiveBehavior` does NOT cover it** (it never reaches covered-opaque cards; without a fix split sidebars vanish entirely). Ported as the `dontDetachScreen` route flag inside the v8 stack patch (see header).
 
 ### [@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch](@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch)
 

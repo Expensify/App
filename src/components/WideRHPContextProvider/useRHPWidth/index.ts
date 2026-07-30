@@ -19,6 +19,19 @@ function getWidthOrder(width: RHPWidth): number {
     return 0;
 }
 
+type MaybeNestedState = {routes?: Array<{key?: string; state?: MaybeNestedState}>} | undefined;
+
+function stateContainsRouteKey(state: MaybeNestedState, routeKey: string): boolean {
+    return !!state?.routes?.some((nestedRoute) => nestedRoute.key === routeKey || stateContainsRouteKey(nestedRoute.state, routeKey));
+}
+
+function isRouteStillInNavigationState(routeKey: string): boolean {
+    if (!navigationRef?.isReady?.()) {
+        return false;
+    }
+    return stateContainsRouteKey(navigationRef.getRootState(), routeKey);
+}
+
 /** Sets a screen's RHP width. A per-report hint outranks the caller until the caller's own width catches up — so a pre-marked report opens at the right width without a loading-state flash. */
 function useRHPWidth(width: RHPWidth) {
     const route = useRoute();
@@ -26,6 +39,12 @@ function useRHPWidth(width: RHPWidth) {
     const {setRHPWidth, removeRHPRouteKey, getReportRHPWidthHint, unmarkReportRHPWidth} = useWideRHPActions();
 
     const onClose = () => {
+        // RN8 PoC: with <Activity> pausing (pauseWhenCovered), effect cleanup also runs when the screen
+        // is merely PAUSED under another RHP screen, not closed. A paused screen's route is still present
+        // in the navigation state, so only run the close logic once the route has actually been removed.
+        if (isRouteStillInNavigationState(route.key)) {
+            return;
+        }
         removeRHPRouteKey(route);
         // Clear the one-shot hint on unmount so it can't pin the report wide on a later visit.
         if (reportID) {
