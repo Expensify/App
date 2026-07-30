@@ -336,7 +336,7 @@ function IOURequestEditReportCommon({
                 ListItem={InviteMemberListItem}
                 customListHeaderContent={createReportOption}
                 listFooterContent={
-                    shouldShowRemoveFromReport && removeFromReport ? (
+                    shouldShowRemoveFromReport ? (
                         <MenuItemStandard
                             onPress={removeFromReport}
                             title={translate('iou.removeFromReport')}

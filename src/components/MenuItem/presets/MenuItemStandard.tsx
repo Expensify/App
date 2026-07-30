@@ -23,7 +23,7 @@ type MenuItemStandardProps = {
     icon: IconAsset;
 
     /** Function to fire when the row is pressed */
-    onPress: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+    onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
     /** Whether to show the trailing right arrow (chevron) */
     shouldShowChevron?: boolean;
