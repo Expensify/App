@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import MenuItem from '@components/MenuItem';
@@ -41,16 +41,17 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
 
     const submitButton = (
         <Button
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             isDisabled={isOffline}
-            large
-            text={translate('delegate.addCopilot')}
+            size={CONST.BUTTON_SIZE.LARGE}
             style={styles.mt6}
-            pressOnEnter
             onPress={() => {
                 Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM_MAGIC_CODE.getRoute(login, role));
             }}
-        />
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{translate('delegate.addCopilot')}</Button.Text>
+        </Button>
     );
 
     return (

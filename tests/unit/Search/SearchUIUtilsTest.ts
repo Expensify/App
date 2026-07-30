@@ -18,8 +18,6 @@ import type {
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
 
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-
 import Navigation from '@navigation/Navigation';
 
 import type * as ReportUserActions from '@userActions/Report';
@@ -50,7 +48,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -1434,7 +1432,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         policyID: 'A1B2C3',
         private_isArchived: '',
         reportID: '99999',
-        reportName: 'Approver owes ₫44.00',
+        reportName: 'Approver owes ₫44',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -4619,6 +4617,7 @@ describe('SearchUIUtils', () => {
             expect(emptyMerchantItem?.transactionsQueryJSON).toBeDefined();
             // The query should use 'none' (MERCHANT_EMPTY_VALUE) instead of empty string
             expect(emptyMerchantItem?.transactionsQueryJSON?.inputQuery).toContain(CONST.SEARCH.MERCHANT_EMPTY_VALUE);
+            expect(emptyMerchantItem?.transactionsQueryJSON?.exactMatchFilterKeys).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
         });
 
         it('should treat DEFAULT_MERCHANT "Expense" as empty merchant and display "No merchant"', () => {
