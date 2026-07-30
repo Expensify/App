@@ -17,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
@@ -85,6 +85,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
         const shouldUseSubmitFlow = canUseSubmit2026 && policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
+        let didNavigateToPendingDeepLink = false;
 
         if (policy.automaticJoiningEnabled) {
             joinAccessiblePolicy(policy.policyID);
@@ -101,9 +102,16 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             introSelected,
             isSelfTourViewed,
             conciergeChat,
+            onBeforeOnboardingModalUnmount: () => {
+                didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeReportID);
+            },
         });
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
+
+        if (didNavigateToPendingDeepLink) {
+            return;
+        }
 
         if (shouldUseSubmitFlow) {
             // The Submit workspace path bypasses navigateAfterOnboarding(), so pass conciergeReportID for pending /concierge redirects.

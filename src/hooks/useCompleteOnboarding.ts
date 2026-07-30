@@ -5,7 +5,7 @@ import {completeOnboarding, extractRHPVariantFromResponse} from '@libs/actions/R
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
 import Log from '@libs/Log';
-import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
@@ -72,6 +72,7 @@ function useCompleteOnboarding() {
             const isAccountingEnabled = featuresMap.some((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && feature.enabled);
             const resolvedIntegration = isAccountingEnabled ? userReportedIntegration : undefined;
             const email = currentUserPersonalDetails.email ?? '';
+            let didNavigateToPendingDeepLink = false;
 
             const {adminsChatReportID, policyID} = shouldCreateWorkspace
                 ? createWorkspace({
@@ -118,6 +119,9 @@ function useCompleteOnboarding() {
                 isSelfTourViewed,
                 conciergeChat,
                 adminsChatReport,
+                onBeforeOnboardingModalUnmount: () => {
+                    didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeReportID);
+                },
             });
             const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
 
@@ -128,6 +132,11 @@ function useCompleteOnboarding() {
                 },
                 waitForUpcomingTransition: true,
             });
+
+            if (didNavigateToPendingDeepLink) {
+                setIsLoading(false);
+                return;
+            }
 
             navigateAfterOnboardingWithMicrotaskQueue(
                 isSmallScreenWidth,

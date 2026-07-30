@@ -33,23 +33,31 @@ type NavigateAfterOnboardingOptions = {
     variantOverride?: OnboardingRHPVariant | null;
 };
 
-function navigateToPendingDeepLinkAfterOnboarding(conciergeReportID?: string) {
+function getPendingDeepLinkRouteAfterOnboarding(conciergeReportID?: string): Route | undefined {
     const shouldNavigateHomeFromDeepLink = consumePendingHomeDeepLink();
     const shouldNavigateToConciergeFromDeepLink = consumePendingConciergeDeepLink();
 
     if (shouldNavigateHomeFromDeepLink) {
         // The latest explicit non-Concierge route should win before onboarding variants can open Concierge, an admin room, or a workspace.
-        Navigation.navigate(ROUTES.HOME);
-        return true;
+        return ROUTES.HOME;
     }
 
     if (shouldNavigateToConciergeFromDeepLink) {
         // The report ID can still be unavailable immediately after signup refresh, so fall back to the Concierge route.
-        Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
-        return true;
+        return conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route);
     }
 
-    return false;
+    return undefined;
+}
+
+function navigateToPendingDeepLinkAfterOnboarding(conciergeReportID?: string) {
+    const pendingDeepLinkRoute = getPendingDeepLinkRouteAfterOnboarding(conciergeReportID);
+    if (!pendingDeepLinkRoute) {
+        return false;
+    }
+
+    Navigation.navigate(pendingDeepLinkRoute);
+    return true;
 }
 
 /**
@@ -150,6 +158,12 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     options?: NavigateAfterOnboardingOptions,
 ) {
     dismissOnboardingModalBeforeExit();
+    const pendingDeepLinkRoute = getPendingDeepLinkRouteAfterOnboarding(conciergeReportID);
+    if (pendingDeepLinkRoute) {
+        Navigation.navigate(pendingDeepLinkRoute, options?.afterTransition ? {afterTransition: options.afterTransition} : undefined);
+        return;
+    }
+
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         navigateAfterOnboarding(
             isSmallScreenWidth,
@@ -169,11 +183,11 @@ function navigateAfterOnboardingWithMicrotaskQueue(
  * navigate to Workspace > Categories with the side panel open so
  * the #admins room is visible in Concierge Anywhere.
  */
-function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false, conciergeReportID?: string) {
+function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false, conciergeReportID?: string, shouldHonorPendingDeepLink = true) {
     setDisableDismissOnEscape(false);
 
     // Submit workspace onboarding bypasses navigateAfterOnboarding(), so honor the same pending deep-link intent here.
-    if (navigateToPendingDeepLinkAfterOnboarding(conciergeReportID)) {
+    if (shouldHonorPendingDeepLink && navigateToPendingDeepLinkAfterOnboarding(conciergeReportID)) {
         return;
     }
 
@@ -191,11 +205,17 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
     SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
 }
 
-function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false, conciergeReportID?: string) {
+function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false, conciergeReportID?: string, shouldHonorPendingDeepLink = true) {
     dismissOnboardingModalBeforeExit();
+    const pendingDeepLinkRoute = shouldHonorPendingDeepLink ? getPendingDeepLinkRouteAfterOnboarding(conciergeReportID) : undefined;
+    if (shouldHonorPendingDeepLink && pendingDeepLinkRoute) {
+        Navigation.navigate(pendingDeepLinkRoute);
+        return;
+    }
+
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout, conciergeReportID);
+        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout, conciergeReportID, shouldHonorPendingDeepLink);
     });
 }
 
-export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};
+export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};

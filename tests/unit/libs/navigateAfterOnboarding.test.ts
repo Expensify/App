@@ -1,6 +1,6 @@
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearPendingConciergeDeepLink, setPendingConciergeDeepLink, updatePendingConciergeDeepLinkForRoute} from '@libs/PendingConciergeDeepLink';
+import {clearPendingConciergeDeepLink, consumePendingConciergeDeepLink, setPendingConciergeDeepLink, updatePendingConciergeDeepLinkForRoute} from '@libs/PendingConciergeDeepLink';
 
 import ROUTES from '@src/ROUTES';
 
@@ -68,6 +68,18 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
         expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
         expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
         expect(navigationMock.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('concierge-report-id'));
+        expect(navigationMock.setNavigationActionToMicrotaskQueue).not.toHaveBeenCalled();
+    });
+
+    it('does not consume pending Concierge from the Submit welcome modal path', () => {
+        setPendingConciergeDeepLink();
+
+        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id', false, 'concierge-report-id', false);
+
+        expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
+        expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
+        expect(navigationMock.navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
+        expect(consumePendingConciergeDeepLink()).toBe(true);
     });
 
     it('navigates to Home before Workspace Categories when root replaced pending Concierge', () => {

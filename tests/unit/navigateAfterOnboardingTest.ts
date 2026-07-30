@@ -1,6 +1,6 @@
 import {openReportFromDeepLink} from '@libs/actions/Link';
 import SidePanelActions from '@libs/actions/SidePanel';
-import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     clearPendingConciergeDeepLink,
@@ -258,6 +258,17 @@ describe('navigateAfterOnboarding', () => {
 
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
+    });
+
+    it('should navigate to pending Concierge immediately when exiting onboarding', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        const setNavigationActionToMicrotaskQueue = jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue');
+        setPendingConciergeDeepLink();
+
+        navigateAfterOnboardingWithMicrotaskQueue(false, true, REPORT_ID, {}, undefined, undefined);
+
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID), undefined);
+        expect(setNavigationActionToMicrotaskQueue).not.toHaveBeenCalled();
     });
 
     it('should navigate to Concierge instead of the onboarding admin room when a pending Concierge deep link is available', () => {

@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasURL} from '@libs/Url';
@@ -94,6 +94,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             }
 
             setIsLoading(true);
+            let didNavigateToPendingDeepLink = false;
             try {
                 await completeOnboardingReport({
                     engagementChoice: onboardingPurposeSelected,
@@ -105,10 +106,18 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     introSelected,
                     isSelfTourViewed,
                     conciergeChat,
+                    onBeforeOnboardingModalUnmount: () => {
+                        didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeChatReportID);
+                    },
                 });
 
                 setOnboardingAdminsChatReportID();
                 setOnboardingPolicyID();
+
+                if (didNavigateToPendingDeepLink) {
+                    setIsLoading(false);
+                    return;
+                }
 
                 navigateAfterOnboardingWithMicrotaskQueue(
                     isSmallScreenWidth,

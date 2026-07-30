@@ -1,7 +1,7 @@
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 
 import Log from '@libs/Log';
-import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -102,6 +102,7 @@ function useAutoCreateTrackWorkspace() {
             // On mobile, hardcode trackExpensesWithConcierge since the web flow already works
             // with the CompleteGuidedSetup response and side panel isn't supported on native.
             let rhpVariant: OnboardingRHPVariant | undefined = isSidePanelReportSupported ? undefined : CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
+            let didNavigateToPendingDeepLink = false;
             try {
                 const response = await completeOnboarding({
                     engagementChoice,
@@ -116,6 +117,9 @@ function useAutoCreateTrackWorkspace() {
                     isSelfTourViewed,
                     conciergeChat,
                     selfDMReport,
+                    onBeforeOnboardingModalUnmount: () => {
+                        didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeChatReportID);
+                    },
                 });
 
                 if (isSidePanelReportSupported) {
@@ -132,6 +136,10 @@ function useAutoCreateTrackWorkspace() {
             } finally {
                 setOnboardingAdminsChatReportID();
                 setOnboardingPolicyID();
+
+                if (didNavigateToPendingDeepLink) {
+                    return;
+                }
 
                 navigateAfterOnboardingWithMicrotaskQueue(
                     shouldUseNarrowLayout,

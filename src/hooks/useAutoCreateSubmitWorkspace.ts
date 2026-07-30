@@ -1,5 +1,5 @@
 import Log from '@libs/Log';
-import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {navigateToPendingDeepLinkAfterOnboarding, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {canEditWorkspaceSettings, isGroupPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 
@@ -88,6 +88,7 @@ function useAutoCreateSubmitWorkspace() {
                       hasActiveAdminPolicies,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+            let didNavigateToPendingDeepLink = false;
 
             if (shouldCompleteOnboarding) {
                 try {
@@ -101,6 +102,9 @@ function useAutoCreateSubmitWorkspace() {
                         introSelected,
                         isSelfTourViewed,
                         conciergeChat,
+                        onBeforeOnboardingModalUnmount: () => {
+                            didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeReportID);
+                        },
                     });
                 } catch (error) {
                     // Swallow onboarding completion failures so a network error doesn't block workspace
@@ -122,8 +126,12 @@ function useAutoCreateSubmitWorkspace() {
                 policyIDForNavigation = existingSubmitPolicyID;
             }
 
-            // Pass conciergeReportID so the Submit workspace completion path can honor a pending /concierge intent after refresh.
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout, conciergeReportID);
+            if (didNavigateToPendingDeepLink) {
+                return;
+            }
+
+            // Pass conciergeReportID so true onboarding completion can honor a pending /concierge intent after refresh.
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout, conciergeReportID, shouldCompleteOnboarding);
         },
         [
             currentUserEmail,
