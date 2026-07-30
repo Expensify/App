@@ -114,7 +114,6 @@ type PayMoneyRequestFunctionParams = {
     chatReportPolicy: OnyxEntry<OnyxTypes.Policy>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
-    /** The Concierge chat report, threaded so completePaymentOnboarding no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;

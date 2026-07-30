@@ -229,7 +229,6 @@ type HandleActionButtonPressParams = {
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    /** The Concierge chat report, threaded so payMoneyRequest's onboarding path no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<Report>;
 };
 
@@ -530,7 +529,6 @@ type GetPayActionCallbackParams = {
     chatReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    /** The Concierge chat report, threaded so payMoneyRequest's onboarding path no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<Report>;
 };
 

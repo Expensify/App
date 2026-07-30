@@ -185,7 +185,6 @@ type RequestMoneyInformation = {
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     isSelfTourViewed: boolean;
-    /** The Concierge chat report, threaded so the test-drive onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
