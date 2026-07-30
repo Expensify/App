@@ -1,3 +1,6 @@
+// Static twin of SearchTypeMenuNarrow - used for fast perceived performance.
+// Keep hooks and Onyx subscriptions to an absolute minimum; add new ones only
+// when strictly necessary. UI must stay visually identical to the interactive version.
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -5,23 +8,16 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {getSuggestedSearches, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
 
 import {SearchTypeMenuNarrowContent} from '@pages/Search/SearchTypeMenuNarrow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SaveSearch} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
-
-// Static twin of SearchTypeMenuNarrow - used for fast perceived performance.
-// Keep hooks and Onyx subscriptions to an absolute minimum; add new ones only
-// when strictly necessary. UI must stay visually identical to the interactive version.
 import React from 'react';
 
 import staticPolicyInfoSelector from './staticPolicyInfoSelector';
@@ -34,33 +30,17 @@ function getActiveKey(similarSearchHash: number, hasGroupPolicy: boolean, search
     return candidates.find((entry) => similarSearchHash === entry.similarSearchHash)?.key ?? reportsSearch.key;
 }
 
-function getActiveSavedSearch(savedSearches: OnyxEntry<SaveSearch>, searchKey: SearchKey | undefined, isOffline: boolean): {key: SearchKey; title: string} | undefined {
-    if (!savedSearches || !searchKey) {
-        return undefined;
-    }
-    const entry = Object.entries(savedSearches).find(([key, item]) => {
-        if (savedSearchIDToSearchKey(key) !== searchKey) {
-            return false;
-        }
-        if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
-            return false;
-        }
-        return true;
-    });
-    if (!entry) {
-        return undefined;
-    }
-    const item = entry[1];
-    return {key: searchKey, title: item.name || item.query || searchKey};
-}
-
 function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Pencil', 'Bookmark']);
-    const [policyInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: staticPolicyInfoSelector});
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const {currentSearchKey} = useSearchQueryContext();
+    const [policyInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: staticPolicyInfoSelector});
+    const [activeSavedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {
+        selector: (savedSearches) => {
+            const activeSavedSearchID = searchKeyToSavedSearchID(currentSearchKey);
+            return activeSavedSearchID ? savedSearches?.[activeSavedSearchID] : undefined;
+        },
+    });
     const hasGroupPolicy = policyInfo?.hasGroupPolicy ?? false;
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -80,12 +60,11 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
         tabs.push({key: submitSearch.key, icon: expensifyIcons.Pencil, title: translate(submitSearch.translationPath)});
     }
 
-    const activeSavedSearch = getActiveSavedSearch(savedSearches, currentSearchKey, isOffline);
-    if (activeSavedSearch) {
-        tabs.push({key: activeSavedSearch.key, icon: expensifyIcons.Bookmark, title: activeSavedSearch.title});
+    if (activeSavedSearch && currentSearchKey) {
+        tabs.push({key: currentSearchKey, icon: expensifyIcons.Bookmark, title: activeSavedSearch.name});
     }
 
-    const activeKey = activeSavedSearch?.key ?? getActiveKey(queryJSON.similarSearchHash, hasGroupPolicy, suggestedSearches);
+    const activeKey = activeSavedSearch ? currentSearchKey : getActiveKey(queryJSON.similarSearchHash, hasGroupPolicy, suggestedSearches);
 
     return (
         <SearchTypeMenuNarrowContent
