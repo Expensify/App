@@ -26,7 +26,6 @@ import {
     getSettlementAccountLockedMessage,
     getTravelNudgeMessage,
     getTravelUpdateMessage,
-    isActionableApplyAgentRule,
     isActionableCardFraudAlert,
     isActionableJoinRequest,
     isActionableMentionInviteToSubmitExpenseConfirmWhisper,
@@ -58,7 +57,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-import ApplyAgentRuleContent from './ApplyAgentRuleContent';
 import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
@@ -382,14 +380,6 @@ function ActionContentRouter({
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
-        );
-    }
-    if (isActionableApplyAgentRule(action)) {
-        return (
-            <ApplyAgentRuleContent
-                action={action}
-                reportID={actionOwnerReportID}
-            />
         );
     }
     if (isActionableCardFraudAlert(action)) {

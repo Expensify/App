@@ -7909,12 +7909,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
-                applyOffer: {
-                    message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
-                        `a proposé d’appliquer la règle d’agent « ${ruleTitle} » à ${count} ${count === 1 ? 'dépense ouverte' : 'dépenses ouvertes'}. Voulez-vous l’appliquer rétroactivement ?`,
-                    applyButtonText: 'Appliquer rétroactivement',
-                    dismissButtonText: 'Ne pas appliquer',
-                },
             },
             tabs: {
                 general: 'Général',
