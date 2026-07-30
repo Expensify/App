@@ -433,13 +433,8 @@ function SubmitDetailsPage({
         };
 
         if (preMountDestinationRoute) {
-            // Create the expense in this turn — do not defer it to afterTransition, or it can be
-            // lost if the reveal animation never completes (e.g. app backgrounded). Only the
-            // confirming-state reset waits for the transition.
-            revealPreMountDestination(() => {
-                setIsConfirming(false);
-            });
             runExpenseCreateAndCleanup(false);
+            revealPreMountDestination(() => setIsConfirming(false));
             return;
         }
 
