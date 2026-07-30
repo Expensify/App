@@ -1,3 +1,4 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -82,12 +83,24 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newGroupDraftMetaData]);
 
+    const groupAvatarSource = stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current);
+    const groupAvatar = groupAvatarSource ? (
+        <UserAvatar
+            containerStyles={styles.avatarXLarge}
+            imageStyles={[styles.alignSelfCenter, styles.avatarXLarge]}
+            source={groupAvatarSource}
+            size={CONST.AVATAR_SIZE.X_LARGE}
+            accountID={CONST.DEFAULT_NUMBER_ID}
+        />
+    ) : null;
+
     return (
         <>
             <View style={styles.avatarSectionWrapper}>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    source={stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current)}
+                    source={groupAvatarSource}
+                    avatar={groupAvatar}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
                         setGroupDraft({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
@@ -96,8 +109,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                         setAvatarFile(undefined);
                         setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
-                    avatarStyle={styles.avatarXLarge}
+                    avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     style={styles.w100}

@@ -44,6 +44,7 @@ import type {PressableRef} from './Pressable/GenericPressable/types';
 
 import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
+import WorkspaceAvatar from './Avatar/WorkspaceAvatar';
 import Badge from './Badge';
 import {useIsCompactMenu} from './CompactMenuContext';
 import CopyTextToClipboard from './CopyTextToClipboard';
@@ -999,14 +1000,11 @@ function MenuItem({
                                                                     />
                                                                 ))}
                                                             {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
-                                                                <Avatar
-                                                                    imageStyles={[styles.alignSelfCenter]}
-                                                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                                                <WorkspaceAvatar
+                                                                    imageStyles={styles.alignSelfCenter}
                                                                     source={icon}
-                                                                    fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
-                                                                    name={title}
-                                                                    avatarID={avatarID}
-                                                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                                                    name={title ?? ''}
+                                                                    avatarID={avatarID ?? CONST.DEFAULT_NUMBER_ID}
                                                                 />
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (

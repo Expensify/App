@@ -1,3 +1,4 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -87,6 +88,17 @@ function EditAgentPage({route}: EditAgentPageProps) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS)} />;
     }
 
+    const avatarStyles = [styles.avatarXLarge, styles.alignSelfCenter];
+    const agentAvatar = personalDetails?.avatar ? (
+        <UserAvatar
+            containerStyles={avatarStyles}
+            imageStyles={avatarStyles}
+            source={personalDetails.avatar}
+            size={CONST.AVATAR_SIZE.X_LARGE}
+            accountID={accountID}
+        />
+    ) : null;
+
     return (
         <ScreenWrapper
             testID={EditAgentPage.displayName}
@@ -106,11 +118,9 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     <View style={[styles.alignItemsCenter, styles.pv5]}>
                         <AvatarButtonWithIcon
                             text={translate('editAgentAvatarPage.title')}
-                            source={personalDetails?.avatar ?? ''}
-                            avatarID={accountID}
+                            avatar={agentAvatar}
                             onPress={handleEditAvatarPress}
-                            size={CONST.AVATAR_SIZE.X_LARGE}
-                            avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
+                            avatarStyle={avatarStyles}
                             pendingAction={personalDetails?.pendingFields?.avatar}
                             sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.AVATAR}
                             editIconStyle={styles.smallEditIconAccount}

@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -81,13 +81,11 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         keyForList: policy.id,
         isSelected: resolvedSelectedTargetIDs.includes(policy.id),
         leftElement: (
-            <View style={[styles.mr3]}>
-                <Avatar
+            <View style={styles.mr3}>
+                <WorkspaceAvatar
                     source={policy.avatarURL ?? getDefaultWorkspaceAvatar(policy.title)}
-                    size={CONST.AVATAR_SIZE.DEFAULT}
                     name={policy.title}
                     avatarID={policy.id}
-                    type={CONST.ICON_TYPE_WORKSPACE}
                 />
             </View>
         ),

@@ -14,7 +14,6 @@ import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspacePlanType, getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -161,10 +160,9 @@ function WorkspaceConfirmationForm({
 
     const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
-    const DefaultAvatar = useWorkspaceConfirmationAvatar({
+    const workspaceAvatarNode = useWorkspaceConfirmationAvatar({
         policyID,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-        source: stashedLocalAvatarImage || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter),
+        source: stashedLocalAvatarImage,
         name: workspaceNameFirstCharacter,
     });
 
@@ -190,8 +188,8 @@ function WorkspaceConfirmationForm({
                 </View>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    avatarID={policyID}
                     source={stashedLocalAvatarImage}
+                    avatar={workspaceAvatarNode}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
                         setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
@@ -200,13 +198,10 @@ function WorkspaceConfirmationForm({
                         setAvatarFile(undefined);
                         setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
-                    type={CONST.ICON_TYPE_WORKSPACE}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
-                    DefaultAvatar={DefaultAvatar}
                     editorMaskImage={icons.ImageCropSquareMask}
                 />
                 <FormProvider

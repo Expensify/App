@@ -6,7 +6,7 @@ import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
-import {isDefaultAvatar} from '@libs/UserAvatarUtils';
+import {getAccountIDFromAvatarID, isDefaultAvatar} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -19,6 +19,8 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 
 import Avatar from './Avatar';
+import UserAvatar from './Avatar/UserAvatar';
+import WorkspaceAvatar from './Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
@@ -60,13 +62,36 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
         }
 
         if (canEditRoomAvatar) {
+            const avatarSource = icon.source || report.avatarUrl;
+            const avatarStyles = [styles.avatarXLarge, styles.alignSelfCenter];
+            const avatarForIconType =
+                icon.type === CONST.ICON_TYPE_WORKSPACE ? (
+                    <WorkspaceAvatar
+                        containerStyles={avatarStyles}
+                        imageStyles={avatarStyles}
+                        source={avatarSource}
+                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        name={icon.name ?? ''}
+                        avatarID={icon.id ?? CONST.DEFAULT_NUMBER_ID}
+                    />
+                ) : (
+                    <UserAvatar
+                        containerStyles={avatarStyles}
+                        imageStyles={avatarStyles}
+                        source={avatarSource}
+                        size={CONST.AVATAR_SIZE.X_LARGE}
+                        accountID={getAccountIDFromAvatarID(icon.id)}
+                        fallbackIcon={icon.fallbackIcon}
+                    />
+                );
+            const roomAvatar = avatarSource ? avatarForIconType : null;
+
             return (
                 <AvatarWithImagePicker
-                    source={icon.source || report.avatarUrl}
-                    avatarID={icon.id}
+                    source={avatarSource}
+                    avatar={roomAvatar}
                     isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
-                    avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
+                    avatarStyle={avatarStyles}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl)}
                     onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl, file)}
@@ -77,9 +102,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                     errorRowStyles={styles.mt6}
                     onErrorClose={() => clearAvatarErrors(report.reportID)}
                     style={[styles.mb3, styles.w100, styles.alignItemsCenter]}
-                    type={icon.type}
                     editorMaskImage={expensifyIcons.ImageCropSquareMask}
-                    name={icon.name}
                 />
             );
         }

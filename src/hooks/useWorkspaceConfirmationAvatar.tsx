@@ -1,32 +1,25 @@
-import Avatar from '@components/Avatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
-import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useThemeStyles from './useThemeStyles';
 
-function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: string | undefined; source: AvatarSource; name: string}) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
+function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: string | undefined; source?: AvatarSource; name: string}) {
     const styles = useThemeStyles();
 
-    return useCallback(
-        () => (
-            <Avatar
-                containerStyles={styles.avatarXLarge}
-                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                source={source}
-                fallbackIcon={icons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.X_LARGE}
-                name={name}
-                avatarID={policyID}
-                type={CONST.ICON_TYPE_WORKSPACE}
-            />
-        ),
-        [name, policyID, source, styles.alignSelfCenter, styles.avatarXLarge, icons.FallbackWorkspaceAvatar],
+    return (
+        <WorkspaceAvatar
+            containerStyles={styles.avatarXLarge}
+            imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
+            source={source}
+            size={CONST.AVATAR_SIZE.X_LARGE}
+            name={name}
+            avatarID={policyID ?? CONST.DEFAULT_NUMBER_ID}
+        />
     );
 }
 

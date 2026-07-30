@@ -9,6 +9,28 @@ import CONST from '@src/CONST';
 import * as UserAvatarUtils from '@src/libs/UserAvatarUtils';
 
 describe('UserAvatarUtils', () => {
+    describe('getAccountIDFromAvatarID', () => {
+        it('should pass a numeric account ID through unchanged', () => {
+            expect(UserAvatarUtils.getAccountIDFromAvatarID(1234)).toBe(1234);
+        });
+
+        it('should parse an account ID that arrives as a string', () => {
+            expect(UserAvatarUtils.getAccountIDFromAvatarID('1234')).toBe(1234);
+        });
+
+        it('should fall back to the anonymous default when there is no ID', () => {
+            expect(UserAvatarUtils.getAccountIDFromAvatarID(undefined)).toBe(CONST.DEFAULT_NUMBER_ID);
+            expect(UserAvatarUtils.getAccountIDFromAvatarID()).toBe(CONST.DEFAULT_NUMBER_ID);
+        });
+
+        it.each([
+            ['a fully non-numeric policy ID', 'A1B2C3'],
+            ['a policy ID with a numeric prefix', '1A2B3C'],
+        ])('should fall back to the anonymous default for %s instead of a bogus account ID', (_label, avatarID) => {
+            expect(UserAvatarUtils.getAccountIDFromAvatarID(avatarID)).toBe(CONST.DEFAULT_NUMBER_ID);
+        });
+    });
+
     describe('getAvatar', () => {
         it('should return default avatar if the url is for default avatar', () => {
             const avatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';

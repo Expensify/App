@@ -1,3 +1,4 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -125,6 +126,16 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         Navigation.dismissModal();
     };
 
+    const agentAvatar = avatarSource ? (
+        <UserAvatar
+            containerStyles={avatarStyle}
+            imageStyles={[styles.alignSelfCenter, avatarStyle]}
+            source={avatarSource}
+            size={CONST.AVATAR_SIZE.X_LARGE}
+            accountID={CONST.DEFAULT_NUMBER_ID}
+        />
+    ) : null;
+
     return (
         <ScreenWrapper
             testID={AddAgentPage.displayName}
@@ -153,9 +164,8 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                     <View style={[styles.alignItemsCenter]}>
                         <AvatarButtonWithIcon
                             text={translate('addAgentPage.editAvatar')}
-                            source={avatarSource}
+                            avatar={agentAvatar}
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR)}
-                            size={CONST.AVATAR_SIZE.X_LARGE}
                             avatarStyle={avatarStyle}
                             editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.smallEditIconAccount}
