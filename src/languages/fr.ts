@@ -6695,8 +6695,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             peopleAdmins: 'Administrateurs des personnes',
             paymentsAdmins: 'Administrateurs des paiements',
             members: 'Membres',
-            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
-                `Vous ne pouvez pas supprimer ${memberName} de cet espace de travail tant qu’iel possède une Carte Expensify. Veuillez désactiver sa carte dans Espace de travail > Carte Expensify, puis réessayer.`,
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
