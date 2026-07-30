@@ -1,14 +1,37 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
-import type {Card, Policy} from '@src/types/onyx';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {Card, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
 
-import {getExportMenuItem} from '../../src/pages/workspace/companyCards/utils';
+import {getCompanyCardDetailsBackPath, getExportMenuItem} from '../../src/pages/workspace/companyCards/utils';
 import {translateLocal} from '../utils/TestHelper';
 
 const MOCK_POLICY_ID = 'ABC123';
+const FEED_A = 'oauth.wellsfargo.com#1' as CompanyCardFeedWithDomainID;
+const FEED_B = 'oauth.wellsfargo.com#2' as CompanyCardFeedWithDomainID;
+const CARD_A = '111';
+const CARD_B = '222';
+const ACCOUNT_ID_A = 96415001;
+const ACCOUNT_ID_B = 96415002;
+
+function createSettingsState(routes: PlatformStackNavigationState<SettingsNavigatorParamList>['routes']): PlatformStackNavigationState<SettingsNavigatorParamList> {
+    return {
+        routes,
+        index: routes.length - 1,
+        key: 'settings',
+        routeNames: [],
+        type: 'stack',
+        stale: false,
+    };
+}
 
 const QBD_CREDIT_CARD_ACCOUNTS = [
     {id: '80000103-1746639410', name: 'American Express (91000)', currency: 'USD'},
@@ -152,5 +175,83 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
             const matchingAccount = QBD_CREDIT_CARD_ACCOUNTS.find((account) => account.id === option.value);
             expect(matchingAccount).toBeDefined();
         }
+    });
+});
+
+describe('getCompanyCardDetailsBackPath', () => {
+    it('uses Members base when the matching details route has accountID', () => {
+        const state = createSettingsState([
+            {
+                key: 'details-a',
+                name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_A, cardID: CARD_A, accountID: String(ACCOUNT_ID_A)},
+            },
+            {
+                key: 'edit-a',
+                name: SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME,
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_A, cardID: CARD_A},
+            },
+        ]);
+
+        expect(getCompanyCardDetailsBackPath(MOCK_POLICY_ID, FEED_A, CARD_A, state)).toBe(
+            createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(FEED_A, CARD_A), ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(MOCK_POLICY_ID, ACCOUNT_ID_A)),
+        );
+    });
+
+    it('uses Company Cards base when no matching details route exists', () => {
+        const state = createSettingsState([
+            {
+                key: 'edit-a',
+                name: SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME,
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_A, cardID: CARD_A},
+            },
+        ]);
+
+        expect(getCompanyCardDetailsBackPath(MOCK_POLICY_ID, FEED_A, CARD_A, state)).toBe(
+            createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(FEED_A, CARD_A), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(MOCK_POLICY_ID)),
+        );
+    });
+
+    it('ignores a stale details route for a different card and keeps the current feed/cardID', () => {
+        const state = createSettingsState([
+            {
+                key: 'details-a',
+                name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_A, cardID: CARD_A, accountID: String(ACCOUNT_ID_A)},
+            },
+            {
+                key: 'edit-b',
+                name: SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME,
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_B, cardID: CARD_B},
+            },
+        ]);
+
+        expect(getCompanyCardDetailsBackPath(MOCK_POLICY_ID, FEED_B, CARD_B, state)).toBe(
+            createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(FEED_B, CARD_B), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(MOCK_POLICY_ID)),
+        );
+    });
+
+    it('uses the matching details route accountID when a newer stale details route exists for another card', () => {
+        const state = createSettingsState([
+            {
+                key: 'details-a',
+                name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_A, cardID: CARD_A, accountID: String(ACCOUNT_ID_A)},
+            },
+            {
+                key: 'details-b',
+                name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_B, cardID: CARD_B, accountID: String(ACCOUNT_ID_B)},
+            },
+            {
+                key: 'edit-a',
+                name: SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME,
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_A, cardID: CARD_A},
+            },
+        ]);
+
+        expect(getCompanyCardDetailsBackPath(MOCK_POLICY_ID, FEED_A, CARD_A, state)).toBe(
+            createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(FEED_A, CARD_A), ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(MOCK_POLICY_ID, ACCOUNT_ID_A)),
+        );
     });
 });
