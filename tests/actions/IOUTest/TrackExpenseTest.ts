@@ -184,6 +184,7 @@ describe('actions/IOU/TrackExpense', () => {
             mockFetch?.pause?.();
 
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -307,6 +308,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When the user submits the transaction to the selfDM report
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -409,6 +411,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When the user confirms the category for the tracked expense
             trackExpense({
+                conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.CATEGORIZE,
@@ -512,6 +515,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Create a tracked expense
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -558,6 +562,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Share the tracked expense with an accountant
             trackExpense({
+                conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.SHARE,
@@ -654,6 +659,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Create a tracked expense
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -700,6 +706,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Share the tracked expense with an accountant
             trackExpense({
+                conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.SHARE,
@@ -799,6 +806,7 @@ describe('actions/IOU/TrackExpense', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -844,6 +852,7 @@ describe('actions/IOU/TrackExpense', () => {
             mockFetch?.pause?.();
 
             trackExpense({
+                conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.SHARE,
@@ -941,6 +950,7 @@ describe('actions/IOU/TrackExpense', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -987,6 +997,7 @@ describe('actions/IOU/TrackExpense', () => {
             mockFetch?.pause?.();
 
             trackExpense({
+                conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.SHARE,
@@ -1104,6 +1115,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Create the tracked expense first
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -1150,6 +1162,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When sharing the tracked expense with the accountant, passing the explicit reportActionsList
             trackExpense({
+                conciergeChat: undefined,
                 report: ownPolicyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.SHARE,
@@ -1225,6 +1238,7 @@ describe('actions/IOU/TrackExpense', () => {
             transactionOverrides: Partial<Parameters<typeof trackExpense>[0]['transactionParams']> = {},
         ): Parameters<typeof trackExpense>[0] {
             return {
+                conciergeChat: undefined,
                 report,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.CREATE,
@@ -1481,6 +1495,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When the expense is categorized and submitted to workspace
             trackExpense({
+                conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.CATEGORIZE,
@@ -1575,6 +1590,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When trackExpense is called on policy expense chat
             trackExpense({
+                conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.CREATE,
@@ -1945,6 +1961,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isSelfTourViewed: true
             const result = getTrackExpenseInformation({
+                conciergeChat: undefined,
                 parentChatReport: selfDMReport,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -1992,6 +2009,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isSelfTourViewed: false
             const result = getTrackExpenseInformation({
+                conciergeChat: undefined,
                 parentChatReport: selfDMReport,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -2041,6 +2059,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isSelfTourViewed: true
             const resultWithTourViewed = getTrackExpenseInformation({
+                conciergeChat: undefined,
                 parentChatReport: policyExpenseChat,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -2078,6 +2097,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isSelfTourViewed: false
             const resultWithoutTourViewed = getTrackExpenseInformation({
+                conciergeChat: undefined,
                 parentChatReport: {
                     ...policyExpenseChat,
                     reportID: 'policy-chat-tour-test-2',
@@ -2148,6 +2168,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isDraftChatReport: true
             const result = getTrackExpenseInformation({
+                conciergeChat: undefined,
                 parentChatReport: draftSelfDMReport,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -2195,6 +2216,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isDraftChatReport: false
             const result = getTrackExpenseInformation({
+                conciergeChat: undefined,
                 parentChatReport: liveSelfDMReport,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
@@ -2286,6 +2308,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Create a tracked expense
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -2590,6 +2613,7 @@ describe('actions/IOU/TrackExpense', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
