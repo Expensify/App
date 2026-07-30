@@ -1,8 +1,10 @@
-import {render, screen, waitFor} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import * as PersonalDetailsActions from '@libs/actions/PersonalDetails';
 
 import EnableTravelContent from '@pages/Travel/EnableTravel/EnableTravelContent';
 
@@ -112,6 +114,7 @@ describe('EnableTravelContent', () => {
 
     afterEach(async () => {
         mockRouteParams = {subPage: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS};
+        jest.restoreAllMocks();
         jest.clearAllMocks();
         await Onyx.clear();
     });
@@ -132,6 +135,22 @@ describe('EnableTravelContent', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(2);
+    });
+
+    it('submits the travel legal-name step with the localized phone formatter and without navigating back', async () => {
+        const updateLegalNameSpy = jest.spyOn(PersonalDetailsActions, 'updateLegalName').mockImplementation();
+        mockRouteParams = {subPage: CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_NAME};
+
+        renderContent(PROVISIONED_POLICY, VALIDATED_ACCOUNT, {});
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('privatePersonalDetails.legalFirstName')), '  Jane  ');
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('privatePersonalDetails.legalLastName')), '  Doe  ');
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.next')));
+
+        await waitFor(() => {
+            expect(updateLegalNameSpy).toHaveBeenCalledWith('Jane', 'Doe', expect.any(Function), expect.objectContaining({accountID: CONST.DEFAULT_NUMBER_ID}), false);
+        });
     });
 
     it('does not require a domain selector, address, or tax ID step for an already-provisioned workspace regardless of currency or domains', async () => {
