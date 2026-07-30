@@ -98,6 +98,7 @@ jest.mock('@libs/EmojiTrie', () => ({
 
 // Override IDs so we control Onyx keys and can use evictableKeys for REPORT_ACTIONS
 const TEST_PARENT_REPORT_ID = 'testParentReportID';
+const TEST_CHAT_REPORT_ID = 'testChatReportID';
 const TEST_REPORT_ID = 'testReportID';
 const TEST_ACTION_ID = 'testActionID';
 const TEST_TRANSACTION_ID = 'testTransactionID';
@@ -216,6 +217,27 @@ const transactionWithMapDistanceReceipt: Transaction = {
 const transactionWithOdometerDistanceReceipt: Transaction = {
     ...transactionWithReceipt,
     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+};
+
+// The expense's own report, whose parent is the conversation the expense was created in.
+const testMoneyRequestReport: Report = {
+    ...testReport,
+    reportID: TEST_PARENT_REPORT_ID,
+    parentReportID: TEST_CHAT_REPORT_ID,
+    chatReportID: TEST_CHAT_REPORT_ID,
+};
+
+// A read-only conversation grants read but not write, which is what stops its members from posting.
+const readOnlyChatReport: Report = {
+    ...testReport,
+    reportID: TEST_CHAT_REPORT_ID,
+    type: CONST.REPORT.TYPE.CHAT,
+    permissions: [CONST.REPORT.PERMISSIONS.READ],
+};
+
+const writableChatReport: Report = {
+    ...readOnlyChatReport,
+    permissions: [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE],
 };
 
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -337,6 +359,44 @@ describe('MoneyRequestReceiptView', () => {
 
             expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
             expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+        });
+
+        it('does not show action buttons when the parent conversation is read-only', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, readOnlyChatReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+        });
+
+        it('shows action buttons when the parent conversation allows writing', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, testMoneyRequestReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_CHAT_REPORT_ID}`, writableChatReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(translateLocal('receipt.addAdditionalReceipt'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
         });
 
         it('shows both action buttons for a map distance receipt', async () => {
