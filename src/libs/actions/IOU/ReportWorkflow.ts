@@ -1841,20 +1841,33 @@ function assignReportToMe(
     API.write(WRITE_COMMANDS.ASSIGN_REPORT_TO_ME, params, onyxData);
 }
 
-// eslint-disable-next-line @typescript-eslint/max-params
-function addReportApprover(
-    report: OnyxTypes.Report,
-    newApproverEmail: string,
-    newApproverAccountID: number,
-    accountID: number,
-    email: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    hasViolations: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
-    isTrackIntentUser: boolean | undefined,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-) {
+type AddReportApproverOptions = {
+    report: OnyxTypes.Report;
+    newApproverEmail: string;
+    newApproverAccountID: number;
+    accountID: number;
+    email: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
+
+function addReportApprover({
+    report,
+    newApproverEmail,
+    newApproverAccountID,
+    accountID,
+    email,
+    policy,
+    hasViolations,
+    isASAPSubmitBetaEnabled,
+    reportCurrentNextStepDeprecated,
+    isTrackIntentUser,
+    formatPhoneNumber,
+}: AddReportApproverOptions) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, formatPhoneNumber);
 
     // buildOptimisticNextStep is used in parallel

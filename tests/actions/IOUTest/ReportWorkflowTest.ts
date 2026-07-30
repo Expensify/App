@@ -3113,7 +3113,19 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             await waitForBatchedUpdates();
 
-            addReportApprover(report, approverLogin, approverAccountID, RORY_ACCOUNT_ID, RORY_EMAIL, policy, false, false, undefined, false, formatPhoneNumberSpy);
+            addReportApprover({
+                report,
+                newApproverEmail: approverLogin,
+                newApproverAccountID: approverAccountID,
+                accountID: RORY_ACCOUNT_ID,
+                email: RORY_EMAIL,
+                policy,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                reportCurrentNextStepDeprecated: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber: formatPhoneNumberSpy,
+            });
 
             const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
             const reportActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, Onyx.METHOD.MERGE, true);
