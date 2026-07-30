@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches: [main]
-    paths: ['**.ts', '**.tsx']
+    paths: ['**.ts', '**.tsx', '**.md']
 
 jobs:
   check:

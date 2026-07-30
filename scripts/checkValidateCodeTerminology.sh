@@ -16,8 +16,9 @@ filter_comments() {
 
 LANG_HITS=$(grep -rni --include="*.ts" "magic.code\|magic code" "$ROOT_DIR/src/languages" 2>/dev/null | filter_comments || true)
 CODE_HITS=$(grep -rn  --include="*.ts" --include="*.tsx" "magicCode\|MagicCode\|MAGIC_CODE" "$ROOT_DIR/src" "$ROOT_DIR/tests" 2>/dev/null | filter_comments || true)
+DOCS_HITS=$(grep -rn --include="*.md" "magic.code\|magic code\|magicCode\|MagicCode\|MAGIC_CODE" "$ROOT_DIR" 2>/dev/null | grep -v "node_modules" || true)
 
-if [[ -z "$LANG_HITS" && -z "$CODE_HITS" ]]; then
+if [[ -z "$LANG_HITS" && -z "$CODE_HITS" && -z "$DOCS_HITS" ]]; then
     echo "✅  Validate code terminology check passed."
     exit 0
 fi
@@ -28,4 +29,5 @@ echo "    Internal identifiers: use 'validateCode'."
 echo ""
 [[ -n "$LANG_HITS" ]] && echo "$LANG_HITS"
 [[ -n "$CODE_HITS" ]] && echo "$CODE_HITS"
+[[ -n "$DOCS_HITS" ]] && echo "$DOCS_HITS"
 exit 1
