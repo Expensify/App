@@ -13,7 +13,7 @@ import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense, pickReportForPolicy} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getTaxRateTitle, getTaxValue} from '@libs/TransactionUtils';
@@ -64,7 +64,8 @@ function DynamicIOURequestStepTaxRatePage({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path);
 
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: getIOURequestPolicyID(transaction, report?.policyID ? report : participantReport), action, iouType});
+    // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: getIOURequestPolicyID(transaction, pickReportForPolicy(report, participantReport)), action, iouType});
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
