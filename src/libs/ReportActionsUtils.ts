@@ -2018,7 +2018,9 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
 
 function getMemberChangeMessageElements(
     translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    // Temporarily avoid shadowing the remaining deprecated module-level formatter import.
+    // This can be renamed to `formatPhoneNumber` once the rest of ReportActionsUtils is migrated.
+    formatPhoneNumberLocal: LocaleContextProps['formatPhoneNumber'],
     reportAction: OnyxEntry<ReportAction>,
     actorDetails: OnyxEntry<PersonalDetails>,
     targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
@@ -2046,7 +2048,7 @@ function getMemberChangeMessageElements(
 
     const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
         const personalDetail = targetAccountDetailsList?.[accountID];
-        const handleText = personalDetail ? getEffectiveDisplayName(formatPhoneNumber, personalDetail) : translate('common.hidden');
+        const handleText = personalDetail ? getEffectiveDisplayName(formatPhoneNumberLocal, personalDetail) : translate('common.hidden');
 
         return {
             kind: 'userMention',
@@ -2362,7 +2364,9 @@ function getDynamicExternalWorkflowApproveFailedActionMessage(translate: Localiz
 
 function getMemberChangeMessageFragment(
     translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    // Temporarily avoid shadowing the remaining deprecated module-level formatter import.
+    // This can be renamed to `formatPhoneNumber` once the rest of ReportActionsUtils is migrated.
+    formatPhoneNumberLocal: LocaleContextProps['formatPhoneNumber'],
     reportAction: OnyxEntry<ReportAction>,
     actorDetails: OnyxEntry<PersonalDetails>,
     targetAccountDetailsList: OnyxEntry<PersonalDetailsList>,
@@ -2370,7 +2374,7 @@ function getMemberChangeMessageFragment(
 ): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(
         translate,
-        formatPhoneNumber,
+        formatPhoneNumberLocal,
         reportAction,
         actorDetails,
         targetAccountDetailsList,
