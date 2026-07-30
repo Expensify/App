@@ -7,7 +7,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
-import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 
 import * as navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
@@ -19,14 +18,12 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType} from '@src/types/onyx';
+import type Session from '@src/types/onyx/Session';
 
-import type {OnyxCollection, UseOnyxOptions, UseOnyxResult} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
-
-jest.mock('@hooks/useOnyx', () => {
-    return {__esModule: true, default: jest.fn(() => [undefined])};
-});
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
 jest.mock('@hooks/useHasActiveAdminPolicies');
@@ -39,19 +36,12 @@ const mockTranslate: LocalizedTranslate = (path, ...parameters) => {
 };
 const mockFormatPhoneNumber = jest.fn((phone: string) => phone);
 
-const mockUseOnyx = jest.mocked(useOnyx);
+type MockSession = Session & Required<Pick<Session, 'accountID' | 'email'>>;
 
-type PolicySelectorResult = number | boolean | string | undefined;
-type PolicyCollectionUseOnyxOptions = UseOnyxOptions<typeof ONYXKEYS.COLLECTION.POLICY, PolicySelectorResult>;
-
-function isPolicyCollectionOptions(options: unknown): options is PolicyCollectionUseOnyxOptions {
-    return typeof options === 'object' && options !== null && 'selector' in options && typeof options.selector === 'function';
-}
-
-const MOCK_SESSION = {
+const MOCK_SESSION = createMock<MockSession>({
     accountID: 12345,
     email: 'test@expensify.com',
-};
+});
 
 const MOCK_POLICY_ID = 'mock-policy-id';
 const MOCK_ADMINS_CHAT_REPORT_ID = 'mock-admins-chat-report-id';
@@ -62,19 +52,6 @@ const MOCK_ONBOARDING_MESSAGE = createMock<ReturnType<typeof useOnboardingMessag
 });
 
 function setupDefaultMocks() {
-    mockUseOnyx.mockImplementation((key: string) => {
-        if (key === 'session') {
-            return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
-        }
-        if (key === 'betas') {
-            return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
-        }
-        if (key.startsWith('policy_')) {
-            return [false, {status: 'loaded'}] satisfies UseOnyxResult<boolean>;
-        }
-        return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
-    });
-
     jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
         accountID: MOCK_SESSION.accountID,
         login: MOCK_SESSION.email,
@@ -117,8 +94,18 @@ describe('useAutoCreateSubmitWorkspace', () => {
     const setOnboardingPolicyIDSpy = jest.spyOn(Welcome, 'setOnboardingPolicyID').mockImplementation(jest.fn());
     const navigateSpy = jest.spyOn(navigateAfterOnboarding, 'navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue').mockImplementation(jest.fn());
 
-    beforeEach(() => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
         jest.clearAllMocks();
+        await Onyx.clear();
+        await Onyx.multiSet({
+            [ONYXKEYS.SESSION]: MOCK_SESSION,
+            [ONYXKEYS.BETAS]: [],
+        });
+        await waitForBatchedUpdates();
         setupDefaultMocks();
     });
 
@@ -195,30 +182,17 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID, expect.any(Boolean));
     });
 
-    it('reuses the existing onboarding workspace instead of creating a new one', () => {
+    it('reuses the existing onboarding workspace instead of creating a new one', async () => {
         // Given a user who already has an onboardingPolicyID set (e.g. assigned by an admin
         // or from a previous partial onboarding attempt)
         const existingPolicyID = 'existing-policy-id';
         const existingAdminsReportID = 'existing-admins-report-id';
 
-        mockUseOnyx.mockImplementation((key: string) => {
-            if (key === 'onboardingPolicyID') {
-                return [existingPolicyID, {status: 'loaded'}] satisfies UseOnyxResult<typeof existingPolicyID>;
-            }
-            if (key === 'onboardingAdminsChatReportID') {
-                return [existingAdminsReportID, {status: 'loaded'}] satisfies UseOnyxResult<typeof existingAdminsReportID>;
-            }
-            if (key === 'session') {
-                return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
-            }
-            if (key === 'betas') {
-                return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
-            }
-            if (key.startsWith('policy_')) {
-                return [false, {status: 'loaded'}] satisfies UseOnyxResult<boolean>;
-            }
-            return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
+        await Onyx.multiSet({
+            [ONYXKEYS.ONBOARDING_POLICY_ID]: existingPolicyID,
+            [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: existingAdminsReportID,
         });
+        await waitForBatchedUpdates();
 
         // When the onboarding flow runs
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
@@ -235,26 +209,16 @@ describe('useAutoCreateSubmitWorkspace', () => {
         );
     });
 
-    it('skips workspace creation when the user is already a paid group policy admin', () => {
+    it('skips workspace creation when the user is already a paid group policy admin', async () => {
         // Given a user who is already an admin of a paid group policy
-        mockUseOnyx.mockImplementation((key: string) => {
-            if (key === 'session') {
-                return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
-            }
-            if (key === 'betas') {
-                return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
-            }
-            if (key === 'onboardingPolicyID') {
-                return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
-            }
-            if (key === 'onboardingAdminsChatReportID') {
-                return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
-            }
-            if (key.startsWith('policy_')) {
-                return [true, {status: 'loaded'}] satisfies UseOnyxResult<boolean>;
-            }
-            return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
+        const existingPaidPolicy = createMock<PolicyType>({
+            id: 'existing-paid-policy-id',
+            name: 'Existing Paid Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
         });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingPaidPolicy.id}`, existingPaidPolicy);
+        await waitForBatchedUpdates();
 
         // When onboarding completes
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
@@ -308,30 +272,12 @@ describe('useAutoCreateSubmitWorkspace', () => {
         // who is an editor/admin of an existing Submit workspace, so no new workspace should be created
         const existingSubmitPolicy = createMock<PolicyType>({
             id: 'existing-submit-policy-id',
+            name: 'Existing Submit Workspace',
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        mockUseOnyx.mockImplementation((key: string, options?: unknown) => {
-            if (key === 'session') {
-                return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
-            }
-            if (key === 'betas') {
-                return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
-            }
-            if (key === ONYXKEYS.COLLECTION.POLICY && isPolicyCollectionOptions(options)) {
-                const policyCollection: OnyxCollection<PolicyType> = {[`${ONYXKEYS.COLLECTION.POLICY}${existingSubmitPolicy.id}`]: existingSubmitPolicy};
-                try {
-                    const selectedPolicy = options.selector?.(policyCollection);
-                    if (selectedPolicy === null || selectedPolicy === undefined) {
-                        return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
-                    }
-                    return [selectedPolicy, {status: 'loaded'}] satisfies UseOnyxResult<NonNullable<typeof selectedPolicy>>;
-                } catch {
-                    return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
-                }
-            }
-            return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
-        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingSubmitPolicy.id}`, existingSubmitPolicy);
+        await waitForBatchedUpdates();
 
         // When the user confirms the Submit plan welcome modal again
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
@@ -349,30 +295,12 @@ describe('useAutoCreateSubmitWorkspace', () => {
         // Given an onboarding user who already has an editable group workspace, so creation is skipped
         const existingSubmitPolicy = createMock<PolicyType>({
             id: 'existing-submit-policy-id',
+            name: 'Existing Submit Workspace',
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        mockUseOnyx.mockImplementation((key: string, options?: unknown) => {
-            if (key === 'session') {
-                return [MOCK_SESSION, {status: 'loaded'}] satisfies UseOnyxResult<typeof MOCK_SESSION>;
-            }
-            if (key === 'betas') {
-                return [[], {status: 'loaded'}] satisfies UseOnyxResult<never[]>;
-            }
-            if (key === ONYXKEYS.COLLECTION.POLICY && isPolicyCollectionOptions(options)) {
-                const policyCollection: OnyxCollection<PolicyType> = {[`${ONYXKEYS.COLLECTION.POLICY}${existingSubmitPolicy.id}`]: existingSubmitPolicy};
-                try {
-                    const selectedPolicy = options.selector?.(policyCollection);
-                    if (selectedPolicy === null || selectedPolicy === undefined) {
-                        return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
-                    }
-                    return [selectedPolicy, {status: 'loaded'}] satisfies UseOnyxResult<NonNullable<typeof selectedPolicy>>;
-                } catch {
-                    return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
-                }
-            }
-            return [undefined, {status: 'loaded'}] satisfies UseOnyxResult<undefined>;
-        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingSubmitPolicy.id}`, existingSubmitPolicy);
+        await waitForBatchedUpdates();
 
         // When the onboarding flow runs (shouldCompleteOnboarding defaults to true)
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());

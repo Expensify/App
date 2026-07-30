@@ -120,11 +120,13 @@ describe('FileUtils', () => {
     });
 
     describe('canvasFallback', () => {
-        type Canvas2DGetContext = (contextId: '2d', options?: CanvasRenderingContext2DSettings) => CanvasRenderingContext2D | null;
-        type Canvas2DCanvas = Pick<HTMLCanvasElement, 'width' | 'height' | 'toBlob'> & {getContext: Canvas2DGetContext};
+        type Canvas2DCanvas = Pick<HTMLCanvasElement, 'width' | 'height' | 'toBlob'> & {
+            getContext: (contextId: '2d', options?: CanvasRenderingContext2DSettings) => CanvasRenderingContext2D | null;
+        };
 
         const mockCreateImageBitmap = jest.fn<ReturnType<typeof createImageBitmap>, Parameters<typeof createImageBitmap>>();
-        const mockGetContext = jest.fn<ReturnType<Canvas2DGetContext>, Parameters<Canvas2DGetContext>>(() => null);
+        const mockGetContext = jest.fn<ReturnType<Canvas2DCanvas['getContext']>, Parameters<Canvas2DCanvas['getContext']>>(() => null);
+        const mockCloseImageBitmap = jest.fn<ReturnType<ImageBitmap['close']>, Parameters<ImageBitmap['close']>>();
         const mockCanvas = createMock<Canvas2DCanvas>({
             width: 0,
             height: 0,
@@ -154,7 +156,7 @@ describe('FileUtils', () => {
                 createMock<Awaited<ReturnType<typeof createImageBitmap>>>({
                     width: 1000,
                     height: 800,
-                    close: jest.fn(),
+                    close: mockCloseImageBitmap,
                 }),
             );
         });
@@ -188,7 +190,7 @@ describe('FileUtils', () => {
 
         it('should scale down large images', async () => {
             const blob = new Blob(['test'], {type: 'image/heic'});
-            const mockImageBitmap = createMock<Awaited<ReturnType<typeof createImageBitmap>>>({width: 8192, height: 4000, close: jest.fn()});
+            const mockImageBitmap = createMock<Awaited<ReturnType<typeof createImageBitmap>>>({width: 8192, height: 4000, close: mockCloseImageBitmap});
             mockCreateImageBitmap.mockResolvedValue(mockImageBitmap);
 
             const mockBlob = new Blob(['converted'], {type: 'image/jpeg'});

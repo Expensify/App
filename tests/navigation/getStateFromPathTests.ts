@@ -98,6 +98,7 @@ describe('getStateFromPath', () => {
     const dynamicMultiSegState = {routes: [{name: 'DynamicMultiSegScreen', params: focusedRouteParams}]};
     const dynamicMultiSegLayerState = {routes: [{name: 'DynamicMultiSegLayerScreen'}]};
     const dynamicWildcardState = {routes: [{name: 'DynamicWildcardScreen'}]};
+    const unknownDynamicRouteState = createMock<DynamicRouteState>({routes: [{name: 'UnknownDynamic'}]});
 
     function getSyntheticDynamicRouteState(dynamicRouteKey: string): DynamicRouteState {
         if (!isSyntheticDynamicRouteKey(dynamicRouteKey)) {
@@ -118,18 +119,21 @@ describe('getStateFromPath', () => {
             case 'SUFFIX_B_UNAUTHORIZED':
             case 'AMBIGUOUS_STATIC':
             case 'TAG_SETTINGS_PARAM':
-                return createMock<DynamicRouteState>({routes: [{name: 'UnknownDynamic'}]});
-            default:
+                return unknownDynamicRouteState;
+            default: {
+                const exhaustiveDynamicRouteKey: never = dynamicRouteKey;
+                String(exhaustiveDynamicRouteKey);
                 throw new Error('Missing synthetic mock implementation for dynamic route key');
+            }
         }
     }
+
+    const defaultDynamicRouteImplementation = (_path: DynamicRoutePath, dynamicRouteKey: DynamicRouteKey): DynamicRouteState => getSyntheticDynamicRouteState(String(dynamicRouteKey));
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockRNGetStateFromPath.mockReturnValue(baseRouteState);
-        mockGetStateForDynamicRoute.mockImplementation(
-            (_path: DynamicRoutePath, dynamicRouteKey: DynamicRouteKey): DynamicRouteState => getSyntheticDynamicRouteState(String(dynamicRouteKey)),
-        );
+        mockGetStateForDynamicRoute.mockImplementation(defaultDynamicRouteImplementation);
     });
 
     it('should delegate to RN getStateFromPath for standard routes (non-dynamic)', () => {
@@ -241,10 +245,10 @@ describe('getStateFromPath', () => {
         const ambiguousStaticState = {routes: [{name: 'AmbiguousStaticScreen'}]};
 
         beforeEach(() => {
-            mockGetStateForDynamicRoute.mockImplementation((_path: DynamicRoutePath, dynamicRouteKey: DynamicRouteKey): DynamicRouteState => {
+            mockGetStateForDynamicRoute.mockImplementation((path: DynamicRoutePath, dynamicRouteKey: DynamicRouteKey): DynamicRouteState => {
                 const syntheticDynamicRouteKey = String(dynamicRouteKey);
                 if (!isSyntheticDynamicRouteKey(syntheticDynamicRouteKey)) {
-                    throw new Error(`Unexpected production dynamic route key in ambiguous synthetic mock: ${syntheticDynamicRouteKey}`);
+                    return defaultDynamicRouteImplementation(path, dynamicRouteKey);
                 }
 
                 switch (syntheticDynamicRouteKey) {
@@ -253,7 +257,7 @@ describe('getStateFromPath', () => {
                     case 'TAG_SETTINGS_PARAM':
                         return createMock<DynamicRouteState>(tagSettingsParamState);
                     default:
-                        throw new Error(`Missing ambiguous synthetic mock implementation for dynamic route key: ${syntheticDynamicRouteKey}`);
+                        return defaultDynamicRouteImplementation(path, dynamicRouteKey);
                 }
             });
         });
