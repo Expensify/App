@@ -22,7 +22,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -351,10 +351,19 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 // A self-DM expense is a tracked expense: it has no IOU report to key the cleanup on, so it goes
                 // through the track-expense flow, which resolves the self-DM report actions and the whisper.
                 if (isSelfDM(candidateIOUReport) && isTrackExpenseAction(action)) {
+                    // The Onyx collection can be missing the self-DM actions when the delete comes from Search, where
+                    // they are read from the search snapshot instead, so the ones passed in fill the gaps.
+                    const selfDMReportActions: ReportActions = {
+                        ...Object.fromEntries(
+                            reportActions.filter((chatAction) => chatAction.reportID === candidateIOUReport?.reportID).map((chatAction) => [chatAction.reportActionID, chatAction]),
+                        ),
+                        ...allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${candidateIOUReport?.reportID}`],
+                    };
+
                     deleteTrackExpense({
                         chatReportID: candidateIOUReport?.reportID,
                         chatReport: candidateIOUReport,
-                        chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${candidateIOUReport?.reportID}`],
+                        chatReportActions: selfDMReportActions,
                         transactionID,
                         reportAction: action,
                         iouReport: undefined,

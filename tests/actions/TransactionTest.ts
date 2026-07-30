@@ -374,7 +374,7 @@ describe('actions/Transaction', () => {
                 comment: {comment: ''},
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
-            const selfDMIOUAction: ReportAction = {
+            const trackedExpenseAction: ReportAction = {
                 ...buildOptimisticIOUReportAction({
                     type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                     amount: 5000,
@@ -395,7 +395,7 @@ describe('actions/Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`, destinationReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${movedTransaction.transactionID}`, movedTransaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {[selfDMIOUAction.reportActionID]: selfDMIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {[trackedExpenseAction.reportActionID]: trackedExpenseAction});
             await waitForBatchedUpdates();
 
             let allTransactions: OnyxCollection<Transaction>;
@@ -415,17 +415,17 @@ describe('actions/Transaction', () => {
                 policyTagList: {},
                 transactionViolations: {},
                 allReports,
-                selfDMReportActions: {[selfDMIOUAction.reportActionID]: selfDMIOUAction},
+                selfDMReportActions: {[trackedExpenseAction.reportActionID]: trackedExpenseAction},
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
 
             // Then the action left behind in the self-DM holds no transaction, no pending state, and is not rendered
             const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
-            const retiredAction = selfDMActions?.[selfDMIOUAction.reportActionID];
+            const retiredAction = selfDMActions?.[trackedExpenseAction.reportActionID];
             expect(isMoneyRequestAction(retiredAction) ? getOriginalMessage(retiredAction)?.IOUTransactionID : undefined).toBeFalsy();
             expect(retiredAction?.pendingAction).toBeFalsy();
-            expect(shouldReportActionBeVisible(retiredAction, selfDMIOUAction.reportActionID, true, CARLOS_ACCOUNT_ID)).toBe(false);
+            expect(shouldReportActionBeVisible(retiredAction, trackedExpenseAction.reportActionID, true, CARLOS_ACCOUNT_ID)).toBe(false);
         });
 
         it('recomputes a distance expense amount/merchant/currency from the destination workspace rate when moved', async () => {
