@@ -50,13 +50,14 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
-    | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.STEP_REPORT
-    | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES
     | typeof SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT
     | typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE
-    | typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT
     | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE
@@ -89,6 +90,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
 }: WithWritableReportOrNotFoundImplProps<TProps>) {
     const {route} = props;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`, {selector: Boolean});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -104,7 +106,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
         if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, betas});
+        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
