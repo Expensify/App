@@ -519,6 +519,7 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
                     CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS,
                     CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID,
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.dualentry.alias,
