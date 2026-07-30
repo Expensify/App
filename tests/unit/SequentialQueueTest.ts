@@ -1,4 +1,5 @@
 import {resolveDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import * as NetworkState from '@libs/NetworkState';
 
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
@@ -19,6 +20,13 @@ import * as RequestModule from '../../src/libs/Request';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@libs/ActiveClientManager', () => ({
+    isClientTheLeader: jest.fn(() => true),
+    isReady: jest.fn(() => Promise.resolve()),
+    init: jest.fn(),
+}));
+const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 
 const request: Request<'userMetadata'> = {
     command: 'ReconnectApp',
@@ -603,6 +611,7 @@ describe('SequentialQueue - pause watchdog', () => {
     afterEach(() => {
         SequentialQueue.resetQueue();
         SequentialQueue.registerPauseWatchdogEscalation(() => Promise.resolve());
+        mockedIsClientTheLeader.mockReturnValue(true);
         jest.useRealTimers();
     });
 
@@ -634,6 +643,64 @@ describe('SequentialQueue - pause watchdog', () => {
 
         await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 4);
         expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('does not treat a decrease or clear of the applied-update key as progress', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
+        SequentialQueue.pause();
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+        // A decrease (e.g. an Onyx.clear() elsewhere) must not look like this tab making progress.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 50);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('does not re-arm from another tab advancing the shared key once this tab is demoted', async () => {
+        const escalation = jest.fn(() => Promise.resolve());
+        SequentialQueue.registerPauseWatchdogEscalation(escalation);
+        mockedIsClientTheLeader.mockReturnValue(false);
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+        // The new leader tab advances the shared key — this demoted tab must still self-heal.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 12345);
+
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS / 2);
+
+        expect(escalation).toHaveBeenCalledTimes(1);
+        expect(SequentialQueue.isPaused()).toBe(false);
+    });
+
+    it('a stale escalation must not unpause a pause that started after it fired', async () => {
+        let resolveFirstEscalation: () => void = () => {};
+        SequentialQueue.registerPauseWatchdogEscalation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveFirstEscalation = resolve;
+                }),
+        );
+
+        SequentialQueue.pause();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        expect(SequentialQueue.isPaused()).toBe(true); // escalation in flight
+
+        // The normal chain resolves the original gap and unpauses, then a fresh gap re-pauses immediately.
+        SequentialQueue.unpause();
+        SequentialQueue.pause();
+
+        // The stale escalation from the FIRST pause now settles.
+        resolveFirstEscalation();
+        await jest.advanceTimersByTimeAsync(0);
+
+        // It must not have unpaused the second, unrelated pause.
+        expect(SequentialQueue.isPaused()).toBe(true);
     });
 
     it('should be cleared by a normal unpause and never fire afterwards', async () => {

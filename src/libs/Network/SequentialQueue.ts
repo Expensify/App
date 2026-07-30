@@ -75,6 +75,9 @@ let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
 let pauseWatchdogTimeoutID: ReturnType<typeof setTimeout> | null = null;
+// Identifies which pause() call the watchdog is armed for, so a stale race handler can't touch a later pause.
+let pauseGeneration = 0;
+let lastSeenUpdateID = 0;
 const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
 
 function clearPauseWatchdog() {
@@ -100,6 +103,7 @@ function registerPauseWatchdogEscalation(escalation: PauseWatchdogEscalation) {
  */
 function armPauseWatchdog() {
     clearPauseWatchdog();
+    const generation = pauseGeneration;
     pauseWatchdogTimeoutID = setTimeout(() => {
         pauseWatchdogTimeoutID = null;
         if (!isQueuePaused) {
@@ -113,8 +117,8 @@ function armPauseWatchdog() {
             setTimeout(resolve, CONST.NETWORK.MAX_PAUSE_WATCHDOG_ESCALATION_TIME_MS);
         });
         Promise.race([escalation, escalationCap]).then(() => {
-            // The normal chain may have unpaused meanwhile.
-            if (!isQueuePaused) {
+            // The normal chain may have unpaused meanwhile, or a fresh pause may have started since.
+            if (!isQueuePaused || pauseGeneration !== generation) {
                 return;
             }
             unpause();
@@ -122,12 +126,16 @@ function armPauseWatchdog() {
     }, CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
 }
 
-// Progress while paused re-arms the watchdog, so only a stalled pause trips it.
+// Progress while paused re-arms the watchdog. Gated on leadership + an actual advance — this key syncs
+// cross-tab on web, so a demoted tab would otherwise be re-armed forever by the new leader's progress.
 // Use connectWithoutView since this only drives the network queue's watchdog timer and doesn't affect any UI.
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: () => {
-        if (!isQueuePaused) {
+    callback: (value) => {
+        const updateID = value ?? 0;
+        const didAdvance = updateID > lastSeenUpdateID;
+        lastSeenUpdateID = updateID;
+        if (!isQueuePaused || !didAdvance || !isClientTheLeader()) {
             return;
         }
         armPauseWatchdog();
@@ -145,6 +153,7 @@ function pause() {
 
     Log.info('[SequentialQueue] Pausing the queue');
     isQueuePaused = true;
+    pauseGeneration++;
     armPauseWatchdog();
 }
 
@@ -722,6 +731,8 @@ function resetQueue(): void {
     isSequentialQueueRunning = false;
     currentRequestPromise = null;
     isQueuePaused = false;
+    pauseGeneration = 0;
+    lastSeenUpdateID = 0;
     clearPauseWatchdog();
     isReadyPromise = Promise.resolve();
     isReadyPromisePending = false;

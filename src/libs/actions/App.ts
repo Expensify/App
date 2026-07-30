@@ -546,6 +546,15 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
  * in-flight OpenApp (see getOnyxDataForOpenOrReconnect).
  */
 function reconnectAppWithSideEffects(updateIDFrom = 0): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
+    // Mirror reconnectApp's guards — an incremental reconnect assumes base app state that isn't there yet.
+    if (!hasLoadedApp) {
+        openApp();
+        return Promise.resolve();
+    }
+    if (isUsingImportedState) {
+        return Promise.resolve();
+    }
+
     const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
     if (updateIDFrom) {
         params.updateIDFrom = updateIDFrom;
