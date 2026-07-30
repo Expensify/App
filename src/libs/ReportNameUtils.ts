@@ -1052,8 +1052,7 @@ function computeReportName({
         return chatThreadReportName;
     }
 
-    const transactionsArray = transactions ? (Object.values(transactions).filter(Boolean) as Array<OnyxEntry<Transaction>>) : undefined;
-    if (isClosedExpenseReportWithNoExpenses(report, transactionsArray)) {
+    if (isClosedExpenseReportWithNoExpenses(report, transactions)) {
         return translate('parentReportAction.deletedReport');
     }
 

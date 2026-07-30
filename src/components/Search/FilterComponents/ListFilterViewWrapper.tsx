@@ -14,10 +14,11 @@ type ListFilterWrapperProps = {
     hasTitle?: boolean;
     hasHeader?: boolean;
     isSearchable?: boolean;
+    isNegatable?: boolean;
     extraHeight?: number;
 };
 
-function ListFilterView({children, itemCount, itemHeight, hasTitle = true, hasHeader, isSearchable, extraHeight}: ListFilterWrapperProps) {
+function ListFilterView({children, itemCount, itemHeight, hasTitle = true, hasHeader, isSearchable, isNegatable, extraHeight}: ListFilterWrapperProps) {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -34,6 +35,7 @@ function ListFilterView({children, itemCount, itemHeight, hasTitle = true, hasHe
                     hasTitle: hasTitle && !hasHeader && isSmallScreenWidth,
                     hasHeader,
                     isSearchable,
+                    isNegatable,
                     extraHeight,
                 }),
             ]}
