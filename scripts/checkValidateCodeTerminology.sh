@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Enforces validate-code terminology across the codebase:
+# Enforces validateCode terminology across the codebase:
 #   - User-facing copy (src/languages) must use "security code" / "security link", not "magic code"
 #   - Internal identifiers (src, tests) must use validateCode, not magicCode / MagicCode / MAGIC_CODE
 

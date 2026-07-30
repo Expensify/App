@@ -1,4 +1,4 @@
-name: Check validate-code terminology
+name: Check validateCode terminology
 
 on:
   pull_request:
@@ -13,5 +13,5 @@ jobs:
       - name: Checkout
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
-      - name: Check validate-code terminology
+      - name: Check validateCode terminology
         run: ./scripts/checkValidateCodeTerminology.sh
