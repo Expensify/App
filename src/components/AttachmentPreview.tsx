@@ -126,9 +126,9 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_PREVIEW.PDF_THUMBNAIL}
             >
                 <PDFThumbnail
-                    fitPolicy={1}
+                    fitPolicy={2}
                     previewSourceURL={source}
-                    style={[styles.br4]}
+                    style={[styles.w100, styles.h100, styles.br4]}
                     onLoadError={onLoadError}
                     onPassword={() => setIsEncryptedPDF(true)}
                 />
