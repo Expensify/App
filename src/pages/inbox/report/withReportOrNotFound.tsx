@@ -92,6 +92,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
             const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+            const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
             const isReportIdInRoute = !!reportID?.length;
@@ -118,7 +119,11 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-                if (shouldShowNotFoundPage && contentShown.current && !isFocused) {
+                // We also suppress the NotFound page while a delete-transaction navigation is in flight (deleteTransactionNavigateBackUrl is set):
+                // deleting an invoice removes the whole IOU report and navigates back to the invoice room, which doesn't synchronously unfocus this
+                // details RHP, so without this the deleted report would flash "Not here" here. This mirrors ReportNotFoundGuard's delete-back guard and
+                // is self-terminating — DeleteTransactionNavigateBackHandler clears the URL after the transition settles. See issue #97399.
+                if (shouldShowNotFoundPage && contentShown.current && (!isFocused || !!deleteTransactionNavigateBackUrl)) {
                     return null;
                 }
 
