@@ -417,6 +417,7 @@ function SubmitDetailsPage({
                     optimisticTransactionID,
                     isTrackIntentUser,
                     delegateAccountID,
+                    optimisticChatReportID: reportOrAccountID,
                 });
             }
             cleanupAndNavigateAfterExpenseCreate({
