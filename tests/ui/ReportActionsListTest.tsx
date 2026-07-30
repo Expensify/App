@@ -20,7 +20,7 @@ import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasOnceLoadedReportActionsSelector} from '@src/selectors/ReportMetaData';
+import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
@@ -77,6 +77,10 @@ const mockUseConciergeDraft = useConciergeDraft as jest.MockedFunction<typeof us
 const mockUseConciergeDraftActions = useConciergeDraftActions as jest.MockedFunction<typeof useConciergeDraftActions>;
 const mockUseConciergeSessionState = useConciergeSessionState as jest.MockedFunction<typeof useConciergeSessionState>;
 const mockUseConciergeSessionActions = useConciergeSessionActions as jest.MockedFunction<typeof useConciergeSessionActions>;
+
+function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true) {
+    return selector === reportActionsListLoadingStateSelector ? {hasOnceLoadedReportActions, isLoadingInitialReportActions: false} : undefined;
+}
 
 const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportActions> = {
     reportActions: [],
@@ -302,7 +306,7 @@ describe('ReportActionsList (body)', () => {
                 return [false, {status: 'loaded'}];
             }
             if (key.includes('reportLoadingState')) {
-                return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
+                return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
             }
             if (key.includes('reportActions')) {
                 return [[], {status: 'loaded'}];
@@ -404,7 +408,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -445,7 +449,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -480,7 +484,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -512,7 +516,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -544,7 +548,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -629,7 +633,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [options?.selector === hasOnceLoadedReportActionsSelector, {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -790,7 +794,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [options?.selector === hasOnceLoadedReportActionsSelector ? hasOnceLoadedReportActions : false, {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector, hasOnceLoadedReportActions), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];

@@ -53,6 +53,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
         shouldBeAlignedToTop,
         isReportLoadPending,
         hasOnceLoadedReportActions,
+        isLoadingInitialReportActions,
         isLoadingApp,
         reportActionsLength,
         oldestUnreadReportAction,
@@ -74,8 +75,11 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
     // if the oldest unread report action is not available yet. Only applies during the *first* load
     // for this report: after `hasOnceLoadedReportActions` is set, a later "mark as unread" must not
     // bring back this loading gate (we are not re-opening the report from a cold cache).
+    // A missing loading-state entry means ReportFetchHandler has not enqueued OpenReport yet. Once a
+    // terminal failure writes false, the queue and stored state both release the gate.
+    const shouldKeepColdUnreadLoadGated = isReportLoadPending || isLoadingInitialReportActions !== false;
     const isUnreadMessagePageLoadingInitially =
-        !shouldBeAlignedToTop && !reportActionIDFromRoute && isReportUnread && !oldestUnreadReportAction && !hasOnceLoadedReportActions && isReportLoadPending;
+        !shouldBeAlignedToTop && !reportActionIDFromRoute && isReportUnread && !oldestUnreadReportAction && !hasOnceLoadedReportActions && shouldKeepColdUnreadLoadGated;
 
     // Once all the above conditions are met, we can consider the report ready.
     const isReportLoading = isInitiallyLoadingReport || isUnreadMessagePageLoadingInitially;

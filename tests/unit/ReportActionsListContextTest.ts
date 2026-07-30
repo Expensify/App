@@ -38,6 +38,7 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
         shouldBeAlignedToTop: false,
         isReportLoadPending: false,
         hasOnceLoadedReportActions: false,
+        isLoadingInitialReportActions: false,
         isLoadingApp: false,
         reportActionsLength: 0,
         oldestUnreadReportAction: undefined,
@@ -100,10 +101,25 @@ describe('computeReportActionsSkeletonState', () => {
                 isMissingReportActions: false,
                 reportActionsLength: 1,
                 isReportLoadPending: false,
+                isLoadingInitialReportActions: false,
             }),
         );
 
         expect(state.shouldShowLoadingSkeleton).toBe(false);
+    });
+
+    it('preserves the unread initial load before OpenReport enters the queue', () => {
+        const state = computeReportActionsSkeletonState(
+            createReadinessSignals({
+                report: unreadReport,
+                isMissingReportActions: false,
+                reportActionsLength: 1,
+                isReportLoadPending: false,
+                isLoadingInitialReportActions: undefined,
+            }),
+        );
+
+        expect(state.shouldShowLoadingSkeleton).toBe(true);
     });
 
     it('preserves the unread initial load when the report load is pending', () => {
