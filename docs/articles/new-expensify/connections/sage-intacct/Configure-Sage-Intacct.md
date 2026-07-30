@@ -133,7 +133,7 @@ If you manage company cards in Expensify, you can map each card to a specific ac
 
 ## Export Consolidated Travel Billing expenses as
 
-This option appears only when [Consolidated Travel Billing](https://help.expensify.com/travel/hubs/consolidated-travel-billing/) is enabled. Travel expenses export as credit card charges. Select the **Credit card account** where travel expenses will post in Sage Intacct.
+This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Travel expenses export as credit card charges. Select the **Credit card account** where travel expenses will post in Sage Intacct.
 
 ---
 
@@ -178,7 +178,7 @@ Choose how to sync reimbursement status:
 
 ## Sync Consolidated Travel Billing settlements
 
-This option appears only when [Consolidated Travel Billing](https://help.expensify.com/travel/hubs/consolidated-travel-billing/) is enabled. Turn on this toggle to continuously reconcile settlements through Sage Intacct. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
+This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Turn on this toggle to continuously reconcile settlements through Sage Intacct. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
 
 ---
 
