@@ -33,6 +33,14 @@ function getRulesRevampRuleEditSegment(categoryName: string): string {
     return `edit/${encodeURIComponent(categoryName)}`;
 }
 
+function getOptionalCategoryNameQuery(categoryName?: string): string {
+    return categoryName ? `?categoryName=${encodeURIComponent(categoryName)}` : '';
+}
+
+function getOptionalIsCategoryLockedQuery(isCategoryLocked?: boolean): string {
+    return isCategoryLocked ? '?isCategoryLocked=true' : '';
+}
+
 // This is a file containing constants for all the routes we want to be able to go to
 
 /**
@@ -250,6 +258,14 @@ const DYNAMIC_ROUTES = {
     },
     MONEY_REQUEST_STEP_DESTINATION_EDIT: {
         path: 'per-diem-destination-edit',
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+    },
+    MONEY_REQUEST_STEP_TIME: {
+        path: 'per-diem-time',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION, SCREENS.MONEY_REQUEST.CREATE],
+    },
+    MONEY_REQUEST_STEP_TIME_EDIT: {
+        path: 'per-diem-time-edit',
         entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
     },
     PROFILE: {
@@ -655,6 +671,30 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER: {
         path: 'require-itemized-receipts-over',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_RULES_NEW: {
+        path: 'rules/new',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_NEW: {
+        path: 'flag-for-review',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW],
+    },
+    WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT: {
+        path: 'rules/flag-for-review',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT: {
+        path: 'amount',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_NEW, SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_EDIT],
+    },
+    WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_NEW: {
+        path: 'require-fields',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW],
+    },
+    WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_EDIT: {
+        path: 'rules/require-fields',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     NOTIFICATION_PREFERENCES: {
@@ -2211,20 +2251,10 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/vendor/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
-    MONEY_REQUEST_STEP_TIME: {
-        route: ':action/:iouType/time/:transactionID/:reportID/:backToReport?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/time/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}`, backTo),
-    },
     MONEY_REQUEST_STEP_SUBRATE: {
         route: ':action/:iouType/subrate/:transactionID/:reportID/:backToReport?/:pageIndex',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/0`, backTo),
-    },
-    MONEY_REQUEST_STEP_TIME_EDIT: {
-        route: ':action/:iouType/time/:transactionID/:reportID/edit',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/time/${transactionID}/${reportID}/edit`, backTo),
     },
     MONEY_REQUEST_STEP_SUBRATE_EDIT: {
         route: ':action/:iouType/subrate/:transactionID/:reportID/edit/:pageIndex',
@@ -3491,11 +3521,12 @@ const ROUTES = {
     },
     RULES_REQUIRE_FIELDS_RULE_NEW: {
         route: 'workspaces/:policyID/rules/require-fields-rules/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields-rules/new` as const,
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/require-fields-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
     RULES_REQUIRE_FIELDS_RULE_EDIT: {
         route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/require-fields-rules/edit/${encodeURIComponent(categoryName)}` as const,
+        getRoute: (policyID: string, categoryName: string, isCategoryLocked?: boolean) =>
+            `workspaces/${policyID}/rules/require-fields-rules/edit/${encodeURIComponent(categoryName)}${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
     },
     RULES_REQUIRE_FIELDS_RULE_CATEGORY: {
         route: 'workspaces/:policyID/rules/require-fields-rules/new/category',
@@ -3507,11 +3538,12 @@ const ROUTES = {
     },
     RULES_FLAG_FOR_REVIEW_RULE_NEW: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new` as const,
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_EDIT: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}` as const,
+        getRoute: (policyID: string, categoryName: string, isCategoryLocked?: boolean) =>
+            `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_CATEGORY: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new/category',
@@ -3523,11 +3555,13 @@ const ROUTES = {
     },
     RULES_FLAG_FOR_REVIEW_RULE_AMOUNT: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new/amount',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new/amount` as const,
+        getRoute: (policyID: string, isCategoryLocked?: boolean) =>
+            `workspaces/${policyID}/rules/flag-for-review-rules/new/amount${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName/amount',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}/amount` as const,
+        getRoute: (policyID: string, categoryName: string, isCategoryLocked?: boolean) =>
+            `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}/amount${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new/expense-limit-type',
@@ -3571,11 +3605,11 @@ const ROUTES = {
     },
     RULES_NEW: {
         route: 'workspaces/:policyID/rules/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/new` as const,
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
     RULES_MERCHANT_NEW: {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new` as const,
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/merchant-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
     RULES_MERCHANT_IMPORT: {
         route: 'workspaces/:policyID/rules/merchant-rules/import',
@@ -4652,16 +4686,28 @@ function getFlagForReviewRuleCategoryRoute(policyID: string, categoryName?: stri
     return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY.getRoute(policyID);
 }
 
-function getFlagForReviewRuleAmountRoute(policyID: string, categoryName?: string) {
+function getFlagForReviewRuleAmountRoute(policyID: string, categoryName?: string, isCategoryLocked?: boolean) {
     if (categoryName) {
-        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT.getRoute(policyID, categoryName);
+        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT.getRoute(policyID, categoryName, isCategoryLocked);
     }
 
-    return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.getRoute(policyID);
+    return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.getRoute(policyID, isCategoryLocked);
+}
+
+/**
+ * Workspace Category Settings destination after creating a Rules Revamp rule from the category RHP.
+ * Built as a concrete path (not createDynamicRoute) so it can be used from ROUTES helpers
+ * without circular imports.
+ *
+ * Only a fallback for entry points outside the category dynamic route stack — prefer
+ * `useCategoryRuleCreateBackPath`, which keeps the Settings > Categories flow intact.
+ */
+function getWorkspaceCategorySettingsRoute(policyID: string, categoryName: string) {
+    return `workspaces/${policyID}/categories/category/${encodeURIComponent(categoryName)}` as const;
 }
 
 export default ROUTES;
-export {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getRequireFieldsRuleCategoryRoute};
+export {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute};
 
 type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;
 type ReportAddAttachmentRoute = `r/${string}/attachment/add`;

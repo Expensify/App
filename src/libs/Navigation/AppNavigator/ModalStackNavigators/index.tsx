@@ -204,10 +204,10 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepAccountant').default,
     [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepUpgrade').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDestination').default,
-    [SCREENS.MONEY_REQUEST.STEP_TIME]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTime').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepTime').default,
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepSubrate').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDestination').default,
-    [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTime').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepTime').default,
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepSubrate').default,
     [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepScan/ReceiptView').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpensePage').default,
@@ -537,6 +537,17 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CURRENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategorySettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRED_FIELDS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCategoryRequiredFieldsPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesNewPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_NEW]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/AddFlagForReviewRulePage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_EDIT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/EditFlagForReviewRulePage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_AMOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRE_FIELDS_RULE_NEW]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/RequireFieldsRules/AddRequireFieldsRulePage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRE_FIELDS_RULE_EDIT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/RequireFieldsRules/EditRequireFieldsRulePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewAddressPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceOverviewPlanTypePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicWorkspaceCategoriesSettingsPage').default,
