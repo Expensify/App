@@ -17,7 +17,7 @@ import type {ValueOf} from 'type-fest';
 type ExportIntegration = {
     title?: string;
     description?: string;
-    exportPageLink: string;
+    exportPageLink?: string;
     data: SelectorType[];
     exportType?: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>;
     shouldHideMenuItemDescription?: boolean;
@@ -160,7 +160,6 @@ function getExportMenuItem(
                 exportType,
                 shouldShowMenuItem: !!exportConfiguration?.nonReimbursableAccount,
                 title: isDefaultTitle ? defaultAccount : selectedAccount?.name,
-                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, basePath),
                 data: (resultData ?? []).map((card) => {
                     return {
                         value: card.id,
@@ -422,7 +421,6 @@ function getExportMenuItem(
                 shouldHideMenuItemDescription: true,
                 shouldShowMenuItemIcon: true,
                 shouldShowMenuItem,
-                exportPageLink: ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID),
                 data: filteredData,
             };
         }
