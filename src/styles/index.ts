@@ -1222,6 +1222,11 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        editableCellColumn: {
+            alignSelf: 'stretch',
+            justifyContent: 'center',
+        },
+
         editableCellEditButtonContainer: {
             position: 'absolute',
             top: 0,
