@@ -359,7 +359,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
     })();
 
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-        const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
+        const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
         return (
             <ReportActionIndexContext.Provider value={index}>
@@ -398,7 +398,13 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportActionID, draftMessageHTML];
+    const extraData = [
+        shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined,
+        isArchivedNonExpenseReport(report, isReportArchived),
+        draftReportActionID,
+        draftMessageHTML,
+        isDraftPendingCompletion,
+    ];
 
     const listHeaderComponent = (
         <ReportActionsListHeader
