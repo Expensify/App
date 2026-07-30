@@ -7834,7 +7834,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 saveConfirmation: {
                     title: 'Regel opslaan',
                     prompt: 'RuleBot past deze regel toe op nieuwe uitgaven.',
-                    applyToUnsubmittedExpenses: ({count}: {count: number}) => `Pas deze regel toe op ${count} niet-ingediende ${count === 1 ? 'uitgave' : 'uitgaven'}`,
+                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Pas deze regel toe op ${count} niet-goedgekeurde ${count === 1 ? 'uitgave' : 'uitgaven'}`,
                 },
                 revampSubtitle: 'Beschrijf flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',

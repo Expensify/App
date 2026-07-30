@@ -7884,7 +7884,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 saveConfirmation: {
                     title: 'Regel speichern',
                     prompt: 'RuleBot wendet diese Regel auf neue Ausgaben an.',
-                    applyToUnsubmittedExpenses: ({count}: {count: number}) => `Diese Regel auf ${count} nicht eingereichte ${count === 1 ? 'Ausgabe' : 'Ausgaben'} anwenden`,
+                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Diese Regel auf ${count} nicht genehmigte ${count === 1 ? 'Ausgabe' : 'Ausgaben'} anwenden`,
                 },
             },
             tabs: {

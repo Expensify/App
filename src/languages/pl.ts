@@ -7814,7 +7814,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 saveConfirmation: {
                     title: 'Zapisz regułę',
                     prompt: 'RuleBot zastosuje tę regułę do nowych wydatków.',
-                    applyToUnsubmittedExpenses: ({count}: {count: number}) => `Zastosuj tę regułę do ${count} ${count === 1 ? 'niewysłanego wydatku' : 'niewysłanych wydatków'}`,
+                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Zastosuj tę regułę do ${count} ${count === 1 ? 'niezatwierdzonego wydatku' : 'niezatwierdzonych wydatków'}`,
                 },
                 revampSubtitle: 'Opisuj elastyczne reguły, które uruchamiają się wtedy, kiedy tego potrzebujesz.',
                 describeRuleForConcierge: 'Opisz swoją regułę, a Concierge ją utworzy',

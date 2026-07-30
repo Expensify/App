@@ -4,7 +4,7 @@ import {
     clearPolicyAgentRuleErrors,
     clearPolicyCodingRuleErrors,
     deletePolicyAgentRule,
-    getPolicyUnsubmittedExpenseCount,
+    getPolicyUnapprovedExpenseCount,
     updatePolicyAgentRule,
 } from '@libs/actions/Policy/Rules';
 import * as API from '@libs/API';
@@ -235,15 +235,15 @@ describe('actions/PolicyRules', () => {
         });
     });
 
-    describe('getPolicyUnsubmittedExpenseCount', () => {
-        it('reads the unsubmitted expense count for the policy', () => {
+    describe('getPolicyUnapprovedExpenseCount', () => {
+        it('reads the unapproved expense count for the policy', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
 
-            getPolicyUnsubmittedExpenseCount('1');
-            expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_POLICY_UNSUBMITTED_EXPENSE_COUNT, {policyID: '1'});
+            getPolicyUnapprovedExpenseCount('1');
+            expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_POLICY_UNAPPROVED_EXPENSE_COUNT, {policyID: '1'});
 
-            getPolicyUnsubmittedExpenseCount(undefined);
+            getPolicyUnapprovedExpenseCount(undefined);
             expect(readSpy).toHaveBeenCalledTimes(1);
 
             readSpy.mockRestore();

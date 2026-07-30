@@ -7853,7 +7853,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 saveConfirmation: {
                     title: 'Salva regola',
                     prompt: 'RuleBot applicherà questa regola alle nuove spese.',
-                    applyToUnsubmittedExpenses: ({count}: {count: number}) => `Applica questa regola a ${count} ${count === 1 ? 'spesa non inviata' : 'spese non inviate'}`,
+                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Applica questa regola a ${count} ${count === 1 ? 'spesa non approvata' : 'spese non approvate'}`,
                 },
                 revampSubtitle: 'Descrivi regole flessibili che vengono eseguite quando ne hai bisogno.',
                 describeRuleForConcierge: 'Descrivi la tua regola e Concierge la creerà',

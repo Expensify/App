@@ -7831,7 +7831,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 saveConfirmation: {
                     title: 'Salvar regra',
                     prompt: 'O RuleBot aplicará esta regra a novas despesas.',
-                    applyToUnsubmittedExpenses: ({count}: {count: number}) => `Aplicar esta regra a ${count} ${count === 1 ? 'despesa não enviada' : 'despesas não enviadas'}`,
+                    applyToUnapprovedExpenses: ({count}: {count: number}) => `Aplicar esta regra a ${count} ${count === 1 ? 'despesa não aprovada' : 'despesas não aprovadas'}`,
                 },
                 revampSubtitle: 'Descreva regras flexíveis que são executadas quando você precisar.',
                 describeRuleForConcierge: 'Descreva sua regra e o Concierge vai criá-la',

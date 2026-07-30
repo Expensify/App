@@ -4,7 +4,7 @@ import type {
     AddPolicyAgentRuleParams,
     DeletePolicyAgentRuleParams,
     GetAgentRuleSuggestionsParams,
-    GetPolicyUnsubmittedExpenseCountParams,
+    GetPolicyUnapprovedExpenseCountParams,
     ImportMerchantRulesSpreadsheetParams,
     UpdatePolicyAgentRuleParams,
 } from '@libs/API/parameters';
@@ -165,18 +165,18 @@ function getAgentRuleSuggestions(policyID: string | undefined) {
 }
 
 /**
- * Fetches the number of unsubmitted expenses on the policy, shown in the agent rule save
- * confirmation so admins can choose to apply the rule to those expenses.
+ * Fetches the number of submitted but not yet approved expenses on the policy, shown in the agent
+ * rule save confirmation so admins can choose to apply the rule to those expenses.
  */
-function getPolicyUnsubmittedExpenseCount(policyID: string | undefined) {
+function getPolicyUnapprovedExpenseCount(policyID: string | undefined) {
     if (!policyID) {
-        Log.warn('Invalid params for getPolicyUnsubmittedExpenseCount', {policyID});
+        Log.warn('Invalid params for getPolicyUnapprovedExpenseCount', {policyID});
         return;
     }
 
-    const params: GetPolicyUnsubmittedExpenseCountParams = {policyID};
+    const params: GetPolicyUnapprovedExpenseCountParams = {policyID};
 
-    API.read(READ_COMMANDS.GET_POLICY_UNSUBMITTED_EXPENSE_COUNT, params);
+    API.read(READ_COMMANDS.GET_POLICY_UNAPPROVED_EXPENSE_COUNT, params);
 }
 
 /**
@@ -700,7 +700,7 @@ function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agent
 export {
     openPolicyRulesPage,
     getAgentRuleSuggestions,
-    getPolicyUnsubmittedExpenseCount,
+    getPolicyUnapprovedExpenseCount,
     setPolicyCodingRule,
     importMerchantRulesSpreadsheet,
     deletePolicyCodingRule,

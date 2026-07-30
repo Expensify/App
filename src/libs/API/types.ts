@@ -1437,7 +1437,7 @@ const READ_COMMANDS = {
     GET_DUPLICATE_TRANSACTION_DETAILS: 'GetDuplicateTransactionDetails',
     GET_TRANSACTIONS_MATCHING_CODING_RULE: 'GetTransactionsMatchingCodingRule',
     GET_AGENT_RULE_SUGGESTIONS: 'GetAgentRuleSuggestions',
-    GET_POLICY_UNSUBMITTED_EXPENSE_COUNT: 'GetPolicyUnsubmittedExpenseCount',
+    GET_POLICY_UNAPPROVED_EXPENSE_COUNT: 'GetPolicyUnapprovedExpenseCount',
     GET_AGENT_TEMPLATES: 'GetAgentTemplates',
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
     OPEN_AGENTS_PAGE: 'OpenAgentsPage',
@@ -1546,7 +1546,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS]: Parameters.GetDuplicateTransactionDetailsParams;
     [READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE]: Parameters.GetTransactionsMatchingCodingRuleParams;
     [READ_COMMANDS.GET_AGENT_RULE_SUGGESTIONS]: Parameters.GetAgentRuleSuggestionsParams;
-    [READ_COMMANDS.GET_POLICY_UNSUBMITTED_EXPENSE_COUNT]: Parameters.GetPolicyUnsubmittedExpenseCountParams;
+    [READ_COMMANDS.GET_POLICY_UNAPPROVED_EXPENSE_COUNT]: Parameters.GetPolicyUnapprovedExpenseCountParams;
     [READ_COMMANDS.GET_AGENT_TEMPLATES]: null;
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: null;
     [READ_COMMANDS.OPEN_AGENTS_PAGE]: null;
