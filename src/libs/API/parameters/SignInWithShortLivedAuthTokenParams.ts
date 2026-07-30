@@ -12,6 +12,7 @@ type SignInWithShortLivedAuthTokenParams = {
      * method is known.
      */
     authMethod?: ValueOf<typeof CONST.AUTH_METHOD>;
+    deviceInfo: string;
 };
 
 export default SignInWithShortLivedAuthTokenParams;

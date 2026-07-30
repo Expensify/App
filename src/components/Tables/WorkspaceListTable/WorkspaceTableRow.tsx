@@ -2,6 +2,7 @@ import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import Tooltip from '@components/Tooltip';
@@ -17,7 +18,6 @@ import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -42,16 +42,15 @@ type WorkspaceRowProps = {
 
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
-
-    /** IDs of the policies eligible as copy-settings targets, passed down to the row menu */
-    copySettingsEligibleTargets: CopySettingsEligibleTargets;
 };
 
-export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex, onDeleteWorkspace, pendingDeletePolicyID, copySettingsEligibleTargets}: WorkspaceRowProps) {
+export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'Hourglass']);
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const formattedOwnerName = item.ownerName ?? '';
     const formattedWorkspaceType = getUserFriendlyWorkspaceType(item.type, translate);
@@ -104,7 +103,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                 item={item}
                 onDeleteWorkspace={onDeleteWorkspace}
                 pendingDeletePolicyID={pendingDeletePolicyID}
-                copySettingsEligibleTargets={copySettingsEligibleTargets}
             />
         </View>
     );
@@ -171,7 +169,10 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
 
                     {!shouldUseNarrowTableLayout && (
                         <>
-                            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                            <View
+                                style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <Avatar
                                     name={item.title}
                                     source={item.icon}
@@ -192,7 +193,10 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 </View>
                             </View>
 
-                            <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                            <View
+                                style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <Avatar
                                     source={item.ownerAvatar}
                                     avatarID={item.ownerAccountID}
@@ -205,7 +209,10 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 />
                             </View>
 
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <View
+                                style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <Text
                                     numberOfLines={1}
                                     style={itemDeletedStyles}
@@ -214,7 +221,10 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 </Text>
                             </View>
 
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3, styles.wAuto]}>
+                            <View
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3, styles.wAuto]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 {!item.isJoinRequestPending && ThreeDotsMenuWithBrickRoadIndicator}
 
                                 <Icon

@@ -22,6 +22,7 @@ import type {MapState} from '@rnmapbox/maps';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Mapbox, {MarkerView} from '@rnmapbox/maps';
+import {getForegroundPermissionsAsync} from 'expo-location';
 import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
@@ -30,6 +31,7 @@ import type {MapViewProps} from './MapViewTypes';
 
 import Compass from './Compass';
 import Direction from './Direction';
+import MapMarkerIcon from './MapMarkerIcon';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
@@ -114,10 +116,26 @@ function MapView({
                 return;
             }
 
-            getCurrentPosition((params) => {
-                const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                setUserLocation(currentCoords);
-            }, setCurrentPositionToInitialState);
+            // Only read the device location when permission is ALREADY granted. We never request it here,
+            // so opening the map cannot trigger an OS permission prompt without a prior explicit user action.
+            getForegroundPermissionsAsync().then(({granted}) => {
+                if (!granted) {
+                    // Pass the permission-denied error so any stale cached location is cleared and the map falls back to initialState.
+                    setCurrentPositionToInitialState({
+                        code: GeolocationErrorCode.PERMISSION_DENIED,
+                        message: 'User denied access to location.',
+                    });
+                    return;
+                }
+
+                getCurrentPosition((params) => {
+                    const currentCoords = {
+                        longitude: params.coords.longitude,
+                        latitude: params.coords.latitude,
+                    };
+                    setUserLocation(currentCoords);
+                }, setCurrentPositionToInitialState);
+            });
         }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
     );
 
@@ -303,8 +321,7 @@ function MapView({
                         />
                     </MarkerView>
                 )}
-                {waypoints?.map(({coordinate, markerComponent, id}) => {
-                    const MarkerComponent = markerComponent;
+                {waypoints?.map(({coordinate, markerType, id}) => {
                     if (
                         utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
                         interactive &&
@@ -320,7 +337,7 @@ function MapView({
                             coordinate={coordinate}
                             allowOverlap
                         >
-                            <MarkerComponent />
+                            <MapMarkerIcon markerType={markerType} />
                         </MarkerView>
                     );
                 })}

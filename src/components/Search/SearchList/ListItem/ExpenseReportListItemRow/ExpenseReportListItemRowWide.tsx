@@ -138,6 +138,14 @@ function ExpenseReportListItemRowWide({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS)]}>
+                <TextCell
+                    text={item.formattedPaidStatus ?? ''}
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                 <TextCell
@@ -277,7 +285,7 @@ function ExpenseReportListItemRowWide({
                         isIndeterminate={isIndeterminate}
                         containerStyle={styles.m0}
                         disabled={isDisabledCheckbox}
-                        accessibilityLabel={item.text ?? ''}
+                        accessibilityLabel={item.reportName ?? ''}
                         shouldStopMouseDownPropagation
                         style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}

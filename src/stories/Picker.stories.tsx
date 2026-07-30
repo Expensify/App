@@ -1,7 +1,7 @@
 import Picker from '@components/Picker';
 import type {BasePickerProps} from '@components/Picker/types';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React, {useState} from 'react';
 

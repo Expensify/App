@@ -3,7 +3,7 @@ import UserInitialsAvatar from '@components/UserInitialsAvatar';
 
 import {DEFAULT_LETTER_AVATAR_SCHEME, LETTER_AVATAR_SCHEMES} from '@libs/Avatars/letterAvatarPalette';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React from 'react';
 import {View} from 'react-native';

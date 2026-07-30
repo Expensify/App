@@ -5,6 +5,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getButtonState from '@libs/getButtonState';
 
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
@@ -120,7 +121,7 @@ function ContextMenuItem({
         >
             {({hovered, pressed}) => (
                 <Icon
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                     src={itemIcon}
                     fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
                 />

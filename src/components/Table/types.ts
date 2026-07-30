@@ -6,7 +6,7 @@ import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './mid
 import type {HighlightingMethods} from './middlewares/highlight';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {SelectionMethods} from './middlewares/selection';
-import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
+import type {CompareItemsCallback, SortingMethods} from './middlewares/sorting';
 
 /**
  * Defines the required minimum shape for each row of data in the table
@@ -114,7 +114,7 @@ type SharedListProps<DataType extends TableData> = Omit<FlashListProps<DataType>
  *
  * The Table uses a compositional pattern where the parent `<Table>` component manages
  * state and provides context, while child components (`<Table.Header>`, `<Table.Body>`,
- * `<Table.SearchBar>`, `<Table.FilterButtons>`) consume that context to render UI.
+ * `<Table.FilterBar>`) consume that context to render UI.
  *
  * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
@@ -130,7 +130,7 @@ type SharedListProps<DataType extends TableData> = Omit<FlashListProps<DataType>
  *   compareItems={compareItems}
  *   isItemInSearch={isItemInSearch}
  * >
- *   <Table.SearchBar />
+ *   <Table.FilterBar />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
@@ -200,13 +200,16 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 
         /** Callback when an option is selected */
         onRowSelectionChange?: (selectedRowKeys: string[]) => void;
+
+        /** Optional callback fired when the active search string changes. */
+        onSearchStringChange?: (searchString: string) => void;
     }>;
 
 export type {
     TableData,
     TableRow,
-    TableRenderRowProps,
     TableColumn,
+    TableRenderRowProps,
     TableMethods,
     TableHandle,
     TableProps,
@@ -215,5 +218,4 @@ export type {
     IsItemInFilterCallback,
     IsItemInSearchCallback,
     FilterConfig,
-    ActiveSorting,
 };

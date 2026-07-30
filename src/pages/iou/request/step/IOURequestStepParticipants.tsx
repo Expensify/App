@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, isFromCreditCardImport, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
+import {getRequestType, isFromCreditCardImport, isPerDiemRequest, isSplitChildTransaction, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 
@@ -34,10 +34,12 @@ type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof 
 
 function IOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, backTo},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, backTo, isWorkspacesOnly: isWorkspacesOnlyParam},
     },
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
+    // "Submit to my employer" with multiple submit-enabled workspaces passes isWorkspacesOnly=true to limit the picker to workspaces.
+    const isWorkspacesOnlyFromRoute = isWorkspacesOnlyParam === 'true';
     const participants = initialTransaction?.participants;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -124,8 +126,13 @@ function IOURequestStepParticipants({
         navigateToStartMoneyRequestStep(iouRequestType, iouTypeValue, initialTransactionID, reportID, action);
     };
 
+    // Split expenses can only be submitted to a workspace, so restrict the recipient list to workspaces.
     // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
-    const isWorkspacesOnly = isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType);
+    // Submit-only implies workspaces-only (we still hide individuals/recents in the Submit-to-employer picker).
+    const isWorkspacesOnly =
+        isWorkspacesOnlyFromRoute ||
+        (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction)) ||
+        (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
     // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.
     // Those without one (e.g. users to invite who don't have an account yet) must be passed explicitly

@@ -99,7 +99,7 @@ import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
-import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from './SearchContext';
+import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
@@ -147,13 +147,14 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
-    const {markReportIDAsExpense, markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
+    const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -179,7 +180,11 @@ function Search({
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0, areAllMatchingItemsSelected);
+
+    // Retrying a failed page always resets pagination to the first page, so totals eligibility
+    // must be evaluated as if we're on the first page rather than the (possibly paginated) offset.
+    const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, hash, true, areAllMatchingItemsSelected);
 
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
@@ -596,9 +601,9 @@ function Search({
                 }
 
                 if (item.transactions.length > 1) {
-                    markReportIDAsMultiTransactionExpense(reportID);
+                    markReportRHPWidth(reportID, 'super-wide');
                 } else {
-                    unmarkReportIDAsMultiTransactionExpense(reportID);
+                    unmarkReportRHPWidth(reportID, 'super-wide');
                 }
 
                 // Persist the current search context so prev/next navigation arrows
@@ -643,7 +648,7 @@ function Search({
                 return;
             }
 
-            markReportIDAsExpense(reportID);
+            markReportRHPWidth(reportID, 'wide');
 
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
@@ -656,10 +661,9 @@ function Search({
             requestAnimationFrame(() => Navigation.navigate(route));
         },
         [
-            markReportIDAsExpense,
+            markReportRHPWidth,
             handleSearch,
-            markReportIDAsMultiTransactionExpense,
-            unmarkReportIDAsMultiTransactionExpense,
+            unmarkReportRHPWidth,
             introSelected,
             betas,
             isSelfTourViewed,
@@ -764,8 +768,7 @@ function Search({
             cancelSubmitFollowUpActionSpan();
         }
         didBailToFallbackState.current = true;
-        onContentReady?.();
-    }, [onContentReady]);
+    }, []);
 
     // When the render bails to an error/empty state, the SelectionList never mounts
     // so its onLayout callback (the primary flush site) never fires. This effect
@@ -773,7 +776,17 @@ function Search({
     // is intentional — we need to check after every render since bail-outs happen
     // in conditional returns that can't trigger state-based effects.
     useEffect(() => {
-        if (!didBailToFallbackState.current || !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!didBailToFallbackState.current) {
+            return;
+        }
+        // Signal overlay readiness here (post-commit) rather than inside
+        // cancelNavigationSpans (render phase). Calling onContentReady during
+        // render updates the parent SearchPage while Search is still rendering,
+        // which triggers React's "Cannot update a component while rendering a
+        // different component" warning. setIsSearchReady is idempotent, so
+        // firing this on every bail-out render is safe.
+        onContentReady?.();
+        if (!hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
             return;
         }
         didBailToFallbackState.current = false;
@@ -933,6 +946,24 @@ function Search({
                         isBreakLine: shouldUseNarrowLayout,
                     })}
                     subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
+                    // Retrying an invalid query won't help, so the retry button is only offered for other errors.
+                    {...(!isInvalidQuery && {
+                        buttonTranslationKey: 'common.tryAgain',
+                        onButtonPress: () => {
+                            // A failed load-more clears the whole snapshot (data: null), so retrying with the
+                            // paginated offset would refetch only the later page into an empty snapshot and drop
+                            // the initial results. Reset pagination to the first page before retrying.
+                            setOffset(0);
+                            handleSearch({
+                                queryJSON,
+                                searchKey: currentSearchKey,
+                                offset: 0,
+                                shouldCalculateTotals: shouldCalculateTotalsOnRetry,
+                                prevReportsLength: filteredDataLength,
+                                isLoading: !!searchResults?.search?.isLoading,
+                            });
+                        },
+                    })}
                 />
             </View>
         );
@@ -957,6 +988,7 @@ function Search({
                     type={type}
                     hasResults={searchResults?.search?.hasResults}
                     queryJSON={queryJSON}
+                    violationSnapshotStartedAt={searchResults?.search?.violationSnapshotStartedAt}
                     onScroll={onSearchListScroll}
                     contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
                 />

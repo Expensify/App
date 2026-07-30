@@ -96,6 +96,42 @@ const DotLottieAnimations = {
         w: 204,
         h: 204,
     },
+    SpendAnalysis: {
+        file: require<LottieViewProps['source']>('@assets/animations/SpendAnalysis.lottie'),
+        w: 440,
+        h: 240,
+        backgroundColor: colors.pink700,
+    },
+    ExpenseAssistant: {
+        file: require<LottieViewProps['source']>('@assets/animations/ExpenseAssistant.lottie'),
+        w: 440,
+        h: 240,
+    },
+    CustomAgents: {
+        file: require<LottieViewProps['source']>('@assets/animations/CustomAgents.lottie'),
+        w: 440,
+        h: 240,
+    },
+    ConciergeThinkingScanGradient: {
+        file: require<LottieViewProps['source']>('@assets/animations/ConciergeThinkingScanGradient.lottie'),
+        w: 550,
+        h: 550,
+    },
+    ConciergeThinkingScanOuterGlow: {
+        file: require<LottieViewProps['source']>('@assets/animations/ConciergeThinkingScanOuterGlow.lottie'),
+        w: 550,
+        h: 550,
+    },
+    ConciergeThinkingInceptionTriangle: {
+        file: require<LottieViewProps['source']>('@assets/animations/ConciergeThinkingInceptionTriangle.lottie'),
+        w: 550,
+        h: 550,
+    },
+    ConciergeThinkingHypnotized: {
+        file: require<LottieViewProps['source']>('@assets/animations/ConciergeThinkingHypnotized.lottie'),
+        w: 550,
+        h: 550,
+    },
 } satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;

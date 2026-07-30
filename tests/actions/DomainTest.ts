@@ -84,7 +84,6 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            waitForCollectionCallback: false,
             callback: (form) => {
                 expect(form?.hasCreationSucceeded).toBeFalsy();
                 expect(form?.errors).toBeFalsy();
@@ -136,7 +135,6 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (errors) => {
                 expect(errors?.errors).toBeFalsy();
             },
@@ -144,7 +142,6 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (pendingActions) => {
                 expect(pendingActions?.pendingAction).toBeFalsy();
             },
@@ -182,6 +179,11 @@ describe('actions/Domain', () => {
                         key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
                         value: {memberErrors: {[email]: {errors: null}}},
                     }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        value: {type: 'members', id: expect.any(String)},
+                    }),
                 ],
                 successData: expect.arrayContaining([
                     expect.objectContaining({
@@ -198,6 +200,10 @@ describe('actions/Domain', () => {
                     expect.objectContaining({
                         key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
                         value: {member: {[email]: {pendingAction: null}}},
+                    }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+                        value: {type: null, id: null},
                     }),
                 ]),
             },
@@ -306,7 +312,6 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (errors) => {
                 expect(errors?.memberErrors?.[email]).toBeFalsy();
                 expect(errors?.memberErrors?.[optimisticAccountID]).toBeFalsy();
@@ -315,7 +320,6 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (domain) => {
                 const securityGroup = domain?.[DOMAIN_SECURITY_GROUP as keyof typeof domain] as {shared?: Record<number, string>} | undefined;
                 expect(securityGroup?.shared?.[optimisticAccountID]).toBeFalsy();
@@ -584,7 +588,6 @@ describe('actions/Domain', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (domain) => {
                     const delegateData = domain?.[PRIVATE_VACATION_DELEGATE_KEY as keyof typeof domain] as BaseVacationDelegate | undefined;
                     expect(delegateData?.delegate).toBe(previousDelegate);
@@ -592,14 +595,12 @@ describe('actions/Domain', () => {
             });
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (errors) => {
                     expect(errors?.memberErrors?.[domainMemberEmail]?.vacationDelegateErrors).toBeFalsy();
                 },
             });
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (pendingActions) => {
                     expect(pendingActions?.member?.[domainMemberEmail]?.vacationDelegate).toBeFalsy();
                 },
@@ -624,7 +625,6 @@ describe('actions/Domain', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (domain) => {
                     const delegateData = domain?.[PRIVATE_VACATION_DELEGATE_KEY as keyof typeof domain] as BaseVacationDelegate | undefined;
                     expect(delegateData?.delegate).toBeFalsy();
@@ -657,7 +657,6 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (errors) => {
                 expect(errors?.memberErrors?.[accountID]).toBeFalsy();
                 expect(errors?.memberErrors?.[email]).toBeFalsy();
@@ -666,7 +665,6 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (pendingActions) => {
                 expect(pendingActions?.member?.[email]).toBeFalsy();
             },
@@ -688,7 +686,6 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (errors) => {
                 expect(errors?.memberErrors?.[email]?.twoFactorAuthExemptEmailsError).toBeFalsy();
             },
@@ -987,7 +984,6 @@ describe('actions/Domain', () => {
             setDomainMembersSelectedForMove(memberAccountIDs);
             await TestHelper.getOnyxData({
                 key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
-                waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual(memberAccountIDs);
                 },
@@ -998,7 +994,6 @@ describe('actions/Domain', () => {
             setDomainMembersSelectedForMove([]);
             await TestHelper.getOnyxData({
                 key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
-                waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual([]);
                 },
@@ -1010,7 +1005,6 @@ describe('actions/Domain', () => {
             clearDomainMembersSelectedForMove();
             await TestHelper.getOnyxData({
                 key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
-                waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual([]);
                 },
@@ -1194,7 +1188,6 @@ describe('actions/Domain', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (errors) => {
                     const groupErrors = errors?.[SECURITY_GROUP_KEY as keyof typeof errors] as Record<string, Record<string, string>> | undefined;
                     expect(groupErrors?.errors).toBeFalsy();
@@ -1221,7 +1214,6 @@ describe('actions/Domain', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (errors) => {
                     const groupErrors = errors?.[SECURITY_GROUP_KEY as keyof typeof errors] as Record<string, Record<string, string>> | undefined;
                     expect(groupErrors?.[settingsName]).toBeFalsy();
@@ -1449,7 +1441,6 @@ describe('actions/Domain', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (domain) => {
                     expect((domain as Record<string, unknown>)?.[SECURITY_GROUP_KEY]).toBeFalsy();
                 },
@@ -1457,7 +1448,6 @@ describe('actions/Domain', () => {
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (errors) => {
                     expect((errors as Record<string, unknown>)?.[SECURITY_GROUP_KEY]).toBeFalsy();
                 },

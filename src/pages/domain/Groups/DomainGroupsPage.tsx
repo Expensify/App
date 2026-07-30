@@ -121,7 +121,10 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
 
-                <DomainGroupsTable groups={groupRows} />
+                <DomainGroupsTable
+                    domainAccountID={domainAccountID}
+                    groups={groupRows}
+                />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
     );

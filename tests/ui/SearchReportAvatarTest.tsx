@@ -23,6 +23,7 @@ import {actionR14932} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../__mocks__/reportData/policies';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -250,7 +251,7 @@ describe('SearchReportAvatar', () => {
 
     describe('renders subscript avatars for workspace-linked reports', () => {
         it('renders user primary avatar and workspace subscript for an expense report', async () => {
-            const props = getSearchReportAvatarProps(expenseReport, formatPhoneNumber, personalDetails, policy);
+            const props = getSearchReportAvatarProps(expenseReport, formatPhoneNumber, translateLocal, personalDetails, policy);
             const {images, fragments} = await retrieveAvatarData({...props, reportID: expenseReport.reportID});
 
             expect(props.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
@@ -264,7 +265,7 @@ describe('SearchReportAvatar', () => {
         });
 
         it('renders workspace primary avatar and user subscript for a policy expense chat', async () => {
-            const props = getSearchReportAvatarProps(chatReport, formatPhoneNumber, personalDetails, policy);
+            const props = getSearchReportAvatarProps(chatReport, formatPhoneNumber, translateLocal, personalDetails, policy);
             const {images, fragments} = await retrieveAvatarData({...props, reportID: chatReport.reportID});
 
             expect(props.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
@@ -278,7 +279,7 @@ describe('SearchReportAvatar', () => {
         });
 
         it('renders user primary avatar and workspace subscript for a trip report', async () => {
-            const props = getSearchReportAvatarProps(iouTripReport, formatPhoneNumber, personalDetails, policy);
+            const props = getSearchReportAvatarProps(iouTripReport, formatPhoneNumber, translateLocal, personalDetails, policy);
             const {images, fragments} = await retrieveAvatarData({...props, reportID: iouTripReport.reportID});
 
             expect(props.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
@@ -294,7 +295,7 @@ describe('SearchReportAvatar', () => {
 
     describe('renders diagonal multiple avatars for IOU reports (both user avatars)', () => {
         it('renders manager as main and owner as secondary in diagonal layout for an IOU report', async () => {
-            const props = getSearchReportAvatarProps(iouReport, formatPhoneNumber, personalDetails, personalPolicy);
+            const props = getSearchReportAvatarProps(iouReport, formatPhoneNumber, translateLocal, personalDetails, personalPolicy);
             const {images, fragments} = await retrieveAvatarData({...props, reportID: iouReport.reportID});
 
             expect(props.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL);
@@ -308,7 +309,7 @@ describe('SearchReportAvatar', () => {
         });
 
         it('renders manager as main and owner as secondary in diagonal layout for a DM IOU report', async () => {
-            const props = getSearchReportAvatarProps(iouDMReport, formatPhoneNumber, personalDetails, personalPolicy);
+            const props = getSearchReportAvatarProps(iouDMReport, formatPhoneNumber, translateLocal, personalDetails, personalPolicy);
             const {images, fragments} = await retrieveAvatarData({...props, reportID: iouDMReport.reportID});
 
             expect(props.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL);
@@ -324,7 +325,7 @@ describe('SearchReportAvatar', () => {
 
     describe('renders single avatar for personal policy expense reports', () => {
         it('renders single user avatar for a DM single-expense report', async () => {
-            const props = getSearchReportAvatarProps(iouDMSingleExpenseReport, formatPhoneNumber, personalDetails, personalPolicy);
+            const props = getSearchReportAvatarProps(iouDMSingleExpenseReport, formatPhoneNumber, translateLocal, personalDetails, personalPolicy);
             const {images} = await retrieveAvatarData({...props, reportID: iouDMSingleExpenseReport.reportID});
 
             expect(props.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE);
@@ -351,7 +352,7 @@ describe('SearchReportAvatar', () => {
         });
 
         it('renders single avatar when avatarType is SINGLE even if secondaryAvatar is provided', async () => {
-            const avatarIcons = getIcons(expenseReport, formatPhoneNumber, personalDetails, null, '', -1, policy);
+            const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
             const {images, fragments} = await retrieveAvatarData({
                 primaryAvatar: avatarIcons.at(0),
                 secondaryAvatar: avatarIcons.at(1),
@@ -368,7 +369,7 @@ describe('SearchReportAvatar', () => {
         });
 
         it('renders single avatar when secondaryAvatar is missing even if avatarType is SUBSCRIPT', async () => {
-            const avatarIcons = getIcons(expenseReport, formatPhoneNumber, personalDetails, null, '', -1, policy);
+            const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
             const {images} = await retrieveAvatarData({
                 primaryAvatar: avatarIcons.at(0),
                 secondaryAvatar: undefined,
@@ -384,7 +385,7 @@ describe('SearchReportAvatar', () => {
 
     describe('getSearchReportAvatarProps computes avatar props correctly', () => {
         it('produces correct primaryAvatar and secondaryAvatar for expense reports', () => {
-            const {primaryAvatar, secondaryAvatar} = getSearchReportAvatarProps(expenseReport, formatPhoneNumber, personalDetails, policy);
+            const {primaryAvatar, secondaryAvatar} = getSearchReportAvatarProps(expenseReport, formatPhoneNumber, translateLocal, personalDetails, policy);
 
             expect(primaryAvatar).toBeDefined();
             expect(parseSource(primaryAvatar?.source ?? '')).toBe(USER_AVATAR);
@@ -394,32 +395,32 @@ describe('SearchReportAvatar', () => {
         });
 
         it('returns SUBSCRIPT avatarType for expense reports', () => {
-            const {avatarType} = getSearchReportAvatarProps(expenseReport, formatPhoneNumber, personalDetails, policy);
+            const {avatarType} = getSearchReportAvatarProps(expenseReport, formatPhoneNumber, translateLocal, personalDetails, policy);
             expect(avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
         });
 
         it('produces correct icons for IOU reports (manager as primary, owner as secondary)', () => {
-            const {primaryAvatar, secondaryAvatar} = getSearchReportAvatarProps(iouReport, formatPhoneNumber, personalDetails, personalPolicy);
+            const {primaryAvatar, secondaryAvatar} = getSearchReportAvatarProps(iouReport, formatPhoneNumber, translateLocal, personalDetails, personalPolicy);
 
             expect(parseSource(primaryAvatar?.source ?? '')).toBe(SECOND_USER_AVATAR);
             expect(parseSource(secondaryAvatar?.source ?? '')).toBe(USER_AVATAR);
         });
 
         it('returns MULTIPLE_DIAGONAL avatarType for personal policy IOU reports', () => {
-            const {avatarType} = getSearchReportAvatarProps(iouReport, formatPhoneNumber, personalDetails, personalPolicy);
+            const {avatarType} = getSearchReportAvatarProps(iouReport, formatPhoneNumber, translateLocal, personalDetails, personalPolicy);
             expect(avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL);
         });
 
         it('uses SUBSCRIPT for workspace expense reports and MULTIPLE_DIAGONAL for personal IOU reports', () => {
-            const expenseProps = getSearchReportAvatarProps(expenseReport, formatPhoneNumber, personalDetails, policy);
+            const expenseProps = getSearchReportAvatarProps(expenseReport, formatPhoneNumber, translateLocal, personalDetails, policy);
             expect(expenseProps.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
 
-            const iouProps = getSearchReportAvatarProps(iouReport, formatPhoneNumber, personalDetails, personalPolicy);
+            const iouProps = getSearchReportAvatarProps(iouReport, formatPhoneNumber, translateLocal, personalDetails, personalPolicy);
             expect(iouProps.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL);
         });
 
         it('produces correct icons for a trip report (user + workspace, subscript)', () => {
-            const {primaryAvatar, secondaryAvatar, avatarType} = getSearchReportAvatarProps(iouTripReport, formatPhoneNumber, personalDetails, policy);
+            const {primaryAvatar, secondaryAvatar, avatarType} = getSearchReportAvatarProps(iouTripReport, formatPhoneNumber, translateLocal, personalDetails, policy);
 
             expect(avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
             expect(parseSource(primaryAvatar?.source ?? '')).toBe(USER_AVATAR);
@@ -429,7 +430,7 @@ describe('SearchReportAvatar', () => {
         });
 
         it('produces correct icons for a DM IOU report (manager + owner, diagonal multiple)', () => {
-            const {primaryAvatar, secondaryAvatar, avatarType} = getSearchReportAvatarProps(iouDMReport, formatPhoneNumber, personalDetails, personalPolicy);
+            const {primaryAvatar, secondaryAvatar, avatarType} = getSearchReportAvatarProps(iouDMReport, formatPhoneNumber, translateLocal, personalDetails, personalPolicy);
 
             expect(avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL);
             expect(parseSource(primaryAvatar?.source ?? '')).toBe(SECOND_USER_AVATAR);
@@ -439,7 +440,7 @@ describe('SearchReportAvatar', () => {
         });
 
         it('produces correct icons for a DM single-expense report (single user, no subscript)', () => {
-            const {primaryAvatar, avatarType} = getSearchReportAvatarProps(iouDMSingleExpenseReport, formatPhoneNumber, personalDetails, personalPolicy);
+            const {primaryAvatar, avatarType} = getSearchReportAvatarProps(iouDMSingleExpenseReport, formatPhoneNumber, translateLocal, personalDetails, personalPolicy);
 
             expect(avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE);
             expect(parseSource(primaryAvatar?.source ?? '')).toBe(USER_AVATAR);

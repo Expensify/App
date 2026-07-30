@@ -32,7 +32,7 @@ function SearchFiltersClearButton({onPress}: SearchFiltersClearButtonProps) {
             <Icon
                 src={expensifyIcons.Close}
                 fill={theme.icon}
-                extraSmall
+                size={CONST.ICON_SIZE.EXTRA_SMALL}
             />
             <Text style={[styles.textMicroBoldSupporting]}>{translate('common.clear')}</Text>
         </PressableWithFeedback>

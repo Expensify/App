@@ -5,6 +5,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
 
@@ -67,7 +68,7 @@ function useFooterDerivedFlags({
     isTypeInvoice,
     shouldShowSmartScanFields,
 }: UseFooterDerivedFlagsParams) {
-    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const {policyForMovingExpenses, shouldSelectPolicy, shouldNavigateToUpgradePath: canNavigateToUpgradePath} = usePolicyForMovingExpenses();
 
     const transaction = useTransactionSelector(transactionID, derivedFlagsSliceSelector);
 
@@ -95,7 +96,9 @@ function useFooterDerivedFlags({
     const shouldShowBillable = isBillableEnabledOnPolicy(policy);
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    // Submit workspaces ship Categories/Distance enabled by default, so never route their fields to the upgrade gate.
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+    const shouldNavigateToUpgradePath = !isSubmitWorkspace && canNavigateToUpgradePath;
     const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
 
     return {

@@ -15,6 +15,7 @@ describe('useLastWorkspaceNumber', () => {
     const email = 'jdoe@expensify.com';
     const displayName = 'Expensify';
     const workspaceName = `${displayName} Workspace`;
+    const buildPolicyWithName = (name: Policy['name']): Pick<Policy, 'name'> => ({name});
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -28,7 +29,7 @@ describe('useLastWorkspaceNumber', () => {
 
     it('should return the correct last workspace number from Onyx', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {name: `${workspaceName} 3`} as Policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithName(`${workspaceName} 3`));
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useLastWorkspaceNumber());
@@ -38,13 +39,13 @@ describe('useLastWorkspaceNumber', () => {
 
     it('should update when Onyx data changes', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {name: `${workspaceName} 3`} as Policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithName(`${workspaceName} 3`));
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useLastWorkspaceNumber());
         expect(result.current).toBe(3);
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}2`, {name: `${workspaceName} 5`} as Policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}2`, buildPolicyWithName(`${workspaceName} 5`));
         await waitForBatchedUpdates();
 
         expect(result.current).toBe(5);
@@ -52,7 +53,7 @@ describe('useLastWorkspaceNumber', () => {
 
     it('should return undefined if no matching workspaces exist', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {name: 'Other Workspace'} as Policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithName('Other Workspace'));
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useLastWorkspaceNumber());

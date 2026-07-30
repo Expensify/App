@@ -15,6 +15,7 @@ import {
     getChildTransactions,
     getOriginalTransactionWithSplitInfo,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    isSplitChildTransaction,
     shouldRedirectDeleteToSplitExpenseEdit,
 } from '@libs/TransactionUtils';
 
@@ -25,10 +26,12 @@ import type {SplitExpense} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useEnvironment from './useEnvironment';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -56,6 +59,8 @@ type DeleteTransactionsResult =
           deletedTransactionThreadReportIDs: string[];
       };
 
+type TransactionWithAction = {transactionID: string; action?: ReportAction; transaction?: Transaction};
+
 function redistributeRemainingPerDiemSplitExpenses(splitExpenses: SplitExpense[], total: number, currency: string): SplitExpense[] {
     const lastSplitIndex = splitExpenses.length - 1;
 
@@ -80,6 +85,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -90,6 +96,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
@@ -218,7 +225,11 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         return acc;
                     }
 
-                    if (isExpenseSplit && originalTransactionID) {
+                    const transactionCurrentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+                    const isMovedExpenseSplitChild =
+                        !isExpenseSplit && !!originalTransactionID && isSplitChildTransaction(transaction) && !originalTransaction?.comment?.splits && isIOUReport(transactionCurrentReport);
+
+                    if ((isExpenseSplit || isMovedExpenseSplitChild) && originalTransactionID) {
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID] ??= [];
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID].push(item);
                     } else {
@@ -228,8 +239,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     return acc;
                 },
                 {splitTransactionsByOriginalTransactionID: {}, nonSplitTransactions: []} as {
-                    splitTransactionsByOriginalTransactionID: Record<string, Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>>;
-                    nonSplitTransactions: Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>;
+                    splitTransactionsByOriginalTransactionID: Record<string, TransactionWithAction[]>;
+                    nonSplitTransactions: TransactionWithAction[];
                 },
             );
 
@@ -243,7 +254,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     continue;
                 }
                 const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
+                const originalTransactionIouActions = getIOUActionForTransactions([transactionID], allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
                 const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? originalTransactionIouActions.at(0)?.reportID : undefined;
                 const candidateIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.
@@ -320,6 +331,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionReport: report,
                     expenseReport,
                     isOffline,
+                    delegateAccountID,
+                    isTrackIntentUser,
                 });
             }
 
@@ -335,6 +348,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
                 const isChatIOUReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`]);
+                const iouPolicy = iouReport?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`] : undefined;
                 deleteMoneyRequest({
                     transactionID,
                     reportAction: action,
@@ -350,6 +364,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     allTransactionViolationsParam: transactionViolations,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail: currentUserPersonalDetails.email ?? '',
+                    policy: iouPolicy,
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
@@ -392,6 +407,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             isOffline,
             isProduction,
             personalPolicy?.outputCurrency,
+            delegateAccountID,
+            isTrackIntentUser,
         ],
     );
 

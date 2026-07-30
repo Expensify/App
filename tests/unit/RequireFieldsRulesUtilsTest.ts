@@ -1,9 +1,11 @@
 import {getRequireFieldsFormFromCategory, getRequireFieldsTableData} from '@libs/RequireFieldsRulesUtils';
 
 import CONST from '@src/CONST';
+import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 import type {PolicyCategories} from '@src/types/onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {convertToDisplayString, localeCompare, translateLocal} from '../utils/TestHelper';
 
 describe('RequireFieldsRulesUtils', () => {
     describe('getRequireFieldsFormFromCategory', () => {
@@ -20,18 +22,15 @@ describe('RequireFieldsRulesUtils', () => {
             };
 
             expect(getRequireFieldsFormFromCategory(category)).toEqual({
-                requireDescription: false,
-                requireAttendees: true,
-                requireReceipt: false,
-                requireItemizedReceipt: false,
+                [INPUT_IDS.DESCRIPTION_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
+                [INPUT_IDS.ATTENDEES_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+                [INPUT_IDS.RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
+                [INPUT_IDS.ITEMIZED_RECEIPT_SETTING]: CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE,
             });
         });
     });
 
     describe('getRequireFieldsTableData', () => {
-        const translate = ((key: string) => key) as Parameters<typeof getRequireFieldsTableData>[0]['translate'];
-        const convertToDisplayString = ((amount: number | undefined) => `$${amount ?? 0}`) as Parameters<typeof getRequireFieldsTableData>[0]['convertToDisplayString'];
-        const localeCompare = (a: string, b: string) => a.localeCompare(b);
         const onNavigate = jest.fn();
 
         it('keeps rows visible while a field is pending delete', () => {
@@ -50,7 +49,7 @@ describe('RequireFieldsRulesUtils', () => {
             const tableData = getRequireFieldsTableData({
                 policy: createRandomPolicy(0),
                 policyCategories,
-                translate,
+                translate: translateLocal,
                 convertToDisplayString,
                 localeCompare,
                 isOffline: false,

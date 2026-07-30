@@ -155,5 +155,53 @@ describe('TaxOptionsListUtils', () => {
             transaction,
         });
         expect(wrongSearchResult).toStrictEqual(wrongSearchResultList);
+
+        const selectedDeletedResultList: Array<Section<TaxRatesOption>> = [
+            {
+                data: [
+                    {
+                        code: undefined,
+                        isDisabled: true,
+                        isSelected: true,
+                        keyForList: 'Tax rate 2 (3%)-0',
+                        searchText: 'Tax rate 2 (3%)',
+                        text: 'Tax rate 2 (3%)',
+                        tooltipText: 'Tax rate 2 (3%)',
+                        pendingAction: 'delete',
+                    },
+                    {
+                        code: 'CODE1',
+                        isDisabled: false,
+                        isSelected: undefined,
+                        keyForList: 'Tax exempt 1 (0%) • Default-1',
+                        searchText: 'Tax exempt 1 (0%) • Default',
+                        text: 'Tax exempt 1 (0%) • Default',
+                        tooltipText: 'Tax exempt 1 (0%) • Default',
+                        pendingAction: undefined,
+                    },
+                    {
+                        code: 'CODE3',
+                        isDisabled: false,
+                        isSelected: undefined,
+                        keyForList: 'Tax option 3 (5%)-2',
+                        searchText: 'Tax option 3 (5%)',
+                        text: 'Tax option 3 (5%)',
+                        tooltipText: 'Tax option 3 (5%)',
+                        pendingAction: undefined,
+                    },
+                ],
+                sectionIndex: 2,
+                title: '',
+            },
+        ];
+
+        const selectedDeletedResult = getTaxRatesSection({
+            policy,
+            searchValue: emptySearch,
+            localeCompare,
+            transaction,
+            selectedOptions: [{modifiedName: 'Tax rate 2 (3%)'}],
+        });
+        expect(selectedDeletedResult).toStrictEqual(selectedDeletedResultList);
     });
 });

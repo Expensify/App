@@ -10,7 +10,7 @@ import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {Meta} from '@storybook/react-webpack5';
+import type {Meta} from 'storybook-react-rsbuild';
 
 // eslint-disable-next-line no-restricted-imports
 import {ExpensiMark} from 'expensify-common';

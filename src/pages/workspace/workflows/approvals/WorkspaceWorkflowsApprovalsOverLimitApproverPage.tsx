@@ -13,7 +13,7 @@ import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite, getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -52,8 +52,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
 
     const currentApproverEmail = currentApprover?.email;
 
-    const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
-    const shouldShowNotFoundView = !canWriteApprovals || isAnyHRReadOnlyWorkflowMode(policy);
+    const shouldShowNotFoundView = isAnyHRReadOnlyWorkflowMode(policy);
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
     const allApprovers: SelectionListApprover[] = (() => {
@@ -100,6 +99,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                     keyForList: email,
                     isSelected: currentApprover?.overLimitForwardsTo === email,
                     login: email,
+                    value: email,
                     icons: [{source: avatar ?? expensifyIcons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: (
                         <MemberRightIcon
@@ -175,7 +175,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 subtitle={subtitle}
                 isLoadingReportData={isLoadingReportData}
                 policy={policy}
-                initiallyFocusedOptionKey={currentApprover?.overLimitForwardsTo}
                 shouldShowNotFoundView={shouldShowNotFoundView}
                 shouldShowNotFoundViewLink
                 allApprovers={allApprovers}

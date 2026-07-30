@@ -1,9 +1,8 @@
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import Button from '@components/ButtonComposed';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
-import Table from '@components/Table';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -47,9 +46,6 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Whether the feed is loading */
     isLoading: boolean;
 
-    /** Whether to show the table controls */
-    showTableControls: boolean;
-
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
@@ -57,7 +53,7 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     CardFeedIcon: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, showTableControls, canWriteCompanyCards, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, canWriteCompanyCards, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -108,15 +104,6 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
         });
     };
 
-    const secondaryActions = [
-        {
-            icon: icons.Gear,
-            text: translate('common.settings'),
-            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID))),
-            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-        },
-    ];
-
     const isCsvFeed = feedName?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     const firstPart = translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed');
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
@@ -159,39 +146,19 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     />
                 )}
 
-                <View
-                    style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
-                >
-                    {!isLoading && showTableControls && (
-                        <View style={[styles.mnw200]}>
-                            <Table.SearchBar
-                                style={[styles.mh0, styles.mb0]}
-                                label={translate('workspace.companyCards.findCard')}
-                            />
-                        </View>
-                    )}
-
-                    <View style={[styles.flexRow, styles.gap3]}>
-                        {!isLoading && (
-                            <>
-                                {showTableControls && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
-                                {canWriteCompanyCards && (
-                                    <ButtonWithDropdownMenu
-                                        success={false}
-                                        onPress={() => {}}
-                                        shouldUseOptionIcon
-                                        customText={translate('common.more')}
-                                        options={secondaryActions}
-                                        isSplitButton={false}
-                                        wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.MORE_DROPDOWN}
-                                    />
-                                )}
-                            </>
-                        )}
-                    </View>
-                </View>
+                {!isLoading && canWriteCompanyCards && (
+                    <Button
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
+                        accessibilityLabel={translate('common.settings')}
+                        style={shouldShowNarrowLayout ? styles.w100 : undefined}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_BUTTON}
+                    >
+                        <Button.Icon src={icons.Gear} />
+                        <Button.Text>{translate('common.settings')}</Button.Text>
+                    </Button>
+                )}
             </View>
+
             {!isLoading && canWriteCompanyCards && shouldShowBrokenConnectionError && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon

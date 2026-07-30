@@ -1,5 +1,5 @@
 import type {RequestMoneyInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
-import type {ReplaceReceipt} from '@libs/actions/IOU/Receipt';
+import type {ReplaceReceiptRetryParams} from '@libs/actions/IOU/Receipt';
 import type {StartSplitBilActionParams} from '@libs/actions/IOU/Split';
 import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
 
@@ -263,6 +263,9 @@ type Receipt = {
 
     /** Local thumbnail URI for fast preview on confirmation page */
     thumbnail?: string;
+
+    /** Correlation id created at capture, used to follow this receipt from capture to upload in the logs. */
+    receiptTraceId?: string;
 };
 
 /** Model of route */
@@ -289,7 +292,7 @@ type ReceiptError = {
     action?: string;
 
     /** Parameters required to retry the failed action */
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
 
     /** The type of receipt error */
     error: typeof CONST.IOU.RECEIPT_ERROR;
@@ -670,6 +673,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The display name of the purchaser card, if any */
         cardName?: string;
+
+        /** The Expensify Card program the card belongs to (e.g. `TRAVEL_US`), used to derive the travel icon without needing the card in the viewer's own list */
+        feedCountry?: string;
 
         /** The masked PAN of the purchaser card, if any */
         cardNumber?: string;

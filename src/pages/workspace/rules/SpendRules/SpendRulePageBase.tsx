@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -19,6 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {deleteExpensifyCardRule, setExpensifyCardRule} from '@libs/actions/Card';
@@ -85,6 +86,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const currentRuleID = ruleID ?? ROUTES.NEW;
     const isNewRule = currentRuleID === ROUTES.NEW;
@@ -216,17 +218,19 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             merchantMatchTypes: !isRestrictMerchantsOff ? spendRuleForm.merchantMatchTypes : [],
         };
 
-        clearError();
-        setExpensifyCardRule(domainAccountID, isEditingRule ? currentRuleID : rand64(), updatedSpendRuleForm, existingRule);
-        clearDraftSpendRule();
+        startWithLoading(() => {
+            clearError();
+            setExpensifyCardRule(domainAccountID, isEditingRule ? currentRuleID : rand64(), updatedSpendRuleForm, existingRule);
+            clearDraftSpendRule();
 
-        if (!isEditingRule && isRulesRevampEnabled) {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.CARD_RESTRICTIONS);
-            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
-            return;
-        }
+            if (!isEditingRule && isRulesRevampEnabled) {
+                Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.CARD_RESTRICTIONS);
+                Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
+                return;
+            }
 
-        Navigation.goBack();
+            Navigation.goBack();
+        });
     };
 
     const deleteRule = () => {
@@ -505,18 +509,21 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         message={errorMessage}
                         isAlertVisible={isErrorVisible}
                         onSubmit={saveRule}
+                        isLoading={isLoading}
+                        shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                         shouldRenderFooterAboveSubmit
                         footerContent={
                             isEditingRule ? (
                                 <Button
-                                    text={translate('workspace.rules.spendRules.deleteRule')}
+                                    size={CONST.BUTTON_SIZE.LARGE}
                                     onPress={deleteRule}
                                     style={[styles.mb4]}
-                                    large
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
-                                />
+                                >
+                                    <Button.Text>{translate('workspace.rules.spendRules.deleteRule')}</Button.Text>
+                                </Button>
                             ) : undefined
                         }
                     />

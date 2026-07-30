@@ -244,7 +244,9 @@ function subscribe<EventName extends PusherEventName>(
                             const error = new Error('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
 
                             if (__DEV__) {
-                                throw error;
+                                // TransitionTracker isolates callback errors, so reject explicitly instead of relying on a thrown scheduler callback to reject this Promise.
+                                reject(error);
+                                return;
                             }
 
                             // In production, report to Sentry without crashing the app.

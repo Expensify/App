@@ -86,6 +86,9 @@ type TransactionListItemType = ListItem &
         /** The date the report was exported */
         exported?: string;
 
+        /** Names of the integrations/templates the report was exported to, used for sorting the "Exported to" column */
+        exportedTo?: string;
+
         /** Policy to which the transaction belongs */
         policy: Policy | undefined;
 
@@ -234,6 +237,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Final and formatted "status" value used for displaying and sorting */
         formattedStatus?: string;
 
+        /** Final and formatted "paid status" value (Marked as paid / Withdrawing / Confirmed) used for displaying and sorting */
+        formattedPaidStatus?: string;
+
         /** Final and formatted "from" value used for displaying and sorting */
         formattedFrom?: string;
 
@@ -242,6 +248,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The date the report was exported */
         exported?: string;
+
+        /** Names of the integrations/templates the report was exported to, used for sorting the "Exported to" column */
+        exportedTo?: string;
 
         /** The date of the report's first approval (created date of the earliest APPROVED/FORWARDED report action) */
         firstApproved?: string;

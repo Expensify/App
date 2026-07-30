@@ -35,7 +35,7 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled, getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
@@ -64,9 +64,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
-    const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`, undefined, [
-        splitExpenseDraftTransaction?.comment?.originalTransactionID,
-    ]);
+    const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`);
 
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
     const allTransactions = useAllTransactions();
@@ -86,8 +84,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     // Detect selfDM splits whose source workspace is gone: nothing for the Rate step to render.
     const hasAnyPaidWorkspace = hasAnyPaidPolicy(allPolicies ?? {});
-    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
+    const {policyForMovingExpenses, shouldSelectPolicy, shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
 
     const effectivePolicyID = effectivePolicy?.id;
 
@@ -148,7 +145,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
     const reportAttributes = useReportAttributes();
-    const reportName = getReportName(currentReport, reportAttributes) || parentReport?.reportName;
+    const reportName = deprecatedGetReportName(currentReport, reportAttributes) || parentReport?.reportName;
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
 
     // Mirror MoneyRequestView's `shouldShowTag`, plus always surface the row when the original
@@ -203,8 +200,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const rawPolicyRate = !isP2PRate && currentRateID && effectivePolicy ? getDistanceRateCustomUnitRate(effectivePolicy, currentRateID) : undefined;
     const isRateBroken =
         isDistance && !isP2PRate && (!rates[currentRateID] || !rate || rawPolicyRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate?.enabled === false);
-    const hasAvailableEnabledRates = Object.keys(DistanceRequestUtils.getMileageRates(effectivePolicy)).length > 0;
-    const isCustomUnitOutOfPolicy = isSelfDMSplit ? isRateBroken : !rates[currentRateID] || (isDistance && !rate);
+    const policyWithAvailableRates = effectivePolicy ?? policyForMovingExpenses;
+    const hasAvailableEnabledRates = Object.keys(DistanceRequestUtils.getMileageRates(policyWithAvailableRates)).length > 0;
+
+    // `shouldSelectPolicy` means rates exist across workspaces but none is resolved yet — keep it flagged out-of-policy.
+    const isCustomUnitOutOfPolicy = isSelfDMSplit
+        ? isRateBroken || (isDistance && isP2PRate && (hasAvailableEnabledRates || shouldSelectPolicy))
+        : !rates[currentRateID] || (isDistance && !rate);
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
     const getErrorForField = (field: ViolationField) => {
@@ -260,13 +262,21 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             <MenuItemWithTopDescription
                 description={translate('common.rate')}
                 title={rateToDisplay}
-                interactive={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace}
-                shouldShowRightIcon={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace}
+                interactive={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace || shouldSelectPolicy}
+                shouldShowRightIcon={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace || shouldSelectPolicy}
                 titleStyle={styles.flex1}
                 brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={getErrorForField('customUnitRateID')}
                 style={[styles.moneyRequestMenuItem]}
                 onPress={() => {
+                    const rateRoute = ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                        CONST.IOU.ACTION.EDIT,
+                        CONST.IOU.TYPE.SPLIT_EXPENSE,
+                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                        reportID,
+                        Navigation.getActiveRoute(),
+                    );
+
                     // SelfDM split whose source workspace is gone and user has no other paid workspace:
                     // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
                     // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
@@ -284,15 +294,16 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         );
                         return;
                     }
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            CONST.IOU.TYPE.SPLIT_EXPENSE,
-                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                            reportID,
-                            Navigation.getActiveRoute(),
-                        ),
-                    );
+
+                    // SelfDM split with paid workspaces but none is default/active paid (e.g. personal
+                    // is the active policy): open the workspace selector first — same UX as the parent
+                    // self-DM expense's Rate field in MoneyRequestView and the Category branch below.
+                    if (!effectivePolicy && shouldSelectPolicy) {
+                        Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(rateRoute));
+                        return;
+                    }
+
+                    Navigation.navigate(rateRoute);
                 }}
             />
         </>

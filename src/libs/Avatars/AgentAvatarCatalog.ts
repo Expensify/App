@@ -9,7 +9,7 @@ import {createAvatarCatalog} from './AvatarCatalog';
 
 type AgentAvatarID = 'bot-avatar--blue' | 'bot-avatar--green' | 'bot-avatar--ice' | 'bot-avatar--pink' | 'bot-avatar--tangerine' | 'bot-avatar--yellow';
 
-const CDN_BOT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars/bots`;
+const CDN_BOT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 
 const AGENT_AVATAR_ENTRIES: Record<AgentAvatarID, AvatarEntry> = {
     'bot-avatar--blue': {local: BotAvatarBlue, url: `${CDN_BOT_AVATARS}/bot-avatar--blue.png`},
@@ -20,7 +20,13 @@ const AGENT_AVATAR_ENTRIES: Record<AgentAvatarID, AvatarEntry> = {
     'bot-avatar--yellow': {local: BotAvatarYellow, url: `${CDN_BOT_AVATARS}/bot-avatar--yellow.png`},
 };
 
-const AGENT_AVATARS = createAvatarCatalog<AgentAvatarID>(AGENT_AVATAR_ENTRIES);
+const agentAvatarCatalog = createAvatarCatalog<AgentAvatarID>(AGENT_AVATAR_ENTRIES);
+
+const AGENT_AVATARS = {
+    ...agentAvatarCatalog,
+    /** Picks a random avatar ID to give a freshly created agent a varied default avatar. */
+    getRandomID: (): AgentAvatarID | undefined => agentAvatarCatalog.ordered.at(Math.floor(Math.random() * agentAvatarCatalog.ordered.length))?.id,
+};
 
 export {AGENT_AVATARS};
 export type {AgentAvatarID};

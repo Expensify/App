@@ -5,7 +5,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,7 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {canDowngradeSelector} from '@src/selectors/Account';
-import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 
 import type {ValueOf} from 'type-fest';
@@ -44,9 +42,6 @@ type WorkspaceRowThreeDotsMenuProps = {
 
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
-
-    /** IDs of the policies eligible as copy-settings targets */
-    copySettingsEligibleTargets: CopySettingsEligibleTargets;
 };
 
 /**
@@ -54,7 +49,7 @@ type WorkspaceRowThreeDotsMenuProps = {
  * primitive-valued subscriptions, and mounts the leave/transfer flows on demand so their heavier
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
-function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicyID, copySettingsEligibleTargets}: WorkspaceRowThreeDotsMenuProps) {
+function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -62,7 +57,6 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const [canRenderTransferOwnerButton] = useOnyx(ONYXKEYS.FUND_LIST, {selector: shouldRenderTransferOwnerButton});
 
@@ -71,9 +65,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
     const [canDowngrade] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
-    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)}, [
-        currentUserPersonalDetails.accountID,
-    ]);
+    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)});
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 
@@ -117,11 +109,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
             text: translate('workspace.common.duplicateWorkspace'),
             onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
         });
-        const isSourceCorporate = item.type === CONST.POLICY.TYPE.CORPORATE;
-        const candidates = isSourceCorporate ? copySettingsEligibleTargets.corporateOnly : copySettingsEligibleTargets.adminNonPersonal;
-        const hasEligibleCopyTarget = candidates.length > 1 || (candidates.length === 1 && candidates.at(0) !== item.policyID);
-
-        if (hasEligibleCopyTarget && isBetaEnabled(CONST.BETAS.BULK_EDIT_WORKSPACES)) {
+        if (item.isEligibleToCopy) {
             menuItems.push({
                 icon: icons.Copy,
                 text: translate('workspace.copyPolicySettings.title'),

@@ -65,6 +65,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isDraftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`, {selector: isDraftReportSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
@@ -80,9 +81,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const currentUserAccountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, personalDetails, privateIsArchived, policy, reportAttributesDerived),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, policy],
+        () => getReportDisplayOption(report, unknownUserDetails, personalDetails, privateIsArchived, policy, translate, currentUserAccountID, reportAttributesDerived),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, currentUserAccountID, reportAttributesDerived, translate],
     );
 
     const shouldShowAttachment = !isTextShared;
@@ -137,6 +139,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: personalDetail.accountID,
                 delegateAccountID,
+                conciergeReportID,
             });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
@@ -160,6 +163,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         personalDetails,
                         newReportObject: report,
                         betas,
+                        hasReportActions: false,
                     });
                 }
                 if (report.reportID) {
@@ -172,6 +176,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         text: message,
                         timezone: personalDetail.timezone,
                         delegateAccountID,
+                        conciergeReportID,
                     });
                 }
 

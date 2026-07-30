@@ -148,7 +148,7 @@ function UploadFile({
                     <Icon
                         src={icons.Paperclip}
                         fill={theme.icon}
-                        medium
+                        size={CONST.ICON_SIZE.MEDIUM}
                     />
                     <TextWithMiddleEllipsis
                         text={file.name ?? ''}
@@ -164,7 +164,7 @@ function UploadFile({
                         <Icon
                             src={icons.Close}
                             fill={theme.icon}
-                            medium
+                            size={CONST.ICON_SIZE.MEDIUM}
                         />
                     </PressableWithFeedback>
                 </View>

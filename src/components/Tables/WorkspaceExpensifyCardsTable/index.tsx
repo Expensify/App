@@ -6,14 +6,13 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {filterCardsByPersonalDetails, getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCardListLabels';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import type {Card, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
@@ -29,7 +28,7 @@ import {View} from 'react-native';
 
 import WorkspaceExpensifyCardsTableRow from './WorkspaceExpensifyCardsTableRow';
 
-type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'limit' | 'actions';
+type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'status' | 'limit' | 'actions';
 
 type WorkspaceExpensifyCardTableRowData = TableData & {
     cardID: number;
@@ -120,11 +119,24 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'limitType',
             label: translate('workspace.card.issueNewCard.limitType'),
             sortable: true,
+            styling: {
+                // minWidth: 0 lets the grid track size purely from its 1fr share instead of the cell content,
+                // so the Limit type and Status columns always render at the same width.
+                containerStyles: [styles.mnw0],
+            },
         },
         {
             key: 'lastFour',
             label: translate('workspace.expensifyCard.lastFour'),
             sortable: true,
+        },
+        {
+            key: 'status',
+            label: translate('common.status'),
+            sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
         },
         {
             key: 'limit',
@@ -161,6 +173,14 @@ export default function WorkspaceExpensifyCardsTable({
             return localeCompare(item1.lastFourPAN, item2.lastFourPAN) * orderMultiplier;
         }
 
+        if (activeSorting.columnKey === 'status') {
+            const status1TranslationKey = getTranslationKeyForCardStatus(item1.card.state, item1.isVirtual);
+            const status2TranslationKey = getTranslationKeyForCardStatus(item2.card.state, item2.isVirtual);
+            const status1 = status1TranslationKey ? translate(status1TranslationKey) : '';
+            const status2 = status2TranslationKey ? translate(status2TranslationKey) : '';
+            return localeCompare(status1, status2) * orderMultiplier;
+        }
+
         if (activeSorting.columnKey === 'limit') {
             return (item1.limit - item2.limit) * orderMultiplier;
         }
@@ -182,7 +202,7 @@ export default function WorkspaceExpensifyCardsTable({
 
     const cardListHeaderContent = (
         <>
-            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1]}>
+            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1, styles.mb5]}>
                 <WorkspaceCardListLabels
                     policyID={policyID}
                     cardSettings={cardSettingsBase}
@@ -196,13 +216,9 @@ export default function WorkspaceExpensifyCardsTable({
                     </View>
                 )}
             </View>
-            {cards.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
-                <Table.SearchBar
-                    label={translate('workspace.expensifyCard.findCard')}
-                    style={[styles.mb0, styles.mt5]}
-                />
-            )}
-            <Table.Header style={styles.mt5} />
+            <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />
+            <Table.NoResultsState />
+            <Table.Header />
         </>
     );
 

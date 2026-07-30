@@ -190,7 +190,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     renderAppOnce();
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, () => {}, undefined);
 
     await waitForBatchedUpdates();
 
@@ -230,6 +230,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
 
     await Promise.all([
         Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
+        Onyx.merge(ONYXKEYS.HAS_LOADED_APP, true),
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions),
@@ -536,6 +537,7 @@ describe('Unread Indicators', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_A_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -617,6 +619,7 @@ describe('Unread Indicators', () => {
                         timezoneParam: CONST.DEFAULT_TIME_ZONE,
                         currentUserAccountID: USER_A_ACCOUNT_ID,
                         delegateAccountID: undefined,
+                        conciergeReportID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -672,6 +675,7 @@ describe('Unread Indicators', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: USER_A_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -691,6 +695,7 @@ describe('Unread Indicators', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: USER_A_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -782,6 +787,7 @@ describe('Unread Indicators', () => {
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
+            conciergeChat: undefined,
             report: selfDMReport,
             isDraftPolicy: true,
             action: CONST.IOU.ACTION.CREATE,
@@ -803,6 +809,8 @@ describe('Unread Indicators', () => {
             betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
+            delegateAccountID: undefined,
+            reportActionsList: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -873,6 +881,7 @@ describe('Unread Indicators', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: USER_A_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 
