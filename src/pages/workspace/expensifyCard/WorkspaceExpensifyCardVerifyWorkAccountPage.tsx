@@ -45,7 +45,7 @@ function WorkspaceExpensifyCardVerifyWorkAccountPageContent({route}: WorkspaceEx
         if (!workEmail) {
             return;
         }
-        resendValidateCode(workEmail);
+        resendValidateCode({reasonCode: null}, workEmail);
     };
 
     const validateAccountAndMerge = (validateCode: string) => {
@@ -81,7 +81,7 @@ function WorkspaceExpensifyCardVerifyWorkAccountPageContent({route}: WorkspaceEx
             isLoading={getAccessiblePoliciesAction?.loading}
             validateError={feedWithError?.error ? feedWithError.error : getAccessiblePoliciesAction?.errors}
             title={translate('onboarding.workEmailValidation.title')}
-            descriptionPrimary={translate('onboarding.workEmailValidation.magicCodeSent', workEmail)}
+            descriptionPrimary={translate('onboarding.workEmailValidation.securityCodeSent', workEmail)}
             onClose={() => {
                 Navigation.goBack();
             }}

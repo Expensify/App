@@ -56,6 +56,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const programKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
     const settings = getCardSettingsForSelectedProgram(cardSettings, programKey);
@@ -72,7 +73,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
 
     const getEligibleBankAccounts = () => {
         if (isUkEuCurrencySupported) {
-            return getEligibleBankAccountsForUkEuCard(bankAccountsList, policy?.outputCurrency);
+            return getEligibleBankAccountsForUkEuCard(bankAccountsList, supportedCountriesByCurrency, policy?.outputCurrency);
         }
         return getEligibleBankAccountsForCard(bankAccountsList);
     };

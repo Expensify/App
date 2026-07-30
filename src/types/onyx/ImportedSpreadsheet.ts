@@ -80,6 +80,9 @@ type ImportedSpreadsheet = {
 
     /** Modal to show after a queued import request finishes */
     importFinalModal?: ImportFinalModalUnion | null;
+
+    /** Whether the final member import modal should explain that restricted roles were replaced with the member role */
+    shouldShowMemberRolePermissionWarning?: boolean;
 };
 
 export default ImportedSpreadsheet;

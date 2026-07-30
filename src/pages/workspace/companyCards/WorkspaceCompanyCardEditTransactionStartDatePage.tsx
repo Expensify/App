@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -138,12 +138,13 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
                         addBottomSafeAreaPadding
                         footerContent={
                             <Button
-                                success
-                                large
-                                pressOnEnter
-                                text={translate('common.save')}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 onPress={submit}
-                            />
+                            >
+                                <Button.KeyboardShortcut />
+                                <Button.Text>{translate('common.save')}</Button.Text>
+                            </Button>
                         }
                         listFooterContent={
                             dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (

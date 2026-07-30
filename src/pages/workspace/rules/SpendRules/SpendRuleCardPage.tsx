@@ -24,6 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {filterCardsByPersonalDetails, filterInactiveCards, getCardFeedIcon, sortCardsByCardholderName} from '@libs/CardUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
@@ -45,7 +46,7 @@ import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 
 type ExpensifyCardListItem = ListItem &
@@ -84,7 +85,6 @@ function getEligibleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCar
 }
 
 function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
-    const navigation = useNavigation();
     const {policyID, ruleID} = route.params;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -111,7 +111,9 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         }, [spendRuleForm?.cardIDs]),
     );
 
-    const goBack = () => navigation.goBack();
+    const goBack = () => Navigation.goBack();
+
+    const saveAndGoBack = () => Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
 
     const {isOffline} = useNetwork({
         onReconnect: () => {
@@ -195,7 +197,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
 
         startWithLoading(() => {
             updateDraftSpendRule({cardIDs: validSelectedCardIDs});
-            goBack();
+            saveAndGoBack();
         });
     };
 
