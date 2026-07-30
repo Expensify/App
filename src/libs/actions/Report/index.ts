@@ -4093,18 +4093,33 @@ function navigateToConciergeChat(
     }
 }
 
-function buildNewReportOptimisticData(
-    policy: OnyxEntry<Policy>,
-    reportID: string,
-    reportActionID: string,
-    ownerPersonalDetails: CurrentUserPersonalDetails,
-    reportPreviewReportActionID: string,
-    hasViolationsParam: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    betas: OnyxEntry<Beta[]>,
-    isTrackIntentUser: boolean | undefined,
-    reportName?: string,
-) {
+type BuildNewReportOptimisticDataParams = {
+    policy: OnyxEntry<Policy>;
+    reportID: string;
+    reportActionID: string;
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    reportPreviewReportActionID: string;
+    hasViolationsParam: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    betas: OnyxEntry<Beta[]>;
+    isTrackIntentUser: boolean | undefined;
+    reportName?: string;
+    translate?: LocalizedTranslate;
+};
+
+function buildNewReportOptimisticData({
+    policy,
+    reportID,
+    reportActionID,
+    ownerPersonalDetails,
+    reportPreviewReportActionID,
+    hasViolationsParam,
+    isASAPSubmitBetaEnabled,
+    betas,
+    isTrackIntentUser,
+    reportName,
+    translate,
+}: BuildNewReportOptimisticDataParams) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
@@ -4143,7 +4158,7 @@ function buildNewReportOptimisticData(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData});
+    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData}, translate);
     const createReportActionMessage = [
         {
             html: message,
@@ -4351,16 +4366,16 @@ function createNewReport(
     isTrackIntentUser: boolean | undefined,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
-    options: {managedCardTransactionID?: string; reportName?: string} = {},
+    options: {managedCardTransactionID?: string; reportName?: string; translate?: LocalizedTranslate} = {},
 ) {
-    const {managedCardTransactionID, reportName} = options;
+    const {managedCardTransactionID, reportName, translate} = options;
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    const {parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
+    const {parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData({
         policy,
-        optimisticReportID,
+        reportID: optimisticReportID,
         reportActionID,
         ownerPersonalDetails,
         reportPreviewReportActionID,
@@ -4369,7 +4384,8 @@ function createNewReport(
         betas,
         isTrackIntentUser,
         reportName,
-    );
+        translate,
+    });
 
     if (shouldDismissEmptyReportsConfirmation) {
         Onyx.merge(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, true);
@@ -7360,6 +7376,7 @@ function buildOptimisticChangePolicyData({
     optimisticPolicyExpenseChatReport,
     reportPreviewAction,
     isTrackIntentUser,
+    translate,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7375,6 +7392,7 @@ function buildOptimisticChangePolicyData({
     optimisticPolicyExpenseChatReport?: Report;
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
+    translate: LocalizedTranslate;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -7633,7 +7651,7 @@ function buildOptimisticChangePolicyData({
     // and set it as a parent of the moved report
     const policyExpenseChat = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(report.ownerAccountID, policy.id);
     // TODO: delegateAccountIDParam will be threaded in PR 15 (https://github.com/Expensify/App/issues/66425)
-    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, '', null, undefined, undefined, undefined);
+    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, '', null, undefined, undefined, undefined, translate);
 
     const newPolicyExpenseChatReportID = policyExpenseChat?.reportID;
 
@@ -7876,6 +7894,7 @@ function changeReportPolicy({
     isReportLastVisibleArchived = false,
     reportPreviewAction,
     isTrackIntentUser,
+    translate,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7891,6 +7910,7 @@ function changeReportPolicy({
     isReportLastVisibleArchived?: boolean;
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
+    translate: LocalizedTranslate;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
@@ -7910,6 +7930,7 @@ function changeReportPolicy({
         reportNextStep,
         reportPreviewAction,
         isTrackIntentUser,
+        translate,
     });
 
     const params = {
@@ -7944,6 +7965,7 @@ function changeReportPolicyAndInviteSubmitter({
     reportActionsList,
     reportPreviewAction,
     isTrackIntentUser,
+    translate,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7960,6 +7982,7 @@ function changeReportPolicyAndInviteSubmitter({
     reportActionsList: OnyxCollection<ReportActions>;
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
+    translate: LocalizedTranslate;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID || !submitterLogin) {
         return;
@@ -8014,6 +8037,7 @@ function changeReportPolicyAndInviteSubmitter({
         optimisticPolicyExpenseChatReport: membersChats.reportCreationData[submitterLogin],
         reportPreviewAction,
         isTrackIntentUser,
+        translate,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

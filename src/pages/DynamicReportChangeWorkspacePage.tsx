@@ -153,6 +153,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 reportActionsList: filteredReportActions,
                 reportPreviewAction,
                 isTrackIntentUser,
+                translate,
             });
             return;
         }
@@ -172,6 +173,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             isReportLastVisibleArchived,
             reportPreviewAction,
             isTrackIntentUser,
+            translate,
         });
     };
 

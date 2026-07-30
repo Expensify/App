@@ -3497,6 +3497,7 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicy({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: newPolicy,
@@ -3557,6 +3558,7 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicy({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport,
                 policy: newPolicy,
@@ -3627,6 +3629,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: newPolicy,
@@ -3723,6 +3726,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: newPolicy,
@@ -3807,6 +3811,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: newPolicy,
@@ -3859,6 +3864,7 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3951,6 +3957,7 @@ describe('actions/Report', () => {
 
             // Call changeReportPolicyAndInviteSubmitter
             Report.changeReportPolicyAndInviteSubmitter({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: newPolicy,
@@ -3996,6 +4003,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -4027,6 +4035,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: targetPolicy,
@@ -4057,6 +4066,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -4087,6 +4097,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -4119,6 +4130,7 @@ describe('actions/Report', () => {
 
             // Do not set personal details for ownerAccountID so getLoginByAccountID returns empty
             Report.changeReportPolicyAndInviteSubmitter({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -4172,6 +4184,7 @@ describe('actions/Report', () => {
             mockFetch.pause?.();
 
             Report.changeReportPolicyAndInviteSubmitter({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: targetPolicy,
@@ -4620,6 +4633,7 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             Report.buildOptimisticChangePolicyData({
+                translate: TestHelper.translateLocal,
                 report,
                 parentReport: undefined,
                 policy,
@@ -4674,6 +4688,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData({
+                translate: TestHelper.translateLocal,
                 report,
                 parentReport: undefined,
                 policy,
@@ -4738,6 +4753,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                translate: TestHelper.translateLocal,
                 report,
                 parentReport: undefined,
                 policy,
@@ -4786,6 +4802,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                translate: TestHelper.translateLocal,
                 report,
                 parentReport: undefined,
                 policy,
@@ -4847,6 +4864,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                translate: TestHelper.translateLocal,
                 report,
                 parentReport: undefined,
                 policy,
@@ -4911,6 +4929,7 @@ describe('actions/Report', () => {
             const policy = createRandomPolicy(Number(1));
 
             const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
+                translate: TestHelper.translateLocal,
                 report,
                 parentReport,
                 policy,
