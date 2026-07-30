@@ -1,4 +1,4 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import RuleCategoriesDisabledEmptyState from '@components/Rule/RuleCategoriesDisabledEmptyState';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftRequireFieldsRule} from '@libs/actions/User';
@@ -22,7 +23,8 @@ import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React from 'react';
+import {View} from 'react-native';
 
 type RequireFieldsRuleCategoryPageBaseProps = {
     policyID: string;
@@ -42,12 +44,25 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const {isOffline} = useNetwork();
+    const styles = useThemeStyles();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const areCategoriesEnabled = !!policy?.areCategoriesEnabled;
     const arePolicyCategoriesLoading = areCategoriesEnabled && policyCategories === undefined;
+
+    const fetchPolicyCategories = () => {
+        if (!areCategoriesEnabled || policyCategories !== undefined) {
+            return;
+        }
+        openPolicyCategoriesPage(policyID);
+    };
+
+    const {isOffline} = useNetwork({onReconnect: fetchPolicyCategories});
+
+    useFocusEffect(() => {
+        fetchPolicyCategories();
+    });
 
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
@@ -81,21 +96,6 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
             const decodedCategoryName = getDecodedCategoryName(category.name);
             return {name: decodedCategoryName, value: category.name};
         });
-
-    const fetchPolicyCategories = useCallback(() => {
-        if (!areCategoriesEnabled || policyCategories !== undefined) {
-            return;
-        }
-        openPolicyCategoriesPage(policyID);
-    }, [areCategoriesEnabled, policyCategories, policyID]);
-
-    useNetwork({onReconnect: fetchPolicyCategories});
-
-    useFocusEffect(
-        useCallback(() => {
-            fetchPolicyCategories();
-        }, [fetchPolicyCategories]),
-    );
 
     const backToRoute = () =>
         getRequireFieldsRuleBackToRoute({
@@ -143,7 +143,14 @@ function RequireFieldsRuleCategoryPageBase({policyID, categoryName}: RequireFiel
     if (!areCategoriesEnabled) {
         emptyState = <RuleCategoriesDisabledEmptyState policyID={policyID} />;
     } else if (arePolicyCategoriesLoading) {
-        emptyState = <FullScreenLoadingIndicator />;
+        emptyState = (
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={{context: 'RequireFieldsRuleCategoryPageBase'}}
+                />
+            </View>
+        );
     }
 
     return (
