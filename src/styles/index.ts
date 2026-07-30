@@ -77,6 +77,7 @@ type SelectionListPopover = {
     hasHeader?: boolean;
     hasButton?: boolean;
     isSearchable?: boolean;
+    isNegatable?: boolean;
     extraHeight?: number;
 };
 
@@ -6771,6 +6772,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             hasHeader,
             hasButton = true,
             isSearchable,
+            isNegatable,
             extraHeight = 0,
         }: SelectionListPopover) => {
             const MODAL_VERTICAL_PADDING = 32;
@@ -6778,9 +6780,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             const HEADER_HEIGHT = hasHeader ? 48 : 0;
             const TITLE_HEIGHT = hasTitle ? 34 : 0;
             const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+            const NEGATION_TOGGLE_BORDER_WIDTH = 1;
+            const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + NEGATION_TOGGLE_BORDER_WIDTH * 2 + spacing.gap3.gap : 0;
 
             const ESTIMATED_LIST_HEIGHT = itemCount * itemHeight + SEARCHBAR_HEIGHT + extraHeight;
-            const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING;
+            const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING + NEGATION_TOGGLE_HEIGHT;
 
             const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
 
