@@ -7957,6 +7957,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 thenFlagForReview: 'Następnie oznacz do przejrzenia, gdy:',
             },
             agentRulesEmptyState: {title: 'Nie dodano reguł agenta', subtitle: 'Utwórz regułę, żeby zautomatyzować zasady swojego workspace’u.', cta: 'Dodaj regułę AI'},
+            categoriesDisabledEmptyState: {title: 'Kategorie nie są włączone', subtitle: 'Włącz kategorie, żeby mieć większą kontrolę nad wydatkami.'},
         },
         planTypePage: {
             planTypes: {
