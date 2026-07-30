@@ -376,7 +376,6 @@ describe('SubmitDetailsPage', () => {
     // otherwise reveal would mount an empty screen behind the share modal.
     it('does not pre-mount when the destination report is missing from COLLECTION.REPORT', async () => {
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
-        jest.mocked(getReportOrDraftReport).mockReturnValue(undefined);
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, null);
         });
@@ -394,7 +393,6 @@ describe('SubmitDetailsPage', () => {
     it('does not arm pre-mount after the optimistic destination lands on the pending-navigation path', async () => {
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
         jest.mocked(getIsNarrowLayout).mockReturnValue(true);
-        jest.mocked(getReportOrDraftReport).mockReturnValue(undefined);
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, null);
         });
@@ -406,7 +404,6 @@ describe('SubmitDetailsPage', () => {
 
         // Simulate the expense create writing the destination into COLLECTION.REPORT (requestMoney is mocked).
         const landedReport = createTestReport();
-        jest.mocked(getReportOrDraftReport).mockReturnValue(landedReport);
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SHARED_REPORT_ID}`, landedReport);
         });
