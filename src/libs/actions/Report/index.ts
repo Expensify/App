@@ -950,6 +950,10 @@ function addActions({
         lastMessageHtml: lastCommentText,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
+        // Sending a message advances the read pointer, so any prior manual-unread intent is now stale. Clear the stored
+        // id alongside lastReadTime; otherwise the "New" marker override keeps anchoring on the old action (the field is
+        // only ever nulled by readNewestAction, which this send path doesn't call).
+        manuallyMarkedUnreadReportActionID: null,
         lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
     };
 

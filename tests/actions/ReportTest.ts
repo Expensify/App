@@ -672,6 +672,9 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
+                // And the manually-marked action id is stored so the "New" marker can anchor on it
+                expect(report?.manuallyMarkedUnreadReportActionID).toBe('1');
+
                 // When a new comment is added by the current user
 
                 currentTime = DateUtils.getDBTime();
@@ -693,6 +696,10 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 1');
+
+                // And sending the comment clears the manual-unread intent, so the stale "New" marker doesn't persist
+                // (Onyx.merge with a null value deletes the key, so it reads back as undefined)
+                expect(report?.manuallyMarkedUnreadReportActionID).toBeUndefined();
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
