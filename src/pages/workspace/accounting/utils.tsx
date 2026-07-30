@@ -487,7 +487,7 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.SYNC_TAX_RATES,
                     ...(policy?.connections?.dualentry?.data?.classifications?.map((classification) => `${CONST.DUALENTRY_CONFIG.FIELD_MAPPING_PREFIX}${classification.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
                     CONST.DUALENTRY_CONFIG.EXPORTER,
                     CONST.DUALENTRY_CONFIG.EXPORT_DATE,
