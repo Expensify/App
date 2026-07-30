@@ -4204,6 +4204,7 @@ ${amount} para ${merchant} - ${date}`,
         enterOneEmail: (companyName: string) => `Insira o e-mail de um diretor em ${companyName}`,
         regulationRequiresOneMoreDirector: 'A regulamentação exige pelo menos mais um diretor como signatário.',
         bothSignersMustBeOnIllionReport: 'Ambos os signatários devem constar como diretores no relatório illion da empresa. Não podem ser duas pessoas quaisquer do negócio.',
+        signerMustBeOnIllionReport: 'O diretor que você adicionar como signatário deve constar no relatório illion da empresa.',
         hangTight: 'Aguarde um instante...',
         enterTwoEmails: (companyName: string) => `Insira os e-mails de dois diretores em ${companyName}`,
         sendReminder: 'Enviar um lembrete',
@@ -4214,11 +4215,11 @@ ${amount} para ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Exemplos: Perfil Corporativo Oncorp ou Registro de Empresa.',
         codiceFiscale: 'Código fiscal',
         codiceFiscaleDescription: 'Codice Fiscale para signatários, usuários autorizados e beneficiários finais.',
-        PDSandFSG: 'Documentação de divulgação do PDS + FSG',
+        PDSandFSG: 'Documentação de divulgação do PDS, FSG + TMD',
         PDSandFSGDescription: Str.dedent(`
-            Nossa parceria com a Corpay utiliza uma conexão de API para aproveitar sua vasta rede de parceiros bancários internacionais e impulsionar os Reembolsos Globais no Expensify. De acordo com a regulamentação australiana, estamos fornecendo o Guia de Serviços Financeiros (FSG) e o Documento de Divulgação de Produto (PDS) da Corpay.
+            Nossa parceria com a Corpay utiliza uma conexão de API para aproveitar sua vasta rede de parceiros bancários internacionais e impulsionar os Reembolsos Globais no Expensify. De acordo com a regulamentação australiana, estamos fornecendo o Guia de Serviços Financeiros (FSG), o Documento de Divulgação de Produto (PDS) e a Determinação de Mercado-Alvo (TMD) da Corpay.
 
-            Leia com atenção os documentos FSG e PDS, pois eles contêm todos os detalhes e informações importantes sobre os produtos e serviços oferecidos pela Corpay. Guarde esses documentos para referência futura.
+            Leia com atenção os documentos FSG, PDS e TMD, pois eles contêm todos os detalhes e informações importantes sobre os produtos e serviços oferecidos pela Corpay. Guarde esses documentos para referência futura.
         `),
         pleaseUpload: 'Envie abaixo documentação adicional para nos ajudar a verificar sua identidade como diretor(a) da empresa.',
         enterSignerInfo: 'Insira as informações do assinante',
@@ -4240,7 +4241,7 @@ ${amount} para ${merchant} - ${date}`,
         iAcceptTheTermsAndConditions: `Eu aceito os <a href="https://www.corpay.com/cross-border/terms">termos e condições</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Eu aceito os termos e condições.',
         accept: 'Aceitar e adicionar conta bancária',
-        iConsentToThePrivacyNotice: 'Eu concordo com o <a href="https://payments.corpay.com/compliance">aviso de privacidade</a>.',
+        iConsentToThePrivacyNotice: 'Eu concordo com o <a href="https://www.corpay.com/privacy-policy">aviso de privacidade</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'Eu concordo com o aviso de privacidade.',
         error: {
             authorized: 'Você precisa ser um administrador responsável com autorização para movimentar a conta bancária da empresa',

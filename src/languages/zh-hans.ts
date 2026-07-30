@@ -4094,6 +4094,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         enterOneEmail: (companyName: string) => `输入 ${companyName} 一位主管的邮箱地址`,
         regulationRequiresOneMoreDirector: '根据规定，至少还需要一名董事作为签署人。',
         bothSignersMustBeOnIllionReport: '两位签署人都必须作为董事列示在公司的 illion 报告中，不能是企业中任意两人。',
+        signerMustBeOnIllionReport: '您添加为签署人的董事必须列示在公司的 illion 报告中。',
         hangTight: '请稍候…',
         enterTwoEmails: (companyName: string) => `输入 ${companyName} 的两位董事的邮箱地址`,
         sendReminder: '发送提醒',
@@ -4104,11 +4105,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         proofOfDirectorsDescription: '示例：Oncorp 公司概况或商业注册。',
         codiceFiscale: '税号',
         codiceFiscaleDescription: '签署人、授权用户和实益所有人的税号（Codice Fiscale）。',
-        PDSandFSG: 'PDS + FSG 披露文件',
+        PDSandFSG: 'PDS、FSG + TMD 披露文件',
         PDSandFSGDescription: Str.dedent(`
-            我们与 Corpay 的合作通过 API 连接，利用其庞大的国际银行合作伙伴网络，为 Expensify 提供全球报销服务。根据澳大利亚相关法规，我们向您提供 Corpay 的《金融服务指南（FSG）》和《产品披露声明（PDS）》。
+            我们与 Corpay 的合作通过 API 连接，利用其庞大的国际银行合作伙伴网络，为 Expensify 提供全球报销服务。根据澳大利亚相关法规，我们向您提供 Corpay 的《金融服务指南（FSG）》、《产品披露声明（PDS）》和《目标市场认定（TMD）》。
 
-            请仔细阅读 FSG 和 PDS 文档，因为其中包含 Corpay 所提供产品和服务的完整细节和重要信息。请妥善保留这些文档以备日后查阅。
+            请仔细阅读 FSG、PDS 和 TMD 文档，因为其中包含 Corpay 所提供产品和服务的完整细节和重要信息。请妥善保留这些文档以备日后查阅。
         `),
         pleaseUpload: '请在下方上传更多证明文件，以帮助我们核实您作为该企业董事的身份。',
         enterSignerInfo: '输入签署人信息',
@@ -4130,7 +4131,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         iAcceptTheTermsAndConditions: `我接受<a href="https://www.corpay.com/cross-border/terms">条款和条件</a>。`,
         iAcceptTheTermsAndConditionsAccessibility: '我接受条款和条件。',
         accept: '接受并添加银行账户',
-        iConsentToThePrivacyNotice: '我同意<a href="https://payments.corpay.com/compliance">隐私声明</a>。',
+        iConsentToThePrivacyNotice: '我同意<a href="https://www.corpay.com/privacy-policy">隐私声明</a>。',
         iConsentToThePrivacyNoticeAccessibility: '我同意隐私声明。',
         error: {
             authorized: '您必须是拥有操作该企业银行账户授权的控制负责人',

@@ -4201,6 +4201,7 @@ ${amount} dla ${merchant} - ${date}`,
         enterOneEmail: (companyName: string) => `Wpisz adres e-mail dyrektora w firmie ${companyName}`,
         regulationRequiresOneMoreDirector: 'Przepisy wymagają co najmniej jednego dodatkowego dyrektora jako sygnatariusza.',
         bothSignersMustBeOnIllionReport: 'Obaj sygnatariusze muszą być wymienieni jako dyrektorzy w raporcie illion firmy. Nie mogą to być dowolne dwie osoby z firmy.',
+        signerMustBeOnIllionReport: 'Dyrektor, którego dodajesz jako sygnatariusza, musi być wymieniony w raporcie illion firmy.',
         hangTight: 'Chwileczkę…',
         enterTwoEmails: (companyName: string) => `Wpisz adresy e-mail dwóch dyrektorów w firmie ${companyName}`,
         sendReminder: 'Wyślij przypomnienie',
@@ -4211,11 +4212,11 @@ ${amount} dla ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Przykłady: profil korporacyjny Oncorp lub rejestracja firmy.',
         codiceFiscale: 'Kod fiskalny',
         codiceFiscaleDescription: 'Codice Fiscale dla sygnatariuszy, użytkowników upoważnionych i beneficjentów rzeczywistych.',
-        PDSandFSG: 'Dokumenty ujawnieniowe PDS + FSG',
+        PDSandFSG: 'Dokumenty ujawnieniowe PDS, FSG + TMD',
         PDSandFSGDescription: Str.dedent(`
-            Nasza współpraca z Corpay wykorzystuje połączenie API, aby korzystać z ich rozległej sieci międzynarodowych partnerów bankowych obsługujących Globalne Zwroty w Expensify. Zgodnie z regulacjami obowiązującymi w Australii udostępniamy Ci Przewodnik po usługach finansowych (Financial Services Guide, FSG) oraz Dokument ujawniający informacje o produkcie (Product Disclosure Statement, PDS) firmy Corpay.
+            Nasza współpraca z Corpay wykorzystuje połączenie API, aby korzystać z ich rozległej sieci międzynarodowych partnerów bankowych obsługujących Globalne Zwroty w Expensify. Zgodnie z regulacjami obowiązującymi w Australii udostępniamy Ci Przewodnik po usługach finansowych (Financial Services Guide, FSG) oraz Dokument ujawniający informacje o produkcie (Product Disclosure Statement, PDS) oraz Ustalenie rynku docelowego (Target Market Determination, TMD) firmy Corpay.
 
-            Przeczytaj uważnie dokumenty FSG i PDS, ponieważ zawierają one pełne informacje i ważne szczegóły dotyczące produktów i usług oferowanych przez Corpay. Zachowaj te dokumenty do wykorzystania w przyszłości.
+            Przeczytaj uważnie dokumenty FSG, PDS i TMD, ponieważ zawierają one pełne informacje i ważne szczegóły dotyczące produktów i usług oferowanych przez Corpay. Zachowaj te dokumenty do wykorzystania w przyszłości.
         `),
         pleaseUpload: 'Prześlij poniżej dodatkową dokumentację, abyśmy mogli zweryfikować Twoją tożsamość jako dyrektora firmy.',
         enterSignerInfo: 'Wprowadź dane sygnatariusza',
@@ -4237,7 +4238,7 @@ ${amount} dla ${merchant} - ${date}`,
         iAcceptTheTermsAndConditions: `Akceptuję <a href="https://www.corpay.com/cross-border/terms">warunki i zasady</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Akceptuję warunki.',
         accept: 'Zaakceptuj i dodaj konto bankowe',
-        iConsentToThePrivacyNotice: 'Wyrażam zgodę na <a href="https://payments.corpay.com/compliance">informację o ochronie prywatności</a>.',
+        iConsentToThePrivacyNotice: 'Wyrażam zgodę na <a href="https://www.corpay.com/privacy-policy">informację o ochronie prywatności</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'Wyrażam zgodę na informację o prywatności.',
         error: {
             authorized: 'Musisz być osobą zasiadającą we władzach firmy z upoważnieniem do obsługi firmowego rachunku bankowego',

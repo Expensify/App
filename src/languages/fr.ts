@@ -4244,6 +4244,7 @@ ${amount} pour ${merchant} - ${date}`,
         regulationRequiresOneMoreDirector: 'La réglementation exige au moins un autre directeur en tant que signataire.',
         bothSignersMustBeOnIllionReport:
             "Les deux signataires doivent figurer en tant que directeurs sur le rapport illion de l'entreprise. Il ne peut pas s'agir de deux personnes quelconques de l'entreprise.",
+        signerMustBeOnIllionReport: "Le directeur que vous ajoutez comme signataire doit figurer sur le rapport illion de l'entreprise.",
         hangTight: 'Un instant...',
         enterTwoEmails: (companyName: string) => `Saisissez les adresses e-mail de deux directeurs de ${companyName}`,
         sendReminder: 'Envoyer un rappel',
@@ -4254,11 +4255,11 @@ ${amount} pour ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Exemples : profil d’entreprise Oncorp ou enregistrement d’entreprise.',
         codiceFiscale: 'Code fiscal',
         codiceFiscaleDescription: 'Code fiscal pour les signataires, utilisateurs autorisés et bénéficiaires effectifs.',
-        PDSandFSG: 'Documents de divulgation PDS + FSG',
+        PDSandFSG: 'Documents de divulgation PDS, FSG + TMD',
         PDSandFSGDescription: Str.dedent(`
-            Notre partenariat avec Corpay utilise une connexion API afin de tirer parti de leur vaste réseau de partenaires bancaires internationaux pour alimenter les remboursements internationaux dans Expensify. Conformément à la réglementation australienne, nous vous fournissons le Financial Services Guide (FSG) et le Product Disclosure Statement (PDS) de Corpay.
+            Notre partenariat avec Corpay utilise une connexion API afin de tirer parti de leur vaste réseau de partenaires bancaires internationaux pour alimenter les remboursements internationaux dans Expensify. Conformément à la réglementation australienne, nous vous fournissons le Financial Services Guide (FSG), le Product Disclosure Statement (PDS) et la Target Market Determination (TMD) de Corpay.
 
-            Veuillez lire attentivement les documents FSG et PDS, car ils contiennent des informations complètes et importantes sur les produits et services proposés par Corpay. Conservez ces documents pour référence ultérieure.
+            Veuillez lire attentivement les documents FSG, PDS et TMD, car ils contiennent des informations complètes et importantes sur les produits et services proposés par Corpay. Conservez ces documents pour référence ultérieure.
         `),
         pleaseUpload: 'Veuillez téléverser ci-dessous des documents supplémentaires pour nous aider à vérifier votre identité en tant que dirigeant(e) de l’entreprise.',
         enterSignerInfo: 'Saisir les informations du signataire',
@@ -4280,7 +4281,7 @@ ${amount} pour ${merchant} - ${date}`,
         iAcceptTheTermsAndConditions: `J'accepte les <a href="https://www.corpay.com/cross-border/terms">conditions générales</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'J’accepte les conditions générales.',
         accept: 'Accepter et ajouter un compte bancaire',
-        iConsentToThePrivacyNotice: 'Je consens à l’<a href="https://payments.corpay.com/compliance">avis de confidentialité</a>.',
+        iConsentToThePrivacyNotice: 'Je consens à l’<a href="https://www.corpay.com/privacy-policy">avis de confidentialité</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'Je consens à la notice de confidentialité.',
         error: {
             authorized: 'Vous devez être un responsable habilité, autorisé à utiliser le compte bancaire professionnel',

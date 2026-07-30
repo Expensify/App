@@ -4327,6 +4327,7 @@ const translations = {
         enterOneEmail: (companyName: string) => `Enter the email of a director at ${companyName}`,
         regulationRequiresOneMoreDirector: 'Regulation requires at least one more director as a signer.',
         bothSignersMustBeOnIllionReport: "Both signers must be listed as directors on the company's illion report. They can't be any two people at the business.",
+        signerMustBeOnIllionReport: "The director you add as a signer must be listed on the company's illion report.",
         hangTight: 'Hang tight...',
         enterTwoEmails: (companyName: string) => `Enter the emails of two directors at ${companyName}`,
         sendReminder: 'Send a reminder',
@@ -4337,11 +4338,11 @@ const translations = {
         proofOfDirectorsDescription: 'Examples: Oncorp Corporate Profile or Business Registration.',
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale for Signatories, Authorized Users and Beneficial Owners.',
-        PDSandFSG: 'PDS + FSG disclosure paperwork',
+        PDSandFSG: 'PDS, FSG + TMD disclosure paperwork',
         PDSandFSGDescription: Str.dedent(`
-            Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).
+            Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG), Product Disclosure Statement (PDS) and Target Market Determination (TMD).
 
-            Please read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.
+            Please read the FSG, PDS and TMD documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.
         `),
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director of the business.',
         enterSignerInfo: 'Enter signer info',
@@ -4363,7 +4364,7 @@ const translations = {
         iAcceptTheTermsAndConditions: `I accept the <a href="https://www.corpay.com/cross-border/terms">terms and conditions</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'I accept the terms and conditions.',
         accept: 'Accept and add bank account',
-        iConsentToThePrivacyNotice: 'I consent to the <a href="https://payments.corpay.com/compliance">privacy notice</a>.',
+        iConsentToThePrivacyNotice: 'I consent to the <a href="https://www.corpay.com/privacy-policy">privacy notice</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'I consent to the privacy notice.',
         error: {
             authorized: 'You must be a controlling officer with authorization to operate the business bank account',
