@@ -435,7 +435,7 @@ function getExportMenuItem(
 }
 
 /**
- * Builds a back path to company card details using Members when the existing details
+ * Builds a back path to company card details using Members when the matching details
  * entry has accountID, otherwise Company Cards, so goBack can match the stack entry.
  */
 function getCompanyCardDetailsBackPath(
@@ -444,18 +444,33 @@ function getCompanyCardDetailsBackPath(
     cardID: string,
     settingsNavigatorState: PlatformStackNavigationState<SettingsNavigatorParamList>,
 ): Route {
-    const detailsRoute = settingsNavigatorState.routes.findLast((route) => route.name === SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS);
-    const detailsParams = detailsRoute?.params as {accountID?: string | number; feed?: CompanyCardFeedWithDomainID; cardID?: string} | undefined;
-    const accountIDParam = detailsParams?.accountID;
-    const accountID = accountIDParam !== undefined && accountIDParam !== '' ? Number(accountIDParam) : undefined;
+    const detailsRoute = settingsNavigatorState.routes.findLast((route) => {
+        if (route.name !== SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS) {
+            return false;
+        }
+
+        const {params} = route;
+        if (!params || !('cardID' in params) || !('feed' in params)) {
+            return false;
+        }
+
+        const routeCardID = params.cardID;
+        const routeFeed = params.feed;
+        if (typeof routeCardID !== 'string' || typeof routeFeed !== 'string') {
+            return false;
+        }
+
+        return routeCardID === cardID && decodeURIComponent(routeFeed) === decodeURIComponent(feed);
+    });
+    const detailsParams = detailsRoute?.params;
+    const accountIDParam = detailsParams && 'accountID' in detailsParams ? detailsParams.accountID : undefined;
+    const accountID = typeof accountIDParam === 'string' || typeof accountIDParam === 'number' ? Number(accountIDParam) : undefined;
     const detailsBasePath =
-        accountID !== undefined && Number.isFinite(accountID) && accountID > 0
+        accountID !== undefined && accountIDParam !== '' && Number.isFinite(accountID) && accountID > 0
             ? ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)
             : ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID);
-    const resolvedFeed = detailsParams?.feed ?? feed;
-    const resolvedCardID = detailsParams?.cardID ?? cardID;
 
-    return createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(resolvedFeed, resolvedCardID), detailsBasePath);
+    return createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feed, cardID), detailsBasePath);
 }
 
 export {getCompanyCardDetailsBackPath, getExportMenuItem};
