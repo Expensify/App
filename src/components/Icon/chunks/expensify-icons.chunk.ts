@@ -31,6 +31,7 @@ import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
 import Bot from '@assets/images/bot.svg';
 import Box from '@assets/images/box.svg';
+import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
@@ -158,6 +159,7 @@ import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
 import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
+import LocationAdd from '@assets/images/location-add.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
 import LuggageWithLinesPlus from '@assets/images/luggage-with-lines-plus.svg';
@@ -312,6 +314,7 @@ const Expensicons = {
     Bolt,
     Bot,
     Box,
+    Briefcase,
     Bug,
     Building,
     Buildings,
@@ -409,6 +412,7 @@ const Expensicons = {
     Link,
     LinkCopy,
     Location,
+    LocationAdd,
     Lock,
     UserMinus,
     Luggage,

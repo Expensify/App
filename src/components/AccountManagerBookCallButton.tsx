@@ -74,7 +74,7 @@ function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, is
                     avatarID={accountManagerAccountID}
                     name={accountManagerDetails?.displayName ?? accountManagerDetails?.login}
                     type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.SMALL}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                 />
                 <Text style={[styles.buttonText, styles.buttonMediumText]}>{label}</Text>
             </View>

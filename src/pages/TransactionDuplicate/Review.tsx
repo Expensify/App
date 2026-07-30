@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -53,6 +53,7 @@ function TransactionDuplicateReview() {
     const {isOffline} = useNetwork();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.threadReportID}`, {selector: Boolean});
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${route.params.threadReportID}`);
@@ -122,8 +123,8 @@ function TransactionDuplicateReview() {
         if (!route.params.threadReportID || report?.reportID) {
             return;
         }
-        openReport({reportID: route.params.threadReportID, introSelected, betas});
-    }, [report?.reportID, route.params.threadReportID, introSelected, betas]);
+        openReport({reportID: route.params.threadReportID, introSelected, betas, hasReportActions});
+    }, [report?.reportID, route.params.threadReportID, introSelected, betas, hasReportActions]);
 
     useEffect(() => {
         if (!transactionID) {
@@ -270,19 +271,21 @@ function TransactionDuplicateReview() {
                     </ScrollView>
                     <FixedFooter style={[styles.mtAuto, styles.gap3]}>
                         <Button
-                            success={hasSettledOrApprovedTransaction}
-                            large
-                            text={translate('iou.keepAll')}
+                            variant={hasSettledOrApprovedTransaction ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             onPress={keepAll}
-                        />
+                        >
+                            <Button.Text>{translate('iou.keepAll')}</Button.Text>
+                        </Button>
                         {!hasSettledOrApprovedTransaction && (
                             <Button
-                                success
-                                large
-                                text={translate('iou.keepSelected')}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 onPress={keepSelected}
                                 isDisabled={!selectedTransaction || !selectedTransactionReport}
-                            />
+                            >
+                                <Button.Text>{translate('iou.keepSelected')}</Button.Text>
+                            </Button>
                         )}
                     </FixedFooter>
                 </View>

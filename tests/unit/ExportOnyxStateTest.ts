@@ -5,6 +5,7 @@ import type {Session} from '@src/types/onyx';
 
 type ExampleOnyxState = {
     session: Session;
+    preservedUserSession?: Session;
     [key: string]: unknown;
 };
 
@@ -20,7 +21,8 @@ describe('maskOnyxState', () => {
 
     describe('whitelist functionality', () => {
         it('should only export whitelisted fields from session', () => {
-            const input = {session: mockSession};
+            // preservedUserSession holds a full Session (tokens included) and must be masked exactly like session
+            const input = {session: mockSession, [ONYXKEYS.PRESERVED_USER_SESSION]: mockSession};
             const result = maskOnyxState(input) as ExampleOnyxState;
 
             // Whitelisted fields should be preserved
@@ -34,6 +36,14 @@ describe('maskOnyxState', () => {
             expect(result.session.authToken).toHaveLength('sensitive-auth-token'.length);
             expect(result.session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
             expect(result.session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
+
+            // preservedUserSession must get the same treatment - tokens masked, whitelisted fields kept
+            expect(result.preservedUserSession?.email).toBe('user@example.com');
+            expect(result.preservedUserSession?.accountID).toBe(12345);
+            expect(result.preservedUserSession?.authToken).not.toBe('sensitive-auth-token');
+            expect(result.preservedUserSession?.authToken).toHaveLength('sensitive-auth-token'.length);
+            expect(result.preservedUserSession?.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
+            expect(result.preservedUserSession?.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
         });
 
         it('should mask fields in maskList while preserving structure', () => {
@@ -349,6 +359,8 @@ describe('Onyx key export coverage', () => {
             ONYXKEYS.CREDENTIALS,
             ONYXKEYS.STASHED_CREDENTIALS,
             ONYXKEYS.ACCOUNT,
+            ONYXKEYS.PRESERVED_USER_SESSION,
+            ONYXKEYS.PRESERVED_ACCOUNT,
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             ONYXKEYS.LOGINS,

@@ -1,3 +1,5 @@
+import Log from '@libs/Log';
+
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
@@ -55,7 +57,14 @@ function flushQueue(): Promise<void> {
 
         copyUpdates = copyUpdates.filter((update) => preservedKeys.has(update.key as OnyxKey));
     }
-    return Onyx.update(copyUpdates);
+    // WRITE requests queue their updates here and advance the lastUpdateID watermark before this deferred flush runs.
+    // If the flush fails the updates are lost while the client already claims to be caught up, so surface it in Sentry.
+    return Onyx.update(copyUpdates).catch((error: unknown) => {
+        Log.alert('[OnyxUpdateManagerError] Deferred WRITE Onyx update failed to apply after the watermark advanced, the updates may be lost', {
+            error: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+    });
 }
 
 function isEmpty() {

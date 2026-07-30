@@ -11,6 +11,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -144,7 +146,7 @@ export default function TableRow({
     };
 
     const handleCheckboxPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (event && 'shiftKey' in event && event.shiftKey) {
+        if (getShiftKeyFromEvent(event)) {
             tableMethods.handleMultipleRowSelection(item.keyForList);
             return;
         }
@@ -187,6 +189,7 @@ export default function TableRow({
             <PressableWithFeedback
                 accessible={accessible}
                 accessibilityLabel="row"
+                id={`table-row-${item.keyForList}`}
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
