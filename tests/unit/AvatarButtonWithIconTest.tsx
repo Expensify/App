@@ -24,6 +24,7 @@ const defaultProps = {
     anchorRef: createRef<View>(),
     avatarStyle: {width: 80, height: 80},
     onPress: jest.fn(),
+    avatar: null,
 };
 
 describe('AvatarButtonWithIcon', () => {
