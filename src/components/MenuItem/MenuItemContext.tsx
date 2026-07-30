@@ -1,16 +1,7 @@
 import {createContext, useContext} from 'react';
 
-/**
- * Interaction state of the menu item row, provided by `MenuItem.Root` and consumed by leaf
- * sub-components (e.g. `MenuItem.Icon` derives its fill color, `MenuItem.Chevron` dims itself until hover).
- */
-type MenuItemState = {
-    /** Whether the row is currently hovered */
-    isHovered: boolean;
-
-    /** Whether the row is currently pressed */
-    isPressed: boolean;
-
+/** Config state of the menu item row */
+type MenuItemConfig = {
     /** Whether the row is disabled */
     isDisabled: boolean;
 
@@ -18,15 +9,52 @@ type MenuItemState = {
     isInteractive: boolean;
 };
 
-const MenuItemContext = createContext<MenuItemState | undefined>(undefined);
+/** Interaction state of the menu item row */
+type MenuItemInteraction = {
+    /** Whether the row is currently hovered */
+    isHovered: boolean;
 
-function useMenuItemState(): MenuItemState {
-    const state = useContext(MenuItemContext);
+    /** Whether the row is currently pressed */
+    isPressed: boolean;
+};
+
+const DEFAULT_CONFIG: MenuItemConfig = {
+    isDisabled: false,
+    isInteractive: false,
+};
+
+const DEFAULT_INTERACTION: MenuItemInteraction = {
+    isHovered: false,
+    isPressed: false,
+};
+
+const MenuItemConfigContext = createContext<MenuItemConfig | undefined>(undefined);
+const MenuItemInteractionContext = createContext<MenuItemInteraction | undefined>(undefined);
+
+function warnMissingProvider() {
+    if (!__DEV__) {
+        return;
+    }
+    console.error('MenuItem sub-components must be rendered inside <MenuItem.Root>');
+}
+
+function useMenuItemConfig(): MenuItemConfig {
+    const state = useContext(MenuItemConfigContext);
     if (!state) {
-        throw new Error('MenuItem sub-components must be rendered inside <MenuItem.Root>');
+        warnMissingProvider();
+        return DEFAULT_CONFIG;
     }
     return state;
 }
 
-export default MenuItemContext;
-export {useMenuItemState};
+function useMenuItemInteraction(): MenuItemInteraction {
+    const state = useContext(MenuItemInteractionContext);
+    if (!state) {
+        warnMissingProvider();
+        return DEFAULT_INTERACTION;
+    }
+    return state;
+}
+
+export {MenuItemConfigContext, MenuItemInteractionContext, useMenuItemConfig, useMenuItemInteraction};
+export type {MenuItemConfig, MenuItemInteraction};

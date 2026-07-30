@@ -1,5 +1,5 @@
 import {useIsCompactMenu} from '@components/CompactMenuContext';
-import {useMenuItemState} from '@components/MenuItem/MenuItemContext';
+import {useMenuItemConfig} from '@components/MenuItem/MenuItemContext';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +15,7 @@ type MenuItemRowProps = PropsWithChildren;
 function MenuItemRow({children}: MenuItemRowProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isDisabled} = useMenuItemState();
+    const {isDisabled} = useMenuItemConfig();
     const isCompactMenu = useIsCompactMenu();
     const isCompact = isCompactMenu && !shouldUseNarrowLayout;
 

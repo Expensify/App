@@ -1,8 +1,7 @@
 import {useIsCompactMenu} from '@components/CompactMenuContext';
 import Hoverable from '@components/Hoverable';
 import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
-import MenuItemContext from '@components/MenuItem/MenuItemContext';
-import {useMenuItemGroupActions, useMenuItemGroupState} from '@components/MenuItemGroup';
+import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -35,7 +34,6 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: Menu
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isExecuting} = useMenuItemGroupState() ?? {};
     const pressableRef = useRef<View>(null);
     const isCompactMenu = useIsCompactMenu();
     const isCompact = isCompactMenu && !shouldUseNarrowLayout;
@@ -73,47 +71,47 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: Menu
 
     return (
         <View>
-            <Hoverable>
-                {(isHovered) => (
-                    <PressableWithSecondaryInteraction
-                        onPress={onPressAction}
-                        activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
-                        opacityAnimationDuration={variables.noDimAnimationDuration}
-                        style={({pressed}) =>
-                            [
-                                styles.popoverMenuItem,
-                                !isInteractive && styles.cursorDefault,
-                                isCompact && styles.compactPopoverMenuItemBase,
-                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(isHovered, pressed, false, isDisabled, isInteractive), true),
-                                isDisabled && styles.buttonOpacityDisabled,
-                                isHovered && isInteractive && !pressed && styles.hoveredComponentBG,
-                            ] as StyleProp<ViewStyle>
-                        }
-                        disabled={isDisabled || isExecuting}
-                        ref={pressableRef}
-                        role={isInteractive ? CONST.ROLE.BUTTON : undefined}
-                        accessibilityLabel={accessibilityProps?.accessibilityLabel}
-                        accessible
-                        tabIndex={isInteractive ? 0 : -1}
-                        sentryLabel={sentryLabel}
-                    >
-                        {({pressed}) => (
-                            <MenuItemAccessibilityContext.Provider value={providerValue}>
-                                <MenuItemContext.Provider
-                                    value={{
-                                        isHovered,
-                                        isPressed: pressed,
-                                        isDisabled,
-                                        isInteractive,
-                                    }}
-                                >
-                                    <View style={styles.flex1}>{children}</View>
-                                </MenuItemContext.Provider>
-                            </MenuItemAccessibilityContext.Provider>
-                        )}
-                    </PressableWithSecondaryInteraction>
-                )}
-            </Hoverable>
+            <MenuItemConfigContext.Provider value={{isDisabled, isInteractive}}>
+                <Hoverable>
+                    {(isHovered) => (
+                        <PressableWithSecondaryInteraction
+                            onPress={onPressAction}
+                            activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
+                            opacityAnimationDuration={variables.noDimAnimationDuration}
+                            style={({pressed}) =>
+                                [
+                                    styles.popoverMenuItem,
+                                    !isInteractive && styles.cursorDefault,
+                                    isCompact && styles.compactPopoverMenuItemBase,
+                                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(isHovered, pressed, false, isDisabled, isInteractive), true),
+                                    isDisabled && styles.buttonOpacityDisabled,
+                                    isHovered && isInteractive && !pressed && styles.hoveredComponentBG,
+                                ] as StyleProp<ViewStyle>
+                            }
+                            disabled={isDisabled}
+                            ref={pressableRef}
+                            role={isInteractive ? CONST.ROLE.BUTTON : undefined}
+                            accessibilityLabel={accessibilityProps?.accessibilityLabel}
+                            accessible
+                            tabIndex={isInteractive ? 0 : -1}
+                            sentryLabel={sentryLabel}
+                        >
+                            {({pressed}) => (
+                                <MenuItemAccessibilityContext.Provider value={providerValue}>
+                                    <MenuItemInteractionContext.Provider
+                                        value={{
+                                            isHovered,
+                                            isPressed: pressed,
+                                        }}
+                                    >
+                                        <View style={styles.flex1}>{children}</View>
+                                    </MenuItemInteractionContext.Provider>
+                                </MenuItemAccessibilityContext.Provider>
+                            )}
+                        </PressableWithSecondaryInteraction>
+                    )}
+                </Hoverable>
+            </MenuItemConfigContext.Provider>
         </View>
     );
 }

@@ -1,5 +1,5 @@
 import Icon from '@components/Icon';
-import {useMenuItemState} from '@components/MenuItem/MenuItemContext';
+import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,7 +20,8 @@ function MenuItemChevron() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isHovered, isDisabled} = useMenuItemState();
+    const {isDisabled} = useMenuItemConfig();
+    const {isHovered} = useMenuItemInteraction();
 
     return (
         <View

@@ -1,5 +1,5 @@
 import {useMenuItemAccessibilityLabel} from '@components/MenuItem/MenuItemAccessibilityContext';
-import {useMenuItemState} from '@components/MenuItem/MenuItemContext';
+import {useMenuItemConfig} from '@components/MenuItem/MenuItemContext';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +17,7 @@ type MenuItemTitleProps = PropsWithChildren;
 /** The title block of a `MenuItem.Content`. Bold, single line */
 function MenuItemTitle({children}: MenuItemTitleProps) {
     const styles = useThemeStyles();
-    const {isDisabled, isInteractive} = useMenuItemState();
+    const {isDisabled, isInteractive} = useMenuItemConfig();
 
     useMenuItemAccessibilityLabel(typeof children === 'string' || typeof children === 'number' ? String(children) : undefined);
 
