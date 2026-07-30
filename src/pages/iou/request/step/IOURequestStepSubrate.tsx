@@ -11,10 +11,8 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -22,7 +20,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates, getPerDiemCustomUnit, isControlPolicy, isPerDiemEnabled} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU/PerDiem';
@@ -40,7 +38,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
 import {SafeString} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -91,14 +89,6 @@ function IOURequestStepSubrate({
     });
 
     const customUnit = getPerDiemCustomUnit(policy);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
-    const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
-    // Mirror IOURequestStartPage's `shouldShowWorkspaceSelectForPerDiem` (inverted) so the back target matches
-    // the base the Time step was actually opened on: inline destination on the start page (current policy is
-    // per-diem, or only one per-diem policy) -> CREATE/start base; workspace selector -> destination base.
-    const openedFromStartPage = !hasMoreThanOnePolicyWithPerDiemEnabled || (isControlPolicy(policy) && isPerDiemEnabled(policy));
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
@@ -138,13 +128,12 @@ function IOURequestStepSubrate({
             Navigation.goBack(backTo);
             return;
         }
-        // Rebuild the Time route on the same base it was opened on so Back returns to the actual previous step:
-        // the start/CREATE base when the destination was shown inline on the start page, otherwise the
-        // destination base. Matches the branch used by DynamicIOURequestStepDestination.updateDestination.
-        const timeBase = openedFromStartPage
-            ? ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, reportID, backToReport)
-            : createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, reportID, backToReport));
-        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path, timeBase));
+        Navigation.goBack(
+            createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path,
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, reportID, backToReport)),
+            ),
+        );
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>): Partial<Record<string, TranslationPaths>> => {
