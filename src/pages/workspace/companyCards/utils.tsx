@@ -3,13 +3,16 @@ import type {SelectorType} from '@components/SelectionScreen';
 
 import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import {getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Card, Policy} from '@src/types/onyx';
+import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {Card, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
 import type {Account, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
@@ -430,5 +433,23 @@ function getExportMenuItem(
     }
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getExportMenuItem};
+/**
+ * Builds a back path to company card details using Members when the existing details
+ * entry has accountID, otherwise Company Cards, so goBack can match the stack entry.
+ */
+function getCompanyCardDetailsBackPath(policyID: string, feed: CompanyCardFeedWithDomainID, cardID: string, settingsNavigatorState: {routes: NavigationPartialRoute[]}): Route {
+    const detailsRoute = settingsNavigatorState.routes.findLast((route) => route.name === SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS);
+    const detailsParams = detailsRoute?.params as {accountID?: string | number; feed?: CompanyCardFeedWithDomainID; cardID?: string} | undefined;
+    const accountIDParam = detailsParams?.accountID;
+    const accountID = accountIDParam !== undefined && accountIDParam !== '' ? Number(accountIDParam) : undefined;
+    const detailsBasePath =
+        accountID !== undefined && Number.isFinite(accountID) && accountID > 0
+            ? ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)
+            : ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID);
+    const resolvedFeed = detailsParams?.feed ?? feed;
+    const resolvedCardID = detailsParams?.cardID ?? cardID;
+
+    return createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(resolvedFeed, resolvedCardID), detailsBasePath);
+}
+
+export {getCompanyCardDetailsBackPath, getExportMenuItem};
