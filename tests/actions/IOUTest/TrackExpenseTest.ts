@@ -3091,20 +3091,18 @@ describe('actions/IOU/TrackExpense', () => {
 
     describe('hasUploadedReceipt', () => {
         const receiptIDTransaction: Transaction = {...createRandomTransaction(1), receipt: {receiptID: 1}};
-        const remoteReceiptTransaction: Transaction = {...createRandomTransaction(2), receipt: {source: 'https://www.expensify.com/receipts/w_abc.jpg'}};
-        const blobReceiptTransaction: Transaction = {...createRandomTransaction(3), receipt: {source: 'blob:receipt'}};
-        const fileReceiptTransaction: Transaction = {...createRandomTransaction(4), receipt: {source: 'file://receipt.png'}};
-        const bundledAssetReceiptTransaction: Transaction = {...createRandomTransaction(5), receipt: {source: 1}};
-        const transactionWithoutReceipt: Transaction = {...createRandomTransaction(6), receipt: undefined};
+        const receiptIDWithLocalSourceTransaction: Transaction = {...createRandomTransaction(2), receipt: {receiptID: 2, source: 'blob:receipt'}};
+        const remoteReceiptTransaction: Transaction = {...createRandomTransaction(3), receipt: {source: 'https://www.expensify.com/receipts/w_abc.jpg'}};
+        const localReceiptTransaction: Transaction = {...createRandomTransaction(4), receipt: {source: 'blob:receipt'}};
+        const transactionWithoutReceipt: Transaction = {...createRandomTransaction(5), receipt: undefined};
 
         test.each<[string, OnyxEntry<Transaction>, boolean]>([
-            ['receiptID is present', receiptIDTransaction, true],
-            ['a remote source is present without a receiptID', remoteReceiptTransaction, true],
-            ['only a blob source is present', blobReceiptTransaction, false],
-            ['only a file source is present', fileReceiptTransaction, false],
-            ['only a numeric bundled asset source is present', bundledAssetReceiptTransaction, false],
-            ['no receipt is present', transactionWithoutReceipt, false],
-            ['the transaction is undefined', undefined, false],
+            ['true when receiptID is present', receiptIDTransaction, true],
+            ['true when receiptID is present alongside a local source', receiptIDWithLocalSourceTransaction, true],
+            ['false when only a remote source is present', remoteReceiptTransaction, false],
+            ['false when only a local source is present', localReceiptTransaction, false],
+            ['false when no receipt is present', transactionWithoutReceipt, false],
+            ['false when the transaction is undefined', undefined, false],
         ])('returns %s', (_scenario: string, transaction: OnyxEntry<Transaction>, expectedResult: boolean) => {
             expect(hasUploadedReceipt(transaction)).toBe(expectedResult);
         });
