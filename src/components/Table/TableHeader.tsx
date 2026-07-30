@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import type {ViewProps} from 'react-native';
 
 import React, {useRef} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type {TableColumn, TableData} from './types';
 
@@ -226,6 +226,14 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     // Flex sizing for the column: honor an explicit `styling.flex`, otherwise fill the available width equally.
     const columnFlexStyle = column.styling?.flex ? {flex: column.styling.flex} : styles.flex1;
 
+    // A column may put a grid-track sizing constraint (currently `mnw0`) in `containerStyles`. In the semantic path the
+    // `role="columnheader"` wrapper below is the CSS grid item, so that constraint has to live on it — otherwise a `1fr`
+    // track sizes from its content instead of its share and columns like the Expensify Cards "Limit type"/"Status" stop
+    // equalizing. Horizontal-alignment styles (`justifyContentEnd`, `pr3`) stay on the flexRow button, where they act on
+    // the row axis; forwarding only the sizing keys here avoids double-applying that padding to the cell.
+    const {minWidth, maxWidth} = StyleSheet.flatten(column.styling?.containerStyles) ?? {};
+    const columnCellSizingStyle = {minWidth, maxWidth};
+
     // Base sort-button styles shared by both the semantic and non-semantic paths. The column's `containerStyles`
     // (e.g. `justifyContentEnd`) are horizontal-alignment styles for the header row, so they belong on this `flexRow`
     // button rather than the column-direction cell wrapper below, where `justify-content` would act on the vertical
@@ -289,7 +297,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     // announces the header once (via the button's accessibilityLabel) instead of re-reading the cell's contents.
     return (
         <View
-            style={columnFlexStyle}
+            style={[columnFlexStyle, columnCellSizingStyle]}
             {...getColumnHeaderAccessibilityProps(true, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
         >
             {sortButton}
