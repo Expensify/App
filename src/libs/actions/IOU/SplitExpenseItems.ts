@@ -686,7 +686,10 @@ function updateSplitExpenseAmountField(
                 // the original-transaction rate (covers the P2P and deleted-rate cases).
                 const useSplitSelectedRate = !isSplitP2PRate && !!splitSelectedRate?.rate && splitSelectedRate.rate > 0 && splitSelectedRate.enabled !== false;
                 const rate = useSplitSelectedRate ? (splitSelectedRate?.rate ?? 0) : mileageRate.rate;
-                const unit = useSplitSelectedRate ? (splitSelectedRate?.unit ?? mileageRate.unit) : mileageRate.unit;
+
+                // The unit comes from the split's own `distanceUnit`, kept in sync by `getUpdatedTransaction` on every
+                // rate change, so the merchant matches the Distance field instead of the policy's current unit.
+                const unit = splitExpense.customUnit?.distanceUnit ?? (useSplitSelectedRate ? (splitSelectedRate?.unit ?? mileageRate.unit) : mileageRate.unit);
 
                 if (rate && rate > 0) {
                     const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(

@@ -29,6 +29,7 @@ import {
     getReportActionText,
     getTrackExpenseActionableWhisper,
     isActionableTrackExpense,
+    isDeletedAction,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -666,24 +667,41 @@ function getDeleteTrackExpenseInformation(
     const shouldShowDeletedRequestMessage = !isMovingTransactionFromTrackExpense && !!transactionThreadID && !shouldDeleteTransactionThread;
 
     // STEP 3: Update the IOU reportAction.
-    const updatedReportAction = {
-        [reportAction.reportActionID]: {
-            pendingAction: shouldShowDeletedRequestMessage ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            previousMessage: reportAction.message,
-            message: [
-                {
-                    type: 'COMMENT',
-                    html: '',
-                    text: '',
-                    isEdited: true,
-                    isDeletedParentAction: shouldShowDeletedRequestMessage,
-                },
-            ],
-            originalMessage: {
-                IOUTransactionID: shouldRemoveIOUTransaction ? null : transactionID,
+    const deletedActionValue = {
+        pendingAction: shouldShowDeletedRequestMessage ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        previousMessage: reportAction.message,
+        message: [
+            {
+                type: 'COMMENT',
+                html: '',
+                text: '',
+                isEdited: true,
+                isDeletedParentAction: shouldShowDeletedRequestMessage,
             },
-            errors: undefined,
+        ],
+        originalMessage: {
+            IOUTransactionID: shouldRemoveIOUTransaction ? null : transactionID,
         },
+        errors: undefined,
+    };
+
+    // A report is expected to hold a single live IOU action per transaction, but the chat can end up with more than one
+    // (an optimistic action plus the one the backend created for the same transaction), so all of them are emptied out
+    // here. Only create/track actions are swept — a payment action referencing the transaction stays untouched.
+    const siblingIOUActions = Object.values(getAllReportActions(chatReport?.reportID)).filter((chatAction) => {
+        if (chatAction.reportActionID === reportAction.reportActionID || !isMoneyRequestAction(chatAction) || isDeletedAction(chatAction)) {
+            return false;
+        }
+        const siblingOriginalMessage = getOriginalMessage(chatAction);
+        return (
+            siblingOriginalMessage?.IOUTransactionID === transactionID &&
+            (siblingOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK || siblingOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE)
+        );
+    });
+
+    const updatedReportAction = {
+        [reportAction.reportActionID]: deletedActionValue,
+        ...Object.fromEntries(siblingIOUActions.map((siblingAction) => [siblingAction.reportActionID, {...deletedActionValue, previousMessage: siblingAction.message}])),
         ...(actionableWhisperReportActionID && {[actionableWhisperReportActionID]: {originalMessage: {resolution}}}),
     } as OnyxTypes.ReportActions;
     let canUserPerformWriteAction = true;
@@ -745,7 +763,7 @@ function getDeleteTrackExpenseInformation(
         },
     );
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
@@ -754,9 +772,20 @@ function getDeleteTrackExpenseInformation(
                     pendingAction: null,
                     errors: null,
                 },
+                ...Object.fromEntries(siblingIOUActions.map((siblingAction) => [siblingAction.reportActionID, {pendingAction: null, errors: null}])),
             },
         },
     ];
+
+    // When the transaction is only marked as pending deletion above, drop it once the delete goes through. Left in
+    // place it keeps surfacing in the lists that include pending-delete transactions while offline.
+    if (shouldDeleteTransactionFromOnyx && !isMovingTransactionFromTrackExpense) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: null,
+        });
+    }
 
     // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
     // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
@@ -815,6 +844,7 @@ function getDeleteTrackExpenseInformation(
                     pendingAction: null,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage'),
                 },
+                ...Object.fromEntries(siblingIOUActions.map((siblingAction) => [siblingAction.reportActionID, {...siblingAction, pendingAction: null}])),
             },
         },
         {
@@ -1214,7 +1244,7 @@ const getConvertTrackedExpenseInformation = (
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
     > = [];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     const failureData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
     > = [];

@@ -15,7 +15,7 @@ import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isActionableTrackExpense, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -2596,6 +2596,8 @@ describe('actions/IOU/TrackExpense', () => {
 
         beforeEach(async () => {
             jest.clearAllMocks();
+            // Spies installed by a previous test would otherwise keep `API.write` stubbed for this setup
+            jest.restoreAllMocks();
             PusherHelper.setup();
 
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
@@ -2726,6 +2728,70 @@ describe('actions/IOU/TrackExpense', () => {
                     failureData: expect.any(Array),
                 }),
             );
+        });
+
+        it('empties out every live IOU action pointing at the transaction, not only the one it was called with', async () => {
+            // Given a second live IOU action in the self-DM for the same transaction
+            const duplicateIOUActionID = 'duplicate-iou-action';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                [duplicateIOUActionID]: {...iouReportAction!, reportActionID: duplicateIOUActionID},
+            });
+            await waitForBatchedUpdates();
+
+            // When the expense is deleted through one of the two actions
+            deleteTrackExpense({
+                chatReportID: selfDMReport.reportID,
+                chatReport: selfDMReport,
+                chatReportActions: undefined,
+                transactionID: transaction?.transactionID,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                reportAction: iouReportAction!,
+                iouReport: undefined,
+                chatIOUReport: undefined,
+                transactions: {},
+                violations: {},
+                isSingleTransactionView: false,
+                isChatReportArchived: false,
+                isChatIOUReportArchived: false,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+            });
+            await waitForBatchedUpdates();
+
+            // Then both actions read as deleted, so neither keeps the expense reachable in the chat
+            const updatedActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(isDeletedAction(updatedActions?.[iouReportAction!.reportActionID])).toBe(true);
+            expect(isDeletedAction(updatedActions?.[duplicateIOUActionID])).toBe(true);
+        });
+
+        it('drops the transaction from Onyx once the delete goes through', async () => {
+            // When a tracked expense is deleted
+            deleteTrackExpense({
+                chatReportID: selfDMReport.reportID,
+                chatReport: selfDMReport,
+                chatReportActions: undefined,
+                transactionID: transaction?.transactionID,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                reportAction: iouReportAction!,
+                iouReport: undefined,
+                chatIOUReport: undefined,
+                transactions: {},
+                violations: {},
+                isSingleTransactionView: false,
+                isChatReportArchived: false,
+                isChatIOUReportArchived: false,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+            });
+            await waitForBatchedUpdates();
+
+            // Then it is gone rather than left behind marked as pending deletion, which the lists that include
+            // pending-delete transactions while offline would keep showing
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`)).resolves.toBeFalsy();
         });
     });
 

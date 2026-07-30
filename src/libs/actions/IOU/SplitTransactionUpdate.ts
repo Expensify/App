@@ -1327,6 +1327,23 @@ function updateSplitTransactions({
             onyxData.successData?.push(...(moneyRequestInformationOnyxData.successData ?? []));
             onyxData.failureData?.push(...(moneyRequestInformationOnyxData.failureData ?? []));
         }
+        // A revert restores an expense that already existed, so it isn't pending creation —
+        // `buildOptimisticIOUReportAction` stamps ADD on every action it builds.
+        if (isReverseSplitOperation && reportActionsReportID) {
+            onyxData.optimisticData?.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
+                    value: {[iouAction.reportActionID]: {pendingAction: null}},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`,
+                    value: {pendingAction: null},
+                },
+            );
+        }
+
         onyxData.optimisticData?.push(...(updateMoneyRequestParamsOnyxData.optimisticData ?? []), ...optimisticDataComments);
         onyxData.successData?.push(...(updateMoneyRequestParamsOnyxData.successData ?? []), ...successDataComments);
         onyxData.failureData?.push(...(updateMoneyRequestParamsOnyxData.failureData ?? []), ...failureDataComments);
@@ -1358,12 +1375,10 @@ function updateSplitTransactions({
             continue;
         }
 
-        // For a reverse split operation (i.e. deleting one transaction from a 2-split), the other split(undeleted)
-        // transaction also gets marked for deletion optimistically. This causes the undeleted split to remain visible,
-        // resulting in 3 transactions(deleted, undeleted, and original) being shown at the same time when offline.
-        // Since original transaction will be reverted and both splits will eventually be deleted, we remove
-        // the undeleted split entirely instead of marking it for deletion.
-        const forceDeleteSplitTransactionID = isReverseSplitOperation ? splitExpenses.at(0)?.transactionID : undefined;
+        // A reverse split brings the original transaction back in place of every split, so all of them are removed
+        // outright rather than marked for deletion. A split left marked keeps its report action visible (the offline
+        // surfaces render a pending deletion on purpose), and its pending state has nothing left to resolve it.
+        const shouldForceDeleteSplit = isReverseSplitOperation;
 
         const {
             optimisticData: deleteExpenseOptimisticData,
@@ -1379,7 +1394,7 @@ function updateSplitTransactions({
             undefined,
             undefined,
             undefined,
-            isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
+            isReportArchived || shouldForceDeleteSplit,
         );
 
         // getDeleteTrackExpenseInformation only handles deleting the transaction report thread, so we need to update the report preview action here
@@ -1398,7 +1413,7 @@ function updateSplitTransactions({
         onyxData.successData?.push(...(deleteExpenseSuccessData ?? []));
         onyxData.failureData?.push(...(deleteExpenseFailureData ?? []));
 
-        if (undeletedTransaction?.transactionID && undeletedTransaction.transactionID === forceDeleteSplitTransactionID) {
+        if (undeletedTransaction?.transactionID && shouldForceDeleteSplit) {
             onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
