@@ -28,6 +28,9 @@ type ExportDownload = {
     /** Number of reports that failed to export (PDF exports only) */
     failedReportCount?: number;
 
+    /** Number of receipts included in the export (receipts exports only) */
+    receiptCount?: number;
+
     /** Whether the export file should be sent from Concierge */
     shouldSendFromConcierge?: boolean;
 };
