@@ -34,36 +34,7 @@ import MenuItemTitle from './leaves/text/MenuItemTitle';
 import MenuItemChevron from './leaves/trailing/MenuItemChevron';
 import LegacyMenuItem from './MenuItem';
 
-type MenuItemType = {
-    /** The legacy monolithic MenuItem */
-    (...props: Parameters<typeof LegacyMenuItem>): ReturnType<typeof LegacyMenuItem>;
-
-    /** The compound root — a pressable row sharing interaction state with the sub-components below */
-    Root: typeof MenuItemRoot;
-
-    /** The main horizontal line holding the leading, content and trailing cells */
-    Row: typeof MenuItemRow;
-
-    /** The flexible middle cell — stacks Title/Description (in any order) vertically */
-    Content: typeof MenuItemContent;
-
-    /** The right-side cluster for indicators and actions */
-    Trailing: typeof MenuItemTrailing;
-
-    /** Leading icon whose fill follows the row's interaction state */
-    Icon: typeof MenuItemIcon;
-
-    /** The (bold) title text */
-    Title: typeof MenuItemTitle;
-
-    /** The supporting description text — above or below the title depending on declaration order */
-    Description: typeof MenuItemDescription;
-
-    /** Right arrow navigation indicator, dimmed until hovered */
-    Chevron: typeof MenuItemChevron;
-};
-
-const MenuItem: MenuItemType = Object.assign(LegacyMenuItem, {
+const MenuItem = Object.assign(LegacyMenuItem, {
     Root: MenuItemRoot,
     Row: MenuItemRow,
     Content: MenuItemContent,
