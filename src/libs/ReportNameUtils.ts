@@ -175,7 +175,6 @@ import {
     shouldShowMarkAsDone,
 } from './ReportUtils';
 import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from './SpendRuleChangeLogUtils';
-import StringUtils from './StringUtils';
 
 type ComputeReportName = {
     report?: Report;
@@ -860,13 +859,13 @@ function computeReportNameBasedOnReportAction(
         return getRemoveExpensifyCardRuleMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE)) {
-        return StringUtils.lineBreaksToSpaces(getAddAgentRuleMessage(translate, parentReportAction));
+        return getAddAgentRuleMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE)) {
-        return StringUtils.lineBreaksToSpaces(getUpdateAgentRuleMessage(translate, parentReportAction));
+        return getUpdateAgentRuleMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE)) {
-        return StringUtils.lineBreaksToSpaces(getDeleteAgentRuleMessage(translate, parentReportAction));
+        return getDeleteAgentRuleMessage(translate, parentReportAction);
     }
     if (isPolicyCopyReportAction(parentReportAction)) {
         return Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, parentReportAction));
