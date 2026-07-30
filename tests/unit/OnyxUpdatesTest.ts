@@ -287,6 +287,34 @@ describe('OnyxUpdatesTest', () => {
         updateSpy.mockRestore();
     });
 
+    it('clears the pending flush watermark on sign-out', async () => {
+        // Given the client is caught up to update 10 and a WRITE update (lastUpdateID 20) is staged for the deferred flush
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 20,
+            request: {command: 'AddComment', data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+            response: {
+                jsonCode: 200,
+                onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}`, value: {}}],
+            },
+        });
+        await waitForBatchedUpdates();
+        expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 20})).toBe(false);
+
+        // When the user signs out, which clears Onyx storage
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+
+        // Then the pending watermark from the previous session no longer masks gaps in the new session
+        expect(OnyxUpdates.doesClientNeedToBeUpdated({clientLastUpdateID: 5, previousUpdateID: 15})).toBe(true);
+
+        // Drain the staged updates so they don't leak into other tests
+        await flushQueue();
+    });
+
     it('does not move the watermark backwards when a slower older update settles after a newer one', async () => {
         // Given the client is caught up to update 10
         await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);

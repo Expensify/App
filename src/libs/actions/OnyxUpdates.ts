@@ -27,7 +27,15 @@ let lastUpdateIDPendingFlush = 0;
 // We have used `connectWithoutView` here because OnyxUpdates is not connected to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (val) => (lastUpdateIDAppliedToClient = val),
+    callback: (val) => {
+        lastUpdateIDAppliedToClient = val;
+
+        // The persisted watermark is only ever cleared by Onyx.clear (sign-out), so drop the pending marker
+        // too — a stale value from the previous session would mask real gaps after signing back in.
+        if (val === undefined) {
+            lastUpdateIDPendingFlush = 0;
+        }
+    },
 });
 
 // This promise is used to ensure pusher events are always processed in the order they are received,
