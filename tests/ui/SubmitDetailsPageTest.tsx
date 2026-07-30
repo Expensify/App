@@ -92,6 +92,12 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
     }),
 }));
 
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
+
+jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn(() => false));
+
+jest.mock('@libs/Navigation/helpers/isReportOpenInRHP', () => jest.fn(() => false));
+
 jest.mock('@libs/Scheduler', () => ({
     Scheduler: {
         scheduleWhenIdle: jest.fn((callback: () => void) => {
@@ -125,7 +131,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     }),
     preInsertFullscreenUnderRHP: jest.fn(),
     removePreInsertedFullscreenIfNeeded: jest.fn(),
-    navigationRef: {getCurrentRoute: jest.fn(() => undefined), getState: jest.fn(() => ({}))},
+    navigationRef: {
+        getCurrentRoute: jest.fn(() => ({name: 'Share', key: 'Share'})),
+        getState: jest.fn(() => ({routes: [{name: 'Share', key: 'Share'}]})),
+        getRootState: jest.fn(() => ({routes: [{name: 'Share', key: 'Share'}], stale: false})),
+    },
 }));
 
 jest.mock('@pages/Share/ShareRootPage', () => ({showErrorAlert: jest.fn()}));
