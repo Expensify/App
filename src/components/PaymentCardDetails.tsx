@@ -1,15 +1,21 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
+
+import CONST from '@src/CONST';
 import type Fund from '@src/types/onyx/Fund';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import Text from './Text';
 
@@ -42,7 +48,7 @@ function PaymentCardDetails({card, rightComponent, wrapperStyle}: PaymentCardDet
                 src={icons.CreditCard}
                 additionalStyles={styles.subscriptionAddedCardIcon}
                 fill={theme.icon}
-                medium
+                size={CONST.ICON_SIZE.MEDIUM}
             />
             <View style={styles.flex1}>
                 <Text style={styles.textStrong}>{getPaymentMethodDescription(card.accountType, card.accountData, translate)}</Text>

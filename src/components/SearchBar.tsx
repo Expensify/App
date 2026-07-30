@@ -1,13 +1,19 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
+
 import Text from './Text';
 import TextInput from './TextInput';
 
@@ -20,9 +26,10 @@ type SearchBarProps = {
     style?: StyleProp<ViewStyle>;
     shouldShowEmptyState?: boolean;
     emptyStateContainerStyle?: StyleProp<ViewStyle>;
+    ref?: React.Ref<BaseTextInputRef>;
 };
 
-function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
+function SearchBar({ref, label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -36,6 +43,7 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
         <>
             <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowLayout && !isInLandscapeMode), style]}>
                 <TextInput
+                    ref={ref}
                     label={label}
                     accessibilityLabel={label}
                     role={CONST.ROLE.PRESENTATION}

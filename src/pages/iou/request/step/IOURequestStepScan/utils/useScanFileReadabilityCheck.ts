@@ -1,9 +1,12 @@
-import {useEffect, useRef} from 'react';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
+
 import {checkIfLocalFileIsAccessible} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import {useEffect, useRef} from 'react';
 
 /**
  * On mount, verifies that all local receipt files (blob:// URLs) are still readable.

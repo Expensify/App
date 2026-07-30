@@ -49,8 +49,11 @@ fi
 if [[ "$SHOW_WARNINGS" == "false" ]]; then
     ESLINT_ARGS+=(--quiet)
 fi
+# Type-aware linting loads the full TypeScript program in every worker (~12GB heap each on a
+# cold cache), so hosts with limited memory need fewer workers with a larger heap rather than
+# ESLint's auto worker count. Override via ESLINT_CONCURRENCY and NODE_OPTIONS together.
 ESLINT_ARGS+=(
-    --concurrency=auto
+    --concurrency="${ESLINT_CONCURRENCY:-auto}"
     --no-warn-ignored
     "${PASSTHROUGH_ARGS[@]}"
 )
@@ -58,4 +61,8 @@ ESLINT_ARGS+=(
 # Run ESLint with the repo's default memory ceiling and seatbelt behavior.
 NODE_OPTIONS="${NODE_OPTIONS:---max_old_space_size=8192}" \
 SEATBELT_FROZEN="${SEATBELT_FROZEN:-0}" \
-    exec npx eslint "${ESLINT_ARGS[@]}"
+    npx eslint "${ESLINT_ARGS[@]}"
+
+# Fail if a new inline eslint-disable bypasses the Onyx.connect() ban (rulesdir/no-onyx-connect),
+# checking the same targets as ESLint above. Reached only when ESLint itself passes (set -e).
+exec bun scripts/checkOnyxConnectBypass.ts "${PASSTHROUGH_ARGS[@]}"

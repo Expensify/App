@@ -1,12 +1,17 @@
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useImperativeHandle, useRef} from 'react';
-import type {TextInputSelectionChangeEvent} from 'react-native';
-import {View} from 'react-native';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import type {TextSelection} from '@components/Composer/types';
 import {useDragAndDropState} from '@components/DragAndDrop/Provider';
+
 import usePrevious from '@hooks/usePrevious';
+
+import type {ForwardedRef} from 'react';
+import type {TextInputSelectionChangeEvent} from 'react-native';
+
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {SuggestionsRef} from './ReportActionCompose';
+
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
 

@@ -1,14 +1,21 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
+
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, SearchResults} from '@src/types/onyx';
-import {createRandomReport} from '../../utils/collections/reports';
+
+import Onyx from 'react-native-onyx';
+
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
+
+import {createRandomReport} from '../../utils/collections/reports';
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -37,12 +44,12 @@ jest.mock('@libs/actions/SplitExpenses.ts', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     exportToIntegrationOnSearch: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
-    approveMoneyRequestOnSearch: jest.fn(),
+    getSearchApproveOnyxData: jest.fn(() => ({})),
     getLastPolicyBankAccountID: jest.fn(),
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
@@ -62,16 +69,16 @@ jest.mock('@libs/actions/Search', () => ({
 }));
 
 // Control which export actions a report supports without depending on the full
-// integration/permission chain in getSecondaryExportReportActions. The key behavior under
+// integration/permission chain in getReportAccountingExportActions. The key behavior under
 // test is that the snapshot-resolved report (truthy) reaches this function; without the fix
 // the report is undefined and canReportBeExported bails before ever calling it.
-const mockGetSecondaryExportReportActions = jest.fn((...args: Parameters<typeof ReportSecondaryActionUtilsModule.getSecondaryExportReportActions>) => {
+const mockGetSecondaryExportReportActions = jest.fn((...args: Parameters<typeof ReportSecondaryActionUtilsModule.getReportAccountingExportActions>) => {
     const report = args[2];
     return report ? [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED] : [];
 });
 jest.mock('@libs/ReportSecondaryActionUtils', () => ({
     ...jest.requireActual<typeof ReportSecondaryActionUtilsModule>('@libs/ReportSecondaryActionUtils'),
-    getSecondaryExportReportActions: (...args: Parameters<typeof ReportSecondaryActionUtilsModule.getSecondaryExportReportActions>) => mockGetSecondaryExportReportActions(...args),
+    getReportAccountingExportActions: (...args: Parameters<typeof ReportSecondaryActionUtilsModule.getReportAccountingExportActions>) => mockGetSecondaryExportReportActions(...args),
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({
@@ -247,7 +254,6 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     similarSearchHash: 12345,
     flatFilters: [],
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-    status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     view: CONST.SEARCH.VIEW.TABLE,
@@ -315,8 +321,10 @@ function makeSearchResults(reports: Report[]): SearchResults {
     return {
         search: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            status: CONST.SEARCH.STATUS.EXPENSE_REPORT.ALL,
+            hash: 0,
             offset: 0,
+            sortBy: 'date',
+            sortOrder: 'desc',
             hasMoreResults: false,
             hasResults: true,
             isLoading: false,

@@ -1,23 +1,27 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
+
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {findSelfDMReportID, generateReportID} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 /*
  * This is a "utility page", that does this:
@@ -28,13 +32,13 @@ function TrackExpensePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const {isOffline} = useNetwork();
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const [hasSeenTrackTraining, hasSeenTrackTrainingResult] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
     const isLoadingHasSeenTrackTraining = isLoadingOnyxValue(hasSeenTrackTrainingResult);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
-            confirmReadyToOpenApp();
             Navigation.isNavigationReady().then(() => {
                 if (isUnmounted.current || isLoadingHasSeenTrackTraining) {
                     return;
@@ -47,7 +51,7 @@ function TrackExpensePage() {
                     draftTransactionIDs,
                 );
 
-                if (!hasSeenTrackTraining && !isOffline) {
+                if (!hasSeenTrackTraining && !isOffline && !shouldSuppressPromotionalUI) {
                     setTimeout(() => {
                         Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
                     }, CONST.ANIMATED_TRANSITION);

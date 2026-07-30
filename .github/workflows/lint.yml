@@ -5,7 +5,8 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', 'config/.editorconfig', 'config/eslint/**', 'scripts/lint.sh', 'scripts/lintChanged.sh', '.watchmanconfig', '.imgbotconfig']
+    paths:
+      ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', 'config/.editorconfig', 'config/eslint/**', 'scripts/lint.sh', 'scripts/lintChanged.sh', '.watchmanconfig', '.imgbotconfig']
 
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-lint
@@ -15,10 +16,13 @@ jobs:
   lint:
     name: ESLint check
     if: ${{ github.event.head_commit.author.name != 'OSBotify' || github.event_name == 'push' }}
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    # A cold-cache run lints the whole repo with type-aware rules, which loads the full TypeScript
+    # program in every worker (~12GB of heap each, regardless of how files are split between workers).
+    # 2 workers with a 14GB heap cap need ~30GB of memory, so this requires the 32GB (8vcpu) runner.
+    runs-on: blacksmith-8vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           # Only use the elevated OSBotify token on the post-merge `workflow_call` run
           # (so the auto-commit step below can push to the protected `main` branch).
@@ -47,6 +51,11 @@ jobs:
       # If lint fails, we clear the cache and retry to rule out false positives.
       # See: https://typescript-eslint.io/troubleshooting/faqs/eslint/#can-i-use-eslints---cache-with-typescript-eslint
       - name: Lint JavaScript and Typescript with ESLint
+        env:
+          # See the runs-on comment: each worker needs ~12GB of heap on a cold cache, so run
+          # 2 workers with a 14GB cap instead of ESLint's defaults (4 workers, 8GB cap).
+          ESLINT_CONCURRENCY: 2
+          NODE_OPTIONS: --max_old_space_size=14336
         run: |
           if ! npm run lint; then
             echo "Lint failed, clearing cache and retrying..."

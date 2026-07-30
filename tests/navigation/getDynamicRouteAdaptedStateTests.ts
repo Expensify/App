@@ -1,6 +1,7 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import getDynamicRouteAdaptedState from '@libs/Navigation/helpers/dynamicRoutesUtils/getDynamicRouteAdaptedState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 jest.mock('@react-navigation/native', () => ({
     getStateFromPath: jest.fn(),
@@ -21,6 +22,7 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         DynCrossStack: {path: 'suffix-cross'},
     },
     screensWithOnyxTabNavigator: new Set(),
+    dynamicTabPatternToTabPaths: new Map(),
 }));
 
 jest.mock('@src/ROUTES', () => ({

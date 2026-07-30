@@ -1,19 +1,25 @@
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {Ref} from 'react';
-import {View} from 'react-native';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
 import type {SearchDatePreset} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SpacerView from '@components/SpacerView';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateRangeDisplayValueFromFormValue, getEmptyDateValues, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import type {Ref} from 'react';
+
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import RangeDatePicker from './RangeDatePicker';
 
 type CustomDateModifier = Exclude<SearchDateModifier, typeof CONST.SEARCH.DATE_MODIFIERS.RANGE>;
@@ -483,7 +489,7 @@ function DatePresetFilterBase({
                         isSelected: selectedDateModifier === dateModifier,
                     }}
                     onSelectRow={() => selectDateModifier(dateModifier)}
-                    wrapperStyle={styles.flexReset}
+                    wrapperStyle={[styles.flexReset, styles.optionRowCompact]}
                 />
             ))}
         </>

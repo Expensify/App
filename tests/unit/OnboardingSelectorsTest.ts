@@ -1,7 +1,9 @@
-import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
-import type {OnyxValue} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxValue} from 'react-native-onyx';
+
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 describe('onboardingSelectors', () => {
     // Not all users have this NVP defined as we did not run a migration to backfill it for existing accounts, hence we need to make sure

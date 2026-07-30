@@ -1,8 +1,3 @@
-import {FlashList} from '@shopify/flash-list';
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
@@ -16,6 +11,7 @@ import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,6 +22,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {clearPolicyTitleFieldError, enablePolicyReportFields, setPolicyPreventMemberCreatedTitle} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -36,13 +33,23 @@ import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnecti
 import {getTitleFieldWithFallback} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {openPolicyReportFieldsPage, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import {FlashList} from '@shopify/flash-list';
+import {Str} from 'expensify-common';
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 type ReportFieldForList = ListItem & {
     fieldID: string;

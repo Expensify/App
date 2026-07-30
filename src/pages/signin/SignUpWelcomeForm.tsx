@@ -1,18 +1,24 @@
-import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormHelpMessage from '@components/FormHelpMessage';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import {setReadyToShowAuthScreens} from '@userActions/HybridApp';
 import {clearSignInData, signUpUser} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {Str} from 'expensify-common';
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 

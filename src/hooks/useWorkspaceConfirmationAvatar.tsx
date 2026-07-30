@@ -1,7 +1,11 @@
-import React, {useCallback} from 'react';
 import Avatar from '@components/Avatar';
+
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
+
+import React, {useCallback} from 'react';
+
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useThemeStyles from './useThemeStyles';
 

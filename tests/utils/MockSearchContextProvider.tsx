@@ -1,4 +1,3 @@
-import React from 'react';
 import {
     SearchQueryActionsContext,
     SearchQueryContext,
@@ -17,6 +16,8 @@ import type {
     SearchSelectionContextValue,
     SearchStateContextValue,
 } from '@components/Search/types';
+
+import React from 'react';
 
 type MockSearchContextProviderProps = {
     state: SearchStateContextValue;

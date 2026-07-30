@@ -1,6 +1,8 @@
 import React from 'react';
-import SidePanelButtonBase from './SidePanelButtonBase';
+
 import type SidePanelButtonProps from './types';
+
+import SidePanelButtonBase from './SidePanelButtonBase';
 
 function SidePanelButton({style}: SidePanelButtonProps) {
     return <SidePanelButtonBase style={style} />;

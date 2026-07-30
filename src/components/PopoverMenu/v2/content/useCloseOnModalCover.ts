@@ -1,7 +1,9 @@
+import useOnyx from '@hooks/useOnyx';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {isModalCoveringSelector} from '@selectors/Modal';
 import {useEffect, useRef} from 'react';
-import useOnyx from '@hooks/useOnyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 function useCloseOnModalCover(isVisible: boolean, close: () => void): void {
     const [isCovered, modalMeta] = useOnyx(ONYXKEYS.MODAL, {selector: isModalCoveringSelector});

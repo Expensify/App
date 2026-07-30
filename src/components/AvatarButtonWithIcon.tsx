@@ -1,16 +1,22 @@
-import type {RefObject} from 'react';
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {RefObject} from 'react';
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import Avatar from './Avatar';
 import Icon from './Icon';
 import OfflineWithFeedback from './OfflineWithFeedback';

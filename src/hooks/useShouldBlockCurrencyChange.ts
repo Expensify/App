@@ -1,9 +1,13 @@
-import {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy, ReimbursementAccount} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useCallback} from 'react';
+
 import useOnyx from './useOnyx';
 
 const reimbursementAccountAchStateSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => reimbursementAccount?.achData?.state;

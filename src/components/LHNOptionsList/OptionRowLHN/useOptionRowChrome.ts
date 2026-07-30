@@ -1,11 +1,15 @@
-import {useState} from 'react';
-import type {ColorValue, ViewStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
 import type {OptionRowLHNProps} from '@components/LHNOptionsList/types';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {ColorValue, ViewStyle} from 'react-native';
+
+import {useState} from 'react';
+import {StyleSheet} from 'react-native';
 
 type UseOptionRowChromeParams = {
     /** Whether the row is the currently focused/active option. Drives the focused color path. */

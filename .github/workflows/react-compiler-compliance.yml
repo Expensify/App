@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ["**.ts", "**.tsx"]
+    paths: ['**.ts', '**.tsx']
 
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-react-compiler-compliance
@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode

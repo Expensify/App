@@ -1,33 +1,21 @@
-import React from 'react';
-import useOnyx from '@hooks/useOnyx';
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ListBoundaryLoader from './ListBoundaryLoader';
+
+import React from 'react';
 
 type ReportActionsListHeaderProps = {
     /** The ID of the report being displayed */
     reportID: string;
 
-    /** Callback to retry loading newer chats after an error */
-    onRetry: () => void;
-
-    /** Whether the user has an active Concierge draft response — hides the thinking indicator */
-    hasActiveDraft?: boolean;
+    /** Whether a Concierge draft is still streaming in — hides the thinking indicator only while the reply is actively revealing, not after it completes */
+    isDraftPendingCompletion?: boolean;
 };
 
-function ReportActionsListHeader({reportID, onRetry, hasActiveDraft}: ReportActionsListHeaderProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+function ReportActionsListHeader({reportID, isDraftPendingCompletion}: ReportActionsListHeaderProps) {
+    if (isDraftPendingCompletion) {
+        return null;
+    }
 
-    return (
-        <>
-            {!hasActiveDraft && <ConciergeThinkingMessage report={report} />}
-            <ListBoundaryLoader
-                type={CONST.LIST_COMPONENTS.HEADER}
-                onRetry={onRetry}
-            />
-        </>
-    );
+    return <ConciergeThinkingMessage reportID={reportID} />;
 }
 
 export default ReportActionsListHeader;

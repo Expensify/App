@@ -1,22 +1,28 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
     lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
@@ -27,20 +33,11 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nonEmptyStringTransactionReportID = getNonEmptyStringOnyxID(transaction.reportID);
 
-    const getIOUActionForTransactionIDSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
+    const [iouReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringTransactionReportID}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
             return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID);
         },
-        [transaction.transactionID],
-    );
-
-    const [iouReportAction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringTransactionReportID}`,
-        {
-            selector: getIOUActionForTransactionIDSelector,
-        },
-        [getIOUActionForTransactionIDSelector],
-    );
+    });
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`);
 

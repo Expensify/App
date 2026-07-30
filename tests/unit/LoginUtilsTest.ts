@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import {
     appendCountryCode,
     getEmailDomain,
@@ -9,8 +8,12 @@ import {
     sanitizePhoneOrEmail,
     validateNumber,
 } from '@libs/LoginUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('LoginUtils', () => {

@@ -1,7 +1,11 @@
-import React from 'react';
-import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
+
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
+
+import React from 'react';
+
 import MultiSelect from './MultiSelect';
 
 type CurrencySelectorProps = SearchFilterCommonProps<string[] | undefined>;

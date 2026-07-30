@@ -1,8 +1,11 @@
-import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardFeedsStatusByDomainID, CombinedCardFeed, CombinedCardFeeds, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+
+import type {ResultMetadata} from 'react-native-onyx';
+
 import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
@@ -23,7 +26,7 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
  *     4. Card feed status by domain ID.
  *     5. Workspace account ID for the policy.
  */
-const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined, CardFeedsStatusByDomainID, number] => {
+const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata, CardFeeds | undefined, CardFeedsStatusByDomainID, number] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -51,10 +54,15 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
 
     let workspaceFeeds: CombinedCardFeeds | undefined;
     if (policyID && allFeeds) {
+        // `policyID` is stable for this hook invocation, so uppercase it once instead of per feed evaluation.
+        const upperPolicyID = policyID.toUpperCase();
         const shouldIncludeFeedPredicate = (combinedCardFeed: CombinedCardFeed) => {
             const validLinkedPolicyIDs = combinedCardFeed?.linkedPolicyIDs?.filter(Boolean);
             if (validLinkedPolicyIDs?.length) {
-                return validLinkedPolicyIDs.includes(policyID);
+                // Linked policy IDs can differ in casing, so compare case-insensitively. This keeps the "available"
+                // list aligned with the case-insensitive "From other workspaces" check in useOtherFeedsForFeedSelector,
+                // so a case-mismatched linked feed isn't dropped from both lists and lost.
+                return validLinkedPolicyIDs.some((linkedPolicyID) => linkedPolicyID.toUpperCase() === upperPolicyID);
             }
             return combinedCardFeed.preferredPolicy ? combinedCardFeed.preferredPolicy === policyID : combinedCardFeed.domainID === effectiveWorkspaceAccountID;
         };

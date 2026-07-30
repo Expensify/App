@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -15,16 +13,20 @@ import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import type {SearchColumnType} from '@components/Search/types';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
     getAmount,
     getConvertedAmount,
@@ -39,8 +41,17 @@ import {
     isScanning,
     isTimeRequest,
 } from '@libs/TransactionUtils';
+import getFormattedPostedDate from '@libs/TransactionUtils/getFormattedPostedDate';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, TransactionItemRowWideComputedData} from './types';
+
 import CategoryCell from './DataCells/CategoryCell';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
@@ -50,16 +61,21 @@ import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
-import type {TransactionItemRowProps, TransactionItemRowWideComputedData} from './types';
 
-type TransactionItemRowWideProps = Omit<TransactionItemRowProps, 'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox'> &
-    TransactionItemRowWideComputedData;
+type TransactionItemRowWideProps = Omit<
+    TransactionItemRowProps,
+    'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox' | 'shouldSkipDeferRBR'
+> &
+    TransactionItemRowWideComputedData &
+    TransactionItemRowRBRDeferControlProps;
 
 function TransactionItemRowWide({
     transactionItem,
     report,
+    chatReport,
     policy,
     policyCategories,
+    policyTagLists,
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
@@ -81,6 +97,7 @@ function TransactionItemRowWide({
     shouldStopRadioButtonMouseDownPropagation = false,
     radioButtonContainerStyle,
     shouldShowErrors = true,
+    shouldDeferRBR = true,
     isDisabled = false,
     shouldDisableActionPointerEvents = false,
     violations,
@@ -133,6 +150,10 @@ function TransactionItemRowWide({
     const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const reportForCustomColumns = transactionItem.report ?? report;
+    const submitterUserID = reportForCustomColumns?.submitterUserID;
+    const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
+    const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {
@@ -176,6 +197,15 @@ function TransactionItemRowWide({
                             onSave={onEditTag}
                             policyID={effectivePolicyID}
                         />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE)]}
+                    >
+                        <TextCell text={getTagGLCode(policyTagLists, transactionItem.tag)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
@@ -226,7 +256,7 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, {isPostedColumnWide})]}
                     >
                         <DateCell
-                            date={transactionItem.posted ?? ''}
+                            date={getFormattedPostedDate(transactionItem.posted)}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                         />
@@ -304,7 +334,8 @@ function TransactionItemRowWide({
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
-                                amount={report?.total}
+                                amount={getReimbursableTotal(report)}
+                                chatReport={chatReport}
                                 shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
                                 isMarkAsDone={isMarkAsDone}
                             />
@@ -599,6 +630,33 @@ function TransactionItemRowWide({
                         <TextCell text={transactionItem.withdrawalID} />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID)]}
+                    >
+                        <TextCell text={submitterUserID} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID)]}
+                    >
+                        <TextCell text={submitterPayrollID} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS)]}
+                    >
+                        <TextCell text={orderDealNumbers} />
+                    </View>
+                );
             default:
                 return null;
         }
@@ -614,8 +672,8 @@ function TransactionItemRowWide({
                     {!shouldShowRadioButton && (
                         <Checkbox
                             disabled={isDisabled}
-                            onPress={() => {
-                                onCheckboxPress(transactionItem.transactionID);
+                            onPress={(event) => {
+                                onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
@@ -659,6 +717,7 @@ function TransactionItemRowWide({
                 </View>
                 {shouldShowErrors && (
                     <DeferredTransactionItemRowRBR
+                        shouldDefer={shouldDeferRBR}
                         transaction={transactionItem}
                         violations={violations}
                         report={report}

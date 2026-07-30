@@ -1,11 +1,16 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {PixelRatio, View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {PixelRatio, View} from 'react-native';
+
 import Header from './Header';
 import ImageSVG from './ImageSVG';
 import Text from './Text';

@@ -1,8 +1,7 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
+
 import * as API from '@libs/API';
 import type {
     AddPersonalBankAccountParams,
@@ -33,6 +32,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getFormattedStreet} from '@libs/PersonalDetailsUtils';
 import {buildOptimisticAddCommentReportAction} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +45,11 @@ import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {getMakeDefaultPaymentOnyxData} from './PaymentMethods';
 import {setBankAccountSubStep} from './ReimbursementAccount';
 
@@ -85,6 +90,9 @@ type OpenPersonalBankAccountSetupViewProps = {
 
     /** Whether the user is validated */
     isUserValidated?: boolean;
+
+    /** Route to navigate to after adding a bank account when the KYC flow should continue */
+    onSuccessFallbackRoute?: Route;
 };
 
 type VBBAOnyxKey =
@@ -115,19 +123,39 @@ function setPlaidEvent(eventName: string | null) {
 }
 
 /**
- * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
+ * Opens the personal bank account setup flow and resets PERSONAL_BANK_ACCOUNT state before navigation.
+ * Any existing PERSONAL_BANK_ACCOUNT data is fully replaced with only the fields passed to this function,
+ * so callers that pass no parameters (e.g. Wallet > Add bank account) clear all existing data including
+ * a leftover onSuccessFallbackRoute from a previous flow.
  */
-function openPersonalBankAccountSetupView({exitReportID, policyID, source, shouldSetUpUSBankAccount = false, isUserValidated = true}: OpenPersonalBankAccountSetupViewProps) {
+function openPersonalBankAccountSetupView({
+    exitReportID,
+    policyID,
+    source,
+    shouldSetUpUSBankAccount = false,
+    isUserValidated = true,
+    onSuccessFallbackRoute,
+}: OpenPersonalBankAccountSetupViewProps) {
     clearInternationalBankAccount().then(() => {
+        const personalBankAccountState: Partial<PersonalBankAccount> = {};
+
         if (exitReportID) {
-            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+            personalBankAccountState.exitReportID = exitReportID;
         }
         if (policyID) {
-            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {policyID});
+            personalBankAccountState.policyID = policyID;
         }
         if (source) {
-            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source});
+            personalBankAccountState.source = source;
         }
+        if (onSuccessFallbackRoute) {
+            personalBankAccountState.onSuccessFallbackRoute = onSuccessFallbackRoute;
+        }
+
+        // Use set instead of merge so each new flow starts with only the fields we explicitly pass, not leftover fields from a previous flow.
+        Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, Object.keys(personalBankAccountState).length > 0 ? personalBankAccountState : null);
+        Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
+
         if (!isUserValidated) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
             return;
@@ -294,9 +322,13 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute});
 }
 
-function clearPersonalBankAccount() {
+/**
+ * Clears personal bank account state, Plaid data, and the form draft.
+ * Pass `preservedData` to retain specific fields (e.g. onSuccessFallbackRoute) across the reset.
+ */
+function clearPersonalBankAccount(preservedData?: Partial<PersonalBankAccount>) {
     clearPlaid();
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, null);
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, preservedData ?? null);
     Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
     clearPersonalBankAccountSetupType();
 }
@@ -1837,6 +1869,7 @@ export {
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
+    setPersonalBankAccountContinueKYCOnSuccess,
     resetPersonalBankAccountForUpdate,
     setPlaidEvent,
     openPlaidView,
@@ -1845,7 +1878,6 @@ export {
     createCorpayBankAccount,
     deletePaymentBankAccount,
     handlePlaidError,
-    setPersonalBankAccountContinueKYCOnSuccess,
     openPersonalBankAccountSetupView,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
