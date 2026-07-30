@@ -83,7 +83,7 @@ jest.mock('@hooks/useReportIsArchived', () => jest.fn(() => false));
 // eslint-disable-next-line @typescript-eslint/naming-convention -- numeric account IDs are the Onyx participants key shape
 jest.mock('@hooks/useReportOrReportDraft', () => jest.fn((reportID?: string) => (reportID ? {reportID, participants: {1: {}, 2: {}}, type: 'chat'} : undefined)));
 
-jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
+jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => true));
 
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
     runAfterTransitions: jest.fn(({callback}: {callback: () => void}) => {
@@ -337,6 +337,7 @@ describe('SubmitDetailsPage', () => {
     // and defer navigation to cleanup (shouldNavigate: false) so we do not double-navigate after dismiss.
     it('wide layout: reveals destination via revealRouteBeforeDismissingModal when another report is topmost', async () => {
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+        jest.mocked(getIsNarrowLayout).mockReturnValue(false);
 
         await renderAndConfirm();
 
