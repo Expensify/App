@@ -426,6 +426,7 @@ function SubmitDetailsPage({
                 transactionID: optimisticTransactionID,
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 optimisticChatReportID: reportOrAccountID,
+                navigationReportID: postSubmitNavigationReportID,
                 linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                 shouldNavigate,
             });

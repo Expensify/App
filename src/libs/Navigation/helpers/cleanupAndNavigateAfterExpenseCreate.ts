@@ -25,6 +25,11 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
      * Skips shouldWaitForUpcomingTransition, so transition never arrives (no 1s timeout).
      */
     shouldNavigate?: boolean;
+    /** Pre-computed navigation report ID. When provided, used instead of recomputing
+     * from report/backToReport/optimisticChatReportID to ensure UI and state register
+     * against the same destination.
+     */
+    navigationReportID?: string;
 };
 
 function cleanupAndNavigateAfterExpenseCreate({
@@ -38,6 +43,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     linkedTrackedExpenseReportAction,
     action,
     shouldNavigate = true,
+    navigationReportID,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
     if (__DEV__ && isTracking() && !shouldNavigate) {
         console.warn('[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. ' + 'Caller must own span lifecycle — miss this and span hangs 60s until dropped.');
@@ -49,7 +55,7 @@ function cleanupAndNavigateAfterExpenseCreate({
         shouldWaitForUpcomingTransition: shouldNavigate,
     });
 
-    const finalActiveReportID = backToReport ?? report?.reportID ?? optimisticChatReportID;
+    const finalActiveReportID = navigationReportID ?? backToReport ?? report?.reportID ?? optimisticChatReportID;
     const hasMultipleTransactions = isInvoice ? false : isMoneyRequestReport(finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID));
     const shouldAddPendingNewTransactionIDs =
         action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE ? true : !isInvoice && !!finalActiveReportID && !hasMultipleTransactions;
