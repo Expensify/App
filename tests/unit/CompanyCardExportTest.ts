@@ -30,6 +30,7 @@ function createSettingsState(routes: PlatformStackNavigationState<SettingsNaviga
         routeNames: [],
         type: 'stack',
         stale: false,
+        preloadedRoutes: [],
     };
 }
 
@@ -253,5 +254,62 @@ describe('getCompanyCardDetailsBackPath', () => {
         expect(getCompanyCardDetailsBackPath(MOCK_POLICY_ID, FEED_A, CARD_A, state)).toBe(
             createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(FEED_A, CARD_A), ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(MOCK_POLICY_ID, ACCOUNT_ID_A)),
         );
+    });
+
+    it('uses Company Cards base when accountID is empty or invalid', () => {
+        const emptyAccountState = createSettingsState([
+            {
+                key: 'details-empty',
+                name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_A, cardID: CARD_A, accountID: ''},
+            },
+        ]);
+        const invalidAccountState = createSettingsState([
+            {
+                key: 'details-invalid',
+                name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_A, cardID: CARD_A, accountID: '0'},
+            },
+        ]);
+        const expected = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(FEED_A, CARD_A), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(MOCK_POLICY_ID));
+
+        expect(getCompanyCardDetailsBackPath(MOCK_POLICY_ID, FEED_A, CARD_A, emptyAccountState)).toBe(expected);
+        expect(getCompanyCardDetailsBackPath(MOCK_POLICY_ID, FEED_A, CARD_A, invalidAccountState)).toBe(expected);
+    });
+
+    it('matches an encoded feed against the current feed', () => {
+        const encodedFeed = encodeURIComponent(FEED_A) as CompanyCardFeedWithDomainID;
+        const state = createSettingsState([
+            {
+                key: 'details-encoded',
+                name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+                params: {policyID: MOCK_POLICY_ID, feed: encodedFeed, cardID: CARD_A, accountID: String(ACCOUNT_ID_A)},
+            },
+        ]);
+
+        expect(getCompanyCardDetailsBackPath(MOCK_POLICY_ID, FEED_A, CARD_A, state)).toBe(
+            createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(FEED_A, CARD_A), ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(MOCK_POLICY_ID, ACCOUNT_ID_A)),
+        );
+    });
+
+    it('ignores details routes with missing or non-string feed/cardID params', () => {
+        const expected = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(FEED_A, CARD_A), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(MOCK_POLICY_ID));
+        const missingParamsState = createSettingsState([
+            {
+                key: 'details-missing',
+                name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+                params: {policyID: MOCK_POLICY_ID} as PlatformStackNavigationState<SettingsNavigatorParamList>['routes'][number]['params'],
+            },
+        ]);
+        const nonStringParamsState = createSettingsState([
+            {
+                key: 'details-non-string',
+                name: SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+                params: {policyID: MOCK_POLICY_ID, feed: FEED_A, cardID: 111} as unknown as PlatformStackNavigationState<SettingsNavigatorParamList>['routes'][number]['params'],
+            },
+        ]);
+
+        expect(getCompanyCardDetailsBackPath(MOCK_POLICY_ID, FEED_A, CARD_A, missingParamsState)).toBe(expected);
+        expect(getCompanyCardDetailsBackPath(MOCK_POLICY_ID, FEED_A, CARD_A, nonStringParamsState)).toBe(expected);
     });
 });

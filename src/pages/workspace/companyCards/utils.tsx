@@ -444,6 +444,7 @@ function getCompanyCardDetailsBackPath(
     cardID: string,
     settingsNavigatorState: PlatformStackNavigationState<SettingsNavigatorParamList>,
 ): Route {
+    const decodedFeed = decodeURIComponent(feed);
     const detailsRoute = settingsNavigatorState.routes.findLast((route) => {
         if (route.name !== SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS) {
             return false;
@@ -460,7 +461,7 @@ function getCompanyCardDetailsBackPath(
             return false;
         }
 
-        return routeCardID === cardID && decodeURIComponent(routeFeed) === decodeURIComponent(feed);
+        return routeCardID === cardID && decodeURIComponent(routeFeed) === decodedFeed;
     });
     const detailsParams = detailsRoute?.params;
     const accountIDParam = detailsParams && 'accountID' in detailsParams ? detailsParams.accountID : undefined;
