@@ -13,8 +13,8 @@ import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import type {ThemeStyles} from '@src/styles';
-import type {ThemeColors} from '@src/styles/theme/types';
+import createThemeStyles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
 import createStyleUtils from '@src/styles/utils';
 
 import React from 'react';
@@ -33,7 +33,7 @@ const AVATAR_IMAGE_TEST_ID = 'AvatarImage';
 const WORKSPACE_NAME = "Cathy's Croissants";
 const HEX_POLICY_ID_STARTING_WITH_LETTER = 'A1B2C3D4E5F67890';
 
-const {getDefaultWorkspaceAvatarColor} = createStyleUtils({} as ThemeColors, {} as ThemeStyles);
+const {getDefaultWorkspaceAvatarColor} = createStyleUtils(defaultTheme, createThemeStyles(defaultTheme));
 
 function CustomFallbackIcon() {
     return mockRenderView({testID: 'CustomFallbackIconSvg'});
