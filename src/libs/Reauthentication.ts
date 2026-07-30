@@ -255,6 +255,11 @@ function reauthenticate(command = ''): Promise<boolean> {
         })
             .then((response) => {
                 if (!response) {
+                    // Authenticate can resolve without a response when it bails out early (e.g. requireParameters fails
+                    // because credentials were wiped mid-flow during a short-lived-token transition). Every other terminal
+                    // path resets the flag — missing it here left the network permanently paused and blocked all future
+                    // reauthentication until a page refresh.
+                    setIsAuthenticating(false);
                     return false;
                 }
 

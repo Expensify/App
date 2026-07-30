@@ -2536,6 +2536,9 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
+        // The longest an authentication attempt may be considered in-flight. Past this, the "is authenticating" state is
+        // treated as stuck (e.g. an interrupted SAML sign-in) and reset so subsequent 407s can trigger a fresh token renewal.
+        MAX_AUTHENTICATION_PENDING_TIME_MS: 60 * 1000,
         MAX_REQUEST_RETRIES: 10,
         MAX_OPEN_APP_REQUEST_RETRIES: 2,
         SUSTAINED_FAILURE_THRESHOLD_COUNT: 3,
