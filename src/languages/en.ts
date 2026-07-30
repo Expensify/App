@@ -9652,9 +9652,6 @@ const translations = {
         save: 'Save',
         resume: 'Resume',
         discard: 'Discard',
-        edit: 'Edit',
-        editStop: 'Edit stop',
-        totalDistance: 'Total distance',
         discardDistanceTrackingModal: {
             title: 'Discard distance tracking',
             prompt: "Are you sure? This will discard your current journey and can't be undone.",

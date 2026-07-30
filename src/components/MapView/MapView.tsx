@@ -31,7 +31,6 @@ import type {MapViewProps} from './MapViewTypes';
 
 import Compass from './Compass';
 import Direction from './Direction';
-import MapMarkerIcon from './MapMarkerIcon';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
@@ -321,7 +320,8 @@ function MapView({
                         />
                     </MarkerView>
                 )}
-                {waypoints?.map(({coordinate, markerType, id}) => {
+                {waypoints?.map(({coordinate, markerComponent, id}) => {
+                    const MarkerComponent = markerComponent;
                     if (
                         utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
                         interactive &&
@@ -337,7 +337,7 @@ function MapView({
                             coordinate={coordinate}
                             allowOverlap
                         >
-                            <MapMarkerIcon markerType={markerType} />
+                            <MarkerComponent />
                         </MarkerView>
                     );
                 })}

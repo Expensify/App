@@ -1,5 +1,6 @@
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import GPSMapView from '@components/MapView/GPSMapView';
+import type {Coordinate} from '@components/MapView/MapViewTypes';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -21,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates, getTrimmedGpsTrip, gpsPointsToMapboxCoordinates} from '@libs/GPSDraftDetailsUtils';
+import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -110,7 +111,6 @@ function IOURequestStepDistanceGPS({
     const unit = DistanceRequestUtils.getRate({
         transaction,
         policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
-        useTransactionDistanceUnit: isEditing,
         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     }).unit;
 
@@ -120,11 +120,9 @@ function IOURequestStepDistanceGPS({
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
     const navigateToNextStep = () => {
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
-        const originalDistance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit);
-        const modifiedDistance = gpsDraftDetails?.modifiedDistance !== undefined ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.modifiedDistance, unit) : undefined;
-        const distanceForDisplay = modifiedDistance ?? originalDistance;
+        const distance = getGPSConvertedDistance(gpsDraftDetails, unit);
 
-        setGPSTransactionDraftData(transactionID, gpsDraftDetails, distanceForDisplay, unit);
+        setGPSTransactionDraftData(transactionID, gpsDraftDetails, distance);
 
         const waypoints = getGPSWaypoints(gpsDraftDetails);
         const optimisticTransactionID = rand64();
@@ -157,8 +155,7 @@ function IOURequestStepDistanceGPS({
             policyRecentlyUsedCurrencies,
             introSelected,
             gpsCoordinates,
-            gpsDistance: originalDistance,
-            gpsModifiedDistance: modifiedDistance,
+            gpsDistance: distance,
             selfDMReport,
             policyForMovingExpenses,
             betas,
@@ -198,9 +195,9 @@ function IOURequestStepDistanceGPS({
         return stopMapboxToken;
     }, []);
 
-    const gpsWaypointMarkers = useGPSWaypointMarkers({gpsDraftDetails});
+    const waypointMarkers = useGPSWaypointMarkers();
 
-    const directionCoordinates = gpsPointsToMapboxCoordinates(getTrimmedGpsTrip(gpsDraftDetails));
+    const directionCoordinates: Coordinate[][] = getGpsPoints(gpsDraftDetails).map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
 
     return (
         <StepScreenWrapper
@@ -218,7 +215,7 @@ function IOURequestStepDistanceGPS({
                         pitchEnabled={false}
                         style={[styles.mapView, styles.mapEditView]}
                         styleURL={CONST.MAPBOX.STYLE_URL}
-                        waypoints={gpsWaypointMarkers}
+                        waypoints={waypointMarkers}
                         directionCoordinates={directionCoordinates}
                         isTrackingGPS={!!gpsDraftDetails?.isTracking}
                     />
@@ -228,11 +225,6 @@ function IOURequestStepDistanceGPS({
                     <Waypoints
                         unit={unit}
                         isInLandscapeMode={isInLandscapeMode}
-                        action={action}
-                        iouType={iouType}
-                        transactionID={transactionID}
-                        reportID={reportID}
-                        backToReport={backToReport}
                     />
 
                     <View style={[styles.gap3, styles.ph5, isInLandscapeMode ? styles.pv3 : styles.pb5]}>

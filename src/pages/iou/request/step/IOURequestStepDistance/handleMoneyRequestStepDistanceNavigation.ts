@@ -87,7 +87,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
     gpsDistance?: number;
-    gpsModifiedDistance?: number;
     odometerStart?: number;
     odometerEnd?: number;
     odometerDistance?: number;
@@ -185,7 +184,6 @@ function handleMoneyRequestStepDistanceNavigation({
     selfDMReport,
     gpsCoordinates,
     gpsDistance,
-    gpsModifiedDistance,
     policyForMovingExpenses,
     odometerStart,
     odometerEnd,
@@ -300,7 +298,6 @@ function handleMoneyRequestStepDistanceNavigation({
                             transactionParams: {
                                 amount,
                                 distance,
-                                modifiedDistance: gpsModifiedDistance,
                                 currency: transaction?.currency ?? 'USD',
                                 created: transaction?.created ?? '',
                                 merchant,
@@ -378,7 +375,6 @@ function handleMoneyRequestStepDistanceNavigation({
                         transactionParams: {
                             amount,
                             distance,
-                            modifiedDistance: gpsModifiedDistance,
                             comment: '',
                             created: transaction?.created ?? '',
                             currency: transaction?.currency ?? 'USD',

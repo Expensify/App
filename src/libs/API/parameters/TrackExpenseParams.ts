@@ -38,7 +38,6 @@ type TrackExpenseParams = {
     customUnitRateID?: string;
     description?: string;
     distance?: number;
-    modifiedDistance?: number;
     gpsCoordinates?: string;
     distanceRequestType?: string;
     isDistance?: boolean;

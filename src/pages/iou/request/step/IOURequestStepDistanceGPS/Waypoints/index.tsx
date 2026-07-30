@@ -6,11 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-
-import {getEffectiveEndPoint, getFirstGpsPoint, getTotalGpsTripPoints, isTripStopped as isTripStoppedUtil} from '@src/libs/GPSDraftDetailsUtils';
+import {getFirstGpsPoint, getLastGpsPoint, getTotalGpsTripPoints, isTripStopped as isTripStoppedUtil} from '@src/libs/GPSDraftDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type {Unit} from '@src/types/onyx/Policy';
 
 import React from 'react';
@@ -18,7 +15,6 @@ import {View} from 'react-native';
 
 import DiscardGPSTripButton from './DiscardGPSTripButton';
 import DistanceCounter from './DistanceCounter';
-import EditGPSTripButton from './EditGPSTripButton';
 
 type WaypointsProps = {
     /** Distance unit of the ongoing GPS trip */
@@ -26,9 +22,9 @@ type WaypointsProps = {
 
     /** Whether the screen is in landscape mode */
     isInLandscapeMode: boolean;
-} & MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.GPS_TRIP_EDIT];
+};
 
-function Waypoints({unit, isInLandscapeMode, action, iouType, transactionID, reportID, backToReport}: WaypointsProps) {
+function Waypoints({unit, isInLandscapeMode}: WaypointsProps) {
     const styles = useThemeStyles();
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {translate} = useLocalize();
@@ -43,11 +39,11 @@ function Waypoints({unit, isInLandscapeMode, action, iouType, transactionID, rep
     }
 
     const firstPoint = getFirstGpsPoint(gpsDraftDetails);
-    const effectiveEndPoint = getEffectiveEndPoint(gpsDraftDetails);
+    const lastPoint = getLastGpsPoint(gpsDraftDetails);
 
     const isTripStopped = isTripStoppedUtil(gpsDraftDetails);
 
-    const shouldShowLoadingEndAddress = isTripStopped && !effectiveEndPoint?.address?.value;
+    const shouldShowLoadingEndAddress = isTripStopped && !lastPoint?.address?.value;
     const shouldShowLoadingStartAddress = !firstPoint?.address?.value;
 
     const getEndAddressTitle = () => {
@@ -56,7 +52,7 @@ function Waypoints({unit, isInLandscapeMode, action, iouType, transactionID, rep
         }
 
         if (isTripStopped) {
-            return effectiveEndPoint?.address?.value;
+            return lastPoint?.address?.value;
         }
 
         return translate('gps.trackingDistance');
@@ -72,13 +68,6 @@ function Waypoints({unit, isInLandscapeMode, action, iouType, transactionID, rep
                 </View>
 
                 <DiscardGPSTripButton />
-                <EditGPSTripButton
-                    action={action}
-                    iouType={iouType}
-                    transactionID={transactionID}
-                    reportID={reportID}
-                    backToReport={backToReport}
-                />
             </View>
 
             <MenuItemWithTopDescription

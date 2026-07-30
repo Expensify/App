@@ -1,30 +1,29 @@
 import type {WayPoint} from '@components/MapView/MapViewTypes';
 
+import useMapMarkers from '@hooks/useMapMarkers';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
+import useOnyx from '@hooks/useOnyx';
 
 import {getGPSWaypoints, isTripStopped as isTripStoppedUtil} from '@libs/GPSDraftDetailsUtils';
 
-import type {GpsDraftDetails} from '@src/types/onyx';
-import type {TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
+import ONYXKEYS from '@src/ONYXKEYS';
 
-type UseGPSWaypointMarkersProps = {
-    gpsDraftDetails: GpsDraftDetails | undefined;
-    trimmedEndPoint?: TrimmedGPSPoint;
-};
+import type {ReactNode} from 'react';
 
-function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPointProp}: UseGPSWaypointMarkersProps) {
-    const trimmedEndPoint = trimmedEndPointProp ?? gpsDraftDetails?.trimmedEndPoint;
+function useGPSWaypointMarkers(): WayPoint[] {
+    const getMapMarkerIconComponent = useMapMarkers();
+
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
     const isTripStopped = isTripStoppedUtil(gpsDraftDetails);
 
-    const gpsWaypoints = getGPSWaypoints(gpsDraftDetails, trimmedEndPoint);
+    const gpsWaypoints = getGPSWaypoints(gpsDraftDetails);
     const waypointEntries = Object.entries(gpsWaypoints);
     const lastIndex = waypointEntries.length - 1;
 
     return waypointEntries.flatMap(([key, waypoint], index): WayPoint[] => {
         const isStart = index === 0;
-        // End waypoint can only have odd index, as even indexes are start waypoints of trip segments
-        const isEnd = index === lastIndex && index % 2 === 1;
+        const isEnd = index === lastIndex;
 
         if (isEnd && !isTripStopped) {
             return [];
@@ -41,6 +40,7 @@ function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPoin
             {
                 id: key,
                 coordinate: [waypoint.lng, waypoint.lat],
+                markerComponent: (): ReactNode => getMapMarkerIconComponent(markerType),
                 markerType,
             },
         ];
