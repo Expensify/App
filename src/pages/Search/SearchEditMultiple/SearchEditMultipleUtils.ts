@@ -1,13 +1,11 @@
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
-import {getAttendees, getReportOwnerAsAttendee, getTagArrayFromName, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getTagArrayFromName, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type {Policy, Report, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -130,50 +128,6 @@ function isBulkEditAttendeeTrackingEnabled(
 }
 
 /**
- * When every selected expense has exactly the same single attendee, return that attendee to seed
- * the bulk-edit picker. Otherwise return undefined so the selection starts empty.
- */
-function getSharedSingleAttendeeForBulkEdit(
-    selectedTransactions: Array<{transaction: Transaction; report: OnyxEntry<Report>}>,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
-    currentUserPersonalDetails: CurrentUserPersonalDetails,
-): Attendee | undefined {
-    if (selectedTransactions.length === 0) {
-        return;
-    }
-
-    let sharedAttendee: Attendee | undefined;
-
-    for (const {transaction, report} of selectedTransactions) {
-        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        let ownerDetails;
-        if (isUnreportedExpense) {
-            ownerDetails = currentUserPersonalDetails;
-        } else if (report?.ownerAccountID) {
-            ownerDetails = personalDetailsList?.[report.ownerAccountID] ?? undefined;
-        }
-
-        const attendees = getAttendees(transaction, getReportOwnerAsAttendee(ownerDetails));
-        const onlyAttendee = attendees.at(0);
-        if (attendees.length !== 1 || !onlyAttendee) {
-            return;
-        }
-
-        if (!sharedAttendee) {
-            sharedAttendee = onlyAttendee;
-            continue;
-        }
-
-        const isSameAttendee = onlyAttendee.email ? onlyAttendee.email === sharedAttendee.email : onlyAttendee.displayName === sharedAttendee.displayName;
-        if (!isSameAttendee) {
-            return;
-        }
-    }
-
-    return sharedAttendee;
-}
-
-/**
  * After a hard refresh, transaction/report/reportAction data may only exist in the search snapshot,
  * not in the main Onyx collections. These helpers fill gaps from the snapshot so bulk edit can work.
  */
@@ -233,7 +187,6 @@ export {
     areAllTransactionsExpenseCompatible,
     isBulkEditTaxTrackingEnabled,
     isBulkEditAttendeeTrackingEnabled,
-    getSharedSingleAttendeeForBulkEdit,
     withSnapshotTransactions,
     withSnapshotReportActions,
     withSnapshotReports,
