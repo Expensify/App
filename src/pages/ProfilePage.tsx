@@ -311,7 +311,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItem.Standard
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
-                                onPress={callFunctionIfActionIsAllowed(() => switchToDelegator(login))}
+                                onPress={() => switchToDelegator(login)}
                             />
                         )}
                         {shouldShowNotificationPreference && (
