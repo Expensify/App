@@ -85,6 +85,7 @@ function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.S
             items={items}
             value={multiSelectValues}
             selectionListStyle={selectionListStyle}
+            isNegatable={isFilterNegatable(baseFilterKey)}
             footer={footer}
             onChange={(selectedItems) => {
                 onChange(selectedItems.map((item) => item.value));
@@ -222,6 +223,7 @@ function ListFilterContent({
                 <UserSelector
                     value={typeof value === 'object' ? value : undefined}
                     key={baseFilterKey}
+                    isNegatable={isFilterNegatable(baseFilterKey)}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}

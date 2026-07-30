@@ -77,6 +77,7 @@ type SelectionListPopover = {
     hasHeader?: boolean;
     hasButton?: boolean;
     isSearchable?: boolean;
+    isNegatable?: boolean;
     extraHeight?: number;
 };
 
@@ -6771,6 +6772,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             hasHeader,
             hasButton = true,
             isSearchable,
+            isNegatable,
             extraHeight = 0,
         }: SelectionListPopover) => {
             const MODAL_VERTICAL_PADDING = 32;
@@ -6778,9 +6780,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             const HEADER_HEIGHT = hasHeader ? 48 : 0;
             const TITLE_HEIGHT = hasTitle ? 34 : 0;
             const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+            // The negation toggle sits above the list (small buttons with a border, plus the gap to the list below).
+            const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + 2 + 12 : 0;
 
             const ESTIMATED_LIST_HEIGHT = itemCount * itemHeight + SEARCHBAR_HEIGHT + extraHeight;
-            const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING;
+            const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING + NEGATION_TOGGLE_HEIGHT;
 
             const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
 
