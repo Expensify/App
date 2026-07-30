@@ -1,8 +1,10 @@
 import run from '@github/actions/javascript/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges';
 import GitHubUtils from '@github/libs/GithubUtils';
+import type {InternalOctokit} from '@github/libs/GithubUtils';
 
 import Git from '@scripts/utils/Git';
 
+import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import type {Writable} from 'type-fest';
 
 /**
@@ -10,6 +12,27 @@ import type {Writable} from 'type-fest';
  */
 import * as core from '@actions/core';
 import {context} from '@actions/github';
+import {request} from '@octokit/request';
+
+import createMock from '../utils/createMock';
+
+type ListFilesMethod = RestEndpointMethods['pulls']['listFiles'];
+type ListFilesResponse = Awaited<ReturnType<ListFilesMethod>>;
+type ListFilesMap = (response: ListFilesResponse, done: () => void) => ListFilesResponse['data'];
+type PaginateIterator = InternalOctokit['paginate']['iterator'];
+
+const mockPaginate = Object.assign(jest.fn<Promise<ListFilesResponse['data']>, [ListFilesMethod, Parameters<ListFilesMethod>[0], ListFilesMap?]>(), {
+    iterator: jest.fn<ReturnType<PaginateIterator>, Parameters<PaginateIterator>>(),
+});
+const mockListFiles = Object.assign(jest.fn<ReturnType<ListFilesMethod>, Parameters<ListFilesMethod>>(), {
+    defaults: request.defaults,
+    endpoint: request.endpoint.defaults({url: ''}),
+});
+const mockOctokit = createMock<RestEndpointMethods>({
+    pulls: {
+        listFiles: mockListFiles,
+    },
+});
 
 // Mock all dependencies
 jest.mock('@actions/core');
@@ -17,7 +40,7 @@ jest.mock('@actions/github');
 jest.mock('@github/libs/GithubUtils');
 jest.mock('@scripts/utils/Git');
 
-const mockSetOutput = core.setOutput as jest.MockedFunction<typeof core.setOutput>;
+const mockSetOutput = jest.mocked(core.setOutput);
 const mockGetInput = jest.fn();
 
 // Mock @actions/core getInput
@@ -191,11 +214,9 @@ describe('getPullRequestIncrementalChanges', () => {
         };
 
         // Mock paginate to return PR files
-        const mockPaginate = jest.fn().mockResolvedValue([{filename: 'src/file1.ts'}, {filename: 'src/file2.ts'}]);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        (GitHubUtils as any).paginate = mockPaginate;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        (GitHubUtils as any).octokit = {pulls: {listFiles: jest.fn()}};
+        mockPaginate.mockResolvedValue(createMock<ListFilesResponse['data']>([{filename: 'src/file1.ts'}, {filename: 'src/file2.ts'}]));
+        Object.defineProperty(GitHubUtils, 'paginate', {configurable: true, get: () => mockPaginate});
+        Object.defineProperty(GitHubUtils, 'octokit', {configurable: true, get: () => mockOctokit});
 
         await run();
 
@@ -236,11 +257,9 @@ describe('getPullRequestIncrementalChanges', () => {
         });
 
         // Mock paginate to return PR files
-        const mockPaginate = jest.fn().mockResolvedValue([{filename: 'src/test.ts'}]);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        (GitHubUtils as any).paginate = mockPaginate;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        (GitHubUtils as any).octokit = {pulls: {listFiles: jest.fn()}};
+        mockPaginate.mockResolvedValue(createMock<ListFilesResponse['data']>([{filename: 'src/test.ts'}]));
+        Object.defineProperty(GitHubUtils, 'paginate', {configurable: true, get: () => mockPaginate});
+        Object.defineProperty(GitHubUtils, 'octokit', {configurable: true, get: () => mockOctokit});
 
         await run();
 

@@ -1,37 +1,55 @@
 import ghAction from '@github/actions/javascript/postOrReplaceComment/postOrReplaceComment';
 import CONST from '@github/libs/CONST';
-import type {CreateCommentResponse} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
 import asMutable from '@src/types/utils/asMutable';
-
-import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 
 /**
  * @jest-environment node
  */
 import * as core from '@actions/core';
+import {request} from '@octokit/request';
 import {when} from 'jest-when';
+
+import createMock from '../utils/createMock';
 
 const mockGetInput = jest.fn();
 const createCommentMock = jest.spyOn(GithubUtils, 'createComment');
-const mockListComments = jest.fn();
-const mockGraphql = jest.fn();
-jest.spyOn(GithubUtils, 'octokit', 'get').mockReturnValue({
-    issues: {
-        listComments: mockListComments as unknown as typeof GithubUtils.octokit.issues.listComments,
+type InternalOctokit = NonNullable<typeof GithubUtils.internalOctokit>;
+type CreateCommentResponse = Awaited<ReturnType<InternalOctokit['rest']['issues']['createComment']>>;
+type ListCommentsMethod = InternalOctokit['rest']['issues']['listComments'];
+type ListCommentsResponse = Awaited<ReturnType<ListCommentsMethod>>;
+type ListCommentsMap = (response: ListCommentsResponse, done: () => void) => ListCommentsResponse['data'];
+type GraphqlMethod = InternalOctokit['graphql'];
+type PaginateIterator = InternalOctokit['paginate']['iterator'];
+const mockListComments = Object.assign(jest.fn<ReturnType<ListCommentsMethod>, Parameters<ListCommentsMethod>>(), {
+    defaults: request.defaults,
+    endpoint: request.endpoint.defaults({url: ''}),
+});
+const mockGraphql = jest.fn<ReturnType<GraphqlMethod>, Parameters<GraphqlMethod>>();
+const mockPaginate = Object.assign(
+    jest.fn<Promise<ListCommentsResponse['data']>, [ListCommentsMethod, Parameters<ListCommentsMethod>[0], ListCommentsMap]>((endpoint, params, map) =>
+        endpoint(params).then((response) => map(response, () => {})),
+    ),
+    {
+        iterator: jest.fn<ReturnType<PaginateIterator>, Parameters<PaginateIterator>>(),
     },
-} as RestEndpointMethods);
-
-function mockImplementation<T, TData>(endpoint: (params: Record<string, T>) => Promise<{data: TData}>, params: Record<string, T>) {
-    return endpoint(params).then((response) => response.data);
-}
+);
+jest.spyOn(GithubUtils, 'octokit', 'get').mockReturnValue(
+    createMock<InternalOctokit['rest']>({
+        issues: {
+            listComments: mockListComments,
+        },
+    }),
+);
 
 Object.defineProperty(GithubUtils, 'paginate', {
-    get: () => mockImplementation,
+    configurable: true,
+    get: () => mockPaginate,
 });
 
 Object.defineProperty(GithubUtils, 'graphql', {
+    configurable: true,
     get: () => mockGraphql,
 });
 
@@ -144,16 +162,18 @@ describe('postOrReplaceComment action tests', () => {
         when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue(androidLink);
         when(core.getInput).calledWith('IOS_LINK').mockReturnValue(iOSLink);
         when(core.getInput).calledWith('WEB_LINK').mockReturnValue('https://expensify.app/WEB_LINK');
-        createCommentMock.mockResolvedValue({} as CreateCommentResponse);
-        mockListComments.mockResolvedValue({
-            data: [
-                {
-                    body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing!',
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    node_id: 'IC_abcd',
-                },
-            ],
-        });
+        createCommentMock.mockResolvedValue(createMock<CreateCommentResponse>({}));
+        mockListComments.mockResolvedValue(
+            createMock<Awaited<ReturnType<ListCommentsMethod>>>({
+                data: [
+                    {
+                        body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing!',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        node_id: 'IC_abcd',
+                    },
+                ],
+            }),
+        );
         await ghAction();
         expectPreviousCommentToBeHidden();
         expect(createCommentMock).toHaveBeenCalledTimes(1);
@@ -170,16 +190,18 @@ describe('postOrReplaceComment action tests', () => {
         when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('skipped');
         when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('skipped');
         when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue('https://expensify.app/ANDROID_LINK');
-        createCommentMock.mockResolvedValue({} as CreateCommentResponse);
-        mockListComments.mockResolvedValue({
-            data: [
-                {
-                    body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing!',
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    node_id: 'IC_abcd',
-                },
-            ],
-        });
+        createCommentMock.mockResolvedValue(createMock<CreateCommentResponse>({}));
+        mockListComments.mockResolvedValue(
+            createMock<Awaited<ReturnType<ListCommentsMethod>>>({
+                data: [
+                    {
+                        body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing!',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        node_id: 'IC_abcd',
+                    },
+                ],
+            }),
+        );
         await ghAction();
         expectPreviousCommentToBeHidden();
         expect(createCommentMock).toHaveBeenCalledTimes(1);
@@ -197,16 +219,18 @@ describe('postOrReplaceComment action tests', () => {
         when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue(androidLink);
         when(core.getInput).calledWith('IOS_LINK').mockReturnValue(iOSLink);
         when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('skipped');
-        createCommentMock.mockResolvedValue({} as CreateCommentResponse);
-        mockListComments.mockResolvedValue({
-            data: [
-                {
-                    body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS. Happy testing!',
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    node_id: 'IC_abcd',
-                },
-            ],
-        });
+        createCommentMock.mockResolvedValue(createMock<CreateCommentResponse>({}));
+        mockListComments.mockResolvedValue(
+            createMock<Awaited<ReturnType<ListCommentsMethod>>>({
+                data: [
+                    {
+                        body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS. Happy testing!',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        node_id: 'IC_abcd',
+                    },
+                ],
+            }),
+        );
         await ghAction();
         expectPreviousCommentToBeHidden();
         expect(createCommentMock).toHaveBeenCalledTimes(1);
