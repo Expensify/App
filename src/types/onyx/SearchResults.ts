@@ -197,6 +197,15 @@ type SearchWithdrawalIDGroup = {
     /** Settlement state (5/6/7=failed, 8=cleared, others=pending) */
     state: number;
 
+    /**
+     * Whether this group is an ACH cash back credit rather than a card settlement withdrawal.
+     *
+     * Cash back is a credit back to the bank account, so the row shows a `Cash back` badge instead of a settlement
+     * status, has no expenses to drill into, and its total counts against the withdrawn total rather than towards it.
+     * Orthogonal to `state`: a cash back credit still carries an ordinary settlement state.
+     */
+    isCashbackCredit?: boolean;
+
     /** Workspace ID for the grouped settlement */
     policyID?: string;
 

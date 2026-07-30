@@ -16,6 +16,7 @@ import {useOnyx} from 'react-native-onyx';
 
 import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
 
+import getMockReconciliationResults, {SHOULD_MOCK_RECONCILIATION_DATA} from './mockReconciliationData';
 import {useSearchQueryContext} from './SearchContext';
 import {SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
 
@@ -68,6 +69,11 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
         };
     } else {
         currentSearchResults = snapshotSearchResults ?? undefined;
+    }
+
+    // DEV-ONLY: fake withdrawal groups for the Bank reconciliation tab. Delete along with `mockReconciliationData.ts`.
+    if (SHOULD_MOCK_RECONCILIATION_DATA && currentSearchKey === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION) {
+        currentSearchResults = getMockReconciliationResults(currentSearchResults, currentSearchQueryJSON);
     }
 
     const [sortedReportIDs, setSortedReportIDsState] = useState<ReadonlyArray<string | undefined>>(CONST.EMPTY_ARRAY);

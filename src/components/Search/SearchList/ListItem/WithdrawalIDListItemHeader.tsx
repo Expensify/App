@@ -93,8 +93,13 @@ function WithdrawalIDListItemHeaderImpl({
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
-    const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
-    const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
+    const isCashbackCredit = !!withdrawalIDItem.isCashbackCredit;
+    // Cash back is a credit back to the bank account — the opposite direction from a settlement withdrawal — so it
+    // always reads as a negative total. Normalizing here rather than trusting the sign keeps the row correct whichever
+    // way the backend signs the credit.
+    const displayTotal = isCashbackCredit ? -Math.abs(withdrawalIDItem.total) : withdrawalIDItem.total;
+    const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme, isCashbackCredit);
+    const settlementStatus = isCashbackCredit ? undefined : getSettlementStatus(withdrawalIDItem.state);
     const statusBadge = !!badgeProps && (
         <StatusBadge
             text={badgeProps.text}
@@ -174,7 +179,7 @@ function WithdrawalIDListItemHeaderImpl({
                 key={CONST.SEARCH.TABLE_COLUMNS.EXPENSES}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
             >
-                <TextCell text={String(withdrawalIDItem.count)} />
+                <TextCell text={isCashbackCredit ? '' : String(withdrawalIDItem.count)} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
@@ -183,7 +188,7 @@ function WithdrawalIDListItemHeaderImpl({
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {shouldRemoveTotalColumnFlex: true})}
             >
                 <TotalCell
-                    total={withdrawalIDItem.total}
+                    total={displayTotal}
                     currency={withdrawalIDItem.currency}
                 />
             </View>
@@ -232,7 +237,7 @@ function WithdrawalIDListItemHeaderImpl({
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
                         <TotalCell
-                            total={withdrawalIDItem.total}
+                            total={displayTotal}
                             currency={withdrawalIDItem.currency}
                         />
                         {!!onDownArrowClick && (

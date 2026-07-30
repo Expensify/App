@@ -6321,6 +6321,22 @@ const settlementStatusMap = new Map<number, ValueOf<typeof CONST.SEARCH.SETTLEME
     [9, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
 ]);
 
+/**
+ * Whether a grouped row is an ACH cash back credit rather than a card settlement withdrawal.
+ *
+ * Cash back rows have no underlying expenses to drill into (showing the transactions that earned the credit is a
+ * follow-up), so every expand affordance is suppressed for them. Both grouped-row render paths — `TransactionGroupListItem`
+ * on native/narrow and the sticky `GroupHeader` on wide web — call this so they can't drift apart.
+ */
+function isCashbackCreditGroup(groupItem: TransactionGroupListItemType | undefined): boolean {
+    // `isCashbackCredit` only exists on withdrawal-ID groups, so its presence is what identifies the row
+    if (!groupItem || !('isCashbackCredit' in groupItem)) {
+        return false;
+    }
+
+    return !!groupItem.isCashbackCredit;
+}
+
 function getSettlementStatus(state: number | undefined): ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS> | undefined {
     if (state === undefined) {
         return undefined;
@@ -6332,16 +6348,34 @@ function getSettlementStatus(state: number | undefined): ValueOf<typeof CONST.SE
 /**
  * Get badge properties for settlement status
  * Uses Report Status Badge styling as recommended by designer
+ *
+ * `isCashbackCredit` rows short-circuit the settlement statuses: cash back is a credit back to the bank account, not a
+ * point in the settlement lifecycle, so it gets its own badge regardless of the `state` the credit carries. It is
+ * deliberately not a `CONST.SEARCH.SETTLEMENT_STATUS` member — `getWithdrawalStatusOptions` maps over that object, so
+ * adding it there would also offer it as a `withdrawal-status:` filter the backend does not support.
  */
 function getSettlementStatusBadgeProps(
     state: number | undefined,
     translate: LocaleContextProps['translate'],
     theme: ThemeColors,
+    isCashbackCredit = false,
 ): {
     text: string;
     badgeStyles: ViewStyle;
     textStyles: TextStyle;
 } | null {
+    if (isCashbackCredit) {
+        return {
+            text: 'Cash back',
+            badgeStyles: {
+                backgroundColor: theme.reportStatusBadge.paid.backgroundColor,
+            },
+            textStyles: {
+                color: theme.reportStatusBadge.paid.textColor,
+            },
+        };
+    }
+
     const status = getSettlementStatus(state);
     if (!status) {
         return null;
@@ -6700,6 +6734,7 @@ export {
     getHasOptions,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
+    isCashbackCreditGroup,
     getSearchColumnTranslationKey,
     getTableMinWidth,
     getCustomColumns,

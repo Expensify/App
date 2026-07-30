@@ -25,7 +25,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getSections} from '@libs/SearchUIUtils';
+import {getSections, isCashbackCreditGroup} from '@libs/SearchUIUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -198,6 +198,9 @@ function TransactionGroupListItemImpl({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
+    // A cash back credit has no underlying expenses to drill into, so none of the expand affordances apply to it
+    const isCashbackCredit = isCashbackCreditGroup(groupItem);
+
     const refreshTransactions = () => {
         if (!groupItem.transactionsQueryJSON) {
             return;
@@ -312,7 +315,7 @@ function TransactionGroupListItemImpl({
         if (isExpenseReportType || transactions.length === 0) {
             onSelectRow(item, transactionPreviewData, event);
         }
-        if (!isExpenseReportType) {
+        if (!isExpenseReportType && !isCashbackCredit) {
             handleToggle();
         }
     };
@@ -377,7 +380,7 @@ function TransactionGroupListItemImpl({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onExpandIconPress}
+                    onDownArrowClick={isCashbackCredit ? undefined : onExpandIconPress}
                     isExpanded={isExpanded}
                 />
             ),
@@ -595,7 +598,7 @@ function TransactionGroupListItemImpl({
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
                             expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
-                            shouldShowToggleButton={isLargeScreenWidth}
+                            shouldShowToggleButton={isLargeScreenWidth && !isCashbackCredit}
                             borderBottomStyle={isLargeScreenWidth ? styles.borderNone : isItemSelected && {borderColor: theme.buttonHoveredBG}}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >

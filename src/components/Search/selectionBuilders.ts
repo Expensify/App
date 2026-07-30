@@ -1,6 +1,6 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isCashbackCreditGroup, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -134,6 +134,11 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
 
     const currency = item.currency ?? '';
 
+    // The footer sums selections as `acc - (groupAmount ?? -Math.abs(amount))`, so without a `groupAmount` every row
+    // counts towards the total as a positive. A cash back credit is money coming back in, so it has to count against
+    // the withdrawn total instead — pass the positive magnitude as `groupAmount` to have it subtracted.
+    const cashbackGroupAmount = isCashbackCreditGroup(item) ? {groupAmount: Math.abs(item.total ?? 0)} : {};
+
     return [
         item.keyForList ?? '',
         {
@@ -151,6 +156,7 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
             policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
             amount: item.total ?? 0,
             currency,
+            ...cashbackGroupAmount,
             ...(currency ? {groupCurrency: currency} : {}),
         },
     ];

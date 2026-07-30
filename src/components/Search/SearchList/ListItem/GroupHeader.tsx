@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {getColumnsToShow} from '@libs/SearchUIUtils';
+import {getColumnsToShow, isCashbackCreditGroup} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -177,6 +177,9 @@ function GroupHeader({
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
+    // A cash back credit has no underlying expenses to drill into, so none of the expand affordances apply to it
+    const isCashbackCredit = isCashbackCreditGroup(groupItem);
+
     const effectiveTransactions = useMemo((): TransactionListItemType[] => {
         if (isExpenseReportType || groupItem.transactions.length > 0) {
             return groupItem.transactions;
@@ -275,7 +278,7 @@ function GroupHeader({
             canSelectMultiple,
             isSelectAllChecked,
             isIndeterminate,
-            onDownArrowClick: onToggle,
+            onDownArrowClick: isCashbackCredit ? undefined : onToggle,
             isExpanded,
         } as const;
 
@@ -378,7 +381,7 @@ function GroupHeader({
         if (isExpenseReportType) {
             onSelectRow(withOriginalKey(item), transactionPreviewData, event);
         }
-        if (!isExpenseReportType) {
+        if (!isExpenseReportType && !isCashbackCredit) {
             onToggle();
         }
     };
@@ -424,7 +427,7 @@ function GroupHeader({
                     <View style={styles.flex1}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.tableRowHeight]}>
                             <View style={styles.flex1}>{renderHeader(hovered)}</View>
-                            {isLargeScreenWidth && (
+                            {isLargeScreenWidth && !isCashbackCredit && (
                                 <PressableWithFeedback
                                     onPress={() => {
                                         if (isEmpty && !shouldDisplayEmptyView) {
