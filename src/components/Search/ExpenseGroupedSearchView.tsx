@@ -274,6 +274,7 @@ function ExpenseGroupedSearchView({
             <AnimatedExitRow
                 shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
                 hasItemsBeingRemoved={hasItemsBeingRemoved}
+                isRowExiting={isRowDeleted(item)}
             >
                 <TransactionGroupListItem
                     showTooltip
