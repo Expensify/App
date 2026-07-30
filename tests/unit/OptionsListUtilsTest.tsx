@@ -5517,8 +5517,8 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
                 currentUserLogin: CURRENT_USER_EMAIL,
+                conciergeReportID: undefined,
             });
             expect(lastMessage).toBe(getAddAgentRuleMessage(translateLocal, action));
         });
@@ -5541,7 +5541,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                conciergeReportID: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getUpdateAgentRuleMessage(translateLocal, action));
@@ -5565,7 +5565,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
+                conciergeReportID: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getDeleteAgentRuleMessage(translateLocal, action));
