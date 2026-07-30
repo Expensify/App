@@ -883,7 +883,7 @@ function MenuItem({
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
                                 activeOpacity={!interactive ? 1 : variables.pressDimValue}
-                                opacityAnimationDuration={0}
+                                opacityAnimationDuration={variables.instantAnimationDuration}
                                 testID={pressableTestID}
                                 style={({pressed}) =>
                                     [

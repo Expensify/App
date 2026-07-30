@@ -11,7 +11,7 @@ import {View} from 'react-native';
 
 type MenuItemTrailingProps = PropsWithChildren;
 
-/** The right-side cell of a `MenuItem.Row */
+/** The right-side cell of a `MenuItem.Row` */
 function MenuItemTrailing({children}: MenuItemTrailingProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

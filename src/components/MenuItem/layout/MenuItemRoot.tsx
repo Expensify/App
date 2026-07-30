@@ -77,7 +77,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel}: Menu
                         <PressableWithSecondaryInteraction
                             onPress={onPressAction}
                             activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
-                            opacityAnimationDuration={variables.noDimAnimationDuration}
+                            opacityAnimationDuration={variables.instantAnimationDuration}
                             style={({pressed}) =>
                                 [
                                     styles.popoverMenuItem,
