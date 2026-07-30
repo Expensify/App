@@ -7919,20 +7919,15 @@ const CONST = {
         },
     },
 
-    /** Vocabulary for the AST-based rules stored in the `rules` table / `ONYXKEYS.COLLECTION.RULE`. */
     RULES: {
-        /** The kind of entity a rule is scoped to. Currently only workspace policies. Shared across all rule types. */
         SCOPE: {
             POLICY: 'policy',
         },
-        /** Vocabulary specific to approval-workflow rules. */
         APPROVAL_WORKFLOW: {
-            /** The report lifecycle event that fires a rule. */
             TRIGGER: {
                 REPORT_SUBMIT: 'ReportSubmit',
                 REPORT_APPROVE: 'ReportApprove',
             },
-            /** The action taken when a rule matches. */
             ACTION: {
                 FORWARD_TO: 'ForwardTo',
                 APPROVE_REPORT: 'ApproveReport',

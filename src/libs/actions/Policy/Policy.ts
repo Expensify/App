@@ -1026,8 +1026,6 @@ function setWorkspaceApprovalMode(
         failureData.push(...nextStepFailureData);
     }
 
-    // Auth's DisablePolicyApprovals deletes the policy's rule rows server-side; clear them optimistically too
-    // so the workflows UI doesn't keep rebuilding stale workflows (e.g. after re-enabling).
     if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && rules) {
         for (const [ruleKey, rule] of Object.entries(rules)) {
             if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {

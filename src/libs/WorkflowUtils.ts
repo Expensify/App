@@ -134,10 +134,7 @@ type PolicyConversionParams = {
     /** Current user's login email, used to determine if Expensify team members should be shown */
     currentUserLogin?: string;
 
-    /**
-     * The policy's approval-workflow rules keyed by ruleID, read from the `ONYXKEYS.COLLECTION.RULE`
-     * collection (see `getApprovalWorkflowRulesForPolicy`). Only consumed by the rules-based converter.
-     */
+    /** The policy's approval-workflow rules keyed by ruleID */
     rules?: Record<string, ApprovalWorkflowRule>;
 };
 
@@ -844,7 +841,7 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
                 filters: buildAnd(fromComparison, buildAnd(toComparison, underAmount)),
                 actions: nextApproverEmail ? buildForwardActions(nextApproverEmail) : buildApproveActions(),
             });
-            // At/over the limit: escalate to the over-limit approver, who then finalizes the report.
+            // Over the limit: escalate to the over-limit approver, who then finalizes the report.
             rules.push({
                 triggers: buildApproveTriggers(),
                 filters: buildAnd(fromComparison, buildAnd(toComparison, overAmount)),
@@ -877,8 +874,11 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
 }
 
 /**
- * A leaf comparison node — its `left` is a primitive field name (or an array of values), unlike a
- * boolean filter whose `left` is another node.
+ * True when this node is a single comparison like `from = alice@expensify.com`, rather than an `AND` that
+ * joins two other nodes.
+ *
+ * Both look the same (`{operator, left, right}`), so the giveaway is `left`: a comparison points at a field
+ * name, an `AND` points at another node. Arrays count as comparisons too.
  */
 function isComparisonLeaf(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): node is ApprovalWorkflowFilterComparison {
     if (!node) {
@@ -927,24 +927,18 @@ function extractSubmitterEmails(rule: ApprovalWorkflowRule): string[] {
 }
 
 /**
- * Normalize a value so two logically-equal structures stringify identically: object keys are sorted and
- * index-keyed maps (`{"0":x}`) are collapsed to arrays (`[x]`). The array collapse matters because the API
- * decodes the rules JSON to PHP arrays, so `triggers`/`actions` come back as JSON arrays while a freshly-built
- * rule uses the `{"0":…}` object form — without it the two shapes never match and merging fails.
+ * Rewrite a value so that `JSON.stringify` gives the same string for two structures that mean the same thing.
+ *
+ * Only key order needs fixing: a rule that came back from the server can list the same keys in a different
+ * order than one we just built, and those two would otherwise produce different strings and never match.
  */
 function canonicalize(value: unknown): unknown {
     if (Array.isArray(value)) {
         return value.map(canonicalize);
     }
     if (value !== null && typeof value === 'object') {
-        const entries = Object.entries(value);
-        // A `{"0":…,"1":…}` map is the object form of a list — collapse it to an array to match the backend.
-        const isSequentialIndexMap = entries.length > 0 && entries.every(([key], index) => key === String(index));
-        if (isSequentialIndexMap) {
-            return entries.map(([, val]) => canonicalize(val));
-        }
         // Byte-order sort (not locale-aware): this is a structural fingerprint, not user-facing text.
-        const sortedEntries = entries.sort(([a], [b]) => {
+        const sortedEntries = Object.entries(value).sort(([a], [b]) => {
             if (a === b) {
                 return 0;
             }

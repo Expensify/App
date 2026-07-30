@@ -1694,9 +1694,6 @@ describe('WorkflowUtils', () => {
             right,
         });
         const keyRules = (rules: ApprovalWorkflowRule[]): Record<string, ApprovalWorkflowRule> => Object.fromEntries(rules.map((rule, index) => [`rule${index}`, rule]));
-        // Present a list as the array-shaped value the API returns for `triggers`/`actions` (PHP decodes index maps to arrays).
-        const asServerShape = <T>(value: unknown[]): T => value as unknown as T;
-
         describe('buildApprovalWorkflowRules', () => {
             it('Should return an empty list when there are no members', () => {
                 expect(buildApprovalWorkflowRules(buildWorkflow([], [1]))).toEqual([]);
@@ -1788,21 +1785,20 @@ describe('WorkflowUtils', () => {
                 expect(Object.values(diff)).toEqual(buildApprovalWorkflowRules(buildWorkflow([20, 10], [1])));
             });
 
-            it('Should merge into a server-hydrated rule (array-shaped triggers/actions, reordered keys)', () => {
-                // The API decodes the rules JSON to PHP associative arrays, so a hydrated rule comes back with
-                // index-keyed maps flattened to arrays (`{"0":"ReportSubmit"}` -> `["ReportSubmit"]`) and its object
-                // keys in a different order than a freshly-built rule. The structural match must ignore both so the
-                // new submitter folds into the existing rule instead of minting a fresh pair.
+            it('Should merge into a server-hydrated rule (reordered keys)', () => {
+                // A rule hydrated from the server lists its object keys in a different order than a freshly-built
+                // one. The structural match must ignore key order so the new submitter folds into the existing rule
+                // instead of minting a fresh pair.
                 const existingRules: Record<string, ApprovalWorkflowRule> = {
                     r1: {
-                        actions: asServerShape([{approver: '1@example.com', name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO}]),
+                        actions: forwardActions('1@example.com'),
                         filters: buildFromFilter(['20@example.com']),
-                        triggers: asServerShape([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT]),
+                        triggers: submitTriggers,
                     },
                     r2: {
-                        actions: asServerShape([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}]),
+                        actions: approveActions,
                         filters: and(buildFromFilter(['20@example.com']), buildToFilter('1@example.com')),
-                        triggers: asServerShape([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE]),
+                        triggers: approveTriggers,
                     },
                 };
                 const newRules = buildApprovalWorkflowRules(buildWorkflow([10], [1]));

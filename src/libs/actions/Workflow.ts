@@ -287,12 +287,12 @@ type SetApprovalWorkflowRulesParams = {
     policyID: string;
 
     /**
-     * Diff of rule bodies keyed by ruleID. A value of `ApprovalWorkflowRule` sets/replaces the rule
+     * Diff of rules keyed by ruleID. A value of `ApprovalWorkflowRule` sets/replaces the rule
      * under its `ruleID` in the `ONYXKEYS.COLLECTION.RULE` collection; a value of `null` removes it.
      */
     rulesDiff: ApprovalWorkflowRulesDiff;
 
-    /** Snapshot of the policy's rules (`ruleID -> rule body`) taken before applying `rulesDiff`. Used to roll back on failure. */
+    /** Snapshot of the policy's rules taken before applying `rulesDiff`. Used to roll back on failure. */
     previousRules: Record<string, ApprovalWorkflowRule>;
 };
 
