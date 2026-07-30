@@ -1,5 +1,3 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
-
 import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getLeaveWorkspaceConfirmationPrompt, getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -242,7 +240,7 @@ describe('WorkspacesSettingsUtils', () => {
     });
 
     describe('getLeaveWorkspaceConfirmationPrompt', () => {
-        const translate: LocaleContextProps['translate'] = (...args) => String(args[0]);
+        const translate: Parameters<typeof getLeaveWorkspaceConfirmationPrompt>[3] = (...args) => String(args[0]);
         const userEmail = 'user@example.com';
         const ownerDisplayName = 'Workspace Owner';
 

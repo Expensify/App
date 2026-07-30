@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
@@ -489,8 +489,10 @@ describe('useTransactionViolations', () => {
                 },
             ];
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedViolations);
-            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedViolations);
+                await waitForBatchedUpdates();
+            });
 
             rerender(undefined);
 
