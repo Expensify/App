@@ -3265,4 +3265,5 @@ export type {
     RilletSubsidiary,
     DualEntryConnectionsConfig,
     DualEntryCompany,
+    DualEntryCoding,
 };
