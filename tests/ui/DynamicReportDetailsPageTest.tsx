@@ -1,11 +1,10 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU/DeleteMoneyRequest';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -17,6 +16,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
+import type {NavigationState} from '@react-navigation/native';
+
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -24,6 +25,7 @@ import Onyx from 'react-native-onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import getOnyxValue from '../utils/getOnyxValue';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -33,6 +35,16 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({}),
     useMemoizedLazyExpensifyIcons: () => ({}),
+}));
+
+// Auto-confirm the delete confirmation modal so pressing "Delete expense" runs the real navigate-back logic.
+const mockShowConfirmModal = jest.fn(() => Promise.resolve({action: 'CONFIRM'}));
+jest.mock('@hooks/useConfirmModal', () => ({
+    __esModule: true,
+    default: () => ({
+        showConfirmModal: mockShowConfirmModal,
+        closeModal: () => {},
+    }),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -215,54 +227,119 @@ describe('DynamicReportDetailsPage', () => {
         const invoiceReportID = '31';
         const transactionID = '32';
         const iouActionID = '33';
+        const transactionThreadReportID = '34';
 
         const invoiceRoom: Report = createRandomReport(Number(invoiceRoomID), CONST.REPORT.CHAT_TYPE.INVOICE);
         const invoiceReport: Report = {
             ...createRandomReport(Number(invoiceReportID), undefined),
             type: CONST.REPORT.TYPE.INVOICE,
             chatReportID: invoiceRoomID,
+            // Owned by the current user (default accountID 0 in tests) and open, so the expense is deletable.
+            ownerAccountID: 0,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
-        // The IOU action whose deletion triggers the navigate-back. Invoice reports are excluded by
-        // `useGetIOUReportFromReportAction`, so `DynamicReportDetailsPage` falls back to the invoice report itself.
+        // The IOU action whose deletion triggers the navigate-back. `actorAccountID: 0` matches the test's default
+        // current user so the delete option is offered. Its `childReportID` is the one-transaction thread.
         const iouAction = {
             ...createRandomReportAction(Number(iouActionID)),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: 0,
+            childReportID: transactionThreadReportID,
             originalMessage: {
+                IOUReportID: invoiceReportID,
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
             },
+            pendingAction: null,
         } as ReportAction;
-        // The transaction lives on the invoice report, so it's the last (only) transaction and deleting it deletes the
-        // whole invoice report — the case where `getNavigationUrlOnMoneyRequestDelete` navigates back to the room.
-        const transaction = {...createRandomTransaction(Number(transactionID)), reportID: invoiceReportID};
+        const transactionThreadReport: Report = {
+            ...createRandomReport(Number(transactionThreadReportID), undefined),
+            parentReportID: invoiceReportID,
+            parentReportActionID: iouActionID,
+        };
+        // The transaction lives on the invoice report, so it's the last (only) transaction — deleting it deletes the
+        // whole invoice report, which is the case where the navigate-back targets the invoice room.
+        const transaction = {
+            ...createRandomTransaction(Number(transactionID)),
+            transactionID,
+            reportID: invoiceReportID,
+            cardID: undefined,
+            managedCard: false,
+            bank: '',
+            comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW},
+        };
 
         afterEach(() => {
             jest.restoreAllMocks();
         });
 
-        // Proves the real invoice delete path actually builds a back URL. Before the fallback in
-        // `DynamicReportDetailsPage`, invoice reports produced `undefined` here (no URL), so the guard below never
-        // fired and the RHP showed "Not here".
-        it('builds the invoice-room back URL for the real invoice delete path (not a manually-set URL)', async () => {
-            await act(async () => {
+        const seedInvoice = () =>
+            act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, invoiceReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceReportID}`, {[iouActionID]: iouAction});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+                await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${invoiceReportID}`, {isLoadingInitialReportActions: false});
             });
+
+        // Proves the fallback in `DynamicReportDetailsPage` actually runs: deleting the invoice through the page must
+        // write the invoice-room back URL. Without the fallback, `iouReport` is undefined for invoices, no URL is
+        // produced, and this assertion fails — which is exactly the bug that left the RHP on "Not here".
+        it('writes the invoice-room back URL when the invoice is deleted through the page', async () => {
+            jest.mocked(useIsFocused).mockReturnValue(true);
+            jest.mocked(useRoute).mockReturnValue({key: 'report-details', name: 'Report_Details_Root', params: {reportID: invoiceReportID}} as ReturnType<typeof useRoute>);
+            // navigateToTargetUrl reads the root navigation state; provide a minimal one so it reaches the URL builder.
+            const rootStateMock: NavigationState = {
+                key: 'root',
+                index: 0,
+                routeNames: ['Home'],
+                routes: [{key: 'home', name: 'Home'}],
+                type: 'stack',
+                stale: false,
+            };
+            jest.spyOn(navigationRef, 'getRootState').mockReturnValue(rootStateMock);
+            // Run the deferred navigate-back synchronously and no-op the actual navigation side effects.
+            jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback) => callback());
+            jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+            jest.spyOn(Navigation, 'dismissToSuperWideRHP').mockImplementation(() => {});
+            jest.spyOn(Navigation, 'isNavigationReady').mockResolvedValue(undefined);
+            jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+
+            await seedInvoice();
+
+            render(
+                <OnyxListItemProvider>
+                    <LocaleContextProvider>
+                        <DynamicReportDetailsPage
+                            betas={[]}
+                            isLoadingReportData={false}
+                            navigation={navigationMock}
+                            policy={undefined}
+                            report={invoiceReport}
+                            reportMetadata={undefined}
+                            reportLoadingState={undefined}
+                            route={getRouteMock(invoiceReportID)}
+                        />
+                    </LocaleContextProvider>
+                </OnyxListItemProvider>,
+            );
             await waitForBatchedUpdatesWithAct();
 
-            const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
-                transactionID,
-                iouAction,
-                undefined,
-                // Fallback the page uses for invoices (its `chatReportID` points to the invoice room).
-                invoiceReport,
-                invoiceRoom,
-                false,
-                false,
-            );
+            // Press "Delete expense" and confirm (the confirm modal is auto-confirmed via the useConfirmModal mock).
+            const deleteLabel = translateLocal('reportActionContextMenu.deleteAction', {action: iouAction});
+            const deleteButton = await screen.findByRole(CONST.ROLE.BUTTON, {name: new RegExp(deleteLabel)});
+            // MenuItem's onPress only runs when it receives a truthy press event, so pass one explicitly.
+            fireEvent.press(deleteButton, {nativeEvent: {}});
+            await waitForBatchedUpdatesWithAct();
 
-            expect(urlToNavigateBack).toBe(ROUTES.REPORT_WITH_ID.getRoute(invoiceRoomID));
+            // The page's own fallback must have produced the invoice-room back URL.
+            const backUrl = await getOnyxValue(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+            expect(backUrl).toBe(ROUTES.REPORT_WITH_ID.getRoute(invoiceRoomID));
         });
 
         it('keeps NotFound suppressed when the invoice report is removed while a delete-back navigation is in flight', async () => {
@@ -271,15 +348,7 @@ describe('DynamicReportDetailsPage', () => {
             // making this an assertion failure rather than a crash inside NotFoundPage.
             jest.mocked(useRoute).mockReturnValue({key: 'report-details', name: 'Report_Details_Root', params: {reportID: invoiceReportID}} as ReturnType<typeof useRoute>);
 
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, invoiceReport);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-                // Mark the report data as fully loaded so that, once the report is removed, the guard resolves to the
-                // NotFound page rather than the loading indicator (the state this bug actually surfaces in).
-                await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${invoiceReportID}`, {isLoadingInitialReportActions: false});
-            });
+            await seedInvoice();
 
             render(
                 <OnyxListItemProvider>
@@ -302,12 +371,10 @@ describe('DynamicReportDetailsPage', () => {
             // The details content rendered first (contentShown), so the report was accessible.
             expect(screen.queryByTestId('FullPageNotFoundView')).toBeNull();
 
-            // Drive the delete-back with the URL the real invoice path produces (not a hardcoded route), then null the
-            // invoice report (the deferred optimistic delete) while this focused RHP is still mounted.
-            const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, iouAction, undefined, invoiceReport, invoiceRoom, false, false);
-            expect(urlToNavigateBack).toBe(ROUTES.REPORT_WITH_ID.getRoute(invoiceRoomID));
+            // Simulate the invoice delete: set the delete-back URL to the invoice room, then null the invoice report
+            // (the deferred optimistic delete) while this focused RHP is still mounted.
             await act(async () => {
-                await Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, urlToNavigateBack ?? '');
+                await Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, ROUTES.REPORT_WITH_ID.getRoute(invoiceRoomID));
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, null);
             });
             await waitForBatchedUpdatesWithAct();
