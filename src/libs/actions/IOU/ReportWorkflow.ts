@@ -1842,16 +1842,37 @@ function assignReportToMe(
 }
 
 type AddReportApproverOptions = {
+    /** Expense report whose approver is being changed. */
     report: OnyxTypes.Report;
+
+    /** Email of the approver being added. */
     newApproverEmail: string;
+
+    /** Account ID of the approver being added. */
     newApproverAccountID: number;
+
+    /** Account ID of the user changing the approver. */
     accountID: number;
+
+    /** Email of the user changing the approver. */
     email: string;
+
+    /** Policy associated with the expense report. */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Whether the report currently has violations. */
     hasViolations: boolean;
+
+    /** Whether ASAP Submit beta behavior is enabled. */
     isASAPSubmitBetaEnabled: boolean;
+
+    /** Existing next-step data used to roll back optimistic updates on failure. */
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+
+    /** Whether the current user is in the track intent onboarding state. */
     isTrackIntentUser: boolean | undefined;
+
+    /** Locale-aware formatter used for optimistic approver display names. */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
