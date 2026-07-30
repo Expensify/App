@@ -6,7 +6,7 @@ import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
+import type {CardList, Policy, PolicyTagLists} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -201,20 +201,12 @@ function shouldDisplayFilter(numberOfFilters: number, isFeatureEnabled: boolean,
     return (numberOfFilters !== 0 || singlePolicyCondition) && isFeatureEnabled;
 }
 
-const availablePolicyCategoriesSelector = (policyCategories: OnyxCollection<PolicyCategories>) =>
-    Object.fromEntries(
-        Object.entries(policyCategories ?? {}).filter(([, categories]) =>
-            Object.values(categories ?? {}).some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        ),
-    );
-
 /**
  * Selector that pre-computes all policy-derived flags in a single pass.
  * Returns a small object so Onyx's deepEqual comparison is trivially cheap,
  * preventing re-renders when policy data changes but derived values don't.
  */
 const policyDerivedSelector = (policies: OnyxCollection<Policy>) => {
-    let areCategoriesEnabled = false;
     let areTagsEnabled = false;
     let areTaxEnabled = false;
     let isAttendeeTrackingEnabled = false;
@@ -228,9 +220,6 @@ const policyDerivedSelector = (policies: OnyxCollection<Policy>) => {
         }
         if (!hasNonPersonalPolicies && policy.type !== CONST.POLICY.TYPE.PERSONAL) {
             hasNonPersonalPolicies = true;
-        }
-        if (!areCategoriesEnabled) {
-            areCategoriesEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED);
         }
         if (!areTagsEnabled) {
             areTagsEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED);
@@ -249,7 +238,7 @@ const policyDerivedSelector = (policies: OnyxCollection<Policy>) => {
         }
     }
 
-    return {areCategoriesEnabled, areTagsEnabled, areTaxEnabled, isAttendeeTrackingEnabled, hasReportFields, hasAnyTaxRates, hasNonPersonalPolicies};
+    return {areTagsEnabled, areTaxEnabled, isAttendeeTrackingEnabled, hasReportFields, hasAnyTaxRates, hasNonPersonalPolicies};
 };
 
 /**
@@ -278,7 +267,6 @@ function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxC
             errors: policy.errors,
             taxRates: policy.taxRates,
             tax: policy.tax,
-            areCategoriesEnabled: policy.areCategoriesEnabled,
             areTagsEnabled: policy.areTagsEnabled,
             areInvoicesEnabled: policy.areInvoicesEnabled,
             isAttendeeTrackingEnabled: policy.isAttendeeTrackingEnabled,
@@ -324,10 +312,6 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: F
     const [shouldDisplayCardFilter] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: shouldDisplayCardFilterSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [policyDerived] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDerivedSelector});
-    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
-        selector: availablePolicyCategoriesSelector,
-    });
-    const selectedPolicyCategories = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories) : [];
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const selectedPolicyTagLists = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists) : [];
     const [hasTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: hasTagsSelector});
@@ -335,14 +319,6 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: F
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 
-    // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
-    const hasNonPersonalPolicyCategories = Object.keys(allPolicyCategories).some((policyCategoryId) => {
-        const categoryPolicyID = policyCategoryId.replace(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, '');
-        const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${categoryPolicyID}`];
-        return !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
-    });
-
-    const shouldDisplayCategoryFilter = shouldDisplayFilter(hasNonPersonalPolicyCategories ? 1 : 0, policyDerived?.areCategoriesEnabled ?? false, selectedPolicyCategories?.length > 0);
     const hasSelectedPolicyTags = selectedPolicyTagLists.some(policyTagListHasTags);
     const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, hasSelectedPolicyTags);
     // Count business accounts that aren't partially set up, mirroring BankAccountSelector so the row never shows above an empty picker.
@@ -361,9 +337,6 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: F
         .map((section) =>
             section
                 .map((key) => {
-                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && !shouldDisplayCategoryFilter) {
-                        return;
-                    }
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && !shouldDisplayTagFilter) {
                         return;
                     }
