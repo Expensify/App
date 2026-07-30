@@ -74,7 +74,7 @@ describe('handleRHPVariantNavigation', () => {
     it('navigates home for the rhpHomePage variant when no report is revealed', () => {
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE);
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
         expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
     });
 
@@ -92,7 +92,7 @@ describe('handleRHPVariantNavigation', () => {
         // sidebar, so onboarding must still land the user on Home.
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
         expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
     });
 });

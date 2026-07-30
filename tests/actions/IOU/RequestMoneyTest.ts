@@ -1,6 +1,7 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
+import {createTransaction} from '@libs/actions/IOU/MoneyRequest';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {notifyNewAction} from '@libs/actions/Report';
@@ -44,8 +45,9 @@ import type {MockFetch} from '../../utils/TestHelper';
 import currencyList from '../../unit/currencyList.json';
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createRandomReport} from '../../utils/collections/reports';
+import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {formatPhoneNumber, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
+import {expectAPICommandToHaveBeenCalled, formatPhoneNumber, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -1246,6 +1248,7 @@ describe('actions/IOU', () => {
 
             // First create a tracked expense in self DM
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -1305,6 +1308,7 @@ describe('actions/IOU', () => {
             // Now pause fetch and share the tracked expense with accountant
             mockFetch?.pause?.();
             trackExpense({
+                conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.SHARE,
@@ -1863,6 +1867,7 @@ describe('actions/IOU', () => {
 
             // Create a tracked expense
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -2702,6 +2707,7 @@ describe('actions/IOU', () => {
 
             // When a track expense is created
             trackExpense({
+                conciergeChat: undefined,
                 report: {reportID: '123', policyID: 'A'},
                 isDraftPolicy: false,
                 action,
@@ -2755,6 +2761,68 @@ describe('actions/IOU', () => {
             for (const value of Object.values(params as Record<string, unknown>)) {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
             }
+        });
+    });
+    describe('createTransaction', () => {
+        const CREATE_TRANSACTION_USER_ACCOUNT_ID = 1;
+        const CREATE_TRANSACTION_USER_LOGIN = 'test@test.com';
+
+        const buildCreateTransactionParams = (iouType: string, report: Report) => {
+            const transaction = {
+                ...createRandomTransaction(90),
+                transactionID: 'create-transaction-tx',
+            };
+            return {
+                transactions: [transaction],
+                iouType,
+                report,
+                currentUserAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
+                currentUserEmail: CREATE_TRANSACTION_USER_LOGIN,
+                shouldGenerateTransactionThreadReport: false,
+                isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
+                files: [{transactionID: transaction.transactionID, source: 'receipt-source'}],
+                participant: {accountID: CREATE_TRANSACTION_USER_ACCOUNT_ID, login: CREATE_TRANSACTION_USER_LOGIN},
+                allTransactionDrafts: {},
+                isSelfTourViewed: false,
+                betas: [],
+                personalDetails: {},
+                recentWaypoints: [],
+                optimisticTransactionIDs: ['create-transaction-optimistic-tx'],
+                optimisticChatReportID: undefined,
+                currentUserLocalCurrency: 'USD',
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+            };
+        };
+
+        it('routes the track flow through trackExpense (the branch that defers conciergeChat threading)', async () => {
+            await signInWithTestUser(CREATE_TRANSACTION_USER_ACCOUNT_ID, CREATE_TRANSACTION_USER_LOGIN);
+            const selfDMReport: Report = {
+                ...createRandomReport(90, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'create-transaction-self-direct-message',
+            };
+
+            createTransaction(buildCreateTransactionParams(CONST.IOU.TYPE.TRACK, selfDMReport));
+            await waitForBatchedUpdates();
+
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 1);
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REQUEST_MONEY, 0);
+        });
+
+        it('routes the submit flow through requestMoney', async () => {
+            await signInWithTestUser(CREATE_TRANSACTION_USER_ACCOUNT_ID, CREATE_TRANSACTION_USER_LOGIN);
+            const chatReport: Report = {
+                ...createRandomReport(91, undefined),
+                reportID: 'create-transaction-chat',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            createTransaction(buildCreateTransactionParams(CONST.IOU.TYPE.SUBMIT, chatReport));
+            await waitForBatchedUpdates();
+
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REQUEST_MONEY, 1);
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 0);
         });
     });
 });

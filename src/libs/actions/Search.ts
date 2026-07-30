@@ -719,19 +719,15 @@ function getOnyxLoadingData(
         Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
     }
 
-    // successData writes the terminal `loaded` state on any jsonCode 200 resolve. It also stamps `type` so
-    // responses that do carry data stay consistent with the anti-stale isSearchDataLoaded check (which compares
-    // type/hash). On a success response without data, isSearchDataLoaded still resolves to false via its own data/errors gate;
-    // `state` is what marks that case as done once a future PR wires the read side to it. `isLoading` isn't set here
-    // because finallyData always runs right after and already clears it for isSearchAPI. Empty for the non-search
-    // callers of this helper so they don't pay for a meaningless `{search: {}}` merge on the SNAPSHOT key.
+    // A successful response may contain no snapshot data. Store `type` and `hash` with `loaded` so the UI can match it to the current query and show the empty state.
+    // Do not clear `isLoading` here because `finallyData` always does.
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = isSearchRequest
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                   value: {
-                      search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type},
+                      search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type, hash},
                   },
               },
           ]
@@ -760,7 +756,7 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.ERROR}),
+                    ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.ERROR, hash}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -941,6 +937,34 @@ function openSearchCardFiltersPage() {
     read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
 }
 
+function openSearchCategoryFiltersPage() {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
+            value: true,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED,
+            value: true,
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
+}
+
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
         {
@@ -1027,7 +1051,7 @@ function search({
     inFlightSearchRequests.add(dedupeKey);
 
     const {optimisticData, successData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
-    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const {exactMatchFilterKeys, flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
               ...queryJSONWithoutFlatFilters,
@@ -1050,7 +1074,7 @@ function search({
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
-    const jsonQuery = serializeQueryJSONForBackend(query);
+    const jsonQuery = serializeQueryJSONForBackend(query, exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined);
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
@@ -1063,8 +1087,14 @@ function search({
     const startRequest = () =>
         makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
+                const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+
+                // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
+                if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
+                    Log.info('[Search] loading_terminal_empty', false, {hash: queryJSON.hash, type: queryJSON.type});
+                }
+
                 if (shouldUpdateLastSearchParams) {
-                    const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
                     const reports = Object.keys(response?.data ?? {})
                         .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
                         .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
@@ -1453,7 +1483,7 @@ function rejectMoneyRequestsOnSearch(
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams,
+    {jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
 ) {
@@ -1488,6 +1518,7 @@ function exportSearchItemsToCSV(
         transactionIDList,
         isBasicExport,
         exportColumnLabels,
+        isGroupExport,
     }) as Params;
 
     const formData = new FormData();
@@ -1996,6 +2027,7 @@ export {
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
+    openSearchCategoryFiltersPage,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
