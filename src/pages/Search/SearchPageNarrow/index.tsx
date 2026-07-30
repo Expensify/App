@@ -328,7 +328,7 @@ function SearchPageNarrow({
                                         hasFilterBars={hasFilterBars}
                                     />
                                 )}
-                                {isOverlayActive && !searchOverlayContent && <View onLayout={onSearchLayout} />}
+                                {(isOverlayActive || !isHeaderInteractive) && !searchOverlayContent && <View onLayout={onSearchLayout} />}
                                 {!!searchOverlayContent && (
                                     <View
                                         style={[StyleSheet.absoluteFill, styles.appBG]}
@@ -370,7 +370,7 @@ function SearchPageNarrow({
                                         hasFilterBars={hasFilterBars}
                                     />
                                 )}
-                                {isOverlayActive && !searchOverlayContent && <View onLayout={onSearchLayout} />}
+                                {(isOverlayActive || !isHeaderInteractive) && !searchOverlayContent && <View onLayout={onSearchLayout} />}
                                 {!!searchOverlayContent && (
                                     <View
                                         style={[StyleSheet.absoluteFill, styles.appBG]}
