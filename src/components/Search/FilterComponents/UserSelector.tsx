@@ -1,5 +1,5 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 
@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
+import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
@@ -22,9 +23,11 @@ import React from 'react';
 
 import ListFilterWrapper from './ListFilterViewWrapper';
 
-type UserSelectorProps = SearchFilterCommonProps<string[] | undefined>;
+type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
+    policyID: Filter | undefined;
+};
 
-function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
+function UserSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
@@ -44,11 +47,40 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
 
     const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email);
 
+    // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
+    // top on first render without repinning rows that are toggled afterwards (see https://github.com/Expensify/App/issues/61414).
+    const initialSelectedValues = useInitialValue(() => value);
+
+    // When the workspace filter is set, only suggest the members of the selected workspaces. Users that were already
+    // selected when the filter opened are kept in the list even when they aren't members, so they can still be deselected here.
+    const workspaceMemberLogins = (() => {
+        if (!policyID?.value?.length) {
+            return undefined;
+        }
+
+        const logins = new Set<string>();
+        const selectedPolicies = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
+        for (const policy of selectedPolicies) {
+            const employeeLogins = Object.keys(policy.employeeList ?? {});
+            for (const login of employeeLogins) {
+                logins.add(login);
+            }
+        }
+        for (const accountID of initialSelectedValues) {
+            const login = personalDetails?.[accountID]?.login;
+            if (login) {
+                logins.add(login);
+            }
+        }
+        return logins;
+    })();
+
     const {searchTerm, setSearchTerm, availableOptions, totalOptionsCount, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         initialSelected: initialSelectedAccountIDs,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         excludeFromSuggestionsOnly: expensifyTeamExclusions,
+        includeLoginsOnly: workspaceMemberLogins,
         includeUserToInvite: true,
         includeCurrentUser: false,
         includeRecentReports: false,
@@ -56,10 +88,6 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
         onSelectionChange: onChange,
         shouldKeepSelectedInAvailableOptions: true,
     });
-
-    // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
-    // top on first render without repinning rows that are toggled afterwards (see https://github.com/Expensify/App/issues/61414).
-    const initialSelectedValues = useInitialValue(() => value);
 
     // The current user is excluded from personalDetails, so include it (when present) in the list. moveInitialSelectionToTop
     // keys on `value`, so map each option's accountID (keyForList) onto it. Pre-selected rows are moved to the top,

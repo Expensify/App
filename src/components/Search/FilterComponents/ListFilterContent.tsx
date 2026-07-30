@@ -221,6 +221,7 @@ function ListFilterContent({
             content = (
                 <UserSelector
                     value={typeof value === 'object' ? value : undefined}
+                    policyID={policyID}
                     key={baseFilterKey}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
