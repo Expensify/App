@@ -331,9 +331,9 @@ describe('SubmitDetailsPage', () => {
         expect(jest.mocked(readFileAsync)).not.toHaveBeenCalled();
     });
 
-    // Error #5 — when the destination chat is not already visible, submit must reveal the pre-mounted report
+    // Error #5 — wide layout fallback: when destination is not topmost, reveal it via revealRouteBeforeDismissingModal
     // and defer navigation to cleanup (shouldNavigate: false) so we do not double-navigate after dismiss.
-    it('reveals the pre-mounted destination and passes shouldNavigate false to cleanup when another report is topmost', async () => {
+    it('wide layout: reveals destination via revealRouteBeforeDismissingModal when another report is topmost', async () => {
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
 
         await renderAndConfirm();
@@ -342,6 +342,19 @@ describe('SubmitDetailsPage', () => {
             ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID),
             expect.objectContaining({afterTransition: expect.any(Function)}),
         );
+        expect(jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0]?.shouldNavigate).toBe(false);
+        expect(TrackExpense.requestMoney).toHaveBeenCalled();
+    });
+
+    // Error #5b — narrow layout headline: pre-insert destination, then submit resolves via dismissModal.
+    it('narrow layout: pre-inserts destination and dismisses modal when another report is topmost', async () => {
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+        jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+
+        await renderAndConfirm();
+
+        expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID));
+        expect(Navigation.dismissModal).toHaveBeenCalledWith(expect.objectContaining({afterTransition: expect.any(Function)}));
         expect(jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0]?.shouldNavigate).toBe(false);
         expect(TrackExpense.requestMoney).toHaveBeenCalled();
     });
