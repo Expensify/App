@@ -1252,11 +1252,11 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE) {
             result.alternateText = getRemoveExpensifyCardRuleMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE) {
-            result.alternateText = getAddAgentRuleMessage(translate, lastAction);
+            result.alternateText = StringUtils.lineBreaksToSpaces(getAddAgentRuleMessage(translate, lastAction));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE) {
-            result.alternateText = getUpdateAgentRuleMessage(translate, lastAction);
+            result.alternateText = StringUtils.lineBreaksToSpaces(getUpdateAgentRuleMessage(translate, lastAction));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE) {
-            result.alternateText = getDeleteAgentRuleMessage(translate, lastAction);
+            result.alternateText = StringUtils.lineBreaksToSpaces(getDeleteAgentRuleMessage(translate, lastAction));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {
             result.alternateText = getUpdatedManualApprovalThresholdMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) {
