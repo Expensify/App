@@ -1534,11 +1534,11 @@ describe('libs/NextStepUtils', () => {
                 }
                 return translateLocal(path, ...parameters);
             };
-            const formatPhoneNumber = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
+            const formatPhoneNumberMock = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
 
-            const message = buildNextStepMessage(nextStep, translateWithActorName, 999999, formatPhoneNumber);
+            const message = buildNextStepMessage(nextStep, translateWithActorName, 999999, formatPhoneNumberMock);
 
-            expect(formatPhoneNumber).toHaveBeenCalledWith(phoneActorLogin);
+            expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
         });
     });
