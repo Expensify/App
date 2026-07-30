@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, userEvent, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -90,6 +90,7 @@ jest.mock('react-native-plaid-link-sdk', () => ({
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     goBack: jest.fn(),
@@ -324,6 +325,320 @@ describe('AssignCardFeed', () => {
             });
 
             unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should not auto-advance when a cardholder is selected and should navigate only after pressing Next', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const navigateSpy = jest.spyOn(Navigation, 'navigate');
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                // Keep the company-cards feature enabled so AccessOrNotFoundWrapper never fires an incidental redirect,
+                // which would otherwise make the navigate assertions below pass/fail for the wrong reason.
+                areCompanyCardsEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
+                },
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: false,
+                });
+            });
+
+            const {unmount} = renderAssigneeStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Selecting a cardholder should not navigate immediately (no auto-advance)
+            await waitFor(() => {
+                expect(screen.getByText('testaccount+1@gmail.com')).toBeOnTheScreen();
+            });
+            fireEvent.press(screen.getByText('testaccount+1@gmail.com'));
+            await waitForBatchedUpdatesWithAct();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // Pressing Next should advance to the card-selection step for the selected cardholder
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute({policyID: policy.id, feed: COMMERCIAL_FEED, cardID: CARD_ID}));
+
+            unmount();
+            navigateSpy.mockRestore();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should show an error and not navigate when pressing Next without selecting a cardholder', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const navigateSpy = jest.spyOn(Navigation, 'navigate');
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                // Enabled so the wrapper never redirects; the "did not navigate" assertion then only reflects our logic.
+                areCompanyCardsEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
+                },
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: false,
+                });
+            });
+
+            const {unmount} = renderAssigneeStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Pressing Next with no selection should surface the error and stay on the step
+            await waitFor(() => {
+                expect(screen.getByText('Next')).toBeOnTheScreen();
+            });
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Please select a cardholder to continue')).toBeOnTheScreen();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            unmount();
+            navigateSpy.mockRestore();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should keep the already-assigned cardholder selected so Next continues without requiring a fresh selection', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const navigateSpy = jest.spyOn(Navigation, 'navigate');
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                // Enabled so the wrapper never redirects and the navigate assertion reflects only our logic.
+                areCompanyCardsEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
+                },
+            };
+
+            // Returning to this step in edit mode with a cardholder already saved on cardToAssign.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+                    cardToAssign: {email: 'testaccount+1@gmail.com'},
+                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: true,
+                });
+            });
+
+            const {unmount} = renderAssigneeStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Pressing Next without re-tapping should continue with the saved cardholder, not error out.
+            await waitFor(() => {
+                expect(screen.getByText('Next')).toBeOnTheScreen();
+            });
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Please select a cardholder to continue')).not.toBeOnTheScreen();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute({policyID: policy.id, feed: COMMERCIAL_FEED, cardID: CARD_ID}));
+
+            unmount();
+            navigateSpy.mockRestore();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should preserve the chosen transaction start date and date option when re-confirming the saved cardholder', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const mockedSetAssignCardStepAndData = jest.mocked(setAssignCardStepAndData);
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
+                },
+            };
+
+            // Simulates the state after the user picked "From the beginning" on Confirmation and pressed the header
+            // back arrow to return to this step: cardToAssign carries the chosen date, and isEditing is false because
+            // header back no longer sets it. createMockAssignCardData seeds dateOption FROM_BEGINNING + startDate.
+            const assignCardData = {...createMockAssignCardData({feedType: 'commercial'}), currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE, isEditing: false};
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, assignCardData);
+            });
+
+            const {unmount} = renderAssigneeStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Pressing Next re-confirms the already-saved cardholder without re-visiting the start date step.
+            await waitFor(() => {
+                expect(screen.getByText('Next')).toBeOnTheScreen();
+            });
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            // The saved start date and date option must survive the round trip (regression: they were reset to today/CUSTOM).
+            expect(mockedSetAssignCardStepAndData).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    cardToAssign: expect.objectContaining({
+                        startDate: assignCardData.cardToAssign.startDate,
+                        dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+                    }),
+                }),
+            );
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should navigate back to the confirmation step (not dismiss the flow) when back is pressed while editing the cardholder', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const mockedSetAssignCardStepAndData = jest.mocked(setAssignCardStepAndData);
+            const mockedNavigate = jest.mocked(Navigation.navigate);
+            const mockedGoBack = jest.mocked(Navigation.goBack);
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
+                },
+            };
+
+            // Editing the cardholder from Confirmation reaches this step with isEditing: true.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+                    cardToAssign: {email: 'testaccount+1@gmail.com'},
+                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: true,
+                });
+            });
+
+            const {unmount} = renderAssigneeStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByLabelText('Back')).toBeOnTheScreen();
+            });
+
+            // AccessOrNotFoundWrapper can fire a redirect goBack while mounting the step with this fake policy, so clear
+            // the mocks right before the interaction to isolate what the Back press itself does.
+            mockedSetAssignCardStepAndData.mockClear();
+            mockedNavigate.mockClear();
+            mockedGoBack.mockClear();
+
+            fireEvent.press(screen.getByLabelText('Back'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Back should return to Confirmation and clear the editing flag, NOT dismiss the RHP via a bare goBack.
+            expect(mockedSetAssignCardStepAndData).toHaveBeenCalledWith({isEditing: false});
+            expect(mockedNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
+            expect(mockedGoBack).not.toHaveBeenCalled();
+
+            unmount();
+            mockedSetAssignCardStepAndData.mockClear();
+            mockedNavigate.mockClear();
+            mockedGoBack.mockClear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should dismiss the flow with a plain goBack (no Confirmation loop) when back is pressed during normal wizard navigation', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const mockedNavigate = jest.mocked(Navigation.navigate);
+            const mockedGoBack = jest.mocked(Navigation.goBack);
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
+                },
+            };
+
+            // Plain wizard back-navigation reaches this step with isEditing: false.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: false,
+                });
+            });
+
+            const {unmount} = renderAssigneeStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByLabelText('Back')).toBeOnTheScreen();
+            });
+            fireEvent.press(screen.getByLabelText('Back'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Back should fall through to a plain goBack and must NOT route to Confirmation (which would create a loop).
+            expect(mockedGoBack).toHaveBeenCalled();
+            expect(mockedNavigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
+
+            unmount();
+            mockedNavigate.mockClear();
+            mockedGoBack.mockClear();
             await waitForBatchedUpdatesWithAct();
         });
     });
@@ -660,6 +975,54 @@ describe('AssignCardFeed', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
+        it('should enter cardholder edit mode and go back to the assignee step when the To row is tapped on confirmation', async () => {
+            await TestHelper.signInWithTestUser();
+
+            const mockedSetAssignCardStepAndData = jest.mocked(setAssignCardStepAndData);
+            const mockedGoBack = jest.mocked(Navigation.goBack);
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial'}));
+            });
+
+            const {unmount} = renderConfirmationStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Tap the "To" (cardholder) row to edit the assignee.
+            await waitFor(() => {
+                expect(screen.getByTestId(CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID)).toBeOnTheScreen();
+            });
+            const user = userEvent.setup();
+            await user.press(screen.getByTestId(CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID));
+            await waitForBatchedUpdatesWithAct();
+
+            // Editing the cardholder is the one entry point that sets isEditing: true and pops back to the assignee step,
+            // so that the assignee step's own back can route back to Confirmation.
+            expect(mockedSetAssignCardStepAndData).toHaveBeenCalledWith({isEditing: true});
+            expect(mockedGoBack).toHaveBeenCalledWith(
+                createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(COMMERCIAL_FEED, CARD_ID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id)),
+                {compareParams: false},
+            );
+
+            unmount();
+            mockedSetAssignCardStepAndData.mockClear();
+            mockedGoBack.mockClear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
         it('should navigate back to assignee step when back button is pressed on confirmation step', async () => {
             await TestHelper.signInWithTestUser();
 
@@ -697,8 +1060,9 @@ describe('AssignCardFeed', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Verify setAssignCardStepAndData was called with isEditing: true
-            expect(mockedSetAssignCardStepAndData).toHaveBeenCalledWith({isEditing: true});
+            // Header back is plain wizard back-navigation and must NOT set isEditing, otherwise the assignee step would
+            // route its own back to Confirmation and trap the user in a Confirmation <-> Assignee loop.
+            expect(mockedSetAssignCardStepAndData).not.toHaveBeenCalledWith({isEditing: true});
 
             // Verify goBack was called to navigate to assignee step
             expect(mockedGoBack).toHaveBeenCalledWith(
