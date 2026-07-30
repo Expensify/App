@@ -6,9 +6,9 @@ import type {AlternateDirectionsProps} from './MapViewTypes';
 
 import {getAlternateDirectionsShape, SELECTED_BORDER_ID, SELECTED_FILL_ID, SOURCE_ID, UNSELECTED_BORDER_ID, UNSELECTED_FILL_ID} from './alternateDirectionsUtils';
 
-function AlternateDirections({directionCoordinates, alternativeDirection, setIsAlternativeDirectionSelected}: AlternateDirectionsProps) {
+function AlternateDirections({directionCoordinates, alternateDirection, setIsAlternateDirectionSelected}: AlternateDirectionsProps) {
     const styles = useThemeStyles();
-    const directionShape = getAlternateDirectionsShape(directionCoordinates, alternativeDirection);
+    const directionShape = getAlternateDirectionsShape(directionCoordinates, alternateDirection);
 
     return (
         <Mapbox.ShapeSource
@@ -16,10 +16,10 @@ function AlternateDirections({directionCoordinates, alternativeDirection, setIsA
             shape={directionShape}
             onPress={({features}) => {
                 const properties = features.at(0)?.properties;
-                if (typeof properties?.isAlternative !== 'boolean') {
+                if (typeof properties?.isAlternate !== 'boolean') {
                     return;
                 }
-                setIsAlternativeDirectionSelected?.(properties.isAlternative);
+                setIsAlternateDirectionSelected?.(properties.isAlternate);
             }}
         >
             <Mapbox.LineLayer

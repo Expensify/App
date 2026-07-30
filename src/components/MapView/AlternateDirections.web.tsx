@@ -15,7 +15,7 @@ const ALTERNATE_DIRECTIONS_LAYER_IDS = [UNSELECTED_BORDER_ID, UNSELECTED_FILL_ID
 const UNSELECTED_FILTER: FilterSpecification = ['==', ['get', 'isSelected'], false];
 const SELECTED_FILTER: FilterSpecification = ['==', ['get', 'isSelected'], true];
 
-function AlternateDirections({directionCoordinates, alternativeDirection}: AlternateDirectionsProps) {
+function AlternateDirections({directionCoordinates, alternateDirection}: AlternateDirectionsProps) {
     const styles = useThemeStyles();
     const layerLayoutStyle: Record<string, string> = styles.mapDirectionLayer.layout;
     const layerPaintStyle: Record<string, string | number> = styles.mapDirectionLayer.paint;
@@ -24,7 +24,7 @@ function AlternateDirections({directionCoordinates, alternativeDirection}: Alter
     const layerBorderLayoutStyle: Record<string, string> = styles.mapDirectionLayerBorder.layout;
     const layerBorderPaintStyle: Record<string, string | number> = styles.mapDirectionLayerBorder.paint;
 
-    const directionShape = getAlternateDirectionsShape(directionCoordinates, alternativeDirection);
+    const directionShape = getAlternateDirectionsShape(directionCoordinates, alternateDirection);
 
     return (
         <Source

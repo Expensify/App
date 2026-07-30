@@ -44,8 +44,8 @@ function MapView({
     initialState,
     waypoints,
     directionCoordinates,
-    alternativeDirection,
-    setIsAlternativeDirectionSelected,
+    alternateDirection,
+    setIsAlternateDirectionSelected,
     onMapReady,
     interactive = true,
     distanceInMeters,
@@ -155,7 +155,7 @@ function MapView({
         [],
     );
 
-    const allDirectionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinates, alternativeDirection);
+    const allDirectionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinates, alternateDirection);
 
     // When the page loses focus, we temporarily set the "idled" state to false.
     // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
@@ -322,8 +322,8 @@ function MapView({
 
                 <Directions
                     directionCoordinates={directionCoordinates}
-                    alternativeDirection={alternativeDirection}
-                    setIsAlternativeDirectionSelected={setIsAlternativeDirectionSelected}
+                    alternateDirection={alternateDirection}
+                    setIsAlternateDirectionSelected={setIsAlternateDirectionSelected}
                     distanceInMeters={distanceInMeters}
                     unit={unit}
                     waypoints={waypoints}

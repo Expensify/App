@@ -26,17 +26,17 @@ type MapViewProps = {
     waypoints?: WayPoint[];
     // List of coordinates which together forms a direction.
     directionCoordinates?: Coordinate[] | Coordinate[][];
-    // List of coordinates which together forms an alternative direction.
-    alternativeDirection?: {
-        // List of coordinates which together forms an alternative direction.
+    // List of coordinates which together forms an alternate direction.
+    alternateDirection?: {
+        // List of coordinates which together forms an alternate direction.
         coordinates: Coordinate[] | Coordinate[][];
-        // Whether the alternative direction is selected
+        // Whether the alternate direction is selected
         isSelected: boolean;
         // Distance displayed on the map in meters.
         distanceInMeters: number;
     };
-    // Callback to call when the alternative direction is selected
-    setIsAlternativeDirectionSelected?: (isAlternativeDirectionSelected: boolean) => void;
+    // Callback to call when the alternate direction is selected
+    setIsAlternateDirectionSelected?: (isAlternateDirectionSelected: boolean) => void;
     // Callback to call when the map is idle / ready.
     onMapReady?: () => void;
     // Whether the map is interactive or not
@@ -129,10 +129,10 @@ type DirectionProps = {
     onPress?: () => void;
 };
 
-type AlternativeDirection = {
+type AlternateDirection = {
     // List of coordinates which together forms a direction.
     coordinates: Coordinate[] | Coordinate[][];
-    // Whether the alternative direction is selected
+    // Whether the alternate direction is selected
     isSelected: boolean;
     // Distance displayed on the map in meters.
     distanceInMeters: number;
@@ -141,10 +141,10 @@ type AlternativeDirection = {
 type DirectionsProps = {
     // List of coordinates which together forms a direction.
     directionCoordinates?: Coordinate[] | Coordinate[][];
-    // List of coordinates which together forms an alternative direction.
-    alternativeDirection?: AlternativeDirection;
-    // Callback to call when the alternative direction is selected
-    setIsAlternativeDirectionSelected?: (isAlternativeDirectionSelected: boolean) => void;
+    // List of coordinates which together forms an alternate direction.
+    alternateDirection?: AlternateDirection;
+    // Callback to call when the alternate direction is selected
+    setIsAlternateDirectionSelected?: (isAlternateDirectionSelected: boolean) => void;
     // Distance displayed on the map in meters.
     distanceInMeters?: number;
     // Unit of measurement for distance
@@ -190,7 +190,7 @@ type MapViewHandle = {
 
 type DistanceSymbolMarkerProps = {distanceSymbolCoordinate: Coordinate; children: React.ReactNode; toggleDistanceUnit: () => void};
 
-type AlternateDirectionsProps = Required<Pick<DirectionsProps, 'directionCoordinates' | 'alternativeDirection'>> & Pick<DirectionsProps, 'setIsAlternativeDirectionSelected'>;
+type AlternateDirectionsProps = Required<Pick<DirectionsProps, 'directionCoordinates' | 'alternateDirection'>> & Pick<DirectionsProps, 'setIsAlternateDirectionSelected'>;
 
 export type {
     WayPoint,
@@ -205,5 +205,5 @@ export type {
     DistanceSymbolMarkerProps,
     AlternateDirectionsProps,
     DirectionsProps,
-    AlternativeDirection,
+    AlternateDirection,
 };

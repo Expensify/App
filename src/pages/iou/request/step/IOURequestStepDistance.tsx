@@ -41,7 +41,7 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {getDistanceInMeters, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -486,6 +486,7 @@ function IOURequestStepDistance({
                     {
                         waypoints: currentTransaction?.comment?.waypoints,
                         routes: currentTransaction?.routes,
+                        selectedRouteKey: getSelectedRouteKey(currentTransaction),
                     },
                     policy,
                     personalPolicy?.outputCurrency,
@@ -501,7 +502,14 @@ function IOURequestStepDistance({
             // clears stale distance violations like `increasedDistance` (GH #90105).
             const hasRouteChanged = !deepEqual(transactionBackup?.routes, transaction?.routes);
             const distanceWasReset = transactionBackup?.comment?.customUnit?.quantity != null && transactionBackup.comment.customUnit.quantity !== transaction?.comment?.customUnit?.quantity;
-            if (!haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints) && !distanceWasReset) {
+            // Picking a different map route changes nothing else about the transaction, so it needs its own signal or
+            // the save would be skipped by the check below and the selection silently dropped. Only compared when the
+            // waypoints are untouched: a waypoint edit re-fetches the routes and resets the selection to the primary
+            // one anyway, and the backed up selection refers to routes that no longer exist.
+            const haveAddressesChanged = haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints);
+            const selectedRouteKey = getSelectedRouteKey(currentTransaction);
+            const hasSelectedRouteChanged = !haveAddressesChanged && selectedRouteKey !== getSelectedRouteKey(transactionBackup);
+            if (!haveAddressesChanged && !distanceWasReset && !hasSelectedRouteChanged) {
                 transactionWasSaved.current = true;
                 navigateBackAfterSave();
                 return;
@@ -517,6 +525,7 @@ function IOURequestStepDistance({
                     recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     ...(distanceWasReset && routeDistanceInUnit !== undefined ? {distance: routeDistanceInUnit} : {}),
+                    ...(hasSelectedRouteChanged ? {selectedRouteKey} : {}),
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
@@ -559,8 +568,7 @@ function IOURequestStepDistance({
         waypoints,
         transaction,
         report,
-        currentTransaction?.comment?.waypoints,
-        currentTransaction?.routes,
+        currentTransaction,
         currentDistanceInMeters,
         distanceUnit,
         policy,

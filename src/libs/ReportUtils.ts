@@ -6221,7 +6221,7 @@ function getModifiedExpenseOriginalMessage(
 
     if (
         ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) ||
-        ('distance' in transactionChanges && updatedTransaction?.comment?.customUnit?.quantity)
+        (('distance' in transactionChanges || 'selectedRouteKey' in transactionChanges) && updatedTransaction?.comment?.customUnit?.quantity)
     ) {
         originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport, false, true);
         originalMessage.oldCurrency = getCurrency(oldTransaction);

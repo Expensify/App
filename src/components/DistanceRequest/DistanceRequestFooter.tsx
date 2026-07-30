@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSelectedRoute} from '@libs/actions/Transaction';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getDistanceInMeters, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getSelectedRouteKey, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,9 +65,15 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const policyCurrency = (policy ?? activePolicy ?? personalPolicy)?.outputCurrency ?? CONST.CURRENCY.USD;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction) : defaultMileageRate;
     const {unit} = mileageRate ?? {};
-    const isAlternativeDirectionSelected = transaction?.comment?.selectedRouteKey === 'route1';
-    const handleRouteSelection = (isAlternative: boolean) => {
-        setSelectedRoute(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, isAlternative ? 'route1' : 'route0', transactionState);
+    const primaryRoute = transaction?.routes?.[CONST.TRANSACTION.DEFAULT_ROUTE_KEY];
+    const alternateRoute = transaction?.routes?.[CONST.TRANSACTION.ALTERNATE_ROUTE_KEY];
+    const isAlternateDirectionSelected = getSelectedRouteKey(transaction) === CONST.TRANSACTION.ALTERNATE_ROUTE_KEY;
+    const handleRouteSelection = (isAlternate: boolean) => {
+        setSelectedRoute(
+            transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            isAlternate ? CONST.TRANSACTION.ALTERNATE_ROUTE_KEY : CONST.TRANSACTION.DEFAULT_ROUTE_KEY,
+            transactionState,
+        );
     };
 
     const waypointMarkers: WayPoint[] = [];
@@ -114,22 +120,22 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                         zoom: CONST.MAPBOX.DEFAULT_ZOOM,
                         location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
                     }}
-                    directionCoordinates={(transaction?.routes?.route0?.geometry?.coordinates as Array<[number, number]>) ?? []}
-                    alternativeDirection={
-                        transaction?.routes?.route1?.geometry?.coordinates && transaction?.routes?.route1?.distance
+                    directionCoordinates={(primaryRoute?.geometry?.coordinates as Array<[number, number]>) ?? []}
+                    alternateDirection={
+                        alternateRoute?.geometry?.coordinates && alternateRoute?.distance
                             ? {
-                                  coordinates: (transaction?.routes?.route1?.geometry?.coordinates as Array<[number, number]>) ?? [],
-                                  distanceInMeters: transaction?.routes?.route1?.distance,
-                                  isSelected: isAlternativeDirectionSelected,
+                                  coordinates: (alternateRoute.geometry.coordinates as Array<[number, number]>) ?? [],
+                                  distanceInMeters: alternateRoute.distance,
+                                  isSelected: isAlternateDirectionSelected,
                               }
                             : undefined
                     }
-                    setIsAlternativeDirectionSelected={handleRouteSelection}
+                    setIsAlternateDirectionSelected={handleRouteSelection}
                     style={[styles.mapView, styles.mapEditView]}
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
                     overlayStyle={styles.mapEditView}
-                    distanceInMeters={transaction?.routes?.route0?.distance ?? getDistanceInMeters(transaction, undefined)}
+                    distanceInMeters={primaryRoute?.distance ?? getDistanceInMeters(transaction, undefined)}
                     unit={unit}
                 />
             </View>

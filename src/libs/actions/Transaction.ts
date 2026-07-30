@@ -142,6 +142,9 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
             },
             customUnit: {
                 quantity: null,
+                // Belongs to the routes computed for the old waypoints. Leaving it would make `getSelectedRouteKey`
+                // distance-match the refetched routes against it and pick a route the user never selected.
+                routeDistanceMeters: null,
             },
             // The routes are cleared below, so the previously selected alternate route no longer exists
             selectedRouteKey: null,
@@ -230,8 +233,14 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
             ...newTransaction,
             comment: {
                 ...newTransaction.comment,
+                customUnit: {
+                    ...newTransaction.comment?.customUnit,
+                    // Belongs to the route computed for the old waypoints. Leaving it would make `getSelectedRouteKey`
+                    // distance-match the refetched routes against it and pick a route the user never selected.
+                    routeDistanceMeters: null,
+                },
                 // The route is cleared below, so the previously selected alternate route no longer exists
-                selectedRouteKey: undefined,
+                selectedRouteKey: null,
             },
             // Clear any errors that may be present, which apply to the old route
             errorFields: {
@@ -452,6 +461,9 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
             waypoints: waypointsOnyxUpdate,
             customUnit: {
                 quantity: null,
+                // Belongs to the routes computed for the old waypoints. Leaving it would make `getSelectedRouteKey`
+                // distance-match the refetched routes against it and pick a route the user never selected.
+                routeDistanceMeters: null,
             },
             // The routes are cleared below, so the previously selected alternate route no longer exists
             selectedRouteKey: null,

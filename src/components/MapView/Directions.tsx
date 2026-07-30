@@ -5,30 +5,30 @@ import Direction from './Direction';
 import DistanceSymbol from './DistanceSymbol';
 import utils from './utils';
 
-function Directions({directionCoordinates, alternativeDirection, setIsAlternativeDirectionSelected, distanceInMeters, unit, waypoints}: DirectionsProps) {
+function Directions({directionCoordinates, alternateDirection, setIsAlternateDirectionSelected, distanceInMeters, unit, waypoints}: DirectionsProps) {
     if (!directionCoordinates) {
         return null;
     }
 
-    const alternativeDirectionCoordinates = alternativeDirection?.coordinates;
-    const hasAlternativeDirection = !!alternativeDirection && !!alternativeDirectionCoordinates?.length;
-    const isAlternativeDirectionSelected = !!alternativeDirection?.isSelected;
+    const alternateDirectionCoordinates = alternateDirection?.coordinates;
+    const hasAlternateDirection = !!alternateDirection && !!alternateDirectionCoordinates?.length;
+    const isAlternateDirectionSelected = !!alternateDirection?.isSelected;
 
     return (
         <>
-            {hasAlternativeDirection ? (
+            {hasAlternateDirection ? (
                 <>
                     <AlternateDirections
                         directionCoordinates={directionCoordinates}
-                        alternativeDirection={alternativeDirection}
-                        setIsAlternativeDirectionSelected={setIsAlternativeDirectionSelected}
+                        alternateDirection={alternateDirection}
+                        setIsAlternateDirectionSelected={setIsAlternateDirectionSelected}
                     />
                     <DistanceSymbol
-                        distanceInMeters={alternativeDirection.distanceInMeters}
+                        distanceInMeters={alternateDirection.distanceInMeters}
                         unit={unit}
-                        directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(alternativeDirectionCoordinates)}
+                        directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(alternateDirectionCoordinates)}
                         waypoints={waypoints}
-                        isSelected={isAlternativeDirectionSelected}
+                        isSelected={isAlternateDirectionSelected}
                     />
                 </>
             ) : (
@@ -39,7 +39,7 @@ function Directions({directionCoordinates, alternativeDirection, setIsAlternativ
                 unit={unit}
                 directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinates)}
                 waypoints={waypoints}
-                isSelected={!isAlternativeDirectionSelected}
+                isSelected={!isAlternateDirectionSelected}
             />
         </>
     );

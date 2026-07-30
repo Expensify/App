@@ -2156,7 +2156,11 @@ describe('Transaction', () => {
                 lng: 10,
             };
             const existingTransaction = generateTransaction({transactionID, reportID: '1'});
-            existingTransaction.comment = {...existingTransaction.comment, selectedRouteKey: 'route1'};
+            existingTransaction.comment = {
+                ...existingTransaction.comment,
+                selectedRouteKey: 'route1',
+                customUnit: {...existingTransaction.comment?.customUnit, routeDistanceMeters: 200},
+            };
             existingTransaction.routes = {
                 route0: {distance: 100, geometry: {coordinates: [[0, 0]]}},
                 route1: {distance: 200, geometry: {coordinates: [[1, 1]]}},
@@ -2168,6 +2172,17 @@ describe('Transaction', () => {
 
             const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
+
+            // The route distance belongs to the old waypoints, so it must not survive to be distance-matched
+            // against the refetched routes — otherwise the selection would jump to a route the user never picked.
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters ?? null).toBeNull();
+            expect(
+                TransactionUtils.getSelectedRouteKey({
+                    ...existingTransaction,
+                    comment: transaction?.comment,
+                    routes: {route0: {distance: 500, geometry: {coordinates: [[0, 0]]}}, route1: {distance: 200, geometry: {coordinates: [[1, 1]]}}},
+                }),
+            ).toBe(CONST.TRANSACTION.DEFAULT_ROUTE_KEY);
         });
     });
 
@@ -2178,6 +2193,7 @@ describe('Transaction', () => {
             existingTransaction.comment = {
                 ...existingTransaction.comment,
                 selectedRouteKey: 'route1',
+                customUnit: {...existingTransaction.comment?.customUnit, routeDistanceMeters: 200},
                 waypoints: {
                     waypoint0: {address: 'A', lat: 1, lng: 1},
                     waypoint1: {address: 'B', lat: 2, lng: 2},
@@ -2195,6 +2211,7 @@ describe('Transaction', () => {
 
             const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters ?? null).toBeNull();
         });
     });
 

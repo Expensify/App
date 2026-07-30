@@ -6,7 +6,7 @@ import {translate} from '@libs/Localize';
 import {rand64} from '@libs/NumberUtils';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
-import {buildOptimisticTransaction, getAmount, getCurrency, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
+import {buildOptimisticTransaction, getAmount, getCurrency, getSelectedRouteKey, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -570,7 +570,7 @@ function updateSplitExpenseField(
             if (transactionDetails?.created !== item.created) {
                 shouldResetDateRange = true;
             }
-            const splitSelectedRouteKey = splitExpenseDraftTransaction?.comment?.selectedRouteKey ?? 'route0';
+            const splitSelectedRouteKey = getSelectedRouteKey(splitExpenseDraftTransaction);
             let quantity: number | undefined;
             if (splitExpenseDraftTransaction?.routes?.[splitSelectedRouteKey]?.distance && splitExpenseDraftTransaction?.comment?.customUnit?.distanceUnit) {
                 quantity = DistanceRequestUtils.convertDistanceUnit(

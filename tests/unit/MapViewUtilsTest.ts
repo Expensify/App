@@ -1,4 +1,4 @@
-import type {AlternativeDirection, Coordinate} from '@components/MapView/MapViewTypes';
+import type {AlternateDirection, Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 
 const SINGLE_SEGMENT: Coordinate[] = [
@@ -18,7 +18,7 @@ const SEGMENTED: Coordinate[][] = [
     ],
 ];
 
-const buildAlternativeDirection = (coordinates: Coordinate[] | Coordinate[][]): AlternativeDirection => ({
+const buildAlternateDirection = (coordinates: Coordinate[] | Coordinate[][]): AlternateDirection => ({
     coordinates,
     isSelected: false,
     distanceInMeters: 1500,
@@ -46,8 +46,8 @@ describe('MapView utils', () => {
     });
 
     describe('getCoordinatesFromAllDirections', () => {
-        it('concatenates the main and alternative direction coordinates', () => {
-            expect(utils.getCoordinatesFromAllDirections(SINGLE_SEGMENT, buildAlternativeDirection([[9, 9]]))).toEqual([
+        it('concatenates the main and alternate direction coordinates', () => {
+            expect(utils.getCoordinatesFromAllDirections(SINGLE_SEGMENT, buildAlternateDirection([[9, 9]]))).toEqual([
                 [0, 0],
                 [1, 1],
                 [2, 2],
@@ -56,7 +56,7 @@ describe('MapView utils', () => {
         });
 
         it('flattens segmented coordinates on both directions', () => {
-            expect(utils.getCoordinatesFromAllDirections(SEGMENTED, buildAlternativeDirection([[[7, 7]], [[8, 8]]]))).toEqual([
+            expect(utils.getCoordinatesFromAllDirections(SEGMENTED, buildAlternateDirection([[[7, 7]], [[8, 8]]]))).toEqual([
                 [0, 0],
                 [1, 1],
                 [5, 5],
@@ -66,12 +66,12 @@ describe('MapView utils', () => {
             ]);
         });
 
-        it('returns only the main direction when there is no alternative direction', () => {
+        it('returns only the main direction when there is no alternate direction', () => {
             expect(utils.getCoordinatesFromAllDirections(SINGLE_SEGMENT, undefined)).toEqual(SINGLE_SEGMENT);
         });
 
-        it('returns only the alternative direction when there is no main direction', () => {
-            expect(utils.getCoordinatesFromAllDirections(undefined, buildAlternativeDirection(SINGLE_SEGMENT))).toEqual(SINGLE_SEGMENT);
+        it('returns only the alternate direction when there is no main direction', () => {
+            expect(utils.getCoordinatesFromAllDirections(undefined, buildAlternateDirection(SINGLE_SEGMENT))).toEqual(SINGLE_SEGMENT);
         });
 
         it('returns an empty list when there are no directions at all', () => {

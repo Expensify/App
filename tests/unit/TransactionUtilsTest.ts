@@ -4014,6 +4014,47 @@ describe('getSelectedRouteDistance', () => {
     });
 });
 
+describe('getSelectedRouteKey', () => {
+    const routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString' as const, coordinates: [[1, 1] as [number, number]]}},
+    };
+
+    it('returns the explicitly selected route', () => {
+        const transaction = generateTransaction({comment: {selectedRouteKey: 'route1', customUnit: {routeDistanceMeters: 1000}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('derives the selection from the saved route distance when there is no explicit selection', () => {
+        const transaction = generateTransaction({comment: {customUnit: {routeDistanceMeters: 1500}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('picks the closest route when the saved distance does not match exactly', () => {
+        const transaction = generateTransaction({comment: {customUnit: {routeDistanceMeters: 1493.27}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('derives the selection from the route distance even when a manual distance override is set', () => {
+        const transaction = generateTransaction({comment: {customUnit: {quantity: 42, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, routeDistanceMeters: 1500}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('keeps the default route for an exact tie', () => {
+        const transaction = generateTransaction({comment: {customUnit: {routeDistanceMeters: 1000}}, routes: {...routes, route1: {...routes.route1, distance: 1000}}});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route0');
+    });
+
+    it('falls back to the default route when there is nothing to derive the selection from', () => {
+        expect(TransactionUtils.getSelectedRouteKey(generateTransaction({routes}))).toBe('route0');
+        expect(TransactionUtils.getSelectedRouteKey(generateTransaction({comment: {customUnit: {routeDistanceMeters: 1500}}}))).toBe('route0');
+        expect(TransactionUtils.getSelectedRouteKey(generateTransaction({comment: {customUnit: {routeDistanceMeters: 1500}}, routes: {route0: {...routes.route0, distance: null}}}))).toBe(
+            'route0',
+        );
+        expect(TransactionUtils.getSelectedRouteKey(undefined)).toBe('route0');
+    });
+});
+
 describe('getDistanceInMeters', () => {
     const routes = {
         route0: {distance: 1000, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}},

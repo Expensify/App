@@ -2422,8 +2422,8 @@ const CONST = {
     TRANSACTION: {
         RESULTS_PAGE_SIZE: 20,
         DEFAULT_MERCHANT: 'Expense',
-        /** Key of the primary route in `transaction.routes`, used when the user hasn't picked an alternate route */
         DEFAULT_ROUTE_KEY: 'route0',
+        ALTERNATE_ROUTE_KEY: 'route1',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {

@@ -151,7 +151,7 @@ type Comment = {
     odometerEndImage?: FileObject | string;
 
     /** Key of the route selected by the user when multiple alternative routes are available (e.g. 'route0', 'route1') */
-    selectedRouteKey?: string;
+    selectedRouteKey?: string | null;
 
     /** Spotnana trip ID, set on travel transactions and used to link the expense to its trip room */
     tripID?: string;
@@ -196,7 +196,7 @@ type TransactionCustomUnit = {
      * The distance in meters from the route Mapbox or Google Maps chose through the user supplied waypoints.
      * It is used to track when the user has manually increased the distance above the system-calculated route distance.
      */
-    routeDistanceMeters?: number;
+    routeDistanceMeters?: number | null;
 
     /** Sub Rates for the custom unit */
     subRates?: Array<{
@@ -735,6 +735,9 @@ type AdditionalTransactionChanges = {
 
     /** The unit for the distance/quantity */
     quantity?: number;
+
+    /** Key of the route selected by the user when multiple alternative routes are available (e.g. 'route0', 'route1') */
+    selectedRouteKey?: string;
 
     /** Accounting-system vendor on the transaction's comment NVP. `null` clears the vendor. */
     vendor?: TransactionCommentVendor | null;

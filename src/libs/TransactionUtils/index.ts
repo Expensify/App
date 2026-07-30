@@ -93,6 +93,7 @@ import lodashSet from 'lodash/set';
 import Onyx from 'react-native-onyx';
 
 import getDistanceInMeters from './getDistanceInMeters';
+import getSelectedRouteKey from './getSelectedRouteKey';
 
 type TransactionParams = {
     amount: number;
@@ -599,6 +600,24 @@ function getClearedPendingFields(transactionChanges: TransactionChanges) {
 }
 
 /**
+ * Build the distance merchant string (e.g. "5.00 mi @ $0.70 / mi") for a recalculated distance, using the
+ * imperative locale accessors the optimistic update paths below have to rely on.
+ */
+function getRecalculatedDistanceMerchant(transaction: OnyxEntry<Transaction>, distanceInMeters: number, unit: Unit | undefined, rate: number | undefined, currency: string): string {
+    return DistanceRequestUtils.getDistanceMerchant(
+        true,
+        distanceInMeters,
+        unit,
+        rate,
+        currency,
+        translateLocal,
+        (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        getCurrencySymbol,
+        isManualDistanceRequest(transaction),
+    );
+}
+
+/**
  * Given the edit made to the expense, return an updated transaction object.
  */
 function getUpdatedTransaction({
@@ -674,23 +693,17 @@ function getUpdatedTransaction({
 
             // Use route distance directly since waypoints changed and the route was recalculated.
             // getDistanceInMeters prefers quantity which may hold a stale manually-edited value.
-            const distanceInMeters = transactionChanges.routes?.route0?.distance ?? getDistanceInMeters(transaction, unit);
+            const selectedRouteKey = transactionChanges.selectedRouteKey ?? transaction?.comment?.selectedRouteKey;
+            const distanceInMeters =
+                (selectedRouteKey ? transactionChanges.routes?.[selectedRouteKey]?.distance : undefined) ??
+                transactionChanges.routes?.route0?.distance ??
+                getDistanceInMeters(transaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             // Use the rate's resolved currency (which may come from personalPolicyOutputCurrency for a P2P expense),
             // not transaction.currency, so the merchant symbol/rate and the recalculated amount stay in the same currency.
             const updatedCurrency = mileageRate.currency ?? transaction.currency ?? CONST.CURRENCY.USD;
-            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
-                true,
-                distanceInMeters,
-                unit,
-                rate,
-                updatedCurrency,
-                translateLocal,
-                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-                getCurrencySymbol,
-                isManualDistanceRequest(transaction),
-            );
+            const updatedMerchant = getRecalculatedDistanceMerchant(transaction, distanceInMeters, unit, rate, updatedCurrency);
 
             updatedTransaction.amount = updatedAmount;
             updatedTransaction.modifiedAmount = updatedAmount;
@@ -765,17 +778,7 @@ function getUpdatedTransaction({
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
-            const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
-                true,
-                distanceInMeters,
-                unit,
-                rate,
-                updatedCurrency,
-                translateLocal,
-                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-                getCurrencySymbol,
-                isManualDistanceRequest(transaction),
-            );
+            const updatedMerchant = getRecalculatedDistanceMerchant(transaction, distanceInMeters, unit, rate, updatedCurrency);
 
             updatedTransaction.amount = updatedAmount;
             updatedTransaction.modifiedAmount = updatedAmount;
@@ -861,17 +864,7 @@ function getUpdatedTransaction({
         let amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
         amount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
         const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
-        const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
-            true,
-            distanceInMeters,
-            unit,
-            rate,
-            updatedCurrency,
-            translateLocal,
-            (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-            getCurrencySymbol,
-            isManualDistanceRequest(transaction),
-        );
+        const updatedMerchant = getRecalculatedDistanceMerchant(transaction, distanceInMeters, unit, rate, updatedCurrency);
 
         // No locally resolvable rate (e.g. track expense without policy loaded) → scale the previous
         // amount by the distance ratio so the optimistic value isn't 0. `modifiedAmount` is `""` for
@@ -886,6 +879,38 @@ function getUpdatedTransaction({
             updatedTransaction.modifiedAmount = amount;
             updatedTransaction.modifiedMerchant = updatedMerchant;
             updatedTransaction.modifiedCurrency = updatedCurrency;
+        }
+    }
+
+    // The user picked a different map route without touching the waypoints, so the routes are unchanged and only the
+    // distance the expense reads from them changes. Unlike the `distance` branch above this keeps `routes` intact,
+    // since this is a route distance, not a manual override.
+    // A manually typed distance always wins over the route distance, so skip this when both are being changed.
+    if (Object.hasOwn(transactionChanges, 'selectedRouteKey') && typeof transactionChanges.selectedRouteKey === 'string' && !Object.hasOwn(transactionChanges, 'distance')) {
+        const selectedRouteDistanceInMeters = transaction?.routes?.[transactionChanges.selectedRouteKey]?.distance;
+        lodashSet(updatedTransaction, 'comment.selectedRouteKey', transactionChanges.selectedRouteKey);
+        shouldStopSmartscan = true;
+
+        if (selectedRouteDistanceInMeters) {
+            const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, personalPolicyOutputCurrency});
+            const {unit, rate} = mileageRate;
+            const amount = DistanceRequestUtils.getDistanceRequestAmount(selectedRouteDistanceInMeters, unit, rate ?? 0);
+            const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
+            const updatedCurrency = mileageRate.currency ?? transaction.currency ?? CONST.CURRENCY.USD;
+
+            updatedTransaction.amount = updatedAmount;
+            updatedTransaction.modifiedAmount = updatedAmount;
+            updatedTransaction.modifiedMerchant = getRecalculatedDistanceMerchant(transaction, selectedRouteDistanceInMeters, unit, rate, updatedCurrency);
+            if (getCurrency(updatedTransaction) !== updatedCurrency) {
+                updatedTransaction.modifiedCurrency = updatedCurrency;
+            }
+
+            // `getDistanceInMeters` prefers `customUnit.quantity`, so it has to follow the new route or the displayed
+            // distance would keep showing the previously selected route.
+            if (unit) {
+                lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(selectedRouteDistanceInMeters, unit)));
+                lodashSet(updatedTransaction, 'comment.customUnit.routeDistanceMeters', selectedRouteDistanceInMeters);
+            }
         }
     }
 
@@ -3178,8 +3203,8 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
         return undefined;
     }
 
-    const selectedRouteKey = transaction?.comment?.selectedRouteKey;
-    if (!selectedRouteKey || selectedRouteKey === CONST.TRANSACTION.DEFAULT_ROUTE_KEY) {
+    const selectedRouteKey = getSelectedRouteKey(transaction);
+    if (selectedRouteKey === CONST.TRANSACTION.DEFAULT_ROUTE_KEY) {
         return undefined;
     }
 
@@ -3213,6 +3238,7 @@ export {
     shouldClearConvertedAmount,
     getDistanceInMeters,
     getSelectedRouteDistance,
+    getSelectedRouteKey,
     getCardID,
     getOriginalCurrency,
     getOriginalAmount,

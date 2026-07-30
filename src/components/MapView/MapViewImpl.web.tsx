@@ -49,8 +49,8 @@ function MapViewImpl({
     mapPadding,
     accessToken,
     directionCoordinates: directionCoordinatesProp,
-    alternativeDirection,
-    setIsAlternativeDirectionSelected,
+    alternateDirection,
+    setIsAlternateDirectionSelected,
     initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
     interactive = true,
     distanceInMeters,
@@ -58,9 +58,9 @@ function MapViewImpl({
     ref,
     shouldDisplayCurrentLocation = true,
 }: MapViewProps) {
-    // Coordinates of every rendered route (the main one and the alternative one, if any), used to frame the map around all of them.
-    const directionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinatesProp, alternativeDirection);
-    const hasAlternativeDirection = !!alternativeDirection?.coordinates?.length;
+    // Coordinates of every rendered route (the main one and the alternate one, if any), used to frame the map around all of them.
+    const directionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinatesProp, alternateDirection);
+    const hasAlternateDirection = !!alternateDirection?.coordinates?.length;
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
@@ -253,18 +253,18 @@ function MapViewImpl({
         };
     }, [waypoints, directionCoordinates, interactive, currentPosition?.longitude, currentPosition?.latitude, initialState.zoom]);
 
-    // The route layers only need to be interactive when there is an alternative route to pick, so that clicking a route selects it.
-    const interactiveLayerIds = useMemo(() => (interactive && hasAlternativeDirection ? ALTERNATE_DIRECTIONS_LAYER_IDS : undefined), [interactive, hasAlternativeDirection]);
+    // The route layers only need to be interactive when there is an alternate route to pick, so that clicking a route selects it.
+    const interactiveLayerIds = useMemo(() => (interactive && hasAlternateDirection ? ALTERNATE_DIRECTIONS_LAYER_IDS : undefined), [interactive, hasAlternateDirection]);
 
     const selectClickedDirection = useCallback(
         (event: MapMouseEvent) => {
-            const isAlternative: unknown = event.features?.at(0)?.properties?.isAlternative;
-            if (typeof isAlternative !== 'boolean') {
+            const isAlternate: unknown = event.features?.at(0)?.properties?.isAlternate;
+            if (typeof isAlternate !== 'boolean') {
                 return;
             }
-            setIsAlternativeDirectionSelected?.(isAlternative);
+            setIsAlternateDirectionSelected?.(isAlternate);
         },
-        [setIsAlternativeDirectionSelected],
+        [setIsAlternateDirectionSelected],
     );
 
     return !isOffline && !!accessToken && !!initialViewState ? (
@@ -316,7 +316,7 @@ function MapViewImpl({
                 })}
                 <Directions
                     directionCoordinates={directionCoordinatesProp}
-                    alternativeDirection={alternativeDirection}
+                    alternateDirection={alternateDirection}
                     distanceInMeters={distanceInMeters}
                     unit={unit}
                     waypoints={waypoints}

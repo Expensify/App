@@ -2,12 +2,12 @@ import CONST from '@src/CONST';
 
 import type {Feature, FeatureCollection, LineString, MultiLineString} from 'geojson';
 
-import type {AlternativeDirection, Coordinate} from './MapViewTypes';
+import type {AlternateDirection, Coordinate} from './MapViewTypes';
 
 import utils from './utils';
 
 type DirectionFeatureProperties = {
-    isAlternative: boolean;
+    isAlternate: boolean;
     isSelected: boolean;
 };
 
@@ -21,7 +21,7 @@ const {
     SELECTED_BORDER: SELECTED_BORDER_ID,
 } = CONST.ALTERNATE_DIRECTIONS_MAP_VIEW_LAYERS;
 
-function getDirectionFeature(coordinates: Coordinate[] | Coordinate[][], isAlternative: boolean, isSelected: boolean): DirectionFeature | undefined {
+function getDirectionFeature(coordinates: Coordinate[] | Coordinate[][], isAlternate: boolean, isSelected: boolean): DirectionFeature | undefined {
     if (utils.isSingleSegmentRoute(coordinates)) {
         if (coordinates.length < 2) {
             return undefined;
@@ -29,7 +29,7 @@ function getDirectionFeature(coordinates: Coordinate[] | Coordinate[][], isAlter
 
         return {
             type: 'Feature',
-            properties: {isAlternative, isSelected},
+            properties: {isAlternate, isSelected},
             geometry: {
                 type: 'LineString',
                 coordinates,
@@ -44,7 +44,7 @@ function getDirectionFeature(coordinates: Coordinate[] | Coordinate[][], isAlter
 
     return {
         type: 'Feature',
-        properties: {isAlternative, isSelected},
+        properties: {isAlternate, isSelected},
         geometry: {
             type: 'MultiLineString',
             coordinates: validSegments,
@@ -52,16 +52,16 @@ function getDirectionFeature(coordinates: Coordinate[] | Coordinate[][], isAlter
     };
 }
 
-/** Builds the GeoJSON shape holding both the main and the alternative route, each flagged with whether it is the selected one. */
+/** Builds the GeoJSON shape holding both the main and the alternate route, each flagged with whether it is the selected one. */
 function getAlternateDirectionsShape(
     directionCoordinates: Coordinate[] | Coordinate[][],
-    alternativeDirection: AlternativeDirection,
+    alternateDirection: AlternateDirection,
 ): FeatureCollection<LineString | MultiLineString, DirectionFeatureProperties> {
     return {
         type: 'FeatureCollection',
         features: [
-            getDirectionFeature(directionCoordinates, false, !alternativeDirection.isSelected),
-            getDirectionFeature(alternativeDirection.coordinates, true, alternativeDirection.isSelected),
+            getDirectionFeature(directionCoordinates, false, !alternateDirection.isSelected),
+            getDirectionFeature(alternateDirection.coordinates, true, alternateDirection.isSelected),
         ].filter((feature): feature is DirectionFeature => !!feature),
     };
 }
