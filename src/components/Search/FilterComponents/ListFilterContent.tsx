@@ -223,7 +223,7 @@ function ListFilterContent({
                 <UserSelector
                     value={typeof value === 'object' ? value : undefined}
                     key={baseFilterKey}
-                    isNegatable={isFilterNegatable(baseFilterKey)}
+                    isNegatable={isFilterKeyNegatable}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
