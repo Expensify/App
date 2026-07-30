@@ -12,9 +12,11 @@ import DynamicReportDetailsPage from '@pages/DynamicReportDetailsPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -25,6 +27,12 @@ import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+
+// FullPageNotFoundView lazy-loads its illustration; stub it so the "Not here" view renders synchronously.
+jest.mock('@hooks/useLazyAsset', () => ({
+    useMemoizedLazyIllustrations: () => ({}),
+    useMemoizedLazyExpensifyIcons: () => ({}),
+}));
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
@@ -194,6 +202,75 @@ describe('DynamicReportDetailsPage', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByText(translateLocal('reportDetailsPage.goToRoom'))).toBeNull();
+        });
+    });
+
+    // Regression test for issue #97399: deleting an invoice navigates back to the invoice room via
+    // `deleteTransactionNavigateBackUrl` without synchronously unfocusing this details RHP, so the report is
+    // nulled while the RHP is still focused. Without the delete-back-URL escape hatch, `withReportOrNotFound`
+    // renders the "Not here" page on the RHP. It must stay suppressed while the delete navigation is in flight.
+    describe('invoice deletion does not show the "Not here" page', () => {
+        const invoiceRoomID = '30';
+        const invoiceReportID = '31';
+        const transactionID = '32';
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('keeps NotFound suppressed when the invoice report is removed while a delete-back navigation is in flight', async () => {
+            jest.mocked(useIsFocused).mockReturnValue(true);
+            // Give the mocked route a name so the NotFound page can render cleanly if the guard fails to suppress it,
+            // making this an assertion failure rather than a crash inside NotFoundPage.
+            jest.mocked(useRoute).mockReturnValue({key: 'report-details', name: 'Report_Details_Root', params: {reportID: invoiceReportID}} as ReturnType<typeof useRoute>);
+
+            const invoiceRoom: Report = createRandomReport(Number(invoiceRoomID), CONST.REPORT.CHAT_TYPE.INVOICE);
+            const invoiceReport: Report = {
+                ...createRandomReport(Number(invoiceReportID), undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                chatReportID: invoiceRoomID,
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, invoiceReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, createRandomTransaction(Number(transactionID)));
+                // Mark the report data as fully loaded so that, once the report is removed, the guard resolves to the
+                // NotFound page rather than the loading indicator (the state this bug actually surfaces in).
+                await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${invoiceReportID}`, {isLoadingInitialReportActions: false});
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <LocaleContextProvider>
+                        <DynamicReportDetailsPage
+                            betas={[]}
+                            isLoadingReportData={false}
+                            navigation={navigationMock}
+                            policy={undefined}
+                            report={invoiceReport}
+                            reportMetadata={undefined}
+                            reportLoadingState={undefined}
+                            route={getRouteMock(invoiceReportID)}
+                        />
+                    </LocaleContextProvider>
+                </OnyxListItemProvider>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // The details content rendered first (contentShown), so the report was accessible.
+            expect(screen.queryByTestId('FullPageNotFoundView')).toBeNull();
+
+            // Simulate the invoice delete: set the delete-back URL to the invoice room, then null the invoice report
+            // (the deferred optimistic delete) while this focused RHP is still mounted.
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, ROUTES.REPORT_WITH_ID.getRoute(invoiceRoomID));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, null);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // The "Not here" page must stay suppressed while the delete navigation is in flight.
+            expect(screen.queryByTestId('FullPageNotFoundView')).toBeNull();
         });
     });
 });
