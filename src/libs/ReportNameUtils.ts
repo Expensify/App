@@ -1042,14 +1042,8 @@ function computeReportName({
         return chatThreadReportName;
     }
 
-    // Gate the transactions scan on the cheap checks so we don't scan the whole collection for every report name.
-    if (report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report)) {
-        const reportTransactions = transactions
-            ? (Object.values(transactions).filter((transaction) => transaction?.reportID === report.reportID) as Array<OnyxEntry<Transaction>>)
-            : undefined;
-        if (isClosedExpenseReportWithNoExpenses(report, reportTransactions)) {
-            return translate('parentReportAction.deletedReport');
-        }
+    if (isClosedExpenseReportWithNoExpenses(report, transactions)) {
+        return translate('parentReportAction.deletedReport');
     }
 
     if (isGroupChat(report)) {
