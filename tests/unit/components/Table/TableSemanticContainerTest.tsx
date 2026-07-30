@@ -114,8 +114,7 @@ describe('TableSemanticContainer', () => {
             return <View testID="tracked-filter-bar" />;
         }
 
-        // No explicit keys — mirrors how tables pass `Table.FilterBar`/`Table.Header`/`Table.Body` as JSX siblings.
-        const buildChildren = () => [<TrackedFilterBar />, <TableHeader />, <TableBody />];
+        // Passed as JSX siblings (no explicit keys) to mirror how tables render `Table.FilterBar`/`Table.Header`/`Table.Body`.
         const element = (rowCount: number) => (
             <TableSemanticContainer
                 isEnabled
@@ -124,7 +123,9 @@ describe('TableSemanticContainer', () => {
                 columnCount={4}
                 rendersBodyWhenEmpty={false}
             >
-                {buildChildren()}
+                <TrackedFilterBar />
+                <TableHeader />
+                <TableBody />
             </TableSemanticContainer>
         );
 
