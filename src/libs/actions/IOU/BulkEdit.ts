@@ -441,6 +441,7 @@ function updateMultipleMoneyRequests({
             transactionChanges,
             isFromExpenseReport,
             policy: transactionPolicy,
+            policies: allPolicies,
             personalPolicyOutputCurrency,
         });
         const isTransactionOnHold = isOnHold(transaction);

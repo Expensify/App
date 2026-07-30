@@ -65,7 +65,7 @@ function useSpendOverTimeData() {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
-    const onConfigChanged = useEffectEvent(() => {
+    const retry = () => {
         // `search.isLoading` is persisted and may be stale after a reload. Call `search()` again and let it ignore a request that is still running.
         if (!queryJSON || isOffline) {
             return;
@@ -79,6 +79,10 @@ function useSpendOverTimeData() {
             isLoading: false,
             shouldUpdateLastSearchParams: false,
         });
+    };
+
+    const onConfigChanged = useEffectEvent(() => {
+        retry();
     });
 
     useEffect(() => {
@@ -123,6 +127,7 @@ function useSpendOverTimeData() {
         view,
         sortedData,
         state,
+        retry,
     };
 }
 
