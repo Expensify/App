@@ -5,18 +5,15 @@ import type {FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import TimeModalPicker from '@components/TimeModalPicker';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU/MoneyRequest';
@@ -31,7 +28,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -40,7 +37,7 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TIME | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT> & {
+type DynamicIOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT> & {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -51,17 +48,16 @@ type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.
     report: OnyxEntry<Report>;
 };
 
-function IOURequestStepTime({
+function DynamicIOURequestStepTime({
     route: {
-        params: {action, iouType, reportID, transactionID, backTo, backToReport},
+        params: {action, iouType, reportID, transactionID, backToReport},
         name,
     },
     transaction,
     isLoadingTransaction,
     report,
-}: IOURequestStepTimeProps) {
+}: DynamicIOURequestStepTimeProps) {
     const styles = useThemeStyles();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const iouPolicyID = getIOURequestPolicyID(transaction, report);
     const {policy} = usePolicyForTransaction({
         transaction,
@@ -75,39 +71,17 @@ function IOURequestStepTime({
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
-    const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
+    const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT;
 
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(policy) || (isEditPage && isEmptyObject(transaction?.comment?.customUnit));
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
-    const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
+
+    // Back removes this step's dynamic suffix from the current URL. In edit mode the suffix (`time-edit`) sits on the
+    // confirmation base, so back returns to confirmation. In the wizard flow the suffix (`time`) sits on the destination
+    // base (multi-policy) or the start base (single-policy), so back returns to whichever preceding step was appended to.
+    const backPath = useDynamicBackPath(isEditPage ? DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.path : DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path);
 
     const navigateBack = () => {
-        if (isEditPage) {
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID));
-            return;
-        }
-
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-
-        if (transaction?.isFromGlobalCreate || iouType === CONST.IOU.TYPE.TRACK) {
-            // We want to navigate to destination step only when the first step was the workspace selector.
-            // If there is only one policy with per diem enabled, we want to navigate back to the start step because there is no separate destination step in that flow.
-            if (hasMoreThanOnePolicyWithPerDiemEnabled) {
-                Navigation.goBack(
-                    createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, reportID, backToReport)),
-                );
-                return;
-            }
-
-            // If there is only one per diem policy, we can't override the reportID that is already on the stack to make sure we go back to the right screen.
-            Navigation.goBack();
-        }
-
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.getRoute(action, iouType, transactionID, reportID));
+        Navigation.goBack(backPath);
     };
 
     const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_TIME_FORM>) => {
@@ -164,11 +138,11 @@ function IOURequestStepTime({
 
     return (
         <StepScreenWrapper
-            headerTitle={backTo ? translate('iou.time') : tabTitles[iouType]}
+            headerTitle={isEditPage ? translate('iou.time') : tabTitles[iouType]}
             onBackButtonPress={navigateBack}
             shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
-            testID="IOURequestStepTime"
+            testID="DynamicIOURequestStepTime"
             includeSafeAreaPaddingBottom
         >
             <FormProvider
@@ -214,8 +188,8 @@ function IOURequestStepTime({
     );
 }
 
-const IOURequestStepTimeWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTime);
+const DynamicIOURequestStepTimeWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepTime);
 
-const IOURequestStepTimeWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTimeWithFullTransactionOrNotFound);
+const DynamicIOURequestStepTimeWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepTimeWithFullTransactionOrNotFound);
 
-export default IOURequestStepTimeWithWritableReportOrNotFound;
+export default DynamicIOURequestStepTimeWithWritableReportOrNotFound;
