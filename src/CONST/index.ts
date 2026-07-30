@@ -3581,6 +3581,12 @@ const CONST = {
         GST: 'GST',
     },
 
+    DUALENTRY_ACCOUNT_TYPE: {
+        EXPENSE: 'expense',
+        CREDIT_CARD: 'credit_card',
+        BANK: 'bank',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
