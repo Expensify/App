@@ -1,6 +1,8 @@
-import React from 'react';
 import SingleSelect from '@components/Search/FilterComponents/SingleSelect';
+
 import type {PolicyReportField} from '@src/types/onyx';
+
+import React from 'react';
 
 type ReportFieldListProps = {
     field: PolicyReportField;

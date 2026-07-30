@@ -1,14 +1,18 @@
-import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import RuleTextBase from '@components/Rule/RuleTextBase';
+
 import {updateDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
+
+import React from 'react';
 
 type AddDescriptionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_DESCRIPTION>;
 
@@ -26,7 +30,7 @@ function AddDescriptionPage({route}: AddDescriptionPageProps) {
 
     return (
         <RuleTextBase
-            fieldID={CONST.EXPENSE_RULES.FIELDS.DESCRIPTION}
+            fieldID={EXPENSE_RULE_INPUT_IDS.DESCRIPTION}
             formID={ONYXKEYS.FORMS.EXPENSE_RULE_FORM}
             titleKey="common.description"
             testID="AddDescriptionPage"

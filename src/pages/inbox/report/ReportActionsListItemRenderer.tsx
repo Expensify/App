@@ -1,9 +1,13 @@
-import React, {memo, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {memo, useMemo} from 'react';
+
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -22,6 +26,9 @@ type ReportActionsListItemRendererProps = {
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<Report>;
+
+    /** The chat report associated with the report for this action (report.chatReportID) */
+    chatReport?: OnyxEntry<Report>;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
@@ -59,6 +66,7 @@ function ReportActionsListItemRenderer({
     parentReportAction,
     report,
     transactionThreadReport,
+    chatReport,
     displayAsGroup,
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
@@ -168,6 +176,7 @@ function ReportActionsListItemRenderer({
             parentReportAction={parentReportAction}
             report={report}
             transactionThreadReport={transactionThreadReport}
+            chatReport={chatReport}
             parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}
             linkedReportActionID={linkedReportActionID}

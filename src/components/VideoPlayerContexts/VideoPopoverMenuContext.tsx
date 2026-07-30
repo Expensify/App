@@ -1,13 +1,20 @@
-import type {VideoPlayer} from 'expo-video';
-import React, {use, useEffect, useRef, useState} from 'react';
 import {useSession} from '@components/OnyxListItemProvider';
+
 import useLocalize from '@hooks/useLocalize';
+
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
+
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {usePlaybackStateContext} from './PlaybackContext';
+
+import type {VideoPlayer} from 'expo-video';
+
+import React, {use, useEffect, useRef, useState} from 'react';
+
 import type {PlaybackSpeed, VideoPopoverMenuActionsContextType, VideoPopoverMenuStateContextType} from './types';
+
+import {usePlaybackStateContext} from './PlaybackContext';
 
 const VideoPopoverMenuStateContext = React.createContext<VideoPopoverMenuStateContextType | null>(null);
 const VideoPopoverMenuActionsContext = React.createContext<VideoPopoverMenuActionsContextType | null>(null);

@@ -1,7 +1,20 @@
+import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
+
+import type {BankAccountList, ReimbursementAccount} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ReimbursementAccount} from '@src/types/onyx';
 
 const reimbursementAccountErrorSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => reimbursementAccount?.errors;
 
-// eslint-disable-next-line import/prefer-default-export
-export {reimbursementAccountErrorSelector};
+const hasReimbursementAccountErrorsSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => !isEmptyObject(reimbursementAccount?.errors);
+
+/**
+ * Returns a selector that reports whether there are other eligible existing business bank accounts that could be connected.
+ */
+const hasOtherEligibleBusinessBankAccountsSelector =
+    (currency: string | undefined, excludeBankAccountID: number | undefined) =>
+    (bankAccountList: OnyxEntry<BankAccountList>): boolean =>
+        getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true, excludeBankAccountID).length > 0;
+
+export {reimbursementAccountErrorSelector, hasReimbursementAccountErrorsSelector, hasOtherEligibleBusinessBankAccountsSelector};

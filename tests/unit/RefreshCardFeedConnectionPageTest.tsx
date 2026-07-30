@@ -1,14 +1,23 @@
 import {act, cleanup, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {clearAssignCardStepAndData} from '@libs/actions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Bypass the HOC and render the inner component directly
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);
+
+jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({
+    __esModule: true,
+    default: ({children}: {children: React.ReactNode}) => children,
+}));
 
 const mockCloseRHPFlow = jest.fn();
 

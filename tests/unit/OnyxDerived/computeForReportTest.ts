@@ -1,8 +1,11 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import {computeForReport} from '@libs/actions/OnyxDerived/configs/sortedReportActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {createMockReport} from '../../utils/ReportTestUtils';
 
 function createAction(id: string, created: string, overrides: Partial<ReportAction> = {}): ReportAction {
@@ -90,9 +93,9 @@ describe('computeForReport', () => {
         const iouAction = createAction('100', '2024-01-01 10:00:00.000', {
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             childReportID: transactionThreadReportID,
+            reportID,
             originalMessage: {
                 IOUTransactionID: 'txn1',
-                IOUReportID: reportID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: 'USD',

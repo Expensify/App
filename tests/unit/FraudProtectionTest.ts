@@ -1,5 +1,7 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockSetAuthenticationData = jest.fn();
@@ -81,7 +83,7 @@ describe('FraudProtection', () => {
 
         expect(mockSetAuthenticationData).not.toHaveBeenCalled();
 
-        // Step 2: Magic code verified, session is created
+        // Step 2: Validate code verified, session is created
         await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'token123', accountID: 12345});
         await waitForBatchedUpdates();
 

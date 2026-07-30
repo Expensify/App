@@ -59,6 +59,17 @@ Every workspace has a shared spend limit that affects all cards. If the workspac
 
 Workspace Admins can check the available limit by going to **Workspaces > [Workspace Name] > Expensify Card**. From there, Workspace Admins can view the current balance, remaining limit, and any warnings related to settlement.
 
+## Transaction declined by a Spend Rule
+
+Your Workspace Admin may have set a Spend Rule on your card that declines transactions based on the merchant, spend category, or amount. Certain categories (such as ATMs and gambling) are also blocked by default on every Expensify Card and cannot be overridden.
+
+To check whether a Spend Rule caused the decline:
+
+- **On web:** Go to **Account > Wallet > Expensify Card** using the navigation tabs on the left.
+- **On mobile:** Go to **Wallet > Expensify Card** using the navigation tabs at the bottom.
+
+Then click your card to view its Spend Rule summary. If a Spend Rule is blocking your purchase, contact your Workspace Admin, since only an admin can change the rule. To learn more, [learn about Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
+
 ---
 
 # FAQ

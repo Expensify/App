@@ -1,7 +1,11 @@
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 describe('usePrimaryContactMethod', () => {

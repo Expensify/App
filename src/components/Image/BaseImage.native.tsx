@@ -1,9 +1,14 @@
-import {Image as ExpoImage} from 'expo-image';
-import type {ImageProps as ExpoImageProps, ImageLoadEventData} from 'expo-image';
-import {useCallback, useContext, useEffect, useRef} from 'react';
 import type {AttachmentSource} from '@components/Attachments/types';
+
 import getImageRecyclingKey from '@libs/getImageRecyclingKey';
+
 import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
+
+import type {ImageProps as ExpoImageProps, ImageLoadEventData} from 'expo-image';
+
+import {Image as ExpoImage} from 'expo-image';
+import {useCallback, useContext, useEffect, useRef} from 'react';
+
 import type {BaseImageProps} from './types';
 
 function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {

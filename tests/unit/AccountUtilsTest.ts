@@ -1,5 +1,6 @@
-import AccountUtils from '../../src/libs/AccountUtils';
 import type {Account} from '../../src/types/onyx';
+
+import AccountUtils from '../../src/libs/AccountUtils';
 
 describe('AccountUtils', () => {
     describe('hasValidateCodeExtendedAccess', () => {

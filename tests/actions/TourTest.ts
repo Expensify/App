@@ -1,11 +1,15 @@
-import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {startTestDrive} from '@libs/actions/Tour';
 import Navigation from '@libs/Navigation/Navigation';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

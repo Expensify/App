@@ -1,13 +1,19 @@
 import {render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+
 import ComposeProviders from '@components/ComposeProviders';
+
 import ContactMethodsPage from '@pages/settings/Profile/Contacts/ContactMethodsPage';
+
 import DelegateNoAccessModalProvider from '@src/components/DelegateNoAccessModalProvider';
 import LockedAccountModalProvider from '@src/components/LockedAccountModalProvider';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock navigation used by the page
@@ -101,6 +107,9 @@ describe('ContactMethodsPage', () => {
                 errorFields: null,
             },
         });
+
+        // Wait for Onyx to notify the component's useOnyx subscriber before asserting
+        await waitForBatchedUpdates();
 
         await waitFor(() => {
             node = screen.getByTestId(`menu-${otherEmail}`);

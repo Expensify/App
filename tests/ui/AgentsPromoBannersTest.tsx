@@ -1,16 +1,20 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import PolicyRulesPage from '@pages/workspace/rules/PolicyRulesPage';
-import WorkspaceWorkflowsPage from '@pages/workspace/workflows/WorkspaceWorkflowsPage';
+
 import CONST from '@src/CONST';
 import en from '@src/languages/en';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -38,16 +42,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: (cb: () => void) => cb(),
 }));
 
-jest.mock('@libs/actions/Policy/Policy', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actual = jest.requireActual('@libs/actions/Policy/Policy');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...actual,
-        openPolicyWorkflowsPage: jest.fn(),
-    };
-});
-
 jest.mock('@libs/actions/Policy/Rules', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@libs/actions/Policy/Rules');
@@ -57,10 +51,6 @@ jest.mock('@libs/actions/Policy/Rules', () => {
         openPolicyRulesPage: jest.fn(),
     };
 });
-
-jest.mock('@userActions/PaymentMethods', () => ({
-    getPaymentMethods: jest.fn(),
-}));
 
 jest.mock('@components/RenderHTML', () => {
     const ReactMock = require('react') as typeof React;
@@ -99,25 +89,11 @@ function buildPolicy(): Policy {
     } as Policy;
 }
 
-const workflowsRoute = {
-    key: 'workflows-route',
-    name: SCREENS.WORKSPACE.WORKFLOWS,
-    params: {policyID: POLICY_ID},
-} as never;
-
 const rulesRoute = {
     key: 'rules-route',
     name: SCREENS.WORKSPACE.RULES,
     params: {policyID: POLICY_ID},
 } as never;
-
-const renderWorkflowsPage = () =>
-    render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            {/* @ts-expect-error - navigation prop is not used by the page in tests */}
-            <WorkspaceWorkflowsPage route={workflowsRoute} />
-        </ComposeProviders>,
-    );
 
 const renderRulesPage = () =>
     render(
@@ -154,28 +130,6 @@ describe('Agents promo banners', () => {
         });
     });
 
-    it('renders agentsWorkflowsBanner inside Approvals subMenuItems when customAgent beta is active, and hides it after dismissal', async () => {
-        await act(async () => {
-            await setupOnyxBaseline({withCustomAgentBeta: true});
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        renderWorkflowsPage();
-        await waitForBatchedUpdatesWithAct();
-
-        // Title includes a nested "New" badge, so match on subtitle instead of the full title string.
-        expect(screen.getByText(en.workflowsPage.automateApprovalsWithAgentsSubtitle)).toBeTruthy();
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                [CONST.AGENTS_WORKFLOWS_BANNER]: {timestamp: '2026-05-20', dismissedMethod: 'x'},
-            });
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        expect(screen.queryByText(en.workflowsPage.automateApprovalsWithAgentsSubtitle)).toBeNull();
-    });
-
     it('renders agentsRulesBanner above IndividualExpenseRulesSection when customAgent beta is active, and hides it after dismissal', async () => {
         await act(async () => {
             await setupOnyxBaseline({withCustomAgentBeta: true});
@@ -200,16 +154,11 @@ describe('Agents promo banners', () => {
         expect(screen.queryByText(en.workspace.rules.agentsPromoBanner.subtitle)).toBeNull();
     });
 
-    it('renders neither banner when customAgent beta is inactive', async () => {
+    it('does not render the agents rules banner when customAgent beta is inactive', async () => {
         await act(async () => {
             await setupOnyxBaseline({withCustomAgentBeta: false});
             await waitForBatchedUpdatesWithAct();
         });
-
-        const {unmount} = renderWorkflowsPage();
-        await waitForBatchedUpdatesWithAct();
-        expect(screen.queryByText(en.workflowsPage.automateApprovalsWithAgentsSubtitle)).toBeNull();
-        unmount();
 
         renderRulesPage();
         await waitForBatchedUpdatesWithAct();

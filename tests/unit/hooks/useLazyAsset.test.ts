@@ -1,8 +1,12 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import type {SvgProps} from 'react-native-svg/lib/typescript';
+
 import useLazyAsset, {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {SvgProps} from 'react-native-svg/lib/typescript';
+
+import React from 'react';
 
 jest.mock('@components/Icon/PlaceholderIcon', () => {
     // eslint-disable-next-line @typescript-eslint/no-shadow, @typescript-eslint/no-unsafe-assignment
@@ -285,7 +289,7 @@ describe('useMemoizedLazyAsset', () => {
         });
     });
 
-    it('should handle function reference changes', async () => {
+    it('should keep the initial importFn stable across rerenders', async () => {
         const importFn1 = jest.fn(() => Promise.resolve({default: mockAsset}));
         const importFn2 = jest.fn(() => Promise.resolve({default: mockFallbackAsset}));
 
@@ -302,13 +306,15 @@ describe('useMemoizedLazyAsset', () => {
             expect(result.current.asset).toBe(mockAsset);
         });
 
-        // Change to different function
+        // Callers pass inline loaders; rebinding every render would loop setState, so
+        // useMemoizedLazyAsset captures the first importFn only.
         rerender({importFn: importFn2});
 
-        // Wait for new import function to be called
         await waitFor(() => {
-            expect(importFn2).toHaveBeenCalled();
+            expect(result.current.asset).toBe(mockAsset);
         });
+        expect(importFn2).not.toHaveBeenCalled();
+        expect(importFn1).toHaveBeenCalled();
     });
 
     it('returns PlaceholderIcon while loading', () => {
@@ -330,6 +336,21 @@ describe('useMemoizedLazyAsset', () => {
         // Then: Icon should be available immediately (synchronous)
         expect(result.current.asset).toBe(mockAsset);
         expect(importFn).toHaveBeenCalled();
+    });
+
+    it('wraps OXC-memoized host SVG elements as components instead of PlaceholderIcon', async () => {
+        // Host elements have type === 'svg'; unwrapping .type cannot recover a component.
+        const hostSvgElement = React.createElement('svg', {viewBox: '0 0 10 10'});
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- fixture: OXC can cache a host <svg> element as the loaded asset
+        const hostSvgAsAsset = hostSvgElement as unknown as IconAsset;
+        const importFn = jest.fn(() => Promise.resolve({default: hostSvgAsAsset}));
+
+        const {result} = renderHook(() => useMemoizedLazyAsset(importFn));
+
+        await waitFor(() => {
+            expect(result.current.asset).not.toBe(hostSvgAsAsset);
+            expect(typeof result.current.asset).toBe('function');
+        });
     });
 });
 

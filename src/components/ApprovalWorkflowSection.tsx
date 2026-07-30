@@ -1,18 +1,20 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
+
 import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
@@ -30,22 +32,6 @@ type ApprovalWorkflowSectionProps = {
 
     /** Called when the "+X more" text inside the members row is pressed — deep-links to the members list (skips the Edit RHP). */
     onShowAllMembersPress?: () => void;
-
-    /** A function that is called when the Add agent pill is pressed */
-    onAddAgentPress?: () => void;
-
-    /**
-     * Called when the X is clicked on an approver row that carries `approver.errors`. The page
-     * uses this to discard the failed optimistic agent (clears the deferred-save entry, the
-     * optimistic personal detail / prompt, and the policy-level addAgent error).
-     */
-    onDismissApproverError?: (approver: Approver) => void;
-
-    /**
-     * Whether the Add agent pill is allowed on this card. It is still gated by the
-     * customAgent beta on top of this flag.
-     */
-    canAddAgent?: boolean;
 
     /** Currency used for formatting approval limits */
     currency?: string;
@@ -67,25 +53,18 @@ function ApprovalWorkflowSection({
     approvalWorkflow,
     onPress,
     onShowAllMembersPress,
-    onAddAgentPress,
-    onDismissApproverError,
-    canAddAgent = false,
     currency = CONST.CURRENCY.USD,
     isDisabled = false,
     hrProviderName,
     isHRAdvancedMode = false,
     hrFinalApproverEmail,
 }: ApprovalWorkflowSectionProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Bot', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
-    const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const shouldShowAddAgentButton = canAddAgent && isCustomAgentEnabled && !isDisabled && !!onAddAgentPress;
-
     const approverTitle = (index: number) => {
         if (isHRAdvancedMode) {
             const isLast = index === approvalWorkflow.approvers.length - 1;
@@ -104,6 +83,10 @@ function ApprovalWorkflowSection({
     };
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
+
+    // Mirror the approver row's pending opacity on the "Expenses from" row so both fade together while
+    // the workflow (e.g. a member invited offline) is still pending server confirmation.
+    const membersPendingAction = sortedMembers.find((member) => !!member.pendingFields?.submitsTo)?.pendingFields?.submitsTo;
 
     const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(', ');
 
@@ -130,7 +113,7 @@ function ApprovalWorkflowSection({
                             src={icons.Lightbulb}
                             fill={theme.icon}
                             additionalStyles={styles.mr2}
-                            small
+                            size={CONST.ICON_SIZE.SMALL}
                         />
                         <Text
                             style={[styles.textLabelSupportingNormal]}
@@ -140,38 +123,40 @@ function ApprovalWorkflowSection({
                         </Text>
                     </View>
                 )}
-                <MenuItem
-                    title={translate('workflowsExpensesFromPage.title')}
-                    style={styles.p0}
-                    titleStyle={styles.textLabelSupportingNormal}
-                    descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
-                    description={approvalWorkflow.isDefault ? members : undefined}
-                    numberOfLinesDescription={4}
-                    shouldBeAccessible={false}
-                    tabIndex={-1}
-                    icon={icons.Users}
-                    iconHeight={20}
-                    iconWidth={20}
-                    iconFill={theme.icon}
-                    onPress={pressAction}
-                    shouldRemoveBackground
-                    titleComponent={
-                        !approvalWorkflow.isDefault ? (
-                            <View style={styles.ml3}>
-                                {!isDisabled && onShowAllMembersPress ? (
-                                    <UserPills
-                                        users={memberPills}
-                                        onShowAllPress={onShowAllMembersPress}
-                                        showAllSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_SHOW_ALL_MEMBERS}
-                                    />
-                                ) : (
-                                    <UserPills users={memberPills} />
-                                )}
-                            </View>
-                        ) : undefined
-                    }
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_EXPENSES_FROM}
-                />
+                <OfflineWithFeedback pendingAction={membersPendingAction}>
+                    <MenuItem
+                        title={translate('workflowsExpensesFromPage.title')}
+                        style={styles.p0}
+                        titleStyle={styles.textLabelSupportingNormal}
+                        descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
+                        description={approvalWorkflow.isDefault ? members : undefined}
+                        numberOfLinesDescription={4}
+                        shouldBeAccessible={false}
+                        tabIndex={-1}
+                        icon={icons.Users}
+                        iconHeight={20}
+                        iconWidth={20}
+                        iconFill={theme.icon}
+                        onPress={pressAction}
+                        shouldRemoveBackground
+                        titleComponent={
+                            !approvalWorkflow.isDefault ? (
+                                <View style={styles.ml3}>
+                                    {!isDisabled && onShowAllMembersPress ? (
+                                        <UserPills
+                                            users={memberPills}
+                                            onShowAllPress={onShowAllMembersPress}
+                                            showAllSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_SHOW_ALL_MEMBERS}
+                                        />
+                                    ) : (
+                                        <UserPills users={memberPills} />
+                                    )}
+                                </View>
+                            ) : undefined
+                        }
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_EXPENSES_FROM}
+                    />
+                </OfflineWithFeedback>
 
                 {approvalWorkflow.approvers.map((approver, index) => (
                     <OfflineWithFeedback
@@ -179,7 +164,6 @@ function ApprovalWorkflowSection({
                         key={`approver-${approver.email || approver.accountID}-${index}`}
                         pendingAction={approver.pendingAction}
                         errors={approver.errors}
-                        onClose={approver.errors && onDismissApproverError ? () => onDismissApproverError(approver) : undefined}
                     >
                         <View>
                             <View style={styles.workflowApprovalVerticalLine} />
@@ -225,16 +209,6 @@ function ApprovalWorkflowSection({
                         accessibilityLabel={translate('workflowsPage.editWorkflowAction')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
                     />
-                    {shouldShowAddAgentButton && (
-                        <Button
-                            small
-                            icon={icons.Bot}
-                            text={translate('workflowsPage.addAgentAction')}
-                            onPress={onAddAgentPress}
-                            accessibilityLabel={translate('workflowsPage.addAgentAction')}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
-                        />
-                    )}
                 </View>
             )}
         </View>

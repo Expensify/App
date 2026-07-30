@@ -1,5 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
 import {
     animatedReceiptPaneRHPWidth,
     modalStackOverlaySuperWideRHPPositionLeft,
@@ -9,8 +7,13 @@ import {
     secondOverlayWideRHPProgress,
     useWideRHPState,
 } from '@components/WideRHPContextProvider';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
 
 function SecondaryOverlay() {
     const {shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForWideRHP, superWideRHPRouteKeys, wideRHPRouteKeys} =

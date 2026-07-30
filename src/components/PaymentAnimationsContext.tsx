@@ -1,5 +1,6 @@
-import React, {createContext, useContext} from 'react';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
+
+import React, {createContext, useContext} from 'react';
 
 type PaymentAnimationsContextType = ReturnType<typeof usePaymentAnimations>;
 

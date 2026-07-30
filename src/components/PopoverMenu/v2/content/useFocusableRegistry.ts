@@ -1,8 +1,12 @@
-import {useState} from 'react';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+
 import CONST from '@src/CONST';
+
+import {useState} from 'react';
+
 import type {FocusableItem} from './ContentContext';
+
 import useOrderedIDs from './useOrderedIDs';
 
 type FocusableRegistryActions = {

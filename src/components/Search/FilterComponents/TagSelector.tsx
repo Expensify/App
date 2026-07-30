@@ -1,44 +1,35 @@
-import React from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchFilterCommonProps} from '@components/Search/types';
+import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
-import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import type {PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React from 'react';
+
 import MultiSelect from './MultiSelect';
 
-type TagSelectorProps = SearchFilterCommonProps & {
-    value: string[] | undefined;
-    policyIDs: string[] | undefined;
-    onChange: (tags: string[]) => void;
+type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
+    policyID: Filter | undefined;
 };
 
-function TagSelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
+function TagSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
     const {translate, localeCompare} = useLocalize();
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
 
-    const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
-        .filter((key) => policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)?.includes(key))
-        ?.map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))
-        .flat();
-
     const tagItems = [{text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
-    const uniqueTagNames = new Set<string>();
-    if (policyIDs.length === 0) {
-        const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
-        for (const tag of tagListsUnpacked.map(getTagNamesFromTagsLists).flat()) {
-            uniqueTagNames.add(tag);
-        }
-    } else if (selectedPoliciesTagLists.length > 0) {
-        for (const tag of selectedPoliciesTagLists) {
-            uniqueTagNames.add(tag);
-        }
-    }
+    const uniqueTagNames = new Set<string>(
+        getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists).flatMap((policyTags) => getTagNamesFromTagsLists(policyTags ?? {})),
+    );
     tagItems.push(
         ...Array.from(uniqueTagNames)
             .map((tagName) => ({text: getCleanedTagName(tagName), value: tagName}))

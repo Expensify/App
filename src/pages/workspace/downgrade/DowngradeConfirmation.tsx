@@ -1,15 +1,20 @@
-import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import React, {useCallback} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils} from '@libs/PolicyUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {activeAdminPoliciesSelector} from '@selectors/Policy';
+import React, {useCallback} from 'react';
 
 type Props = {
     onConfirmDowngrade: () => void;

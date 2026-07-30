@@ -1,9 +1,8 @@
-import {useCallback, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+
 import {initBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -29,14 +28,19 @@ import {
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {useCallback, useMemo, useRef, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
+
 import useAllTransactions from './useAllTransactions';
-import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -49,8 +53,11 @@ import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {shouldShowBulkDuplicateOption} from './useSearchBulkActions';
+import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 
 const {HOLD, UNHOLD, MOVE, MERGE, SPLIT, DUPLICATE} = CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES;
 
@@ -73,7 +80,7 @@ function useSelectedTransactionsActions({
     onExportFailed?: () => void;
     onExportOffline?: () => void;
     policy?: Policy;
-    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
+    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], exportName: string, policyID?: string) => void;
     isOnSearch?: boolean;
     onDeleteSelected?: (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => void | Promise<void>;
 }) {
@@ -84,7 +91,6 @@ function useSelectedTransactionsActions({
     const {currentSearchHash} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const allTransactions = useAllTransactions();
-    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -94,7 +100,13 @@ function useSelectedTransactionsActions({
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const firstSelectedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionIDs.at(0)}`];
+    const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, firstSelectedTransaction);
+    const personalPolicy = usePersonalPolicy();
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Stopwatch',
@@ -145,7 +157,7 @@ function useSelectedTransactionsActions({
             continue;
         }
 
-        const parentReport = getReportOrDraftReport(reportID);
+        const parentReport = getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
         const ownerAccountID = parentReport?.ownerAccountID;
 
         if (typeof ownerAccountID === 'number') {
@@ -346,7 +358,7 @@ function useSelectedTransactionsActions({
                             continue;
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID, transactionViolations);
+                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser);
                     }
                     clearSelectedTransactions(true);
                 },
@@ -374,46 +386,60 @@ function useSelectedTransactionsActions({
 
         // Gets the list of options for the export sub-menu
         const getExportOptions = (): PopoverMenuItem[] => {
-            // We provide the basic and expense level export options by default
-            const exportOptions: PopoverMenuItem[] = [
-                {
-                    text: translate('export.basicExport'),
-                    icon: expensifyIcons.Table,
-                    onSelected: () => {
-                        if (!report) {
-                            return;
-                        }
-                        if (isOffline) {
-                            onExportOffline?.();
-                            return;
-                        }
-                        exportReportToCSV(
-                            {reportID: report.reportID, transactionIDList: selectedTransactionIDs},
-                            () => {
-                                onExportFailed?.();
-                            },
-                            translate,
-                        );
-                        clearSelectedTransactions(true);
-                    },
-                },
-            ];
+            const exportOptions: PopoverMenuItem[] = [];
 
             // If we've selected all the transactions on the report, we can also provide the report level export option
             const includeReportLevelExport = allTransactionsLength === selectedTransactionIDs.length;
 
-            // If the user has any custom integration export templates, add them as export options
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
-            const standardTemplateNames = new Set<string>([CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]);
-            for (const template of exportTemplates) {
-                const isStandardTemplate = standardTemplateNames.has(template.templateName);
-                exportOptions.push({
+            // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside the other default templates.
+            const {customTemplates, defaultTemplates} = getExportTemplates(
+                integrationsExportTemplates ?? [],
+                csvExportLayouts ?? {},
+                translate,
+                localeCompare,
+                policy,
+                includeReportLevelExport,
+                true,
+            );
+            // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
+            const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): PopoverMenuItem => {
+                // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
+                const isBasicExport = template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV;
+                return {
                     text: template.name,
-                    icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
+                    icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
-                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
-                });
+                    onSelected: isBasicExport
+                        ? () => {
+                              if (!report) {
+                                  return;
+                              }
+                              if (isOffline) {
+                                  onExportOffline?.();
+                                  return;
+                              }
+                              exportReportToCSV(
+                                  {reportID: report.reportID, transactionIDList: selectedTransactionIDs},
+                                  () => {
+                                      onExportFailed?.();
+                                  },
+                                  translate,
+                              );
+                              clearSelectedTransactions(true);
+                          }
+                        : () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
+                    addSeparatorBefore,
+                };
+            };
+
+            // Add each group's templates separately so the icon and the group-boundary divider come from the group itself, not from an index into a combined list.
+            for (const [index, template] of customTemplates.entries()) {
+                exportOptions.push(buildExportOption(template, false, index === 0));
             }
+            for (const [index, template] of defaultTemplates.entries()) {
+                exportOptions.push(buildExportOption(template, true, index === 0));
+            }
+
             return exportOptions;
         };
 
@@ -437,7 +463,7 @@ function useSelectedTransactionsActions({
                 fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 outstandingReportsByPolicyID,
                 transaction,
-                archivedReportsIDSet,
+                reportNameValuePairs: allReportNameValuePairs,
             });
             return canMoveExpense;
         });
@@ -497,7 +523,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, policy, report, currentUserAccountID, {isProduction});
+                    initSplitExpense(firstTransaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {isProduction});
                 },
             });
         }

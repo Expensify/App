@@ -1,12 +1,18 @@
-import React, {createContext, useContext, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
+
 import {dismissProductTraining} from '@libs/actions/Welcome';
+
 import useScanRouteParams from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams';
+
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
+
+import React, {createContext, useContext, useState} from 'react';
 
 type MultiScanState = {
     isMultiScanEnabled: boolean;
@@ -54,12 +60,13 @@ function MultiScanProvider({children}: MultiScanProviderProps) {
     const [showEducationalPopup, setShowEducationalPopup] = useState(false);
     const [dismissedProductTrainingResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     const isStartingScan = routeName === SCREENS.MONEY_REQUEST.CREATE;
     const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
 
     function toggleMultiScan() {
-        if (!dismissedProductTrainingResult?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
+        if (!shouldSuppressPromotionalUI && !dismissedProductTrainingResult?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
             setShowEducationalPopup(true);
         }
         removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);

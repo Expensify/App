@@ -1,13 +1,19 @@
-import {useContext, useState} from 'react';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
+
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {cleanFileObject, cleanFileObjectName, getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {useContext, useState} from 'react';
+
 import {useComposerActions, useComposerMeta, useComposerSendState} from './ComposerContext';
 
 function useAttachmentPicker(reportID: string) {

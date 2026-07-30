@@ -1,7 +1,10 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {createBackupTransaction, removeBackupTransactionWithImageCleanup, restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
+
 import type {Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 type UseOdometerTransactionBackupParams = {
     /** The transaction the editor is operating on. */
@@ -21,6 +24,9 @@ type UseOdometerTransactionBackupParams = {
 
     /** Caller-owned ref. Set `.current = true` to bypass cleanup entirely (used when the parent has already manually handled the backup, e.g. tab-switch flows). */
     backupHandledManuallyRef: React.RefObject<boolean>;
+
+    /** Caller-owned ref. Set `.current = true` by the blob-failure recovery: the transaction was re-hydrated/cleared, so the unmount restore must be skipped (it would revert that). Separate from `backupHandledManuallyRef` so the recovery doesn't disable the discard-changes guard. */
+    recoveryHandledBackupRef: React.RefObject<boolean>;
 };
 
 function useOdometerTransactionBackup({
@@ -30,6 +36,7 @@ function useOdometerTransactionBackup({
     transactionID,
     didSaveEditingConfirmationRef,
     backupHandledManuallyRef,
+    recoveryHandledBackupRef,
 }: UseOdometerTransactionBackupParams): void {
     useEffect(() => {
         if (!isEditingConfirmation) {
@@ -39,7 +46,7 @@ function useOdometerTransactionBackup({
 
         return () => {
             // eslint-disable-next-line react-hooks/exhaustive-deps -- ref reads are stable; we intentionally read the latest `.current` at unmount to decide between bypass / drop / restore
-            if (backupHandledManuallyRef.current) {
+            if (backupHandledManuallyRef.current || recoveryHandledBackupRef.current) {
                 return;
             }
             // eslint-disable-next-line react-hooks/exhaustive-deps -- ref reads are stable; we intentionally read the latest `.current` at unmount

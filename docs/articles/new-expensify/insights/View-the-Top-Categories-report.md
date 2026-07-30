@@ -68,7 +68,7 @@ To create and save a custom report:
 
 1. Go to the **Spend** or **Expenses** tab.
 2. Use filters to adjust the category grouping or timeframe.
-3. Apply filters and click **Save search** to save your custom report.
+3. Apply filters and click **Save** to save your custom view.
 
 [Learn how to create custom reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-use-spend-search-query-commands)
 

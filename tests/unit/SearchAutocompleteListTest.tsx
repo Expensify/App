@@ -1,18 +1,29 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React, {useMemo} from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {OptionsListActionsContext, OptionsListStateContext} from '@components/OptionListContextProvider';
+import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import Text from '@components/Text';
+
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
-import {createOptionList} from '@libs/OptionsListUtils';
+import {createFilteredOptionList} from '@libs/OptionsListUtils';
+
+import Navigation from '@navigation/Navigation';
+
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {createRandomReport} from '../utils/collections/reports';
@@ -78,6 +89,12 @@ jest.mock('@hooks/useFilteredOptions', () => ({
     default: (...args: unknown[]) => mockUseFilteredOptions(...args),
 }));
 
+const mockUseNavigationSuggestions = jest.fn<SearchQueryItem[], [query: string, shouldWatchForApprovals?: boolean]>(() => []);
+jest.mock('@components/Search/SearchRouter/useNavigationSuggestions', () => ({
+    __esModule: true,
+    default: (query: string, shouldWatchForApprovals?: boolean) => mockUseNavigationSuggestions(query, shouldWatchForApprovals),
+}));
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
@@ -123,9 +140,11 @@ const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
+const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
 
-const mockOnClose = jest.fn();
+const mockOnClose = jest.fn((afterClose?: () => void) => {
+    afterClose?.();
+});
 
 // Fake report options that getSearchOptions returns as recentReports.
 // These simulate local results available before any server search completes.
@@ -135,14 +154,13 @@ const fakeRecentReports = [
     {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
 ];
 
-function SearchRouterWrapper({options = mockedOptions}: {options?: ReturnType<typeof createOptionList>}) {
+function SearchRouterWrapper({isSearchRouterDisplayed}: {isSearchRouterDisplayed?: boolean}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <OptionsListStateContext.Provider value={useMemo(() => ({options, areOptionsInitialized: true}), [options])}>
-                <OptionsListActionsContext.Provider value={useMemo(() => ({initializeOptions: () => {}, resetOptions: () => {}}), [])}>
-                    <SearchRouter onRouterClose={mockOnClose} />
-                </OptionsListActionsContext.Provider>
-            </OptionsListStateContext.Provider>
+            <SearchRouter
+                onRouterClose={mockOnClose}
+                isSearchRouterDisplayed={isSearchRouterDisplayed}
+            />
         </ComposeProviders>
     );
 }
@@ -185,6 +203,47 @@ describe('SearchAutocompleteList', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        mockUseNavigationSuggestions.mockReturnValue([]);
+    });
+
+    it.each([
+        ['displayed', true, true],
+        ['hidden', undefined, false],
+    ] as const)('should pass the correct approval-watch state when the router is %s', (_state, isSearchRouterDisplayed, shouldWatchForApprovals) => {
+        render(<SearchRouterWrapper isSearchRouterDisplayed={isSearchRouterDisplayed} />);
+
+        expect(mockUseNavigationSuggestions).toHaveBeenCalledWith(expect.any(String), shouldWatchForApprovals);
+    });
+
+    it('should display and select navigation suggestion rows', async () => {
+        const navigationAction = jest.fn();
+        mockUseNavigationSuggestions.mockReturnValue([
+            {
+                text: 'Go to Reports',
+                keyForList: 'spend_reports',
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
+                action: navigationAction,
+                rightElement: <Text>Spend</Text>,
+            },
+        ]);
+
+        await waitForBatchedUpdates();
+        await Onyx.multiSet({
+            ...mockedReports,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+            [ONYXKEYS.BETAS]: mockedBetas,
+        });
+
+        render(<SearchRouterWrapper />);
+        await flushAllUpdates();
+
+        expect(await screen.findByText('Spend')).toBeTruthy();
+        fireEvent.press(await screen.findByText('Go to Reports'));
+
+        await waitFor(() => {
+            expect(mockOnClose).toHaveBeenCalledWith(navigationAction);
+            expect(navigationAction).toHaveBeenCalledTimes(1);
+        });
     });
 
     it('should display Recent searches section when query is empty and recent searches exist', async () => {
@@ -418,6 +477,47 @@ describe('SearchAutocompleteList', () => {
             expect(relevantOrder.indexOf('Bob Report')).toBeLessThan(relevantOrder.indexOf('Charlie Report'));
             // NewServer should appear after the local results (in the server section)
             expect(relevantOrder.indexOf('Charlie Report')).toBeLessThan(relevantOrder.indexOf('NewServer Report'));
+        });
+
+        // Regression test for https://github.com/Expensify/App/issues/93009: after the two-section switcher was
+        // introduced, the first matched chat was no longer highlighted because the highlight focused a fixed flat
+        // index that now lands on the "Recent chats" section header row instead of the first result. As a result
+        // pressing Enter ran a text search instead of opening the chat. The fix focuses the header-aware index of
+        // the first result.
+        it('should focus the first matched chat so submitting opens it instead of running a search', async () => {
+            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
+            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            // Wait for the first recent chat row (not just the header) to render so the highlight has a target.
+            await waitFor(() => {
+                expect(screen.getByText('Recent chats')).toBeTruthy();
+                expect(screen.getByText('Alice Report')).toBeTruthy();
+            });
+
+            // Type a query that matches the first recent chat ("Alice Report") as a whole word.
+            // The header-aware highlight effect should move focus onto that result row, not a section header.
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'Alice');
+            await flushAllUpdates();
+
+            // Submitting (Enter) should open the focused chat rather than run a text search. The highlight effect
+            // runs asynchronously, so poll the submit until focus settles on the result. With the bug present the
+            // first row is never highlighted, so submit always runs a text search and this never becomes true.
+            await waitFor(() => {
+                fireEvent(textInput, 'submitEditing');
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('101'));
+            });
         });
     });
 });

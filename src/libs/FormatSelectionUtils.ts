@@ -1,4 +1,5 @@
 import type {MarkdownType} from '@expensify/react-native-live-markdown';
+
 import {parseExpensiMark} from '@expensify/react-native-live-markdown';
 
 type FormatRule = {

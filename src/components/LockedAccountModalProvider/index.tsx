@@ -1,12 +1,16 @@
-// This component is compiled by the React Compiler
-/* eslint-disable react/jsx-no-constructed-context-values */
-import React, {createContext, useContext} from 'react';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import {defaultLockedAccountActionsContextValue, defaultLockedAccountStateContextValue} from './default';
+
+// This component is compiled by the React Compiler
+/* eslint-disable react/jsx-no-constructed-context-values */
+import React, {createContext, useContext} from 'react';
+
 import type {LockedAccountActionsContextType, LockedAccountStateContextType} from './types';
+
+import {defaultLockedAccountActionsContextValue, defaultLockedAccountStateContextValue} from './default';
 
 const LockedAccountStateContext = createContext<LockedAccountStateContextType>(defaultLockedAccountStateContextValue);
 const LockedAccountActionsContext = createContext<LockedAccountActionsContextType>(defaultLockedAccountActionsContextValue);

@@ -1,11 +1,17 @@
-import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
-import React from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openLink as openLinkUtil} from '@userActions/Link';
+
 import CONST from '@src/CONST';
+
+import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+
 import type {TextProps} from './Text';
+
 import Text from './Text';
 
 type LinkProps = {

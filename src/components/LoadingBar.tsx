@@ -1,7 +1,9 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
 import React, {useEffect} from 'react';
 import Animated, {cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 
 type LoadingBarProps = {
     // Whether or not to show the loading bar
