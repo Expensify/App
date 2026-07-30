@@ -26,6 +26,8 @@ const mockPositionState: {current: PositionState} = {
 
 const mockPresenceExiting = {current: false};
 const mockFocusTrapActive = {current: undefined as boolean | undefined};
+const mockFocusTrapClickOutsideDeactivates = {current: undefined as boolean | undefined};
+const mockFocusTrapAllowOutsideClick = {current: undefined as boolean | undefined};
 
 jest.mock('@components/Overlay/hooks/useAnchoredPosition', () => () => mockPositionState.current);
 jest.mock('@components/Overlay/hooks/useOverlayEntry', () => () => {});
@@ -57,10 +59,16 @@ jest.mock(
         ({children, present}: {children: React.ReactNode; present: boolean}) =>
             present || mockPresenceExiting.current ? children : null,
 );
-jest.mock('@components/FocusTrap/FocusTrapForModal', () => ({active, children}: {active: boolean; children: React.ReactNode}) => {
-    mockFocusTrapActive.current = active;
-    return children;
-});
+jest.mock(
+    '@components/FocusTrap/FocusTrapForModal',
+    () =>
+        ({active, clickOutsideDeactivates, allowOutsideClick, children}: {active: boolean; clickOutsideDeactivates?: boolean; allowOutsideClick?: boolean; children: React.ReactNode}) => {
+            mockFocusTrapActive.current = active;
+            mockFocusTrapClickOutsideDeactivates.current = clickOutsideDeactivates;
+            mockFocusTrapAllowOutsideClick.current = allowOutsideClick;
+            return children;
+        },
+);
 
 type TestInstance = ReturnType<typeof render>['root'];
 
@@ -91,6 +99,8 @@ beforeEach(() => {
     };
     mockPresenceExiting.current = false;
     mockFocusTrapActive.current = undefined;
+    mockFocusTrapClickOutsideDeactivates.current = undefined;
+    mockFocusTrapAllowOutsideClick.current = undefined;
 });
 
 describe('FloatingHost — maxHeight/maxWidth gating', () => {
@@ -351,5 +361,41 @@ describe('FloatingHost — focus trap gating', () => {
             </FloatingHost>,
         );
         expect(mockFocusTrapActive.current).toBe(false);
+    });
+
+    it('delegates outside handling to DismissableLayer — the trap does not self-deactivate on outside clicks', () => {
+        mockPositionState.current = {
+            style: {top: 100, left: 100},
+            available: {height: 500, width: 300},
+            isPositioned: true,
+            onContentLayout: jest.fn(),
+        };
+
+        render(
+            <FloatingHost
+                isOpen
+                containFocus
+                anchor={null}
+                anchorRect={{
+                    top: 0,
+                    bottom: 40,
+                    left: 0,
+                    right: 100,
+                    width: 100,
+                    height: 40,
+                }}
+                alignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+                onDismiss={jest.fn()}
+                stackId="test-host"
+            >
+                <Text>menu</Text>
+            </FloatingHost>,
+        );
+
+        expect(mockFocusTrapClickOutsideDeactivates.current).toBe(false);
+        expect(mockFocusTrapAllowOutsideClick.current).toBe(true);
     });
 });

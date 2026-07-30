@@ -119,7 +119,6 @@ function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDura
             >
                 <View
                     onLayout={onContentLayout}
-                    // Measuring with the caps would trap the flip logic at the capped size, so they apply only post-measure.
                     style={[
                         positionStyle,
                         {
@@ -134,7 +133,6 @@ function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDura
                         exitTo={FADE_ONLY_EXIT}
                         enterTiming={enterTiming}
                         exitTiming={exitTiming}
-                        // Hold the entrance fade until measured so it can't elapse behind the opacity gate above.
                         enterEnabled={isPositioned}
                         style={surfaceStyle}
                     >
@@ -145,13 +143,25 @@ function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDura
         </View>
     );
 
+    const portalChildren = containFocus ? (
+        <FocusTrapForModal
+            active={isOpen}
+            clickOutsideDeactivates={false}
+            allowOutsideClick
+        >
+            {inner}
+        </FocusTrapForModal>
+    ) : (
+        inner
+    );
+
     return (
         <Presence
             present={isOpen}
             exitDurationMs={exitTiming}
             onExitComplete={onExitComplete}
         >
-            <Portal>{containFocus ? <FocusTrapForModal active={isOpen}>{inner}</FocusTrapForModal> : inner}</Portal>
+            <Portal>{portalChildren}</Portal>
         </Presence>
     );
 }
