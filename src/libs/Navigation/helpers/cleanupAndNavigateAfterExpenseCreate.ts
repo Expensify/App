@@ -46,7 +46,8 @@ function cleanupAndNavigateAfterExpenseCreate({
     navigationReportID,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
     if (__DEV__ && isTracking() && !shouldNavigate) {
-        console.warn('[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. ' + 'Caller must own span lifecycle — miss this and span hangs 60s until dropped.');
+        // eslint-disable-next-line no-console
+        console.warn('[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. Caller must own span lifecycle — miss this and span hangs 60s until dropped.');
     }
 
     cleanupAfterExpenseCreate({
