@@ -786,6 +786,7 @@ describe('Unread Indicators', () => {
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
+            conciergeChat: undefined,
             report: selfDMReport,
             isDraftPolicy: true,
             action: CONST.IOU.ACTION.CREATE,
