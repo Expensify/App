@@ -9241,63 +9241,6 @@ describe('SearchUIUtils', () => {
             expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.PIE}`);
         });
 
-        test('Should return Violations by submitter search with correct properties', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
-            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
-
-            expect(violationsBySubmitterSearch).toBeDefined();
-            expect(violationsBySubmitterSearch.key).toBe(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
-            expect(violationsBySubmitterSearch.translationPath).toBe('search.tabs.violationsBySubmitter');
-            expect(violationsBySubmitterSearch.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
-            expect(violationsBySubmitterSearch.icon).toBe('UserEye');
-        });
-
-        test('Should return Violations by submitter search query with correct parameters', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
-            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
-            const searchQueryJSON = violationsBySubmitterSearch.searchQueryJSON;
-
-            expect(searchQueryJSON).toBeDefined();
-            expect(searchQueryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
-            expect(searchQueryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.FROM);
-            expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.TABLE);
-            expect(searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
-            expect(searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
-
-            const dateFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-            expect(dateFilter).toBeDefined();
-            expect(dateFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.DATE_PRESETS.LAST_MONTH)).toBe(true);
-
-            const hasFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS);
-            expect(hasFilter).toBeDefined();
-            expect(hasFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION)).toBe(true);
-
-            expect(searchQueryJSON?.limit).toBe(CONST.SEARCH.TOP_SEARCH_LIMIT);
-        });
-
-        test('Should return Violations by submitter search query string with correct format', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
-            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
-            const searchQuery = violationsBySubmitterSearch.searchQuery;
-
-            expect(searchQuery).toContain(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
-            expect(searchQuery).toContain(`groupBy:${CONST.SEARCH.GROUP_BY.FROM}`);
-            expect(searchQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`);
-            expect(searchQuery).toContain(`has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
-            expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.TABLE}`);
-            expect(searchQuery).toContain(`limit:${CONST.SEARCH.TOP_SEARCH_LIMIT}`);
-            expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES}`);
-            expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.DESC}`);
-        });
-
-        test('Should return Violations by submitter search with valid hash', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
-            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
-
-            expect(violationsBySubmitterSearch.hash).toBeGreaterThan(0);
-            expect(violationsBySubmitterSearch.similarSearchHash).toBeGreaterThan(0);
-        });
-
         test('Should show Top Spenders for workflow approver (submitsTo) in paid policy', () => {
             const workflowApproverEmail = 'workflow-approver@policy.com';
             const policyKey = `policy_${policyID}`;
@@ -9603,6 +9546,65 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('Test getSuggestedSearches', () => {
+        test('Should return Violations by submitter search with correct properties', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
+            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
+
+            expect(violationsBySubmitterSearch).toBeDefined();
+            expect(violationsBySubmitterSearch.key).toBe(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+            expect(violationsBySubmitterSearch.translationPath).toBe('search.tabs.violationsBySubmitter');
+            expect(violationsBySubmitterSearch.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(violationsBySubmitterSearch.icon).toBe('UserEye');
+        });
+
+        test('Should return Violations by submitter search query with correct parameters', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
+            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
+            const searchQueryJSON = violationsBySubmitterSearch.searchQueryJSON;
+
+            expect(searchQueryJSON).toBeDefined();
+            expect(searchQueryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(searchQueryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.FROM);
+            expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.TABLE);
+            expect(searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
+            expect(searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+
+            const dateFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+            expect(dateFilter).toBeDefined();
+            expect(dateFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.DATE_PRESETS.LAST_MONTH)).toBe(true);
+
+            const hasFilter = searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS);
+            expect(hasFilter).toBeDefined();
+            expect(hasFilter?.filters?.some((filter) => filter.value === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION)).toBe(true);
+
+            expect(searchQueryJSON?.limit).toBe(CONST.SEARCH.TOP_SEARCH_LIMIT);
+        });
+
+        test('Should return Violations by submitter search query string with correct format', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
+            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
+            const searchQuery = violationsBySubmitterSearch.searchQuery;
+
+            expect(searchQuery).toContain(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`);
+            expect(searchQuery).toContain(`groupBy:${CONST.SEARCH.GROUP_BY.FROM}`);
+            expect(searchQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`);
+            expect(searchQuery).toContain(`has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.TABLE}`);
+            expect(searchQuery).toContain(`limit:${CONST.SEARCH.TOP_SEARCH_LIMIT}`);
+            expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES}`);
+            expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.DESC}`);
+        });
+
+        test('Should return Violations by submitter search with valid hash', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
+            const violationsBySubmitterSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
+
+            expect(violationsBySubmitterSearch.hash).toBeGreaterThan(0);
+            expect(violationsBySubmitterSearch.similarSearchHash).toBeGreaterThan(0);
+        });
+    });
+
     describe('Test getColumnsToShow', () => {
         test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
             expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
@@ -9780,6 +9782,12 @@ describe('SearchUIUtils', () => {
 
             const tagGLCodeHeader = getExpenseHeaders().find(({columnName}) => columnName === CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE);
             expect(tagGLCodeHeader?.sortColumnName).toBe(CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE);
+        });
+
+        test('Should exclude Violations from sort options', () => {
+            expect(SearchUIUtils.getSortByOptions([CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE], translateLocal)).toEqual([
+                {text: translateLocal('common.categoryGLCode'), value: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE},
+            ]);
         });
 
         test('Should show MCC whenever that column is selected, even with no displayable MCC', () => {
