@@ -154,17 +154,20 @@ describe('NetworkTests', () => {
             resolveAuthRequest = resolve;
         });
 
-        // 2. Mock Setup Phase - Configure XHR mocks for the test sequence
-        const mockedXhr = jest
-            .fn()
-            // First call: Return NOT_AUTHENTICATED to trigger reauthentication
-            .mockImplementationOnce(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                }),
-            )
-            // Second call: Return a pending promise that we'll resolve later
-            .mockImplementationOnce(() => pendingAuthRequest);
+        // 2. Mock Setup Phase - Configure XHR mocks per command. Keying on the command rather than the call order matters because
+        // reconnectApp also fires SearchForTodos, which is sent without waiting for the queue and can reach xhr first.
+        const appSyncCommands = new Set(['OpenApp', 'ReconnectApp']);
+        const mockedXhr = jest.fn().mockImplementation((command: string) => {
+            // The app sync call returns NOT_AUTHENTICATED to trigger reauthentication
+            if (appSyncCommands.has(command)) {
+                return Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED});
+            }
+            // Authenticate returns a pending promise that we'll resolve later
+            if (command === AUTHENTICATION_COMMAND) {
+                return pendingAuthRequest;
+            }
+            return Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+        });
 
         HttpUtils.xhr = mockedXhr;
 
@@ -176,14 +179,14 @@ describe('NetworkTests', () => {
         reconnectApp();
         await waitForBatchedUpdates();
 
+        const calledCommands = () => mockedXhr.mock.calls.map((call: [string, Record<string, unknown>]) => call[0]);
+
         // 4. First API Call Verification - Check that an app sync call was made (OpenApp or ReconnectApp)
-        const firstCall = mockedXhr.mock.calls.at(0) as [string, Record<string, unknown>];
-        expect(['OpenApp', 'ReconnectApp']).toContain(firstCall[0]);
+        expect(calledCommands()).toEqual(expect.arrayContaining([expect.stringMatching(/^(OpenApp|ReconnectApp)$/)]));
 
         // 5. Authentication Start - Verify authenticate was triggered
         await waitForBatchedUpdates();
-        const secondCall = mockedXhr.mock.calls.at(1) as [string, Record<string, unknown>];
-        expect(secondCall[0]).toBe(AUTHENTICATION_COMMAND);
+        expect(calledCommands()).toContain(AUTHENTICATION_COMMAND);
 
         // 6. Network State Change - Set offline and back online while authenticate is pending
         setHasRadio(false);
