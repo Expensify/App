@@ -131,10 +131,19 @@ function hasValidInternationalBankAccountDetails(iban: string | undefined, swift
  * skipped because the Corpay bank-details step already gathered equivalent values).
  */
 function getInternationalBankAccountDetailsValues(iban: string | undefined, swiftCode: string | undefined, accountNumber?: string, swiftBicCode?: string): {iban: string; swiftCode: string} {
-    const resolvedIBAN = iban || (accountNumber && CONST.BANK_ACCOUNT.REGEX.IBAN.test(accountNumber.trim()) ? accountNumber : '');
+    let resolvedIBAN = iban ?? '';
+    if (!resolvedIBAN && accountNumber && CONST.BANK_ACCOUNT.REGEX.IBAN.test(accountNumber.trim())) {
+        resolvedIBAN = accountNumber;
+    }
+
+    let resolvedSwiftCode = swiftCode ?? '';
+    if (!resolvedSwiftCode) {
+        resolvedSwiftCode = swiftBicCode ?? '';
+    }
+
     return {
         iban: resolvedIBAN,
-        swiftCode: swiftCode || swiftBicCode || '',
+        swiftCode: resolvedSwiftCode,
     };
 }
 
