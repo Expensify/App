@@ -59,11 +59,11 @@ topics:
     hub: /new-expensify/hubs/connections/
     links:
       - label: Connect to NetSuite
-        href: /articles/new-expensify/connections/netsuite/Connect-To-NetSuite
+        href: /articles/new-expensify/connections/accounting/netsuite/Connect-To-NetSuite
       - label: Connect to QuickBooks Online
-        href: /articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online
+        href: /articles/new-expensify/connections/accounting/quickbooks-online/Connect-to-QuickBooks-Online
       - label: Connect to Xero
-        href: /articles/new-expensify/connections/xero/Connect-to-Xero
+        href: /articles/new-expensify/connections/accounting/xero/Connect-to-Xero
 
   - title: Workflows
     icon: /assets/images/workflow.svg
@@ -268,7 +268,7 @@ platforms:
       - href: connections
         title: Connections
         icon: /assets/images/simple-illustration__monitor-remotesync.svg
-        description: Connect to accounting software to streamline expense approvals.
+        description: Connect Expensify with accounting, HR, travel, AI, and other business tools.
 
       - href: settings
         title: Settings
