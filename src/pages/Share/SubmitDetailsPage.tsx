@@ -50,6 +50,7 @@ import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
+import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
@@ -435,6 +436,7 @@ function SubmitDetailsPage({
         };
 
         if (preMountDestinationRoute) {
+            cancelTracking();
             runExpenseCreateAndCleanup(false);
             hasCalledReveal.current = true;
             revealPreMountDestination(() => setIsConfirming(false));
