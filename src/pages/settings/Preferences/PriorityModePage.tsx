@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type PriorityModeItem = {
     value: ValueOf<typeof CONST.PRIORITY_MODE>;
@@ -31,33 +31,32 @@ function PriorityModePage() {
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const styles = useThemeStyles();
 
-    const [selectedPriorityMode, setSelectedPriorityMode] = useState(priorityMode);
+    // Leave the draft unset until the user picks a row, so a late-hydrating Onyx value can't leave a stale draft that overwrites the saved mode.
+    const [selectedPriorityMode, setSelectedPriorityMode] = useState<ValueOf<typeof CONST.PRIORITY_MODE>>();
+    const currentPriorityMode = selectedPriorityMode ?? priorityMode;
 
     const priorityModes = Object.values(CONST.PRIORITY_MODE).map<PriorityModeItem>((mode) => ({
         value: mode,
         text: translate(`priorityModePage.priorityModes.${mode}.label`),
         alternateText: translate(`priorityModePage.priorityModes.${mode}.description`),
         keyForList: mode,
-        isSelected: selectedPriorityMode === mode,
+        isSelected: currentPriorityMode === mode,
     }));
 
     const updateMode = (mode: PriorityModeItem) => {
         setSelectedPriorityMode(mode.value);
     };
 
-    const savePriorityMode = useCallback(() => {
-        updateChatPriorityMode(selectedPriorityMode);
-    }, [selectedPriorityMode]);
+    const savePriorityMode = () => {
+        updateChatPriorityMode(currentPriorityMode);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: savePriorityMode,
-            isDisabled: selectedPriorityMode === priorityMode,
-        }),
-        [translate, savePriorityMode, selectedPriorityMode, priorityMode],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: savePriorityMode,
+        isDisabled: currentPriorityMode === priorityMode,
+    };
 
     return (
         <ScreenWrapper

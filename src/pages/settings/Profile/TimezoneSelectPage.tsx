@@ -48,31 +48,30 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
-    const [selectedTimezone, setSelectedTimezone] = useState(timezone.selected);
+    // Leave the draft unset until the user picks a row, so a late-hydrating timezone can't leave a stale draft that overwrites the saved timezone.
+    const [selectedTimezone, setSelectedTimezone] = useState<SelectedTimezone>();
+    const currentSelectedTimezone = selectedTimezone ?? timezone.selected;
 
-    const timezoneData = useMemo(() => timezoneOptions.map((tz) => ({...tz, isSelected: tz.text === selectedTimezone})), [timezoneOptions, selectedTimezone]);
+    const timezoneData = timezoneOptions.map((tz) => ({...tz, isSelected: tz.text === currentSelectedTimezone}));
 
     const selectTimezone = ({text}: {text: string}) => {
         setSelectedTimezone(text as SelectedTimezone);
     };
 
-    const saveSelectedTimezone = useCallback(() => {
-        if (!selectedTimezone) {
+    const saveSelectedTimezone = () => {
+        if (!currentSelectedTimezone) {
             Navigation.goBack(ROUTES.SETTINGS_TIMEZONE);
             return;
         }
-        updateSelectedTimezone(selectedTimezone, currentUserPersonalDetails.accountID);
-    }, [selectedTimezone, currentUserPersonalDetails.accountID]);
+        updateSelectedTimezone(currentSelectedTimezone, currentUserPersonalDetails.accountID);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveSelectedTimezone,
-            isDisabled: !!timezone.automatic || selectedTimezone === timezone.selected,
-        }),
-        [translate, saveSelectedTimezone, timezone.automatic, selectedTimezone, timezone.selected],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveSelectedTimezone,
+        isDisabled: !!timezone.automatic || currentSelectedTimezone === timezone.selected,
+    };
 
     const filterShownTimezones = useCallback(
         (searchText: string) => {

@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type ThemeEntry = ListItem & {
@@ -37,15 +37,18 @@ function ThemePage() {
 
     const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
 
-    const [selectedBaseTheme, setSelectedBaseTheme] = useState<ValueOf<typeof CONST.THEME>>(() => getBaseTheme(currentTheme));
-    const [isHighContrast, setIsHighContrast] = useState(() => isHighContrastTheme(currentTheme));
-    const themeToStore = isHighContrast ? getContrastTheme(selectedBaseTheme) : selectedBaseTheme;
+    // Leave the drafts unset until the user edits them, so a late-hydrating Onyx theme can't leave a stale draft that overwrites the saved theme.
+    const [selectedBaseTheme, setSelectedBaseTheme] = useState<ValueOf<typeof CONST.THEME>>();
+    const [isHighContrast, setIsHighContrast] = useState<boolean>();
+    const currentBaseTheme = selectedBaseTheme ?? getBaseTheme(currentTheme);
+    const currentIsHighContrast = isHighContrast ?? isHighContrastTheme(currentTheme);
+    const themeToStore = currentIsHighContrast ? getContrastTheme(currentBaseTheme) : currentBaseTheme;
 
     const localesToThemes = BASE_THEMES.map((theme) => ({
         value: theme,
         text: translate(`themePage.themes.${theme}.label`),
         keyForList: theme,
-        isSelected: selectedBaseTheme === theme,
+        isSelected: currentBaseTheme === theme,
     }));
 
     const updateTheme = (selectedTheme: ThemeEntry) => {
@@ -56,19 +59,16 @@ function ThemePage() {
         setIsHighContrast(enabled);
     };
 
-    const saveTheme = useCallback(() => {
+    const saveTheme = () => {
         updateThemeUserAction(themeToStore);
-    }, [themeToStore]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveTheme,
-            isDisabled: themeToStore === currentTheme,
-        }),
-        [translate, saveTheme, themeToStore, currentTheme],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveTheme,
+        isDisabled: themeToStore === currentTheme,
+    };
 
     return (
         <ScreenWrapper
@@ -98,7 +98,7 @@ function ThemePage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('themePage.highContrastMode')}
-                                        isOn={isHighContrast}
+                                        isOn={currentIsHighContrast}
                                         onToggle={onToggleHighContrast}
                                     />
                                 </View>
