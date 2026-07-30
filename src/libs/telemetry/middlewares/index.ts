@@ -1,9 +1,8 @@
-import type {ErrorEvent, EventHint, Log, TransactionEvent} from '@sentry/core';
+import type {EventHint, Log, TransactionEvent} from '@sentry/core';
 
 import canceledTabNavigationFilter from './canceledTabNavigationFilter';
 import copyTagsToChildSpans from './copyTagsToChildSpans';
 import emailDomainFilter from './emailDomainFilter';
-import enrichInjectedScriptError from './enrichInjectedScriptError';
 import httpClientCancelledFilter from './httpClientCancelledFilter';
 import maxDurationFilter from './maxDurationFilter';
 import minDurationFilter from './minDurationFilter';
@@ -11,12 +10,9 @@ import onyxLogFilter from './onyxLogFilter';
 
 type TelemetryBeforeSend = (event: TransactionEvent, hint: EventHint) => TransactionEvent | null | Promise<TransactionEvent | null>;
 type TelemetryBeforeSendLog = (log: Log) => Log | null;
-/** Synchronous on purpose, unlike `TelemetryBeforeSend`: `beforeSend` must never delay crash delivery. */
-type TelemetryBeforeSendError = (event: ErrorEvent, hint: EventHint) => ErrorEvent | null;
 
 const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, canceledTabNavigationFilter, minDurationFilter, maxDurationFilter, httpClientCancelledFilter, copyTagsToChildSpans];
 const logMiddlewares: TelemetryBeforeSendLog[] = [onyxLogFilter];
-const errorMiddlewares: TelemetryBeforeSendError[] = [enrichInjectedScriptError];
 
 function processBeforeSendTransactions(event: TransactionEvent, hint: EventHint): Promise<TransactionEvent | null> {
     return middlewares.reduce(
@@ -40,14 +36,5 @@ function processBeforeSendLogs(log: Log): Log | null {
     }, log);
 }
 
-function processBeforeSendErrors(event: ErrorEvent, hint: EventHint): ErrorEvent | null {
-    return errorMiddlewares.reduce<ErrorEvent | null>((acc, middleware) => {
-        if (acc == null) {
-            return null;
-        }
-        return middleware(acc, hint);
-    }, event);
-}
-
-export type {TelemetryBeforeSend, TelemetryBeforeSendError};
-export {processBeforeSendTransactions, processBeforeSendLogs, processBeforeSendErrors};
+export type {TelemetryBeforeSend};
+export {processBeforeSendTransactions, processBeforeSendLogs};

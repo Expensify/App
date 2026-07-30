@@ -1,3 +1,5 @@
+import {isDevelopment} from '@libs/Environment/Environment';
+
 import * as SentryReact from '@sentry/react';
 
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, shouldCreateSpanForRequest} from './common';
@@ -19,4 +21,20 @@ const reportingObserverIntegration = SentryReact.reportingObserverIntegration({
     types: ['crash', 'intervention'],
 });
 
-export {navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration, reportingObserverIntegration};
+/**
+ * Tags errors whose stack holds no frame from our own bundle with `third_party_code: true`, so noise
+ * thrown by injected code (consent tools, tag managers, browser extensions) can be told apart from our
+ * own errors in issue search (GH #93837).
+ *
+ * Our bundle is recognized by the application key `@sentry/webpack-plugin` embeds in every chunk, so the
+ * key below has to match `applicationKey` in `config/rsbuild/rsbuild.common.ts`. That plugin only runs
+ * for non-development builds, hence the guard: without a key in the bundle every frame looks foreign.
+ */
+const thirdPartyErrorFilterIntegration = isDevelopment()
+    ? undefined
+    : SentryReact.thirdPartyErrorFilterIntegration({
+          filterKeys: ['expensify-app'],
+          behaviour: 'apply-tag-if-exclusively-contains-third-party-frames',
+      });
+
+export {navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration, reportingObserverIntegration, thirdPartyErrorFilterIntegration};

@@ -553,6 +553,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                       assets: './dist/**/*.{js,map}',
                                       filesToDeleteAfterUpload: './dist/**/*.map',
                                   },
+                                  // Stamps every chunk so the SDK can tell our frames from injected ones at runtime.
+                                  // Must match `filterKeys` in `src/libs/telemetry/integrations/index.web.ts`.
+                                  applicationKey: 'expensify-app',
                                   debug: false,
                                   telemetry: false,
                               }),

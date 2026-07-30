@@ -1,6 +1,14 @@
 import {isDevelopment} from '@libs/Environment/Environment';
-import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, reportingObserverIntegration, tracingIntegration} from '@libs/telemetry/integrations';
-import {processBeforeSendErrors, processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
+import {
+    breadcrumbsIntegration,
+    browserProfilingIntegration,
+    consoleIntegration,
+    navigationIntegration,
+    reportingObserverIntegration,
+    thirdPartyErrorFilterIntegration,
+    tracingIntegration,
+} from '@libs/telemetry/integrations';
+import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -11,9 +19,15 @@ import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
 function setupSentry(): void {
-    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration, reportingObserverIntegration].filter(
-        (integration): integration is NonNullable<typeof integration> => integration !== undefined,
-    );
+    const integrations = [
+        navigationIntegration,
+        tracingIntegration,
+        browserProfilingIntegration,
+        breadcrumbsIntegration,
+        consoleIntegration,
+        reportingObserverIntegration,
+        thirdPartyErrorFilterIntegration,
+    ].filter((integration): integration is NonNullable<typeof integration> => integration !== undefined);
 
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
@@ -30,7 +44,6 @@ function setupSentry(): void {
         release: `${pkg.name}@${pkg.version}`,
         // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
         ignoreErrors: [CONST.ERROR.UPDATE_REQUIRED],
-        beforeSend: processBeforeSendErrors,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
         beforeSendLog: processBeforeSendLogs,
