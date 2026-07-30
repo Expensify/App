@@ -2053,7 +2053,7 @@ type DualEntryVendor = {
 };
 
 /**
- * Coonection data retrieved from DualEntry.
+ * Connection data retrieved from DualEntry.
  */
 type DualEntryConnectionData = {
     /** Companies available in DualEntry. */

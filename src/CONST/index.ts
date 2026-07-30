@@ -4965,7 +4965,7 @@ const CONST = {
             NVP_RILLET_EXPORT_ACCOUNT_POLICY_ID: 'rillet_export_account_policy_id',
 
             /**
-             * Name of Card NVP for Rillet custom export accounts
+             * Name of Card NVP for DualEntry custom export accounts
              */
             NVP_DUALENTRY_EXPORT_ACCOUNT_POLICY_ID: 'dualentry_export_account_policy_id',
         },
