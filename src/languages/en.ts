@@ -1082,7 +1082,7 @@ const translations = {
         yourSpend: {
             title: 'Your spend',
             awaitingApproval: 'Awaiting approval',
-            repaidLast30Days: 'Repaid in the last 30 days',
+            repaidLast30Days: 'Repaid last 30 days',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `See ${count} more`,
@@ -1272,6 +1272,7 @@ const translations = {
             'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
         importSpreadsheetLibraryError: 'Failed to load spreadsheet module. Please check your internet connection and try again.',
         importSpreadsheet: 'Import spreadsheet',
+        importWorkflows: 'Import workflows',
         downloadCSV: 'Download CSV',
         importMemberConfirmation: () => ({
             one: `Please confirm the details below for a new workspace member that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
@@ -3022,8 +3023,16 @@ const translations = {
             updateAvatar: "There was a problem updating this agent's avatar",
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'New agent',
+        buildCustomAgent: 'Build custom agent',
+        orStartWithTemplate: 'Or start with a template:',
+        role: 'Agent',
+        emptyTemplatesTitle: 'No templates yet',
+        emptyTemplatesSubtitle: 'Build a custom agent to get started.',
+    },
+    addAgentPage: {
+        title: 'Build custom agent',
         agentName: 'Agent name',
         instructions: 'Write custom instructions',
         createAgent: 'Create agent',
@@ -4417,7 +4426,7 @@ const translations = {
         toLearnMore: ' to learn more.',
         termsAndConditions: {
             header: 'Before we continue...',
-            title: 'Terms & conditions',
+            title: 'Review terms & conditions',
             label: 'I agree to the terms & conditions',
             subtitle: `Please agree to the Expensify Travel <a href="${CONST.TRAVEL_TERMS_URL}">terms & conditions</a>.`,
             error: 'You must agree to the Expensify Travel terms & conditions to continue',
@@ -4491,11 +4500,16 @@ const translations = {
         errorMessage: 'Something went wrong. Please try again later.',
         phoneError: (phoneErrorMethodsRoute: string) => `<rbr>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</rbr>`,
         domainSelector: {
+            headline: 'Which domain do you want to set up?',
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
             recommended: 'Recommended',
         },
+        workspaceAddress: {
+            headline: "What's your business address?",
+        },
         taxID: {
+            headline: "What's your business tax ID?",
             title: 'Tax ID',
             subtitle: 'Enter your legal entity tax ID so we can set up travel billing in your local currency.',
             inputLabel: 'Legal entity tax ID',
@@ -5924,7 +5938,7 @@ const translations = {
             },
             assign: 'Assign',
             assignCard: 'Assign card',
-            findCard: 'Find card',
+            findCompanyCard: 'Find company card',
             cardNumber: 'Card number',
             commercialFeed: 'Commercial feed',
             feedName: (feedName: string) => `${feedName} cards`,
@@ -5933,6 +5947,7 @@ const translations = {
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',
+            pleaseSelectACardholder: 'Please select a cardholder to continue',
             chooseCard: 'Choose a card',
             chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',
@@ -6260,8 +6275,10 @@ const translations = {
                 transactionStartDate: 'Transaction start date',
                 updateCard: 'Update card',
                 unassignCard: 'Unassign card',
+                unassignCards: 'Unassign cards',
                 unassign: 'Unassign',
                 unassignCardDescription: 'Unassigning this card will delete all unsubmitted transactions.',
+                unassignCardsDescription: 'Unassigning will delete all unsubmitted transactions from the selected cards.',
                 assignCard: 'Assign card',
                 removeCard: 'Remove card',
                 remove: 'Remove',
@@ -8142,6 +8159,18 @@ const translations = {
                 editRuleTitle: 'Edit rule',
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
+                unableToRemoveTitle: 'Unable to remove',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can remove this agent.`,
+                unableToCloseAccountTitle: 'Unable to close account',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can close this account.`,
+                unableToDeleteAgentTitle: 'Unable to delete agent',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can delete this agent.`,
+                unableToChangeRoleTitle: 'Unable to change role',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `The <a href="${rulesRoute}">agent rules</a> being enforced by RuleBot need to be removed from your workspace first before you can change this agent's role.`,
                 describeRuleTitle: 'Describe the rule for your AI agent to follow',
                 describeRuleHeadline: 'Describe your rule',
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
@@ -8421,6 +8450,11 @@ const translations = {
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} cardholders to delete card transactions for card feed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `added the agent rule "${title}": ${prompt}` : `added an agent rule: ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `updated the agent rule "${title}" to: ${prompt}` : `updated an agent rule to: ${prompt}`),
+            deleted: ({title}: {title: string}) => (title ? `removed the agent rule "${title}"` : 'removed an agent rule'),
+        },
         expensifyCardRule: {
             actionVerb: {
                 block: 'blocked',
@@ -9593,6 +9627,9 @@ const translations = {
         save: 'Save',
         resume: 'Resume',
         discard: 'Discard',
+        edit: 'Edit',
+        editStop: 'Edit stop',
+        totalDistance: 'Total distance',
         discardDistanceTrackingModal: {
             title: 'Discard distance tracking',
             prompt: "Are you sure? This will discard your current journey and can't be undone.",
@@ -10377,7 +10414,7 @@ const translations = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
-        accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
+        accountSwitcher: '<tooltip>You can now copilot into another account!</tooltip>',
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",

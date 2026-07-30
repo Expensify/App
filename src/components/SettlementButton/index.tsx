@@ -418,7 +418,9 @@ function SettlementButton({
                     return chatReport?.invoiceReceiver?.policyID;
                 }
 
-                if (canUseActivePolicy) {
+                // Currency only decides whether direct reimbursement is offered, so it must not gate reuse here:
+                // the setup flow we navigate to next is what brings the workspace to a supported currency.
+                if (hasActivePolicyAsAdmin) {
                     return activePolicy.id;
                 }
 

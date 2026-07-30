@@ -374,6 +374,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             return waitForBatchedUpdates()
                 .then(() => {
                     createWorkspace({
+                        conciergeChat: undefined,
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
@@ -539,6 +540,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             return waitForBatchedUpdates()
                 .then(() => {
                     createWorkspace({
+                        conciergeChat: undefined,
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
@@ -1422,6 +1424,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() => {
                     // Which owns a workspace
                     createWorkspace({
+                        conciergeChat: undefined,
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
@@ -1549,6 +1552,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Which owns a workspace
             await waitForBatchedUpdates();
             createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: CARLOS_EMAIL,
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
@@ -1799,6 +1803,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Which owns a workspace
             await waitForBatchedUpdates();
             createWorkspace({
+                conciergeChat: undefined,
                 policyOwnerEmail: CARLOS_EMAIL,
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",

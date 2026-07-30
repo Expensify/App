@@ -65,7 +65,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	96
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	86
 "../../src/ROUTES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/TIMEZONES.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -230,9 +230,6 @@
 "../../src/components/LHNOptionsList/OptionRowLHN/OptionRow/Pressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/MagicCodeInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/MagicCodeInput.tsx"	"react-hooks/refs"	1
-"../../src/components/MagicCodeInput.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/components/MapView/GPSMapView.tsx"	"no-restricted-imports"	1
 "../../src/components/MapView/MapView.tsx"	"no-restricted-imports"	1
 "../../src/components/MapView/MapView.tsx"	"react-hooks/set-state-in-effect"	1
@@ -491,6 +488,9 @@
 "../../src/components/UpdateAppModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/UploadFile.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm.tsx"	"no-restricted-imports"	1
+"../../src/components/ValidateCodeInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/components/ValidateCodeInput.tsx"	"react-hooks/refs"	1
+"../../src/components/ValidateCodeInput.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"no-restricted-syntax"	1
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"react-hooks/refs"	13
@@ -590,7 +590,8 @@
 "../../src/hooks/useWindowDimensions/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useWorkletStateMachine/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/languages/flattenObject.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/API/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/libs/API/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/libs/API/makeRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Accessibility/moveAccessibilityFocus/types.ts"	"@typescript-eslint/no-deprecated/ElementRef"	1
 "../../src/libs/AccountingUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/AttendeeUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -1030,7 +1031,7 @@
 "../../src/pages/ErrorPage/GenericErrorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/ErrorPage/UpdateRequiredView.tsx"	"no-restricted-imports"	1
 "../../src/pages/MissingPersonalDetails/MissingPersonalDetailsContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/MissingPersonalDetails/MissingPersonalDetailsMagicCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/MissingPersonalDetails/MissingPersonalDetailsValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"react-hooks/refs"	4
 "../../src/pages/MissingPersonalDetails/subPages/PIN.tsx"	"no-restricted-imports"	1
@@ -1111,10 +1112,10 @@
 "../../src/pages/ShareCodePage.tsx"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/pages/ShareCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/TeachersUnite/SaveTheWorldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"no-restricted-imports"	1
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/refs"	12
 "../../src/pages/TransactionDuplicate/DuplicateTransactionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"react-hooks/refs"	12
 "../../src/pages/TransactionDuplicate/Review.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionMerge/DynamicConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionMerge/DynamicConfirmationPage.tsx"	"no-restricted-imports"	1
@@ -1299,7 +1300,7 @@
 "../../src/pages/settings/Profile/CustomStatus/StatusPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/PersonalDetails/PersonalAddressPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsConfirmMagicCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsConfirmValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../src/pages/settings/Profile/PersonalDetails/StateSelectionPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Profile/ProfilePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1310,9 +1311,10 @@
 "../../src/pages/settings/Report/ReportDetailsColumnsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/settings/Rules/ExpenseRulesPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/settings/Rules/ExpenseRulesPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Security/AddDelegate/ConfirmDelegateMagicCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/AddDelegate/ConfirmDelegatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/settings/Security/AddDelegate/UpdateDelegateRole/UpdateDelegateMagicCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/settings/Security/AddDelegate/ConfirmDelegateValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/settings/Security/AddDelegate/UpdateDelegateRole/UpdateDelegateValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/settings/Security/LockAccount/LockAccountPageBase.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/TwoFactorAuth/VerifyPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Subscription/CardAuthenticationModal/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Subscription/CardSection/CardSectionButton/index.tsx"	"no-restricted-imports"	1
@@ -1351,7 +1353,7 @@
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/signin/ChooseSSOOrMagicCode.tsx"	"no-restricted-imports"	1
+"../../src/pages/signin/ChooseSSOOrValidateCode.tsx"	"no-restricted-imports"	1
 "../../src/pages/signin/SAMLSignInPage/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/signin/SMSDeliveryFailurePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/signin/SMSDeliveryFailurePage.tsx"	"no-restricted-imports"	1
@@ -1598,7 +1600,7 @@
 "../../src/types/onyx/UserWallet.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/VacationDelegate.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/ValidateDomainTwoFactorCode.ts"	"no-restricted-syntax"	1
-"../../src/types/onyx/ValidateMagicCodeAction.ts"	"no-restricted-syntax"	1
+"../../src/types/onyx/VerifyValidateCodeAction.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/WalletAdditionalDetails.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/WalletOnfido.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/WalletTerms.ts"	"no-restricted-syntax"	1
@@ -1631,7 +1633,6 @@
 "../../tests/actions/IOU/SearchUpdateTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOU/SplitReportTotalsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/actions/IOU/SplitReportTotalsTest.ts"	"no-restricted-imports"	1
-"../../tests/actions/IOUTest/BulkEditTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	25
 "../../tests/actions/IOUTest/DeleteMoneyRequestTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/actions/IOUTest/GetUpdateMoneyRequestParamsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/actions/IOUTest/HoldTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -1671,7 +1672,6 @@
 "../../tests/actions/SubscriptionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/actions/TaskTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/TransactionTest.ts"	"no-restricted-imports"	1
-"../../tests/actions/UserTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	43
 "../../tests/actions/WorkflowTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../tests/actions/connections/NetSuite.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/actions/connections/QuickbooksDesktop.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1813,7 +1813,6 @@
 "../../tests/unit/CountryUtils.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/DebugUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
 "../../tests/unit/DeeplinkRouteNormalizationTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
-"../../tests/unit/DeployChecklistUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	24
 "../../tests/unit/DistanceRateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/EmojiReactionsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/ErrorUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
@@ -1882,7 +1881,6 @@
 "../../tests/unit/ReportActionItemSingleTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ReportActionsFollowupUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/ReportActionsListPaddingViewTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../tests/unit/ReportActionsUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	36
 "../../tests/unit/ReportLayoutUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	3
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	23

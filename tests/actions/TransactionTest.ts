@@ -218,6 +218,7 @@ describe('actions/Transaction', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
                 action: CONST.IOU.ACTION.CREATE,
@@ -567,6 +568,7 @@ describe('actions/Transaction', () => {
 
                 const policyID = generatePolicyID();
                 createWorkspace({
+                    conciergeChat: undefined,
                     policyOwnerEmail: CARLOS_EMAIL,
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace",
@@ -743,6 +745,7 @@ describe('actions/Transaction', () => {
 
                 const policyID = generatePolicyID();
                 createWorkspace({
+                    conciergeChat: undefined,
                     policyOwnerEmail: RORY_EMAIL,
                     makeMeAdmin: true,
                     policyName: "Rory's Workspace",
@@ -923,6 +926,7 @@ describe('actions/Transaction', () => {
 
                 const policyID = generatePolicyID();
                 createWorkspace({
+                    conciergeChat: undefined,
                     policyOwnerEmail: CARLOS_EMAIL,
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace",
@@ -1112,6 +1116,7 @@ describe('actions/Transaction', () => {
 
                 const policyID = generatePolicyID();
                 createWorkspace({
+                    conciergeChat: undefined,
                     policyOwnerEmail: CARLOS_EMAIL,
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace for Hold Test",
