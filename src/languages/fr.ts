@@ -443,6 +443,7 @@ const translations: TranslationDeepObject<typeof en> = {
         print: 'Imprimer',
         help: 'Aide',
         collapsed: 'Réduit',
+        expand: 'Agrandir',
         expanded: 'Développé',
         expenseReport: 'Note de frais',
         rateOutOfPolicy: 'Taux hors politique',
@@ -1114,7 +1115,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {
             title: 'Vos dépenses',
             awaitingApproval: 'En attente d’approbation',
-            repaidLast30Days: 'Remboursé au cours des 30 derniers jours',
+            repaidLast30Days: 'Remboursé 30 derniers jours',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transactions récentes • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Voir ${count} de plus`,
@@ -1200,6 +1201,7 @@ const translations: TranslationDeepObject<typeof en> = {
             'Le fichier que vous avez téléchargé est soit vide, soit contient des données non valides. Veuillez vous assurer que le fichier est correctement formaté et contient les informations nécessaires avant de le télécharger à nouveau.',
         importSpreadsheetLibraryError: 'Échec du chargement du module de feuille de calcul. Veuillez vérifier votre connexion Internet et réessayer.',
         importSpreadsheet: 'Importer un tableau',
+        importWorkflows: 'Importer les workflows',
         downloadCSV: 'Télécharger le CSV',
         importMemberConfirmation: () => ({
             one: `Veuillez confirmer les détails ci-dessous pour un nouveau membre de l’espace de travail qui sera ajouté dans le cadre de ce téléversement. Les membres existants ne recevront aucune mise à jour de rôle ni message d’invitation.`,
@@ -2970,8 +2972,16 @@ ${amount} pour ${merchant} - ${date}`,
             updateAvatar: "Un problème est survenu lors de la mise à jour de l'avatar de cet agent",
         },
     },
-    addAgentPage: {
+    newAgentPage: {
         title: 'Nouvel agent',
+        buildCustomAgent: 'Créer un agent personnalisé',
+        orStartWithTemplate: 'Ou commencez avec un modèle :',
+        role: 'Agent',
+        emptyTemplatesTitle: 'Aucun modèle pour le moment',
+        emptyTemplatesSubtitle: 'Créez un agent personnalisé pour commencer.',
+    },
+    addAgentPage: {
+        title: 'Créer un agent personnalisé',
         agentName: 'Nom de l’agent',
         instructions: 'Rédiger des instructions personnalisées',
         createAgent: 'Créer un agent',
@@ -4352,7 +4362,7 @@ ${amount} pour ${merchant} - ${date}`,
         toLearnMore: 'pour en savoir plus.',
         termsAndConditions: {
             header: 'Avant de continuer…',
-            title: 'Conditions générales',
+            title: 'Examiner les conditions générales',
             label: 'J’accepte les conditions générales d’utilisation',
             subtitle: `Veuillez accepter les <a href="${CONST.TRAVEL_TERMS_URL}">conditions générales</a> d’Expensify Travel.`,
             error: 'Vous devez accepter les conditions générales d’Expensify Travel pour continuer',
@@ -4427,10 +4437,12 @@ ${amount} pour ${merchant} - ${date}`,
         phoneError: (phoneErrorMethodsRoute: string) =>
             `<rbr>Veuillez <a href="${phoneErrorMethodsRoute}">ajouter un e-mail professionnel comme identifiant principal</a> pour réserver un voyage.</rbr>`,
         domainSelector: {
+            headline: 'Quel domaine voulez-vous configurer ?',
             title: 'Domaine',
             subtitle: 'Choisissez un domaine pour la configuration d’Expensify Travel.',
             recommended: 'Recommandé',
         },
+        workspaceAddress: {headline: 'Quelle est l’adresse de votre entreprise ?'},
         domainPermissionInfo: {
             title: 'Domaine',
             restriction: (domain: string) =>
@@ -4485,6 +4497,7 @@ ${amount} pour ${merchant} - ${date}`,
         nightIn: 'nuit dans',
         nightsIn: 'nuits à',
         taxID: {
+            headline: 'Quel est votre numéro d’identification fiscale d’entreprise ?',
             title: 'Identifiant fiscal',
             subtitle: 'Saisissez l’identifiant fiscal de votre entité légale afin que nous puissions configurer la facturation des déplacements dans votre devise locale.',
             inputLabel: 'Identifiant fiscal de l’entité juridique',
@@ -5870,13 +5883,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             assign: 'Assigner',
             assignCard: 'Assigner une carte',
-            findCard: 'Trouver la carte',
+            findCompanyCard: 'Trouver une carte d’entreprise',
             cardNumber: 'Numéro de carte',
             commercialFeed: 'Flux commercial',
             feedName: (feedName: string) => `Cartes ${feedName}`,
             directFeed: 'Flux direct',
             whoNeedsCardAssigned: 'Qui doit se voir assigner une carte ?',
             chooseTheCardholder: 'Choisir le titulaire de la carte',
+            pleaseSelectACardholder: 'Veuillez sélectionner un titulaire de carte pour continuer',
             chooseCard: 'Choisir une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Dites-le-nous.</concierge-link>`,
@@ -6205,15 +6219,16 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 assignedCards: 'Assigné',
                 unassignedCards: 'Non assigné',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `exportation ${integration} ${type.toLowerCase()}` : `Export ${integration}`),
-                integrationExportTitleXero: (integration: string) => `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.`,
-                integrationExportTitle: (integration: string, exportPageLink: string) =>
-                    `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées. Sélectionnez une autre <a href="${exportPageLink}">option d’exportation</a> pour modifier les comptes disponibles.`,
+                integrationExportTitle: (integration: string, exportPageLink?: string) =>
+                    `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.${exportPageLink ? ` Sélectionnez une autre <a href="${exportPageLink}">option d’exportation</a> pour modifier les comptes disponibles.` : ''}`,
                 lastUpdated: 'Dernière mise à jour',
                 transactionStartDate: 'Date de début de la transaction',
                 updateCard: 'Mettre à jour la carte',
                 unassignCard: 'Retirer l’assignation de la carte',
+                unassignCards: 'Retirer l’assignation des cartes',
                 unassign: "Retirer l'assignation",
                 unassignCardDescription: "Retirer l'assignation de cette carte supprimera toutes les transactions non soumises.",
+                unassignCardsDescription: "Retirer l'assignation supprimera toutes les transactions non soumises des cartes sélectionnées.",
                 removeCard: 'Supprimer la carte',
                 remove: 'Supprimer',
                 removeCardDescription: 'La suppression de cette carte effacera toutes les transactions non soumises.',
@@ -7866,6 +7881,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
+                unableToRemoveTitle: 'Suppression impossible',
+                unableToRemovePrompt: (rulesRoute: string) =>
+                    `Les <a href="${rulesRoute}">règles d’agent</a> appliquées par RuleBot doivent d’abord être supprimées de votre espace de travail avant que vous puissiez retirer cet agent.`,
+                unableToCloseAccountTitle: 'Impossible de fermer le compte',
+                unableToCloseAccountPrompt: (rulesRoute: string) =>
+                    `Les <a href="${rulesRoute}">règles d’agent</a> appliquées par RuleBot doivent d’abord être supprimées de votre espace de travail avant que vous puissiez fermer ce compte.`,
+                unableToDeleteAgentTitle: 'Impossible de supprimer l’agent',
+                unableToDeleteAgentPrompt: (rulesRoute: string) =>
+                    `Les <a href="${rulesRoute}">règles d’agent</a> appliquées par RuleBot doivent d’abord être supprimées de votre espace de travail avant que vous puissiez supprimer cet agent.`,
+                unableToChangeRoleTitle: 'Impossible de changer le rôle',
+                unableToChangeRolePrompt: (rulesRoute: string) =>
+                    `Les <a href="${rulesRoute}">règles d’agent</a> appliquées par RuleBot doivent d’abord être supprimées de votre espace de travail avant que vous puissiez changer le rôle de cet agent.`,
                 describeRuleTitle: 'Décrivez la règle que votre agent IA doit suivre',
                 describeRuleHeadline: 'Décrivez votre règle',
                 disclaimer: 'Les agents IA peuvent faire des erreurs.',
@@ -8686,6 +8713,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
             `a modifié la catégorie de dépense par défaut pour « ${mccGroupName} » en « ${newCategory} » (auparavant « ${oldCategory} »)`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} l’exigence d’achats par carte d’entreprise`,
+        agentRule: {
+            added: ({title, prompt}: {title: string; prompt: string}) => (title ? `a ajouté la règle d’agent « ${title} » : ${prompt}` : `a ajouté une règle d’agent : ${prompt}`),
+            updated: ({title, prompt}: {title: string; prompt: string}) =>
+                title ? `a mis à jour la règle d’agent « ${title} » en : ${prompt}` : `a mis à jour une règle d’agent en : ${prompt}`,
+            deleted: ({title}: {title: string}) => (title ? `a supprimé la règle d’agent « ${title} »` : 'a supprimé une règle d’agent'),
+        },
         expensifyCardRule: {
             actionVerb: {block: 'bloqué', allow: 'autorisé'},
             amountOperator: {over: 'terminé', under: 'sous'},
@@ -8949,6 +8982,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             undelete: 'Restaurer',
             duplicateReport: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'note de frais' : 'notes de frais'}`,
         },
+        expensifyCardStatementPDF: {
+            title: 'Télécharger le relevé',
+            oneFeedAtATime: 'Veuillez sélectionner les règlements d’un seul flux Expensify Card à la fois.',
+        },
         filtersHeader: 'Filtres',
         filters: {
             date: {
@@ -9039,6 +9076,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Payer',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
+            filterType: {label: 'Type de filtre', has: {positive: 'a', negative: 'n’a pas'}, is: {positive: 'est', negative: 'n’est pas'}},
         },
         display: {
             label: 'Affichage',
@@ -9519,6 +9557,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         save: 'Enregistrer',
         resume: 'Reprendre',
         discard: 'Ignorer',
+        edit: 'Modifier',
+        editStop: "Modifier l'arrêt",
+        totalDistance: 'Distance totale',
         discardDistanceTrackingModal: {
             title: 'Abandonner le suivi de distance',
             prompt: 'Êtes-vous sûr(e) ? Cela supprimera votre parcours en cours et ne pourra pas être annulé.',
@@ -10273,7 +10314,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
-        accountSwitcher: '<tooltip>Accédez à vos <strong>comptes Copilot</strong> ici</tooltip>',
+        accountSwitcher: '<tooltip>Vous pouvez désormais copiloter un autre compte&nbsp;!</tooltip>',
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
@@ -10324,6 +10365,7 @@ Salut ! Je nous ai obtenu *3 mois gratuits* pour tester Expensify, la manière l
 Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     },
     export: {
+        downloadStatementPDF: 'Télécharger le relevé',
         basicExport: 'Export basique',
         reportLevelExport: 'Toutes les données - niveau note de frais',
         expenseLevelExport: 'Toutes les données - niveau dépense',

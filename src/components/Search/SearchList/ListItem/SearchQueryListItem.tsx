@@ -65,7 +65,6 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             showTooltip={showTooltip}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem
-            rightHandSideComponent={item.rightElement}
         >
             <>
                 {!!item.singleIcon && (
@@ -97,6 +96,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         />
                     )}
                 </View>
+                {!!item.rightElement && <View style={[styles.ml2, styles.flexShrink1, styles.mw50]}>{item.rightElement}</View>}
             </>
         </BaseListItem>
     );
