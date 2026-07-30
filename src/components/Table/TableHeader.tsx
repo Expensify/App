@@ -223,21 +223,18 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         toggleColumnSorting(columnKey);
     };
 
-    // Flex sizing for the column: honor an explicit `styling.flex`, otherwise fill the available width equally.
+    // Honor an explicit `styling.flex`, otherwise fill the available width equally.
     const columnFlexStyle = column.styling?.flex ? {flex: column.styling.flex} : styles.flex1;
 
-    // A column may put a grid-track sizing constraint (currently `mnw0`) in `containerStyles`. In the semantic path the
-    // `role="columnheader"` wrapper below is the CSS grid item, so that constraint has to live on it — otherwise a `1fr`
-    // track sizes from its content instead of its share and columns like the Expensify Cards "Limit type"/"Status" stop
-    // equalizing. Horizontal-alignment styles (`justifyContentEnd`, `pr3`) stay on the flexRow button, where they act on
-    // the row axis; forwarding only the sizing keys here avoids double-applying that padding to the cell.
+    // In the semantic path the `role="columnheader"` wrapper below is the CSS grid item, so a grid-track sizing
+    // constraint (currently `mnw0`) from `containerStyles` must live on it, or a `1fr` track sizes from its content
+    // instead of its share.
     const {minWidth, maxWidth} = StyleSheet.flatten(column.styling?.containerStyles) ?? {};
     const columnCellSizingStyle = {minWidth, maxWidth};
 
-    // Base sort-button styles shared by both the semantic and non-semantic paths. The column's `containerStyles`
-    // (e.g. `justifyContentEnd`) are horizontal-alignment styles for the header row, so they belong on this `flexRow`
-    // button rather than the column-direction cell wrapper below, where `justify-content` would act on the vertical
-    // axis and leave the label mis-aligned. Flex sizing is appended per path (see below) since it differs.
+    // Base sort-button styles shared by both paths. The column's `containerStyles` are horizontal-alignment styles for
+    // the header row, so they belong on this `flexRow` button rather than the column-direction cell wrapper below. Flex
+    // sizing is appended per path since it differs.
     const tableHeaderStyles = [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, column.styling?.containerStyles, !column.sortable && styles.cursorDefault];
 
     const label = (
@@ -277,9 +274,8 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             disabled={!column.sortable}
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             // In the semantic path the column's flex sizing lives on the columnheader cell wrapper below, so the button
-            // just fills it. It needs `flex1` on both the pressable and its OpacityView wrapper (`wrapperStyle`),
-            // otherwise the wrapper collapses to content height and the label isn't vertically centered / the last
-            // column isn't right-docked.
+            // just fills it — `flex1` on both the pressable and its OpacityView wrapper (`wrapperStyle`) so neither
+            // collapses to content height.
             style={isTableSemanticsEnabled ? [...tableHeaderStyles, styles.flex1] : [...tableHeaderStyles, columnFlexStyle]}
             wrapperStyle={isTableSemanticsEnabled ? styles.flex1 : undefined}
             onPress={() => toggleSorting(column.key)}

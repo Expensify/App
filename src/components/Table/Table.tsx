@@ -295,9 +295,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // web layout where semantics apply), so it has to be counted alongside the configured data columns.
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
 
-    // When empty, `TableBody` still renders (and keeps its role="rowgroup") if an empty-state or header list slot is
-    // supplied, so the semantic wrapper must be preserved in that case to avoid orphaned table semantics. Derived from
-    // the shared `doesBodyRenderWhenEmpty` predicate so this stays in lockstep with `TableBody`'s own empty-render check.
+    // When empty, `TableBody` still renders (keeping its role="rowgroup") if an empty-state or header list slot is
+    // supplied, so the semantic wrapper must be preserved then to avoid orphaned table semantics.
     const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps);
 
     return (

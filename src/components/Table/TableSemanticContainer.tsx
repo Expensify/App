@@ -45,15 +45,13 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, render
         return children;
     }
 
-    // An empty table with a header/body that both render null has no tabular content to expose to a screen reader.
-    // Skipping the wrapper then avoids inserting an extra flex:1 layout node next to the empty-state view, which would
-    // otherwise share the available height and shift the empty state upward. When the body still renders (an empty-state
-    // or header list slot is supplied) it keeps its own role="rowgroup", so the wrapper stays to avoid orphaning it.
+    // An empty table whose header/body both render null has no tabular content for a screen reader, so skip the wrapper
+    // to avoid an extra flex:1 node next to the empty-state view that would share its height and shift it upward. (When
+    // the body still renders it keeps its own role="rowgroup", so `rendersBodyWhenEmpty` keeps the wrapper.)
     //
-    // Return the children via `React.Children.toArray` (not raw `children`) so their top-level keys (`.0`, `.1`, …)
-    // match the keys the wrapped branch below produces. Otherwise React can't reconcile a child across the
-    // empty↔non-empty boundary and remounts it — which, for `Table.FilterBar`, runs its unmount cleanup and wipes the
-    // active search string the moment a query stops matching. Keeping the keys stable preserves child instances.
+    // Use `React.Children.toArray` so the children's top-level keys (`.0`, `.1`, …) match the wrapped branch below;
+    // otherwise React remounts a child across the empty↔non-empty boundary — for `Table.FilterBar` that runs its
+    // unmount cleanup and wipes the active search string.
     if (rowCount === 0 && !rendersBodyWhenEmpty) {
         return React.Children.toArray(children);
     }

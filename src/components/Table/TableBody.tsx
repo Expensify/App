@@ -24,9 +24,8 @@ type TableBodyProps = ViewProps & {
 
 /**
  * Whether `TableBody` still renders (keeping its `role="rowgroup"`) when the table has no data rows — i.e. an
- * empty-state (`ListEmptyComponent`) or header (`ListHeaderComponent`) list slot is supplied. This is the single source
- * of truth for that condition, mirrored by the early `return null` below and read by `Table` to decide whether the
- * `role="table"` wrapper must be preserved so the rowgroup isn't orphaned.
+ * empty-state (`ListEmptyComponent`) or header (`ListHeaderComponent`) list slot is supplied. Single source of truth
+ * for that condition, mirrored by the early `return null` below and read by `Table`.
  */
 function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListHeaderComponent?: unknown} | undefined): boolean {
     return !!listProps?.ListEmptyComponent || !!listProps?.ListHeaderComponent;
