@@ -20,6 +20,13 @@ type TableSemanticContainerProps = {
     /** Number of columns, including the leading selection column when present. */
     columnCount: number;
 
+    /**
+     * Whether `TableBody` still renders content while the table is empty (e.g. an empty-state or header list slot is
+     * supplied). When it does, it keeps its own `role="rowgroup"`, so the `role="table"` wrapper must be preserved to
+     * avoid orphaned table semantics.
+     */
+    rendersBodyWhenEmpty: boolean;
+
     /** Table children — expected to contain a contiguous `TableHeader`/`TableBody` run. */
     children: React.ReactNode;
 };
@@ -31,17 +38,18 @@ type TableSemanticContainerProps = {
  * narrow card layout. Header and body are contiguous in every table, so grouping the consecutive run keeps a single
  * table container while preserving child order.
  */
-function TableSemanticContainer({isEnabled, title, rowCount, columnCount, children}: TableSemanticContainerProps) {
+function TableSemanticContainer({isEnabled, title, rowCount, columnCount, rendersBodyWhenEmpty, children}: TableSemanticContainerProps) {
     const styles = useThemeStyles();
 
     if (!isEnabled) {
         return children;
     }
 
-    // An empty table (no data rows) has no tabular content to expose to a screen reader, and the header/body
-    // render nothing in that case. Skipping the wrapper avoids inserting an extra flex:1 layout node next to the
-    // empty-state view, which would otherwise share the available height and shift the empty state upward.
-    if (rowCount === 0) {
+    // An empty table with a header/body that both render null has no tabular content to expose to a screen reader.
+    // Skipping the wrapper then avoids inserting an extra flex:1 layout node next to the empty-state view, which would
+    // otherwise share the available height and shift the empty state upward. When the body still renders (an empty-state
+    // or header list slot is supplied) it keeps its own role="rowgroup", so the wrapper stays to avoid orphaning it.
+    if (rowCount === 0 && !rendersBodyWhenEmpty) {
         return children;
     }
 

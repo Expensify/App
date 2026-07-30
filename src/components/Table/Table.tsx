@@ -294,6 +294,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // web layout where semantics apply), so it has to be counted alongside the configured data columns.
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
 
+    // When empty, `TableBody` still renders (and keeps its role="rowgroup") if an empty-state or header list slot is
+    // supplied, so the semantic wrapper must be preserved in that case to avoid orphaned table semantics.
+    const rendersBodyWhenEmpty = !!listProps.ListEmptyComponent || !!listProps.ListHeaderComponent;
+
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
             <TableSemanticContainer
@@ -301,6 +305,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 title={title}
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
+                rendersBodyWhenEmpty={rendersBodyWhenEmpty}
             >
                 {children}
             </TableSemanticContainer>
