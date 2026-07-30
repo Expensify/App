@@ -994,13 +994,13 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getWorkspaceFeatureEnabledMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE)) {
-        lastMessageTextFromReport = getAddAgentRuleMessage(translate, lastReportAction);
+        lastMessageTextFromReport = StringUtils.lineBreaksToSpaces(getAddAgentRuleMessage(translate, lastReportAction));
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE)) {
-        lastMessageTextFromReport = getUpdateAgentRuleMessage(translate, lastReportAction);
+        lastMessageTextFromReport = StringUtils.lineBreaksToSpaces(getUpdateAgentRuleMessage(translate, lastReportAction));
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE)) {
-        lastMessageTextFromReport = getDeleteAgentRuleMessage(translate, lastReportAction);
+        lastMessageTextFromReport = StringUtils.lineBreaksToSpaces(getDeleteAgentRuleMessage(translate, lastReportAction));
     }
     if (isPolicyCopyReportAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastReportAction));
