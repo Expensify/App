@@ -77,6 +77,7 @@ type SelectionListPopover = {
     hasHeader?: boolean;
     hasButton?: boolean;
     isSearchable?: boolean;
+    isNegatable?: boolean;
     extraHeight?: number;
 };
 
@@ -1218,6 +1219,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 'auto',
             minHeight: variables.editableCellHeight,
             overflow: 'hidden',
+            justifyContent: 'center',
+        },
+
+        editableCellColumn: {
+            alignSelf: 'stretch',
             justifyContent: 'center',
         },
 
@@ -3236,26 +3242,26 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.checkBox,
         },
 
-        magicCodeInputContainer: {
+        validateCodeInputContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
             height: variables.inputHeight,
         },
 
-        magicCodeInput: {
+        validateCodeInput: {
             fontSize: variables.fontSizeXLarge,
             color: theme.heading,
             lineHeight: variables.lineHeightXXXLarge,
         },
 
-        magicCodeInputValueContainer: {
+        validateCodeInputValueContainer: {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative',
         },
 
-        magicCodeInputCursorContainer: {
+        validateCodeInputCursorContainer: {
             position: 'absolute',
             textAlign: 'center',
             flexDirection: 'row',
@@ -3264,7 +3270,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        magicCodeInputCursor: {
+        validateCodeInputCursor: {
             fontSize: 24,
             color: theme.heading,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
@@ -3781,6 +3787,27 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.sliderKnobSize / 2,
             left: -(variables.sliderKnobSize / 2),
             ...cursor.cursorPointer,
+        },
+
+        editedStopSliderKnob: {
+            position: 'absolute',
+            height: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.height,
+            width: CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width,
+            left: -(CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.width / 2),
+            top: -CONST.MAP_MARKER_SIZES.STOP_WAYPOINT.xAxisLineHeight,
+            ...cursor.cursorPointer,
+        },
+
+        editStopSliderFilled: {
+            backgroundColor: colors.green400,
+            height: '100%',
+            borderRadius: variables.sliderBarHeight / 2,
+        },
+
+        editStopSliderBarContainer: {
+            height: 64,
+            paddingHorizontal: 20,
+            justifyContent: 'center',
         },
 
         sliderBar: {
@@ -6395,6 +6422,9 @@ const staticStyles = (theme: ThemeColors) =>
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
+        chartExpandedContent: {
+            transformOrigin: 'top left',
+        },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,
         },
@@ -6747,6 +6777,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             hasHeader,
             hasButton = true,
             isSearchable,
+            isNegatable,
             extraHeight = 0,
         }: SelectionListPopover) => {
             const MODAL_VERTICAL_PADDING = 32;
@@ -6754,9 +6785,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             const HEADER_HEIGHT = hasHeader ? 48 : 0;
             const TITLE_HEIGHT = hasTitle ? 34 : 0;
             const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+            const NEGATION_TOGGLE_BORDER_WIDTH = 1;
+            const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + NEGATION_TOGGLE_BORDER_WIDTH * 2 + spacing.gap3.gap : 0;
 
             const ESTIMATED_LIST_HEIGHT = itemCount * itemHeight + SEARCHBAR_HEIGHT + extraHeight;
-            const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING;
+            const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING + NEGATION_TOGGLE_HEIGHT;
 
             const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
 
@@ -6851,6 +6884,12 @@ const dynamicStyles = (theme: ThemeColors) =>
             width: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
             backgroundColor: shouldUseNarrowLayout ? undefined : theme.buttonDefaultBG,
             borderRadius: 999,
+        }),
+
+        // The 40px bulk-actions button swaps in for the table filter bar row (32px search bar on wide layouts, 44px on narrow),
+        // so offset its vertical margin to keep the row height identical and prevent the table from shifting (see searchBulkActionsButton).
+        tableBulkActionsButton: (shouldUseNarrowTableLayout: boolean) => ({
+            marginVertical: shouldUseNarrowTableLayout ? 2 : -4,
         }),
     }) satisfies DynamicStyles;
 

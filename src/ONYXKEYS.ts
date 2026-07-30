@@ -106,6 +106,9 @@ const ONYXKEYS = {
     /** Cropped image the avatar crop screen writes back for its opener */
     AVATAR_CROP_RESULT: 'avatarCropResult',
 
+    /** Template picked in the "New agent" screen, consumed by the custom-agent builder to pre-fill its fields */
+    NEW_AGENT_TEMPLATE: 'newAgentTemplate',
+
     /** Contains all the info for Tasks */
     TASK: 'task',
 
@@ -136,7 +139,7 @@ const ONYXKEYS = {
     /** Object containing contact method that's going to be added */
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
-    /** Store the information of magic code */
+    /** Store the information of validateCode */
     VALIDATE_ACTION_CODE: 'validateActionCode',
 
     /** Stores 2FA code validation errors in domain 2FA settings */
@@ -160,6 +163,9 @@ const ONYXKEYS = {
 
     /** Agent rule suggestions for the add-rule Suggestions tab */
     AGENT_RULE_SUGGESTIONS: 'agentRuleSuggestions',
+
+    /** Agent templates for the add-agent Suggestions */
+    AGENT_TEMPLATES: 'agentTemplates',
 
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
@@ -407,6 +413,9 @@ const ONYXKEYS = {
     /** Stores information about the user's travel invoice statements */
     TRAVEL_INVOICE_STATEMENT: 'travelInvoiceStatement',
 
+    /** Stores information about the user's Expensify Card statements */
+    EXPENSIFY_CARD_STATEMENT: 'expensifyCardStatement',
+
     /** Stores information about the user's purchases */
     PURCHASE_LIST: 'purchaseList',
 
@@ -453,6 +462,9 @@ const ONYXKEYS = {
     /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
     IS_LOADING_AGENT_RULE_SUGGESTIONS: 'isLoadingAgentRuleSuggestions',
 
+    /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
+    IS_LOADING_AGENT_TEMPLATES: 'isLoadingAgentTemplates',
+
     /** Set when we are loading fresh subscription/billing data from the server */
     IS_LOADING_SUBSCRIPTION_DATA: 'isLoadingSubscriptionData',
 
@@ -461,6 +473,12 @@ const ONYXKEYS = {
 
     /** Set whether we are loading the search filters card data */
     IS_SEARCH_FILTERS_CARD_DATA_LOADED: 'isSearchFiltersCardDataLoaded',
+
+    /** Set whether the search filters category data has loaded */
+    IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED: 'isSearchFiltersCategoryDataLoaded',
+
+    /** Set while search filter category data is loading */
+    RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA: 'isLoadingSearchFiltersCategoryData',
 
     /** Set when OpenSearchPage has been fetched for the first time */
     IS_SEARCH_PAGE_DATA_LOADED: 'isSearchPageDataLoaded',
@@ -1534,6 +1552,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ODOMETER_DRAFT]: OnyxTypes.OdometerDraft;
     [ONYXKEYS.AVATAR_CROP_DRAFT]: OnyxTypes.AvatarCropDraft;
     [ONYXKEYS.AVATAR_CROP_RESULT]: OnyxTypes.AvatarCropResult;
+    [ONYXKEYS.NEW_AGENT_TEMPLATE]: OnyxTypes.NewAgentTemplate;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
@@ -1552,7 +1571,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGINS]: OnyxTypes.Logins;
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
-    [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
+    [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.VerifyValidateCodeAction;
     [ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE]: OnyxTypes.ValidateDomainTwoFactorCode;
     [ONYXKEYS.JOINABLE_POLICIES]: OnyxTypes.JoinablePolicies;
     [ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES]: OnyxTypes.ValidateUserAndGetAccessiblePolicies;
@@ -1561,6 +1580,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.AGENT_RULE_SUGGESTIONS]: OnyxTypes.SuggestedAgentRule[];
+    [ONYXKEYS.AGENT_TEMPLATES]: OnyxTypes.SuggestedAgent[];
     [ONYXKEYS.BETA_CONFIGURATION]: OnyxTypes.BetaConfiguration;
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
@@ -1618,6 +1638,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.TRAVEL_INVOICE_STATEMENT]: OnyxTypes.TravelInvoiceStatement;
+    [ONYXKEYS.EXPENSIFY_CARD_STATEMENT]: OnyxTypes.ExpensifyCardStatement;
     [ONYXKEYS.PURCHASE_LIST]: OnyxTypes.PurchaseList;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.SHARE_BANK_ACCOUNT]: OnyxTypes.ShareBankAccount;
@@ -1634,8 +1655,11 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS]: boolean;
+    [ONYXKEYS.IS_LOADING_AGENT_TEMPLATES]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
+    [ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
     [ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA]: boolean;
     [ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED]: boolean;

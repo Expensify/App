@@ -46,6 +46,7 @@ import {
     isParticipantP2P,
     isSelfDMSoleDestination,
     navigateToStartMoneyRequestStep,
+    pickReportForPolicy,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     shouldShowReceiptEmptyState,
@@ -67,7 +68,14 @@ import {
     isScanRequest,
 } from '@libs/TransactionUtils';
 
-import {getIOURequestPolicyID, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {
+    getIOURequestPolicyID,
+    setCustomUnitRateID,
+    setMoneyRequestCategory,
+    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTag,
+} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 
@@ -85,6 +93,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {policyDistanceDefaultCategoriesSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -178,7 +187,11 @@ function IOURequestStepConfirmation({
     const selectedWorkspacePolicyID =
         initialTransaction?.participants?.find((participant) => participant?.isSender)?.policyID ??
         initialTransaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
-    const realPolicyID = selectedWorkspacePolicyID ?? getIOURequestPolicyID(initialTransaction, reportReal ?? participantReport);
+    // A workspace with submissions (delayed submission) disabled has no autoReporting, so the new flow seeds the
+    // expense onto the self-DM, whose report carries the placeholder '_FAKE_' policy. After selecting that workspace
+    // chat via the in-place "To" picker, the route report is still that self-DM; its fake policyID must not shadow
+    // the selected participant's report, or the workspace expense fields (Category, etc.) never resolve. See #96576.
+    const realPolicyID = selectedWorkspacePolicyID ?? getIOURequestPolicyID(initialTransaction, pickReportForPolicy(reportReal, participantReport));
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
@@ -290,9 +303,11 @@ function IOURequestStepConfirmation({
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
 
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
-    // Used to resolve a newly selected workspace's policy (and therefore its distance rate) inside
-    // handleParticipantsAdded, where the picked participant isn't on the transaction yet.
+    // `participantsPolicies` only holds the policies of the participants the transaction has right now, so it can't
+    // resolve the workspace the user is switching *to*. These two keep what handleParticipantsAdded needs for that
+    // case at hand instead: the trimmed policy (for the distance rate) and the default distance category of every policy.
     const [mappedPolicies] = useMappedPolicies(policyMapper);
+    const [policyDistanceDefaultCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDistanceDefaultCategoriesSelector});
 
     const participants = useMemo(
         () =>
@@ -432,21 +447,34 @@ function IOURequestStepConfirmation({
                             setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
                         }
                         setMoneyRequestCategory(activeTransactionID, '', undefined);
-                    } else if (isDistanceRequest) {
-                        // When switching to a workspace chat we must re-select the workspace's distance rate. Otherwise the
-                        // transaction keeps its P2P rate ID (FAKE_P2P_ID), which isn't a valid rate on the workspace, so the
-                        // Rate field surfaces "Rate not valid" and becomes non-interactive. This mirrors the legacy
-                        // participants-step flow (useParticipantSubmission.addParticipant), which always re-selected the
-                        // workspace rate for a policy-expense-chat participant.
-                        const workspacePolicy = firstParticipant.policyID ? mappedPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
-                        const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
-                            reportID: participantReportID,
-                            isPolicyExpenseChat: true,
-                            policy: workspacePolicy,
-                            lastSelectedDistanceRates,
-                            expenseDate: transaction?.created,
-                        });
-                        setCustomUnitRateID(activeTransactionID, workspaceRateID, transaction, workspacePolicy, false, workspacePolicy?.outputCurrency);
+                        setMoneyRequestTag(activeTransactionID, '');
+                    } else {
+                        if (isDistanceRequest) {
+                            // When switching to a workspace chat we must re-select the workspace's distance rate. Otherwise the
+                            // transaction keeps its P2P rate ID (FAKE_P2P_ID), which isn't a valid rate on the workspace, so the
+                            // Rate field surfaces "Rate not valid" and becomes non-interactive. This mirrors the legacy
+                            // participants-step flow (useParticipantSubmission.addParticipant), which always re-selected the
+                            // workspace rate for a policy-expense-chat participant.
+                            const workspacePolicy = firstParticipant.policyID ? mappedPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
+                            const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
+                                reportID: participantReportID,
+                                isPolicyExpenseChat: true,
+                                policy: workspacePolicy,
+                                lastSelectedDistanceRates,
+                                expenseDate: transaction?.created,
+                            });
+                            setCustomUnitRateID(activeTransactionID, workspaceRateID, transaction, workspacePolicy, false, workspacePolicy?.outputCurrency);
+                        }
+
+                        if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
+                            // Switching to a different workspace: the previous workspace's category and tag no longer apply,
+                            // so reset them to the destination workspace's defaults. This mirrors the legacy participants-step
+                            // flow (useParticipantSubmission.goToNextStep), which resets both on every selection and passes no
+                            // policy so the previous workspace's category-derived tax is cleared along with the category.
+                            const defaultCategory = isDistanceRequest ? (policyDistanceDefaultCategories?.[firstParticipant.policyID] ?? '') : '';
+                            setMoneyRequestCategory(activeTransactionID, defaultCategory, undefined);
+                            setMoneyRequestTag(activeTransactionID, '');
+                        }
                     }
                 }
             }
@@ -467,6 +495,8 @@ function IOURequestStepConfirmation({
             transaction,
             personalPolicy?.outputCurrency,
             mappedPolicies,
+            policyID,
+            policyDistanceDefaultCategories,
         ],
     );
 
