@@ -2,7 +2,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
@@ -202,7 +202,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (
         <View style={[styles.w100, styles.flexColumn]}>
-            <MenuItem.Standard
+            <MenuItemStandard
                 title={translate(issueCardFundID !== undefined ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
                 icon={expensifyIcons.Plus}
                 onPress={issueCardFundID !== undefined ? handleAddCardPress : handleSetUpNewProgramPress}

@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -272,7 +273,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         />
                     </OfflineWithFeedback>
                     {canWriteCompanyCards && shouldShowBreakConnection && (
-                        <MenuItem.Standard
+                        <MenuItemStandard
                             icon={expensifyIcons.Trashcan}
                             disabled={isOffline || card?.isLoadingLastUpdated}
                             title="Break connection (Testing)"

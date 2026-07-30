@@ -9,7 +9,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
@@ -588,7 +588,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         {(shouldShowChangePINRow || shouldShowActionRows) && (
                             <View style={styles.mt4}>
                                 {shouldShowChangePINRow && (
-                                    <MenuItem.Standard
+                                    <MenuItemStandard
                                         title={translate('cardPage.changePin')}
                                         icon={expensifyIcons.Key}
                                         shouldShowChevron
@@ -637,7 +637,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 />
                                             ))}
                                         {shouldShowReportLostCardButton && (
-                                            <MenuItem.Standard
+                                            <MenuItemStandard
                                                 title={translate('reportCardLostOrDamaged.screenTitle')}
                                                 icon={expensifyIcons.Flag}
                                                 shouldShowChevron
@@ -657,7 +657,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         )}
 
                                         {shouldShowEditSpendRules && (
-                                            <MenuItem.Standard
+                                            <MenuItemStandard
                                                 icon={expensifyIcons.CreditCardLock}
                                                 title={translate('cardPage.editSpendRules')}
                                                 onPress={navigateToSpendRulesPage}

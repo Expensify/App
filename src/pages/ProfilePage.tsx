@@ -4,6 +4,7 @@ import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -286,7 +287,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
                         {isCurrentUser && (
-                            <MenuItem.Standard
+                            <MenuItemStandard
                                 shouldShowChevron
                                 title={translate('common.editYourProfile')}
                                 icon={expensifyIcons.Pencil}
@@ -308,7 +309,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             </OfflineWithFeedback>
                         )}
                         {isOwnedAgent && (
-                            <MenuItem.Standard
+                            <MenuItemStandard
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
                                 onPress={() => switchToDelegator(login)}
@@ -346,7 +347,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {!!report?.reportID && !!isDebugModeEnabled && (
-                            <MenuItem.Standard
+                            <MenuItemStandard
                                 title={translate('debug.debug')}
                                 icon={expensifyIcons.Bug}
                                 shouldShowChevron

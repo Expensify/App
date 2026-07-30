@@ -2,7 +2,7 @@ import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -141,7 +141,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                             />
                         </OfflineWithFeedback>
                     )}
-                    <MenuItem.Standard
+                    <MenuItemStandard
                         title={translate('common.profile')}
                         icon={icons.Info}
                         onPress={navigateToProfile}

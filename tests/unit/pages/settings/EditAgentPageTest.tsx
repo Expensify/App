@@ -107,10 +107,11 @@ jest.mock('@components/MenuItem', () => {
     function MockMenuItem({title}: {title: string}) {
         return title ?? null;
     }
-    return Object.assign(
-        jest.fn(() => null),
-        {Standard: MockMenuItem},
-    );
+    return MockMenuItem;
+});
+
+jest.mock('@components/MenuItem/presets/MenuItemStandard', () => {
+    return ({title}: {title: string}) => title ?? null;
 });
 
 jest.mock('@components/MenuItemWithTopDescription', () => {

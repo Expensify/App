@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -179,7 +179,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
                         {isDirectFeedType && (
-                            <MenuItem.Standard
+                            <MenuItemStandard
                                 icon={icons.Sync}
                                 title={translate('workspace.companyCards.assignNewCards.title')}
                                 description={translate('workspace.companyCards.assignNewCards.description')}
@@ -196,7 +196,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             />
                         )}
                         {isCsvFeed && (
-                            <MenuItem.Standard
+                            <MenuItemStandard
                                 icon={icons.Table}
                                 title={translate('spreadsheet.importSpreadsheet')}
                                 onPress={() => {
@@ -212,7 +212,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                 }}
                             />
                         )}
-                        <MenuItem.Standard
+                        <MenuItemStandard
                             icon={icons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
                             onPress={() => {

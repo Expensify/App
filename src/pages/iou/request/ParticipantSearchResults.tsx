@@ -1,5 +1,5 @@
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
-import MenuItem from '@components/MenuItem';
+import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -493,7 +493,7 @@ function ParticipantSearchResults({
 
     const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
     const importContactsButtonComponent = shouldShowImportContactsButton ? (
-        <MenuItem.Standard
+        <MenuItemStandard
             title={translate('contact.importContacts')}
             icon={icons.UserPlus}
             onPress={goToSettings}
