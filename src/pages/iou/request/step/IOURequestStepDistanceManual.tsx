@@ -221,6 +221,7 @@ function IOURequestStepDistanceManual({
                     {distance: distanceAsFloat},
                     policy,
                     personalPolicy?.outputCurrency,
+                    undefined,
                     getCurrencyDecimals,
                     getCurrencySymbol,
                 );

@@ -371,6 +371,7 @@ function updateMultipleMoneyRequests({
             transactionChanges,
             isFromExpenseReport,
             policy: transactionPolicy,
+            policies: allPolicies,
             personalPolicyOutputCurrency,
             getCurrencyDecimals: currencyDecimals,
             getCurrencySymbol: currencySymbol,

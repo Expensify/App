@@ -47,7 +47,9 @@ import Visibility from '@libs/Visibility';
 
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 
+import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
+import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
@@ -138,7 +140,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
-    const {draftReportAction} = useConciergeDraft();
+    const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
@@ -506,6 +508,32 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         resetKey: report?.reportID ?? reportIDFromRoute ?? '',
     });
 
+    // The indicator renders in the list footer, below the row scrollToBottom targets, so only
+    // scrollToEnd reveals it. This list is not inverted, so nothing sticks to the bottom for us.
+    const {candidateAgentIDs} = useAgentZeroStatus();
+    const isThinkingIndicatorVisible = candidateAgentIDs.length > 0;
+    // Scroll once per appearance: the label changes many times per run, and re-firing would yank
+    // the viewport away from a user who has since scrolled up.
+    const hasScrolledForThinkingIndicatorRef = useRef(false);
+    useEffect(() => {
+        if (!isThinkingIndicatorVisible) {
+            hasScrolledForThinkingIndicatorRef.current = false;
+            return;
+        }
+        if (hasScrolledForThinkingIndicatorRef.current || scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+            return;
+        }
+        hasScrolledForThinkingIndicatorRef.current = true;
+
+        // Wait for the footer to lay out, otherwise the content hasn't grown yet and there is
+        // nothing to scroll to.
+        const timeoutID = setTimeout(() => {
+            reportScrollManager.scrollToEnd();
+        }, DELAY_FOR_SCROLLING_TO_END);
+
+        return () => clearTimeout(timeoutID);
+    }, [isThinkingIndicatorVisible, reportScrollManager]);
+
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
      */
@@ -606,7 +634,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             const displayAsGroup =
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, indexWithinReportActions, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                 hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
-            const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
+            const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
             return (
                 <ReportActionIndexContext.Provider value={indexWithinReportActions}>
@@ -641,8 +669,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             linkedReportActionID,
             shouldShowHarvestCreatedAction,
             draftReportActionID,
+            isDraftPendingCompletion,
         ],
     );
+
+    const reportActionsExtraData = useMemo(() => [draftReportActionID, isDraftPendingCompletion], [draftReportActionID, isDraftPendingCompletion]);
 
     const scrollToLatestMessages = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
@@ -764,6 +795,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         isLoadingInitialReportActions={showReportActionsLoadingState}
                         visibleReportActions={visibleReportActions}
                         renderReportAction={renderReportAction}
+                        reportActionsExtraData={reportActionsExtraData}
                         linkedReportActionID={linkedReportActionID}
                         listRef={listRef}
                         onLastItemIndexChange={updateLastItemIndex}
@@ -778,6 +810,9 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
                         isLoadingInitialActions={!!showReportActionsLoadingState}
                         skeletonReasonAttributes={skeletonReasonAttributes}
+                        /* This list is not inverted, so the footer is the bottom of the message feed —
+                           the same position the indicator occupies in the inverted ReportActionsList. */
+                        listFooterComponent={<ConciergeThinkingMessage reportID={reportIDFromRoute} />}
                     />
                 )}
             </View>

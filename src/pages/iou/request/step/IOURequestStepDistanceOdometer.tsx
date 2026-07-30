@@ -392,6 +392,7 @@ function IOURequestStepDistanceOdometer({
                     },
                     policy,
                     personalPolicy?.outputCurrency,
+                    undefined,
                     getCurrencyDecimals,
                     getCurrencySymbol,
                 );

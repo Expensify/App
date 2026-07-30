@@ -15,6 +15,7 @@ import {
     getChildTransactions,
     getOriginalTransactionWithSplitInfo,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    isSplitChildTransaction,
     shouldRedirectDeleteToSplitExpenseEdit,
 } from '@libs/TransactionUtils';
 
@@ -60,6 +61,8 @@ type DeleteTransactionsResult =
           action: 'deleted';
           deletedTransactionThreadReportIDs: string[];
       };
+
+type TransactionWithAction = {transactionID: string; action?: ReportAction; transaction?: Transaction};
 
 function redistributeRemainingPerDiemSplitExpenses(
     splitExpenses: SplitExpense[],
@@ -233,7 +236,11 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         return acc;
                     }
 
-                    if (isExpenseSplit && originalTransactionID) {
+                    const transactionCurrentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+                    const isMovedExpenseSplitChild =
+                        !isExpenseSplit && !!originalTransactionID && isSplitChildTransaction(transaction) && !originalTransaction?.comment?.splits && isIOUReport(transactionCurrentReport);
+
+                    if ((isExpenseSplit || isMovedExpenseSplitChild) && originalTransactionID) {
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID] ??= [];
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID].push(item);
                     } else {
@@ -243,8 +250,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     return acc;
                 },
                 {splitTransactionsByOriginalTransactionID: {}, nonSplitTransactions: []} as {
-                    splitTransactionsByOriginalTransactionID: Record<string, Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>>;
-                    nonSplitTransactions: Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>;
+                    splitTransactionsByOriginalTransactionID: Record<string, TransactionWithAction[]>;
+                    nonSplitTransactions: TransactionWithAction[];
                 },
             );
 
@@ -258,7 +265,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     continue;
                 }
                 const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
+                const originalTransactionIouActions = getIOUActionForTransactions([transactionID], allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
                 const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? originalTransactionIouActions.at(0)?.reportID : undefined;
                 const candidateIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.

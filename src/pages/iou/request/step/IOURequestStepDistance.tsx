@@ -492,6 +492,7 @@ function IOURequestStepDistance({
                     },
                     policy,
                     personalPolicy?.outputCurrency,
+                    undefined,
                     getCurrencyDecimals,
                     getCurrencySymbol,
                 );
@@ -622,6 +623,7 @@ function IOURequestStepDistance({
                 {distance: distanceAsFloat},
                 policy,
                 personalPolicy?.outputCurrency,
+                undefined,
                 getCurrencyDecimals,
                 getCurrencySymbol,
             );

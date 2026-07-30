@@ -17,9 +17,11 @@ import type {ValueOf} from 'type-fest';
 type ExportIntegration = {
     title?: string;
     description?: string;
-    exportPageLink: string;
+    exportPageLink?: string;
     data: SelectorType[];
     exportType?: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>;
+    shouldHideMenuItemDescription?: boolean;
+    shouldShowMenuItemIcon?: boolean;
     shouldShowMenuItem?: boolean;
 };
 
@@ -158,7 +160,6 @@ function getExportMenuItem(
                 exportType,
                 shouldShowMenuItem: !!exportConfiguration?.nonReimbursableAccount,
                 title: isDefaultTitle ? defaultAccount : selectedAccount?.name,
-                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, basePath),
                 data: (resultData ?? []).map((card) => {
                     return {
                         value: card.id,
@@ -393,7 +394,7 @@ function getExportMenuItem(
                     : undefined) ?? cardProgramAccount?.id;
             const cardAccount = rilletData?.accounts?.find((account) => account.id === cardAccountID);
             const cardAccountDisplayName = cardAccount ? `${cardAccount.code} ${cardAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}` : '';
-            const title = cardAccountDisplayName;
+            const title = `${translate('common.exportsTo')} ${cardAccountDisplayName}`;
             const description = currentConnectionName
                 ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.rillet.cardAccount.label'))
                 : undefined;
@@ -417,8 +418,9 @@ function getExportMenuItem(
                 title,
                 description,
                 exportType,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
                 shouldShowMenuItem,
-                exportPageLink: ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID),
                 data: filteredData,
             };
         }
