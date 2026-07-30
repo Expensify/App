@@ -30,7 +30,7 @@ function setupSentry(): void {
         release: `${pkg.name}@${pkg.version}`,
         // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
         ignoreErrors: [CONST.ERROR.UPDATE_REQUIRED],
-        // Drop errors thrown by injected third-party scripts (browser extensions, autofill, userscripts)
+        // Drop errors thrown by injected third-party scripts (browser extensions, autofill, user scripts)
         // that Sentry's global handlers sweep up and mis-attribute to App routes. See https://github.com/Expensify/App/issues/97100
         beforeSend: processBeforeSendErrors,
         beforeSendTransaction: processBeforeSendTransactions,

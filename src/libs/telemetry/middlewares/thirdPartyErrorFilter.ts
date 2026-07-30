@@ -1,6 +1,6 @@
 import type {TelemetryBeforeSendError} from './index';
 
-// Browser extensions, autofill/password managers, and injected userscripts run inside the page and can
+// Browser extensions, autofill/password managers, and injected user scripts run inside the page and can
 // throw errors that Sentry's global `onunhandledrejection`/`onerror` handlers sweep up and mis-attribute
 // to whatever route the tab was on. Their stack frames carry a browser-extension URL scheme rather than an
 // Expensify bundle URL, so they surface as foreign crashes (e.g. `modifyFeaturesStep`) with symbols that
