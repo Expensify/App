@@ -14,6 +14,9 @@ import {fileURLToPath} from 'url';
 
 import type Environment from './types.ts';
 
+// Relative on purpose: module aliases are not resolved when this config is evaluated.
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKey.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -554,8 +557,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                       filesToDeleteAfterUpload: './dist/**/*.map',
                                   },
                                   // Stamps every chunk so the SDK can tell our frames from injected ones at runtime.
-                                  // Must match `filterKeys` in `src/libs/telemetry/integrations/index.web.ts`.
-                                  applicationKey: 'expensify-app',
+                                  applicationKey: SENTRY_APPLICATION_KEY,
                                   debug: false,
                                   telemetry: false,
                               }),

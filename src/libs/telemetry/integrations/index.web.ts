@@ -1,4 +1,5 @@
 import {isDevelopment} from '@libs/Environment/Environment';
+import SENTRY_APPLICATION_KEY from '@libs/telemetry/sentryApplicationKey';
 
 import * as SentryReact from '@sentry/react';
 
@@ -26,14 +27,14 @@ const reportingObserverIntegration = SentryReact.reportingObserverIntegration({
  * thrown by injected code (consent tools, tag managers, browser extensions) can be told apart from our
  * own errors in issue search (GH #93837).
  *
- * Our bundle is recognized by the application key `@sentry/webpack-plugin` embeds in every chunk, so the
- * key below has to match `applicationKey` in `config/rsbuild/rsbuild.common.ts`. That plugin only runs
- * for non-development builds, hence the guard: without a key in the bundle every frame looks foreign.
+ * Our bundle is recognized by the application key `@sentry/webpack-plugin` embeds in every chunk. That
+ * plugin only runs for non-development builds, hence the guard: without a key in the bundle every frame
+ * looks foreign.
  */
 const thirdPartyErrorFilterIntegration = isDevelopment()
     ? undefined
     : SentryReact.thirdPartyErrorFilterIntegration({
-          filterKeys: ['expensify-app'],
+          filterKeys: [SENTRY_APPLICATION_KEY],
           behaviour: 'apply-tag-if-exclusively-contains-third-party-frames',
       });
 
