@@ -1319,22 +1319,36 @@ function getReportOption(
     return option;
 }
 
+type GetReportDisplayOptionParams = {
+    report: OnyxEntry<Report>;
+    unknownUserDetails: OnyxEntry<Participant>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    privateIsArchived: boolean | undefined;
+    policy: OnyxEntry<Policy>;
+    conciergeReportID: string | undefined;
+    translate: LocalizedTranslate;
+    currentUserAccountID: number;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+};
+
 /**
  * Get the display option for a given report.
  */
-function getReportDisplayOption(
-    report: OnyxEntry<Report>,
-    unknownUserDetails: OnyxEntry<Participant>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: boolean | undefined,
-    policy: OnyxEntry<Policy>,
-    conciergeReportID: string | undefined,
-    translate: LocalizedTranslate,
-    currentUserAccountID: number,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxEntry<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-): OptionData {
+function getReportDisplayOption({
+    report,
+    unknownUserDetails,
+    personalDetails,
+    privateIsArchived,
+    policy,
+    conciergeReportID,
+    translate,
+    currentUserAccountID,
+    reportAttributesDerived,
+    policyTags,
+    visibleReportActionsData = {},
+}: GetReportDisplayOptionParams): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
     const option = createOption({
