@@ -104,7 +104,7 @@ describe('actions/PolicyRules', () => {
     });
 
     describe('updatePolicyAgentRule', () => {
-        it('optimistically updates the prompt and clears the pending action on success', async () => {
+        it('optimistically updates the prompt, clears the stale title, and clears the pending action on success', async () => {
             const fakePolicy = createRandomPolicy(0);
             const agentRuleID = 'agentRule1';
             const previousPrompt = 'Old prompt';
@@ -113,6 +113,7 @@ describe('actions/PolicyRules', () => {
             const seededRule: AgentRule = {
                 ruleID: agentRuleID,
                 prompt: previousPrompt,
+                title: 'Old title',
                 created: '2026-06-08T00:00:00.000Z',
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {
@@ -121,11 +122,12 @@ describe('actions/PolicyRules', () => {
             });
 
             mockFetch?.pause?.();
-            updatePolicyAgentRule(fakePolicy.id, agentRuleID, newPrompt, previousPrompt);
+            updatePolicyAgentRule(fakePolicy.id, agentRuleID, newPrompt, previousPrompt, seededRule.title);
             await waitForBatchedUpdates();
 
             let policy = await getPolicy(fakePolicy.id);
             expect(policy?.rules?.agentRules?.[agentRuleID]?.prompt).toBe(newPrompt);
+            expect(policy?.rules?.agentRules?.[agentRuleID]?.title).toBeFalsy();
             expect(policy?.rules?.agentRules?.[agentRuleID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
             await mockFetch?.resume?.();
@@ -133,19 +135,23 @@ describe('actions/PolicyRules', () => {
 
             policy = await getPolicy(fakePolicy.id);
             expect(policy?.rules?.agentRules?.[agentRuleID]?.prompt).toBe(newPrompt);
+            // The title stays cleared after success; the regenerated title arrives via a server Onyx update, not successData.
+            expect(policy?.rules?.agentRules?.[agentRuleID]?.title).toBeFalsy();
             expect(policy?.rules?.agentRules?.[agentRuleID]?.pendingAction).toBeFalsy();
             expect(policy?.rules?.agentRules?.[agentRuleID]?.errors).toBeFalsy();
         });
 
-        it('reverts the prompt to the previous value and sets an error on failure', async () => {
+        it('reverts the prompt and title to the previous values and sets an error on failure', async () => {
             const fakePolicy = createRandomPolicy(0);
             const agentRuleID = 'agentRule1';
             const previousPrompt = 'Original';
+            const previousTitle = 'Original title';
             const newPrompt = 'Attempted';
 
             const seededRule: AgentRule = {
                 ruleID: agentRuleID,
                 prompt: previousPrompt,
+                title: previousTitle,
                 created: '2026-06-08T00:00:00.000Z',
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {
@@ -154,12 +160,13 @@ describe('actions/PolicyRules', () => {
             });
 
             mockFetch?.fail?.();
-            updatePolicyAgentRule(fakePolicy.id, agentRuleID, newPrompt, previousPrompt);
+            updatePolicyAgentRule(fakePolicy.id, agentRuleID, newPrompt, previousPrompt, previousTitle);
             await waitForBatchedUpdates();
 
             const policy = await getPolicy(fakePolicy.id);
             const rule = policy?.rules?.agentRules?.[agentRuleID];
             expect(rule?.prompt).toBe(previousPrompt);
+            expect(rule?.title).toBe(previousTitle);
             expect(rule?.pendingAction).toBeFalsy();
             expect(Object.keys(rule?.errors ?? {}).length).toBeGreaterThan(0);
         });
