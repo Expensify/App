@@ -1,6 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import FeatureTraining from '@components/FeatureTraining';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import FullScreenContextProvider from '@components/VideoPlayerContexts/FullScreenContextProvider';
@@ -59,10 +60,14 @@ describe('FeatureTrainingModal', () => {
             render(
                 withNavigation(
                     <ComposeProviders components={[OnyxListItemProvider, PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
-                        <FeatureTrainingModal
-                            confirmText={CONFIRM_TEXT}
-                            videoURL={CONST.FEATURE_TRAINING['track-expenses'].VIDEO_URL}
-                        />
+                        <FeatureTrainingModal>
+                            <FeatureTraining.Illustration videoURL={CONST.FEATURE_TRAINING['track-expenses'].VIDEO_URL} />
+                            <FeatureTraining.Body>
+                                <FeatureTraining.ButtonRow>
+                                    <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
+                                </FeatureTraining.ButtonRow>
+                            </FeatureTraining.Body>
+                        </FeatureTrainingModal>
                     </ComposeProviders>,
                 ),
             );
@@ -73,10 +78,14 @@ describe('FeatureTrainingModal', () => {
             function Component() {
                 const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
                 return (
-                    <FeatureTrainingModal
-                        confirmText={CONFIRM_TEXT}
-                        image={illustrations.HoldExpense}
-                    />
+                    <FeatureTrainingModal>
+                        <FeatureTraining.Illustration image={illustrations.HoldExpense} />
+                        <FeatureTraining.Body>
+                            <FeatureTraining.ButtonRow>
+                                <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
+                            </FeatureTraining.ButtonRow>
+                        </FeatureTraining.Body>
+                    </FeatureTrainingModal>
                 );
             }
 
@@ -84,7 +93,18 @@ describe('FeatureTrainingModal', () => {
             expect(screen.getByTestId(CONST.IMAGE_SVG_TEST_ID)).toBeOnTheScreen();
         });
         it('renders animation', () => {
-            render(withNavigation(<FeatureTrainingModal confirmText={CONFIRM_TEXT} />));
+            render(
+                withNavigation(
+                    <FeatureTrainingModal>
+                        <FeatureTraining.Illustration />
+                        <FeatureTraining.Body>
+                            <FeatureTraining.ButtonRow>
+                                <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
+                            </FeatureTraining.ButtonRow>
+                        </FeatureTraining.Body>
+                    </FeatureTrainingModal>,
+                ),
+            );
 
             expect(screen.getByTestId(CONST.LOTTIE_VIEW_TEST_ID)).toBeOnTheScreen();
         });
