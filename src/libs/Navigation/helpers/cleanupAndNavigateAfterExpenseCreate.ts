@@ -1,4 +1,5 @@
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isTracking} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -19,7 +20,10 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     isInvoice?: boolean;
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
     action: DeepValueOf<typeof CONST.IOU.ACTION>;
-    /** When false, runs cleanup only — use when dismiss/reveal already handled navigation. */
+    /** When false, runs cleanup only — use when dismiss/reveal already handled navigation.
+     * IMPORTANT: Caller must own telemetry span (see useExpenseSubmission:882-883).
+     * Skips shouldWaitForUpcomingTransition, so transition never arrives (no 1s timeout).
+     */
     shouldNavigate?: boolean;
 };
 
@@ -35,10 +39,14 @@ function cleanupAndNavigateAfterExpenseCreate({
     action,
     shouldNavigate = true,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
+    if (__DEV__ && isTracking() && !shouldNavigate) {
+        console.warn('[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. ' + 'Caller must own span lifecycle — miss this and span hangs 60s until dropped.');
+    }
+
     cleanupAfterExpenseCreate({
         draftTransactionIDs,
         linkedTrackedExpenseReportAction,
-        shouldWaitForUpcomingTransition: true,
+        shouldWaitForUpcomingTransition: shouldNavigate,
     });
 
     const finalActiveReportID = backToReport ?? report?.reportID ?? optimisticChatReportID;

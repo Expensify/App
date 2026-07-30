@@ -2,6 +2,7 @@ import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpe
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isTracking} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -10,6 +11,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/navigateAfterExpenseCreate', () => jest.fn());
+jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
+    isTracking: jest.fn(() => false),
+}));
 
 jest.mock('@libs/ReportUtils', () => ({
     getReportOrDraftReport: jest.fn(),
@@ -45,6 +49,48 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             shouldWaitForUpcomingTransition: true,
         });
         expect(navigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
+    });
+
+    it('should pass shouldWaitForUpcomingTransition=false when shouldNavigate is false', () => {
+        cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
+            report: chatReport,
+            draftTransactionIDs: ['txn-1'],
+            transactionID: 'txn-1',
+            isFromGlobalCreate: false,
+            shouldNavigate: false,
+        });
+
+        expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                shouldWaitForUpcomingTransition: false,
+            }),
+        );
+        expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldNavigate: false}));
+    });
+
+    it('should warn in __DEV__ when shouldNavigate is false but a submit span is still active', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        jest.mocked(isTracking).mockReturnValue(true);
+
+        cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
+            report: chatReport,
+            draftTransactionIDs: ['txn-1'],
+            transactionID: 'txn-1',
+            isFromGlobalCreate: false,
+            shouldNavigate: false,
+        });
+
+        if (__DEV__) {
+            expect(warnSpy).toHaveBeenCalledWith(
+                '[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. ' + 'Caller must own span lifecycle — miss this and span hangs 60s until dropped.',
+            );
+        } else {
+            expect(warnSpy).not.toHaveBeenCalled();
+        }
+
+        warnSpy.mockRestore();
     });
 
     it('should resolve activeReportID to backToReport when provided', () => {
