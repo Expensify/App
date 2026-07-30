@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -148,7 +148,10 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        setAssignCardStepAndData({isEditing: true});
+        // Header back is plain wizard back-navigation, so it must NOT set isEditing. Setting it here would make the
+        // assignee step think the user came to edit the cardholder and route its own back to Confirmation, trapping the
+        // user in a Confirmation <-> Assignee loop. Editing the cardholder goes through editStep(ASSIGNEE), which is the
+        // one place that sets isEditing: true.
         Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(feed, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             compareParams: false,
         });
@@ -194,6 +197,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         shouldShowRightIcon
+                        pressableTestID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
                     />
                     <MenuItemWithTopDescription
@@ -221,14 +225,15 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         >
                             <Button
                                 isDisabled={isOffline}
-                                success
-                                large
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 isLoading={assignCard?.isAssigning}
                                 style={styles.w100}
                                 onPress={submit}
                                 testID={CONST.ASSIGN_CARD_BUTTON_TEST_ID}
-                                text={translate('workspace.companyCards.assignCard')}
-                            />
+                            >
+                                <Button.Text>{translate('workspace.companyCards.assignCard')}</Button.Text>
+                            </Button>
                         </OfflineWithFeedback>
                     </View>
                 </ScrollView>

@@ -1,10 +1,11 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -58,6 +59,7 @@ type SendInvoiceInformation = {
     onyxData: OnyxData<
         | typeof ONYXKEYS.COLLECTION.REPORT
         | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+        | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
         | typeof ONYXKEYS.COLLECTION.TRANSACTION
         | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
         | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
@@ -85,6 +87,7 @@ type SendInvoiceOptions = {
     policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
     isFromGlobalCreate?: boolean;
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateAccountID: number | undefined;
 };
 
@@ -123,6 +126,7 @@ function buildOnyxDataForInvoice(
 ): OnyxData<
     | typeof ONYXKEYS.COLLECTION.REPORT
     | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+    | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
@@ -140,6 +144,7 @@ function buildOnyxDataForInvoice(
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
@@ -167,6 +172,14 @@ function buildOnyxDataForInvoice(
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
             value: {
                 isOptimisticReport: true,
+            },
+        },
+        {
+            // The optimistic data below is the complete local truth for this offline-created invoice report, so its initial actions are already "loaded".
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${iou.report?.reportID}`,
+            value: {
+                hasOnceLoadedReportActions: true,
             },
         },
         {
@@ -248,13 +261,25 @@ function buildOnyxDataForInvoice(
         });
 
         if (chat.isNewReport) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
-                value: {
-                    isOptimisticReport: true,
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+                    value: {
+                        isOptimisticReport: true,
+                    },
                 },
-            });
+                {
+                    // The invoice room is an optimistic CHAT, so ReportFetchHandler never fires openReport for it and
+                    // nothing else would ever clear its initial-load state. Stamp it as loaded so it doesn't hang on an
+                    // infinite skeleton once online.
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chat.report?.reportID}`,
+                    value: {
+                        hasOnceLoadedReportActions: true,
+                    },
+                },
+            );
         }
     }
 
@@ -589,6 +614,7 @@ function getSendInvoiceInformation({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     senderPolicyTags,
+    formatPhoneNumber,
     delegateAccountID,
 }: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
@@ -738,6 +764,7 @@ function sendInvoice({
     policyRecentlyUsedTags,
     isFromGlobalCreate = false,
     senderPolicyTags,
+    formatPhoneNumber,
     delegateAccountID,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
@@ -773,6 +800,7 @@ function sendInvoice({
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
         senderPolicyTags: senderPolicyTags ?? {},
+        formatPhoneNumber,
         delegateAccountID,
     });
 
