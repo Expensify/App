@@ -38,6 +38,7 @@ import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
     joinReportViaSecureLink,
+    markLocalReportActionsAsLoaded,
     openReport,
     readNewestAction,
     setViewingPublicRoomReportID,
@@ -155,6 +156,14 @@ function ReportFetchHandler() {
 
     const fetchReport = useEffectEvent(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
+            // openReport is intentionally never called for an optimistic chat report, so nothing else can settle its
+            // initial-load state. The stamp written at creation lives in a RAM-only key and is lost on an app restart,
+            // which would leave the report pinned on the loading skeleton once online (the effect below re-arms
+            // isLoadingInitialReportActions while hasOnceLoadedReportActions is false). The persisted local actions are
+            // the complete truth for an optimistic report, so reconstruct the readiness stamp here.
+            if (!reportLoadingState.hasOnceLoadedReportActions) {
+                markLocalReportActionsAsLoaded(reportIDFromRoute);
+            }
             return;
         }
 
