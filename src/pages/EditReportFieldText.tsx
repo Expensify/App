@@ -10,6 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {hasCircularReferences} from '@libs/Formula';
 import type {FieldList} from '@libs/Formula';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -84,6 +86,8 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
                     label={reportFieldName}
                     accessibilityLabel={reportFieldName}
                     role={CONST.ROLE.PRESENTATION}
+                    autoGrowHeight
+                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     ref={inputCallbackRef}
                     disabled={disabled}
                 />
