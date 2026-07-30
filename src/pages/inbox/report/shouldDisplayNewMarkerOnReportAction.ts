@@ -97,7 +97,11 @@ const shouldDisplayNewMarkerOnReportAction = ({
     const isPreviouslyOptimistic =
         (isPendingAdd(prevSortedVisibleReportActionsObjects[message.reportActionID]) && !isPendingAdd(message)) ||
         (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
-    const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic;
+    // While a manual mark-as-unread is active, the marked action is the sole anchor (handled by the
+    // `manuallyMarkedUnreadReportActionID` check above, which returns before this branch). Ignore unread
+    // for every *other* self-authored message so a newer self-message sent after the mark can't steal the
+    // marker off the marked one. When no manual mark exists this term is false, so #91940 behavior is unchanged.
+    const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic || !!manuallyMarkedUnreadReportActionID;
 
     if (isFromCurrentUser) {
         // For a self-authored action, only move/keep the "New" marker when one already exists in this session
