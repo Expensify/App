@@ -3269,4 +3269,5 @@ export type {
     DualEntryExportDate,
     DualEntryVendor,
     DualEntryAccount,
+    DualEntryExport,
 };
