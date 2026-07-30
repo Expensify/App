@@ -214,6 +214,47 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters: newFlatFilters})) ?? queryJSON;
 }
 
+function getAllMatchingExportQueryAndExclusions(
+    queryJSON: SearchQueryJSON,
+    excludedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+): {queryJSON: SearchQueryJSON; excludedTransactionIDList: string[]} | undefined {
+    const excludedTransactionIDList: string[] = [];
+    const excludedGroupEntries: Array<{key: SearchFilterKey; value: string | number}> = [];
+
+    for (const key of Object.keys(excludedTransactions)) {
+        if (!key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+            excludedTransactionIDList.push(key);
+            continue;
+        }
+
+        const group = searchData?.[key as keyof SearchResultDataType];
+        const groupEntry = queryJSON.groupBy && group ? getSelectedGroupFilterEntry(queryJSON.groupBy, group) : undefined;
+        if (!groupEntry) {
+            return undefined;
+        }
+        excludedGroupEntries.push(groupEntry);
+    }
+
+    if (excludedGroupEntries.length === 0) {
+        return {queryJSON, excludedTransactionIDList};
+    }
+
+    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
+    for (const entry of excludedGroupEntries) {
+        const existingFilter = flatFilters.find((filter) => filter.key === entry.key);
+        const exclusionFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: entry.value};
+        if (existingFilter) {
+            existingFilter.filters.push(exclusionFilter);
+        } else {
+            flatFilters.push({key: entry.key, filters: [exclusionFilter]});
+        }
+    }
+
+    const exportQueryJSON = buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
+    return exportQueryJSON ? {queryJSON: exportQueryJSON, excludedTransactionIDList} : undefined;
+}
+
 const MERCHANT_GROUP_EXACT_MATCH_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
 
 function getGroupExportExactMatchFilterKeys(groupBy: SearchQueryJSON['groupBy']): ReadonlySet<SearchFilterKey> | undefined {
@@ -751,13 +792,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if ((!isExpenseType && selectedTransactionsKeys.length === 0) || !hash) {
                     return;
                 }
+                const allMatchingExportData = isExpenseType && queryJSON ? getAllMatchingExportQueryAndExclusions(queryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
+                if (isExpenseType && !allMatchingExportData) {
+                    setIsDownloadErrorModalVisible(true);
+                    return;
+                }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
-                const exportParameters = getCSVExportParameters(isBasicExport, queryJSON);
+                const exportParameters = getCSVExportParameters(isBasicExport, allMatchingExportData?.queryJSON ?? queryJSON);
                 const exportID = queueExportSearchItemsToCSV({
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
                     transactionIDList: selectedTransactionsKeys,
-                    ...(isExpenseType ? {excludedTransactionIDList: Object.keys(excludedTransactions)} : {}),
+                    ...(isExpenseType ? {excludedTransactionIDList: allMatchingExportData?.excludedTransactionIDList} : {}),
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,

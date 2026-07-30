@@ -157,6 +157,7 @@ let mockSelectedTransactions: SelectedTransactions = {};
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockAreAllMatchingItemsSelected = false;
+let mockCurrentSearchResults: {search: {type: string}; data: Record<string, unknown>} | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
@@ -166,7 +167,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
     useSearchResultsContext: () => ({
-        currentSearchResults: undefined,
+        currentSearchResults: mockCurrentSearchResults,
     }),
     useSearchQueryContext: () => ({
         currentSearchKey: undefined,
@@ -208,6 +209,14 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
 };
 
+const groupedExpenseQueryJSON: SearchQueryJSON = {
+    ...baseQueryJSON,
+    inputQuery: 'type:expense sortBy:groupMerchant sortOrder:asc groupBy:merchant',
+    groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+};
+
 function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
     return {
         isSelected: true,
@@ -241,6 +250,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
         mockSelectedTransactions = {};
         mockExcludedTransactions = {};
         mockSelectedReports = [];
+        mockCurrentSearchResults = undefined;
         mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
@@ -273,6 +283,58 @@ describe('useSearchBulkActions - CSV export flow', () => {
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalled();
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalledWith(expect.objectContaining({excludedTransactionIDList: ['tx2']}));
         expect(result.current.exportDownloadStatusModal).not.toBeNull();
+    });
+
+    it('exports an excluded unloaded group as a query filter instead of a transaction ID', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {group_123: makeSelectedTransaction(), tx2: makeSelectedTransaction()};
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            data: {
+                group_123: {merchant: 'Excluded merchant', count: 3, total: 300, currency: 'USD'},
+            },
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+
+        await act(async () => {
+            onSelected?.();
+        });
+
+        const exportPayload = mockQueueExportSearchItemsToCSV.mock.calls.at(-1)?.at(0);
+        expect(exportPayload?.excludedTransactionIDList).toEqual(['tx2']);
+        expect(exportPayload?.jsonQuery).toContain('Excluded merchant');
+        expect(exportPayload?.jsonQuery).toContain(`"operator":"${CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO}"`);
+        expect(exportPayload?.jsonQuery).not.toContain('group_123');
+    });
+
+    it('does not export when an excluded group cannot be resolved', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {group_123: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+
+        await act(async () => {
+            onSelected?.();
+        });
+
+        expect(mockQueueExportSearchItemsToCSV).not.toHaveBeenCalled();
     });
 
     it('keeps export available when every loaded transaction is excluded from an all-matching selection', async () => {
