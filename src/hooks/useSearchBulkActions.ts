@@ -63,7 +63,7 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, isGroupEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -226,12 +226,12 @@ function getAllMatchingExportQueryAndExclusions(
     const excludedGroupEntries: Array<{key: SearchFilterKey; value: string | number}> = [];
 
     for (const key of Object.keys(excludedTransactions)) {
-        if (!key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+        if (!isGroupEntry(key)) {
             excludedTransactionIDList.push(key);
             continue;
         }
 
-        const group = searchData?.[key as keyof SearchResultDataType];
+        const group = searchData?.[key];
         const groupEntry = queryJSON.groupBy && group ? getSelectedGroupFilterEntry(queryJSON.groupBy, group) : undefined;
         if (!groupEntry) {
             return undefined;

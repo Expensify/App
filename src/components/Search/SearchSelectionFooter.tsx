@@ -489,9 +489,13 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             const excludedConvertedTotal = hasExcludedExpenses
                 ? excludedTransactionsKeys.reduce((total, key) => {
                       const transaction = excludedTransactions[key];
-                      const convertedAmount = isGroupEntry(key)
-                          ? convertedGroups?.[key]?.[selectedCurrency]
-                          : convertedTransactions?.[transaction.transaction?.transactionID ?? '']?.[selectedCurrency];
+                      const transactionID = transaction.transaction?.transactionID;
+                      let convertedAmount;
+                      if (isGroupEntry(key)) {
+                          convertedAmount = convertedGroups?.[key]?.[selectedCurrency];
+                      } else if (transactionID) {
+                          convertedAmount = convertedTransactions?.[transactionID]?.[selectedCurrency];
+                      }
                       return total - (convertedAmount ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
                   }, 0)
                 : 0;

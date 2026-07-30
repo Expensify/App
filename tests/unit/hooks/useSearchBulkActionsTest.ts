@@ -286,13 +286,14 @@ describe('useSearchBulkActions - CSV export flow', () => {
     });
 
     it('exports an excluded unloaded group as a query filter instead of a transaction ID', async () => {
+        const excludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
-        mockExcludedTransactions = {group_123: makeSelectedTransaction(), tx2: makeSelectedTransaction()};
+        mockExcludedTransactions = {[excludedGroupKey]: makeSelectedTransaction(), tx2: makeSelectedTransaction()};
         mockCurrentSearchResults = {
             search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
             data: {
-                group_123: {merchant: 'Excluded merchant', count: 3, total: 300, currency: 'USD'},
+                [excludedGroupKey]: {merchant: 'Excluded merchant', count: 3, total: 300, currency: 'USD'},
             },
         };
 
@@ -317,9 +318,10 @@ describe('useSearchBulkActions - CSV export flow', () => {
     });
 
     it('does not export when an excluded group cannot be resolved', async () => {
+        const excludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
-        mockExcludedTransactions = {group_123: makeSelectedTransaction()};
+        mockExcludedTransactions = {[excludedGroupKey]: makeSelectedTransaction()};
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}));
 
