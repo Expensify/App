@@ -329,7 +329,7 @@ function SubmitDetailsPage({
             iouType,
         });
 
-        const runExpenseCreateAndCleanup = (shouldNavigate: boolean) => {
+        const performExpenseCreate = () => {
             if (isSelfDM(report)) {
                 trackExpense({
                     report: report ?? {reportID: reportOrAccountID},
@@ -422,24 +422,32 @@ function SubmitDetailsPage({
                     optimisticChatReportID: reportOrAccountID,
                 });
             }
-            cleanupAndNavigateAfterExpenseCreate({
-                report: isSelfDM(report) ? report : reportToSubmit,
-                action: CONST.IOU.ACTION.CREATE,
-                draftTransactionIDs,
-                transactionID: optimisticTransactionID,
-                isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                optimisticChatReportID: reportOrAccountID,
-                navigationReportID: postSubmitNavigationReportID,
-                linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
-                shouldNavigate,
-            });
+        };
+
+        const cleanupParams = {
+            report: isSelfDM(report) ? report : reportToSubmit,
+            action: CONST.IOU.ACTION.CREATE,
+            draftTransactionIDs,
+            transactionID: optimisticTransactionID,
+            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+            optimisticChatReportID: reportOrAccountID,
+            navigationReportID: postSubmitNavigationReportID,
+            linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+        };
+
+        const runExpenseCreateAndCleanup = (shouldNavigate: boolean) => {
+            performExpenseCreate();
+            cleanupAndNavigateAfterExpenseCreate({...cleanupParams, shouldNavigate});
         };
 
         if (preMountDestinationRoute) {
             cancelTracking();
-            runExpenseCreateAndCleanup(false);
+            performExpenseCreate();
             hasCalledReveal.current = true;
-            revealPreMountDestination(() => setIsConfirming(false));
+            revealPreMountDestination(() => {
+                cleanupAndNavigateAfterExpenseCreate({...cleanupParams, shouldNavigate: false});
+                setIsConfirming(false);
+            });
             return;
         }
 
