@@ -10304,6 +10304,8 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         receiptsFailedBody: 'Uw bonnetjes konden niet worden gedownload. Probeer het later opnieuw.',
         noReceiptsTitle: 'Geen bonnetjes om te downloaden',
         noReceiptsBody: 'Geen van de uitgaven in dit rapport heeft downloadbare bonnetjes.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} van ${total} bonnetjes zijn succesvol geëxporteerd. Als de download niet automatisch is gestart, gebruik dan de knop hieronder.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',

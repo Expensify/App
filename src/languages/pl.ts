@@ -10274,6 +10274,8 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         receiptsFailedBody: 'Nie udało się pobrać paragonów. Spróbuj ponownie później.',
         noReceiptsTitle: 'Brak paragonów do pobrania',
         noReceiptsBody: 'Żaden z wydatków w tym raporcie nie ma paragonów do pobrania.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} z ${total} paragonów zostało wyeksportowanych pomyślnie. Jeśli pobieranie nie rozpoczęło się automatycznie, użyj przycisku poniżej.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',

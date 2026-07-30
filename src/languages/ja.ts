@@ -10196,6 +10196,8 @@ ${reportName}`,
         receiptsFailedBody: '領収書をダウンロードできませんでした。後でもう一度お試しください。',
         noReceiptsTitle: 'ダウンロード可能な領収書がありません',
         noReceiptsBody: 'このレポートの経費にはダウンロード可能な領収書がありません。',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${total}件中${count}件の領収書がエクスポートされました。自動的にダウンロードされなかった場合は、下のボタンを使用してください。`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',

@@ -9963,6 +9963,7 @@ ${reportName}`,
         receiptsFailedBody: '无法下载您的收据。请稍后重试。',
         noReceiptsTitle: '没有可下载的收据',
         noReceiptsBody: '此报告中的所有费用均没有可下载的收据。',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) => `${total}张收据中有${count}张已成功导出。如果未自动下载，请使用下方按钮。`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',

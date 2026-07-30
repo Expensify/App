@@ -62,11 +62,12 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const failedReportCount = displayedExport?.failedReportCount ?? 0;
     const reportCount = displayedExport?.reportCount ?? 0;
     const receiptCount = displayedExport?.receiptCount;
+    const failedReceiptCount = displayedExport?.failedReceiptCount ?? 0;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
     const isConcierge = !!shouldSendFromConcierge;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
-    const isPartialFailure = isReady && failedReportCount > 0;
+    const isPartialFailure = isReady && (failedReportCount > 0 || (exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && failedReceiptCount > 0));
     const isEmptyReceipts = isReady && exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && receiptCount === 0;
 
     // Build the secure download URL the same way downloadReportPDF does, so the host always follows
@@ -166,10 +167,19 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         }
 
         if (isReady) {
-            return (
-                <>
-                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
-                    {isPartialFailure ? (
+            const renderPartialBody = () => {
+                if (exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && failedReceiptCount > 0) {
+                    return (
+                        <Text style={styles.mb5}>
+                            {translate('exportDownload.receiptsPartialBody', {
+                                count: (receiptCount ?? 0) - failedReceiptCount,
+                                total: receiptCount ?? 0,
+                            })}
+                        </Text>
+                    );
+                }
+                if (failedReportCount > 0) {
+                    return (
                         <View style={styles.mb5}>
                             <RenderHTML
                                 html={translate('exportDownload.readyPartialBody', {
@@ -178,9 +188,15 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                                 })}
                             />
                         </View>
-                    ) : (
-                        <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>
-                    )}
+                    );
+                }
+                return <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>;
+            };
+
+            return (
+                <>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
+                    {renderPartialBody()}
                     <Button
                         success
                         text={translate('exportDownload.downloadFile')}

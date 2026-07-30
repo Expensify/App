@@ -10392,6 +10392,8 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         receiptsFailedBody: "Vos reçus n'ont pas pu être téléchargés. Veuillez réessayer plus tard.",
         noReceiptsTitle: 'Aucun reçu à télécharger',
         noReceiptsBody: "Aucune des dépenses de ce rapport n'a de reçus téléchargeables.",
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} reçus sur ${total} ont été exportés avec succès. Si le téléchargement ne s'est pas lancé automatiquement, utilisez le bouton ci-dessous.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',

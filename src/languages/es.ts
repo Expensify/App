@@ -10517,6 +10517,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         receiptsFailedBody: 'No se pudieron descargar los recibos. Inténtalo de nuevo más tarde.',
         noReceiptsTitle: 'No hay recibos para descargar',
         noReceiptsBody: 'Ninguno de los gastos en este informe tiene recibos descargables.',
+        receiptsPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} de ${total} recibos se exportaron correctamente. Si no se descargó automáticamente, usa el botón de abajo.`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Cerrar',
