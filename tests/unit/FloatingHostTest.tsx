@@ -98,6 +98,7 @@ describe('FloatingHost — maxHeight/maxWidth gating', () => {
         const {root} = render(
             <FloatingHost
                 isOpen
+                containFocus={false}
                 anchor={null}
                 anchorRect={{
                     top: 0,
@@ -134,6 +135,7 @@ describe('FloatingHost — maxHeight/maxWidth gating', () => {
         const {root} = render(
             <FloatingHost
                 isOpen
+                containFocus={false}
                 anchor={null}
                 anchorRect={{
                     top: 0,
@@ -174,6 +176,7 @@ describe('FloatingHost — exit placement retention', () => {
         const {root, rerender} = render(
             <FloatingHost
                 isOpen
+                containFocus={false}
                 anchor={null}
                 anchorRect={{
                     top: 0,
@@ -205,6 +208,7 @@ describe('FloatingHost — exit placement retention', () => {
         rerender(
             <FloatingHost
                 isOpen={false}
+                containFocus={false}
                 anchor={null}
                 anchorRect={null}
                 alignment={{
@@ -237,6 +241,7 @@ describe('FloatingHost — exit placement retention', () => {
         const {root, rerender} = render(
             <FloatingHost
                 isOpen
+                containFocus={false}
                 anchor={null}
                 anchorRect={{
                     top: 0,
@@ -266,6 +271,7 @@ describe('FloatingHost — exit placement retention', () => {
         rerender(
             <FloatingHost
                 isOpen
+                containFocus={false}
                 anchor={null}
                 anchorRect={{
                     top: 0,

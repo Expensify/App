@@ -52,7 +52,7 @@ type FloatingHostProps = {
     stackId: string;
 
     /** Whether to trap focus within the overlay while open */
-    containFocus?: boolean;
+    containFocus: boolean;
 
     /** Overlay content */
     children: ReactNode;
@@ -77,7 +77,7 @@ function placementsEqual(a: Placement | null, b: Placement): boolean {
     );
 }
 
-function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDuration, onDismiss, onExitComplete, surfaceStyle, stackId, containFocus = false, children}: FloatingHostProps) {
+function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDuration, onDismiss, onExitComplete, surfaceStyle, stackId, containFocus, children}: FloatingHostProps) {
     const {style: livePositionStyle, available: liveAvailable, isPositioned: liveIsPositioned, onContentLayout} = useAnchoredPosition({anchorRect, alignment, offsetPx});
 
     const [placement, setPlacement] = useState<Placement | null>(null);

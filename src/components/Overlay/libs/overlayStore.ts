@@ -4,6 +4,8 @@ import type ModalType from '@src/types/utils/ModalType';
 import type {EscapeBehavior} from './dismissableLayerStore';
 import type {AnchorNode} from './measureAnchor';
 
+import createArrayStore from './createArrayStore';
+
 type PopoverKind = typeof CONST.MODAL.MODAL_TYPE.POPOVER;
 type ModalKind = Exclude<ModalType, PopoverKind>;
 
@@ -30,34 +32,7 @@ function isPopoverEntry(entry: OverlayEntry): entry is PopoverOverlayEntry {
     return entry.kind === CONST.MODAL.MODAL_TYPE.POPOVER;
 }
 
-const EMPTY_SNAPSHOT: readonly OverlayEntry[] = Object.freeze([]);
-let snapshot: readonly OverlayEntry[] = EMPTY_SNAPSHOT;
-const listeners = new Set<() => void>();
-
-function getSnapshot(): readonly OverlayEntry[] {
-    return snapshot;
-}
-
-function getServerSnapshot(): readonly OverlayEntry[] {
-    return EMPTY_SNAPSHOT;
-}
-
-function subscribe(listener: () => void): () => void {
-    listeners.add(listener);
-    return () => {
-        listeners.delete(listener);
-    };
-}
-
-function setSnapshot(next: readonly OverlayEntry[]): void {
-    if (Object.is(next, snapshot)) {
-        return;
-    }
-    snapshot = next;
-    for (const listener of listeners) {
-        listener();
-    }
-}
+const {getSnapshot, getServerSnapshot, subscribe, setSnapshot} = createArrayStore<OverlayEntry>();
 
 function entriesEqual(a: OverlayEntry, b: OverlayEntry): boolean {
     if (a.kind !== b.kind || a.id !== b.id || a.close !== b.close || a.escapeBehavior !== b.escapeBehavior) {
@@ -70,7 +45,7 @@ function entriesEqual(a: OverlayEntry, b: OverlayEntry): boolean {
 }
 
 function upsertOverlayEntry(entry: OverlayEntry): void {
-    const current = snapshot;
+    const current = getSnapshot();
     const index = current.findIndex((existing) => existing.id === entry.id);
     if (index === -1) {
         setSnapshot([...current, entry]);
@@ -86,7 +61,7 @@ function upsertOverlayEntry(entry: OverlayEntry): void {
 }
 
 function removeOverlayEntry(id: string): void {
-    const current = snapshot;
+    const current = getSnapshot();
     const next = current.filter((entry) => entry.id !== id);
     setSnapshot(next.length === current.length ? current : next);
 }

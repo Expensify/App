@@ -13,7 +13,17 @@ function useDismissOnAnchorMove(anchor: AnchorNode | null, onDismiss: () => void
             return undefined;
         }
 
-        const subscription = Dimensions.addEventListener('change', () => stableDismiss());
+        // Dismiss only on a portrait<->landscape flip; the keyboard shrinks height without flipping, so it's ignored.
+        const initial = Dimensions.get('window');
+        let wasPortrait = initial.height >= initial.width;
+        const subscription = Dimensions.addEventListener('change', ({window}) => {
+            const isPortrait = window.height >= window.width;
+            if (isPortrait === wasPortrait) {
+                return;
+            }
+            wasPortrait = isPortrait;
+            stableDismiss();
+        });
         return () => subscription.remove();
     }, [anchor, isActive, stableDismiss]);
 }

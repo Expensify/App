@@ -107,7 +107,14 @@ function useAriaHideSiblings(containerRef: RefObject<AnchorNode | null>, isActiv
             if (ownPortalRoot === null) {
                 return;
             }
-            for (const child of Array.from(document.body.children)) {
+            const bodyChildren = new Set<Element>(Array.from(document.body.children));
+            for (const sibling of acquired) {
+                if (!bodyChildren.has(sibling)) {
+                    release(sibling);
+                    acquired.delete(sibling);
+                }
+            }
+            for (const child of bodyChildren) {
                 if (child === ownPortalRoot || acquired.has(child)) {
                     continue;
                 }

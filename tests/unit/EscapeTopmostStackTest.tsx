@@ -135,6 +135,33 @@ describe('Escape topmost-stack gating', () => {
         }
     });
 
+    it('during IME composition, Esc is still consumed (no background leak) but does not preventDefault the browser composition-cancel, nor dismiss', () => {
+        const documentCaptureListener = jest.fn();
+        document.addEventListener('keydown', documentCaptureListener, {capture: true});
+
+        try {
+            const dismiss = jest.fn();
+            render(
+                <DismissableLayer.Modal onDismiss={dismiss}>
+                    <ModalContent>Layer</ModalContent>
+                </DismissableLayer.Modal>,
+            );
+
+            const event = new KeyboardEvent('keydown', {key: 'Escape', isComposing: true, bubbles: true, cancelable: true});
+            act(() => {
+                document.body.dispatchEvent(event);
+            });
+
+            expect(dismiss).toHaveBeenCalledTimes(0);
+            // Propagation still halted so background app shortcuts can't fire mid-composition...
+            expect(documentCaptureListener).not.toHaveBeenCalled();
+            // ...but the browser's Esc-cancels-composition default is preserved.
+            expect(event.defaultPrevented).toBe(false);
+        } finally {
+            document.removeEventListener('keydown', documentCaptureListener, {capture: true});
+        }
+    });
+
     it('consumer veto via event.preventDefault still consumes propagation so handlers behind the modal cannot fire', () => {
         const documentCaptureListener = jest.fn();
         document.addEventListener('keydown', documentCaptureListener, {capture: true});

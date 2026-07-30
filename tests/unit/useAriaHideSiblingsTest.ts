@@ -154,6 +154,23 @@ describe('useAriaHideSiblings (web)', () => {
             expect(attrs(late)).toEqual({ariaHidden: 'true', inert: ''});
         });
 
+        it('releases a hidden sibling removed from the body while the layer stays mounted (no unbounded retention)', async () => {
+            const portalRoot = createBodyChild('portal-root');
+            const container = document.createElement('div');
+            portalRoot.appendChild(container);
+
+            renderHook(() => useAriaHideSiblings(refTo(container), true));
+
+            const transient = createBodyChild('transient-sibling');
+            await tickMutations();
+            expect(attrs(transient)).toEqual({ariaHidden: 'true', inert: ''});
+
+            transient.remove();
+            await tickMutations();
+            // The removed node is released rather than retained forever — its hide attributes are cleared.
+            expect(attrs(transient)).toEqual({ariaHidden: null, inert: null});
+        });
+
         it('reconnects the previous layer when the topmost layer unmounts', async () => {
             const sibling = createBodyChild('sibling');
             const portalA = createBodyChild('portal-A');

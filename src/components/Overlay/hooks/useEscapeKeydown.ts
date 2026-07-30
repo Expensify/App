@@ -21,9 +21,7 @@ function useEscapeKeydown(callback: (event: KeyboardEvent) => void, options: Use
             if (event.key !== 'Escape') {
                 return;
             }
-            if (event.isComposing) {
-                return;
-            }
+            // IME policy lives in the consumer (DismissableLayer), which must still consume Esc mid-composition — don't swallow here.
             stableCallback(event);
         };
         // window capture so we beat react-native-key-command's document listener.

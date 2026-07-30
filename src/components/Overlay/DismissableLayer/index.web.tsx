@@ -25,27 +25,32 @@ function nodeContains(node: AnchorNode | null, target: Node): boolean {
     return host?.contains(target) ?? false;
 }
 
-function useLayerStack(kind: DismissableLayerKind, trackTopOfKind?: boolean): {isTop: boolean; isTopOfKind: boolean} {
+function useLayerEntry(kind: DismissableLayerKind): DismissableLayerEntry {
     const [entry] = useState<DismissableLayerEntry>(() => ({
         kind,
         mountId: nextLayerMountId(),
     }));
+    useEffect(() => pushDismissableLayer(entry), [entry]);
+    return entry;
+}
+
+function useIsTopLayer(entry: DismissableLayerEntry): boolean {
     const top = useSyncExternalStore(
         dismissableLayerStore.subscribe,
         () => selectTopLayer(dismissableLayerStore.getSnapshot()),
         () => selectTopLayer(dismissableLayerStore.getServerSnapshot()),
     );
-    // Only ModalLayer consumes isTopOfKind, so floating layers skip the per-kind O(stack) scan entirely.
+    return top === entry;
+}
+
+// Only ModalLayer needs the per-kind top, so floating layers never open this second subscription.
+function useIsTopOfKind(entry: DismissableLayerEntry): boolean {
     const topOfKind = useSyncExternalStore(
         dismissableLayerStore.subscribe,
-        () => (trackTopOfKind ? selectTopLayer(dismissableLayerStore.getSnapshot(), kind) : null),
-        () => (trackTopOfKind ? selectTopLayer(dismissableLayerStore.getServerSnapshot(), kind) : null),
+        () => selectTopLayer(dismissableLayerStore.getSnapshot(), entry.kind),
+        () => selectTopLayer(dismissableLayerStore.getServerSnapshot(), entry.kind),
     );
-    useEffect(() => pushDismissableLayer(entry), [entry]);
-    return {
-        isTop: top === entry,
-        isTopOfKind: trackTopOfKind === true && topOfKind === entry,
-    };
+    return topOfKind === entry;
 }
 
 function useDismissableLayerWorker(
@@ -74,9 +79,13 @@ function useDismissableLayerWorker(
                     error: String(error),
                 });
             }
-            // Topmost layer always consumes Esc — stops ancestors from reacting.
-            event.preventDefault();
+            // Topmost layer always halts propagation so background Esc shortcuts can't fire — even mid-composition.
             event.stopPropagation();
+            // Mid-composition Esc cancels the IME (don't preventDefault) and must not dismiss.
+            if (event.isComposing) {
+                return;
+            }
+            event.preventDefault();
             if (consumerVetoed || escapeBehavior === 'ignore') {
                 return;
             }
@@ -143,7 +152,7 @@ function LayerHost({containerRef, portalContextValue, children}: {containerRef: 
 }
 
 function DismissableLayer(props: DismissableLayerProps) {
-    const {isTop} = useLayerStack('floating');
+    const isTop = useIsTopLayer(useLayerEntry('floating'));
     const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {isEscapeActive: isTop, isPointerOutsideActive: isTop});
     return (
         <LayerHost
@@ -156,7 +165,9 @@ function DismissableLayer(props: DismissableLayerProps) {
 }
 
 function ModalLayer(props: DismissableLayerProps) {
-    const {isTop, isTopOfKind} = useLayerStack('modal', true);
+    const entry = useLayerEntry('modal');
+    const isTop = useIsTopLayer(entry);
+    const isTopOfKind = useIsTopOfKind(entry);
     const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {isEscapeActive: isTop, isPointerOutsideActive: false});
     useBodyScrollLock(isTopOfKind);
     useAriaHideSiblings(containerRef, isTopOfKind);
@@ -171,9 +182,8 @@ function ModalLayer(props: DismissableLayerProps) {
 }
 
 function FloatingLayer(props: DismissableLayerProps) {
-    const {isTop} = useLayerStack('floating');
-    // Gate on stack z-order only — a covering v2 modal has a higher mountId so this layer is already
-    // not-top; modal-cover *closing* is a consumer concern (Popover/PopoverMenu v2), not this gate.
+    const isTop = useIsTopLayer(useLayerEntry('floating'));
+    // Gate on stack z-order only — a covering v2 modal has a higher mountId, so cover-close is a consumer concern (Popover/PopoverMenu v2), not this gate.
     const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {
         isEscapeActive: isTop,
         isPointerOutsideActive: isTop,

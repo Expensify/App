@@ -1,3 +1,5 @@
+import createArrayStore from './createArrayStore';
+
 type EscapeBehavior = 'dismiss' | 'ignore';
 
 type DismissableLayerKind = 'modal' | 'floating';
@@ -17,39 +19,12 @@ function nextLayerMountId(): number {
     return id;
 }
 
-const EMPTY_SNAPSHOT: readonly DismissableLayerEntry[] = Object.freeze([]);
-let snapshot: readonly DismissableLayerEntry[] = EMPTY_SNAPSHOT;
-const listeners = new Set<() => void>();
-
-function getSnapshot(): readonly DismissableLayerEntry[] {
-    return snapshot;
-}
-
-function getServerSnapshot(): readonly DismissableLayerEntry[] {
-    return EMPTY_SNAPSHOT;
-}
-
-function subscribe(listener: () => void): () => void {
-    listeners.add(listener);
-    return () => {
-        listeners.delete(listener);
-    };
-}
-
-function setSnapshot(next: readonly DismissableLayerEntry[]): void {
-    if (Object.is(next, snapshot)) {
-        return;
-    }
-    snapshot = next;
-    for (const listener of listeners) {
-        listener();
-    }
-}
+const {getSnapshot, getServerSnapshot, subscribe, setSnapshot} = createArrayStore<DismissableLayerEntry>();
 
 function pushDismissableLayer(entry: DismissableLayerEntry): () => void {
-    setSnapshot([...snapshot, entry]);
+    setSnapshot([...getSnapshot(), entry]);
     return () => {
-        const current = snapshot;
+        const current = getSnapshot();
         const next = current.filter((existing) => existing !== entry);
         setSnapshot(next.length === current.length ? current : next);
     };
