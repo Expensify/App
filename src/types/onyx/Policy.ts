@@ -3270,4 +3270,6 @@ export type {
     DualEntryVendor,
     DualEntryAccount,
     DualEntryExport,
+    DualEntryAutoSync,
+    DualEntrySync,
 };
