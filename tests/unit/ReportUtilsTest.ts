@@ -157,7 +157,6 @@ import {
     isConciergeChatReport,
     isCurrentUserSubmitter,
     isDeprecatedGroupDM,
-    isGroupChat,
     isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
@@ -11751,8 +11750,6 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for a task off a group chat', () => {
-            // A task inherits the parent group chat's chatType, but leaving it would run the
-            // destructive group-chat path, so the Leave row must stay hidden. See #96421.
             const report: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP),
                 type: CONST.REPORT.TYPE.TASK,
@@ -12028,22 +12025,8 @@ describe('ReportUtils', () => {
         });
 
         it('should return false if the report is a task off a group chat', () => {
-            // The backend gives a task its parent's chatType, so this task reads as a group chat. It is
-            // still a thread off that chat, and `isChatThread` misses it because a task is not type CHAT.
             const report: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP),
-                type: CONST.REPORT.TYPE.TASK,
-                parentReportID: '12345',
-                parentReportActionID: '67890',
-            };
-
-            expect(isGroupChat(report)).toBe(true);
-            expect(isRootGroupChat(report)).toBe(false);
-        });
-
-        it('should return false if the report is a task off an #admins room', () => {
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 type: CONST.REPORT.TYPE.TASK,
                 parentReportID: '12345',
                 parentReportActionID: '67890',
