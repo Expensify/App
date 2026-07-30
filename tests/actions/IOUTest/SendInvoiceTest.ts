@@ -381,7 +381,7 @@ describe('actions/SendInvoice', () => {
             const invoiceRoomLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`);
 
             expect(invoiceReportLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
-            expect(invoiceRoomLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
+            expect(invoiceRoomLoadingState).toBeUndefined();
         });
 
         describe('delegateAccountID forwarding', () => {
