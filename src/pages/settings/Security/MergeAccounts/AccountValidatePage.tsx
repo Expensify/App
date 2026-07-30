@@ -195,7 +195,7 @@ function AccountValidatePage() {
                     shouldSkipInitialValidation
                     clearError={() => clearMergeWithValidateCode()}
                     validateError={validateCodeError}
-                    hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
+                    hasValidateCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
                     submitButtonText={translate('mergeAccountsPage.mergeAccount')}
                     isLoading={mergeWithValidateCode?.isLoading}
                 />
