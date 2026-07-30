@@ -395,6 +395,9 @@ function setupGlobalFetchMock(): MockFetch {
 }
 
 function getFetchMockCalls(commandName: ApiCommand) {
+    if (!jest.isMockFunction(global.fetch)) {
+        throw new Error('Expected global.fetch to be a Jest mock function.');
+    }
     return jest.mocked(global.fetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
 }
 

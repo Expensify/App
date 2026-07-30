@@ -22,7 +22,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-import type {NavigationState} from '@react-navigation/routers';
+import type {NavigationState} from '@react-navigation/native';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';

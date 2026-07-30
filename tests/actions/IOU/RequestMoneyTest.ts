@@ -51,7 +51,7 @@ import {
     formatPhoneNumber,
     getGlobalFetchMock,
     getOnyxData,
-    getRequiredOnyxUpdate,
+    getRequiredOnyxUpdates,
     getRequiredWriteCall,
     setPersonalDetails,
     signInWithTestUser,
@@ -2680,8 +2680,9 @@ describe('actions/IOU', () => {
             expect(writeSpy).toHaveBeenCalledTimes(1);
             const writeCalls: unknown = writeSpy.mock.calls;
             const [, , requestData] = getRequiredWriteCall(writeCalls);
+            const optimisticData = getRequiredOnyxUpdates(requestData, 'optimisticData');
             const mainSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`;
-            expect(getRequiredOnyxUpdate(requestData, 'optimisticData', mainSnapshotKey, Onyx.METHOD.MERGE)).toBeTruthy();
+            expect(optimisticData).toEqual(expect.arrayContaining([expect.objectContaining({key: mainSnapshotKey})]));
 
             const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
             newFlatFilters.push({
@@ -2701,7 +2702,7 @@ describe('actions/IOU', () => {
                 throw new Error('Expected grouped transactions query JSON to be defined');
             }
             const groupedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupedTransactionsQueryJSON.hash}`;
-            expect(getRequiredOnyxUpdate(requestData, 'optimisticData', groupedSnapshotKey, Onyx.METHOD.MERGE)).toBeTruthy();
+            expect(optimisticData).toEqual(expect.arrayContaining([expect.objectContaining({key: groupedSnapshotKey})]));
 
             getCurrentSearchQueryJSONSpy.mockRestore();
         });
