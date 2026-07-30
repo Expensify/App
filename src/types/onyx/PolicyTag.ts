@@ -61,4 +61,7 @@ type PolicyTagList = {
 /** Record of policy tag lists, index by the name of the tag list */
 type PolicyTagLists = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyTagList>>;
 
-export type {PolicyTag, PolicyTags, PolicyTagLists};
+/** Record of policy tag lists, indexed by policyID */
+type ParticipantsPolicyTags = Record<string, PolicyTagLists>;
+
+export type {PolicyTag, PolicyTags, PolicyTagLists, ParticipantsPolicyTags};

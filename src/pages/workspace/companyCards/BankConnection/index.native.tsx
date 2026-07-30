@@ -120,17 +120,26 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         }
 
         // Handle assign card flow
-        if (feed && !isFeedExpired) {
-            if (isFeedConnectionBroken) {
-                updateBrokenConnection();
-                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        if (feed) {
+            if (!isFeedExpired) {
+                if (isFeedConnectionBroken) {
+                    updateBrokenConnection();
+                    Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+                    return;
+                }
+                setAssignCardStepAndData({
+                    currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: false,
+                });
                 return;
             }
-            setAssignCardStepAndData({
-                currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                isEditing: false,
-            });
-            return;
+            // Repairing an existing Plaid feed: PlaidConnectionStep already fired importPlaidAccounts with the
+            // prefixed feed + domainAccountID. Don't queue a second import from the bare institutionId here (it would
+            // miss the `plaid.` prefix and take the server's create-new-feed branch, duplicating the feed). This
+            // mirrors the web effect, which returns for a still-expired Plaid feed.
+            if (isPlaid) {
+                return;
+            }
         }
 
         // Handle add new card flow

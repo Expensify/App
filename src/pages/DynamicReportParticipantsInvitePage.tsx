@@ -115,7 +115,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         toggleSelection(option);
     };
 
-    const reportName = getGroupChatName(formatPhoneNumber, undefined, true, report);
+    const reportName = getGroupChatName(formatPhoneNumber, translate, undefined, true, report);
 
     const goBack = () => {
         Navigation.goBack(backPath);
