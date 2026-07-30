@@ -827,7 +827,6 @@ describe('Session', () => {
 
     describe('resendValidateCode', () => {
         test('sends the login argument as the email param, independent of the CREDENTIALS Onyx cache', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // CREDENTIALS is empty (cleared in beforeEach), so a correct email here proves the value comes from the param, not the module cache.
@@ -842,7 +841,6 @@ describe('Session', () => {
         });
 
         test('forwards the reasonCode from reasonParams to the API call', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             SessionUtil.resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}, 'passed-in@expensify.com');
@@ -854,7 +852,6 @@ describe('Session', () => {
         });
 
         test('sends an undefined email when the login argument is undefined', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             SessionUtil.resendValidateCode({reasonCode: null}, undefined);
@@ -866,7 +863,6 @@ describe('Session', () => {
         });
 
         test('optimistically sets loadingForm to RESEND_VALIDATE_CODE_FORM', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             SessionUtil.resendValidateCode({reasonCode: null}, 'passed-in@expensify.com');
@@ -886,7 +882,6 @@ describe('Session', () => {
 
     describe('signUpUser', () => {
         test('sends the login argument as the email param, independent of the CREDENTIALS Onyx cache', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // CREDENTIALS is empty (cleared in beforeEach), so a correct email here proves the value comes from the param, not the module cache.
@@ -901,7 +896,6 @@ describe('Session', () => {
         });
 
         test('forwards the preferredLocale to the API call', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             SessionUtil.signUpUser('new-user@expensify.com', CONST.LOCALES.EN);
@@ -913,7 +907,6 @@ describe('Session', () => {
         });
 
         test('includes hasSMSMarketingConsent when it is provided', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             SessionUtil.signUpUser('new-user@expensify.com', undefined, true);
@@ -925,7 +918,6 @@ describe('Session', () => {
         });
 
         test('omits hasSMSMarketingConsent when it is undefined', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             SessionUtil.signUpUser('new-user@expensify.com', undefined);
