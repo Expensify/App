@@ -9,6 +9,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
+import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from '@libs/AgentRuleChangeLogUtils';
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -5446,6 +5447,78 @@ describe('OptionsListUtils', () => {
             });
             expect(lastMessage).toBe(getCurrencyDefaultTaxUpdateMessage(translateLocal, action));
         });
+        it('ADD_AGENT_RULE action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {ruleTitle: 'Receipts required', prompt: 'Flag any expense over $25 that is missing a receipt'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getAddAgentRuleMessage(translateLocal, action));
+        });
+        it('UPDATE_AGENT_RULE action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {ruleTitle: 'Receipts required', prompt: 'Reject any expense that includes alcohol'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getUpdateAgentRuleMessage(translateLocal, action));
+        });
+        it('DELETE_AGENT_RULE action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {ruleTitle: 'Receipts required'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getDeleteAgentRuleMessage(translateLocal, action));
+        });
         it('UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX action', async () => {
             const report: Report = createRandomReport(0, undefined);
             const action: ReportAction = {
@@ -6550,7 +6623,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined, translateLocal);
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should return an option with isSelfDM and alternateText set
             expect(result.isSelfDM).toBe(true);
@@ -6570,7 +6643,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined, translateLocal);
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should return an option with invoice room text and alternateText
             expect(result.isInvoiceRoom).toBe(true);
@@ -6592,7 +6665,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, unknownUserDetails, personalDetails, undefined, undefined, translateLocal);
+            const result = getReportDisplayOption(report, unknownUserDetails, personalDetails, undefined, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should return an option with unknownUserDetails data
             expect(result.text).toBe('Unknown User');
@@ -6613,7 +6686,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined, translateLocal);
+            const result = getReportDisplayOption(report, undefined, personalDetails, undefined, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should return an option with workspace name
             expect(result.text).toBe(POLICY.name);
@@ -6642,7 +6715,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getReportDisplayOption with custom personalDetails
-            const result = getReportDisplayOption(report, undefined, customPersonalDetails, undefined, undefined, translateLocal);
+            const result = getReportDisplayOption(report, undefined, customPersonalDetails, undefined, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should use the custom personalDetails parameter
             expect(result).toBeDefined();
@@ -6659,7 +6732,7 @@ describe('OptionsListUtils', () => {
             const emptyPersonalDetails: PersonalDetailsList = {};
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, emptyPersonalDetails, undefined, undefined, translateLocal);
+            const result = getReportDisplayOption(report, undefined, emptyPersonalDetails, undefined, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should not throw and return a valid option
             expect(result).toBeDefined();
@@ -6671,7 +6744,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption with undefined report
-            const result = getReportDisplayOption(undefined, undefined, personalDetails, undefined, undefined, translateLocal);
+            const result = getReportDisplayOption(undefined, undefined, personalDetails, undefined, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             // Then it should return a valid option (createOption handles undefined)
             expect(result).toBeDefined();
@@ -7111,7 +7184,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, translateLocal);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -7134,7 +7207,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, translateLocal);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -7154,7 +7227,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, undefined, translateLocal);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -7178,7 +7251,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, translateLocal);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -7202,7 +7275,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, translateLocal);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, !!reportNameValuePair?.private_isArchived, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -7621,7 +7694,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, translateLocal);
+            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Test Workspace Policy');
@@ -7648,7 +7721,7 @@ describe('OptionsListUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'workspace.common.workspace' ? 'WorkspaceMarker' : translateLocal(path, ...parameters));
 
             const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: false};
-            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, translateWithMarker);
+            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, translateWithMarker, CURRENT_USER_ACCOUNT_ID);
 
             // The subtitle resolves to the marker, proving the option builder used the injected translate (not translateLocal)
             expect(option.alternateText).toBe('WorkspaceMarker');
@@ -7711,7 +7784,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, translateLocal);
+            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Team Workspace');
@@ -7757,7 +7830,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Should not throw when personalDetails is empty
-            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, translateLocal);
+            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Workspace Without Details');
@@ -7803,7 +7876,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Should not throw when personalDetails is undefined
-            const option = getPolicyExpenseReportOption(participant, undefined, undefined, report, undefined, translateLocal);
+            const option = getPolicyExpenseReportOption(participant, undefined, undefined, report, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Workspace Undefined Details');
@@ -7857,15 +7930,54 @@ describe('OptionsListUtils', () => {
                 selected: false,
             };
 
-            const optionSelected = getPolicyExpenseReportOption(participantSelected, undefined, {}, report, undefined, translateLocal);
+            const optionSelected = getPolicyExpenseReportOption(participantSelected, undefined, {}, report, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             // eslint-disable-next-line rulesdir/no-negated-variables
-            const optionNotSelected = getPolicyExpenseReportOption(participantNotSelected, undefined, {}, report, undefined, translateLocal);
+            const optionNotSelected = getPolicyExpenseReportOption(participantNotSelected, undefined, {}, report, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(optionSelected.isSelected).toBe(true);
             expect(optionSelected.selected).toBe(true);
             expect(optionNotSelected.isSelected).toBe(false);
             expect(optionNotSelected.selected).toBe(false);
+        });
+
+        it('should return a valid option when called with different currentUserAccountID values', async () => {
+            const reportID = '210';
+            const testPolicyID = 'policy210';
+            const ownerAccountID = 1001;
+
+            const report: Report = {
+                reportID,
+                reportName: 'Thread Test',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const testPersonalDetails = {
+                [ownerAccountID]: {
+                    accountID: ownerAccountID,
+                    displayName: 'Policy Owner',
+                    login: 'owner@test.com',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: true};
+
+            const optionWithCurrentUser = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
+            const optionWithDifferentUser = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, translateLocal, 9999);
+
+            expect(optionWithCurrentUser).toBeDefined();
+            expect(optionWithDifferentUser).toBeDefined();
+            expect(optionWithCurrentUser.reportID).toBe(reportID);
+            expect(optionWithDifferentUser.reportID).toBe(reportID);
         });
     });
 
@@ -7918,7 +8030,7 @@ describe('OptionsListUtils', () => {
                 selected: false,
             };
 
-            const option = getPolicyExpenseReportOption(participant, true, testPersonalDetails, report, undefined, translateLocal);
+            const option = getPolicyExpenseReportOption(participant, true, testPersonalDetails, report, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.private_isArchived).toBe(true);
@@ -7964,7 +8076,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, translateLocal);
+            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option?.private_isArchived).toBeUndefined();
@@ -8509,7 +8621,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getReportDisplayOption with chat report
-            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, undefined, translateLocal);
+            const option = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             // Then the option should be created successfully using the reports collection
             expect(option).toBeDefined();
@@ -8550,7 +8662,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getPolicyExpenseReportOption with report passed directly
-            const option = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, undefined, translateLocal);
+            const option = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, undefined, translateLocal, CURRENT_USER_ACCOUNT_ID);
 
             // Then the option should be created successfully
             expect(option).toBeDefined();
@@ -9026,7 +9138,7 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const result = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, POLICY, translateLocal);
+            const result = getReportDisplayOption(report, undefined, PERSONAL_DETAILS, undefined, POLICY, translateLocal, CURRENT_USER_ACCOUNT_ID);
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
         });
@@ -9055,7 +9167,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const result = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, POLICY, translateLocal);
+            const result = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, POLICY, translateLocal, CURRENT_USER_ACCOUNT_ID);
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
         });
