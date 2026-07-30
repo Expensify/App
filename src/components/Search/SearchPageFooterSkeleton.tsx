@@ -18,6 +18,7 @@ const TOTAL_BAR_WIDTH = 110;
 const BAR_GAP = 16;
 const TOTAL_BAR_OFFSET = COUNT_BAR_WIDTH + BAR_GAP;
 const SKELETON_WIDTH = TOTAL_BAR_OFFSET + TOTAL_BAR_WIDTH;
+const skeletonContainerStyle = {height: SKELETON_HEIGHT, width: SKELETON_WIDTH};
 
 type SearchPageFooterSkeletonProps = {
     /** Context describing why the skeleton is rendered, for telemetry */
@@ -30,7 +31,7 @@ function SearchPageFooterSkeleton({reasonAttributes}: SearchPageFooterSkeletonPr
     useSkeletonSpan('SearchPageFooterSkeleton', reasonAttributes);
 
     return (
-        <View style={[styles.overflowHidden, {height: SKELETON_HEIGHT, width: SKELETON_WIDTH}]}>
+        <View style={[styles.overflowHidden, skeletonContainerStyle]}>
             <SkeletonViewContentLoader
                 height={SKELETON_HEIGHT}
                 width={SKELETON_WIDTH}

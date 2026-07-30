@@ -38,7 +38,8 @@ type CurrencyPopupProps = {
 };
 
 /**
- * Searchable single-select currency picker popup, used by the Search footer's total-spend currency selector.
+ * Searchable single-select currency picker popup, used by the Search footer's total-spend currency selector
+ * and the Display filter's group-currency picker.
  */
 function CurrencyPopup({label, onBackButtonPress, onChange, closeOverlay, value, defaultValue, searchPlaceholder, shouldShowList, shouldUseFixedPopoverHeight}: CurrencyPopupProps) {
     const {currencyList} = useCurrencyListState();

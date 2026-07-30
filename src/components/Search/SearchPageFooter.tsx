@@ -23,6 +23,8 @@ import CurrencyPopup from './FilterDropdowns/CurrencyPopup';
 import FilterPopupButton from './FilterDropdowns/FilterPopupButton';
 import SearchPageFooterSkeleton from './SearchPageFooterSkeleton';
 
+const noop = () => {};
+
 type SearchPageFooterProps = {
     /** Number of expenses represented by the footer total */
     count: number | undefined;
@@ -60,7 +62,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
 
     // The SearchList registers a global Enter shortcut that opens the focused expense. While the total button is focused,
     // claim Enter at top priority without bubbling so Enter only opens the currency popover instead of also opening the expense.
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, () => {}, {isActive: isTotalButtonFocused, shouldBubble: false, shouldPreventDefault: false});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, noop, {isActive: isTotalButtonFocused, shouldBubble: false, shouldPreventDefault: false});
 
     const handleCurrencyChange = (item: SingleSelectItem<string> | undefined) => {
         if (isOffline) {
